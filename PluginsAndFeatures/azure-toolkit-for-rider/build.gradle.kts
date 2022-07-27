@@ -1,27 +1,62 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.7.10"
+    kotlin("jvm") version "1.6.10"
     id("com.jetbrains.rdgen") version "2022.1.2"
     id("org.jetbrains.intellij") version "1.7.0"
     id("me.filippov.gradle.jvm.wrapper") version "0.11.0"
+    id("io.freefair.aspectj.post-compile-weaving") version "6.0.0-m2"
+    id("io.spring.dependency-management") version "1.0.11.RELEASE"
 }
 
 group = "com.jetbrains"
 version = "1.0-SNAPSHOT"
 
-repositories {
-    mavenCentral()
-    maven("https://cache-redirector.jetbrains.com/repo1.maven.org/maven2")
-    maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
-}
+val azureToolkitVersion = "0.24.0-SNAPSHOT"
+val azureToolkitUtilsVersion = "3.68.0-SNAPSHOT"
 
-apply {
-    plugin("kotlin")
-}
+allprojects {
+    repositories {
+        mavenCentral()
+        mavenLocal()
+        maven("https://cache-redirector.jetbrains.com/repo1.maven.org/maven2")
+        maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
+    }
+    apply {
+        plugin("org.jetbrains.kotlin.jvm")
+        plugin("org.jetbrains.intellij")
+        plugin("io.freefair.aspectj.post-compile-weaving")
+        plugin("io.spring.dependency-management")
+    }
+    intellij {
+        version.set("2022.2-SNAPSHOT")
+        type.set("RD")
+        instrumentCode.set(false)
+        downloadSources.set(false)
+    }
+    dependencyManagement {
+        imports {
+            mavenBom("com.microsoft.azure:azure-toolkit-libs:$azureToolkitVersion")
+            mavenBom("com.microsoft.azure:azure-toolkit-ide-libs:$azureToolkitVersion")
+            mavenBom("com.microsoft.azuretools:utils:$azureToolkitUtilsVersion")
+        }
+    }
+    dependencies {
+        compileOnly("org.projectlombok:lombok")
+        annotationProcessor("org.projectlombok:lombok")
+        implementation("com.microsoft.azure:azure-toolkit-common-lib")
+        aspect("com.microsoft.azure:azure-toolkit-common-lib")
+        compileOnly("org.jetbrains:annotations")
+    }
 
-intellij {
-    version.set("2022.2-SNAPSHOT")
-    type.set("RD")
-    instrumentCode.set(false)
+    tasks {
+        compileJava {
+            sourceCompatibility = "11"
+            targetCompatibility = "11"
+        }
+
+        compileKotlin {
+            kotlinOptions.jvmTarget = "11"
+        }
+    }
 }
 
 val resharperPluginPath = projectDir.resolve("ReSharper.Azure")
@@ -51,8 +86,10 @@ tasks {
             .resolve("Azure.Daemon").resolve("Protocol")
         val ktGeneratedOutput = projectDir.resolve("src").resolve("main").resolve("kotlin")
             .resolve("org").resolve("jetbrains").resolve("protocol")
-        sources(projectDir.resolve("protocol").resolve("src")
-            .resolve("main").resolve("kotlin"))
+        sources(
+            projectDir.resolve("protocol").resolve("src")
+                .resolve("main").resolve("kotlin")
+        )
         packages = "model.daemon"
 
         generator {
@@ -72,14 +109,7 @@ tasks {
         }
     }
 
-    compileJava {
-        sourceCompatibility = "11"
-        targetCompatibility = "11"
-    }
-
     compileKotlin {
-        kotlinOptions.jvmTarget = "11"
         dependsOn(rdgen)
     }
 }
-
