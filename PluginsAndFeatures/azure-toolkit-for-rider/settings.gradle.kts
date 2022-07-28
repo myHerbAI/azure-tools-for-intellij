@@ -22,3 +22,5 @@ pluginManagement {
 include("protocol")
 include(":azure-intellij-plugin-lib")
 project(":azure-intellij-plugin-lib").projectDir = file("../azure-toolkit-for-intellij/azure-intellij-plugin-lib")
+include(":azure-intellij-plugin-common")
+project(":azure-intellij-plugin-common").projectDir = file("../azure-toolkit-for-intellij/azure-intellij-plugin-common")

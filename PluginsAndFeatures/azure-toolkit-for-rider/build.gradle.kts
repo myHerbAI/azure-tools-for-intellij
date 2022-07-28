@@ -63,6 +63,12 @@ val resharperPluginPath = projectDir.resolve("ReSharper.Azure")
 val rdLibDirectory: () -> File = { file("${tasks.setupDependencies.get().idea.get().classes}/lib/rd") }
 extra["rdLibDirectory"] = rdLibDirectory
 
+
+dependencies {
+    implementation(project(":azure-intellij-plugin-common"))
+    implementation(project(":azure-intellij-plugin-lib"))
+}
+
 tasks {
     patchPluginXml {
         sinceBuild.set("222")

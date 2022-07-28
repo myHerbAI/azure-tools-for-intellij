@@ -174,6 +174,7 @@ dependencies {
     compile project(':azure-sdk-reference-book')
     compile project(':azure-intellij-resource-connector-lib')
     compile project(':azure-intellij-resource-connector-aad')
+    compile project(':azure-intellij-plugin-common')
     compile project(':azure-intellij-plugin-vm')
     compile project(':azure-intellij-plugin-springcloud')
     compile project(':azure-intellij-plugin-storage')
@@ -229,6 +230,7 @@ dependencies {
     testImplementation 'io.cucumber:cucumber-java:7.0.0'
     testImplementation 'io.cucumber:cucumber-junit:7.0.0'
     testImplementation 'org.assertj:assertj-core:3.19.0'
+    testImplementation 'com.microsoft.azure:azure-client-authentication:1.7.13'
     testCompile 'junit:junit'
     testCompile 'org.mockito:mockito-core'
 
