@@ -5,13 +5,16 @@
 
 package com.microsoft.azure.toolkit.intellij.vm.creation;
 
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.TextComponentAccessor;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.TitledSeparator;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
+import com.microsoft.azure.toolkit.intellij.common.AzureFormInputComponent;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.intellij.common.component.AzureFileInput;
 import com.microsoft.azure.toolkit.intellij.common.component.AzurePasswordFieldInput;
@@ -32,6 +35,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessageBundle;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -62,18 +66,27 @@ import java.awt.event.ItemEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.regex.Pattern;
 
 public class VMCreationDialog extends AzureDialog<VirtualMachineDraft> implements AzureForm<VirtualMachineDraft> {
     public static final String SSH_PUBLIC_KEY_DESCRIPTION = "<html> Provide an RSA public key file in the single-line format (starting with \"ssh-rsa\") or " +
         "the multi-line PEM format. <p/> You can generate SSH keys using ssh-keygen on Linux and OS X, or PuTTYGen on Windows. </html>";
-    public static final String SELECT_CERT_TITLE = "Select Cert for Your VM";
+    public static final String SELECT_CERT_TITLE = "Select SSH public key";
     private static final String VIRTUAL_MACHINE_CREATION_DIALOG_TITLE = "Create Virtual Machine";
+    private static final Pattern VM_USER_NAME_PATTERN  = Pattern.compile("^[A-Za-z-][A-Za-z0-9-_]*$");
+    private static final String[] INVALID_USERNAMES = new String[]{"administrator", "admin", "user", "user1", "test", "user2", "test1", "user3", "admin1", "1", "123", "a", "actuser", "adm", "admin2", "aspnet", "backup", "console", "david", "guest", "john", "owner", "root", "server", "sql", "support", "support_388945a0", "sys", "test2", "test3", "user4", "user5"};
+    private static final String INVALID_LENGTH_MESSAGE = "Invalid user name. The name must be between 1 and %d characters long.";
+    private static final String INVALID_ALPHANUMERIC_MESSAGE = "Invalid user name. The name may not start with a hyphen or number, contain only letters, numbers, hyphens, and underscores.";
+    private static final String INVALID_USERNAMES_MESSAGE = "Invalid user name. The name must not include reserved words";
     private JTabbedPane tabbedPane;
     private JPanel rootPane;
     private JPanel basicPane;
@@ -158,6 +171,10 @@ public class VMCreationDialog extends AzureDialog<VirtualMachineDraft> implement
         rdoPassword.addItemListener(e -> toggleAuthenticationType(false));
         rdoSshPublicKey.addItemListener(e -> toggleAuthenticationType(true));
         rdoSshPublicKey.setSelected(true);
+        final Path path = Paths.get(System.getProperty("user.home"), ".ssh", "id_rsa.pub");
+        if (Files.exists(path)) {
+            txtCertificate.setText(path.toString());
+        }
 
         final ButtonGroup securityGroup = new ButtonGroup();
         securityGroup.add(rdoNoneSecurityGroup);
@@ -187,8 +204,10 @@ public class VMCreationDialog extends AzureDialog<VirtualMachineDraft> implement
         cbResourceGroup.addItemListener(this::onResourceGroupChanged);
         cbVirtualNetwork.addItemListener(this::onNetworkChanged);
         cbImage.addItemListener(this::onImageChanged);
+        // initialize cert file select
+        final FileChooserDescriptor pub = FileChooserDescriptorFactory.createSingleFileDescriptor("pub");
         txtCertificate.addActionListener(new ComponentWithBrowseButton.BrowseFolderActionListener<>(SELECT_CERT_TITLE, SSH_PUBLIC_KEY_DESCRIPTION, txtCertificate,
-            project, FileChooserDescriptorFactory.createSingleLocalFileDescriptor(), TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT));
+            project, pub, TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT));
 
         unifyComponentsStyle();
     }
@@ -266,16 +285,16 @@ public class VMCreationDialog extends AzureDialog<VirtualMachineDraft> implement
 
     private List<JLabel> getLabels() {
         return Arrays.stream(this.getClass().getDeclaredFields())
-                .map(field -> {
-                    try {
-                        return field.get(this);
-                    } catch (final IllegalAccessException e) {
-                        return null;
-                    }
-                }).filter(Objects::nonNull)
-                .filter(value -> value instanceof JLabel)
-                .map(value -> (JLabel) value)
-                .collect(Collectors.toList());
+            .map(field -> {
+                try {
+                    return field.get(this);
+                } catch (final IllegalAccessException e) {
+                    return null;
+                }
+            }).filter(Objects::nonNull)
+            .filter(value -> value instanceof JLabel)
+            .map(value -> (JLabel) value)
+            .collect(Collectors.toList());
     }
 
     private void toggleAzureSpotInstance(boolean enableAzureSpotInstance) {
@@ -286,7 +305,7 @@ public class VMCreationDialog extends AzureDialog<VirtualMachineDraft> implement
         txtMaximumPrice.setVisible(enableAzureSpotInstance);
         txtMaximumPrice.setRequired(enableAzureSpotInstance);
         if (enableAzureSpotInstance) {
-            txtMaximumPrice.setValidator(this::validateMaximumPricing);
+            txtMaximumPrice.addValidator(this::validateMaximumPricing);
         }
         txtMaximumPrice.validateValueAsync(); // trigger revalidate after reset validator
         txtMaximumPrice.onDocumentChanged(); // trigger revalidate after reset validator
@@ -313,10 +332,11 @@ public class VMCreationDialog extends AzureDialog<VirtualMachineDraft> implement
         txtCertificate.setRequired(isSSH);
 
         passwordFieldInput.setRequired(!isSSH);
-        if (!isSSH) {
-            passwordFieldInput.setValidator(this::validatePassword);
-        }
         confirmPasswordFieldInput.setRequired(!isSSH);
+        if (!isSSH) {
+            passwordFieldInput.addValidator(this::validatePassword);
+            confirmPasswordFieldInput.addValidator(this::validateConfirmPassword);
+        }
     }
 
     private void createUIComponents() {
@@ -337,10 +357,11 @@ public class VMCreationDialog extends AzureDialog<VirtualMachineDraft> implement
         this.cbStorageAccount = new AzureStorageAccountComboBox();
         this.txtUserName = new AzureTextInput();
         this.txtUserName.setRequired(true);
+        this.txtUserName.addValidator(this::validateUserName);
 
         this.txtVisualMachineName = new AzureTextInput();
         this.txtVisualMachineName.setRequired(true);
-        this.txtVisualMachineName.setValidator(this::validateVirtualMachineName);
+        this.txtVisualMachineName.addValidator(this::validateVirtualMachineName);
 
         this.txtMaximumPrice = new AzureTextInput();
 
@@ -349,7 +370,19 @@ public class VMCreationDialog extends AzureDialog<VirtualMachineDraft> implement
         this.txtConfirmPassword = new JPasswordField();
         this.confirmPasswordFieldInput = new AzurePasswordFieldInput(txtConfirmPassword);
 
-        this.cbSubscription.refreshItems();
+        this.cbSubscription.reloadItems();
+    }
+
+    @Override
+    protected List<ValidationInfo> doValidateAll() {
+        final List<ValidationInfo> res = super.doValidateAll();
+        if (rdoPassword.isSelected()) {
+            final AzureValidationInfo info = this.validateConfirmPassword();
+            if (info.getType() != AzureValidationInfo.Type.SUCCESS) {
+                res.add(AzureFormInputComponent.toIntellijValidationInfo(info));
+            }
+        }
+        return res;
     }
 
     @Override
@@ -488,7 +521,7 @@ public class VMCreationDialog extends AzureDialog<VirtualMachineDraft> implement
     @Override
     public List<AzureFormInput<?>> getInputs() {
         return Arrays.asList(txtUserName, txtVisualMachineName, cbSubscription, cbImage, cbSize, cbAvailabilityOptions, cbVirtualNetwork, cbSubnet, cbSecurityGroup, cbPublicIp, cbStorageAccount,
-                passwordFieldInput, confirmPasswordFieldInput, txtCertificate, txtMaximumPrice);
+            passwordFieldInput, confirmPasswordFieldInput, txtCertificate, txtMaximumPrice);
     }
 
     @Override
@@ -508,13 +541,40 @@ public class VMCreationDialog extends AzureDialog<VirtualMachineDraft> implement
         final String name = txtVisualMachineName.getText();
         if (StringUtils.isEmpty(name) || name.length() > 64) {
             return AzureValidationInfo.error("Invalid virtual machine name. The name must be between 1 and 64 " +
-                    "characters long.", txtVisualMachineName);
+                "characters long.", txtVisualMachineName);
         }
         if (!name.matches("^[A-Za-z][A-Za-z0-9-]*$") || name.endsWith("-")) {
             return AzureValidationInfo.error("Invalid virtual machine name. The name must start with a letter, " +
-                    "contain only letters, numbers, and hyphens, and end with a letter or number.", txtVisualMachineName);
+                "contain only letters, numbers, and hyphens, and end with a letter or number.", txtVisualMachineName);
+        }
+        final Subscription subscription = cbSubscription.getItem();
+        final ResourceGroup resourceGroup = cbResourceGroup.getItem();
+        if (Objects.nonNull(subscription) && Objects.nonNull(resourceGroup)
+                && Objects.nonNull(Azure.az(AzureCompute.class).forSubscription(subscription.getId()).getVirtualMachineModule().get(name, resourceGroup.getName()))) {
+            return AzureValidationInfo.error(AzureMessageBundle.message("vm.name.validate.exist", name).toString(), txtVisualMachineName);
         }
         return AzureValidationInfo.success(txtVisualMachineName);
+    }
+
+    private AzureValidationInfo validateUserName() {
+        final String name = txtUserName.getText();
+        // validate length
+        int nameMaxLen = 64;
+        if (cbImage.getSelectedItem() instanceof VmImage) {
+            nameMaxLen = ((VmImage) cbImage.getSelectedItem()).getOperatingSystem() == OperatingSystem.Windows ? 20 : 64;
+        }
+        if (StringUtils.isEmpty(name) || name.length() > nameMaxLen) {
+            return AzureValidationInfo.error(String.format(INVALID_LENGTH_MESSAGE, nameMaxLen), txtUserName);
+        }
+        // validate special character
+        if (!VM_USER_NAME_PATTERN.matcher(name).matches()) {
+            return AzureValidationInfo.error(INVALID_ALPHANUMERIC_MESSAGE, txtUserName);
+        }
+        // validate reserved words
+        if (StringUtils.equalsAnyIgnoreCase(name, INVALID_USERNAMES)) {
+            return AzureValidationInfo.error(INVALID_USERNAMES_MESSAGE, txtUserName);
+        }
+        return AzureValidationInfo.success(txtUserName);
     }
 
     private AzureValidationInfo validateMaximumPricing() {
@@ -529,11 +589,20 @@ public class VMCreationDialog extends AzureDialog<VirtualMachineDraft> implement
     private AzureValidationInfo validatePassword() {
         final String password = passwordFieldInput.getValue();
         if (!password.matches("(?=^.{8,72}$)((?=.*\\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[^A-Za-z0-9])" +
-                "(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*")) {
+            "(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*")) {
             return AzureValidationInfo.error("The password does not conform to complexity requirements. \n" +
-                    "It should be at least eight characters long and contain a mixture of upper case, lower case, digits and symbols.", passwordFieldInput);
+                "It should be at least eight characters long and contain a mixture of upper case, lower case, digits and symbols.", passwordFieldInput);
         }
         return AzureValidationInfo.success(passwordFieldInput);
+    }
+
+    private AzureValidationInfo validateConfirmPassword() {
+        final String password = passwordFieldInput.getValue();
+        final String confirmPassword = confirmPasswordFieldInput.getValue();
+        if (!StringUtils.equals(confirmPassword, password)) {
+            return AzureValidationInfo.error("Password and confirm password must match.", confirmPasswordFieldInput);
+        }
+        return AzureValidationInfo.success(confirmPasswordFieldInput);
     }
 
     enum SecurityGroupPolicy {

@@ -6,12 +6,15 @@
 package com.microsoft.azure.toolkit.intellij.database.component;
 
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabaseServer;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Objects;
 
 public class ServerComboBox<T extends IDatabaseServer<?>> extends AzureComboBox<T> {
@@ -28,7 +31,16 @@ public class ServerComboBox<T extends IDatabaseServer<?>> extends AzureComboBox<
             this.clear();
             return;
         }
-        this.refreshItems();
+        this.reloadItems();
+    }
+
+    @Nullable
+    @Override
+    protected T doGetDefaultValue() {
+        final List<T> items = this.getItems();
+        //noinspection unchecked
+        return (T) CacheManager.getUsageHistory(items.get(0).getClass())
+            .peek(v -> Objects.isNull(subscription) || Objects.equals(subscription, v.getSubscription()));
     }
 
     @Override

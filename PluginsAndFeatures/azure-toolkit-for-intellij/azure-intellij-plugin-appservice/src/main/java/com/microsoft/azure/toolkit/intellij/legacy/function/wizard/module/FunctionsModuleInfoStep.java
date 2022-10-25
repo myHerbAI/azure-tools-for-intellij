@@ -122,7 +122,9 @@ public class FunctionsModuleInfoStep extends ModuleWizardStep implements Disposa
 
             refreshProjectComboBox();
 
-            panel.add(ScrollPaneFactory.createScrollPane(formBuilder.getPanel(), true), "North");
+            final JPanel content = formBuilder.getPanel();
+            content.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            panel.add(ScrollPaneFactory.createScrollPane(content, true), "North");
         } catch (final RuntimeException e) {
             log.error(e.getLocalizedMessage(), e);
             throw e;
@@ -158,7 +160,7 @@ public class FunctionsModuleInfoStep extends ModuleWizardStep implements Disposa
     }
 
     private void listGradleProjects(final Project project) {
-        final List<ExternalProjectPojo> externalProjects = GradleUtils.listGradleProjects(project);
+        final List<ExternalProjectPojo> externalProjects = GradleUtils.listGradleRootProjectPojo(project);
         Collections.sort(externalProjects, (project1, project2) -> StringUtils.compare(project1.getName(), project2.getName()));
         final CollectionComboBoxModel<ExternalProjectPojo> gradleModel = new CollectionComboBoxModel<>(externalProjects);
         parentComboBox.setModel(gradleModel);
@@ -186,6 +188,9 @@ public class FunctionsModuleInfoStep extends ModuleWizardStep implements Disposa
         validateProperties("Artifact id", artifactIdField.getText(), ValidationUtils::isValidGroupIdArtifactId);
         validateProperties("Version", versionField.getText(), ValidationUtils::isValidVersion);
         validateProperties("Package name", packageNameField.getText(), ValidationUtils::isValidJavaPackageName);
+        if (!context.isCreatingNewProject() && Objects.isNull(parentComboBox.getItem())) {
+            throw new ConfigurationException("Parent module must be specified");
+        }
         validateDuplicatedArtifacts();
         return true;
     }

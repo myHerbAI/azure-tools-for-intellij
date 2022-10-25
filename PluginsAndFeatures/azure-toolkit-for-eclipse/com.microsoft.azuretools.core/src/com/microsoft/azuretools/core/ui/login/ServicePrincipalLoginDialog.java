@@ -13,7 +13,8 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azuretools.utils.JsonUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -255,7 +256,7 @@ public class ServicePrincipalLoginDialog extends AzureDialog<AuthConfiguration> 
                 }
                 map.put("appId", newData.getClient());
                 map.put("tenant", newData.getTenant());
-                String text = JsonUtils.getGson().toJson(map);
+                String text = JsonUtils.toJson(map);
                 this.txtJson.setText(text);
             } finally {
                 intermediateState.set(false);

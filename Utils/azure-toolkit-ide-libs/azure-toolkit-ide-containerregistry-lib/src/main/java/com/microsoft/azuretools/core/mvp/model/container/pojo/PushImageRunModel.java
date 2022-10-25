@@ -9,6 +9,7 @@ import com.microsoft.azuretools.core.mvp.model.webapp.PrivateRegistryImageSettin
 
 public class PushImageRunModel {
     private PrivateRegistryImageSetting privateRegistryImageSetting = new PrivateRegistryImageSetting();
+    private String containerRegistryId;
     private String targetPath;
     private String targetName;
     private String dockerFilePath;
@@ -43,5 +44,13 @@ public class PushImageRunModel {
 
     public void setDockerFilePath(String dockerFilePath) {
         this.dockerFilePath = dockerFilePath;
+    }
+
+    public void setContainerRegistryId(String containerRegistryId) {
+        this.containerRegistryId = containerRegistryId;
+    }
+
+    public String getContainerRegistryId() {
+        return containerRegistryId;
     }
 }

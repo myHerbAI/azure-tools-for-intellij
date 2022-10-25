@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsightDraft;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
@@ -51,6 +52,8 @@ public class CreateApplicationInsightsAction {
             final ResourceGroup newResourceGroup = Azure.az(AzureResources.class)
                     .groups(subscriptionId).createResourceGroupIfNotExist(draft.getResourceGroupName(), draft.getRegion());
         }
-        return draft.commit();
+        final ApplicationInsight resource = draft.commit();
+        CacheManager.getUsageHistory(ApplicationInsight.class).push(draft);
+        return resource;
     }
 }

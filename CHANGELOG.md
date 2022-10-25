@@ -3,6 +3,10 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.69.0](#3690)
+  - [3.68.1](#3681)
+  - [3.68.0](#3680)
+  - [3.67.0](#3670)
   - [3.66.0](#3660)
   - [3.65.0](#3650)
   - [3.64.0](#3640)
@@ -84,6 +88,93 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.8](#308)
   - [3.0.7](#307)
   - [3.0.6](#306)
+## 3.69.0
+### Added
+- Users are able to deploy artifacts to Azure Functions Deployment Slot directly.
+
+### Fixed
+- [#6939](https://github.com/microsoft/azure-tools-for-java/issues/6939): Uncaught Exception java.lang.NullPointerException: Cannot invoke "com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager.runOnPooledThread(java.lang.Runnable)" because the return value of "com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager.getInstance()" is null
+- [#6930](https://github.com/microsoft/azure-tools-for-java/issues/6930): com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException: you are not signed-in.
+- [#6909](https://github.com/microsoft/azure-tools-for-java/issues/6909): Cannot invoke "org.jetbrains.idea.maven.project.MavenProject.getParentId()" because "result" is null
+- [#6897](https://github.com/microsoft/azure-tools-for-java/issues/6897): There is a vulnerability in Postgresql JDBC Driver 42.3.1,upgrade recommended
+- [#6894](https://github.com/microsoft/azure-tools-for-java/issues/6894): There is a vulnerability in MySQL Connector/J 8.0.25,upgrade recommended
+- [#6893](https://github.com/microsoft/azure-tools-for-java/issues/6893): There is a vulnerability in Spring Framework 4.2.5.RELEASE,upgrade recommended
+- [#6869](https://github.com/microsoft/azure-tools-for-java/issues/6869): Error was received while reading the incoming data. The connection will be closed. java.lang.IllegalStateException: block()/blockFirst()/blockLast() are blocking, which is not supported in thread reactor-http-nio-3
+- [#6846](https://github.com/microsoft/azure-tools-for-java/issues/6846): java.lang.IndexOutOfBoundsException: Index 0 out of bounds for length 0
+- [#6687](https://github.com/microsoft/azure-tools-for-java/issues/6687): Uncaught Exception java.lang.NullPointerException
+- [#6672](https://github.com/microsoft/azure-tools-for-java/issues/6672): com.microsoft.azure.toolkit.lib.common.operation.OperationException: load Resource group (*)
+- [#6670](https://github.com/microsoft/azure-tools-for-java/issues/6670): com.intellij.util.xmlb.XmlSerializationException: Cannot deserialize class com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.FunctionDeployModel
+- [#6605](https://github.com/microsoft/azure-tools-for-java/issues/6605): java.lang.NullPointerException
+- [#6380](https://github.com/microsoft/azure-tools-for-java/issues/6380): spuriously adding before launch package command
+- [#6271](https://github.com/microsoft/azure-tools-for-java/issues/6271): Argument for @NotNull parameter 'virtualFile' of com/microsoft/azure/toolkit/intellij/common/AzureArtifact.createFromFile must not be null
+- [#4726](https://github.com/microsoft/azure-tools-for-java/issues/4726): Confusing workflow of "Get Publish Profile"
+- [#4725](https://github.com/microsoft/azure-tools-for-java/issues/4725): Misaligned label in Web App property view
+- [#301](https://github.com/microsoft/azure-tools-for-java/issues/301): Should validate username when creating a VM
+- [#106](https://github.com/microsoft/azure-tools-for-java/issues/106): azureSettings file in WebApps shouldn't be created by default
+- No response when click on Open `Azure Storage Expolrer for storage` while the computer does not install Azure Storage Explorer.
+- The shortcut keys for the browser and expansion are the same.
+- All the roles of the HDInsight cluster are reader.
+- Local console and Livy console run failed.
+- Job view page: The two links in the job view page open the related pages very slowly.
+- Click on Job node, show IDE error occurred.
+- Other bugs.
+
+### Changed
+- Remove menu `Submit Apache Spark Application`
+
+## 3.68.1
+### Fixed
+- Fixed the data modification failure issue of `Azure Cosmos DB API for MongoDB` Data Sources.
+
+### Changed
+- Added feature toggle for creating Data Source of `Azure Cosmos DB API for Cassandra`, the toggle is **off** by default.
+  - Support for opening `Azure Cosmos DB API for Cassandra` with `Database and SQL tools` plugin from `Azure Explorer` is disabled by default.
+  - Support for creating Data Source of the `Azure Cosmos DB API for Cassandra` from `Database and SQL tools` plugin is disabled by default.
+
+## 3.68.0
+### Added
+- Added support for resource management of `Azure Cosmos DB accounts` in Azure Explorer.
+- Added support for resource connection to `Azure Cosmos DB accounts`.
+- Added support for creating data source of the Mongo and Cassandra API for `Azure Cosmos DB` from both Azure Explorer and `Database` tool window (`IntelliJ IDEA Ultimate Edition` only).
+- Added support for connecting an `Azure Virtual Machine` using SSH directly from an `Azure Virtual Machine` resource node in Azure Explorer.
+- Added support for browsing files of an `Azure Virtual Machine` from an `Azure Virtual Machine` resource node in Azure Explorer (`IntelliJ IDEA Ultimate Edition` only).
+- Added support for adding dependencies to current local project from `Azure SDK reference book`.
+- Added support for jumping to corresponding Azure SDK page in `Azure SDK reference book` from Azure Explorer nodes.
+- Added support for configuring environment variables when deploy artifacts to an `Azure Web App`.
+- Added support for Java 17 for `Azure Functions`.
+- Added support for refreshing items (when needed) of combobox components at place.
+
+### Changed
+- Default values of most input components in Azure resource creation/deployment dialogs are now learnt from history usage records.
+- Local meta-data files of Azure SDK reference book is updated to latest.
+
+### Fixed
+- Loading spring apps take more time than normal.
+- Creating resources shows repeatedly in ComboBox components sometimes.
+- Stopped Azure Function app won't be the default app in deploy dialog.
+- App settings of a newly deployed Azure Function app won't be updated in Properties view until sign-out and sign-in again.
+- Validation error message doesn't popup when hovering on the input components.
+- [#6790](https://github.com/microsoft/azure-tools-for-java/issues/6790): Uncaught Exception com.intellij.serviceContainer.AlreadyDisposedException: Already disposed: Project(*) (disposed)
+- [#6784](https://github.com/microsoft/azure-tools-for-java/issues/6784): Uncaught Exception com.intellij.openapi.util.TraceableDisposable$DisposalException: Library LibraryId(*) already disposed
+- [#6813](https://github.com/microsoft/azure-tools-for-java/issues/6813): Uncaught Exception com.microsoft.azure.toolkit.lib.common.operation.OperationException: setup run configuration for Azure Functions
+
+## 3.67.0
+### Added
+- New Azure service support: Azure Kubernetes service.
+  - direct resource management in Azure Explorer.
+  - connection to other K8s plugins.    
+- Support for running or debugging local projects directly on Azure Virtual Machine by leveraging [`Run Targets`](https://www.jetbrains.com/help/idea/run-targets.html).     
+
+### Changed
+- Most Tool Windows will hide by default and show only when they are triggered by related actions.
+- An explicit search box is added on subscription dialog to filter subscriptions more conveniently.
+  - support for toggling selection of subscriptions by `space` key even checkbox is not focused.
+- A loading spinner would show first when the feedback page is loading.
+- Entries of some common actions in `<Toolbar>/Tools/Azure` are also added into the gear actions group of Azure Explorer.
+
+### Fixed
+- Error occurs if expand or download files/logs of a stopped function app.
+- Known CVE issues.
 
 ## 3.66.0
 ### Added

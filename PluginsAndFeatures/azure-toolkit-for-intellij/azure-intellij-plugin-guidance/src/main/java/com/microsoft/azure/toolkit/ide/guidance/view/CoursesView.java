@@ -1,15 +1,21 @@
 package com.microsoft.azure.toolkit.ide.guidance.view;
 
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.components.ActionLink;
+import com.intellij.ui.components.AnActionLink;
 import com.intellij.ui.components.JBList;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBFont;
+import com.intellij.util.ui.JBUI;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.ide.guidance.GuidanceConfigManager;
 import com.microsoft.azure.toolkit.ide.guidance.config.CourseConfig;
 import com.microsoft.azure.toolkit.ide.guidance.view.components.CoursePanel;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.intellij.common.action.ViewToolingDocumentAction;
+import com.microsoft.azure.toolkit.intellij.common.action.WhatsNewAction;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.collections.CollectionUtils;
 import rx.schedulers.Schedulers;
@@ -30,6 +36,8 @@ public class CoursesView {
     private JLabel lblTitle;
     private JPanel pnlLoading;
     private JLabel lblLoading;
+    private ActionLink toolkitDocLink;
+    private ActionLink newFeatureLink;
 
     private final Project project;
 
@@ -88,6 +96,12 @@ public class CoursesView {
                 addMouseListener((JComponent) child, mouseListener);
             }
         });
+    }
+
+    private void createUIComponents() {
+        this.toolkitDocLink = new AnActionLink("Documentation", ActionManager.getInstance().getAction(ViewToolingDocumentAction.ID));
+        this.toolkitDocLink.setExternalLinkIcon();
+        this.newFeatureLink = new AnActionLink("What's new", ActionManager.getInstance().getAction(WhatsNewAction.ID));
     }
 
     class CoursePanelListener extends MouseAdapter {

@@ -13,37 +13,43 @@ import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig;
-import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
+import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig;
+import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureSettingPanel;
 import com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppComboBox;
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.component.table.AppSettingsTable;
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.component.table.AppSettingsTableUtils;
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.component.table.FunctionAppSettingsTable;
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.component.table.FunctionAppSettingsTableUtils;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.FunctionDeployConfiguration;
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.ui.components.DeploymentSlotComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
+import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.intellij.CommonConst;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.maven.project.MavenProject;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Map;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 
 
-public class FunctionDeploymentPanel extends AzureSettingPanel<FunctionDeployConfiguration> implements FunctionDeployMvpView {
-
-    private final FunctionDeployViewPresenter<FunctionDeploymentPanel> presenter;
+public class FunctionDeploymentPanel extends AzureSettingPanel<FunctionDeployConfiguration> implements AzureFormPanel<FunctionDeployConfiguration> {
 
     private JPanel pnlRoot;
     private HyperlinkLabel lblCreateFunctionApp;
@@ -53,16 +59,19 @@ public class FunctionDeploymentPanel extends AzureSettingPanel<FunctionDeployCon
     private JLabel lblModule;
     private JLabel lblFunction;
     private JLabel lblAppSettings;
-    private AppSettingsTable appSettingsTable;
-    private FunctionAppConfig appSettingsFunctionApp;
-    private String appSettingsKey = UUID.randomUUID().toString();
+    private JCheckBox chkSlot;
+    private DeploymentSlotComboBox cbDeploymentSlot;
+    private FunctionAppSettingsTable appSettingsTable;
+    private String appSettingsKey;
+    private String appSettingsResourceId;
     private Module previousModule = null;
+    private final FunctionDeployConfiguration configuration;
 
     public FunctionDeploymentPanel(@NotNull Project project, @NotNull FunctionDeployConfiguration functionDeployConfiguration) {
         super(project);
+        this.configuration = functionDeployConfiguration;
+        this.appSettingsKey = StringUtils.firstNonBlank(functionDeployConfiguration.getAppSettingsKey(), UUID.randomUUID().toString());
         $$$setupUI$$$();
-        this.presenter = new FunctionDeployViewPresenter<>();
-        this.presenter.onAttachView(this);
 
         cbFunctionModule.setRenderer(new ListCellRendererWrapper<>() {
             @Override
@@ -73,9 +82,14 @@ public class FunctionDeploymentPanel extends AzureSettingPanel<FunctionDeployCon
                 }
             }
         });
+        functionAppComboBox.setRequired(true);
+        chkSlot.addItemListener(e -> onSlotCheckBoxChanged());
+
         lblModule.setLabelFor(cbFunctionModule);
         lblFunction.setLabelFor(functionAppComboBox);
         lblAppSettings.setLabelFor(appSettingsTable);
+        final JLabel lblDeploymentSlot = new JLabel("Deployment Slot:");
+        lblDeploymentSlot.setLabelFor(cbDeploymentSlot);
         fillModules();
     }
 
@@ -87,19 +101,7 @@ public class FunctionDeploymentPanel extends AzureSettingPanel<FunctionDeployCon
 
     @Override
     public void disposeEditor() {
-        presenter.onDetachView();
-    }
 
-    @Override
-    public void beforeFillAppSettings() {
-        appSettingsTable.getEmptyText().setText(CommonConst.LOADING_TEXT);
-        appSettingsTable.clear();
-    }
-
-    @Override
-    public void fillAppSettings(Map<String, String> appSettings) {
-        appSettingsTable.getEmptyText().setText(CommonConst.EMPTY_TEXT);
-        appSettingsTable.setAppSettings(appSettings);
     }
 
     @NotNull
@@ -135,61 +137,88 @@ public class FunctionDeploymentPanel extends AzureSettingPanel<FunctionDeployCon
     @Override
     protected void resetFromConfig(@NotNull FunctionDeployConfiguration configuration) {
         if (MapUtils.isNotEmpty(configuration.getAppSettings())) {
-            appSettingsTable.setAppSettings(configuration.getAppSettings());
+            this.appSettingsTable.setAppSettings(configuration.getAppSettings());
         }
         if (StringUtils.isNotEmpty(configuration.getAppSettingsKey())) {
             this.appSettingsKey = configuration.getAppSettingsKey();
-            appSettingsTable.setAppSettings(FunctionUtils.loadAppSettingsFromSecurityStorage(appSettingsKey));
         }
-        if (!StringUtils.isAllEmpty(configuration.getFunctionId(), configuration.getAppName())) {
-            appSettingsFunctionApp = configuration.getConfig();
-            functionAppComboBox.setValue(new AzureComboBox.ItemReference<>(item -> FunctionAppConfig.isSameApp(item, configuration.getConfig())));
-            functionAppComboBox.setConfigModel(configuration.getConfig());
-        }
+        Optional.ofNullable(configuration.getConfig())
+                .filter(config -> !StringUtils.isAllEmpty(config.getResourceId(), config.getName()))
+                .ifPresent(config -> {
+                    this.functionAppComboBox.setValue(config);
+                    this.functionAppComboBox.setConfigModel(config);
+                    this.chkSlot.setSelected(config.getDeploymentSlot() != null);
+                    this.toggleDeploymentSlot(config.getDeploymentSlot() != null);
+                    this.appSettingsResourceId = StringUtils.isAllEmpty(config.getResourceId(), config.getName()) ? null :
+                            getResourceId(config, config.getDeploymentSlot());
+                    Optional.ofNullable(config.getDeploymentSlot()).ifPresent(cbDeploymentSlot::setValue);
+                    Optional.ofNullable(config.getAppSettings()).ifPresent(appSettingsTable::setAppSettings);
+                });
         this.previousModule = configuration.getModule();
         selectModule(previousModule);
     }
 
     @Override
     protected void apply(@NotNull FunctionDeployConfiguration configuration) {
-        FunctionUtils.saveAppSettingsToSecurityStorage(appSettingsKey, appSettingsTable.getAppSettings());
-        // save app settings storage key instead of real value
         configuration.setAppSettingsKey(appSettingsKey);
+        configuration.setAppSettings(appSettingsTable.getAppSettings());
         Optional.ofNullable((Module) cbFunctionModule.getSelectedItem()).ifPresent(configuration::saveTargetModule);
-        Optional.ofNullable(functionAppComboBox.getValue()).ifPresent(configuration::saveConfig);
+        Optional.ofNullable(functionAppComboBox.getValue())
+                .map(value -> value.toBuilder()
+                        .deploymentSlot(cbDeploymentSlot.getValue())
+                        .appSettings(appSettingsTable.getAppSettings()).build())
+                .ifPresent(configuration::saveConfig);
     }
 
     private void createUIComponents() {
         final String localSettingPath = Paths.get(project.getBasePath(), "local.settings.json").toString();
-        appSettingsTable = new AppSettingsTable(localSettingPath);
-        pnlAppSettings = AppSettingsTableUtils.createAppSettingPanel(appSettingsTable);
+        appSettingsTable = new FunctionAppSettingsTable(localSettingPath);
+        pnlAppSettings = FunctionAppSettingsTableUtils.createAppSettingPanel(appSettingsTable);
 
         functionAppComboBox = new FunctionAppComboBox(project);
-        functionAppComboBox.addActionListener(event -> onSelectFunctionApp());
-        functionAppComboBox.refreshItems();
+        functionAppComboBox.addValueChangedListener(this::onSelectFunctionApp);
+        functionAppComboBox.reloadItems();
+
+        cbDeploymentSlot = new DeploymentSlotComboBox(project);
+        cbDeploymentSlot.addValueChangedListener(this::onSelectFunctionSlot);
+        cbDeploymentSlot.reloadItems();
     }
 
-    private void onSelectFunctionApp() {
-        final FunctionAppConfig model = getSelectedFunctionApp();
-        if (model == null) {
+    private void onSelectFunctionSlot(final DeploymentSlotConfig value) {
+        if (value == null) {
             return;
-        } else if (StringUtils.isEmpty(model.getResourceId())) { // For new create function or template model from configuration
-            if (appSettingsFunctionApp != null && StringUtils.isNotEmpty(appSettingsFunctionApp.getResourceId())) {
-                // Clear app settings table when user first choose create new function app
-                this.fillAppSettings(Collections.emptyMap());
-            }
-        } else { // For existing Functions
-            if (!FunctionAppConfig.isSameApp(model, appSettingsFunctionApp) || appSettingsTable.isEmpty()) {
-                // Do not refresh if selected function app is not changed except create run configuration from azure explorer
-                this.beforeFillAppSettings();
-                presenter.loadAppSettings(Azure.az(AzureFunctions.class).functionApp(model.getResourceId()));
-            }
         }
-        appSettingsFunctionApp = model;
+        toggleDeploymentSlot(chkSlot.isSelected());
+        if (chkSlot.isSelected()) {
+            loadAppSettings(getResourceId(Objects.requireNonNull(functionAppComboBox.getValue()), value), value.isNewCreate());
+        }
     }
 
-    private FunctionAppConfig getSelectedFunctionApp() {
-        return functionAppComboBox.getValue();
+    private void onSelectFunctionApp(final FunctionAppConfig value) {
+        if (value == null) {
+            return;
+        }
+        // disable slot for draft function
+        this.chkSlot.setEnabled(StringUtils.isNotEmpty(value.getResourceId()));
+        if (StringUtils.isEmpty(value.getResourceId())) {
+            this.chkSlot.setSelected(false);
+        }
+        toggleDeploymentSlot(chkSlot.isSelected());
+        this.cbDeploymentSlot.setAppService(value.getResourceId());
+        if (!this.chkSlot.isSelected()) {
+            loadAppSettings(getResourceId(value, null), StringUtils.isEmpty(value.getResourceId()));
+        }
+    }
+
+    private void loadAppSettings(@Nullable final String resourceId, final boolean isNewResource) {
+        if (StringUtils.equalsIgnoreCase(resourceId, this.appSettingsResourceId) && MapUtils.isNotEmpty(this.appSettingsTable.getAppSettings())) {
+            return;
+        }
+        this.appSettingsResourceId = resourceId;
+        this.appSettingsTable.loadAppSettings(() -> {
+            final AbstractAzResource<?, ?, ?> resource = StringUtils.isBlank(resourceId) || isNewResource ? null : Azure.az().getById(resourceId);
+            return resource instanceof AppServiceAppBase<?, ?, ?> ? ((AppServiceAppBase<?, ?, ?>) resource).getAppSettings() : Collections.emptyMap();
+        });
     }
 
     private void fillModules() {
@@ -215,7 +244,50 @@ public class FunctionDeploymentPanel extends AzureSettingPanel<FunctionDeployCon
         }
     }
 
-    // CHECKSTYLE IGNORE check FOR NEXT 1 LINES
-    void $$$setupUI$$$() {
+    private void onSlotCheckBoxChanged() {
+        toggleDeploymentSlot(chkSlot.isSelected());
+        final FunctionAppConfig function = functionAppComboBox.getValue();
+        final DeploymentSlotConfig slot = cbDeploymentSlot.getValue();
+        // reload app settings when switch slot configuration
+        if (chkSlot.isSelected() && ObjectUtils.allNotNull(function, slot)) {
+            loadAppSettings(getResourceId(functionAppComboBox.getValue(), slot), slot.isNewCreate());
+        } else if (!chkSlot.isSelected() && Objects.nonNull(function)) {
+            loadAppSettings(getResourceId(functionAppComboBox.getValue(), null), StringUtils.isEmpty(function.getResourceId()));
+        }
+    }
+
+    private void toggleDeploymentSlot(boolean isDeployToSlot) {
+        cbDeploymentSlot.setEnabled(isDeployToSlot);
+        cbDeploymentSlot.setRequired(isDeployToSlot);
+        cbDeploymentSlot.validateValueAsync();
+    }
+
+    @Override
+    public void setValue(FunctionDeployConfiguration data) {
+        resetFromConfig(data);
+    }
+
+    @Override
+    public FunctionDeployConfiguration getValue() {
+        final FunctionDeployConfiguration result = new FunctionDeployConfiguration(configuration.getProject(), configuration.getFactory(), configuration.getName());
+        apply(result);
+        return result;
+    }
+
+    @Override
+    public List<AzureFormInput<?>> getInputs() {
+        return Arrays.asList(functionAppComboBox, cbDeploymentSlot);
+    }
+
+    @Nullable
+    private String getResourceId(@Nonnull FunctionAppConfig config, @Nullable DeploymentSlotConfig slotConfig) {
+        if (Objects.isNull(slotConfig)) {
+            return StringUtils.isNoneBlank(config.getResourceId()) ? config.getResourceId() :
+                    Azure.az(AzureFunctions.class).functionApps(config.getSubscriptionId()).getOrTemp(config.getName(), config.getResourceGroupName()).getId();
+        } else {
+            return Optional.ofNullable(Azure.az(AzureFunctions.class).functionApp(config.getResourceId()))
+                    .map(func -> func.slots().getOrTemp(slotConfig.getName(), null).getId())
+                    .orElse(null);
+        }
     }
 }

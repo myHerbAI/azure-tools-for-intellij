@@ -8,16 +8,20 @@ package com.microsoft.azuretools.telemetrywrapper;
 import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.ERROR_CLASSNAME;
 import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.ERROR_CODE;
 import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.ERROR_MSG;
+import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.ERROR_ROOT_CLASSNAME;
+import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.ERROR_ROOT_MSG;
 import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.ERROR_STACKTRACE;
 import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.ERROR_TYPE;
 import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.OPERATION_NAME;
@@ -213,14 +217,17 @@ public class EventUtil {
     private static void logError(String serviceName, String operName, ErrorType errorType, Throwable e,
                                 Map<String, String> properties, Map<String, Double> metrics, boolean logErrorTraces) {
         try {
+            final Throwable rootCause = Optional.ofNullable(e).map(ExceptionUtils::getRootCause).orElse(null);
             Map<String, String> mutableProps = properties == null ? new HashMap<>() : new HashMap<>(properties);
             mutableProps.put(OPERATION_NAME, operName);
             mutableProps.put(OPERATION_ID, UUID.randomUUID().toString());
             mutableProps.put(ERROR_CODE, "1");
             mutableProps.put(ERROR_CLASSNAME, e != null ? e.getClass().getName() : "");
             mutableProps.put(ERROR_TYPE, errorType.name());
+            mutableProps.put(ERROR_ROOT_CLASSNAME, Optional.ofNullable(rootCause).map(Throwable::getClass).map(Class::getName).orElse(StringUtils.EMPTY));
             if (logErrorTraces && isAbleToCollectErrorStacks()) {
                 mutableProps.put(ERROR_MSG, e != null ? e.getMessage() : "");
+                mutableProps.put(ERROR_ROOT_MSG, Optional.ofNullable(rootCause).map(Throwable::getMessage).orElse(StringUtils.EMPTY));
                 mutableProps.put(ERROR_STACKTRACE, ExceptionUtils.getStackTrace(e));
             }
             sendTelemetry(EventType.error, serviceName, mergeProperties(mutableProps), metrics);

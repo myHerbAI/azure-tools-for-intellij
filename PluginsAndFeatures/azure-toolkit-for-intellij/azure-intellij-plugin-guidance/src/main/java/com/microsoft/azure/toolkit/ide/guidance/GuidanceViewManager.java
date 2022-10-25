@@ -34,13 +34,15 @@ public class GuidanceViewManager {
         final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(GuidanceViewManager.TOOL_WINDOW_ID);
         AzureTaskManager.getInstance().runLater(() -> {
             assert toolWindow != null;
-            toolWindow.setAvailable(true);
-            final GuidanceView guidanceView = GuidanceViewFactory.getGuidanceView(project);
-            if (Objects.nonNull(guidanceView)) {
-                final Course course = new Course(courseConfig, project);
-                guidanceView.showCourseView(course);
-            }
-            toolWindow.activate(null);
+            toolWindow.activate(() -> {
+                toolWindow.setAvailable(true);
+                toolWindow.show();
+                final GuidanceView guidanceView = GuidanceViewFactory.getGuidanceView(project);
+                if (Objects.nonNull(guidanceView)) {
+                    final Course course = new Course(courseConfig, project);
+                    guidanceView.showCourseView(course);
+                }
+            });
         });
     }
 
@@ -49,12 +51,14 @@ public class GuidanceViewManager {
         final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(GuidanceViewManager.TOOL_WINDOW_ID);
         AzureTaskManager.getInstance().runLater(() -> {
             assert toolWindow != null;
-            toolWindow.setAvailable(true);
-            final GuidanceView guidanceView = GuidanceViewFactory.getGuidanceView(project);
-            if (Objects.nonNull(guidanceView)) {
-                guidanceView.showCoursesView();
-            }
-            toolWindow.activate(null);
+            toolWindow.activate(() -> {
+                toolWindow.setAvailable(true);
+                toolWindow.show();
+                final GuidanceView guidanceView = GuidanceViewFactory.getGuidanceView(project);
+                if (Objects.nonNull(guidanceView)) {
+                    guidanceView.showCoursesView();
+                }
+            });
         });
     }
 

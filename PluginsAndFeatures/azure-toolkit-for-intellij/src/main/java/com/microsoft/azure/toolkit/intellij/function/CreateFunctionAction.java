@@ -158,7 +158,7 @@ public class CreateFunctionAction extends CreateElementActionBase {
     @Override
     protected boolean isAvailable(final DataContext dataContext) {
         final Project project = CommonDataKeys.PROJECT.getData(dataContext);
-        if (project == null) {
+        if (project == null || project.isDisposed()) {
             return false;
         }
         final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);

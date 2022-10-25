@@ -42,11 +42,11 @@ public class AppCentricRootLabelView extends AzureServiceLabelView<AzureResource
             final List<Subscription> subs = account.getSelectedSubscriptions();
             final int size = subs.size();
             if (size > 1) {
-                this.label = String.format("%s (%d subscriptions)", NAME, size);
+                this.label = String.format("%s (%d Subscriptions)", NAME, size);
             } else if (size == 1) {
                 this.label = String.format("%s (%s)", NAME, subs.get(0).getName());
             } else {
-                this.label = NAME + " (No subscription)";
+                this.label = NAME + " (No Subscriptions Selected)";
             }
         }
         this.refreshView();

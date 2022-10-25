@@ -26,11 +26,11 @@ import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class FunctionsNode extends Node<FunctionAppDeploymentSlotModule> {
+public class FunctionsNode extends Node<FunctionApp> {
     private final FunctionApp functionApp;
 
     public FunctionsNode(@Nonnull FunctionApp functionApp) {
-        super(functionApp.getDeploymentModule());
+        super(functionApp);
         this.functionApp = functionApp;
         this.view(new FunctionsNodeView(functionApp));
         this.actions(FunctionAppActionsContributor.FUNCTIONS_ACTIONS);
@@ -88,7 +88,7 @@ public class FunctionsNode extends Node<FunctionAppDeploymentSlotModule> {
 
         public void onEvent(AzureEvent event) {
             final Object source = event.getSource();
-            if (source instanceof AzResource && ((AzResource<?, ?, ?>) source).id().equals(this.functionApp.id())) {
+            if (source instanceof AzResource && ((AzResource) source).id().equals(this.functionApp.id())) {
                 AzureTaskManager.getInstance().runLater(this::refreshChildren);
             }
         }

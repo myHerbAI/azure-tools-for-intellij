@@ -163,7 +163,7 @@ public class AzureWebAppMvpModel {
         draft.setAppServicePlan(appServicePlan);
         draft.setRuntime(model.getRuntime());
         draft.setDiagnosticConfig(diagnosticConfig);
-        return draft.createIfNotExist();
+        return draft.commit();
     }
 
     // todo: Move duplicated codes to azure common library

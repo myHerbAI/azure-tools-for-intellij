@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor.OPEN_URL;
 
 public class ViewToolingDocumentAction extends AnAction implements DumbAware {
+    public static final String ID = "AzureToolkit.ViewToolingDocument";
     public static final String DOC_URL = "https://aka.ms/javaToolingDoc";
 
     public ViewToolingDocumentAction() {

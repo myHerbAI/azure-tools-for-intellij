@@ -7,12 +7,14 @@ package com.microsoft.azure.toolkit.intellij.vm.creation.component;
 
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.compute.AzureCompute;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VmImagePublisher;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -30,13 +32,20 @@ public class ImagePublisherComboBox extends AzureComboBox<VmImagePublisher> {
     public void setSubscription(Subscription subscription) {
         this.subscription = subscription;
         this.clear();
-        this.refreshItems();
+        this.reloadItems();
     }
 
     public void setRegion(Region region) {
         this.region = region;
         this.clear();
-        this.refreshItems();
+        this.reloadItems();
+    }
+
+    @Nullable
+    @Override
+    protected VmImagePublisher doGetDefaultValue() {
+        return CacheManager.getUsageHistory(VmImagePublisher.class)
+            .peek(v -> Objects.isNull(region) || Objects.equals(region, v.region()));
     }
 
     @Override

@@ -9,8 +9,10 @@ import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.component.NodeView;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
 import lombok.Setter;
@@ -73,13 +75,19 @@ public class AppServiceFileNode extends Node<AppServiceFile> {
 
     @Override
     public List<Node<?>> getChildren() {
-        return file.getType() != AppServiceFile.Type.DIRECTORY ? Collections.emptyList() :
-                appService.getFilesInDirectory(file.getPath()).stream()
-                        .sorted((first, second) -> first.getType() == second.getType() ?
-                                StringUtils.compare(first.getName(), second.getName()) :
-                                first.getType() == AppServiceFile.Type.DIRECTORY ? -1 : 1)
-                        .map(AppServiceFileNode::new)
-                        .collect(Collectors.toList());
+        if (file.getType() != AppServiceFile.Type.DIRECTORY) {
+            return Collections.emptyList();
+        }
+        if (!appService.getFormalStatus().isRunning()) {
+            AzureMessager.getMessager().warning(AzureString.format("Can not list files for app service with status %s", appService.getStatus()));
+            return Collections.emptyList();
+        }
+        return appService.getFilesInDirectory(file.getPath()).stream()
+                .sorted((first, second) -> first.getType() == second.getType() ?
+                        StringUtils.compare(first.getName(), second.getName()) :
+                        first.getType() == AppServiceFile.Type.DIRECTORY ? -1 : 1)
+                .map(AppServiceFileNode::new)
+                .collect(Collectors.toList());
     }
 
     static class AppServiceFileLabelView implements NodeView {
@@ -103,7 +111,7 @@ public class AppServiceFileNode extends Node<AppServiceFile> {
         private void onEvent(AzureEvent event) {
             final String type = event.getType();
             final Object source = event.getSource();
-            if (source instanceof AppServiceFile && StringUtils.equalsIgnoreCase(((AppServiceFile) source).getFullName(), this.file.getFullName())) {
+            if ((source instanceof AppServiceFile && StringUtils.equalsIgnoreCase(((AppServiceFile) source).getFullName(), this.file.getFullName()))) {
                 AzureTaskManager.getInstance().runLater(this::refreshChildren);
             }
         }
@@ -123,8 +131,12 @@ public class AppServiceFileNode extends Node<AppServiceFile> {
 
         @Override
         public String getDescription() {
+            if (StringUtils.equalsAnyIgnoreCase(file.getPath(), SITE_WWWROOT, LOG_FILES)) {
+                return String.format("Type: %s", file.getMime());
+            }
             final String modifiedDateTime = formatDateTime(file.getMtime());
-            return file.getType() == AppServiceFile.Type.DIRECTORY ? String.format("Type: %s Date modified: %s", file.getMime(), modifiedDateTime) :
+            return file.getType() == AppServiceFile.Type.DIRECTORY ?
+                    String.format("Type: %s Date modified: %s", file.getMime(), modifiedDateTime) :
                     String.format("Type: %s Size: %s Date modified: %s", file.getMime(), FileUtils.byteCountToDisplaySize(file.getSize()), modifiedDateTime);
         }
 

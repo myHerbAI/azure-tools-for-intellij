@@ -16,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class AzureModuleLabelView<T extends AzResourceModule<?, ?, ?>> implements NodeView {
+public class AzureModuleLabelView<T extends AzResourceModule<?>> implements NodeView {
     @Nonnull
     @Getter
     private final T module;
@@ -37,7 +37,7 @@ public class AzureModuleLabelView<T extends AzResourceModule<?, ?, ?>> implement
     }
 
     public AzureModuleLabelView(@Nonnull T module, String label) {
-        this(module, label, String.format("/icons/%s.svg", module.getClass().getSimpleName().toLowerCase()));
+        this(module, label, String.format("/icons/%s/default.svg", module.getFullResourceType()));
     }
 
     public AzureModuleLabelView(@Nonnull T module, String label, String iconPath) {

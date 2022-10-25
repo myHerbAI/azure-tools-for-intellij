@@ -5,9 +5,11 @@
 
 package com.microsoft.tooling.msservices.serviceexplorer.azure.container;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
 import com.microsoft.azuretools.core.mvp.model.container.ContainerExplorerMvpModel;
 import com.microsoft.azuretools.core.mvp.model.container.ContainerRegistryMvpModel;
@@ -125,8 +127,7 @@ public class ContainerRegistryPropertyViewPresenter<V extends ContainerRegistryP
             Map<String, String> responseMap = ContainerExplorerMvpModel.getInstance().listRepositories(registry
                     .getLoginServerUrl(), setting.getUsername(), setting.getPassword(), query);
             updatePaginationInfo(isNextPage, Type.REPO, responseMap.get(HEADER_LINK));
-            Gson gson = new Gson();
-            Catalog catalog = gson.fromJson(responseMap.get(BODY), Catalog.class);
+            final Catalog catalog = JsonUtils.fromJson(responseMap.get(BODY), Catalog.class);
             return catalog.getRepositories();
         })
                 .subscribeOn(getSchedulerProvider().io())
@@ -154,8 +155,7 @@ public class ContainerRegistryPropertyViewPresenter<V extends ContainerRegistryP
             Map<String, String> responseMap = ContainerExplorerMvpModel.getInstance().listTags(registry
                     .getLoginServerUrl(), setting.getUsername(), setting.getPassword(), repo, query);
             updatePaginationInfo(isNextPage, Type.TAG, responseMap.get(HEADER_LINK));
-            Gson gson = new Gson();
-            Tag tag = gson.fromJson(responseMap.get(BODY), Tag.class);
+            Tag tag = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(responseMap.get(BODY), Tag.class);
             return tag.getTags();
         })
                 .subscribeOn(getSchedulerProvider().io())

@@ -16,10 +16,8 @@ import com.intellij.util.ui.JBUI;
 import com.microsoft.azure.toolkit.ide.guidance.Phase;
 import com.microsoft.azure.toolkit.ide.guidance.Status;
 import com.microsoft.azure.toolkit.ide.guidance.Step;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,8 +26,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-import static com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH;
 import static com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL;
 import static com.intellij.uiDesigner.core.GridConstraints.FILL_NONE;
 
@@ -46,12 +44,21 @@ public class SummaryPanel extends JPanel {
     private boolean focused;
 
     private JButton defaultButton = null;
+    private AzureEventBus.EventListener listener = null;
 
     public SummaryPanel(@Nonnull Phase phase) {
         super();
         this.phase = phase;
         $$$setupUI$$$();
         init();
+    }
+
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        if (this.focused) {
+            Optional.ofNullable(defaultButton).ifPresent(button -> Optional.ofNullable(getRootPane()).ifPresent(pane -> pane.setDefaultButton(button)));
+        }
     }
 
     private void init() {
@@ -67,14 +74,15 @@ public class SummaryPanel extends JPanel {
         this.descPanel.setBorder(null);
         this.descPanel.setText(this.phase.getDescription());
         this.descPanel.setVisible(StringUtils.isNotBlank(this.phase.getDescription()));
-        this.initDetailsPanel();
-        this.updateStatus(this.phase.getStatus());
         this.phase.addStatusListener(this::updateStatus);
     }
 
     private void updateStatus(Status status) {
         this.statusIcon.setIcon(AllIcons.General.BalloonInformation);
-        this.focused = status == Status.READY || status == Status.RUNNING || status == Status.FAILED || status == Status.SUCCEED;
+        this.focused = status == Status.READY || status == Status.RUNNING || status == Status.FAILED || status == Status.SUCCEED || status == Status.PARTIAL_SUCCEED;
+        if (status == Status.SUCCEED) {
+            initDetailsPanel();
+        }
         this.setVisible(this.focused);
         final Color bgColor = this.focused ? BACKGROUND_COLOR : JBUI.CurrentTheme.ToolWindow.background();
         PhasePanel.doForOffsprings(this.contentPanel, c -> c.setBackground(bgColor));
@@ -95,9 +103,9 @@ public class SummaryPanel extends JPanel {
     }
 
     private void initDetailsPanel() {
-        final List<Step> steps = phase.getSteps();
-        if (CollectionUtils.isEmpty(steps) || steps.size() == 1) {
-            // skip render steps panel for single task
+        final List<Step> steps = phase.getSteps().stream().filter(step -> step.isReady()).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(steps)) {
+            // skip render steps panel when empty
             this.detailsPanel.setVisible(false);
             return;
         }
@@ -123,4 +131,5 @@ public class SummaryPanel extends JPanel {
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES
     void $$$setupUI$$$() {
     }
+
 }

@@ -175,6 +175,7 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
         this.selectorSubscription.addItemListener(this::onSubscriptionChanged);
         this.selectorRuntime.addItemListener(this::onRuntimeChanged);
         this.selectorRegion.addItemListener(this::onRegionChanged);
+        this.selectorGroup.addItemListener(this::onGroupChanged);
         this.textName.setRequired(true);
         this.selectorServicePlan.setRequired(true);
         this.selectorSubscription.setRequired(true);
@@ -194,6 +195,12 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
             final Runtime runtime = this.selectorRuntime.getValue();
             return StringUtils.isNotBlank(ext) && WebAppUtils.isSupportedArtifactType(runtime, ext);
         });
+    }
+
+    private void onGroupChanged(ItemEvent e) {
+        if (e.getStateChange() == ItemEvent.SELECTED || e.getStateChange() == ItemEvent.DESELECTED) {
+            this.selectorServicePlan.setResourceGroup((ResourceGroup) e.getItem());
+        }
     }
 
     private void onRegionChanged(final ItemEvent e) {
@@ -239,7 +246,7 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
     private void createUIComponents() {
         // TODO: place custom component creation code here
         this.selectorApplication = new AzureArtifactComboBox(project, true);
-        this.selectorApplication.refreshItems();
+        this.selectorApplication.reloadItems();
     }
 
     public void setValidPricingTier(List<PricingTier> pricingTier, PricingTier defaultPricingTier) {

@@ -5,20 +5,13 @@
 
 package com.microsoft.azuretools.core.mvp.model.container.pojo;
 
-import com.google.gson.annotations.SerializedName;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 
+@Getter
+@Setter
 public class Tag {
-
-    @SerializedName("tags")
     private ArrayList<String> tags;
-
-    public ArrayList<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(ArrayList<String> tags) {
-        this.tags = tags;
-    }
 }

@@ -14,10 +14,14 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppInstance;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -38,7 +42,8 @@ public class SpringCloudNodeProvider implements IExplorerNodeProvider {
     public boolean accept(@Nonnull Object data, @Nullable Node<?> parent, ViewType type) {
         return data instanceof AzureSpringCloud ||
             data instanceof SpringCloudCluster ||
-            data instanceof SpringCloudApp;
+            data instanceof SpringCloudApp ||
+            data instanceof SpringCloudAppInstance;
     }
 
     @Nullable
@@ -64,7 +69,14 @@ public class SpringCloudNodeProvider implements IExplorerNodeProvider {
                 .view(new AzureResourceLabelView<>(app))
                 .inlineAction(ResourceCommonActionsContributor.PIN)
                 .doubleClickAction(ResourceCommonActionsContributor.SHOW_PROPERTIES)
-                .actions(SpringCloudActionsContributor.APP_ACTIONS);
+                .actions(SpringCloudActionsContributor.APP_ACTIONS)
+                .addChildren(c -> Optional.ofNullable(c.getActiveDeployment()).map(SpringCloudDeployment::getInstances).orElse(Collections.emptyList()),
+                        (appInstance, appNode) -> this.createNode(appInstance, appNode, manager));
+        } else if (data instanceof SpringCloudAppInstance) {
+            final SpringCloudAppInstance appInstance = (SpringCloudAppInstance) data;
+            return new Node<>(appInstance)
+                    .view(new AzureResourceLabelView<>(appInstance))
+                    .actions(SpringCloudActionsContributor.APP_INSTANCE_ACTIONS);
         }
         return null;
     }

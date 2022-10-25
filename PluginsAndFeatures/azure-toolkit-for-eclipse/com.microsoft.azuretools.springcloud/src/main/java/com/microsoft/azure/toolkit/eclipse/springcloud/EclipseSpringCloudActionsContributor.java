@@ -50,15 +50,15 @@ public class EclipseSpringCloudActionsContributor implements IActionsContributor
     }
 
     private void registerDeployAppActionHandler(AzureActionManager am) {
-        final Predicate<AzResource<?, ?, ?>> condition = (r) -> r instanceof SpringCloudApp;
-        final Consumer<AzResource<?, ?, ?>> handler = (c) -> DeploySpringCloudAppAction.deployToApp((SpringCloudApp) c);
+        final Predicate<AzResource> condition = (r) -> r instanceof SpringCloudApp;
+        final Consumer<AzResource> handler = (c) -> DeploySpringCloudAppAction.deployToApp((SpringCloudApp) c);
         am.registerHandler(ResourceCommonActionsContributor.DEPLOY, condition, handler);
     }
 
     private void registerLogStreamingActionHandler(AzureActionManager am) {
         final Predicate<SpringCloudApp> condition = (r) -> r instanceof SpringCloudApp;
         final Consumer<SpringCloudApp> handler = (c) -> SpringCloudLogStreamingHandler.startLogStreaming(c);
-        am.registerHandler(SpringCloudActionsContributor.STREAM_LOG, condition, handler);
+        am.registerHandler(SpringCloudActionsContributor.STREAM_LOG_APP, condition, handler);
     }
 
     public int getOrder() {

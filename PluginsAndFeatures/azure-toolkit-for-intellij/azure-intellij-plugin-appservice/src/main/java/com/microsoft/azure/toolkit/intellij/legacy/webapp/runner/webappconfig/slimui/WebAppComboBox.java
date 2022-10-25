@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class WebAppComboBox extends AppServiceComboBox<WebAppConfig> {
@@ -23,12 +24,19 @@ public class WebAppComboBox extends AppServiceComboBox<WebAppConfig> {
     }
 
     @Override
+    protected void refreshItems() {
+        Azure.az(AzureWebApp.class).refresh();
+        super.refreshItems();
+    }
+
+    @Override
     protected List<WebAppConfig> loadAppServiceModels() {
         final List<WebApp> webApps = Azure.az(AzureWebApp.class).webApps();
         return webApps.stream().parallel()
-                .sorted((a, b) -> a.name().compareToIgnoreCase(b.name()))
-                .map(webApp -> convertAppServiceToConfig(WebAppConfig::new, webApp))
-                .collect(Collectors.toList());
+            .sorted((a, b) -> a.name().compareToIgnoreCase(b.name()))
+            .map(webApp -> convertAppServiceToConfig(WebAppConfig::new, webApp))
+            .filter(a -> Objects.nonNull(a.getSubscription()))
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -37,8 +45,7 @@ public class WebAppComboBox extends AppServiceComboBox<WebAppConfig> {
         final WebAppCreationDialog webAppCreationDialog = new WebAppCreationDialog(project);
         webAppCreationDialog.setDeploymentVisible(false);
         webAppCreationDialog.setOkActionListener(webAppConfig -> {
-            WebAppComboBox.this.addItem(webAppConfig);
-            WebAppComboBox.this.setSelectedItem(webAppConfig);
+            WebAppComboBox.this.setValue(webAppConfig);
             AzureTaskManager.getInstance().runLater(webAppCreationDialog::close);
         });
         webAppCreationDialog.show();

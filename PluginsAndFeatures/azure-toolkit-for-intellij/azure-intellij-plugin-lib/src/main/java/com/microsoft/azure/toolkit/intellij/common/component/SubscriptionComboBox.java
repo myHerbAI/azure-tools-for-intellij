@@ -5,12 +5,14 @@
 
 package com.microsoft.azure.toolkit.intellij.common.component;
 
+import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -19,6 +21,11 @@ import java.util.stream.Collectors;
 import static com.microsoft.azure.toolkit.lib.Azure.az;
 
 public class SubscriptionComboBox extends AzureComboBox<Subscription> {
+
+    @Override
+    public String getLabel() {
+        return "Subscription";
+    }
 
     @Nonnull
     @Override
@@ -38,5 +45,11 @@ public class SubscriptionComboBox extends AzureComboBox<Subscription> {
             return EMPTY_ITEM;
         }
         return ((Subscription) item).getName();
+    }
+
+    @Nonnull
+    @Override
+    protected List<ExtendableTextComponent.Extension> getExtensions() {
+        return Collections.emptyList();
     }
 }

@@ -1,5 +1,5 @@
 intellij {
-    plugins = ['remote-run']
+    plugins = ['remote-run', 'webDeployment']
 }
 
 sourceSets {
@@ -11,7 +11,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-reflect:1.4.20'
+    implementation 'org.jetbrains.kotlin:kotlin-reflect:1.6.21'
     compile project(':azure-intellij-plugin-lib')
     compile project(':azure-intellij-plugin-storage')
     compile 'com.microsoft.azure:azure-toolkit-compute-lib'

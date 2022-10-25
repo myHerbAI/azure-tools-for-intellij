@@ -64,7 +64,7 @@ public class EclipseFunctionAppActionsContributor implements IActionsContributor
                 });
         am.registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES, isFunctionApp, openWebAppPropertyViewHandler);
 
-        final BiConsumer<AzResource<?, ?, ?>, Object> deployHandler = (c, e) -> AzureTaskManager.getInstance().runLater(() -> {
+        final BiConsumer<AzResource, Object> deployHandler = (c, e) -> AzureTaskManager.getInstance().runLater(() -> {
             try {
                 DeployAzureFunctionAction.deployFunctionAppToAzure((FunctionApp) c);
             } catch (CoreException exception) {

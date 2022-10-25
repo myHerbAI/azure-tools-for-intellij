@@ -5,20 +5,13 @@
 
 package com.microsoft.azuretools.core.mvp.model.container.pojo;
 
-import com.google.gson.annotations.SerializedName;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 
+@Getter
+@Setter
 public class Catalog {
-
-    @SerializedName("repositories")
     private ArrayList<String> repositories;
-
-    public ArrayList<String> getRepositories() {
-        return repositories;
-    }
-
-    public void setRepositories(ArrayList<String> repositories) {
-        this.repositories = repositories;
-    }
 }

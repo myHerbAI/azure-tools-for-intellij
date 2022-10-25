@@ -30,19 +30,23 @@ import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.idea.maven.project.MavenProject;
 
 import javax.swing.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguration> {
     private JPanel pnlRoot;
     private WebAppDeployConfigurationPanel pnlDeployment;
-
+    private String appSettingsKey;
     public WebAppSlimSettingPanel(@NotNull Project project, @NotNull WebAppConfiguration webAppConfiguration) {
         super(project, false);
+        this.appSettingsKey = webAppConfiguration.getAppSettingsKey();
         $$$setupUI$$$();
     }
 
@@ -91,6 +95,8 @@ public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguratio
         if (StringUtils.isAllEmpty(configuration.getWebAppId(), configuration.getWebAppName())) {
             return;
         }
+        this.appSettingsKey = configuration.getAppSettingsKey();
+        final Map<String, String> appSettings = ObjectUtils.firstNonNull(configuration.getApplicationSettings(), new HashMap<>());
         final Subscription subscription = new Subscription(configuration.getSubscriptionId());
         final Region region = StringUtils.isEmpty(configuration.getRegion()) ? null : Region.fromName(configuration.getRegion());
         final String rgName = configuration.getResourceGroup();
@@ -120,9 +126,11 @@ public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguratio
             .resourceGroup(resourceGroup)
             .runtime(runtime)
             .servicePlan(plan)
-            .deploymentSlot(slotConfig);
-        final WebAppConfig webAppConfig = !configuration.isCreatingNew() ? configBuilder.build() :
-                configBuilder.region(region).pricingTier(pricingTier).monitorConfig(monitorConfig).build();
+            .deploymentSlot(slotConfig)
+            .appSettings(appSettings)
+            .appSettingsToRemove(configuration.getAppSettingsToRemove());
+        final WebAppConfig webAppConfig = !configuration.isCreatingNew() ? configBuilder.build() : configBuilder.region(region).pricingTier(pricingTier)
+                .monitorConfig(monitorConfig).build();
         final AzureArtifactConfig artifactConfig = AzureArtifactConfig.builder()
                 .artifactIdentifier(configuration.getArtifactIdentifier())
                 .artifactType(Optional.ofNullable(configuration.getAzureArtifactType()).map(AzureArtifactType::name).orElse(null)).build();
@@ -138,16 +146,18 @@ public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguratio
     @Override
     protected void apply(@NotNull WebAppConfiguration configuration) {
         final WebAppDeployRunConfigurationModel runConfigurationModel = pnlDeployment.getValue();
+        configuration.setAppSettingKey(appSettingsKey);
         Optional.ofNullable(runConfigurationModel.getWebAppConfig()).ifPresent(webAppConfig -> {
             configuration.setWebAppId(webAppConfig.getResourceId());
             configuration.setSubscriptionId(webAppConfig.getSubscriptionId());
             configuration.setResourceGroup(webAppConfig.getResourceGroupName());
             configuration.setWebAppName(webAppConfig.getName());
             configuration.saveRuntime(webAppConfig.getRuntime());
+            configuration.setApplicationSettings(webAppConfig.getAppSettings());
+            configuration.setAppSettingsToRemove(webAppConfig.getAppSettingsToRemove());
             configuration.setCreatingNew(StringUtils.isEmpty(webAppConfig.getResourceId()));
             if (configuration.isCreatingNew()) {
                 configuration.setRegion(webAppConfig.getRegion().getName());
-                configuration.setCreatingResGrp(webAppConfig.getResourceGroup().toResource().isDraftForCreating());
                 configuration.setCreatingAppServicePlan(webAppConfig.getServicePlan().toResource().isDraftForCreating());
                 configuration.setPricing(Optional.ofNullable(webAppConfig.getServicePlan())
                     .map(AppServicePlanConfig::getPricingTier).map(PricingTier::getSize).orElse(null));
@@ -163,7 +173,6 @@ public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguratio
                     configuration.getModel().setEnableFailedRequestTracing(diagnosticConfig.isEnableFailedRequestTracing());
                 });
             } else {
-                configuration.setCreatingResGrp(false);
                 configuration.setCreatingAppServicePlan(false);
                 configuration.setAppServicePlanName(Optional.ofNullable(webAppConfig.getServicePlan())
                         .map(AppServicePlanConfig::getName).orElse(null));

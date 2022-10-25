@@ -67,8 +67,10 @@ public class SqlServerCreationAdvancedPanel extends JPanel implements AzureFormP
     }
 
     private void init() {
-        passwordFieldInput = PasswordUtils.generatePasswordFieldInput(this.passwordField, this.adminUsernameTextField);
+        this.subscriptionComboBox.setRequired(true);
+        this.resourceGroupComboBox.setRequired(true);
         confirmPasswordFieldInput = PasswordUtils.generateConfirmPasswordFieldInput(this.confirmPasswordField, this.passwordField);
+        passwordFieldInput = PasswordUtils.generatePasswordFieldInput(this.passwordField, this.adminUsernameTextField, this.confirmPasswordFieldInput);
         serverNameTextField.setSubscription(config.getSubscription());
         regionComboBox.setItemsLoader(() ->
             Azure.az(AzureSqlServer.class).forSubscription(this.subscriptionComboBox.getValue().getId()).listSupportedRegions());

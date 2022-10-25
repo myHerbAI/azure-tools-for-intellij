@@ -16,10 +16,14 @@ public class AzureSdkReferenceBookDialog extends DialogWrapper {
 
     protected AzureSdkReferenceBookDialog(@Nullable final Project project) {
         super(project);
-        this.bookPanel = new AzureSdkReferenceBookPanel();
+        this.bookPanel = new AzureSdkReferenceBookPanel(project);
         this.setTitle("Azure SDK Reference Book");
-        this.setModal(true);
+        this.setModal(false);
         this.init();
+    }
+
+    public void selectFeature(@Nullable final String feature) {
+        this.bookPanel.selectFeature(feature);
     }
 
     @Override

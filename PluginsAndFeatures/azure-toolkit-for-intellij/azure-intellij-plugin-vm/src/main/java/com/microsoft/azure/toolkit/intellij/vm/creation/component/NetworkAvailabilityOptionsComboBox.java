@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class NetworkAvailabilityOptionsComboBox extends AzureComboBox<String> {
@@ -25,7 +26,7 @@ public class NetworkAvailabilityOptionsComboBox extends AzureComboBox<String> {
 
     public void setSubscription(Subscription subscription) {
         this.subscription = subscription;
-        this.refreshItems();
+        this.reloadItems();
     }
 
     @Override
@@ -36,11 +37,7 @@ public class NetworkAvailabilityOptionsComboBox extends AzureComboBox<String> {
 
     @Override
     public void setValue(String value) {
-        if (value == null) {
-            super.setValue(DISABLE);
-        } else {
-            super.setValue(value);
-        }
+        super.setValue(Objects.requireNonNullElse(value, DISABLE));
     }
 
     @Nonnull

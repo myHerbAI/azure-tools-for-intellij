@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.intellij.database.mysql.creation;
 
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
-import com.microsoft.azure.toolkit.intellij.common.AzureComboBoxSimple;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.TextDocumentListenerAdapter;
 import com.microsoft.azure.toolkit.intellij.common.component.AzurePasswordFieldInput;
@@ -70,8 +69,10 @@ public class MySqlCreationAdvancedPanel extends JPanel implements AzureFormPanel
     }
 
     private void init() {
-        passwordFieldInput = PasswordUtils.generatePasswordFieldInput(this.passwordField, this.adminUsernameTextField);
+        this.subscriptionComboBox.setRequired(true);
+        this.resourceGroupComboBox.setRequired(true);
         confirmPasswordFieldInput = PasswordUtils.generateConfirmPasswordFieldInput(this.confirmPasswordField, this.passwordField);
+        passwordFieldInput = PasswordUtils.generatePasswordFieldInput(this.passwordField, this.adminUsernameTextField, this.confirmPasswordFieldInput);
         serverNameTextField.setSubscription(config.getSubscription());
         regionComboBox.setItemsLoader(() ->
             Azure.az(AzureMySql.class).forSubscription(this.subscriptionComboBox.getValue().getId()).listSupportedRegions());
@@ -183,6 +184,6 @@ public class MySqlCreationAdvancedPanel extends JPanel implements AzureFormPanel
     }
 
     private void createUIComponents() {
-        this.versionComboBox = new AzureComboBoxSimple<>(() -> Azure.az(AzureMySql.class).listSupportedVersions());
+        this.versionComboBox = new AzureComboBox<>(() -> Azure.az(AzureMySql.class).listSupportedVersions());
     }
 }

@@ -5,5 +5,6 @@ public enum Status {
     READY,
     RUNNING,
     SUCCEED,
+    PARTIAL_SUCCEED,
     FAILED
 }

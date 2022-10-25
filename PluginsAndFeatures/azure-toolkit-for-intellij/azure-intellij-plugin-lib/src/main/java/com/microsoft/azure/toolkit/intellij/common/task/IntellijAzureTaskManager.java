@@ -87,20 +87,20 @@ public class IntellijAzureTaskManager extends AzureTaskManager {
         // refer https://jetbrains.org/intellij/sdk/docs/basics/disposers.html
         // refer https://github.com/JetBrains/intellij-community/commit/d7ac4e133fec7e4c1e63f4c1d7dda65e25258b81 ide.background.tasks has been removed
         final String title = StringUtils.capitalize(Objects.requireNonNull(task.getDescription()).toString());
-        final Task.Backgroundable modalTask = new Task.Backgroundable((Project) task.getProject(), title, task.isCancellable(), foreground) {
+        final Task.Backgroundable modalTask = new Task.ConditionalModal((Project) task.getProject(), title, task.isCancellable(), foreground) {
             @Override
             public void run(@Nonnull final ProgressIndicator progressIndicator) {
                 task.setMonitor(new IntellijTaskMonitor(progressIndicator));
                 task.setBackgrounded(false);
                 runnable.run();
             }
-
-            @Override
-            public void processSentToBackground() {
-                task.setBackgrounded(true);
-            }
         };
-        ProgressManager.getInstance().run(modalTask);
+        if (ApplicationManager.getApplication().isDispatchThread()) {
+            ApplicationManager.getApplication().executeOnPooledThread(
+                    () -> ProgressManager.getInstance().run(modalTask));
+        } else {
+            ProgressManager.getInstance().run(modalTask);
+        }
     }
 
     private ModalityState toIntellijModality(final AzureTask<?> task) {

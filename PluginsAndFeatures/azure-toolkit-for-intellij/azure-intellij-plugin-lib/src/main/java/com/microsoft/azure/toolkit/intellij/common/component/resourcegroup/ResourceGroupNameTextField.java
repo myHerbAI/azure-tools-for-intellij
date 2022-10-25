@@ -30,7 +30,11 @@ public class ResourceGroupNameTextField extends AzureTextInput {
 
     public void setSubscription(Subscription subscription) {
         this.subscription = subscription;
-        this.validateValueAsync();
+        // UI dialog will call set subscription after shown, which may trigger validation and show unnecessary error message
+        // so skip validation if validation info is not set, we just need to revalidate after change to another subscription
+        if (this.getValidationInfo() != null) {
+            this.validateValueAsync();
+        }
     }
 
     public AzureValidationInfo doValidateValue() {

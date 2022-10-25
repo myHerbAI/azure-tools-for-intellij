@@ -9,10 +9,10 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox.ItemReference;
-import com.microsoft.azure.toolkit.intellij.common.AzureComboBoxSimple;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.event.ItemEvent;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -120,9 +121,10 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
                 resourceManager.addResource(consumer);
                 connectionManager.addConnection(connection);
                 final String message = String.format("The connection between %s and %s has been successfully created.",
-                        resource.getName(), consumer.getName());
+                    resource.getName(), consumer.getName());
                 AzureMessager.getMessager().success(message);
                 project.getMessageBus().syncPublisher(ConnectionTopics.CONNECTION_CHANGED).connectionChanged(project, connection, ConnectionTopics.Action.ADD);
+
             }
         });
     }
@@ -176,7 +178,6 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
             this.setResourceDefinition(resource.getDefinition());
             //noinspection unchecked
             this.resourcePanel.setValue(resource);
-            this.resourceTypeSelector.setEnabled(false);
         } else {
             ResourceManager.getDefinitions(RESOURCE).stream().findFirst().ifPresent(this::setResourceDefinition);
         }
@@ -187,7 +188,6 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
             this.setConsumerDefinition(consumer.getDefinition());
             //noinspection unchecked
             this.consumerPanel.setValue(consumer);
-            this.consumerTypeSelector.setEnabled(false);
         } else {
             ResourceManager.getDefinitions(CONSUMER).stream().findFirst().ifPresent(this::setConsumerDefinition);
         }
@@ -234,7 +234,19 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     }
 
     private void createUIComponents() {
-        this.consumerTypeSelector = new AzureComboBoxSimple<>(() -> ResourceManager.getDefinitions(CONSUMER));
-        this.resourceTypeSelector = new AzureComboBoxSimple<>(() -> ResourceManager.getDefinitions(RESOURCE));
+        this.consumerTypeSelector = new AzureComboBox<>(() -> ResourceManager.getDefinitions(CONSUMER)) {
+            @Nonnull
+            @Override
+            protected List<ExtendableTextComponent.Extension> getExtensions() {
+                return Collections.emptyList();
+            }
+        };
+        this.resourceTypeSelector = new AzureComboBox<>(() -> ResourceManager.getDefinitions(RESOURCE)) {
+            @Nonnull
+            @Override
+            protected List<ExtendableTextComponent.Extension> getExtensions() {
+                return Collections.emptyList();
+            }
+        };
     }
 }

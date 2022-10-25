@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.idea.maven.project.MavenProject;
 
 import javax.swing.*;
+import java.util.Objects;
 
 public class SettingPanel extends AzureSettingPanel<PushImageRunConfiguration> {
     public static final String PRIVATE_DOCKER_REGISTRY = "Private Docker Registry";
@@ -127,12 +128,15 @@ public class SettingPanel extends AzureSettingPanel<PushImageRunConfiguration> {
             ""
         ));
         final ISecureStore secureStore = AzureStoreManager.getInstance().getSecureStore();
-        secureStore.savePassword(PRIVATE_DOCKER_REGISTRY, containerSettingPanel.getServerUrl(), containerSettingPanel.getUserName(),
-            containerSettingPanel.getPassword());
+        if (Objects.nonNull(containerSettingPanel.getServerUrl()) || Objects.nonNull(containerSettingPanel.getUserName())) {
+            secureStore.savePassword(PRIVATE_DOCKER_REGISTRY, containerSettingPanel.getServerUrl(), containerSettingPanel.getUserName(),
+                    containerSettingPanel.getPassword());
+        }
 
         // set target
         pushImageRunConfiguration.setTargetPath(getTargetPath());
         pushImageRunConfiguration.setTargetName(getTargetName());
+        pushImageRunConfiguration.setContainerRegistry(containerSettingPanel.getContainerRegistry());
     }
 
     /**
@@ -152,7 +156,9 @@ public class SettingPanel extends AzureSettingPanel<PushImageRunConfiguration> {
             secureStore.migratePassword(containerSettingPanel.getServerUrl(), containerSettingPanel.getUserName(),
                 PRIVATE_DOCKER_REGISTRY, containerSettingPanel.getServerUrl(), containerSettingPanel.getUserName());
 
-            acrInfo.setPassword(secureStore.loadPassword(PRIVATE_DOCKER_REGISTRY, acrInfo.getServerUrl(), acrInfo.getUsername()));
+            if (Objects.nonNull(acrInfo.getServerUrl()) || Objects.nonNull(acrInfo.getUsername())) {
+                acrInfo.setPassword(secureStore.loadPassword(PRIVATE_DOCKER_REGISTRY, acrInfo.getServerUrl(), acrInfo.getUsername()));
+            }
         }
         containerSettingPanel.setTxtFields(acrInfo);
 
@@ -161,6 +167,7 @@ public class SettingPanel extends AzureSettingPanel<PushImageRunConfiguration> {
             containerSettingPanel.setDockerPath(conf.getDockerFilePath());
         }
         containerSettingPanel.onListRegistries();
+        containerSettingPanel.setContainerRegistry(conf.getContainerRegistryId());
     }
 
     @Override

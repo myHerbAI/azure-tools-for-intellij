@@ -67,7 +67,7 @@
           }
         },
         {
-          "title": "Create application insight app",
+          "title": "Create application insights app",
           "description": null,
           "task": {
             "name": "task.application_insights.create"

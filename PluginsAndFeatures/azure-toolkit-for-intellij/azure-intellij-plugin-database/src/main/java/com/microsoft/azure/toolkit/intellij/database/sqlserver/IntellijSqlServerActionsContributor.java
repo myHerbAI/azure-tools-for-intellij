@@ -5,18 +5,22 @@
 
 package com.microsoft.azure.toolkit.intellij.database.sqlserver;
 
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.database.sqlserver.SqlServerActionsContributor;
+import com.microsoft.azure.toolkit.intellij.common.action.IntellijActionsContributor;
 import com.microsoft.azure.toolkit.intellij.connector.ConnectorDialog;
-import com.microsoft.azure.toolkit.intellij.database.IntellijDatasourceService;
+import com.microsoft.azure.toolkit.intellij.database.OpenInDatabaseToolsAction;
 import com.microsoft.azure.toolkit.intellij.database.connection.SqlDatabaseResource;
 import com.microsoft.azure.toolkit.intellij.database.sqlserver.connection.SqlServerDatabaseResourceDefinition;
 import com.microsoft.azure.toolkit.intellij.database.sqlserver.creation.CreateSqlServerAction;
 import com.microsoft.azure.toolkit.intellij.database.sqlserver.creation.SqlServerCreationDialog;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -41,7 +45,7 @@ public class IntellijSqlServerActionsContributor implements IActionsContributor 
         final BiConsumer<Object, AnActionEvent> handler = (c, e) -> CreateSqlServerAction.create(e.getProject(), null);
         am.registerHandler(ResourceCommonActionsContributor.CREATE, condition, handler);
 
-        am.<AzResource<?, ?, ?>, AnActionEvent>registerHandler(ResourceCommonActionsContributor.CONNECT, (r, e) -> r instanceof MicrosoftSqlServer,
+        am.<AzResource, AnActionEvent>registerHandler(ResourceCommonActionsContributor.CONNECT, (r, e) -> r instanceof MicrosoftSqlServer,
             (o, e) -> AzureTaskManager.getInstance().runLater(() -> {
                 final ConnectorDialog dialog = new ConnectorDialog(e.getProject());
                 final MicrosoftSqlServer server = (MicrosoftSqlServer) o;
@@ -49,9 +53,6 @@ public class IntellijSqlServerActionsContributor implements IActionsContributor 
                     server.getAdminName() + "@" + server.getName(), SqlServerDatabaseResourceDefinition.INSTANCE));
                 dialog.show();
             }));
-
-        final BiConsumer<AzResource<?, ?, ?>, AnActionEvent> openDatabaseHandler = (c, e) -> openDatabaseTool(e.getProject(), (MicrosoftSqlServer) c);
-        am.registerHandler(SqlServerActionsContributor.OPEN_DATABASE_TOOL, (r, e) -> true, openDatabaseHandler);
 
         final BiConsumer<ResourceGroup, AnActionEvent> groupCreateServerHandler = (r, e) -> {
             final DatabaseServerConfig config = SqlServerCreationDialog.getDefaultConfig();
@@ -61,17 +62,26 @@ public class IntellijSqlServerActionsContributor implements IActionsContributor 
             CreateSqlServerAction.create(e.getProject(), config);
         };
         am.registerHandler(SqlServerActionsContributor.GROUP_CREATE_SQLSERVER, (r, e) -> true, groupCreateServerHandler);
+
+        final BiConsumer<AzResource, AnActionEvent> openDatabaseHandler = (c, e) -> openDatabaseTool(e.getProject(), (MicrosoftSqlServer) c);
+        am.registerHandler(SqlServerActionsContributor.OPEN_DATABASE_TOOL, (r, e) -> true, openDatabaseHandler);
     }
 
-    @AzureOperation(name = "sqlserver.open_by_database_tools.server", params = {"server.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "sqlserver.open_database_tools.server", params = {"server.getName()"}, type = AzureOperation.Type.ACTION)
     private void openDatabaseTool(Project project, @Nonnull MicrosoftSqlServer server) {
-        final IntellijDatasourceService.DatasourceProperties properties = IntellijDatasourceService.DatasourceProperties.builder()
+        final String DATABASE_TOOLS_PLUGIN_ID = "com.intellij.database";
+        final String DATABASE_PLUGIN_NOT_INSTALLED = "\"Database tools and SQL\" plugin is not installed.";
+        final String NOT_SUPPORT_ERROR_ACTION = "\"Database tools and SQL\" plugin is only provided in IntelliJ Ultimate edition.";
+        if (PluginManagerCore.getPlugin(PluginId.findId(DATABASE_TOOLS_PLUGIN_ID)) == null) {
+            throw new AzureToolkitRuntimeException(DATABASE_PLUGIN_NOT_INSTALLED, NOT_SUPPORT_ERROR_ACTION, IntellijActionsContributor.TRY_ULTIMATE);
+        }
+        final OpenInDatabaseToolsAction.DatasourceProperties properties = OpenInDatabaseToolsAction.DatasourceProperties.builder()
             .name(String.format(NAME_PREFIX, server.getName()))
             .driverClassName(DEFAULT_DRIVER_CLASS_NAME)
             .url(JdbcUrl.sqlserver(Objects.requireNonNull(server.getFullyQualifiedDomainName())).toString())
             .username(server.getAdminName() + "@" + server.getName())
             .build();
-        AzureTaskManager.getInstance().runLater(() -> IntellijDatasourceService.getInstance().openDataSourceManagerDialog(project, properties));
+        AzureTaskManager.getInstance().runLater(() -> OpenInDatabaseToolsAction.openDataSourceManagerDialog(project, properties));
     }
 
     @Override

@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
@@ -57,6 +58,8 @@ public class CreateStorageAccountAction {
         final AzureStorageAccount az = Azure.az(AzureStorageAccount.class);
         final StorageAccountDraft draft = az.accounts(config.getSubscriptionId()).create(config.getName(), config.getResourceGroupName());
         draft.setConfig(config);
-        return draft.commit();
+        final StorageAccount resource = draft.commit();
+        CacheManager.getUsageHistory(StorageAccount.class).push(draft);
+        return resource;
     }
 }

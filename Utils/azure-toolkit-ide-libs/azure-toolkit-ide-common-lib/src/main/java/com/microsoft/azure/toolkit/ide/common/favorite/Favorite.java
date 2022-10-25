@@ -22,6 +22,12 @@ public class Favorite extends AbstractAzResource<Favorite, AzResource.None, Abst
         super(resourceId, ResourceId.fromString(resourceId).resourceGroupName(), module);
     }
 
+    @Override
+    public void invalidateCache() {
+        this.getResource().invalidateCache();
+        super.invalidateCache();
+    }
+
     /**
      * copy constructor
      */
@@ -32,7 +38,6 @@ public class Favorite extends AbstractAzResource<Favorite, AzResource.None, Abst
     protected Favorite(@Nonnull AbstractAzResource<?, ?, ?> remote, @Nonnull Favorites module) {
         // favorite's name is exactly the id of the resource.
         super(remote.getId(), remote.getResourceGroupName(), module);
-        this.setRemote(remote);
     }
 
     @Override
@@ -46,7 +51,7 @@ public class Favorite extends AbstractAzResource<Favorite, AzResource.None, Abst
 
     @Nonnull
     @Override
-    public List<AbstractAzResourceModule<?, Favorite, ?>> getSubModules() {
+    public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.emptyList();
     }
 

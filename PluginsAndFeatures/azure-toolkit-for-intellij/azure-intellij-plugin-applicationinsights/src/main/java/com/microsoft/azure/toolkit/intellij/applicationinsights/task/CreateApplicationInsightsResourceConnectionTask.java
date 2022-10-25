@@ -7,7 +7,11 @@ import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.guidance.ComponentContext;
 import com.microsoft.azure.toolkit.ide.guidance.Task;
 import com.microsoft.azure.toolkit.intellij.applicationinsights.connection.ApplicationInsightsResourceDefinition;
-import com.microsoft.azure.toolkit.intellij.connector.*;
+import com.microsoft.azure.toolkit.intellij.connector.Connection;
+import com.microsoft.azure.toolkit.intellij.connector.ConnectionManager;
+import com.microsoft.azure.toolkit.intellij.connector.ModuleResource;
+import com.microsoft.azure.toolkit.intellij.connector.Resource;
+import com.microsoft.azure.toolkit.intellij.connector.ResourceManager;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
 import com.microsoft.azure.toolkit.lib.applicationinsights.AzureApplicationInsights;
@@ -15,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 // todo: add create resource connection task instead of ai only
 // todo: remove duplicate codes with connector dialog
@@ -54,7 +59,8 @@ public class CreateApplicationInsightsResourceConnectionTask implements Task {
     }
 
     private Resource<ApplicationInsight> getResource() {
-        final String applicationInsightsId = (String) context.getParameter("applicationInsightsId");
+        final String applicationInsightsId = (String) Objects.requireNonNull(context.getParameter("applicationInsightsId"),
+                "`applicationInsightsId` should not be null to create a resource connection");
         final ApplicationInsight applicationInsight = Azure.az(AzureApplicationInsights.class).getById(applicationInsightsId);
         return ApplicationInsightsResourceDefinition.INSTANCE.define(applicationInsight);
     }

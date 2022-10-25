@@ -5,6 +5,7 @@ import com.microsoft.azure.toolkit.ide.guidance.config.InputConfig;
 import com.microsoft.azure.toolkit.ide.guidance.config.TaskConfig;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -39,6 +40,7 @@ public class ComponentContext {
         return context.getCourse();
     }
 
+    @Nullable
     public Object getParameter(@Nonnull final String key) {
         final String mappedKey = paramMapping.getOrDefault(key, key);
         return context.getProperty(mappedKey);

@@ -8,20 +8,24 @@ package com.microsoft.azure.toolkit.intellij.vm.creation.component;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.vm.creation.VMCreationDialog;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.compute.AzureCompute;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VirtualMachine;
 import org.apache.commons.collections.CollectionUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class VirtualMachineComboBox extends AzureComboBox<VirtualMachine> {
-    private final List<VirtualMachine> draftItems = new ArrayList<>();
+    private final List<VirtualMachine> draftItems = new LinkedList<>();
     private Subscription subscription;
 
     @Override
@@ -38,7 +42,24 @@ public class VirtualMachineComboBox extends AzureComboBox<VirtualMachine> {
             this.clear();
             return;
         }
-        this.refreshItems();
+        this.reloadItems();
+    }
+
+    @Override
+    public void setValue(@Nullable VirtualMachine val) {
+        if (Objects.nonNull(val) && val.isDraftForCreating()) {
+            this.draftItems.remove(val);
+            this.draftItems.add(0, val);
+            this.reloadItems();
+        }
+        super.setValue(val);
+    }
+
+    @Nullable
+    @Override
+    protected VirtualMachine doGetDefaultValue() {
+        return CacheManager.getUsageHistory(VirtualMachine.class)
+            .peek(v -> Objects.isNull(subscription) || Objects.equals(subscription.getId(), v.getSubscriptionId()));
     }
 
 //    @Nullable
@@ -59,20 +80,22 @@ public class VirtualMachineComboBox extends AzureComboBox<VirtualMachine> {
             final List<VirtualMachine> remoteVms = Azure.az(AzureCompute.class)
                 .virtualMachines(subscription.getId()).list().stream()
                 .sorted(Comparator.comparing(VirtualMachine::getName)).collect(Collectors.toList());
-            remoteVms.parallelStream().forEach(v -> v.getHostIp()); // pre-load host ip
+            remoteVms.parallelStream().forEach(VirtualMachine::getHostIp); // pre-load host ip
             vms.addAll(remoteVms);
         }
         return vms;
     }
 
+    @Override
+    protected void refreshItems() {
+        Optional.ofNullable(this.subscription).ifPresent(s -> Azure.az(AzureCompute.class).virtualMachines(s.getId()).refresh());
+        super.refreshItems();
+    }
+
     private void showVirtualMachineCreationPopup() {
         final VMCreationDialog dialog = new VMCreationDialog(null);
         dialog.setOkActionListener((vm) -> {
-            this.draftItems.add(0, vm);
             dialog.close();
-            final List<VirtualMachine> items = new ArrayList<>(this.getItems());
-            items.add(0, vm);
-            this.setItems(items);
             this.setValue(vm);
         });
         dialog.show();

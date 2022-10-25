@@ -7,10 +7,10 @@ package com.microsoft.azure.toolkit.intellij.vm.creation;
 
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionView;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
@@ -18,11 +18,13 @@ import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.compute.AzureCompute;
+import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VirtualMachine;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VirtualMachineDraft;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.task.CreateVirtualMachineTask;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -42,10 +44,11 @@ public class CreateVirtualMachineAction {
         });
         AzureTaskManager.getInstance().runOnPooledThread(() -> {
             final VirtualMachineDraft defaultData = Optional.ofNullable(draft).orElseGet(() -> {
-                final Account account = Azure.az(AzureAccount.class).account();
-                final Subscription subs = account.getSelectedSubscriptions().get(0);
+                final List<Subscription> subs = Azure.az(AzureAccount.class).account().getSelectedSubscriptions();
+                final Subscription historySub = CacheManager.getUsageHistory(Subscription.class).peek(subs::contains);
+                final Subscription sub = Optional.ofNullable(historySub).orElseGet(() -> subs.get(0));
                 final String name = VirtualMachineDraft.generateDefaultName();
-                final VirtualMachineDraft vmDraft = Azure.az(AzureCompute.class).virtualMachines(subs.getId()).create(name, "<none>");
+                final VirtualMachineDraft vmDraft = Azure.az(AzureCompute.class).virtualMachines(sub.getId()).create(name, "<none>");
                 return vmDraft.withDefaultConfig();
             });
             AzureTaskManager.getInstance().runLater(() -> dialog.setValue(defaultData), AzureTask.Modality.ANY);
@@ -59,6 +62,7 @@ public class CreateVirtualMachineAction {
             OperationContext.action().setTelemetryProperty("subscriptionId", draft.getSubscriptionId());
             try {
                 new CreateVirtualMachineTask(draft).execute();
+                CacheManager.getUsageHistory(VirtualMachine.class).push(draft);
             } catch (final Exception e) {
                 final Consumer<Object> act = t -> tm.runLater("open dialog", () -> openDialog(project, draft));
                 final Action.Id<Object> REOPEN = Action.Id.of("vm.reopen_creation_dialog");

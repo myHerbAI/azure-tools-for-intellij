@@ -43,65 +43,34 @@ public class IDEHelperImpl implements IDEHelper {
         AzureTaskManager.getInstance().runOnPooledThread(runnable);
     }
 
-    @Override
-    public String getProperty(String name, Object projectObject) {
-        return getProperty(name);
-    }
-
     public String getProperty(Object projectObject, String name, String defaultValue) {
         return null;
-    }
-
-    @Override
-    public void setProperty(String name, String value, Object projectObject) {
-        setProperty(name, value);
-    }
-
-    @Override
-    public void unsetProperty(String name, Object projectObject) {
-        unsetProperty(name);
     }
 
     public boolean isPropertySet(Object projectObject, String name) {
         return false;
     }
 
-    @Override
     public String getProperty(String name) {
         return PreferenceUtil.loadPreference(name);
     }
 
-    @Override
-    public String getPropertyWithDefault(String name, String defaultValue) {
-        return PreferenceUtil.loadPreference(name, defaultValue);
-    }
-
-    @Override
     public void setProperty(String name, String value) {
         PreferenceUtil.savePreference(name, value);
     }
 
-    @Override
     public void unsetProperty(String name) {
         PreferenceUtil.unsetPreference(name);
     }
 
-    @Override
     public boolean isPropertySet(String name) {
         return getProperty(name) != null;
     }
 
-    @Override
     public String[] getProperties(String name) {
         return PreferenceUtil.loadPreferences(name);
     }
 
-    @Override
-    public String[] getProperties(String name, Object project) {
-        return getProperties(name);
-    }
-
-    @Override
     public void setProperties(String name, String[] value) {
         PreferenceUtil.savePreferences(name, value);
     }

@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.intellij.redis.creation;
 
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
-import com.microsoft.azure.toolkit.intellij.common.AzureComboBoxSimple;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.intellij.common.component.RegionComboBox;
@@ -28,6 +28,7 @@ import com.microsoft.azure.toolkit.redis.model.PricingTier;
 import com.microsoft.azure.toolkit.redis.model.RedisConfig;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.event.ItemEvent;
@@ -106,7 +107,7 @@ public class RedisCreationDialog extends AzureDialog<RedisConfig> implements Azu
 
         if (subscriptionComboBox.getValue() != null) {
             final Availability resultEntity =
-                    Azure.az(AzureRedis.class).forSubscription(subscriptionComboBox.getValue().getId()).checkNameAvailability(name);
+                Azure.az(AzureRedis.class).forSubscription(subscriptionComboBox.getValue().getId()).checkNameAvailability(name);
             if (!resultEntity.isAvailable()) {
                 final String message = resultEntity.getUnavailabilityReason();
                 throw new AzureToolkitRuntimeException(message);
@@ -138,7 +139,13 @@ public class RedisCreationDialog extends AzureDialog<RedisConfig> implements Azu
             }
         };
         this.redisNameTextField = new AzureTextInput();
-        this.pricingComboBox = new AzureComboBoxSimple<>(PricingTier::values);
+        this.pricingComboBox = new AzureComboBox<>(PricingTier::values) {
+            @Nonnull
+            @Override
+            protected List<ExtendableTextComponent.Extension> getExtensions() {
+                return Collections.emptyList();
+            }
+        };
         this.subscriptionComboBox.setRequired(true);
         this.resourceGroupComboBox.setRequired(true);
         this.regionComboBox.setRequired(true);

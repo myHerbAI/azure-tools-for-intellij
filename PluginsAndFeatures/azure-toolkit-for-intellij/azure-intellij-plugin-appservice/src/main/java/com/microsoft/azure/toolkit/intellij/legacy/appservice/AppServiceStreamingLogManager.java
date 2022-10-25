@@ -13,8 +13,8 @@ import com.microsoft.azure.toolkit.intellij.common.StreamingLogsToolWindowManage
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
 import com.microsoft.azure.toolkit.lib.applicationinsights.AzureApplicationInsights;
-import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
-import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlotDraft;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDraft;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
@@ -33,6 +33,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
@@ -70,8 +71,12 @@ public enum AppServiceStreamingLogManager {
         showAppServiceStreamingLog(project, webAppId, new WebAppLogStreaming(webAppId));
     }
 
-    public void showFunctionStreamingLog(Project project, String functionId) {
-        showAppServiceStreamingLog(project, functionId, new FunctionLogStreaming(functionId));
+    public void showFunctionStreamingLog(Project project, FunctionAppBase<?,?,?> app) {
+        showAppServiceStreamingLog(project, app.getId(), new FunctionLogStreaming(app));
+    }
+
+    public void showFunctionDeploymentSlotStreamingLog(Project project, FunctionAppBase<?,?,?> app) {
+        showAppServiceStreamingLog(project, app.getId(), new FunctionDeploymentSlotLogStreaming(app));
     }
 
     @AzureOperation(name = "appservice.close_log_stream.app", params = {"nameFromResourceId(appId)"}, type = AzureOperation.Type.SERVICE)
@@ -95,11 +100,6 @@ public enum AppServiceStreamingLogManager {
                 final String name = logStreaming.getTitle();
                 final AppServiceStreamingLogConsoleView consoleView = getOrCreateConsoleView(project, resourceId);
                 if (!consoleView.isActive()) {
-                    if (!logStreaming.isLogStreamingSupported()) {
-                        AzureTaskManager.getInstance().runLater(() -> AzureMessager.getMessager()
-                                .error(message("appService.logStreaming.hint.notSupport", name), NOT_SUPPORTED));
-                        return;
-                    }
                     if (!logStreaming.isLogStreamingEnabled()) {
                         // Enable Log Streaming if log streaming of target is not enabled
                         final boolean userInput = AzureMessager.getMessager()
@@ -130,10 +130,6 @@ public enum AppServiceStreamingLogManager {
     }
 
     interface ILogStreaming {
-        default boolean isLogStreamingSupported() {
-            return true;
-        }
-
         boolean isLogStreamingEnabled();
 
         void enableLogStreaming();
@@ -144,16 +140,17 @@ public enum AppServiceStreamingLogManager {
         Flux<String> getStreamingLogContent();
     }
 
-    static class FunctionLogStreaming implements ILogStreaming {
+    static abstract class AbstractFunctionLogStreaming implements ILogStreaming {
 
         private static final String APPINSIGHTS_INSTRUMENTATIONKEY = "APPINSIGHTS_INSTRUMENTATIONKEY";
         private static final String APPLICATION_INSIGHT_PATTERN = "%s/#blade/AppInsightsExtension/QuickPulseBladeV2/ComponentId/%s/ResourceId/%s";
         private static final String MUST_CONFIGURE_APPLICATION_INSIGHTS = message("appService.logStreaming.error.noApplicationInsights");
 
-        private final FunctionApp functionApp;
+        @Getter
+        protected final FunctionAppBase<?, ?, ?> functionApp;
 
-        FunctionLogStreaming(final String resourceId) {
-            this.functionApp = Azure.az(AzureFunctions.class).functionApp(resourceId);
+        AbstractFunctionLogStreaming(final FunctionAppBase<?,?,?> functionApp) {
+            this.functionApp = functionApp;
         }
 
         @Override
@@ -162,15 +159,6 @@ public enum AppServiceStreamingLogManager {
             final boolean isEnableApplicationLog = Optional.ofNullable(functionApp.getDiagnosticConfig())
                     .map(DiagnosticConfig::isEnableApplicationLog).orElse(false);
             return operatingSystem == OperatingSystem.LINUX || isEnableApplicationLog;
-        }
-
-        @Override
-        public void enableLogStreaming() {
-            final DiagnosticConfig diagnosticConfig = Optional.ofNullable(functionApp.getDiagnosticConfig()).orElseGet(DiagnosticConfig::new);
-            diagnosticConfig.setEnableApplicationLog(true);
-            final FunctionAppDraft draft = (FunctionAppDraft) functionApp.update();
-            draft.setDiagnosticConfig(diagnosticConfig);
-            draft.commit();
         }
 
         @Override
@@ -215,6 +203,38 @@ public enum AppServiceStreamingLogManager {
             final String componentId = URLEncoder.encode(componentObject.toString(), StandardCharsets.UTF_8);
             final String aiResourceId = URLEncoder.encode(target.getId(), StandardCharsets.UTF_8);
             return String.format(APPLICATION_INSIGHT_PATTERN, portalUrl, componentId, aiResourceId);
+        }
+    }
+
+    static class FunctionLogStreaming extends AbstractFunctionLogStreaming {
+
+        FunctionLogStreaming(FunctionAppBase<?, ?, ?> functionApp) {
+            super(functionApp);
+        }
+
+        @Override
+        public void enableLogStreaming() {
+            final DiagnosticConfig diagnosticConfig = Optional.ofNullable(getFunctionApp().getDiagnosticConfig()).orElseGet(DiagnosticConfig::new);
+            diagnosticConfig.setEnableApplicationLog(true);
+            final FunctionAppDraft draft = (FunctionAppDraft) getFunctionApp().update();
+            draft.setDiagnosticConfig(diagnosticConfig);
+            draft.commit();
+        }
+    }
+
+    static class FunctionDeploymentSlotLogStreaming extends AbstractFunctionLogStreaming {
+
+        FunctionDeploymentSlotLogStreaming(FunctionAppBase<?,?,?> functionApp) {
+            super(functionApp);
+        }
+
+        @Override
+        public void enableLogStreaming() {
+            final DiagnosticConfig diagnosticConfig = Optional.ofNullable(getFunctionApp().getDiagnosticConfig()).orElseGet(DiagnosticConfig::new);
+            diagnosticConfig.setEnableApplicationLog(true);
+            final FunctionAppDeploymentSlotDraft draft = (FunctionAppDeploymentSlotDraft) getFunctionApp().update();
+            draft.setDiagnosticConfig(diagnosticConfig);
+            draft.commit();
         }
     }
 

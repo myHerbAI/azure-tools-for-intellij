@@ -29,12 +29,10 @@ import com.microsoft.azuretools.azureexplorer.editors.container.ContainerRegistr
 import com.microsoft.azuretools.azureexplorer.editors.container.ContainerRegistryExplorerEditorInput;
 import com.microsoft.azuretools.azureexplorer.editors.rediscache.RedisExplorerEditor;
 import com.microsoft.azuretools.azureexplorer.editors.rediscache.RedisExplorerEditorInput;
-import com.microsoft.azuretools.azureexplorer.forms.OpenSSLFinderForm;
 import com.microsoft.azuretools.azureexplorer.views.RedisPropertyView;
 import com.microsoft.azuretools.core.utils.PluginUtil;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.EventUtil;
-import com.microsoft.tooling.msservices.components.DefaultLoader;
 import com.microsoft.tooling.msservices.helpers.UIHelper;
 import com.microsoft.tooling.msservices.serviceexplorer.Node;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.container.ContainerRegistryNode;
@@ -119,14 +117,6 @@ public class UIHelperImpl implements UIHelper {
         } else {
             return new File(fileName);
         }
-    }
-
-    @Override
-    public String promptForOpenSSLPath() {
-        OpenSSLFinderForm openSSLFinderForm = new OpenSSLFinderForm(PluginUtil.getParentShell());
-        openSSLFinderForm.open();
-
-        return DefaultLoader.getIdeHelper().getProperty("MSOpenSSLPath", "");
     }
 
     @Override

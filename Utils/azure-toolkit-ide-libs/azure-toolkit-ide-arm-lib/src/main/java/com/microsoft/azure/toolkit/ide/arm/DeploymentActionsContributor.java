@@ -58,7 +58,7 @@ public class DeploymentActionsContributor implements IActionsContributor {
 
         final ActionView.Builder createDeploymentView = new ActionView.Builder("Deployment")
             .title(s -> Optional.ofNullable(s).map(r -> description("arm.create_deployment.group", ((ResourceGroup) r).getName())).orElse(null))
-            .enabled(s -> s instanceof ResourceGroup);
+            .enabled(s -> s instanceof ResourceGroup && ((ResourceGroup) s).getFormalStatus().isConnected());
         am.registerAction(GROUP_CREATE_DEPLOYMENT, new Action<>(GROUP_CREATE_DEPLOYMENT, createDeploymentView));
     }
 

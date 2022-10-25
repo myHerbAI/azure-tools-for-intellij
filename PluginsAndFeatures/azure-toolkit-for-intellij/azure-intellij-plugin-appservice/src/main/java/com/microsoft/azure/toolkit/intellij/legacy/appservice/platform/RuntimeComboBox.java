@@ -5,12 +5,13 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.appservice.platform;
 
+import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.legacy.webapp.WebAppService;
-import org.apache.commons.collections.ListUtils;
 
 import javax.annotation.Nonnull;
+import java.util.Collections;
 import java.util.List;
 
 public class RuntimeComboBox extends AzureComboBox<Runtime> {
@@ -22,11 +23,13 @@ public class RuntimeComboBox extends AzureComboBox<Runtime> {
     }
 
     public RuntimeComboBox(List<Runtime> platformList) {
-        this.platformList = ListUtils.unmodifiableList(platformList);
+        super();
+        this.platformList = Collections.unmodifiableList(platformList);
     }
 
     public void setPlatformList(final List<Runtime> platformList) {
-        this.platformList = ListUtils.unmodifiableList(platformList);
+        this.platformList = Collections.unmodifiableList(platformList);
+        this.reloadItems();
     }
 
     @Override
@@ -36,7 +39,13 @@ public class RuntimeComboBox extends AzureComboBox<Runtime> {
 
     @Nonnull
     @Override
-    protected List<? extends Runtime> loadItems() throws Exception {
+    protected List<? extends Runtime> loadItems() {
         return platformList;
+    }
+
+    @Nonnull
+    @Override
+    protected List<ExtendableTextComponent.Extension> getExtensions() {
+        return Collections.emptyList();
     }
 }

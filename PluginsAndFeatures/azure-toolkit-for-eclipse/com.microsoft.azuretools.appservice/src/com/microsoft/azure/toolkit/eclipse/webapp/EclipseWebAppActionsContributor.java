@@ -92,7 +92,7 @@ public class EclipseWebAppActionsContributor implements IActionsContributor {
         am.registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES, isWebAppSlot,
                 openWebAppSlotPropertyViewHandler);
 
-        final BiConsumer<AzResource<?, ?, ?>, Object> deployWebAppHandler = (c, e) -> AzureTaskManager
+        final BiConsumer<AzResource, Object> deployWebAppHandler = (c, e) -> AzureTaskManager
                 .getInstance().runLater(() -> {
                     try {
                         Command deployCommand = ((ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class))

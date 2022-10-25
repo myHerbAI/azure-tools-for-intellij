@@ -46,7 +46,7 @@ public class AppServiceFileActionsContributor implements IActionsContributor {
 
     @Override
     public void registerActions(AzureActionManager am) {
-        final Consumer<AppServiceFile> refresh = file -> AzureEventBus.emit("resource.refresh.resource", file);
+        final Consumer<AppServiceFile> refresh = file -> AzureEventBus.emit("resource.refreshed.resource", file);
         final ActionView.Builder refreshView = new ActionView.Builder("Refresh", AzureIcons.Action.REFRESH.getIconPath())
                 .title(s -> Optional.ofNullable(s).map(r -> description("resource.refresh.resource", ((AppServiceFile) r).getName())).orElse(null))
                 .enabled(s -> s instanceof AppServiceFile);

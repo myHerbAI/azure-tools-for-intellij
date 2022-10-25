@@ -28,11 +28,13 @@ public class AppNameInput extends AzureTextInput {
 
     @Nonnull
     public AzureValidationInfo doValidateValue() {
+        if (subscription == null) {
+            return AzureValidationInfo.none(this);
+        }
         try {
-            ValidationUtils.validateAppServiceName(subscription != null ? subscription.getId() : null, this.getValue());
+            ValidationUtils.validateAppServiceName(subscription.getId(), this.getValue());
         } catch (final IllegalArgumentException e) {
-            final AzureValidationInfo.AzureValidationInfoBuilder builder = AzureValidationInfo.builder();
-            return builder.input(this).message(e.getMessage()).type(AzureValidationInfo.Type.ERROR).build();
+            return AzureValidationInfo.error(e.getMessage(), this);
         }
         return AzureValidationInfo.success(this);
     }

@@ -37,7 +37,7 @@ public class ContainerServiceActionsContributor implements IActionsContributor {
         final ActionView.Builder createClusterView = new ActionView.Builder("Kubernetes service")
                 .title(s -> Optional.ofNullable(s).map(r ->
                         description("group.create_kubernetes.group", ((ResourceGroup) r).getName())).orElse(null))
-                .enabled(s -> s instanceof ResourceGroup);
+                .enabled(s -> s instanceof ResourceGroup && ((ResourceGroup) s).getFormalStatus().isConnected());
         am.registerAction(GROUP_CREATE_KUBERNETES_SERVICE, new Action<>(GROUP_CREATE_KUBERNETES_SERVICE, createClusterView));
 
         final ActionView.Builder adminConfigView = new ActionView.Builder("Download Kubeconfig (Admin)")
@@ -65,6 +65,7 @@ public class ContainerServiceActionsContributor implements IActionsContributor {
     public void registerGroups(AzureActionManager am) {
         final ActionGroup serviceActionGroup = new ActionGroup(
                 ResourceCommonActionsContributor.REFRESH,
+                ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
                 "---",
                 ResourceCommonActionsContributor.CREATE
         );
@@ -74,6 +75,7 @@ public class ContainerServiceActionsContributor implements IActionsContributor {
                 ResourceCommonActionsContributor.PIN,
                 "---",
                 ResourceCommonActionsContributor.REFRESH,
+                ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
                 ResourceCommonActionsContributor.OPEN_PORTAL_URL,
                 ResourceCommonActionsContributor.SHOW_PROPERTIES,
                 "---",

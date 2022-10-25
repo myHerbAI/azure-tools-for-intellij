@@ -35,21 +35,19 @@ public class SignInTask implements Task {
     @AzureOperation(name = "guidance.sign_in", type = AzureOperation.Type.SERVICE)
     public void execute() {
         final AzureAccount az = Azure.az(AzureAccount.class);
-        if (az.isLoggedIn()) {
-            // if already signed in, finish directly
-            AzureMessager.getMessager().info(AzureString.format("Sign in successfully"));
+        if (!az.isLoggedIn()) {
+            final Account autoAccount = az.getAutoAccount();
+            AzureMessager.getMessager().info(String.format("Signing in with %s...", autoAccount.getType().getLabel()));
+            az.login(autoAccount);
+        }
+        final Account account = az.account();
+        final AuthConfiguration config = account.getConfig();
+        if (!az.isLoggedIn() || CollectionUtils.isEmpty(account.getSubscriptions())) {
+            final Action<Object> signInAction = AzureActionManager.getInstance().getAction(Action.AUTHENTICATE);
+            final Action<Object> tryAzureAction = AzureActionManager.getInstance().getAction(IntellijAccountActionsContributor.TRY_AZURE);
+            throw new AzureToolkitRuntimeException("Failed to sign in or there is no subscription in your account", signInAction, tryAzureAction);
         } else {
-            final Account account = az.getAutoAccount();
-            AzureMessager.getMessager().info(String.format("Signing in with %s...", account.getType().getLabel()));
-            az.login(account);
-            final AuthConfiguration config = account.getConfig();
-            if (!az.isLoggedIn() || CollectionUtils.isEmpty(account.getSubscriptions())) {
-                final Action<Object> signInAction = AzureActionManager.getInstance().getAction(Action.AUTHENTICATE);
-                final Action<Object> tryAzureAction = AzureActionManager.getInstance().getAction(IntellijAccountActionsContributor.TRY_AZURE);
-                throw new AzureToolkitRuntimeException("Failed to sign in or there is no subscription in your account", signInAction, tryAzureAction);
-            } else {
-                AzureMessager.getMessager().info(AzureString.format("Sign in successfully with %s", Objects.requireNonNull(account).getUsername()));
-            }
+            AzureMessager.getMessager().info(AzureString.format("Sign in successfully with %s", Objects.requireNonNull(account).getUsername()));
         }
         final DataContext context = dataId -> CommonDataKeys.PROJECT.getName().equals(dataId) ? this.context.getProject() : null;
         final AnActionEvent event = AnActionEvent.createFromAnAction(new EmptyAction(), null, "azure.guidance.summary", context);

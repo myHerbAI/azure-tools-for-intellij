@@ -33,7 +33,6 @@ import java.util.Optional;
 public class AzureModule extends AzureRefreshableNode {
     private static final String AZURE_SERVICE_MODULE_ID = AzureModule.class.getName();
     private static final String BASE_MODULE_NAME = "Azure";
-    private static final String MODULE_NAME_NO_SUBSCRIPTION = "No subscription";
     private static final String ERROR_GETTING_SUBSCRIPTIONS_TITLE = "MS Services - Error Getting Subscriptions";
     private static final String ERROR_GETTING_SUBSCRIPTIONS_MESSAGE = "An error occurred while getting the subscription" +
             " list.\n(Message from Azure:%s)";
@@ -76,7 +75,7 @@ public class AzureModule extends AzureRefreshableNode {
         AzureEventBus.on("account.subscription_changed.account", accountListener);
         AzureEventBus.on("account.logged_out.account", accountListener);
         AzureEventBus.on("account.account.restoring_auth", accountListener);
-        handleSubscriptionChange();
+        this.updateNodeNameAfterLoading();
     }
 
     private synchronized static String composeName() {
@@ -98,6 +97,11 @@ public class AzureModule extends AzureRefreshableNode {
             DefaultLoader.getUIHelper().showException(msg, e, ERROR_GETTING_SUBSCRIPTIONS_TITLE, false, true);
         }
         return BASE_MODULE_NAME;
+    }
+
+    @Override
+    protected void updateNodeNameAfterLoading() {
+        this.setName(composeName());
     }
 
     public void setHdInsightModule(@NotNull HDInsightRootModule rootModule) {
@@ -149,7 +153,8 @@ public class AzureModule extends AzureRefreshableNode {
     @Override
     protected void refreshFromAzure() throws AzureCmdException {
         try {
-            if (IdeAzureAccount.getInstance().isLoggedIn() && hasSubscription()) {
+            final AzureAccount account = Azure.az(AzureAccount.class);
+            if (IdeAzureAccount.getInstance().isLoggedIn() && account.account().getSelectedSubscriptions().size() > 0) {
                 vmArmServiceModule.load(true);
                 redisCacheModule.load(true);
                 storageModule.load(true);
@@ -179,9 +184,9 @@ public class AzureModule extends AzureRefreshableNode {
         return project;
     }
 
-    private void handleSubscriptionChange() {
+    private synchronized void handleSubscriptionChange() {
         setName(composeName());
-        for (Node child : getChildNodes()) {
+        for (final Node child : getChildNodes()) {
             child.removeAllChildNodes();
         }
         Optional.ofNullable(this.clearResourcesListener).ifPresent(Runnable::run);
@@ -194,16 +199,12 @@ public class AzureModule extends AzureRefreshableNode {
         final int subsCount = selectedSubscriptions.size();
         switch (subsCount) {
             case 0:
-                return MODULE_NAME_NO_SUBSCRIPTION;
+                return "No Subscriptions Selected";
             case 1:
                 return selectedSubscriptions.get(0).getName();
             default:
-                return String.format("%d subscriptions", selectedSubscriptions.size());
+                return String.format("%d Subscriptions", selectedSubscriptions.size());
         }
-    }
-
-    private boolean hasSubscription() {
-        return !this.name.contains(MODULE_NAME_NO_SUBSCRIPTION);
     }
 
     @Override

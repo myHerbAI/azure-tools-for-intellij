@@ -82,7 +82,7 @@ public class SubscriptionsDialog extends AzureDialogWrapper implements TableMode
     public SubscriptionsDialog(@Nonnull Project project) {
         super(project, true, IdeModalityType.PROJECT);
         this.project = project;
-        this.filter = new TailingDebouncer(this::updateTableView, 300);
+        this.filter = new TailingDebouncer(() -> AzureTaskManager.getInstance().runLater(this::updateTableView, AzureTask.Modality.ANY), 300);
         this.updateSelectionInfo = new TailingDebouncer(this::updateSelectionInfoInner, 300);
         $$$setupUI$$$();
         setModal(true);
@@ -96,27 +96,22 @@ public class SubscriptionsDialog extends AzureDialogWrapper implements TableMode
      * Open select-subscription dialog.
      */
     public void select(@Nonnull Consumer<List<String>> selectedSubscriptionsConsumer) {
-        final AzureTaskManager manager = AzureTaskManager.getInstance();
-        manager.runOnPooledThread(() -> {
-            final List<Subscription> candidates = Azure.az(AzureAccount.class).account().getSubscriptions();
-            manager.runLater(() -> {
-                if (CollectionUtils.isNotEmpty(candidates)) {
-                    this.setCandidates(candidates);
-                    if (this.showAndGet()) {
-                        final List<String> selected = this.candidates.stream().filter(SimpleSubscription::isSelected)
-                            .map(SimpleSubscription::getId).collect(Collectors.toList());
-                        selectedSubscriptionsConsumer.accept(selected);
-                    }
-                } else {
-                    final int result = Messages.showOkCancelDialog(
-                        "No subscription in current account", "No Subscription", "Try Azure for Free",
-                        Messages.getCancelButton(), Messages.getWarningIcon());
-                    if (result == Messages.OK) {
-                        BrowserUtil.browse("https://azure.microsoft.com/en-us/free/");
-                    }
-                }
-            });
-        });
+        final List<Subscription> candidates = Azure.az(AzureAccount.class).account().getSubscriptions();
+        if (CollectionUtils.isNotEmpty(candidates)) {
+            this.setCandidates(candidates);
+            if (this.showAndGet()) {
+                final List<String> selected = this.candidates.stream().filter(SimpleSubscription::isSelected)
+                    .map(SimpleSubscription::getId).collect(Collectors.toList());
+                selectedSubscriptionsConsumer.accept(selected);
+            }
+        } else {
+            final int result = Messages.showOkCancelDialog(
+                "No subscription in current account", "No Subscription", "Try Azure for Free",
+                Messages.getCancelButton(), Messages.getWarningIcon());
+            if (result == Messages.OK) {
+                BrowserUtil.browse("https://azure.microsoft.com/en-us/free/");
+            }
+        }
     }
 
     private void reloadSubscriptions() {
@@ -150,6 +145,9 @@ public class SubscriptionsDialog extends AzureDialogWrapper implements TableMode
             .collect(Collectors.toList());
         for (final SimpleSubscription sd : subs) {
             model.addRow(new Object[]{sd.isSelected(), sd.getName(), sd});
+        }
+        if (model.getRowCount() <= 0) {
+            table.getEmptyText().setText("No subscriptions");
         }
     }
 

@@ -6,13 +6,13 @@
 package com.microsoft.azure.toolkit.intellij.applicationinsights.connection;
 
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
-import com.microsoft.azure.toolkit.intellij.common.AzureComboBoxSimple;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox;
 import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
 import com.microsoft.azure.toolkit.lib.applicationinsights.AzureApplicationInsights;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -23,8 +23,8 @@ import javax.swing.*;
 import java.awt.event.ItemEvent;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -43,7 +43,7 @@ public class ApplicationInsightsResourcePanel implements AzureFormJPanel<Resourc
         this.insightComboBox.trackValidation();
         this.subscriptionComboBox.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
-                this.insightComboBox.refreshItems();
+                this.insightComboBox.reloadItems();
             } else if (e.getStateChange() == ItemEvent.DESELECTED) {
                 this.insightComboBox.clear();
             }
@@ -73,23 +73,39 @@ public class ApplicationInsightsResourcePanel implements AzureFormJPanel<Resourc
     @Override
     public List<AzureFormInput<?>> getInputs() {
         return Arrays.asList(
-                this.insightComboBox,
-                this.subscriptionComboBox
+            this.insightComboBox,
+            this.subscriptionComboBox
         );
     }
 
     protected void createUIComponents() {
         final Supplier<List<? extends ApplicationInsight>> loader = () -> Optional
-                .ofNullable(this.subscriptionComboBox)
-                .map(AzureComboBox::getValue)
-                .map(Subscription::getId)
-                .map(id -> Azure.az(AzureApplicationInsights.class).applicationInsights(id).list()
-                        .stream().sorted((first, second) -> StringUtils.compare(first.getName(), second.getName())).collect(Collectors.toList()))
-                .orElse(Collections.emptyList());
-        this.insightComboBox = new AzureComboBoxSimple<>(loader) {
+            .ofNullable(this.subscriptionComboBox)
+            .map(AzureComboBox::getValue)
+            .map(Subscription::getId)
+            .map(id -> Azure.az(AzureApplicationInsights.class).applicationInsights(id).list()
+                .stream().sorted((first, second) -> StringUtils.compare(first.getName(), second.getName())).collect(Collectors.toList()))
+            .orElse(Collections.emptyList());
+        this.insightComboBox = new AzureComboBox<>(loader) {
             @Override
             protected String getItemText(Object item) {
                 return Optional.ofNullable(item).map(i -> ((ApplicationInsight) i).getName()).orElse(StringUtils.EMPTY);
+            }
+
+            @Nullable
+            @Override
+            protected ApplicationInsight doGetDefaultValue() {
+                return CacheManager.getUsageHistory(ApplicationInsight.class)
+                    .peek(v -> Objects.isNull(subscriptionComboBox) || Objects.equals(subscriptionComboBox.getValue(), v.getSubscription()));
+            }
+
+            @Override
+            protected void refreshItems() {
+                Optional.ofNullable(ApplicationInsightsResourcePanel.this.subscriptionComboBox)
+                    .map(AzureComboBox::getValue)
+                    .map(Subscription::getId)
+                    .ifPresent(id -> Azure.az(AzureApplicationInsights.class).applicationInsights(id).refresh());
+                super.refreshItems();
             }
         };
     }

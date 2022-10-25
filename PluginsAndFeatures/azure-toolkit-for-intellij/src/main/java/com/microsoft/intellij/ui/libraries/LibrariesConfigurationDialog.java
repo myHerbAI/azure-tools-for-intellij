@@ -52,6 +52,7 @@ public class LibrariesConfigurationDialog extends AzureDialogWrapper {
         this.currentLibs = currentLibs;
         this.module = module;
         init();
+        setTitle("Libraries Configuration");
     }
 
     @Override

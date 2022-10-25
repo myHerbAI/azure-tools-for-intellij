@@ -53,6 +53,7 @@ public class CreateDeploymentDialog extends AzureDialogWrapper {
 
     private static final String DUPLICATED_DEPLOYMENT_NAME = "A deployment with the same name already exists";
     private final Project project;
+    private final ResourceGroup initialResourceGroup;
 
     private JPanel contentPane;
     private JTextField rgNameTextFiled;
@@ -72,6 +73,7 @@ public class CreateDeploymentDialog extends AzureDialogWrapper {
     public CreateDeploymentDialog(@Nonnull final Project project, @Nullable ResourceGroup group) {
         super(project, false);
         this.project = project;
+        this.initialResourceGroup = group;
         setModal(true);
         setTitle("Create Deployment");
 
@@ -87,7 +89,7 @@ public class CreateDeploymentDialog extends AzureDialogWrapper {
         lblTemplateHover.setHyperlinkText("Browse for samples");
         lblTemplateHover.setHyperlinkTarget(ARM_DOC);
         deploymentNameTextField.setText("deployment" + System.currentTimeMillis());
-        rgNameTextFiled.setText("resouregroup" + System.currentTimeMillis());
+        rgNameTextFiled.setText("resourcegroup" + System.currentTimeMillis());
         initListeners();
         updateResourceGroupPanel();
         init();
@@ -188,8 +190,6 @@ public class CreateDeploymentDialog extends AzureDialogWrapper {
             return;
         }
         subscriptionCombobox.setValue(new AzureComboBox.ItemReference<>(group.getSubscriptionId(), Subscription::getId));
-        reloadResourceGroupItems();
-        UIUtils.selectByText(resourceGroupCombobox, group.getName());
         updateResourceGroupPanel();
     }
 
@@ -200,6 +200,9 @@ public class CreateDeploymentDialog extends AzureDialogWrapper {
         final String sid = ((Subscription) subscriptionCombobox.getSelectedItem()).getId();
         resourceGroupCombobox.removeAllItems();
         Azure.az(AzureResources.class).groups(sid).list().forEach(g -> resourceGroupCombobox.addItem(g));
+        if (initialResourceGroup.getSubscriptionId().equals(sid)) {
+            UIUtils.selectByText(resourceGroupCombobox, Objects.toString(initialResourceGroup));
+        }
     }
 
     private void fillSubscription(String targetSid) {

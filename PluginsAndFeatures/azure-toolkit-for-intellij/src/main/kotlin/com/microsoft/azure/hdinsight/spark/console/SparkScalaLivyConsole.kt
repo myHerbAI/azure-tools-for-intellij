@@ -36,12 +36,13 @@ class SparkScalaLivyConsole(module: Module) : ScalaLanguageConsole(module), Spar
     override fun attachToProcess(processHandler: ProcessHandler) {
         super.attachToProcess(processHandler)
 
-        // Remove self from ScalaConsoleInfo
-        ScalaConsoleInfo.disposeConsole(this)
-
         // Add to Spark Console Manager
         val controller = ConsoleHistoryController.getController(this)
             ?: throw RuntimeException("Can't find controller for Livy console from console history controller")
+
+        // Remove self from ScalaConsoleInfo amend method ScalaConsoleInfo.disposeConsole(this)
+        ScalaConsoleInfo.addConsole(this,controller,processHandler)
+
         SparkConsoleManager.add(this, controller, processHandler)
     }
 }

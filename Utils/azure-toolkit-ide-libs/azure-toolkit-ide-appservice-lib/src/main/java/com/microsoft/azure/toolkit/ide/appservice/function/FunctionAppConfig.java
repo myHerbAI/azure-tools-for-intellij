@@ -8,17 +8,23 @@ package com.microsoft.azure.toolkit.ide.appservice.function;
 import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig;
 import com.microsoft.azure.toolkit.ide.appservice.model.ApplicationInsightsConfig;
 import com.microsoft.azure.toolkit.ide.appservice.model.MonitorConfig;
+import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
-import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,14 +36,17 @@ import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+
+import static com.microsoft.azure.toolkit.lib.Azure.az;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 @SuperBuilder(toBuilder = true)
 public class FunctionAppConfig extends AppServiceConfig {
     public static final Runtime DEFAULT_RUNTIME = Runtime.FUNCTION_WINDOWS_JAVA8;
@@ -49,30 +58,48 @@ public class FunctionAppConfig extends AppServiceConfig {
     }
 
     public static FunctionAppConfig getFunctionAppDefaultConfig(final String name) {
-        final String appName = StringUtils.isEmpty(name) ? String.format("app-%s", DATE_FORMAT.format(new Date())) :
-            String.format("app-%s-%s", name, DATE_FORMAT.format(new Date()));
-        final Subscription subscription = Azure.az(IAzureAccount.class).account().getSelectedSubscriptions().stream().findFirst().orElse(null);
-        final String rgName = StringUtils.substring(String.format("rg-%s", appName), 0, RG_NAME_MAX_LENGTH);
-        final Region region = AppServiceConfig.getDefaultRegion();
-        final ResourceGroupConfig group = ResourceGroupConfig.builder().subscriptionId(subscription.getId()).name(rgName).region(region).build();
-        final String planName = StringUtils.substring(String.format("sp-%s", appName), 0, SP_NAME_MAX_LENGTH);
-        final AppServicePlanConfig plan = AppServicePlanConfig.builder()
-            .subscriptionId(subscription.getId())
-            .resourceGroupName(rgName)
-            .name(planName)
-            .region(region)
-            .os(FunctionAppConfig.DEFAULT_RUNTIME.getOperatingSystem())
-            .pricingTier(PricingTier.CONSUMPTION).build();
+        final String namePrefix = StringUtils.isEmpty(name) ? "app" : String.format("app-%s", name);
+        final String appName = Utils.generateRandomResourceName(namePrefix, APP_SERVICE_NAME_MAX_LENGTH);        final List<Subscription> subs = Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();
+        final Subscription historySub = CacheManager.getUsageHistory(Subscription.class).peek(subs::contains);
+        final Subscription sub = Optional.ofNullable(historySub).orElseGet(() -> subs.stream().findFirst().orElse(null));
+
+        final List<Region> regions = az(AzureAccount.class).listRegions(sub.getId());
+        final Region historyRegion = CacheManager.getUsageHistory(Region.class).peek(regions::contains);
+        final Region region = Optional.ofNullable(historyRegion).orElseGet(AppServiceConfig::getDefaultRegion);
+
+        final String rgName = Utils.generateRandomResourceName(String.format("rg-%s", namePrefix), RG_NAME_MAX_LENGTH);
+        final ResourceGroup historyRg = CacheManager.getUsageHistory(ResourceGroup.class)
+            .peek(r -> Objects.isNull(sub) ? subs.stream().anyMatch(s -> s.getId().equals(r.getSubscriptionId())) : r.getSubscriptionId().equals(sub.getId()));
+        final Subscription subscription = Optional.ofNullable(sub).orElseGet(() -> Optional.ofNullable(historyRg).map(AzResource::getSubscription).orElse(null));
+        final ResourceGroupConfig group = Optional.ofNullable(historyRg).map(ResourceGroupConfig::fromResource).orElseGet(() -> ResourceGroupConfig.builder().subscriptionId(sub.getId()).name(rgName).region(region).build());
+
+        final String planName = Utils.generateRandomResourceName(String.format("sp-%s", namePrefix), SP_NAME_MAX_LENGTH);
+        final AppServicePlan historyPlan = CacheManager.getUsageHistory(AppServicePlan.class).peek();
+        final AppServicePlanConfig plan = Optional.ofNullable(historyPlan)
+            .filter(p -> p.getSubscriptionId().equals(subscription.getId()))
+            .filter(p -> p.getResourceGroupName().equals(group.getName()))
+            .map(AppServicePlanConfig::fromResource)
+            .orElseGet(() -> AppServicePlanConfig.builder()
+                .subscriptionId(subscription.getId())
+                .resourceGroupName(rgName)
+                .name(planName)
+                .region(region)
+                .os(FunctionAppConfig.DEFAULT_RUNTIME.getOperatingSystem())
+                .pricingTier(PricingTier.CONSUMPTION).build());
+
+        final Runtime historyRuntime = CacheManager.getUsageHistory(Runtime.class).peek(runtime -> Runtime.FUNCTION_APP_RUNTIME.contains(runtime));
+        final Runtime runtime = Optional.ofNullable(historyRuntime).orElse(FunctionAppConfig.DEFAULT_RUNTIME);
+
         final ApplicationInsightsConfig insightsConfig = ApplicationInsightsConfig.builder().name(appName).newCreate(true).build();
         final MonitorConfig monitorConfig = MonitorConfig.builder().applicationInsightsConfig(insightsConfig).build();
         return FunctionAppConfig.builder()
-            .subscription(subscription)
-            .resourceGroup(group)
-            .name(appName)
-            .servicePlan(plan)
-            .runtime(FunctionAppConfig.DEFAULT_RUNTIME)
-            .pricingTier(PricingTier.CONSUMPTION)
-            .monitorConfig(monitorConfig)
+                .subscription(subscription)
+                .resourceGroup(group)
+                .name(appName)
+                .servicePlan(plan)
+                .runtime(runtime)
+                .pricingTier(PricingTier.CONSUMPTION)
+                .monitorConfig(monitorConfig)
                 .region(region).build();
     }
 

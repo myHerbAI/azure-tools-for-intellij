@@ -80,7 +80,7 @@ public class StepPanel extends JPanel {
 
     private void updateStatus(Status status) {
         this.updateStatusIcon(status);
-        this.actionButton.setVisible(status != Status.SUCCEED);
+        this.actionButton.setVisible(status != Status.SUCCEED && status != Status.PARTIAL_SUCCEED);
         this.actionButton.setEnabled(status == Status.READY || status == Status.FAILED);
         if (status == Status.FAILED) {
             this.actionButton.setText("Retry");
@@ -88,7 +88,7 @@ public class StepPanel extends JPanel {
     }
 
     void updateStatusIcon(final Status status) {
-        if (status == Status.RUNNING || status == Status.SUCCEED || status == Status.FAILED) {
+        if (status == Status.RUNNING || status == Status.SUCCEED || status == Status.PARTIAL_SUCCEED || status == Status.FAILED) {
             final Icon icon = IconUtil.scale(PhasePanel.getStatusIcon(status), this.statusIcon, 0.875f);
             this.statusIcon.setIcon(icon);
             this.statusIcon.setText("");

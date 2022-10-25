@@ -27,6 +27,7 @@ public class AppServiceStreamingLogConsoleView extends ConsoleViewImpl {
     public AppServiceStreamingLogConsoleView(@NotNull Project project, String resourceId) {
         super(project, true);
         this.isDisposed = false;
+        this.setUpdateFoldingsEnabled(false);
         this.resourceId = resourceId;
     }
 
@@ -34,8 +35,8 @@ public class AppServiceStreamingLogConsoleView extends ConsoleViewImpl {
         if (!isActive()) {
             printlnToConsole(message("appService.logStreaming.hint.connect"), SYSTEM_OUTPUT);
             subscription = logStreaming.subscribeOn(Schedulers.boundedElastic())
-                                       .doAfterTerminate(() -> printlnToConsole(message("appService.logStreaming.hint.disconnected"), SYSTEM_OUTPUT))
-                                       .subscribe((log) -> printlnToConsole(log, NORMAL_OUTPUT));
+                    .doAfterTerminate(() -> printlnToConsole(message("appService.logStreaming.hint.disconnected"), SYSTEM_OUTPUT))
+                    .subscribe((log) -> printlnToConsole(log, NORMAL_OUTPUT));
         }
     }
 

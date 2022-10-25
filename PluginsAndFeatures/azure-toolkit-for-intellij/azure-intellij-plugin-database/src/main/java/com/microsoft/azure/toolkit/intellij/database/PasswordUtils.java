@@ -20,14 +20,24 @@ public class PasswordUtils {
     private static final int PASSWORD_CATEGORIES_MIN = 3;
     private static final int LONGEST_COMMON_SUBSEQUENCE_BETWEEN_NAME_AND_PASSWORD = 3;
 
-    public static AzurePasswordFieldInput generatePasswordFieldInput(JPasswordField passwordField, JTextField adminUsernameTextField) {
-        return new AzurePasswordFieldInput(passwordField) {
-            @Override
-            public AzureValidationInfo doValidate(final String value) {
-                final String adminUsername = adminUsernameTextField.getText();
-                return PasswordUtils.validatePassword(value, adminUsername, this);
+    public static AzurePasswordFieldInput generatePasswordFieldInput(JPasswordField passwordField, JTextField adminUsernameTextField, AzurePasswordFieldInput confirmPasswordField) {
+        final AzurePasswordFieldInput passwordInput = new AzurePasswordFieldInput(passwordField);
+        passwordInput.addValidator(() -> {
+            final String adminUsername = adminUsernameTextField.getText();
+            final String value = Arrays.toString(passwordField.getPassword());
+            return PasswordUtils.validatePassword(value, adminUsername, passwordInput);
+        });
+        passwordInput.addValueChangedListener((String password) -> {
+            final String confirmPassword = confirmPasswordField.getValue();
+            if (StringUtils.isNotEmpty(confirmPassword) && !StringUtils.equals(confirmPassword, password)) {
+                confirmPasswordField.setValidationInfo(
+                        AzureValidationInfo.error("Password and confirm password must match.", confirmPasswordField));
+            } else {
+                confirmPasswordField.setValidationInfo(
+                        AzureValidationInfo.success(confirmPasswordField));
             }
-        };
+        });
+        return passwordInput;
     }
 
     public static AzurePasswordFieldInput generateConfirmPasswordFieldInput(JPasswordField confirmPasswordField, JPasswordField passwordField) {

@@ -15,5 +15,6 @@ public class StepConfig {
     private String title;
     private String description;
     private TaskConfig task;
+    private boolean continueOnError = false;
     private List<InputConfig> inputs;
 }
