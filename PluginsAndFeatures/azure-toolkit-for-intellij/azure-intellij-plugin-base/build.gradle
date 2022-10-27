@@ -1,14 +1,14 @@
 plugins {
     id "org.jetbrains.intellij" version "1.5.2"
-    id "org.jetbrains.kotlin.jvm" version "1.6.10"
+    id "org.jetbrains.kotlin.jvm" version "1.6.21"
     id "de.undercouch.download" version "4.1.1"
     id "com.github.ben-manes.versions" version "0.39.0"
     id "io.freefair.aspectj.post-compile-weaving" version "6.0.0-m2"
     id "io.spring.dependency-management" version "1.0.11.RELEASE"
 }
 ext {
-    azureToolkitVersion = "0.24.0-SNAPSHOT"
-    azureToolkitUtilsVersion = "3.68.0-SNAPSHOT"
+    azureToolkitVersion = "0.26.0-SNAPSHOT"
+    azureToolkitUtilsVersion = "3.70.0-SNAPSHOT"
 }
 
 group 'com.microsoft.azure.toolkit'
@@ -48,8 +48,8 @@ subprojects {
     apply plugin: 'io.freefair.aspectj.post-compile-weaving'
     apply plugin: 'io.spring.dependency-management'
     ext {
-        azureToolkitVersion = "0.24.0-SNAPSHOT"
-        azureToolkitUtilsVersion = "3.68.0-SNAPSHOT"
+        azureToolkitVersion = "0.26.0-SNAPSHOT"
+        azureToolkitUtilsVersion = "3.70.0-SNAPSHOT"
     }
 
     sourceCompatibility = javaVersion

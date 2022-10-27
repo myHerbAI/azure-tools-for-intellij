@@ -8,11 +8,13 @@ package com.microsoft.azure.toolkit.intellij.springcloud.creation;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
@@ -26,7 +28,7 @@ import java.util.Optional;
 public class CreateSpringCloudAppAction {
     private static final int GET_STATUS_TIMEOUT = 180;
     private static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "Deployment succeeded but the app is still starting, " +
-            "you can check the app status from Azure Portal.";
+        "you can check the app status from Azure Portal.";
     private static final String NOTIFICATION_TITLE = "Deploy Spring app";
 
     public static void createApp(@Nonnull SpringCloudCluster cluster, @Nullable Project project) {
@@ -46,6 +48,8 @@ public class CreateSpringCloudAppAction {
         AzureTaskManager.getInstance().runInBackground(OperationBundle.description("springcloud.create_app.app", config.getAppName()), () -> {
             final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(config);
             final SpringCloudDeployment deployment = task.execute();
+            CacheManager.getUsageHistory(SpringCloudCluster.class).push(deployment.getParent().getParent());
+            CacheManager.getUsageHistory(SpringCloudApp.class).push(deployment.getParent());
             final boolean hasArtifact = Optional.ofNullable(config.getDeployment())
                 .map(SpringCloudDeploymentConfig::getArtifact)
                 .map(IArtifact::getFile).isPresent();

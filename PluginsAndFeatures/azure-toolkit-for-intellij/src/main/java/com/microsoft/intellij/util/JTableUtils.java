@@ -41,7 +41,7 @@ public class JTableUtils {
             this.table = table;
             this.colIndex = columnIndex;
             this.table.getModel().addTableModelListener(this);
-            this.updateHeaderValue = new TailingDebouncer(() -> this.updateHeaderValueInner(), 300);
+            this.updateHeaderValue = new TailingDebouncer(this::updateHeaderValueInner, 300);
         }
 
         /**

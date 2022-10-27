@@ -60,6 +60,7 @@ public class WebAppOnLinuxDeployState extends AzureRunProfileState<AppServiceApp
         if (!targetDockerfile.toFile().exists()) {
             throw new FileNotFoundException("Dockerfile not found.");
         }
+        processHandler.setText(String.format("dockerfile [%s] is located and validated.", targetDockerfile));
         // replace placeholder if exists
         String content = new String(Files.readAllBytes(targetDockerfile));
         content = content.replaceAll(Constant.DOCKERFILE_ARTIFACT_PLACEHOLDER,
@@ -69,8 +70,7 @@ public class WebAppOnLinuxDeployState extends AzureRunProfileState<AppServiceApp
 
         // build image
         final PrivateRegistryImageSetting acrInfo = deployModel.getPrivateRegistryImageSetting();
-        processHandler.setText(String.format("Building image ...  [%s]",
-                acrInfo.getImageTagWithServerUrl()));
+        processHandler.setText(String.format("Building image ...  [%s]", acrInfo.getImageTagWithServerUrl()));
         final DockerClient docker = DefaultDockerClient.fromEnv().build();
         DockerUtil.ping(docker);
         DockerUtil.buildImage(docker,
@@ -79,11 +79,13 @@ public class WebAppOnLinuxDeployState extends AzureRunProfileState<AppServiceApp
                 targetDockerfile.getFileName().toString(),
                 new DockerProgressHandler(processHandler)
         );
+        processHandler.setText(String.format("Image [%s] is built successfully.", acrInfo.getImageTagWithServerUrl()));
 
         // push to ACR
         processHandler.setText(String.format("Pushing to ACR ... [%s] ", acrInfo.getServerUrl()));
         DockerUtil.pushImage(docker, acrInfo.getServerUrl(), acrInfo.getUsername(), acrInfo.getPassword(),
                 acrInfo.getImageTagWithServerUrl(), new DockerProgressHandler(processHandler));
+        processHandler.setText(String.format("[%s] is pushed to ACR successfully.", acrInfo.getServerUrl()));
 
         // deploy
         if (deployModel.isCreatingNewWebAppOnLinux()) {
@@ -91,6 +93,7 @@ public class WebAppOnLinuxDeployState extends AzureRunProfileState<AppServiceApp
             processHandler.setText(String.format("Creating new WebApp ... [%s]", deployModel.getWebAppName()));
             final WebApp app = AzureWebAppMvpModel.getInstance().createAzureWebAppWithPrivateRegistryImage(deployModel);
             if (app != null && app.name() != null) {
+                processHandler.setText(String.format("WebApp [%s] is created successfully.", app.name()));
                 processHandler.setText(String.format("URL:  https://%s.azurewebsites.net/", app.name()));
                 updateConfigurationDataModel(app);
             }
@@ -101,6 +104,7 @@ public class WebAppOnLinuxDeployState extends AzureRunProfileState<AppServiceApp
                     deployModel.getWebAppName()));
             final WebApp app = AzureWebAppMvpModel.getInstance().updateWebAppOnDocker(deployModel.getWebAppId(), acrInfo);
             if (app != null && app.name() != null) {
+                processHandler.setText(String.format("WebApp [%s] is updated successfully.", app.name()));
                 processHandler.setText(String.format("URL:  https://%s.azurewebsites.net/", app.name()));
             }
             return app;

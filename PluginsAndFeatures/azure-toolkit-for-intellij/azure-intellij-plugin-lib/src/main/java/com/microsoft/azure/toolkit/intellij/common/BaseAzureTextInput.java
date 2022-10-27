@@ -10,6 +10,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ui.AnimatedIcon;
 import com.intellij.ui.components.fields.ExtendableTextField;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
@@ -22,16 +23,16 @@ import java.util.Objects;
 import java.util.function.Function;
 
 public class BaseAzureTextInput<T> extends ExtendableTextField
-        implements AzureFormInputComponent<T>, TextDocumentListenerAdapter {
+    implements AzureFormInputComponent<T>, TextDocumentListenerAdapter {
     protected static final int DEBOUNCE_DELAY = 500;
     private final Debouncer debouncer;
     private static final Extension VALIDATING = Extension.create(AnimatedIcon.Default.INSTANCE, "Validating...", null);
     private static final Extension SUCCESS = Extension.create(AllIcons.General.InspectionsOK, "Validation passed.", null);
     private static final Map<AzureValidationInfo.Type, Function<AzureValidationInfo, Extension>> extensions = ImmutableMap.of(
-            AzureValidationInfo.Type.PENDING, (i) -> VALIDATING,
-            AzureValidationInfo.Type.SUCCESS, (i) -> SUCCESS,
-            AzureValidationInfo.Type.ERROR, (i) -> Extension.create(AllIcons.General.BalloonError, i.getMessage(), null),
-            AzureValidationInfo.Type.WARNING, (i) -> Extension.create(AllIcons.General.BalloonWarning, i.getMessage(), null)
+        AzureValidationInfo.Type.PENDING, (i) -> VALIDATING,
+        AzureValidationInfo.Type.SUCCESS, (i) -> SUCCESS,
+        AzureValidationInfo.Type.ERROR, (i) -> Extension.create(AllIcons.General.BalloonError, i.getMessage(), null),
+        AzureValidationInfo.Type.WARNING, (i) -> Extension.create(AllIcons.General.BalloonWarning, i.getMessage(), null)
     );
     protected Extension validationExtension;
 
@@ -62,14 +63,16 @@ public class BaseAzureTextInput<T> extends ExtendableTextField
         this.debouncer.debounce();
     }
 
-    protected synchronized void setValidationExtension(final Extension extension) {
+    protected synchronized void setValidationExtension(@Nullable final Extension extension) {
         AzureTaskManager.getInstance().runLater(() -> {
             if (validationExtension != null) {
                 this.removeExtension(validationExtension);
             }
-            this.addExtension(extension);
+            if (Objects.nonNull(extension)) {
+                this.addExtension(extension);
+            }
             this.validationExtension = extension;
-        });
+        }, AzureTask.Modality.ANY);
     }
 
     @Override

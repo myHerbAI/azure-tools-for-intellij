@@ -6,13 +6,11 @@
 package com.microsoft.azure.toolkit.ide.appservice.function;
 
 import com.google.common.io.Files;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import com.microsoft.azure.toolkit.ide.appservice.util.JsonUtils;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.FunctionTemplate;
 import com.microsoft.azure.toolkit.lib.legacy.function.utils.FunctionUtils;
 import org.apache.commons.io.FileUtils;
@@ -87,19 +85,19 @@ public class AzureFunctionsUtils {
         if (!localSettingFile.getParentFile().isDirectory()) {
             throw new IOException("Cannot save file to a non-existing directory: " + localSettingFile.getParent());
         }
-        final JsonObject localSettingRoot = localSettingFile.exists() ?
-                JsonUtils.readJsonFile(localSettingFile) : new JsonObject();
-        if (localSettingRoot.has("IsEncrypted")) {
-            localSettingRoot.add("IsEncrypted", new JsonPrimitive(false));
+        final Map<String, Object> localSettingRoot = localSettingFile.exists() ?
+            JsonUtils.readFromJsonFile(localSettingFile, Map.class) : new HashMap<>();
+        if (localSettingRoot.containsKey("IsEncrypted")) {
+            localSettingRoot.put("IsEncrypted", Boolean.FALSE);
         }
-        JsonObject appSettings = localSettingRoot.getAsJsonObject("Values");
+        Map<String, Object> appSettings = (Map<String, Object>) localSettingRoot.get("Values");
         if (appSettings == null) {
-            appSettings = new JsonObject();
-            localSettingRoot.add("Values", appSettings);
+            appSettings = new HashMap<>();
+            localSettingRoot.put("Values", appSettings);
         }
 
-        appSettings.addProperty(key, value);
-        JsonUtils.writeJsonToFile(localSettingFile, localSettingRoot);
+        appSettings.put(key, value);
+        JsonUtils.writeToJsonFile(localSettingFile, localSettingRoot);
     }
 
     public static String normalizeClassName(String className) {

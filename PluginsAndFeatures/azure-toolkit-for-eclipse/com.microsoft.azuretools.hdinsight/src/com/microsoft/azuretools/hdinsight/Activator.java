@@ -45,10 +45,10 @@ public class Activator extends AbstractUIPlugin {
 
         com.microsoft.azuretools.azureexplorer.helpers.HDInsightHelperImpl.initHDInsightLoader();
 
-        String enabledProperty = DefaultLoader.getIdeHelper().getProperty(Messages.HDInsightFeatureEnabled);
+        String enabledProperty = DefaultLoader.getIdeHelper().getApplicationProperty(Messages.HDInsightFeatureEnabled);
         if(StringHelper.isNullOrWhiteSpace(enabledProperty)) {
             AppInsightsClient.create(Messages.HDInsightFeatureEnabled, context.getBundle().getVersion().toString());
-            DefaultLoader.getIdeHelper().setProperty(Messages.HDInsightFeatureEnabled, "true");
+            DefaultLoader.getIdeHelper().setApplicationProperty(Messages.HDInsightFeatureEnabled, "true");
         }
         HDInsightJobViewUtils.checkInitlize();
     }

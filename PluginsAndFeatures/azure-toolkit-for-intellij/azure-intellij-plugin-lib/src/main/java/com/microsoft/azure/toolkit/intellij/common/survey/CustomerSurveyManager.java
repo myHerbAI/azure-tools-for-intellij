@@ -74,6 +74,9 @@ public class CustomerSurveyManager {
     }
 
     private void showSurveyPopup(final @Nonnull Project project, final ICustomerSurvey survey) {
+        if (project.isDisposed()) {
+            return;
+        }
         final SurveyPopUpDialog popUpDialog = new SurveyPopUpDialog(project, survey, response -> {
             try {
                 if (response == CustomerSurveyResponse.ACCEPT) {

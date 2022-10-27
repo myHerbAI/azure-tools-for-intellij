@@ -50,7 +50,7 @@ public class ClusterOperationNewAPIImpl extends ClusterOperationImpl implements 
     }
 
     public Observable<Map> getClusterCoreSiteRequest(@NotNull final String clusterId) throws IOException {
-        String managementURI = Azure.az(AzureCloud.class).getOrDefault().getManagementEndpoint();
+        String managementURI = Azure.az(AzureCloud.class).getOrDefault().getResourceManagerEndpoint();
         String url = URI.create(managementURI)
                 .resolve(clusterId.replaceAll("/+$", "") + "/configurations/core-site").toString();
         return getHttp()
@@ -59,8 +59,7 @@ public class ClusterOperationNewAPIImpl extends ClusterOperationImpl implements 
     }
 
     private Observable<ClusterConfiguration> getClusterConfigurationRequest(
-            @NotNull final String clusterId) {
-        String managementURI = Azure.az(AzureCloud.class).getOrDefault().getManagementEndpoint();
+            @NotNull final String clusterId, String managementURI) {
         String url = URI.create(managementURI)
                 .resolve(clusterId.replaceAll("/+$", "") + "/configurations").toString();
         StringEntity entity = new StringEntity("", StandardCharsets.UTF_8);
@@ -70,10 +69,11 @@ public class ClusterOperationNewAPIImpl extends ClusterOperationImpl implements 
                 .post(url, entity, null, null, ClusterConfiguration.class);
     }
 
+
     public Observable<Boolean> isProbeGetConfigurationSucceed(final ClusterRawInfo clusterRawInfo) {
         String clusterId = clusterRawInfo.getId();
-
-        return getClusterConfigurationRequest(clusterId)
+        String managementURI = Azure.az(AzureCloud.class).getOrDefault().getResourceManagerEndpoint();
+        return getClusterConfigurationRequest(clusterId,managementURI)
                 .map(clusterConfiguration -> {
                     if (isClusterConfigurationValid(clusterRawInfo, clusterConfiguration)) {
                         setRoleType(HDInsightUserRoleType.OWNER);
@@ -164,13 +164,14 @@ public class ClusterOperationNewAPIImpl extends ClusterOperationImpl implements 
         try {
             switch (roleType) {
                 case OWNER:
-                    return getClusterConfigurationRequest(clusterId)
+                    String managementURI = Azure.az(AzureCloud.class).getOrDefault().getResourceManagerEndpoint();
+                    return getClusterConfigurationRequest(clusterId,managementURI)
                             // As you can see, the response class is
                             // com.microsoft.azure.hdinsight.sdk.cluster.HDInsightNewAPI.ClusterConfiguration.
                             // However, if we want to override method getClusterConfiguration, the method return type should be
                             // com.microsoft.azure.hdinsight.sdk.cluster.ClusterConfiguration.
                             // Therefore, we need to convert the new API response to old API.
-                            .map(ClusterOperationNewAPIImpl::convertConfigurationToOldAPI)
+                                  .map(ClusterOperationNewAPIImpl::convertConfigurationToOldAPI)
                             .toBlocking()
                             .singleOrDefault(null);
                 case READER:

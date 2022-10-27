@@ -5,15 +5,18 @@
 
 package com.microsoft.azure.toolkit.intellij.storage.component;
 
+import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.model.Kind;
 import com.microsoft.azure.toolkit.lib.storage.model.Performance;
 import com.microsoft.azure.toolkit.lib.storage.model.Redundancy;
-import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -32,7 +35,7 @@ public class RedundancyComboBox extends AzureComboBox<Redundancy> {
             this.clear();
             return;
         }
-        this.refreshItems();
+        this.reloadItems();
     }
 
     public void setKind(Kind kind) {
@@ -44,18 +47,31 @@ public class RedundancyComboBox extends AzureComboBox<Redundancy> {
             this.clear();
             return;
         }
-        this.refreshItems();
+        this.reloadItems();
+    }
+
+    @Nullable
+    @Override
+    protected Redundancy doGetDefaultValue() {
+        return CacheManager.getUsageHistory(Redundancy.class)
+            .peek(v -> Objects.isNull(performance) || Objects.equals(performance, v.getPerformance()));
     }
 
     @Nonnull
     @Override
     @AzureOperation(
-            name = "storage|account.redundancy.list.supported",
-            type = AzureOperation.Type.SERVICE
+        name = "storage|account.redundancy.list.supported",
+        type = AzureOperation.Type.SERVICE
     )
     protected List<? extends Redundancy> loadItems() {
         return Objects.isNull(this.performance) ? Collections.emptyList() :
-                Azure.az(AzureStorageAccount.class).listSupportedRedundancies(this.performance, this.kind);
+            Azure.az(AzureStorageAccount.class).listSupportedRedundancies(this.performance, this.kind);
+    }
+
+    @Nonnull
+    @Override
+    protected List<ExtendableTextComponent.Extension> getExtensions() {
+        return Collections.emptyList();
     }
 
     @Override

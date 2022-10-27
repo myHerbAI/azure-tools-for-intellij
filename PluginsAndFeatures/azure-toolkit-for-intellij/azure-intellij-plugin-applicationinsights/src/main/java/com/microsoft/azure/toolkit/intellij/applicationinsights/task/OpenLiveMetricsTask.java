@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.microsoft.azure.toolkit.ide.applicationinsights.ApplicationInsightsActionsContributor.LIVE_METRICS;
 
@@ -25,6 +26,13 @@ public class OpenLiveMetricsTask implements Task {
 
     public OpenLiveMetricsTask(@Nonnull final ComponentContext context) {
         this.context = context;
+    }
+
+    @Override
+    public boolean isReady() {
+        final String applicationInsightsId = (String) context.getParameter("applicationInsightsId");
+        final String instrumentKey = (String) context.getParameter("instrumentKey");
+        return !StringUtils.isAllBlank(applicationInsightsId, instrumentKey);
     }
 
     @Override
@@ -39,7 +47,8 @@ public class OpenLiveMetricsTask implements Task {
 
     private ApplicationInsight getInsightsById(@Nonnull final String id) {
         final ResourceId resourceId = ResourceId.fromString(id);
-        return Azure.az(AzureApplicationInsights.class).applicationInsights(resourceId.subscriptionId()).get(id);
+        return Objects.requireNonNull(Azure.az(AzureApplicationInsights.class).applicationInsights(resourceId.subscriptionId()).get(id),
+                String.format("Failed to find the application insights instance with id %s", id));
     }
 
     private ApplicationInsight getInsightsByInstrumentKey(@Nonnull final String instrumentKey) {

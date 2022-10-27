@@ -18,12 +18,14 @@ import com.microsoft.tooling.msservices.serviceexplorer.azure.container.Containe
 import com.microsoft.tooling.msservices.serviceexplorer.azure.container.ContainerSettingView;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.event.ItemEvent;
 import java.util.List;
+import java.util.Optional;
 
 public class ContainerSettingPanel implements ContainerSettingView {
 
@@ -42,6 +44,7 @@ public class ContainerSettingPanel implements ContainerSettingView {
 
     private static final String SELECT_REGISTRY = "<Select Container Registry>";
     private static final String LOADING = "<Loading...>";
+    private String containerRegistryFromConfiguration;
 
     private final Project project;
 
@@ -76,6 +79,7 @@ public class ContainerSettingPanel implements ContainerSettingView {
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 if (e.getItem() instanceof String) {
                     enableWidgets();
+                    clearCredential();
                     return;
                 }
                 if (e.getItem() instanceof ContainerRegistry) {
@@ -156,6 +160,18 @@ public class ContainerSettingPanel implements ContainerSettingView {
         dockerFilePathTextField.setText(path);
     }
 
+    public void setContainerRegistry(String curItem) {
+        this.containerRegistryFromConfiguration = curItem;
+    }
+
+    @Nullable
+    public ContainerRegistry getContainerRegistry() {
+        final Object selectedItem = cbContainerRegistry.getSelectedItem();
+        if (selectedItem instanceof ContainerRegistry) {
+            return (ContainerRegistry) selectedItem;
+        }
+        return null;
+    }
     private void disableWidgets() {
         txtServerUrl.setEnabled(false);
         txtUserName.setEnabled(false);
@@ -166,6 +182,12 @@ public class ContainerSettingPanel implements ContainerSettingView {
         txtServerUrl.setEnabled(true);
         txtUserName.setEnabled(true);
         passwordField.setEnabled(true);
+    }
+
+    private void clearCredential() {
+        txtServerUrl.setText("");
+        txtUserName.setText("");
+        passwordField.setText("");
     }
 
     @Override
@@ -187,6 +209,9 @@ public class ContainerSettingPanel implements ContainerSettingView {
         for (final ContainerRegistry registry : registries) {
             model.addElement(registry);
         }
+        Optional.ofNullable(this.containerRegistryFromConfiguration).flatMap(id -> registries.stream()
+                .filter(c -> c.getId().equals(id))
+                .findAny()).ifPresent(curItem -> this.cbContainerRegistry.setSelectedItem(curItem));
     }
 
     @Override

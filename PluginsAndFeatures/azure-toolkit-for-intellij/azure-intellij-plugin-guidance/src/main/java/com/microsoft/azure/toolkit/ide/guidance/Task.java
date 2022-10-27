@@ -17,6 +17,10 @@ public interface Task extends Disposable {
     default void prepare() {
     }
 
+    default boolean isReady() {
+        return true;
+    }
+
     default boolean isDone() {
         return false;
     }

@@ -8,8 +8,8 @@ plugins {
 }
 
 ext {
-    azureToolkitVersion = "0.24.0-SNAPSHOT"
-    azureToolkitUtilsVersion = "3.68.0-SNAPSHOT"
+    azureToolkitVersion = "0.26.0-SNAPSHOT"
+    azureToolkitUtilsVersion = "3.70.0-SNAPSHOT"
 }
 
 compileKotlin {
@@ -82,8 +82,8 @@ subprojects {
     apply plugin: 'io.freefair.aspectj.post-compile-weaving'
     apply plugin: 'io.spring.dependency-management'
     ext {
-        azureToolkitVersion = "0.24.0-SNAPSHOT"
-        azureToolkitUtilsVersion = "3.68.0-SNAPSHOT"
+        azureToolkitVersion = "0.26.0-SNAPSHOT"
+        azureToolkitUtilsVersion = "3.70.0-SNAPSHOT"
     }
 
     sourceCompatibility = javaVersion
@@ -173,6 +173,7 @@ dependencies {
     compile project(':azure-intellij-plugin-lib-java')
     compile project(':azure-sdk-reference-book')
     compile project(':azure-intellij-resource-connector-lib')
+    compile project(':azure-intellij-resource-connector-lib-java')
     compile project(':azure-intellij-resource-connector-aad')
     compile project(':azure-intellij-plugin-common')
     compile project(':azure-intellij-plugin-vm')
@@ -181,12 +182,14 @@ dependencies {
     compile project(':azure-intellij-plugin-redis')
     compile project(':azure-intellij-plugin-service-explorer')
     compile project(':azure-intellij-plugin-database')
+    compile project(':azure-intellij-plugin-database-java')
     compile project(':azure-intellij-plugin-appservice')
     compile project(':azure-intellij-plugin-arm')
     compile project(':azure-intellij-plugin-containerregistry')
     compile project(':azure-intellij-plugin-containerservice')
     compile project(':azure-intellij-plugin-applicationinsights')
     compile project(':azure-intellij-plugin-guidance')
+    compile project(':azure-intellij-plugin-cosmos')
     compile 'com.microsoft.azure:azure-toolkit-ide-appservice-lib'
     compile 'com.microsoft.azure:azure-toolkit-applicationinsights-lib'
     compile 'com.microsoft.azure:azure-toolkit-storage-lib'
@@ -206,13 +209,13 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    compile 'com.microsoft.azuretools:azuretools-core:3.68.0-SNAPSHOT', {
+    compile 'com.microsoft.azuretools:azuretools-core:3.70.0-SNAPSHOT', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
-    compile 'com.microsoft.azuretools:azure-explorer-common:3.68.0-SNAPSHOT', {
+    compile 'com.microsoft.azuretools:azure-explorer-common:3.70.0-SNAPSHOT', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
-    compile 'com.microsoft.azuretools:hdinsight-node-common:3.68.0-SNAPSHOT', {
+    compile 'com.microsoft.azuretools:hdinsight-node-common:3.70.0-SNAPSHOT', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
 
@@ -225,7 +228,7 @@ dependencies {
     }
     compile group: 'jaxen', name: 'jaxen', version: '1.2.0'
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.20")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21")
 
     testImplementation 'io.cucumber:cucumber-java:7.0.0'
     testImplementation 'io.cucumber:cucumber-junit:7.0.0'

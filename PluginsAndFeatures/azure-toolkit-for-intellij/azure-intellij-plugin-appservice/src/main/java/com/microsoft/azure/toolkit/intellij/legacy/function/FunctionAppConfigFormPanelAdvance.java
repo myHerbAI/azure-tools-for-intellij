@@ -93,7 +93,7 @@ public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFo
                                                   .build();
 
         appServiceMonitorPanel = new AppServiceMonitorPanel(project);
-        appServiceMonitorPanel.setWebServerLogVisible(false);
+        appServiceMonitorPanel.setWebServerLogEnabled(false);
         appServiceMonitorPanel.setValue(MonitorConfig.builder().applicationInsightsConfig(insightsConfig).build());
 
         appServiceConfigPanelAdvanced.getSelectorSubscription().addActionListener(event ->

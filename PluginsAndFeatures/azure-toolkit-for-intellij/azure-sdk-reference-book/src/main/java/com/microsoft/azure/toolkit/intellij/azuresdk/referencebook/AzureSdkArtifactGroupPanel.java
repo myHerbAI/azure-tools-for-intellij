@@ -22,12 +22,15 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.EditorTextField;
 import com.microsoft.azure.toolkit.intellij.azuresdk.model.AzureSdkArtifactEntity;
 import com.microsoft.azure.toolkit.intellij.azuresdk.model.AzureSdkArtifactEntity.DependencyType;
+import com.microsoft.intellij.util.GradleUtils;
+import com.microsoft.intellij.util.MavenUtils;
 import icons.GradleIcons;
 import icons.OpenapiIcons;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
@@ -44,11 +47,26 @@ public class AzureSdkArtifactGroupPanel {
     private EditorTextField viewer;
     private JPanel artifactsPnl;
     private ActionToolbarImpl toolbar;
+    private AzureSdkProjectDependencyPanel pnlAddDependencies;
     private ButtonGroup artifactsGroup;
     private final List<AzureSdkArtifactDetailPanel> artifactPnls = new ArrayList<>();
     private AzureSdkArtifactEntity pkg;
     private String version;
     private static DependencyType type = MAVEN;
+
+    private final Project project;
+
+    public AzureSdkArtifactGroupPanel(@Nullable Project project) {
+        this.project = project;
+        $$$setupUI$$$();
+        init();
+    }
+
+    private void init() {
+        if (!MavenUtils.isMavenProject(project) && !GradleUtils.isGradleProject(project)) {
+            pnlAddDependencies.setVisible(false);
+        }
+    }
 
     public void setData(@Nonnull final List<? extends AzureSdkArtifactEntity> artifacts) {
         this.clear();
@@ -73,6 +91,9 @@ public class AzureSdkArtifactGroupPanel {
         this.pkg = pkg;
         this.version = version;
         this.viewer.setText(pkg.getDependencySnippet(type, version));
+        this.pnlAddDependencies.setPkg(pkg);
+        this.pnlAddDependencies.setVersion(version);
+        this.pnlAddDependencies.onSelectModule();
     }
 
     private void onDependencyTypeSelected(DependencyType type) {
@@ -129,6 +150,7 @@ public class AzureSdkArtifactGroupPanel {
         this.toolbar = this.buildCodeViewerToolbar();
         this.toolbar.setForceMinimumSize(true);
         this.toolbar.setTargetComponent(this.viewer);
+        this.pnlAddDependencies = new AzureSdkProjectDependencyPanel(project);
     }
 
     /**
@@ -171,4 +193,7 @@ public class AzureSdkArtifactGroupPanel {
         }
     }
 
+    // CHECKSTYLE IGNORE check FOR NEXT 1 LINES
+    public void $$$setupUI$$$() {
+    }
 }

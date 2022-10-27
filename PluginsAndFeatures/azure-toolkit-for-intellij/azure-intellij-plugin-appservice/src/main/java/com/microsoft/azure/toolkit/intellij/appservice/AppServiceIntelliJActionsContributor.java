@@ -18,6 +18,8 @@ import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContri
 import com.microsoft.azure.toolkit.ide.containerregistry.ContainerRegistryActionsContributor;
 import com.microsoft.azure.toolkit.intellij.appservice.actions.AppServiceFileAction;
 import com.microsoft.azure.toolkit.intellij.appservice.actions.OpenAppServicePropertyViewAction;
+import com.microsoft.azure.toolkit.intellij.function.remotedebug.FunctionEnableRemoteDebuggingAction;
+import com.microsoft.azure.toolkit.intellij.function.remotedebug.FunctionRemoteDebuggingAction;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.action.ProfileFlightRecordAction;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.action.SSHIntoWebAppAction;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.action.StartStreamingLogsAction;
@@ -32,7 +34,10 @@ import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
+import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
@@ -50,6 +55,7 @@ import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -90,6 +96,8 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
     @Override
     public void registerHandlers(AzureActionManager am) {
         final BiPredicate<AppServiceAppBase<?, ?, ?>, AnActionEvent> isAppService = (r, e) -> r instanceof AppServiceAppBase<?, ?, ?>;
+        final BiPredicate<AppServiceAppBase<?, ?, ?>, AnActionEvent> nonLinuxFunction = (r, e) -> Objects.nonNull(r) &&
+                !(r instanceof FunctionApp && Optional.ofNullable(r.getRuntime()).map(Runtime::isLinux).orElse(Boolean.FALSE));
         final BiConsumer<AppServiceAppBase<?, ?, ?>, AnActionEvent> flightRecorderHandler = (c, e) ->
             AzureTaskManager.getInstance().runLater(() -> new ProfileFlightRecordAction(c, e.getProject()).execute());
         am.registerHandler(AppServiceActionsContributor.PROFILE_FLIGHT_RECORD, isAppService, flightRecorderHandler);
@@ -100,21 +108,21 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
 
         final BiConsumer<AppServiceAppBase<?, ?, ?>, AnActionEvent> stopStreamingLogHandler = (c, e) ->
             AzureTaskManager.getInstance().runLater(() -> new StopStreamingLogsAction(c, e.getProject()).execute());
-        am.registerHandler(AppServiceActionsContributor.STOP_STREAM_LOG, isAppService, stopStreamingLogHandler);
+        am.registerHandler(AppServiceActionsContributor.STOP_STREAM_LOG, nonLinuxFunction, stopStreamingLogHandler);
 
         final BiPredicate<AppServiceAppBase<?, ?, ?>, AnActionEvent> isWebApp = (r, e) -> r instanceof WebApp;
         final BiConsumer<AppServiceAppBase<?, ?, ?>, AnActionEvent> sshHandler = (c, e) ->
             AzureTaskManager.getInstance().runLater(() -> new SSHIntoWebAppAction((WebApp) c, e.getProject()).execute());
         am.registerHandler(AppServiceActionsContributor.SSH_INTO_WEBAPP, isAppService, sshHandler);
 
-        final BiConsumer<AzResource<?, ?, ?>, AnActionEvent> deployWebAppHandler = (c, e) -> AzureTaskManager
+        final BiConsumer<AzResource, AnActionEvent> deployWebAppHandler = (c, e) -> AzureTaskManager
             .getInstance().runLater(() -> new DeployWebAppAction((WebApp) c, e.getProject()).execute());
         am.registerHandler(ResourceCommonActionsContributor.DEPLOY, (r, e) -> r instanceof WebApp, deployWebAppHandler);
 
         final BiConsumer<Object, AnActionEvent> createWebAppHandler = (c, e) -> CreateWebAppAction.openDialog(e.getProject(), null);
         am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof AzureWebApp, createWebAppHandler);
 
-        final BiConsumer<AzResource<?, ?, ?>, AnActionEvent> deployFunctionAppHandler = (c, e) -> AzureTaskManager
+        final BiConsumer<AzResource, AnActionEvent> deployFunctionAppHandler = (c, e) -> AzureTaskManager
             .getInstance().runLater(() -> new DeployFunctionAppAction((FunctionApp) c, e.getProject()).execute());
         am.registerHandler(ResourceCommonActionsContributor.DEPLOY, (r, e) -> r instanceof FunctionApp, deployFunctionAppHandler);
 
@@ -124,6 +132,10 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
         final BiConsumer<AzResourceBase, AnActionEvent> showFunctionPropertyViewHandler = (c, e) -> AzureTaskManager.getInstance()
             .runLater(() -> new OpenAppServicePropertyViewAction().openFunctionAppPropertyView((FunctionApp) c, e.getProject()));
         am.registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES, (r, e) -> r instanceof FunctionApp, showFunctionPropertyViewHandler);
+
+        final BiConsumer<AzResourceBase, AnActionEvent> showFunctionSlotPropertyViewHandler = (c, e) -> AzureTaskManager.getInstance()
+                .runLater(() -> new OpenAppServicePropertyViewAction().openFunctionAppDeploymentSlotPropertyView((FunctionAppDeploymentSlot) c, e.getProject()));
+        am.registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES, (r, e) -> r instanceof FunctionAppDeploymentSlot, showFunctionSlotPropertyViewHandler);
 
         final BiConsumer<AzResourceBase, AnActionEvent> showWebAppPropertyViewHandler = (c, e) -> AzureTaskManager.getInstance()
             .runLater(() -> new OpenAppServicePropertyViewAction().openWebAppPropertyView((WebApp) c, e.getProject()));
@@ -176,6 +188,19 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
                     .region(r.getRegion())
                     .resourceGroup(ResourceGroupConfig.fromResource(r)).build());
         am.registerHandler(WebAppActionsContributor.GROUP_CREATE_WEBAPP, (r, e) -> true, groupCreateWebAppHandler);
+
+        final BiPredicate<FunctionAppBase<?, ?, ?>, AnActionEvent> isFunction = (r, e) -> r instanceof FunctionAppBase<?, ?, ?>;
+        final BiConsumer<FunctionAppBase<?, ?, ?>, AnActionEvent> enableRemoteDebuggingHandler = (c, e) ->
+                FunctionEnableRemoteDebuggingAction.enableRemoteDebugging(c, e.getProject());
+        am.registerHandler(FunctionAppActionsContributor.ENABLE_REMOTE_DEBUGGING, isFunction, enableRemoteDebuggingHandler);
+
+        final BiConsumer<FunctionAppBase<?, ?, ?>, AnActionEvent> disableRemoteDebuggingHandler = (c, e) ->
+                FunctionEnableRemoteDebuggingAction.disableRemoteDebugging(c, e.getProject());
+        am.registerHandler(FunctionAppActionsContributor.DISABLE_REMOTE_DEBUGGING, isFunction, disableRemoteDebuggingHandler);
+
+        final BiConsumer<FunctionAppBase<?, ?, ?>, AnActionEvent> remoteDebuggingHandler = (c, e) ->
+                FunctionRemoteDebuggingAction.startDebugging(c, e.getProject());
+        am.registerHandler(FunctionAppActionsContributor.REMOTE_DEBUGGING, isFunction, remoteDebuggingHandler);
     }
 
     @Override

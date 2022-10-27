@@ -9,11 +9,13 @@ import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import com.microsoft.azure.toolkit.lib.mysql.AzureMySql;
+import com.microsoft.azure.toolkit.lib.mysql.MySqlServer;
 import com.microsoft.azure.toolkit.lib.mysql.MySqlServerDraft;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask;
@@ -52,6 +54,7 @@ public class CreateMySqlAction {
                 .create(config.getName(), config.getResourceGroup().getName());
             draft.setConfig(config);
             draft.commit();
+            CacheManager.getUsageHistory(MySqlServer.class).push(draft);
         });
     }
 }

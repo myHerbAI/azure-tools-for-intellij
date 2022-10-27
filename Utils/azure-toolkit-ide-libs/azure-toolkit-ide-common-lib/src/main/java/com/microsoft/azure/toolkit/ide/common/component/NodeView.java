@@ -7,6 +7,8 @@ package com.microsoft.azure.toolkit.ide.common.component;
 
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -49,6 +51,8 @@ public interface NodeView extends IView.Label {
     }
 
     class Static extends IView.Label.Static implements NodeView {
+        @Getter
+        @Setter
         private Refresher refresher;
 
         public Static(String title, String iconPath) {
@@ -57,17 +61,6 @@ public interface NodeView extends IView.Label {
 
         public Static(@Nonnull String label, @Nullable String iconPath, @Nullable String description) {
             super(label, iconPath, description);
-        }
-
-        @Override
-        public void setRefresher(Refresher refresher) {
-            this.refresher = refresher;
-        }
-
-        @Nullable
-        @Override
-        public Refresher getRefresher() {
-            return this.refresher;
         }
     }
 }

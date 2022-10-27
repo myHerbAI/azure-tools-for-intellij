@@ -77,7 +77,7 @@ public class Course implements Disposable {
         this.phases.forEach(step -> step.addStatusListener(status -> {
             if (status == Status.RUNNING || status == Status.FAILED) {
                 this.setStatus(status);
-            } else if (status == Status.SUCCEED) {
+            } else if (status == Status.SUCCEED || status == Status.PARTIAL_SUCCEED) {
                 this.setCurrentPhase(getNextPhase(step));
                 if (currentPhase == null) {
                     this.setStatus(Status.SUCCEED);

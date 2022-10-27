@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.hdinsight.spark.jobs;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.microsoft.azure.hdinsight.common.HDInsightLoader;
 import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;
 import com.microsoft.azure.hdinsight.sdk.common.HDIException;
@@ -17,11 +18,11 @@ import com.microsoft.azure.hdinsight.sdk.rest.spark.executor.Executor;
 import com.microsoft.azure.hdinsight.sdk.rest.spark.job.Job;
 import com.microsoft.azure.hdinsight.sdk.rest.spark.stage.Stage;
 import com.microsoft.azure.hdinsight.sdk.rest.spark.task.Task;
+import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
-import org.json.JSONObject;
 
 
 import java.io.File;
@@ -107,8 +108,9 @@ public class SparkRestUtil {
         String[] lines = entityContent.split("\n");
         List<JobStartEventLog> jobStartEvents = Arrays.stream(lines)
                 .filter(line -> {
-                    JSONObject jsonObject = new JSONObject(line);
-                    String eventName = jsonObject.getString("Event");
+                    final Map<String, Object> json = JsonUtils.fromJson(line, new TypeReference<HashMap<String, Object>>() {
+                    });
+                    String eventName = ((String) json.get("Event"));
                     return eventName.equalsIgnoreCase("SparkListenerJobStart");
                     })
                 .map(oneLine -> ObjectConvertUtils.convertToObjectQuietly(oneLine, JobStartEventLog.class))

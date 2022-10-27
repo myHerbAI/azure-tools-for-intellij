@@ -6,12 +6,15 @@
 package com.microsoft.azure.toolkit.intellij.vm.creation.component;
 
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VmImageOffer;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VmImagePublisher;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class ImageOfferComboBox extends AzureComboBox<VmImageOffer> {
@@ -20,7 +23,14 @@ public class ImageOfferComboBox extends AzureComboBox<VmImageOffer> {
     public void setPublisher(VmImagePublisher publisher) {
         this.publisher = publisher;
         this.clear();
-        refreshItems();
+        reloadItems();
+    }
+
+    @Nullable
+    @Override
+    protected VmImageOffer doGetDefaultValue() {
+        return CacheManager.getUsageHistory(VmImageOffer.class)
+            .peek(v -> Objects.isNull(publisher) || Objects.equals(publisher, v.getPublisher()));
     }
 
     @Override

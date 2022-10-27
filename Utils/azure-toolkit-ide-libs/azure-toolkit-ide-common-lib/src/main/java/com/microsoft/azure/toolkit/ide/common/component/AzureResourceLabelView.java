@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -25,13 +26,14 @@ import java.util.function.Function;
 
 import static com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider.DEFAULT_AZURE_RESOURCE_ICON_PROVIDER;
 
-public class AzureResourceLabelView<T extends AzResource<?, ?, ?>> implements NodeView {
+public class AzureResourceLabelView<T extends AzResource> implements NodeView {
 
     @Nonnull
     @Getter
     protected final T resource;
     @Getter
-    private final String label;
+    @Setter(value = AccessLevel.PROTECTED)
+    private String label;
     @Getter
     private String description;
     @Getter
@@ -70,8 +72,8 @@ public class AzureResourceLabelView<T extends AzResource<?, ?, ?>> implements No
         final String type = event.getType();
         final Object source = event.getSource();
         if (source instanceof AzResource &&
-            ((AzResource<?, ?, ?>) source).getId().equals(this.resource.getId()) &&
-            ((AzResource<?, ?, ?>) source).getName().equals(this.resource.getName())) {
+                StringUtils.equals(((AzResource) source).getId(), this.resource.getId()) &&
+                StringUtils.equals(((AzResource) source).getName(), this.resource.getName())) {
             final AzureTaskManager tm = AzureTaskManager.getInstance();
             if (StringUtils.equals(type, "resource.refreshed.resource")) {
                 this.refreshViewInner.debounce();
@@ -88,8 +90,9 @@ public class AzureResourceLabelView<T extends AzResource<?, ?, ?>> implements No
         final AzureTaskManager tm = AzureTaskManager.getInstance();
         tm.runOnPooledThread(() -> {
             this.icon = iconProvider.getIcon(this.resource);
-            this.description = descriptionLoader.apply(this.resource);
-            this.enabled = !this.resource.getFormalStatus().isDeleted();
+            final boolean deleted = this.resource.getFormalStatus().isDeleted();
+            this.enabled = !deleted;
+            this.description = deleted ? AzResource.Status.DELETED : descriptionLoader.apply(this.resource);
             tm.runLater(this::refreshView);
         });
     }

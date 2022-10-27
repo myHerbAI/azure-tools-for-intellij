@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Objects;
 
 public class TriggerFunctionTask implements Task {
     public static final String FUNCTION_ID = "functionId";
@@ -38,10 +39,11 @@ public class TriggerFunctionTask implements Task {
     @Override
     @AzureOperation(name = "guidance.trigger_function", type = AzureOperation.Type.SERVICE)
     public void execute() throws Exception {
-        final String functionId = (String) context.getParameter(FUNCTION_ID);
+        final String functionId = Objects.requireNonNull((String) context.getParameter(FUNCTION_ID), "Failed to get the id of function created in tasks");
         final String trigger = (String) context.getParameter(TRIGGER);
         final FunctionApp functionApp = Azure.az(AzureFunctions.class).functionApp(functionId);
-        final List<FunctionEntity> functionEntities = functionApp.listFunctions(true);
+        final List<FunctionEntity> functionEntities = Objects.requireNonNull(functionApp, String.format("failed to find function with id (%s) in Azure",
+                functionId)).listFunctions(true);
         final FunctionEntity target = functionEntities.stream().filter(entity -> StringUtils.equals(entity.getName(), trigger))
                 .findFirst().orElse(functionEntities.get(0));
         final Action.Id<FunctionEntity> action = PlatformUtils.isIdeaUltimate() ?

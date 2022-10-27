@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceStreamingLogManager;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -40,7 +41,9 @@ public class StartStreamingLogsAction {
             } else if (appService instanceof WebAppDeploymentSlot) {
                 AppServiceStreamingLogManager.INSTANCE.showWebAppDeploymentSlotStreamingLog(project, resourceId);
             } else if (appService instanceof FunctionApp) {
-                AppServiceStreamingLogManager.INSTANCE.showFunctionStreamingLog(project, resourceId);
+                AppServiceStreamingLogManager.INSTANCE.showFunctionStreamingLog(project, (FunctionApp) appService);
+            } else if (appService instanceof FunctionAppDeploymentSlot) {
+                AppServiceStreamingLogManager.INSTANCE.showFunctionDeploymentSlotStreamingLog(project, (FunctionAppDeploymentSlot) appService);
             } else {
                 AzureMessager.getMessager().error("Unsupported operation", "Unsupported operation");
             }

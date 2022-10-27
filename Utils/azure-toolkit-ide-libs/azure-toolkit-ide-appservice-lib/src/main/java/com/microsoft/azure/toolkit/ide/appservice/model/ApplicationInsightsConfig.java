@@ -16,10 +16,12 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ApplicationInsightsConfig {
     private boolean newCreate;
+    @EqualsAndHashCode.Include
     private String name;
+    @EqualsAndHashCode.Include
     private String instrumentationKey;
 
     public ApplicationInsightsConfig(String name) {

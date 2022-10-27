@@ -81,7 +81,7 @@ public class ApplicationInsightsActionsContributor implements IActionsContributo
         final ActionView.Builder createInsightView = new ActionView.Builder("Application Insights")
                 .title(s -> Optional.ofNullable(s).map(r ->
                         description("group.create_applicationinsights.group", ((ResourceGroup) r).getName())).orElse(null))
-                .enabled(s -> s instanceof ResourceGroup);
+                .enabled(s -> s instanceof ResourceGroup && ((ResourceGroup) s).getFormalStatus().isConnected());
         am.registerAction(GROUP_CREATE_APPLICATIONINSIGHT, new Action<>(GROUP_CREATE_APPLICATIONINSIGHT, createInsightView));
     }
 
@@ -89,6 +89,7 @@ public class ApplicationInsightsActionsContributor implements IActionsContributo
     public void registerGroups(AzureActionManager am) {
         final ActionGroup serviceActionGroup = new ActionGroup(
                 ResourceCommonActionsContributor.REFRESH,
+                ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
                 "---",
                 ResourceCommonActionsContributor.CREATE
         );
@@ -98,6 +99,7 @@ public class ApplicationInsightsActionsContributor implements IActionsContributo
                 ResourceCommonActionsContributor.PIN,
                 "---",
                 ResourceCommonActionsContributor.REFRESH,
+                ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
                 ResourceCommonActionsContributor.OPEN_PORTAL_URL,
                 "---",
                 ApplicationInsightsActionsContributor.CONNECTION_STRING,

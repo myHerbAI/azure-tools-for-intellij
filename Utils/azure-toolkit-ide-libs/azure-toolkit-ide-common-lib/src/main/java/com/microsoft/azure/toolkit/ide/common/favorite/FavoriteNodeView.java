@@ -43,11 +43,9 @@ public class FavoriteNodeView implements NodeView {
 
     @Override
     public String getDescription() {
-        final AzResource<?, ?, ?> r = view.getResource();
-        if (r instanceof AbstractAzResource &&
-            ((AbstractAzResource<?, ?, ?>) r).isDraftForCreating() &&
-            !Objects.equals(r.getStatus(), AzResource.Status.CREATING)) {
-            return AzResource.Status.DELETED;
+        final AzResource r = view.getResource();
+        if (!r.getSubscription().isSelected()) {
+            return String.format("(%s)", r.getSubscription().getName());
         }
         return view.getDescription();
     }
@@ -95,12 +93,6 @@ public class FavoriteNodeView implements NodeView {
 
     @Override
     public boolean isEnabled() {
-        final AzResource<?, ?, ?> r = view.getResource();
-        if (r instanceof AbstractAzResource &&
-            ((AbstractAzResource<?, ?, ?>) r).isDraftForCreating() &&
-            !Objects.equals(r.getStatus(), AzResource.Status.CREATING)) {
-            return false;
-        }
         return view.isEnabled();
     }
 

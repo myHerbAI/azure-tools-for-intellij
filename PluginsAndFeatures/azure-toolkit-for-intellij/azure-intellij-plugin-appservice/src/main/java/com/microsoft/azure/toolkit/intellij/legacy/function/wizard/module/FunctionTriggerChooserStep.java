@@ -48,6 +48,7 @@ public class FunctionTriggerChooserStep extends ModuleWizardStep {
 
         final JPanel panel = new JPanel(new BorderLayout());
         panel.add(builder.getPanel(), "North");
+        panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         return panel;
     }
 

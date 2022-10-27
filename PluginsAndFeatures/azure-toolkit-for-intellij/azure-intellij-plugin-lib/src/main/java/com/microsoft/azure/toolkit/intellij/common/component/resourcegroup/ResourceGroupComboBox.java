@@ -6,9 +6,11 @@
 package com.microsoft.azure.toolkit.intellij.common.component.resourcegroup;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.ui.components.fields.ExtendableTextComponent;
+import com.intellij.openapi.keymap.KeymapUtil;
+import com.intellij.ui.components.fields.ExtendableTextComponent.Extension;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessageBundle;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -19,15 +21,25 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.swing.*;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ResourceGroupComboBox extends AzureComboBox<ResourceGroup> {
     private Subscription subscription;
-    private final List<ResourceGroup> draftItems = new ArrayList<>();
+    private final List<ResourceGroup> draftItems = new LinkedList<>();
+
+    @Override
+    public String getLabel() {
+        return "Resource Group";
+    }
 
     @Override
     protected String getItemText(final Object item) {
@@ -51,7 +63,24 @@ public class ResourceGroupComboBox extends AzureComboBox<ResourceGroup> {
             this.clear();
             return;
         }
-        this.refreshItems();
+        this.reloadItems();
+    }
+
+    @Override
+    public void setValue(@Nullable ResourceGroup val) {
+        if (Objects.nonNull(val) && val.isDraftForCreating() && !val.exists()) {
+            this.draftItems.remove(val);
+            this.draftItems.add(0, val);
+            this.reloadItems();
+        }
+        super.setValue(val);
+    }
+
+    @Nullable
+    @Override
+    protected ResourceGroup doGetDefaultValue() {
+        return CacheManager.getUsageHistory(ResourceGroup.class)
+            .peek(g -> Objects.isNull(subscription) || Objects.equals(subscription.getId(), g.getSubscriptionId()));
     }
 
     @Nonnull
@@ -64,34 +93,42 @@ public class ResourceGroupComboBox extends AzureComboBox<ResourceGroup> {
     protected List<? extends ResourceGroup> loadItems() {
         final List<ResourceGroup> groups = new ArrayList<>();
         if (Objects.nonNull(this.subscription)) {
-            if (CollectionUtils.isNotEmpty(this.draftItems)) {
-                groups.addAll(this.draftItems.stream()
-                    .filter(i -> StringUtils.equalsIgnoreCase(this.subscription.getId(), i.getSubscriptionId()))
-                    .collect(Collectors.toList()));
-            }
             final String sid = subscription.getId();
             final List<ResourceGroup> remoteGroups = Azure.az(AzureResources.class).groups(sid).list().stream()
                 .sorted(Comparator.comparing(ResourceGroup::getName)).collect(Collectors.toList());
             groups.addAll(remoteGroups);
+            if (CollectionUtils.isNotEmpty(this.draftItems)) {
+                this.draftItems.stream()
+                        .filter(i -> StringUtils.equalsIgnoreCase(this.subscription.getId(), i.getSubscriptionId()))
+                        .filter(i -> !remoteGroups.contains(i)) // filter out the draft item which has been created
+                        .forEach(groups::add);
+            }
         }
         return groups;
     }
 
-    @Nullable
     @Override
-    protected ExtendableTextComponent.Extension getExtension() {
-        return ExtendableTextComponent.Extension.create(
-            AllIcons.General.Add, AzureMessageBundle.message("common.resourceGroup.create.tooltip").toString(), this::showResourceGroupCreationPopup);
+    protected void refreshItems() {
+        Optional.ofNullable(this.subscription).ifPresent(s -> Azure.az(AzureResources.class).groups(s.getId()).refresh());
+        super.refreshItems();
+    }
+
+    @Nonnull
+    @Override
+    protected List<Extension> getExtensions() {
+        final List<Extension> extensions = super.getExtensions();
+        final KeyStroke keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, InputEvent.ALT_DOWN_MASK);
+        final String tooltip = String.format("%s (%s)", AzureMessageBundle.message("common.resourceGroup.create.tooltip").toString(), KeymapUtil.getKeystrokeText(keyStroke));
+        final Extension addEx = Extension.create(AllIcons.General.Add, tooltip, this::showResourceGroupCreationPopup);
+        this.registerShortcut(keyStroke, addEx);
+        extensions.add(addEx);
+        return extensions;
     }
 
     private void showResourceGroupCreationPopup() {
         final ResourceGroupCreationDialog dialog = new ResourceGroupCreationDialog(this.subscription);
         dialog.setOkActionListener((group) -> {
-            this.draftItems.add(0, group);
             dialog.close();
-            final List<ResourceGroup> items = new ArrayList<>(this.getItems());
-            items.add(0, group);
-            this.setItems(items);
             this.setValue(group);
         });
         dialog.show();

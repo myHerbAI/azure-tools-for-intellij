@@ -20,14 +20,12 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 import org.eclipse.jdt.core.IJavaProject;
 
-import com.google.gson.JsonObject;
 import com.microsoft.azure.toolkit.eclipse.common.launch.AzureLongDurationTaskRunnerWithConsole;
 import com.microsoft.azure.toolkit.eclipse.common.launch.LaunchConfigurationUtils;
 import com.microsoft.azure.toolkit.eclipse.function.core.EclipseFunctionProject;
 import com.microsoft.azure.toolkit.eclipse.function.launch.model.FunctionDeployConfiguration;
 import com.microsoft.azure.toolkit.eclipse.function.utils.FunctionUtils;
 import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig;
-import com.microsoft.azure.toolkit.ide.appservice.util.JsonUtils;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionPackager;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateFunctionAppTask;
@@ -36,6 +34,7 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import com.microsoft.azuretools.core.utils.MavenUtils;
 
 import javax.annotation.Nonnull;
@@ -102,13 +101,10 @@ public class AzureFunctionDeployLaunchDelegate extends LaunchConfigurationDelega
     }
 
     private static Map<String, String> getAppSettingsFromLocalSettingsJson(@Nonnull final File target) {
-        final Map<String, String> result = new HashMap<>();
-        final JsonObject jsonObject = JsonUtils.readJsonFile(target);
+        final Map<String, Object> jsonObject = JsonUtils.readFromJsonFile(target, HashMap.class);
         if (jsonObject == null) {
             return new HashMap<>();
         }
-        final JsonObject valueObject = jsonObject.getAsJsonObject(LOCAL_SETTINGS_VALUES);
-        valueObject.entrySet().stream().forEach(entry -> result.put(entry.getKey(), entry.getValue().getAsString()));
-        return result;
+        return (Map<String, String>) jsonObject.get(LOCAL_SETTINGS_VALUES);
     }
 }

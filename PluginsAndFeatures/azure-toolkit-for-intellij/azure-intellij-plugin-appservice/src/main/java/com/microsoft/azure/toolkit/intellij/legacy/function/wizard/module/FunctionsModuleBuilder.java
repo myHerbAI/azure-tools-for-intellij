@@ -108,7 +108,6 @@ public class FunctionsModuleBuilder extends JavaModuleBuilder {
 
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "function.setup_function_root_module", type = AzureOperation.Type.ACTION)
     public void setupRootModel(@NotNull final ModifiableRootModel rootModel) throws ConfigurationException {
         final VirtualFile root = createAndGetContentEntry();
         rootModel.addContentEntry(root);

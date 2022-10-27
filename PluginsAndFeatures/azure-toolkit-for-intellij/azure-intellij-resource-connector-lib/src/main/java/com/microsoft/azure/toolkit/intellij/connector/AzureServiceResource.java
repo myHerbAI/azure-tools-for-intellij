@@ -9,12 +9,16 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
+import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.jdom.Attribute;
 import org.jdom.Element;
 
@@ -56,8 +60,8 @@ public class AzureServiceResource<T extends AzResourceBase> implements Resource<
     @Override
     public Map<String, String> initEnv(Project project) {
         final T resource = this.getData();
-        if (!resource.exists()) {
-            throw new AzureToolkitRuntimeException(String.format("'%s' doesn't exist.", resource));
+        if (resource == null || !resource.exists()) {
+            throw new AzureToolkitRuntimeException(String.format("%s '%s' does not exist.", this.getResourceType(), this.getName()));
         }
         return this.definition.initEnv(this, project);
     }
@@ -71,6 +75,17 @@ public class AzureServiceResource<T extends AzResourceBase> implements Resource<
     @Override
     public String getName() {
         return this.id.name();
+    }
+
+    public String getResourceType() {
+        final AbstractAzResource<?, ?, ?> parent = Optional.ofNullable(this.id.parent())
+                .map(parentId -> Azure.az().getById(parentId.id())).orElse(null);
+        return Objects.isNull(parent) ? id.resourceType() :
+                parent.getSubModules().stream()
+                        .filter(module -> StringUtils.equals(module.getName(), this.id.resourceType()))
+                        .findFirst()
+                        .map(AzResourceModule::getResourceTypeName)
+                        .orElseGet(id::resourceType);
     }
 
     @Override

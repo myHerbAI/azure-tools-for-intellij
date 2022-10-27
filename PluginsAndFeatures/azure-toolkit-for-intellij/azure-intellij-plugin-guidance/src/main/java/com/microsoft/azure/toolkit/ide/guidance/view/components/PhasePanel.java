@@ -144,10 +144,14 @@ public class PhasePanel extends JPanel {
     class ConsoleTextMessager implements IAzureMessager {
         @Override
         public boolean show(IAzureMessage message) {
-            final String content = message.getContent();
-            PhasePanel.this.isOutputBlank = StringUtils.isBlank(content);
-            PhasePanel.this.outputPanel.setText(content);
-            PhasePanel.this.updateView(PhasePanel.this.phase.getStatus(), PhasePanel.this.detailsPanel.isVisible());
+            try {
+                final String content = message.getContent();
+                PhasePanel.this.isOutputBlank = StringUtils.isBlank(content);
+                PhasePanel.this.outputPanel.setText(content);
+                PhasePanel.this.updateView(PhasePanel.this.phase.getStatus(), PhasePanel.this.detailsPanel.isVisible());
+            } catch (RuntimeException e) {
+                // swallow exception when update output panel
+            }
             return true;
         }
     }
@@ -161,7 +165,7 @@ public class PhasePanel extends JPanel {
             this.actionButton.setVisible(focused);
             final Color bgColor = focused ? BACKGROUND_COLOR : null;
             doForOffsprings(this.contentPanel, c -> c.setBackground(bgColor));
-            doForOffsprings(this.inputsPanel, c -> c.setEnabled(status != Status.RUNNING && status != Status.SUCCEED));
+            doForOffsprings(this.inputsPanel, c -> c.setEnabled(status != Status.RUNNING && status != Status.SUCCEED && status != Status.PARTIAL_SUCCEED));
             if (status == Status.FAILED) {
                 this.actionButton.setText("Retry");
                 this.toggleDetails(true);
@@ -206,22 +210,23 @@ public class PhasePanel extends JPanel {
         final boolean hasSteps = this.stepsPanel.isVisible();
         this.toggleIcon.setIcon(expanded ? AllIcons.Actions.FindAndShowPrevMatches : AllIcons.Actions.FindAndShowNextMatches);
         this.detailsPanel.setVisible(expanded && (hasInputs || hasSteps));
-        this.descPanel.setVisible(StringUtils.isNotBlank(this.descPanel.getText()) && (this.detailsPanel.isVisible() || status != Status.SUCCEED));
+        this.descPanel.setVisible(StringUtils.isNotBlank(this.descPanel.getText()) && (this.detailsPanel.isVisible() ||
+                (status != Status.SUCCEED && status != Status.PARTIAL_SUCCEED)));
         this.outputContainer.setVisible(!this.isOutputBlank);
         this.detailsSeparator.setVisible(expanded && hasSteps && (this.actionButton.isVisible() || this.outputContainer.isVisible()));
-        this.outputStatusIcon.setVisible(!this.isOutputBlank && (this.detailsPanel.isVisible() || status != Status.SUCCEED));
+        this.outputStatusIcon.setVisible(!this.isOutputBlank && (this.detailsPanel.isVisible() || (status != Status.SUCCEED && status != Status.PARTIAL_SUCCEED)));
     }
 
     void updateStatusIcon(final Status status) {
         this.outputStatusIcon.setIcon(IconUtil.scale(PhasePanel.getStatusIcon(status), this.statusIcon, 0.875f));
-        if (status == Status.RUNNING || status == Status.SUCCEED) {
+        if (status == Status.RUNNING || status == Status.SUCCEED || status == Status.PARTIAL_SUCCEED) {
             this.statusIcon.setIcon(getStatusIcon(status));
             this.statusIcon.setText("");
         } else {
             this.statusIcon.setIcon(null);
             final int index = this.phase.getCourse().getPhases().indexOf(this.phase) + 1;
             this.statusIcon.setText(String.format("%02d", index));
-            this.statusIcon.setFont(JBUI.Fonts.create("JetBrains Mono", 14).asBold());
+            this.statusIcon.setFont(JBUI.Fonts.label(14).asBold());
             this.statusIcon.setForeground(JBUI.CurrentTheme.Label.disabledForeground());
         }
     }
@@ -234,6 +239,8 @@ public class PhasePanel extends JPanel {
             return AllIcons.RunConfigurations.ToolbarPassed;
         } else if (status == Status.FAILED) {
             return AllIcons.RunConfigurations.ToolbarError;
+        } else if (status == Status.PARTIAL_SUCCEED) {
+            return AllIcons.RunConfigurations.ToolbarFailed;
         } else {
             return IconUtil.resizeSquared(AllIcons.Debugger.Db_muted_disabled_breakpoint, 14);
         }

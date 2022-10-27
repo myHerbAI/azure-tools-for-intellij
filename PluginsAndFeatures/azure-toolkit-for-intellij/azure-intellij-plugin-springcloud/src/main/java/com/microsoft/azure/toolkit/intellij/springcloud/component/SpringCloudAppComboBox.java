@@ -6,25 +6,32 @@
 package com.microsoft.azure.toolkit.intellij.springcloud.component;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.ui.components.fields.ExtendableTextComponent;
+import com.intellij.openapi.keymap.KeymapUtil;
+import com.intellij.ui.components.fields.ExtendableTextComponent.Extension;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.springcloud.creation.SpringCloudAppCreationDialog;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.swing.*;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
     private SpringCloudCluster cluster;
-    private final Map<String, SpringCloudApp> localItems = new HashMap<>();
+    private final List<SpringCloudApp> draftItems = new LinkedList<>();
 
     @Override
     protected String getItemText(final Object item) {
@@ -47,32 +54,60 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
             this.clear();
             return;
         }
-        this.refreshItems();
+        this.reloadItems();
+    }
+
+    @Override
+    public void setValue(@Nullable SpringCloudApp val) {
+        if (Objects.nonNull(val) && val.isDraftForCreating()) {
+            this.draftItems.remove(val);
+            this.draftItems.add(0, val);
+            this.reloadItems();
+        }
+        super.setValue(val);
+    }
+
+    @Nullable
+    @Override
+    protected SpringCloudApp doGetDefaultValue() {
+        return CacheManager.getUsageHistory(SpringCloudApp.class)
+            .peek(v -> Objects.isNull(cluster) || Objects.equals(cluster, v.getParent()));
     }
 
     @NotNull
     @Override
     @AzureOperation(
-            name = "springcloud.list_apps.cluster",
-            params = {"this.cluster.name()"},
-            type = AzureOperation.Type.SERVICE
+        name = "springcloud.list_apps.cluster",
+        params = {"this.cluster.name()"},
+        type = AzureOperation.Type.SERVICE
     )
-    protected List<? extends SpringCloudApp> loadItems() throws Exception {
+    protected List<? extends SpringCloudApp> loadItems() {
         final List<SpringCloudApp> apps = new ArrayList<>();
         if (Objects.nonNull(this.cluster)) {
-            if (!this.localItems.isEmpty()) {
-                apps.add(this.localItems.get(this.cluster.name()));
+            if (!this.draftItems.isEmpty()) {
+                apps.addAll(this.draftItems.stream().filter(a -> a.getParent().getName().equals(this.cluster.getName())).collect(Collectors.toList()));
             }
             apps.addAll(cluster.apps().list());
         }
         return apps;
     }
 
-    @Nullable
     @Override
-    protected ExtendableTextComponent.Extension getExtension() {
-        return ExtendableTextComponent.Extension.create(
-            AllIcons.General.Add, "Create Azure Spring App", this::showAppCreationPopup);
+    protected void refreshItems() {
+        Optional.ofNullable(this.cluster).ifPresent(c -> c.apps().refresh());
+        super.refreshItems();
+    }
+
+    @Nonnull
+    @Override
+    protected List<Extension> getExtensions() {
+        final List<Extension> extensions = super.getExtensions();
+        final KeyStroke keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, InputEvent.ALT_DOWN_MASK);
+        final String tooltip = String.format("Create Azure Spring App (%s)", KeymapUtil.getKeystrokeText(keyStroke));
+        final Extension addEx = Extension.create(AllIcons.General.Add, tooltip, this::showAppCreationPopup);
+        this.registerShortcut(keyStroke, addEx);
+        extensions.add(addEx);
+        return extensions;
     }
 
     private void showAppCreationPopup() {
@@ -80,20 +115,9 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
         dialog.setOkActionListener((config) -> {
             final SpringCloudAppDraft app = cluster.apps().create(config.getAppName(), cluster.getResourceGroupName());
             app.setConfig(config);
-            this.addLocalItem(app);
             dialog.close();
             this.setValue(app);
         });
         dialog.show();
-    }
-
-    public void addLocalItem(SpringCloudApp app) {
-        final SpringCloudApp cached = this.localItems.get(app.getParent().name());
-        if (Objects.isNull(cached) || !Objects.equals(app.name(), cached.name())) {
-            this.localItems.put(app.getParent().name(), app);
-            final List<SpringCloudApp> items = this.getItems();
-            items.add(0, app);
-            this.setItems(items);
-        }
     }
 }

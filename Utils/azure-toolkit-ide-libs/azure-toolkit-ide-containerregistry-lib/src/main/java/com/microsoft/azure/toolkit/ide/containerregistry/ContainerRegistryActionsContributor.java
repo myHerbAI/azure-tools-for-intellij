@@ -36,7 +36,8 @@ public class ContainerRegistryActionsContributor implements IActionsContributor 
     @Override
     public void registerGroups(AzureActionManager am) {
         final ActionGroup serviceActionGroup = new ActionGroup(
-            ResourceCommonActionsContributor.REFRESH
+            ResourceCommonActionsContributor.REFRESH,
+            ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK
         );
         am.registerGroup(SERVICE_ACTIONS, serviceActionGroup);
 
@@ -44,6 +45,7 @@ public class ContainerRegistryActionsContributor implements IActionsContributor 
             ResourceCommonActionsContributor.PIN,
             "---",
             ResourceCommonActionsContributor.REFRESH,
+            ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
             ResourceCommonActionsContributor.OPEN_PORTAL_URL,
             ResourceCommonActionsContributor.SHOW_PROPERTIES,
             "---",

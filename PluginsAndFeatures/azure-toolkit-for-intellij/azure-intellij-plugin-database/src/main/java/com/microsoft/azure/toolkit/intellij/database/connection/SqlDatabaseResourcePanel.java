@@ -6,6 +6,7 @@ package com.microsoft.azure.toolkit.intellij.database.connection;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.ui.AnimatedIcon;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
@@ -27,13 +28,13 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabase;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabaseServer;
-import com.microsoft.azuretools.azurecommons.util.Utils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -46,9 +47,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 
-public class SqlDatabaseResourcePanel<T extends IDatabase> implements AzureFormJPanel<Resource<T>> {
+public abstract class SqlDatabaseResourcePanel<T extends IDatabase> implements AzureFormJPanel<Resource<T>> {
     private final SqlDatabaseResourceDefinition<T> definition;
     private JPanel contentPanel;
     private SubscriptionComboBox subscriptionComboBox;
@@ -64,14 +64,11 @@ public class SqlDatabaseResourcePanel<T extends IDatabase> implements AzureFormJ
 
     private JdbcUrl jdbcUrl;
 
-    public SqlDatabaseResourcePanel(final SqlDatabaseResourceDefinition<T> definition, final Function<String, List<? extends IDatabaseServer<T>>> serversLoader) {
+    public SqlDatabaseResourcePanel(final SqlDatabaseResourceDefinition<T> definition) {
         super();
         this.definition = definition;
         init();
         initListeners();
-
-        this.serverComboBox.setItemsLoader(() -> Objects.isNull(this.serverComboBox.getSubscription()) ? Collections.emptyList() :
-            serversLoader.apply(this.serverComboBox.getSubscription().getId()));
     }
 
     @Override
@@ -187,7 +184,7 @@ public class SqlDatabaseResourcePanel<T extends IDatabase> implements AzureFormJ
 
     private void onCopyButtonClicked(ActionEvent e) {
         try {
-            Utils.copyToSystemClipboard(testResultTextPane.getText());
+            CopyPasteManager.getInstance().setContents(new StringSelection(testResultTextPane.getText()));
         } catch (final Exception exception) {
             final String error = "copy test result error";
             final String action = "try again later.";
@@ -258,10 +255,12 @@ public class SqlDatabaseResourcePanel<T extends IDatabase> implements AzureFormJ
     }
 
     protected void createUIComponents() {
-        this.serverComboBox = new ServerComboBox<>();
+        this.serverComboBox = this.initServerComboBox();
         this.databaseComboBox = new DatabaseComboBox<>();
         this.usernameComboBox = new UsernameComboBox();
     }
+
+    protected abstract ServerComboBox<IDatabaseServer<T>> initServerComboBox();
 
     protected Database createDatabase() {
         final IDatabaseServer<T> server = this.databaseComboBox.getServer();

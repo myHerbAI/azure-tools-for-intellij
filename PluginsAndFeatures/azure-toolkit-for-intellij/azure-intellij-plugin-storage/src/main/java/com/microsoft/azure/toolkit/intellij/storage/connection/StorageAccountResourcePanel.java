@@ -7,11 +7,11 @@ package com.microsoft.azure.toolkit.intellij.storage.connection;
 
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox.ItemReference;
-import com.microsoft.azure.toolkit.intellij.common.AzureComboBoxSimple;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox;
 import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -26,6 +26,7 @@ import java.awt.event.ItemEvent;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -44,7 +45,7 @@ public class StorageAccountResourcePanel implements AzureFormJPanel<Resource<Sto
         this.accountComboBox.trackValidation();
         this.subscriptionComboBox.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
-                this.accountComboBox.refreshItems();
+                this.accountComboBox.reloadItems();
             } else if (e.getStateChange() == ItemEvent.DESELECTED) {
                 this.accountComboBox.clear();
             }
@@ -86,10 +87,27 @@ public class StorageAccountResourcePanel implements AzureFormJPanel<Resource<Sto
                 .map(Subscription::getId)
                 .map(id -> Azure.az(AzureStorageAccount.class).accounts(id).list())
                 .orElse(Collections.emptyList());
-        this.accountComboBox = new AzureComboBoxSimple<>(loader) {
+        this.accountComboBox = new AzureComboBox<>(loader) {
+
+            @Nullable
+            @Override
+            protected StorageAccount doGetDefaultValue() {
+                return CacheManager.getUsageHistory(StorageAccount.class)
+                    .peek(v -> Objects.isNull(subscriptionComboBox) || Objects.equals(subscriptionComboBox.getValue(), v.getSubscription()));
+            }
+
             @Override
             protected String getItemText(Object item) {
                 return Optional.ofNullable(item).map(i -> ((StorageAccount) i).name()).orElse(StringUtils.EMPTY);
+            }
+
+            @Override
+            protected void refreshItems() {
+                Optional.ofNullable(StorageAccountResourcePanel.this.subscriptionComboBox)
+                    .map(AzureComboBox::getValue)
+                    .map(Subscription::getId)
+                    .ifPresent(id -> Azure.az(AzureStorageAccount.class).accounts(id).refresh());
+                super.refreshItems();
             }
         };
     }

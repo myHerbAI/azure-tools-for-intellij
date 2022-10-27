@@ -78,10 +78,11 @@ public class Phase implements Disposable {
         } else if (status == Status.FAILED) {
             this.autoExecute = false;
             this.setStatus(status);
-        } else if (status == Status.SUCCEED) {
+        } else if (status == Status.SUCCEED || status == Status.PARTIAL_SUCCEED) {
             this.currentStep = getFollowingStep(); // update current step
             if (this.currentStep == null) {
-                this.setStatus(Status.SUCCEED);
+                final boolean isPartialSucceed = this.steps.stream().anyMatch(step -> step.getStatus() == Status.PARTIAL_SUCCEED);
+                this.setStatus(isPartialSucceed ? Status.PARTIAL_SUCCEED : Status.SUCCEED);
                 return;
             }
             this.currentStep.prepare();
@@ -102,8 +103,10 @@ public class Phase implements Disposable {
     }
 
     public void setStatus(final Status status) {
-        this.status = status;
-        this.listenerList.forEach(listener -> AzureTaskManager.getInstance().runOnPooledThread(() -> listener.accept(status)));
+        if (this.status != status) {
+            this.status = status;
+            this.listenerList.forEach(listener -> AzureTaskManager.getInstance().runOnPooledThread(() -> listener.accept(status)));
+        }
     }
 
     public boolean validateInputs() {

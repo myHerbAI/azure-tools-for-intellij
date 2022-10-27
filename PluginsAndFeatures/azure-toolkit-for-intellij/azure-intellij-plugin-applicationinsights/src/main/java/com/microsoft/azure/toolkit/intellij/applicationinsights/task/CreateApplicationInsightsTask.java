@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 import java.util.Optional;
 
 public class CreateApplicationInsightsTask implements Task {
@@ -35,18 +36,17 @@ public class CreateApplicationInsightsTask implements Task {
     @Override
     @AzureOperation(name = "guidance.create_application_insights", type = AzureOperation.Type.SERVICE)
     public void execute() throws Exception {
-        final String name = (String) context.getParameter(APPLICATION_INSIGHTS_NAME);
-        final String subscriptionId = (String) context.getParameter(SUBSCRIPTION_ID);
-        final String resourceGroupName = (String) context.getParameter(RESOURCE_GROUP);
-        final Subscription subscription = Optional.ofNullable(subscriptionId)
+        final String name = (String) Objects.requireNonNull(context.getParameter(APPLICATION_INSIGHTS_NAME),
+                "`name` is required to create application insights");
+        final Subscription subscription = Optional.ofNullable((String) context.getParameter(SUBSCRIPTION_ID))
                 .map(id -> Azure.az(AzureAccount.class).account().getSubscription(id))
-                .orElseGet(() -> Azure.az(AzureAccount.class).account().getSelectedSubscriptions().get(0));
-        final ResourceGroup resourceGroup = Optional.ofNullable(resourceGroupName)
+                .orElseThrow(() -> new AzureToolkitRuntimeException("Failed to get subscription to create application insights"));
+        final ResourceGroup resourceGroup = Optional.ofNullable((String) context.getParameter(RESOURCE_GROUP))
                 .map(rg -> Azure.az(AzureResources.class).groups(subscription.getId()).get(rg, rg))
-                .orElseThrow(() -> new AzureToolkitRuntimeException("Failed to get resource group to create application insight"));
+                .orElseThrow(() -> new AzureToolkitRuntimeException("Failed to get resource group to create application insights"));
         final Region region = resourceGroup.getRegion();
         final ApplicationInsightDraft applicationInsightDraft = Azure.az(AzureApplicationInsights.class).applicationInsights(subscription.getId())
-                .create(name, resourceGroupName);
+                .create(name, resourceGroup.getName());
         applicationInsightDraft.setRegion(region);
         final ApplicationInsight result = applicationInsightDraft.commit();
         context.applyResult(RESOURCE_ID, result.getId());

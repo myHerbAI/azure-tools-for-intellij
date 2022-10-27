@@ -11,6 +11,7 @@ import lombok.Data;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Data
 public class IntelliJFunctionContext implements IFunctionContext {
@@ -39,7 +40,7 @@ public class IntelliJFunctionContext implements IFunctionContext {
     @Deprecated
     private Map<String, String> appSettings = new HashMap<>();
 
-    private String appSettingsKey;
+    private String appSettingsKey = UUID.randomUUID().toString();
 
     private String moduleName;
 

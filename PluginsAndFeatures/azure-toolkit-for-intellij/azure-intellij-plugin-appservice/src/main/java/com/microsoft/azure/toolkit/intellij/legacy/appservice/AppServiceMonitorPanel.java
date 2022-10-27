@@ -160,14 +160,14 @@ public class AppServiceMonitorPanel extends JPanel implements AzureFormPanel<Mon
         final ButtonGroup insightsGroup = new ButtonGroup();
         insightsGroup.add(rdoEnableApplicationInsights);
         insightsGroup.add(rdoDisableApplicationInsights);
-        rdoEnableApplicationInsights.addItemListener(e -> toggleApplicationInsights(rdoEnableApplicationInsights.isSelected()));
-        rdoDisableApplicationInsights.addItemListener(e -> toggleApplicationInsights(rdoEnableApplicationInsights.isSelected()));
+        rdoEnableApplicationInsights.addItemListener(e -> setApplicationInsightsEnabled(rdoEnableApplicationInsights.isSelected()));
+        rdoDisableApplicationInsights.addItemListener(e -> setApplicationInsightsEnabled(rdoEnableApplicationInsights.isSelected()));
 
         final ButtonGroup webServerGroup = new ButtonGroup();
         webServerGroup.add(rdoEnableWebServerLog);
         webServerGroup.add(rdoDisableWebServerLog);
-        rdoEnableWebServerLog.addItemListener(e -> toggleWebServerLog(rdoEnableWebServerLog.isSelected()));
-        rdoDisableWebServerLog.addItemListener(e -> toggleWebServerLog(rdoEnableWebServerLog.isSelected()));
+        rdoEnableWebServerLog.addItemListener(e -> setWebServerLogEnabled(rdoEnableWebServerLog.isSelected()));
+        rdoDisableWebServerLog.addItemListener(e -> setWebServerLogEnabled(rdoEnableWebServerLog.isSelected()));
 
         final ButtonGroup detailedErrorMessageGroup = new ButtonGroup();
         detailedErrorMessageGroup.add(rdoEnableDetailError);
@@ -178,23 +178,23 @@ public class AppServiceMonitorPanel extends JPanel implements AzureFormPanel<Mon
         final ButtonGroup applicationLogGroup = new ButtonGroup();
         applicationLogGroup.add(rdoEnableApplicationLog);
         applicationLogGroup.add(rdoDisableApplicationLog);
-        rdoEnableApplicationLog.addItemListener(e -> toggleApplicationLog(rdoEnableApplicationLog.isSelected()));
-        rdoDisableApplicationLog.addItemListener(e -> toggleApplicationLog(rdoEnableApplicationLog.isSelected()));
+        rdoEnableApplicationLog.addItemListener(e -> setApplicationLogEnabled(rdoEnableApplicationLog.isSelected()));
+        rdoDisableApplicationLog.addItemListener(e -> setApplicationLogEnabled(rdoEnableApplicationLog.isSelected()));
     }
 
-    private void toggleApplicationInsights(boolean enable) {
+    private void setApplicationInsightsEnabled(boolean enable) {
         lblApplicationInsights.setVisible(enable);
         applicationInsightsComboBox.setVisible(enable);
         applicationInsightsComboBox.setRequired(enable);
     }
 
-    private void toggleWebServerLog(boolean enable) {
+    public void setWebServerLogEnabled(boolean enable) {
         pnlWebServerLog.setVisible(enable);
         txtQuota.setRequired(enable);
         txtRetention.setRequired(enable);
     }
 
-    private void toggleApplicationLog(boolean enable) {
+    private void setApplicationLogEnabled(boolean enable) {
         pnlApplicationLog.setVisible(enable);
     }
 }

@@ -59,7 +59,7 @@ public class DeployFunctionAppAction {
             settings = manager.createConfiguration(runConfigurationName, factory);
         }
         final RunConfiguration runConfiguration = settings.getConfiguration();
-        if (runConfiguration instanceof FunctionDeployConfiguration && functionApp.getFormalStatus().isRunning()) {
+        if (runConfiguration instanceof FunctionDeployConfiguration && functionApp.getFormalStatus().isConnected()) {
             final FunctionAppConfig config = FunctionAppService.getInstance().getFunctionAppConfigFromExistingFunction(functionApp);
             ((FunctionDeployConfiguration) runConfiguration).saveConfig(config);
         }

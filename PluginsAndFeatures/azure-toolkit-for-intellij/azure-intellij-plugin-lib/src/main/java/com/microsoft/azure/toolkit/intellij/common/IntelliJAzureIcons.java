@@ -59,6 +59,12 @@ public class IntelliJAzureIcons {
             put(AzureIcons.Common.RESTART, AllIcons.Actions.Restart);
             put(AzureIcons.Common.SHOW_PROPERTIES, AllIcons.Actions.Properties);
             put(AzureIcons.Common.UNKNOWN_ICON, AllIcons.Nodes.Unknown);
+            put(AzureIcons.Action.CONSOLE, AllIcons.Nodes.Console);
+            put(AzureIcons.Action.SFTP, AllIcons.Nodes.Servlet);
+            put(AzureIcons.Action.UPLOAD, AllIcons.Actions.Upload);
+            put(AzureIcons.Action.DOWNLOAD, AllIcons.Actions.Download);
+            put(AzureIcons.Action.DEBUG, AllIcons.Actions.StartDebugger);
+            put(AzureIcons.Action.ATTACH, AllIcons.Debugger.AttachToProcess);
         }
     };
 
@@ -105,10 +111,13 @@ public class IntelliJAzureIcons {
 
     @Nullable
     private static Icon loadIcon(String iconPathOrName, Class<?> clazz) {
+        if (StringUtils.isBlank(iconPathOrName)) {
+            return null;
+        }
         try {
             final Icon result = IconLoader.getIcon(iconPathOrName, clazz);
             return result.getIconHeight() > 1 ? result : null; // IconLoader may return dot for non-existing icon
-        } catch (final RuntimeException ise) {
+        } catch (final Throwable ise) {
             return null;
         }
     }

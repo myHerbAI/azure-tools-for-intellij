@@ -76,8 +76,9 @@ public class Context {
             final Map<String, Object> bindings = new HashMap<>();
             bindings.put("context", this.parameters);
             final Template tpl = engine.createTemplate(template);
-            // for not exists values, engine will render them as null, remove them in the final result
-            return tpl.make(bindings).toString().replace("null", "");
+            return tpl.make(bindings).toString()
+                    .replace("null", "") // for not exists values, engine will render them as null, remove them in the final result
+                    .replace("\\s+", StringUtils.SPACE); // remove extra spaces
         } catch (final Exception e) {
             return StringUtils.EMPTY;
         }

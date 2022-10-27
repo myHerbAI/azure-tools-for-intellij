@@ -13,9 +13,12 @@ import com.microsoft.azure.toolkit.intellij.common.properties.AzResourceProperti
 import com.microsoft.azure.toolkit.intellij.common.properties.IntellijShowPropertiesViewAction;
 import com.microsoft.azure.toolkit.intellij.springcloud.component.SpringCloudAppConfigPanel;
 import com.microsoft.azure.toolkit.intellij.springcloud.component.SpringCloudAppInstancesPanel;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessageBundle;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
@@ -60,24 +63,24 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
 
     @Override
     protected void rerender() {
+        this.formConfig.updateForm(this.draft);
+        this.panelInstances.setApp(this.draft);
         AzureTaskManager.getInstance().runLater(() -> {
             this.lblSubscription.setText(this.draft.getSubscription().getName());
             this.lblCluster.setText(this.draft.getParent().getName());
             this.lblApp.setText(this.draft.getName());
-            AzureTaskManager.getInstance().runLater(() -> this.formConfig.updateForm(this.draft));
-            AzureTaskManager.getInstance().runOnPooledThread((() -> {
-                final SpringCloudAppConfig config = SpringCloudAppConfig.fromApp(this.draft);
-                this.refreshToolbar();
-                AzureTaskManager.getInstance().runLater(() -> this.formConfig.setValue(config));
-            }));
-            this.panelInstances.setApp(this.draft);
         });
+        AzureTaskManager.getInstance().runOnPooledThread((() -> {
+            this.refreshToolbar();
+            final SpringCloudAppConfig config = SpringCloudAppConfig.fromApp(this.draft);
+            AzureTaskManager.getInstance().runLater(() -> this.formConfig.setValue(config));
+        }));
     }
 
     private void initListeners() {
         this.resetButton.addActionListener(e -> this.reset());
         this.refreshButton.addActionListener(e -> refresh());
-        final String deleteTitle = String.format("Deleting app(%s)", this.draft.getName());
+        final AzureString deleteTitle = OperationBundle.description("resource.delete_resource.resource", this.draft.getName());
         final AzureTaskManager tm = AzureTaskManager.getInstance();
         this.deleteButton.addActionListener(e -> {
             final String message = String.format("Are you sure to delete Spring app(%s)", this.draft.name());
@@ -88,15 +91,15 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
                 });
             }
         });
-        final String startTitle = String.format("Starting app(%s)", this.draft.name());
+        final AzureString startTitle = OperationBundle.description("resource.start_resource.resource", this.draft.getName());
         this.startButton.addActionListener(e -> tm.runInBackground(startTitle, this.draft::start));
-        final String stopTitle = String.format("Stopping app(%s)", this.draft.name());
+        final AzureString stopTitle = OperationBundle.description("resource.stop_resource.resource", this.draft.getName());
         this.stopButton.addActionListener(e -> tm.runInBackground(stopTitle, this.draft::stop));
-        final String restartTitle = String.format("Restarting app(%s)", this.draft.name());
+        final AzureString restartTitle = OperationBundle.description("resource.restart_resource.resource", this.draft.getName());
         this.restartButton.addActionListener(e -> tm.runInBackground(restartTitle, this.draft::restart));
         final String saveTitle = String.format("Saving updates of app(%s)", this.draft.name());
         this.saveButton.addActionListener(e -> tm.runInBackground(saveTitle, this::save));
-        this.formConfig.setDataChangedListener((data) -> this.refreshToolbar());
+        this.formConfig.setDataChangedListener((data) -> AzureTaskManager.getInstance().runOnPooledThread(this::refreshToolbar));
     }
 
     @Nonnull
@@ -150,25 +153,33 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
     }
 
     private void refreshToolbar() {
-        AzureTaskManager.getInstance().runOnPooledThread((() -> {
-            // get status from app instead of draft since status of draft is not correct
-            final String status = this.app.getStatus();
-            final boolean modified = this.isModified();
-            if (StringUtils.equalsIgnoreCase(status, AzResource.Status.INACTIVE)) {
-                AzureMessager.getMessager().warning(String.format("App(%s) has no active deployment", this.app.getName()), null);
+        // get status from app instead of draft since status of draft is not correct
+        final String status = this.app.getStatus();
+        final AzResourceBase.FormalStatus formalStatus = this.app.getFormalStatus();
+        if (StringUtils.equalsIgnoreCase(status, AzResource.Status.INACTIVE)) {
+            AzureMessager.getMessager().warning(String.format("App(%s) has no active deployment", this.app.getName()), null);
+        }
+        final AzureTaskManager manager = AzureTaskManager.getInstance();
+        manager.runLater(() -> {
+            final boolean normal = formalStatus.isRunning() || formalStatus.isStopped();
+            this.setEnabled(normal);
+            if (normal) {
+                manager.runOnPooledThread(() -> {
+                    final boolean modified = this.isModified(); // checking modified is slow
+                    manager.runLater(() -> {
+                        this.resetButton.setVisible(modified);
+                        this.saveButton.setEnabled(modified);
+                    });
+                });
+            } else {
+                this.resetButton.setVisible(false);
+                this.saveButton.setEnabled(false);
             }
-            AzureTaskManager.getInstance().runLater(() -> {
-                final AzResourceBase.FormalStatus formalStatus = this.app.getFormalStatus();
-                final boolean normal = formalStatus.isRunning() || formalStatus.isStopped();
-                this.setEnabled(normal);
-                this.resetButton.setVisible(modified && normal);
-                this.saveButton.setEnabled(modified && normal);
-                this.startButton.setEnabled(formalStatus.isStopped());
-                this.stopButton.setEnabled(formalStatus.isRunning());
-                this.restartButton.setEnabled(formalStatus.isRunning());
-                this.deleteButton.setEnabled(!formalStatus.isWriting());
-            });
-        }));
+            this.startButton.setEnabled(formalStatus.isStopped());
+            this.stopButton.setEnabled(formalStatus.isRunning());
+            this.restartButton.setEnabled(formalStatus.isRunning());
+            this.deleteButton.setEnabled(!formalStatus.isWriting());
+        });
     }
 
     @Nonnull

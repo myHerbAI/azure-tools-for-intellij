@@ -6,7 +6,8 @@
 package com.microsoft.azure.toolkit.intellij.containerservice.creation;
 
 import com.intellij.openapi.project.Project;
-import com.microsoft.azure.toolkit.intellij.common.AzureComboBoxSimple;
+import com.intellij.ui.components.fields.ExtendableTextComponent;
+import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.AzureIntegerInput;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
@@ -68,8 +69,8 @@ public class KubernetesCreationDialog extends AzureDialog<KubernetesClusterDraft
     private JLabel lblKubernetesVersion;
     private JLabel lblRegion;
     private JLabel lblName;
-    private AzureComboBoxSimple<String> cbKubernetesVersion;
-    private AzureComboBoxSimple<VirtualMachineSize> cbNodeSize;
+    private AzureComboBox<String> cbKubernetesVersion;
+    private AzureComboBox<VirtualMachineSize> cbNodeSize;
 
     public KubernetesCreationDialog(@Nullable Project project) {
         super(project);
@@ -152,7 +153,7 @@ public class KubernetesCreationDialog extends AzureDialog<KubernetesClusterDraft
         // todo: add validator for k8s name
         this.cbSubscription.addItemListener(this::onSubscriptionChanged);
         this.cbResourceGroup.addItemListener(e -> this.txtName.validateValueAsync()); // trigger validation after resource group changed
-        this.cbRegion.addItemListener(e -> this.cbKubernetesVersion.refreshItems());
+        this.cbRegion.addItemListener(e -> this.cbKubernetesVersion.reloadItems());
 
         this.manualRadioButton.addItemListener(e -> toggleScaleMethod(!manualRadioButton.isSelected()));
         this.autoScaleRadioButton.addItemListener(e -> toggleScaleMethod(autoScaleRadioButton.isSelected()));
@@ -161,10 +162,11 @@ public class KubernetesCreationDialog extends AzureDialog<KubernetesClusterDraft
         this.txtNodeCount.setMinValue(MIN_NODE_COUNT);
         this.txtNodeCount.setMaxValue(MAX_NODE_COUNT);
         this.txtMinNodeCount.setMinValue(MIN_NODE_COUNT);
-        this.txtMaxNodeCount.setMaxValue(MAX_NODE_COUNT);
+        this.txtMinNodeCount.setMaxValue(MAX_NODE_COUNT);
         this.txtMaxNodeCount.setMinValue(MIN_NODE_COUNT);
         this.txtMaxNodeCount.setMaxValue(MAX_NODE_COUNT);
-        this.txtMaxNodeCount.addValidator(this::validateNodeCount);
+        this.txtMaxNodeCount.addValidator(() -> this.validateNodeCount(txtMaxNodeCount));
+        this.txtMinNodeCount.addValidator(() -> this.validateNodeCount(txtMinNodeCount));
 
         this.lblSubscription.setLabelFor(cbSubscription);
         this.lblResourceGroup.setLabelFor(cbResourceGroup);
@@ -206,7 +208,7 @@ public class KubernetesCreationDialog extends AzureDialog<KubernetesClusterDraft
             final Subscription subscription = (Subscription) e.getItem();
             this.cbResourceGroup.setSubscription(subscription);
             this.cbRegion.setSubscription(subscription);
-            this.cbKubernetesVersion.refreshItems();
+            this.cbKubernetesVersion.reloadItems();
             this.txtName.validateValueAsync(); // trigger validation after subscription changed
         }
     }
@@ -221,24 +223,30 @@ public class KubernetesCreationDialog extends AzureDialog<KubernetesClusterDraft
             }
             return new ArrayList<>(Azure.az(AzureContainerService.class).kubernetes(subscription.getId()).listVirtualMachineVersion(region));
         };
-        this.cbKubernetesVersion = new AzureComboBoxSimple<>(kubernetesVersionSupplier);
+        this.cbKubernetesVersion = new AzureComboBox<>(kubernetesVersionSupplier);
         this.cbKubernetesVersion.setRequired(true);
-        this.cbNodeSize = new AzureComboBoxSimple<>(VirtualMachineSize::values) {
+        this.cbNodeSize = new AzureComboBox<>(VirtualMachineSize::values) {
             @Override
             protected String getItemText(Object item) {
                 return item instanceof VirtualMachineSize ? ((VirtualMachineSize) item).getValue() : super.getItemText(item);
+            }
+
+            @Nonnull
+            @Override
+            protected List<ExtendableTextComponent.Extension> getExtensions() {
+                return Collections.emptyList();
             }
         };
         this.cbNodeSize.setRequired(true);
     }
 
-    public AzureValidationInfo validateNodeCount() {
+    public AzureValidationInfo validateNodeCount(AzureFormInput inputField) {
         final Integer min = txtMinNodeCount.getValue();
         final Integer max = txtMaxNodeCount.getValue();
         if (ObjectUtils.allNotNull(min, max) && min > max) {
-            return AzureValidationInfo.error("Min node count is higher than max node count", txtMaxNodeCount);
+            return AzureValidationInfo.error("Min node count is higher than max node count", inputField);
         }
-        return AzureValidationInfo.success(txtMaxNodeCount);
+        return AzureValidationInfo.success(inputField);
     }
 
     private AzureValidationInfo validateKubernetesClusterName() {
@@ -263,12 +271,12 @@ public class KubernetesCreationDialog extends AzureDialog<KubernetesClusterDraft
     private AzureValidationInfo validateDnsNamePrefix() {
         final String name = txtDnsPrefix.getValue();
         if (StringUtils.isEmpty(name)) {
-            return AzureValidationInfo.error(AzureMessageBundle.message("kubernetes.cluster.dnsNamePrefix.validate.empty").toString(), txtName);
+            return AzureValidationInfo.error(AzureMessageBundle.message("kubernetes.cluster.dnsNamePrefix.validate.empty").toString(), txtDnsPrefix);
         }
         if (!DNS_NAME_PREFIX_PATTERN.matcher(name).matches()) {
-            return AzureValidationInfo.error(AzureMessageBundle.message("kubernetes.cluster.dnsNamePrefix.validate.invalid").toString(), txtName);
+            return AzureValidationInfo.error(AzureMessageBundle.message("kubernetes.cluster.dnsNamePrefix.validate.invalid").toString(), txtDnsPrefix);
         }
-        return AzureValidationInfo.success(txtName);
+        return AzureValidationInfo.success(txtDnsPrefix);
     }
 
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES

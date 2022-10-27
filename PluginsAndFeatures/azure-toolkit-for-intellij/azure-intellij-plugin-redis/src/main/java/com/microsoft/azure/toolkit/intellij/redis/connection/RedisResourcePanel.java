@@ -7,11 +7,11 @@ package com.microsoft.azure.toolkit.intellij.redis.connection;
 
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox.ItemReference;
-import com.microsoft.azure.toolkit.intellij.common.AzureComboBoxSimple;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox;
 import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -26,6 +26,7 @@ import java.awt.event.ItemEvent;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -44,7 +45,7 @@ public class RedisResourcePanel implements AzureFormJPanel<Resource<RedisCache>>
         this.redisComboBox.trackValidation();
         this.subscriptionComboBox.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
-                this.redisComboBox.refreshItems();
+                this.redisComboBox.reloadItems();
             } else if (e.getStateChange() == ItemEvent.DESELECTED) {
                 this.redisComboBox.clear();
             }
@@ -86,10 +87,26 @@ public class RedisResourcePanel implements AzureFormJPanel<Resource<RedisCache>>
                 .map(Subscription::getId)
                 .map(id -> Azure.az(AzureRedis.class).caches(id).list())
                 .orElse(Collections.emptyList());
-        this.redisComboBox = new AzureComboBoxSimple<>(loader) {
+        this.redisComboBox = new AzureComboBox<>(loader) {
+
+            @Nullable
+            @Override
+            protected RedisCache doGetDefaultValue() {
+                return CacheManager.getUsageHistory(RedisCache.class).peek(v -> Objects.isNull(subscriptionComboBox) || Objects.equals(subscriptionComboBox.getValue(), v.getSubscription()));
+            }
+
             @Override
             protected String getItemText(Object item) {
                 return Optional.ofNullable(item).map(i -> ((RedisCache) i).name()).orElse(StringUtils.EMPTY);
+            }
+
+            @Override
+            protected void refreshItems() {
+                Optional.ofNullable(RedisResourcePanel.this.subscriptionComboBox)
+                    .map(AzureComboBox::getValue)
+                    .map(Subscription::getId)
+                    .ifPresent(id -> Azure.az(AzureRedis.class).caches(id).refresh());
+                super.refreshItems();
             }
         };
     }

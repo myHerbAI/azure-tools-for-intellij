@@ -180,12 +180,12 @@ public class SparkLibraryOptionsPanel extends Composite {
                     }
 
                     updateNextPageStatus();
-                    DefaultLoader.getIdeHelper().setProperties(CommonConst.CACHED_SPARK_SDK_PATHS, comboBoxAddSparkManually.getItems());
+                    DefaultLoader.getIdeHelper().setApplicationProperties(CommonConst.CACHED_SPARK_SDK_PATHS, comboBoxAddSparkManually.getItems());
                 }
             }
         });
 
-        String[] tmp = DefaultLoader.getIdeHelper().getProperties(CommonConst.CACHED_SPARK_SDK_PATHS);
+        String[] tmp = DefaultLoader.getIdeHelper().getApplicationProperties(CommonConst.CACHED_SPARK_SDK_PATHS);
         if (tmp != null) {
             cachedLibraryPath.addAll(Arrays.asList(tmp));
         }
@@ -220,7 +220,7 @@ public class SparkLibraryOptionsPanel extends Composite {
                         comboBoxAddSparkManually.setData(file, new SparkLibraryInfoForEclipse(file));
                         comboBoxAddSparkManually.select(0);
                         updateNextPageStatus();
-                        DefaultLoader.getIdeHelper().setProperties(CommonConst.CACHED_SPARK_SDK_PATHS, comboBoxAddSparkManually.getItems());
+                        DefaultLoader.getIdeHelper().setApplicationProperties(CommonConst.CACHED_SPARK_SDK_PATHS, comboBoxAddSparkManually.getItems());
                     } catch (Exception e) {
                         Activator.getDefault().log("Error adding Spark library", e);
                     }

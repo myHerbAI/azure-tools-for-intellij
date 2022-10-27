@@ -4,7 +4,7 @@
  */
 package com.microsoft.azure.toolkit.ide.common.store;
 
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import org.apache.commons.io.FileUtils;
@@ -13,7 +13,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
-import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -58,11 +57,11 @@ public class DefaultMachineStore implements IMachineStore {
     public void load() {
         try {
             if (Files.exists(Paths.get(dataFile))) {
-                String json = FileUtils.readFileToString(new File(dataFile), "utf8");
-                Type type = new TypeToken<Map<String, String>>(){}.getType();
-                map = JsonUtils.getGson().fromJson(json, type);
+                final String json = FileUtils.readFileToString(new File(dataFile), "utf8");
+                final TypeReference<HashMap<String, String>> type = new TypeReference<HashMap<String, String>>(){};
+                map = JsonUtils.fromJson(json, type);
             }
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             throw new AzureToolkitRuntimeException("Cannot load property.", ex);
         }
     }

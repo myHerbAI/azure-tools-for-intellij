@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan;
 
 import com.intellij.ui.components.JBLabel;
+import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.ObjectUtils;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.intellij.common.SwingUtils;
@@ -13,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanDraft;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
@@ -20,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo.AzureValidationInfoBuilder;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.intellij.util.ValidationUtils;
 
 import javax.annotation.Nullable;
@@ -32,21 +35,18 @@ import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 public class ServicePlanCreationDialog extends AzureDialog<AppServicePlanDraft>
     implements AzureForm<AppServicePlanDraft> {
     private Subscription subscription;
-    private OperatingSystem os;
-    private Region region;
+    private ResourceGroup resourceGroup;
     private JPanel contentPanel;
     private JBLabel labelDescription;
     private AzureTextInput textName;
     private PricingTierComboBox comboBoxPricingTier;
 
     public ServicePlanCreationDialog(final Subscription subscription,
-                                     OperatingSystem os,
-                                     Region region,
+                                     final ResourceGroup resourceGroup,
                                      final List<PricingTier> pricingTierList, final PricingTier defaultPricingTier) {
         super();
         this.subscription = subscription;
-        this.os = os;
-        this.region = region;
+        this.resourceGroup = resourceGroup;
         this.init();
         this.textName.addValidator(this::validateName);
         this.comboBoxPricingTier.setPricingTierList(pricingTierList);
@@ -56,11 +56,17 @@ public class ServicePlanCreationDialog extends AzureDialog<AppServicePlanDraft>
     }
 
     private AzureValidationInfo validateName() {
+        final String value = this.textName.getValue();
         try {
-            ValidationUtils.validateAppServicePlanName(this.textName.getValue());
+            ValidationUtils.validateAppServicePlanName(value);
         } catch (final IllegalArgumentException e) {
-            final AzureValidationInfoBuilder builder = AzureValidationInfo.builder();
-            return builder.input(this.textName).type(AzureValidationInfo.Type.ERROR).message(e.getMessage()).build();
+            return AzureValidationInfo.error(e.getMessage(), this);
+        }
+        if (ObjectUtils.allNotNull(subscription, resourceGroup)) {
+            final AppServicePlan appServicePlan = Azure.az(AzureAppService.class).plans(subscription.getId()).get(value, resourceGroup.getName());
+            if (appServicePlan != null && appServicePlan.exists()) {
+                return AzureValidationInfo.error("App service plan name must be unique in each resource group.", this);
+            }
         }
         return AzureValidationInfo.success(this);
     }
@@ -85,15 +91,13 @@ public class ServicePlanCreationDialog extends AzureDialog<AppServicePlanDraft>
     public AppServicePlanDraft getValue() {
         final AppServicePlanDraft draft = Azure.az(AzureAppService.class).plans(this.subscription.getId())
             .create(this.textName.getValue(), "<none>");
-        draft.setRegion(this.region).setOperatingSystem(this.os).setPricingTier(this.comboBoxPricingTier.getValue());
+        draft.setPricingTier(this.comboBoxPricingTier.getValue());
         return draft;
     }
 
     @Override
     public void setValue(final AppServicePlanDraft data) {
         this.subscription = data.getSubscription();
-        this.os = data.getOperatingSystem();
-        this.region = data.getRegion();
         this.textName.setValue(data.getName());
     }
 

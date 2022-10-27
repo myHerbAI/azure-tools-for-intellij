@@ -21,7 +21,7 @@ public class GuidanceStartupListener implements StartupActivity {
                 .ifPresent(config -> GuidanceViewManager.getInstance().openCourseView(project, courseConfigFromWorkspace));
         // show guidance tool window after install
         final IIdeStore ideStore = AzureStoreManager.getInstance().getIdeStore();
-        if (StringUtils.isEmpty(ideStore.getProperty(GUIDANCE, GUIDANCE_SHOWN))) {
+        if (ideStore != null && StringUtils.isEmpty(ideStore.getProperty(GUIDANCE, GUIDANCE_SHOWN))) {
             ideStore.setProperty(GUIDANCE, GUIDANCE_SHOWN, String.valueOf(true));
             GuidanceViewManager.getInstance().showCoursesView(project);
         }

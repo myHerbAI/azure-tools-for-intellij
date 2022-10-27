@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localrun;
 
-import com.google.gson.JsonObject;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.ProgramRunnerUtil;
@@ -28,7 +27,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.psi.PsiMethod;
-import com.microsoft.azure.toolkit.ide.appservice.util.JsonUtils;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandlerMessenger;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
@@ -42,6 +40,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.CommandUtils;
+import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingEnum;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionConfiguration;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
@@ -377,10 +376,10 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
     }
 
     private boolean isInstallingExtensionNeeded(Set<BindingEnum> bindingTypes, RunProcessHandler processHandler) {
-        final JsonObject hostJson = readHostJson(stagingFolder.getAbsolutePath());
-        final JsonObject extensionBundle = hostJson == null ? null : hostJson.getAsJsonObject(EXTENSION_BUNDLE);
-        if (extensionBundle != null && extensionBundle.has("id") &&
-                StringUtils.equalsIgnoreCase(extensionBundle.get("id").getAsString(), EXTENSION_BUNDLE_ID)) {
+        final Map<String, Object> hostJson = readHostJson(stagingFolder.getAbsolutePath());
+        final Map<String, Object> extensionBundle = hostJson == null ? null : (Map<String, Object>)hostJson.get(EXTENSION_BUNDLE);
+        if (extensionBundle != null && extensionBundle.containsKey("id") &&
+                StringUtils.equalsIgnoreCase((CharSequence) extensionBundle.get("id"), EXTENSION_BUNDLE_ID)) {
             processHandler.println(message("function.run.hint.skipInstallExtensionBundle"), ProcessOutputTypes.STDOUT);
             return false;
         }
@@ -393,9 +392,10 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
         return true;
     }
 
-    private static JsonObject readHostJson(String stagingFolder) {
+    private static Map<String, Object> readHostJson(String stagingFolder) {
         final File hostJson = new File(stagingFolder, HOST_JSON);
-        return JsonUtils.readJsonFile(hostJson);
+        // noinspection unchecked
+        return JsonUtils.readFromJsonFile(hostJson, Map.class);
     }
 
     private static Set<BindingEnum> getFunctionBindingEnums(Map<String, FunctionConfiguration> configMap) {

@@ -30,7 +30,9 @@ import com.microsoft.azure.toolkit.intellij.azuresdk.model.AzureSdkServiceEntity
 import com.microsoft.azure.toolkit.intellij.azuresdk.service.AzureSdkCategoryService;
 import com.microsoft.azure.toolkit.intellij.azuresdk.service.AzureSdkLibraryService;
 import com.microsoft.azure.toolkit.intellij.common.TextDocumentListenerAdapter;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import lombok.Getter;
@@ -40,10 +42,13 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.io.IOException;
@@ -57,6 +62,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class AzureSdkTreePanel implements TextDocumentListenerAdapter {
+    public static final int TIMEOUT = 1000;
     private final TailingDebouncer filter;
     @Setter
     private Consumer<AzureSdkFeatureEntity> onSdkFeatureNodeSelected;
@@ -92,6 +98,34 @@ public class AzureSdkTreePanel implements TextDocumentListenerAdapter {
         this.onSdkFeatureNodeSelected.accept(feature);
     }
 
+    public void selectFeature(@Nonnull final String featureName) {
+        final DefaultMutableTreeNode root = (DefaultMutableTreeNode) this.model.getRoot();
+        final DefaultMutableTreeNode treeNodeWithFeature = getTreeNodeWithFeature(root, featureName);
+        if (treeNodeWithFeature == null) {
+            // todo: refactor to unregister the one time listener if not triggered
+            AzureEventBus.once("reference.refresh", (ignore1, ignore2) -> selectFeature(featureName));
+        } else {
+            AzureTaskManager.getInstance().runLater(() -> TreeUtil.selectPath(this.tree, TreeUtil.getPathFromRoot(treeNodeWithFeature)), AzureTask.Modality.ANY);
+        }
+    }
+
+    @Nullable
+    private DefaultMutableTreeNode getTreeNodeWithFeature(DefaultMutableTreeNode treeNode, @Nonnull final String featureName) {
+        final Object userObject = treeNode.getUserObject();
+        if (userObject instanceof AzureSdkFeatureEntity && StringUtils.equals(((AzureSdkFeatureEntity) userObject).getName(), featureName)) {
+            return treeNode;
+        }
+        for (int i = 0; i < treeNode.getChildCount(); i++) {
+            final TreeNode child = treeNode.getChildAt(i);
+            final DefaultMutableTreeNode childResult = child instanceof DefaultMutableTreeNode ?
+                    getTreeNodeWithFeature((DefaultMutableTreeNode) child, featureName) : null;
+            if (childResult != null) {
+                return childResult;
+            }
+        }
+        return null;
+    }
+
     @Override
     public void onDocumentChanged() {
         this.filter.debounce();
@@ -102,7 +136,7 @@ public class AzureSdkTreePanel implements TextDocumentListenerAdapter {
         this.loadData(this.categories, this.services, filters);
     }
 
-    public void refresh(boolean... force) {
+    public synchronized void refresh(boolean... force) {
         try {
             if (ArrayUtils.isNotEmpty(force) && force[0]) {
                 AzureSdkLibraryService.refresh();
@@ -110,8 +144,9 @@ public class AzureSdkTreePanel implements TextDocumentListenerAdapter {
             this.services = AzureSdkLibraryService.loadAzureSdkServices();
             this.categories = AzureSdkCategoryService.loadAzureSDKCategories();
             this.fillDescriptionFromCategoryIfMissing(this.categories, this.services);
-            this.filter.debounce();
-            AzureTaskManager.getInstance().runLater(() -> Optional.ofNullable(this.lastNodePath).ifPresent(p -> TreeUtil.selectPath(this.tree, p)));
+            this.loadData(this.categories, this.services, this.searchBox.getText());
+            Optional.ofNullable(this.lastNodePath).ifPresent(p -> AzureTaskManager.getInstance().runAndWait(() -> TreeUtil.selectPath(this.tree, p)));
+            AzureEventBus.emit("reference.refresh");
         } catch (final IOException e) {
             //TODO: messager.warning(...)
             e.printStackTrace();
@@ -160,7 +195,11 @@ public class AzureSdkTreePanel implements TextDocumentListenerAdapter {
         if (ArrayUtils.isNotEmpty(filters)) {
             TreeUtil.expandAll(this.tree);
         }
-        TreeUtil.promiseSelectFirstLeaf(this.tree);
+        try {
+            TreeUtil.promiseSelectFirstLeaf(this.tree).blockingGet(TIMEOUT);
+        } catch (Throwable e) {
+            // swallow exception during select first leaf
+        }
     }
 
     private String getServiceKeyByName(final String name) {

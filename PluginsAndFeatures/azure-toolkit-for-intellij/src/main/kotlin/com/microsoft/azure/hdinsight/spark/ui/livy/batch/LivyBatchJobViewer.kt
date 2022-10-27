@@ -22,6 +22,7 @@
 
 package com.microsoft.azure.hdinsight.spark.ui.livy.batch
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.runWriteAction
@@ -29,8 +30,6 @@ import com.intellij.openapi.command.undo.UndoUtil
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.testFramework.LightVirtualFile
 import com.microsoft.azure.hdinsight.common.mvc.IdeaSettableControlView
-import org.json.JSONException
-import org.json.JSONObject
 import javax.swing.JComponent
 import javax.swing.JSplitPane
 import javax.swing.JSplitPane.HORIZONTAL_SPLIT
@@ -84,8 +83,8 @@ abstract class LivyBatchJobViewer : Disposable, IdeaSettableControlView<LivyBatc
             // TODO: Leverage IntelliJ's `Reformat Code` action to format JSON text with syntax highlighted
             val formattedText = from.jobDetail?.let {
                 try {
-                    JSONObject(from.jobDetail).toString(4)
-                } catch (err: JSONException) {
+                    ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(from.jobDetail)
+                } catch (err: Exception) {
                     "<broken response>\n${from.jobDetail}"
                 }
             } ?: jobDetailNotSetMessage

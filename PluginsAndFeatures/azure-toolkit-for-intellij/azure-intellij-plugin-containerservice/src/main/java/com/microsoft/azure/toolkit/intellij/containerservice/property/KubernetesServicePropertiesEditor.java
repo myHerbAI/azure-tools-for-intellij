@@ -146,16 +146,16 @@ public class KubernetesServicePropertiesEditor extends AzResourcePropertiesEdito
         subscriptionTextField.setText(subscription.getName());
         subscriptionIDTextField.setText(subscription.getId());
         txtKubernetesVersion.setText(server.getKubernetesVersion());
-        txtApiServerAddress.setText(server.getApiServerAddress());
-//
+        txtApiServerAddress.setText(Optional.ofNullable(server.getApiServerAddress()).orElse("N/A"));
+
         final ContainerServiceNetworkProfile profile = server.getContainerServiceNetworkProfile();
-        txtNetworkType.setText(Optional.ofNullable(profile.getNetworkPlugin()).map(NetworkPlugin::getValue).orElse("None"));
-        txtNetworkPolicy.setText(Optional.ofNullable(profile.getNetworkPolicy()).map(NetworkPolicy::getValue).orElse("None"));
-        txtLoadBalancer.setText(Optional.ofNullable(profile.getLoadBalancerSku()).map(LoadBalancerSku::getValue).orElse("None"));
-        txtPodCidr.setText(profile.getPodCidr());
-        txtServiceCidr.setText(profile.getServiceCidr());
-        txtDndServiceIp.setText(profile.getDnsServiceIp());
-        txtDockerBridgeCidr.setText(profile.getDockerBridgeCidr());
+        txtNetworkType.setText(Optional.ofNullable(profile).map(p -> p.getNetworkPlugin()).map(NetworkPlugin::getValue).orElse("None"));
+        txtNetworkPolicy.setText(Optional.ofNullable(profile).map(p -> p.getNetworkPolicy()).map(NetworkPolicy::getValue).orElse("None"));
+        txtLoadBalancer.setText(Optional.ofNullable(profile).map(p -> p.getLoadBalancerSku()).map(LoadBalancerSku::getValue).orElse("None"));
+        txtPodCidr.setText(Optional.ofNullable(profile).map(p -> p.getPodCidr()).orElse("N/A"));
+        txtServiceCidr.setText(Optional.ofNullable(profile).map(p -> p.getServiceCidr()).orElse("N/A"));
+        txtDndServiceIp.setText(Optional.ofNullable(profile).map(p -> p.getDnsServiceIp()).orElse("N/A"));
+        txtDockerBridgeCidr.setText(Optional.ofNullable(profile).map(p -> p.getDockerBridgeCidr()).orElse("N/A"));
         AzureTaskManager.getInstance().runInBackgroundAsObservable(new AzureTask<>("Loading node pools", () -> cluster.agentPools().list()))
                 .subscribeOn(Schedulers.io())
                 .subscribe(pools -> AzureTaskManager.getInstance().runLater(() -> fillNodePools(pools)));

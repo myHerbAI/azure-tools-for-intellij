@@ -54,7 +54,7 @@ public class HDInsightJobViewUtils {
                 FileUtils.copyURLToFile(url, htmlToFile);
                 FileUtils.copyURLToFile(hdinsightJobViewJarUrl, hdinsightJobViewToFile);
                 HDInsightJobViewUtils.unzip(htmlToFile.getAbsolutePath(), htmlToFile.getParent());
-                DefaultLoader.getIdeHelper().setProperty(HDINSIGHT_JOBVIEW_EXTRACT_FLAG, "true");
+                DefaultLoader.getIdeHelper().setApplicationProperty(HDINSIGHT_JOBVIEW_EXTRACT_FLAG, "true");
             } catch (IOException e) {
                 DefaultLoader.getUIHelper().showError("Extract Job View Folder error:" + e.getMessage(), "Job view");
             }

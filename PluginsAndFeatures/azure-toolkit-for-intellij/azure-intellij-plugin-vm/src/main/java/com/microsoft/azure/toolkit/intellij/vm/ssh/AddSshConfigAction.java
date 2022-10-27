@@ -9,12 +9,16 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.remote.AuthType;
+import com.intellij.ssh.config.unified.SshConfig;
+import com.intellij.ssh.config.unified.SshConfigManager;
+import com.intellij.ssh.config.unified.SshConfigManager.ConfigsData;
+import com.intellij.ssh.ui.unified.SshConfigConfigurable;
+import com.intellij.ssh.ui.unified.SshUiData;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VirtualMachine;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 
 import javax.annotation.Nonnull;
@@ -35,49 +39,57 @@ public class AddSshConfigAction {
             AzureMessager.getMessager().warning(String.format("SSH is not enabled on '%s'.", vm.getName()));
             return;
         }
-        try {
-            final Class<?> clsConfigurable = Class.forName("com.intellij.ssh.ui.unified.SshConfigConfigurable$Main");
-            final Configurable configurable = (Configurable) ConstructorUtils.invokeConstructor(clsConfigurable, project);
-            AzureTaskManager.getInstance().runLater(() -> openConfigDialog(vm, project, configurable));
-        } catch (final ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
-            AzureMessager.getMessager().error(e);
-        }
+        final SshConfigConfigurable configurable = new SshConfigConfigurable.Main(project);
+        AzureTaskManager.getInstance().runLater(() -> openConfigDialog(vm, project, configurable));
     }
 
-    @AzureOperation(name = "vm.open_ssh_config_dialog", params = "vm.name()", type = AzureOperation.Type.TASK)
+    @Nonnull
+    public static SshConfig toSshConfig(VirtualMachine vm) {
+        final String customName = String.format("Azure: %s", vm.getName());
+        final SshConfig config = new SshConfig(true);
+        config.setCustomName(customName);
+        config.setId(UUID.nameUUIDFromBytes(customName.getBytes()).toString());
+        config.setUsername(vm.getAdminUserName());
+        config.setAuthType(vm.isPasswordAuthenticationDisabled() ? AuthType.KEY_PAIR : AuthType.PASSWORD);
+        config.setHost(vm.getHostIp());
+        config.setPort(vm.getSshPort());
+        return config;
+    }
+
+    @Nonnull
+    public static SshConfig getOrCreateSshConfig(VirtualMachine vm, @Nonnull Project project) {
+        final String sshConfigName = String.format("Azure: %s", vm.getName());
+        final SshConfigManager manager = SshConfigManager.getInstance(project);
+        SshConfig result = manager.findConfigByName(sshConfigName);
+        if (Objects.isNull(result)) {
+            result = toSshConfig(vm);
+            final SshUiData uiData = new SshUiData(result, true);
+            final SshConfigManager.ConfigsData newConfigs = new SshConfigManager.ConfigsData(Collections.emptyList(), Collections.singletonList(uiData));
+            final SshConfigManager.ConfigsData merged = manager.getLastSavedAndCurrentData().createMerged(newConfigs);
+            manager.applyData(merged.getCurrentData(), null);
+        }
+        return result;
+    }
+
+    @AzureOperation(name = "vm.open_ssh_config_dialog", params = "vm.name()", type = AzureOperation.Type.ACTION)
     private static void openConfigDialog(VirtualMachine vm, @Nonnull Project project, Configurable configurable) {
         ShowSettingsUtil.getInstance().editConfigurable(project, configurable, () -> {
+            final String name = String.format("Azure: %s", vm.getName());
+            final SshUiData uiData = new SshUiData(toSshConfig(vm), true);
+            final SshConfigManager manager = SshConfigManager.getInstance(project);
+            final SshConfig existingConfigs = manager.findConfigByName(name);
+            final ConfigsData newConfigs = new ConfigsData(Collections.emptyList(), Collections.singletonList(uiData));
             try {
-                final String name = String.format("Azure: %s", vm.name());
-                final Class<?> clsSshUiData = Class.forName("com.intellij.ssh.ui.unified.SshUiData");
-                final Class<?> clsSshConfigManager = Class.forName("com.intellij.ssh.config.unified.SshConfigManager");
-                final Class<?> clsConfigsData = Class.forName("com.intellij.ssh.config.unified.SshConfigManager$ConfigsData");
-                final Object uiData = ConstructorUtils.invokeConstructor(clsSshUiData, toSshConfig(vm, name), true);
-                final Object manager = MethodUtils.invokeStaticMethod(clsSshConfigManager, "getInstance", project);
-                final Object existingConfigs = MethodUtils.invokeMethod(manager, "findConfigByName", name);
-                final Object newConfigs = ConstructorUtils.invokeConstructor(clsConfigsData, Collections.emptyList(), Collections.singletonList(uiData));
                 if (Objects.isNull(existingConfigs)) {
-                    final Object savedAndCurrentData = MethodUtils.invokeMethod(manager, "getLastSavedAndCurrentData");
-                    final Object merged = MethodUtils.invokeMethod(savedAndCurrentData, "createMerged", newConfigs);
+                    final ConfigsData savedAndCurrentData = manager.getLastSavedAndCurrentData();
+                    final ConfigsData merged = savedAndCurrentData.createMerged(newConfigs);
                     MethodUtils.invokeMethod(configurable, true, "resetFromData", merged);
                 }
                 MethodUtils.invokeMethod(configurable, true, "select", uiData);
-            } catch (final NoSuchMethodException | IllegalAccessException | InvocationTargetException | ClassNotFoundException | InstantiationException e) {
+            } catch (final NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                 AzureMessager.getMessager().error(e);
             }
         });
     }
 
-    @Nonnull
-    private static Object toSshConfig(VirtualMachine vm, String name)
-        throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
-        final Class<?> clsSshConfig = Class.forName("com.intellij.ssh.config.unified.SshConfig");
-        final Object config = ConstructorUtils.invokeConstructor(clsSshConfig, true);
-        MethodUtils.invokeMethod(config, "setCustomName", name);
-        MethodUtils.invokeMethod(config, "setId", UUID.nameUUIDFromBytes(name.getBytes()).toString());
-        MethodUtils.invokeMethod(config, "setUsername", vm.getAdminUserName());
-        MethodUtils.invokeMethod(config, "setAuthType", vm.isPasswordAuthenticationDisabled() ? AuthType.KEY_PAIR : AuthType.PASSWORD);
-        MethodUtils.invokeMethod(config, "setHost", vm.getHostIp());
-        return config;
-    }
 }

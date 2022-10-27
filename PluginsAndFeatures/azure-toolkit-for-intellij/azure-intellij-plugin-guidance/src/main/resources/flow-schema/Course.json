@@ -27,6 +27,11 @@
       "type": "string",
       "format": "uri"
     },
+    "tags": {
+      "description": "tag of the project",
+      "type": "array",
+      "default": []
+    },
     "context": {
       "description": "shared data context among phases and steps, you can config default values here",
       "type": "object",

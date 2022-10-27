@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -131,7 +132,12 @@ public class IntellijAzureActionManager extends AzureActionManager {
         public void update(@Nonnull AnActionEvent e) {
             final T source = (T) e.getDataContext().getData(Action.SOURCE);
             final IView.Label view = this.action.getView(source);
-            final boolean visible = Objects.nonNull(view) && view.isEnabled() && Objects.nonNull(action.getHandler(source, e));
+            final boolean visible;
+            if (source instanceof AbstractAzResource && !((AbstractAzResource<?, ?, ?>) source).getSubscription().isSelected() && this.action.isAuthRequired()) {
+                visible = false;
+            } else {
+                visible = Objects.nonNull(view) && view.isEnabled() && Objects.nonNull(action.getHandler(source, e));
+            }
             e.getPresentation().setVisible(visible);
             if (visible) {
                 applyView(view, e.getPresentation());

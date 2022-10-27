@@ -7,9 +7,6 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.action;
 
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
@@ -19,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
@@ -74,7 +72,8 @@ public class CreateWebAppAction {
             indicator.setIndeterminate(true);
             return WebAppService.getInstance().createWebApp(config);
         });
-        return AzureTaskManager.getInstance().runInModalAsObservable(task).toSingle().doOnSuccess(CreateWebAppAction::notifyCreationSuccess);
+        CacheManager.getUsageHistory(WebAppConfig.class).push(config);
+        return AzureTaskManager.getInstance().runInBackgroundAsObservable(task).toSingle();
     }
 
     @AzureOperation(name = "webapp.deploy_artifact.app", params = {"webapp.name()"}, type = AzureOperation.Type.ACTION)
@@ -92,17 +91,9 @@ public class CreateWebAppAction {
         AzureTaskManager.getInstance().runInModalAsObservable(task).single().subscribe((none) -> notifyDeploymentSuccess(webapp)); // let root exception handler to show the error.
     }
 
-    private static void notifyCreationSuccess(final WebApp app) {
-        final String title = message("webapp.create.success.title");
-        final String message = message("webapp.create.success.message", app.name());
-        final Notification notification = new Notification(NOTIFICATION_GROUP_ID, title, message, NotificationType.INFORMATION);
-        Notifications.Bus.notify(notification);
-    }
-
     private static void notifyDeploymentSuccess(final WebApp app) {
         final String title = message("webapp.deploy.success.title");
         final String message = message("webapp.deploy.success.message", app.name());
-        final Notification notification = new Notification(NOTIFICATION_GROUP_ID, title, message, NotificationType.INFORMATION);
-        Notifications.Bus.notify(notification);
+        AzureMessager.getMessager().success(message, title);
     }
 }
