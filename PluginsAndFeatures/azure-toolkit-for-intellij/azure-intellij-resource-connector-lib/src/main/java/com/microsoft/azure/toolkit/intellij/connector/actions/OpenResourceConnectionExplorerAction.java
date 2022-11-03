@@ -5,7 +5,6 @@
 package com.microsoft.azure.toolkit.intellij.connector.actions;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -19,10 +18,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class OpenResourceConnectionExplorerAction extends AzureAnAction {
     @Override
-    @AzureOperation(name = "common.open_resource_connection_explorer", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "connector.open_resource_connection_explorer", type = AzureOperation.Type.ACTION)
     public boolean onActionPerformed(@NotNull AnActionEvent anActionEvent, @Nullable Operation operation) {
         // open azure resource connection explorer
-        final Project project = DataKeys.PROJECT.getData(anActionEvent.getDataContext());
+        final Project project = anActionEvent.getProject();
         final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(ResourceConnectionExplorer.ToolWindowFactory.ID);
         assert toolWindow != null;
         toolWindow.setAvailable(true);
