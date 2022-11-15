@@ -12,8 +12,6 @@ import com.intellij.ui.AnActionButton;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.ToolbarDecorator;
 import com.microsoft.azure.toolkit.intellij.common.TextDocumentListenerAdapter;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.nimbusds.jose.util.ArrayUtils;
 
 import javax.annotation.Nonnull;
@@ -51,11 +49,6 @@ public class AppSettingsTableUtils {
         searchTextField.addDocumentListener((TextDocumentListenerAdapter) () -> {
             final String stringToFilter = searchTextField.getText();
             appSettingsTable.filter(stringToFilter);
-            AzureTaskManager.getInstance().runLater(() -> {
-                if (appSettingsTable.getRowCount() <= 0) {
-                    appSettingsTable.getEmptyText().setText("No app settings found");
-                }
-            }, AzureTask.Modality.ANY);
         });
         appSettingsTable.setDefaultRenderer(Object.class, new HighLightedCellRenderer(searchTextField.getTextEditor()));
         final JPanel panel = tableToolbarDecorator.createPanel();

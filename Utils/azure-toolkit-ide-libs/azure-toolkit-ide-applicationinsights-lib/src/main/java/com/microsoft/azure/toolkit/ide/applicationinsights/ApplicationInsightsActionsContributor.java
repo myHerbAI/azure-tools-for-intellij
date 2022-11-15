@@ -10,6 +10,7 @@ import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContri
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
 import com.microsoft.azure.toolkit.lib.common.action.*;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 
 import java.awt.*;
@@ -25,31 +26,31 @@ public class ApplicationInsightsActionsContributor implements IActionsContributo
     public static final String SERVICE_ACTIONS = "actions.applicationinsights.service";
     public static final String INSIGHT_ACTIONS = "actions.applicationinsights.management";
 
-    public static final Action.Id<ApplicationInsight> APPLICATION_MAP = Action.Id.of("ai.application_map");
-    public static final Action.Id<ApplicationInsight> LIVE_METRICS = Action.Id.of("ai.live_metrics");
-    public static final Action.Id<ApplicationInsight> TRANSACTION_SEARCH = Action.Id.of("ai.transaction_search");
-    public static final Action.Id<ApplicationInsight> INSTRUMENTATION_KEY = Action.Id.of("ai.instrumentation_key");
+    public static final Action.Id<ApplicationInsight> APPLICATION_MAP = Action.Id.of("ai.open_application_map");
+    public static final Action.Id<ApplicationInsight> LIVE_METRICS = Action.Id.of("ai.open_live_metrics");
+    public static final Action.Id<ApplicationInsight> TRANSACTION_SEARCH = Action.Id.of("ai.open_transaction_search");
+    public static final Action.Id<ApplicationInsight> INSTRUMENTATION_KEY = Action.Id.of("ai.copy_instrumentation_key");
     public static final Action.Id<ApplicationInsight> CONNECTION_STRING = Action.Id.of("ai.copy_connection_string");
     public static final Action.Id<ResourceGroup> GROUP_CREATE_APPLICATIONINSIGHT = Action.Id.of("group.create_ai");
 
     @Override
     public void registerActions(AzureActionManager am) {
         final Consumer<ApplicationInsight> copyConnectionStringConsumer = insight -> {
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(insight.getConnectionString()), null);
+            am.getAction(ResourceCommonActionsContributor.COPY_STRING).handle(insight.getConnectionString());
             AzureMessager.getMessager().info("Connection string copied");
         };
         final ActionView.Builder copyConnectionStringView = new ActionView.Builder("Copy Connection String")
-                .title(s -> Optional.ofNullable(s).map(r -> description("ai.instrumentation_key.ai",
+                .title(s -> Optional.ofNullable(s).map(r -> description("ai.copy_instrumentation_key.ai",
                         ((ApplicationInsight) r).getName())).orElse(null))
                 .enabled(s -> s instanceof ApplicationInsight && ((ApplicationInsight) s).getFormalStatus().isConnected());
         am.registerAction(CONNECTION_STRING, new Action<>(CONNECTION_STRING, copyConnectionStringConsumer, copyConnectionStringView));
 
         final Consumer<ApplicationInsight> copyInstrumentationKeyConsumer = insight -> {
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(insight.getInstrumentationKey()), null);
+            am.getAction(ResourceCommonActionsContributor.COPY_STRING).handle(insight.getInstrumentationKey());
             AzureMessager.getMessager().info("Instrumentation key copied");
         };
         final ActionView.Builder copyInstrumentationKeyView = new ActionView.Builder("Copy Instrumentation Key")
-                .title(s -> Optional.ofNullable(s).map(r -> description("ai.instrumentation_key.ai",
+                .title(s -> Optional.ofNullable(s).map(r -> description("ai.copy_instrumentation_key.ai",
                         ((ApplicationInsight) r).getName())).orElse(null))
                 .enabled(s -> s instanceof ApplicationInsight && ((ApplicationInsight) s).getFormalStatus().isConnected());
         am.registerAction(INSTRUMENTATION_KEY, new Action<>(INSTRUMENTATION_KEY, copyInstrumentationKeyConsumer, copyInstrumentationKeyView));
@@ -57,7 +58,7 @@ public class ApplicationInsightsActionsContributor implements IActionsContributo
         final Consumer<ApplicationInsight> applicationMapConsumer = insight -> am.getAction(ResourceCommonActionsContributor.OPEN_URL)
                 .handle(insight.getPortalUrl() + "/applicationMap");
         final ActionView.Builder applicationMapView = new ActionView.Builder("Open Application Map")
-                .title(s -> Optional.ofNullable(s).map(r -> description("ai.application_map.ai",
+                .title(s -> Optional.ofNullable(s).map(r -> description("ai.open_application_map.ai",
                         ((ApplicationInsight) r).getName())).orElse(null))
                 .enabled(s -> s instanceof ApplicationInsight && ((ApplicationInsight) s).getFormalStatus().isConnected());
         am.registerAction(APPLICATION_MAP, new Action<>(APPLICATION_MAP, applicationMapConsumer, applicationMapView));
@@ -65,7 +66,7 @@ public class ApplicationInsightsActionsContributor implements IActionsContributo
         final Consumer<ApplicationInsight> liveMetricsConsumer = insight -> am.getAction(ResourceCommonActionsContributor.OPEN_URL)
                 .handle(insight.getPortalUrl() + "/quickPulse");
         final ActionView.Builder liveMetricsView = new ActionView.Builder("Open Live Metrics")
-                .title(s -> Optional.ofNullable(s).map(r -> description("ai.live_metrics.ai",
+                .title(s -> Optional.ofNullable(s).map(r -> description("ai.open_live_metrics.ai",
                         ((ApplicationInsight) r).getName())).orElse(null))
                 .enabled(s -> s instanceof ApplicationInsight && ((ApplicationInsight) s).getFormalStatus().isConnected());
         am.registerAction(LIVE_METRICS, new Action<>(LIVE_METRICS, liveMetricsConsumer, liveMetricsView));
@@ -73,7 +74,7 @@ public class ApplicationInsightsActionsContributor implements IActionsContributo
         final Consumer<ApplicationInsight> transactionSearchConsumer = insight -> am.getAction(ResourceCommonActionsContributor.OPEN_URL)
                 .handle(insight.getPortalUrl() + "/searchV1");
         final ActionView.Builder transactionSearchView = new ActionView.Builder("Open Transaction Search")
-                .title(s -> Optional.ofNullable(s).map(r -> description("ai.transaction_search.ai",
+                .title(s -> Optional.ofNullable(s).map(r -> description("ai.open_transaction_search.ai",
                         ((ApplicationInsight) r).getName())).orElse(null))
                 .enabled(s -> s instanceof ApplicationInsight && ((ApplicationInsight) s).getFormalStatus().isConnected());
         am.registerAction(TRANSACTION_SEARCH, new Action<>(TRANSACTION_SEARCH, transactionSearchConsumer, transactionSearchView));

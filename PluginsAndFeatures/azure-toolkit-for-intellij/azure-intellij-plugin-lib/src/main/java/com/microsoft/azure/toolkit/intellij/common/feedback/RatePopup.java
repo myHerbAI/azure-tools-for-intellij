@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.intellij.common.feedback;
 
 import com.intellij.collaboration.ui.codereview.comment.RoundedPanel;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -21,15 +20,19 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.PositionTracker;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
 import com.microsoft.azure.toolkit.ide.common.store.IIdeStore;
 import com.microsoft.azure.toolkit.intellij.common.IdeUtils;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import lombok.Getter;
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,7 +51,6 @@ import java.util.concurrent.ExecutionException;
 public class RatePopup {
     public static final JBColor BACKGROUND_COLOR =
         JBColor.namedColor("StatusBar.hoverBackground", new JBColor(15595004, 4606541));
-    public static final long DAYS = 24 * 60 * 60 * 1000L;
     public static final int MOST_TIMES = 5;
     private static Balloon balloon;
 
@@ -64,6 +66,8 @@ public class RatePopup {
     private ActionLink marketplaceLink;
     private ActionLink notNow;
     private ActionLink featureLink;
+
+    private static final TailingDebouncer popup = new TailingDebouncer(() -> AzureTaskManager.getInstance().runLater(() -> popup(null)), 15000);
 
     public RatePopup() {
         super();
@@ -100,19 +104,19 @@ public class RatePopup {
 
     @AzureOperation(name = "feedback.report_issue", type = AzureOperation.Type.ACTION)
     private void reportIssue(ActionEvent e) {
-        BrowserUtil.open("https://aka.ms/azure-ij-new-issue");
+        AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle("https://aka.ms/azure-ij-new-issue");
         popDaysLater(90);
     }
 
     @AzureOperation(name = "feedback.request_feature", type = AzureOperation.Type.ACTION)
     private void requestFeature(ActionEvent e) {
-        BrowserUtil.open("https://aka.ms/azure-ij-new-feature");
+        AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle("https://aka.ms/azure-ij-new-feature");
         popDaysLater(90);
     }
 
     @AzureOperation(name = "feedback.review_marketplace", type = AzureOperation.Type.ACTION)
     private void reviewInMarketplace(ActionEvent e) {
-        BrowserUtil.open("https://aka.ms/azure-ij-new-review");
+        AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle("https://aka.ms/azure-ij-new-review");
         popDaysLater(-1);
     }
 
@@ -172,6 +176,7 @@ public class RatePopup {
     void $$$setupUI$$$() {
     }
 
+    @AzureOperation(name = "feedback.try_popup_rating", type = AzureOperation.Type.TASK)
     public static synchronized boolean tryPopup(@Nullable Project project) {
         final int times = getPoppedTimes();
         if (times < MOST_TIMES) {
@@ -179,16 +184,16 @@ public class RatePopup {
             final String strNextPopAfter = store.getProperty(RateManager.SERVICE, RateManager.NEXT_POP_AFTER, "0");
             final long nextPopAfter = Long.parseLong(Objects.requireNonNull(strNextPopAfter));
             if (nextPopAfter >= 0 && System.currentTimeMillis() > nextPopAfter) {
-                final Timer timer = new Timer(10000, e -> popup(project));
-                timer.setRepeats(false);
-                timer.start();
+                store.setProperty(RateManager.SERVICE, RateManager.NEXT_POP_AFTER, String.valueOf(System.currentTimeMillis() + 15 * DateUtils.MILLIS_PER_DAY));
+                popup.debounce();
+                return true;
             }
         }
         return false;
     }
 
-    @AzureOperation(name = "feedback.show_popup", type = AzureOperation.Type.SERVICE)
-    public static synchronized boolean popup(@Nullable Project project) {
+    @AzureOperation(name = "feedback.show_popup_rating", type = AzureOperation.Type.TASK)
+    public static synchronized void popup(@Nullable Project project) {
         if (RatePopup.balloon == null || RatePopup.balloon.isDisposed()) {
             final JPanel rateUsPanel = new RatePopup().getContentPanel();
             RatePopup.balloon = JBPopupFactory.getInstance().createBalloonBuilder(rateUsPanel)
@@ -213,7 +218,7 @@ public class RatePopup {
         final int times = Integer.parseInt(Objects.requireNonNull(strTimes)) + 1;
         store.setProperty(RateManager.SERVICE, RateManager.POPPED_AT, String.valueOf(System.currentTimeMillis()));
         store.setProperty(RateManager.SERVICE, RateManager.POPPED_TIMES, String.valueOf(times));
-        store.setProperty(RateManager.SERVICE, RateManager.NEXT_POP_AFTER, String.valueOf(System.currentTimeMillis() + 15 * DAYS));
+        store.setProperty(RateManager.SERVICE, RateManager.NEXT_POP_AFTER, String.valueOf(System.currentTimeMillis() + 15 * DateUtils.MILLIS_PER_DAY));
 
         final JFrame frame = ((JFrame) IdeUtils.getWindow(project));
         RatePopup.balloon.show(new PositionTracker<>(frame.getRootPane()) {
@@ -224,7 +229,6 @@ public class RatePopup {
                 return new RelativePoint(frame, new Point(frameSize.width - balloonSize.width / 2 - 37, frameSize.height - balloonSize.height / 2 - 60));
             }
         }, Balloon.Position.above);
-        return true;
     }
 
     private static void popDaysLater(int x) {
@@ -233,7 +237,7 @@ public class RatePopup {
         if (x == -1) {
             store.setProperty(RateManager.SERVICE, RateManager.NEXT_POP_AFTER, "-1");
         } else {
-            store.setProperty(RateManager.SERVICE, RateManager.NEXT_POP_AFTER, String.valueOf(System.currentTimeMillis() + x * DAYS));
+            store.setProperty(RateManager.SERVICE, RateManager.NEXT_POP_AFTER, String.valueOf(System.currentTimeMillis() + x * DateUtils.MILLIS_PER_DAY));
         }
     }
 

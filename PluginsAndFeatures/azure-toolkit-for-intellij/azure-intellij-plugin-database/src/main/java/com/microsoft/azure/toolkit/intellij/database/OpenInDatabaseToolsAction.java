@@ -10,10 +10,12 @@ import com.intellij.database.autoconfig.DataSourceRegistry;
 import com.intellij.database.psi.DbPsiFacade;
 import com.intellij.database.view.ui.DataSourceManagerDialog;
 import com.intellij.openapi.project.Project;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Builder;
 import lombok.Getter;
 
 public class OpenInDatabaseToolsAction {
+    @AzureOperation(name = "database.open_database_tools.server", params = {"properties.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
     public static void openDataSourceManagerDialog(Project project, DatasourceProperties properties) {
         final DataSourceRegistry registry = new DataSourceRegistry(project);
         final DbPsiFacade dbPsiFacade = DbPsiFacade.getInstance(project);

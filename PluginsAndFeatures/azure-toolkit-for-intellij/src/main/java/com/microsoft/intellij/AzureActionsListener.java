@@ -97,6 +97,7 @@ public class AzureActionsListener implements AppLifecycleListener, PluginCompone
             Thread.currentThread().setContextClassLoader(AzureActionsListener.class.getClassLoader());
             HttpClientProviders.createInstance();
             Azure.az(AzureAccount.class);
+            final Logger logger = Logger.getInstance(AzureActionsListener.class);
             Hooks.onErrorDropped(ex -> {
                 Throwable cause = findExceptionInExceptionChain(ex, Arrays.asList(InterruptedException.class, UnknownHostException.class));
                 if (cause instanceof InterruptedException) {

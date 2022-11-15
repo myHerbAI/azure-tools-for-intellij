@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.common.fileexplorer;
 
 import com.intellij.AppTopics;
 import com.intellij.ide.actions.RevealFileAction;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
@@ -15,6 +16,7 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.fileEditor.impl.LoadTextUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
@@ -24,7 +26,9 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -48,52 +52,54 @@ public class VirtualFileActions {
     private static final String SUCCESS_DOWNLOADING = "File %s is successfully downloaded to %s.";
     private static final String NOTIFICATION_GROUP_ID = "Azure Plugin";
 
-    public static boolean openFileInEditor(VirtualFile virtualFile, final Function<? super String, Boolean> onSave, Runnable onClose, FileEditorManager manager) {
+    @AzureOperation(name = "common.open_file_in_editor.file", params = {"file.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    public static void openFileInEditor(VirtualFile file, final Function<? super String, Boolean> onSave, Runnable onClose, FileEditorManager manager) {
         final Project project = manager.getProject();
-        final FileEditor[] editors = manager.openFile(virtualFile, true, true);
+        final FileEditor[] editors = manager.openFile(file, true, true);
         if (editors.length == 0) {
-            return false;
+            throw new AzureToolkitRuntimeException(String.format("Failed to open file %s in editor. Try downloading it first and open it manually.", file.getName()));
         }
-        for (final FileEditor editor : editors) {
-            if (editor instanceof TextEditor) {
-                final MessageBusConnection messageBusConnection = manager.getProject().getMessageBus().connect(editor);
-                ((TextEditor) editor).getEditor().getDocument().addDocumentListener(new DocumentListener() {
-                    @Override
-                    public void documentChanged(@Nonnull DocumentEvent event) {
-                        virtualFile.putUserData(FILE_CHANGED, true);
-                    }
-                });
-                messageBusConnection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, new FileDocumentManagerListener() {
-                    @Override
-                    public void beforeDocumentSaving(@Nonnull Document document) {
-                        if (Objects.equals(document, ((TextEditor) editor).getEditor().getDocument()) && Boolean.TRUE.equals(virtualFile.getUserData(FILE_CHANGED))) {
-                            if (onSave.apply(document.getText())) {
-                                virtualFile.putUserData(FILE_CHANGED, false);
-                            }
-                        }
-                    }
-                });
-                messageBusConnection.subscribe(FileEditorManagerListener.Before.FILE_EDITOR_MANAGER, new FileEditorManagerListener.Before() {
-                    @Override
-                    public void beforeFileClosed(FileEditorManager source, VirtualFile file) {
-                        try {
-                            if (Objects.equals(file, virtualFile) && Boolean.TRUE.equals(virtualFile.getUserData(FILE_CHANGED))) {
-                                if (AzureMessager.getMessager().confirm(SAVE_CHANGES, FILE_EDITING)) {
-                                    final String content = ((TextEditor) editor).getEditor().getDocument().getText();
-                                    onSave.apply(content);
-                                }
-                                virtualFile.putUserData(FILE_CHANGED, false);
-                                onClose.run();
-                            }
-                        } finally {
-                            messageBusConnection.disconnect();
-                        }
-                    }
-                });
+        Arrays.stream(editors).filter(e -> e instanceof TextEditor).forEach(e -> addFileListeners(file, onSave, onClose, manager, (TextEditor) e));
+    }
 
+    private static void addFileListeners(VirtualFile virtualFile, Function<? super String, Boolean> onSave, Runnable onClose, FileEditorManager manager, TextEditor editor) {
+        final MessageBusConnection messageBusConnection = manager.getProject().getMessageBus().connect(editor);
+        final Document editorDoc = editor.getEditor().getDocument();
+        editorDoc.addDocumentListener(new DocumentListener() {
+            @Override
+            public void documentChanged(@Nonnull DocumentEvent event) {
+                virtualFile.putUserData(FILE_CHANGED, true);
             }
-        }
-        return true;
+        });
+        messageBusConnection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, new FileDocumentManagerListener() {
+            @Override
+            public void beforeDocumentSaving(@Nonnull Document document) {
+                if (Objects.equals(document, editorDoc) && Boolean.TRUE.equals(virtualFile.getUserData(FILE_CHANGED))) {
+                    if (onSave.apply(document.getText())) {
+                        virtualFile.putUserData(FILE_CHANGED, false);
+                    }
+                }
+            }
+        });
+        messageBusConnection.subscribe(FileEditorManagerListener.Before.FILE_EDITOR_MANAGER, new FileEditorManagerListener.Before() {
+            @SneakyThrows
+            @Override
+            public void beforeFileClosed(FileEditorManager source, VirtualFile file) {
+                try {
+                    if (Objects.equals(file, virtualFile) && Boolean.TRUE.equals(virtualFile.getUserData(FILE_CHANGED))) {
+                        if (AzureMessager.getMessager().confirm(SAVE_CHANGES, FILE_EDITING)) {
+                            final String content = editorDoc.getText();
+                            WriteAction.run(() -> LoadTextUtil.write(manager.getProject(), file, this, content, editorDoc.getModificationStamp()));
+                            onSave.apply(content);
+                        }
+                        virtualFile.putUserData(FILE_CHANGED, false);
+                        onClose.run();
+                    }
+                } finally {
+                    messageBusConnection.disconnect();
+                }
+            }
+        });
     }
 
     public static VirtualFile getVirtualFile(String fileId, FileEditorManager manager) {
@@ -131,21 +137,23 @@ public class VirtualFileActions {
     }
 
     private static Action<Void> newShowInExplorerAction(@Nonnull final File dest) {
-        final Action.Id<Void> REVEAL = Action.Id.of("common.reveal_in_explorer");
-        return new Action<>(REVEAL,
-            v -> AzureTaskManager.getInstance().runLater(() -> RevealFileAction.openFile(dest)),
-            new ActionView.Builder(RevealFileAction.getActionName()));
+        final Action.Id<Void> REVEAL = Action.Id.of("common.reveal_file_in_explorer");
+        return new Action<>(REVEAL, v -> revealInExplorer(dest), new ActionView.Builder(RevealFileAction.getActionName()));
     }
 
     private static Action<Void> newOpenInEditorAction(@Nonnull final File dest, @Nonnull final Project project) {
-        final Action.Id<Void> OPEN = Action.Id.of("common.open_in_editor");
+        final Action.Id<Void> OPEN = Action.Id.of("common.open_file_in_editor");
         return new Action<>(OPEN, v -> AzureTaskManager.getInstance().runLater(() -> {
             final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
             final VirtualFile virtualFile = VfsUtil.findFileByIoFile(dest, true);
-            if (Objects.nonNull(virtualFile)) {
-                fileEditorManager.openFile(virtualFile, true, true);
-            }
+            VirtualFileActions.openFileInEditor(virtualFile, (a) -> false, () -> {
+            }, fileEditorManager);
         }), new ActionView.Builder("Open In Editor"));
+    }
+
+    @AzureOperation(name = "common.reveal_file_in_explorer.file", params = {"file.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    public static void revealInExplorer(@Nonnull File file) {
+        AzureTaskManager.getInstance().runLater(() -> RevealFileAction.openFile(file));
     }
 
     @RequiredArgsConstructor

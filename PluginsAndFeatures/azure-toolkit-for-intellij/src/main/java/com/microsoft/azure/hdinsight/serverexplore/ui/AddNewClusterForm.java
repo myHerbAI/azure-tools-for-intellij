@@ -8,7 +8,6 @@ package com.microsoft.azure.hdinsight.serverexplore.ui;
 import com.intellij.CommonBundle;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -27,6 +26,8 @@ import com.microsoft.azure.hdinsight.serverexplore.AddNewClusterCtrlProvider;
 import com.microsoft.azure.hdinsight.serverexplore.AddNewClusterModel;
 import com.microsoft.azure.hdinsight.spark.common.SparkBatchSubmission;
 import com.microsoft.azure.hdinsight.spark.ui.ImmutableComboBoxModel;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
 import com.microsoft.azuretools.telemetry.AppInsightsClient;
@@ -456,7 +457,7 @@ public class AddNewClusterForm extends DialogWrapper implements SettableControl<
 
     @Override
     protected void doHelpAction() {
-        BrowserUtil.browse(HELP_URL);
+        AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(HELP_URL);
     }
 
     @NotNull

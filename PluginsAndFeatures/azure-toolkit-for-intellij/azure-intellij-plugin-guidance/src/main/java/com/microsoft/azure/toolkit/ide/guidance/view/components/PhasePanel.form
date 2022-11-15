@@ -11,8 +11,8 @@
       <component id="d38ad" class="javax.swing.JLabel" binding="statusIcon">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false">
-            <preferred-size width="16" height="20"/>
-            <maximum-size width="16" height="20"/>
+            <preferred-size width="20" height="20"/>
+            <maximum-size width="20" height="20"/>
           </grid>
         </constraints>
         <properties>

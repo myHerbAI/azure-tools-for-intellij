@@ -121,6 +121,7 @@ public class AttachDebuggerAction {
         return runTask;
     }
 
+    @AzureOperation(name = "springcloud.start_debug_configuration.instance", params = {"appInstance.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
     private static void executeRunConfiguration(@Nonnull SpringCloudAppInstance appInstance, Project project) {
         final RemoteConfiguration remoteConfiguration = generateRemoteConfiguration(project, appInstance);
         final RunManagerImpl managerImpl = new RunManagerImpl(project);

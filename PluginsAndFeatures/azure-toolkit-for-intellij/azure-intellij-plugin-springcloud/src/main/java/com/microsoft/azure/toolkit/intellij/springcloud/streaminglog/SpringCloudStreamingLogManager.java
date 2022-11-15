@@ -48,7 +48,9 @@ public class SpringCloudStreamingLogManager {
                         return null;
                     }
                 });
-                StreamingLogsToolWindowManager.getInstance().showStreamingLogConsole(project, instanceName, instanceName, consoleView);
+                AzureTaskManager.getInstance().runLater(() -> {
+                    StreamingLogsToolWindowManager.getInstance().showStreamingLogConsole(project, instanceName, instanceName, consoleView);
+                });
             } catch (final Throwable e) {
                 AzureMessager.getMessager().error(e.getMessage(), "Failed to start streaming log");
                 consoleView.shutdown();

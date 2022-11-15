@@ -21,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -67,18 +68,27 @@ public class LegacyIntellijAccountActionsContributor implements IActionsContribu
                 return ArrayUtils.isEmpty(openProjects) ? null : openProjects[0];
             });
             final AzureString title = OperationBundle.description("common.open_azure_settings");
-            AzureTaskManager.getInstance().runLater(new AzureTask<>(title, () ->
-                ShowSettingsUtil.getInstance().showSettingsDialog(project, AzureConfigurable.class)));
+            AzureTaskManager.getInstance().runLater(new AzureTask<>(title, () -> openSettingsDialog(project)));
         };
         am.registerHandler(ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS, (i, e) -> true, openSettingsHandler);
 
         final BiConsumer<Object, AnActionEvent> openAzureExplorer = (ignore, e) -> {
-            final ToolWindow toolWindow = ToolWindowManager.getInstance(Objects.requireNonNull(e.getProject())).
-                getToolWindow(ServerExplorerToolWindowFactory.EXPLORER_WINDOW);
-            if (Objects.nonNull(toolWindow) && !toolWindow.isVisible()) {
-                AzureTaskManager.getInstance().runLater(toolWindow::show);
-            }
+            openAzureExplorer(e);
         };
         am.registerHandler(ResourceCommonActionsContributor.OPEN_AZURE_EXPLORER, (i, e) -> true, openAzureExplorer);
+    }
+
+    @AzureOperation(name = "common.open_azure_explorer", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    private static void openAzureExplorer(AnActionEvent e) {
+        final ToolWindow toolWindow = ToolWindowManager.getInstance(Objects.requireNonNull(e.getProject())).
+            getToolWindow(ServerExplorerToolWindowFactory.EXPLORER_WINDOW);
+        if (Objects.nonNull(toolWindow) && !toolWindow.isVisible()) {
+            AzureTaskManager.getInstance().runLater(toolWindow::show);
+        }
+    }
+
+    @AzureOperation(name = "common.open_azure_settings", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    private static void openSettingsDialog(Project project) {
+        ShowSettingsUtil.getInstance().showSettingsDialog(project, AzureConfigurable.class);
     }
 }

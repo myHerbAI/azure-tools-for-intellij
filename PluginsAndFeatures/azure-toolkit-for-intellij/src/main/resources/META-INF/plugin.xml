@@ -2,7 +2,7 @@
              xmlns:xi="http://www.w3.org/2001/XInclude">
   <id>com.microsoft.tooling.msservices.intellij.azure</id>
   <name>Azure Toolkit for IntelliJ</name>
-  <version>3.70.0</version>
+  <version>3.71.0-SNAPSHOT</version>
   <vendor email="java@microsoft.com" url="http://www.microsoft.com">Microsoft</vendor>
 
   <description><![CDATA[
@@ -25,45 +25,23 @@
   <change-notes>
     <![CDATA[
     <html>
-      <h3>3.69.0</h3>
+      <h3>3.70.0</h3>
       <h4>Added</h4>
       <ul>
-        <li>Users are able to deploy artifacts to Azure Functions Deployment Slot directly.</li>
+        <li>Added support for remote debugging of <code>Azure Spring Apps</code>.</li>
+        <li>Added support for remote debugging of <code>Azure Function Apps</code>.</li>
+        <li>Added support for data management of <code>Azure Storage Account</code> in Azure Explorer.</li>
+        <li>Added support for data management of <code>Azure Cosmos DB account</code> in Azure Explorer.</li>
+        <li>Added support for filtering app settings of <code>Azure Web App/ Function App</code> in properties view and run configuration dialog.</li>
       </ul>
-      <h4>Fixed</h4>
-      <ul>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/6939">#6939</a>: Uncaught Exception java.lang.NullPointerException: Cannot invoke &quot;com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager.runOnPooledThread(java.lang.Runnable)&quot; because the return value of &quot;com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager.getInstance()&quot; is null</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/6930">#6930</a>: com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException: you are not signed-in.</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/6909">#6909</a>: Cannot invoke &quot;org.jetbrains.idea.maven.project.MavenProject.getParentId()&quot; because &quot;result&quot; is null</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/6897">#6897</a>: There is a vulnerability in Postgresql JDBC Driver 42.3.1,upgrade recommended</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/6894">#6894</a>: There is a vulnerability in MySQL Connector/J 8.0.25,upgrade recommended</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/6893">#6893</a>: There is a vulnerability in Spring Framework 4.2.5.RELEASE,upgrade recommended</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/6869">#6869</a>: Error was received while reading the incoming data. The connection will be closed. java.lang.IllegalStateException: block()/blockFirst()/blockLast() are blocking, which is not supported in thread reactor-http-nio-3</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/6846">#6846</a>: java.lang.IndexOutOfBoundsException: Index 0 out of bounds for length 0</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/6687">#6687</a>: Uncaught Exception java.lang.NullPointerException</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/6672">#6672</a>: com.microsoft.azure.toolkit.lib.common.operation.OperationException: load Resource group (*)</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/6670">#6670</a>: com.intellij.util.xmlb.XmlSerializationException: Cannot deserialize class com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.FunctionDeployModel</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/6605">#6605</a>: java.lang.NullPointerException</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/6380">#6380</a>: spuriously adding before launch package command</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/6271">#6271</a>: Argument for @NotNull parameter &#39;virtualFile&#39; of com/microsoft/azure/toolkit/intellij/common/AzureArtifact.createFromFile must not be null</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/4726">#4726</a>: Confusing workflow of &quot;Get Publish Profile&quot;</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/4725">#4725</a>: Misaligned label in Web App property view</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/301">#301</a>: Should validate username when creating a VM</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/106">#106</a>: azureSettings file in WebApps shouldn&#39;t be created by default</li>
-        <li>No response when click on Open <code>Azure Storage Expolrer for storage</code> while the computer does not install Azure Storage Explorer.</li>
-        <li>The shortcut keys for the browser and expansion are the same.</li>
-        <li>All the roles of the HDInsight cluster are reader.</li>
-        <li>Local console and Livy console run failed.</li>
-        <li>Job view page: The two links in the job view page open the related pages very slowly.</li>
-        <li>Click on Job node, show IDE error occurred.</li>
-        <li>Other bugs</li>
-      </ul>
-       <h4>Changed</h4>
-      <ul>
-        <li>
-          Remove menu <code>Submit Apache Spark Application</code>
-        </li>
-      </ul>
+       <h4>Fixed</h4>
+       <ul>
+        <li>Fix <code>Open Spark History UI</code> link no reaction, when there is no job in the cluster. </li>
+        <li>Fix local console and Livy console run failed.</li>
+        <li>Fix error getting cluster storage configuration.</li>
+        <li>Fix linked clusters cannot be expanded when not logged in to azure.</li>
+        <li>Fix local console get IDE Fatal Error when the project first create.</li>
+       </ul>
       <p>You may get the full change log <a href="https://github.com/Microsoft/azure-tools-for-java/blob/develop/CHANGELOG.md">here</a></p>
     </html>
     ]]>
@@ -89,7 +67,7 @@
   <xi:include href="/META-INF/azure-intellij-plugin-vm.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-redis.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-database.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/azure-intellij-plugin-appservice.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/azure-intellij-plugin-appservice-java.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-arm.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-containerregistry.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-containerservice.xml" xpointer="xpointer(/idea-plugin/*)"/>

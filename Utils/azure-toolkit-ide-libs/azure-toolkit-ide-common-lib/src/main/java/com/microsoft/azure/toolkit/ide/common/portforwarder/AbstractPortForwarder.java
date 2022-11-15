@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 
 public abstract class AbstractPortForwarder {
     protected ServerSocketChannel server;
+    protected PortForwarderWebSocketListener listener;
 
     public void initLocalSocket(final int port) throws IOException {
         stopForward();
@@ -31,7 +32,7 @@ public abstract class AbstractPortForwarder {
                 initLocalSocket(localPort);
             }
             final OkHttpClient okHttpClient = new OkHttpClient();
-            final PortForwarderWebSocketListener listener = createWebSocketListener(server.accept());
+            this.listener = createWebSocketListener(server.accept());
             final CompletableFuture<WebSocket> future = createSocketBuilder(okHttpClient).buildAsync(listener);
             future.whenComplete((socket, throwable) -> Optional.ofNullable(throwable).ifPresent(t -> listener.onError(socket, t)));
         } catch (final IOException e) {
@@ -47,6 +48,9 @@ public abstract class AbstractPortForwarder {
             } catch (final IOException e) {
                 throw new AzureToolkitRuntimeException(e);
             }
+        }
+        if (Objects.nonNull(listener) && listener.isAlive()) {
+            listener.closeForwarder();
         }
     }
 

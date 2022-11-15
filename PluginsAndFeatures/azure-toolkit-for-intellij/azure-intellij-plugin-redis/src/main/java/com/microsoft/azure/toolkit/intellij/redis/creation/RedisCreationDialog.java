@@ -5,9 +5,9 @@
 
 package com.microsoft.azure.toolkit.intellij.redis.creation;
 
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.intellij.common.component.RegionComboBox;
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox;
 import com.microsoft.azure.toolkit.intellij.common.component.resourcegroup.ResourceGroupComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
@@ -91,7 +92,7 @@ public class RedisCreationDialog extends AzureDialog<RedisConfig> implements Azu
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
-                BrowserUtil.browse(PRICING_LINK);
+                AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(PRICING_LINK);
             }
         });
     }

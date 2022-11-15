@@ -3,15 +3,15 @@ intellij {
 }
 
 dependencies {
-    compile project(':azure-intellij-plugin-lib')
-    compile project(':azure-intellij-resource-connector-lib')
-    compile 'com.microsoft.azure:azure-toolkit-database-lib'
-    compile 'com.microsoft.azure:azure-toolkit-mysql-lib'
-    compile 'com.microsoft.azure:azure-toolkit-sqlserver-lib'
-    compile 'com.microsoft.azure:azure-toolkit-postgre-lib'
-    compile 'com.microsoft.azure:azure-toolkit-ide-common-lib'
-    compile 'com.microsoft.azure:azure-toolkit-ide-database-lib:' + azureToolkitVersion
-    compile 'mysql:mysql-connector-java:8.0.29'
-    compile 'com.microsoft.sqlserver:mssql-jdbc:9.3.1.jre8-preview'
-    compile 'org.postgresql:postgresql:42.4.1'
+    implementation project(':azure-intellij-plugin-lib')
+    implementation project(':azure-intellij-resource-connector-lib')
+    implementation 'com.microsoft.azure:azure-toolkit-database-lib'
+    implementation 'com.microsoft.azure:azure-toolkit-mysql-lib'
+    implementation 'com.microsoft.azure:azure-toolkit-sqlserver-lib'
+    implementation 'com.microsoft.azure:azure-toolkit-postgre-lib'
+    implementation 'com.microsoft.azure:azure-toolkit-ide-common-lib'
+    implementation 'com.microsoft.azure:azure-toolkit-ide-database-lib:' + azureToolkitVersion
+    implementation 'mysql:mysql-connector-java:8.0.29'
+    implementation 'com.microsoft.sqlserver:mssql-jdbc:9.3.1.jre8-preview'
+    implementation 'org.postgresql:postgresql:42.4.1'
 }

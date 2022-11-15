@@ -24,10 +24,13 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Refreshable;
 import com.microsoft.azure.toolkit.lib.common.model.Startable;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import org.apache.commons.lang3.StringUtils;
 
+import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
@@ -52,6 +55,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
     public static final Action.Id<Object> CREATE = Action.Id.of("resource.create");
     public static final Action.Id<AbstractAzResource<?, ?, ?>> PIN = Action.Id.of("resource.pin");
     public static final Action.Id<String> OPEN_URL = Action.Id.of("common.open_url");
+    public static final Action.Id<String> COPY_STRING = Action.Id.of("common.copy_string");
     public static final Action.Id<Object> OPEN_AZURE_SETTINGS = Action.Id.of("common.open_azure_settings");
     public static final Action.Id<Object> OPEN_AZURE_EXPLORER = Action.Id.of("common.open_azure_explorer");
     public static final Action.Id<Object> OPEN_AZURE_REFERENCE_BOOK = Action.Id.of("common.open_azure_reference_book");
@@ -136,6 +140,11 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
         action.setAuthRequired(false);
         am.registerAction(OPEN_URL, action);
 
+        final ActionView.Builder copyStringView = new ActionView.Builder("Copy").title(str -> description("common.copy_string.string", str));
+        final Action<String> copyStringAction = new Action<>(COPY_STRING, ResourceCommonActionsContributor::copyString, copyStringView);
+        action.setAuthRequired(false);
+        am.registerAction(COPY_STRING, copyStringAction);
+
         final ActionView.Builder connectView = new ActionView.Builder("Connect to Project", AzureIcons.Connector.CONNECT.getIconPath())
             .title(s -> Optional.ofNullable(s).map(r -> description("resource.connect_resource.resource", ((AzResource) r).name())).orElse(null))
             .enabled(s -> s instanceof AzResourceBase && ((AzResourceBase) s).getFormalStatus().isRunning());
@@ -203,6 +212,11 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
         }, pinView);
         pinAction.setShortcuts("F11");
         am.registerAction(ResourceCommonActionsContributor.PIN, pinAction.setAuthRequired(false));
+    }
+
+    @AzureOperation(name = "common.copy_string.string", params = {"s"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    private static void copyString(String s) {
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(s), null);
     }
 
     @Override

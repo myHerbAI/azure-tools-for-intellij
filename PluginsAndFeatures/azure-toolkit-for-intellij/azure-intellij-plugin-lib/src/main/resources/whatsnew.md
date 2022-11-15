@@ -1,6 +1,27 @@
 <!-- Version: 3.68.0 -->
 # What's new in Azure Toolkit for IntelliJ
 
+## 3.70.0
+### Added
+- Added support for remote debugging of `Azure Spring Apps`.
+  <img src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202210/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib/src/main/resources/whatsnew.assets/202210.springremotedebugging.gif" alt="screenshot of 'spring remote debugging'" width="1200"/>
+- Added support for remote debugging of `Azure Function Apps`.
+  <img src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202210/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib/src/main/resources/whatsnew.assets/202210.functionremotedebugging.gif" alt="screenshot of 'function remote debugging'" width="1200"/>
+- Added support for data management of `Azure Storage Account` in Azure Explorer.
+  <img src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202210/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib/src/main/resources/whatsnew.assets/202210.storageaccount.png" alt="screenshot of 'storage account'" width="1200"/>
+- Added support for data management of `Azure Cosmos DB account` in Azure Explorer.
+<img src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202210/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib/src/main/resources/whatsnew.assets/202210.cosmosdb.png" alt="screenshot of 'cosmos db account'" width="1200"/>
+- Added support for filtering app settings of `Azure Web App/ Function App` in properties view and run configuration dialog.
+  <img src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202210/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib/src/main/resources/whatsnew.assets/202210.filterappsettings.png" alt="screenshot of 'app settings configuration'" width="1200"/>
+
+### Fixed
+- Fix `Open Spark History UI` link no reaction, when there is no job in the cluster.
+- Fix local console and Livy console run failed.
+- Fix error getting cluster storage configuration.
+- Fix linked clusters cannot be expanded when not logged in to azure.
+- Fix local console get IDE Fatal Error when the project first create.
+
+
 ## 3.69.0
 ### Added
 - Users are able to deploy artifacts to Azure Functions Deployment Slot directly.

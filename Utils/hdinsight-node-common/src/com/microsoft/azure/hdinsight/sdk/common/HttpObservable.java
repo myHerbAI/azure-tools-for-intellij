@@ -253,10 +253,14 @@ public class HttpObservable implements ILogger {
                         .loadTrustMaterial(ts)
                         .build();
 
-                sslSocketFactory = new SSLConnectionSocketFactory(sslContext,
+                sslSocketFactory = new SSLConnectionSocketFactory(
+                        sslContext,
+                        new String[] { "TLSv1.2", "TLSv1.3" },
+                        null,
                         HttpObservable.isSSLCertificateValidationDisabled()
                                 ? NoopHostnameVerifier.INSTANCE
                                 : new DefaultHostnameVerifier());
+
             } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
                 log().error("Prepare SSL Context for HTTPS failure. " + ExceptionUtils.getStackTrace(e));
             }

@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.ide.common.portforwarder;
 
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
@@ -81,7 +81,7 @@ public class PortForwarderWebSocketListener extends WebSocketListener {
                     }
                     if (this.alive.get()) {
                         this.closeWebSocket(webSocket, 1001, "Client error");
-                        throw new AzureToolkitRuntimeException("Error while writing client data.", e);
+                        AzureMessager.getMessager().error(e, "Error while forwarding data from client to remote.");
                     }
                 }
             });
@@ -113,8 +113,12 @@ public class PortForwarderWebSocketListener extends WebSocketListener {
     public void onError(WebSocket webSocket, Throwable t) {
         if (this.alive.get()) {
             this.closeForwarder();
-            throw new AzureToolkitRuntimeException("Throwable received from websocket.", t);
+            AzureMessager.getMessager().error(t, "Failed to attach debugger");
         }
+    }
+
+    public boolean isAlive() {
+        return this.alive.get();
     }
 
     protected void request() {
@@ -132,7 +136,7 @@ public class PortForwarderWebSocketListener extends WebSocketListener {
         try {
             webSocket.close(code, message);
         } catch (final Exception e) {
-            throw new AzureToolkitRuntimeException("Error while closing the websocket.", e);
+            AzureMessager.getMessager().error(e, "Error while closing the websocket.");
         }
         this.closeForwarder();
     }
@@ -143,14 +147,14 @@ public class PortForwarderWebSocketListener extends WebSocketListener {
             try {
                 this.in.close();
             } catch (final IOException e) {
-                throw new AzureToolkitRuntimeException("Error while stop debugger.", e);
+                AzureMessager.getMessager().error(e, "Error while stop debugger.");
             }
         }
         if (this.out != null && this.out != this.in) {
             try {
                 this.out.close();
             } catch (final IOException e) {
-                throw new AzureToolkitRuntimeException("Error while stop debugger.", e);
+                AzureMessager.getMessager().error(e, "Error while stop debugger.");
             }
         }
         this.forwarder.stopForward();
@@ -209,7 +213,7 @@ public class PortForwarderWebSocketListener extends WebSocketListener {
                     }
                     if (this.alive.get()) {
                         this.closeWebSocket(webSocket, 1002, "Protocol error");
-                        throw new AzureToolkitRuntimeException("Error while forwarding data from remote to the client.", e);
+                        AzureMessager.getMessager().error(e, "Error while forwarding data from remote to client.");
                     }
                 }
                 return;

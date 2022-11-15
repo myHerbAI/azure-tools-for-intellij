@@ -17,19 +17,19 @@ import static com.microsoft.azure.toolkit.ide.common.icon.AzureIcons.Common.*;
 
 public class ShowGettingStartAction extends AzureAnAction {
     public static final String GUIDANCE = "guidance";
-    public static final String IS_ACTION_TRIGGERED = "isActionTriggered";
+    public static final String IS_ACTION_TRIGGERED = "is_action_triggered";
     private static boolean isActionTriggered = false;
 
     @Override
     @AzureOperation(name = "guidance.show_courses_view", type = AzureOperation.Type.ACTION)
     public boolean onActionPerformed(@NotNull AnActionEvent anActionEvent, @Nullable Operation operation) {
         if (anActionEvent.getProject() != null) {
+            OperationContext.action().setTelemetryProperty("FromPlace", anActionEvent.getPlace());
+            OperationContext.action().setTelemetryProperty("ShowBlueIcon", String.valueOf(!isActionTriggered));
             if (!isActionTriggered) {
                 isActionTriggered = true;
                 AzureStoreManager.getInstance().getIdeStore().setProperty(GUIDANCE, IS_ACTION_TRIGGERED, String.valueOf(true));
             }
-            OperationContext.action().setTelemetryProperty("FromPlace", anActionEvent.getPlace());
-            OperationContext.action().setTelemetryProperty("ShowBlueIcon", String.valueOf(isActionTriggered));
             GuidanceViewManager.getInstance().showCoursesView(anActionEvent.getProject());
         }
         return true;

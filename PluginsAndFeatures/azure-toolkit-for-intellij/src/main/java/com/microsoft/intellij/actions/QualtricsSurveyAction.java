@@ -5,13 +5,14 @@
 
 package com.microsoft.intellij.actions;
 
-import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.DumbAware;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.intellij.AzureAnAction;
 import com.microsoft.azuretools.telemetry.AppInsightsClient;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
@@ -30,7 +31,7 @@ public class QualtricsSurveyAction extends AzureAnAction implements DumbAware {
 
     @Override
     public boolean onActionPerformed(@NotNull AnActionEvent anActionEvent, @Nullable Operation operation) {
-        BrowserUtil.browse(getRequestUrl());
+        AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(getRequestUrl());
         return true;
     }
 

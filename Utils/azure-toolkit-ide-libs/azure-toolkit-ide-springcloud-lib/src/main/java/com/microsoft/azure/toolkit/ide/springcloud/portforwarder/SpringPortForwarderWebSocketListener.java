@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.ide.springcloud.portforwarder;
 
 import com.microsoft.azure.toolkit.ide.common.portforwarder.AbstractPortForwarder;
 import com.microsoft.azure.toolkit.ide.common.portforwarder.PortForwarderWebSocketListener;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import okhttp3.WebSocket;
 import okio.ByteString;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import java.util.function.BooleanSupplier;
 
 public class SpringPortForwarderWebSocketListener extends PortForwarderWebSocketListener {
     private int messagesRead = 0;
@@ -41,16 +40,17 @@ public class SpringPortForwarderWebSocketListener extends PortForwarderWebSocket
         }
         if (!buffer.hasRemaining()) {
             this.closeWebSocket(webSocket, 1002, "Protocol error");
-            throw new AzureToolkitRuntimeException("Received an empty message.");
+            AzureMessager.getMessager().error("Received an empty message.");
+            return;
         }
         final byte channel = buffer.get();
-        if (channel < 0 || channel > 1) {
+        if (channel != 0) {
             this.closeWebSocket(webSocket, 1002, "Protocol error");
-            throw new AzureToolkitRuntimeException("Received a wrong channel from the remote socket.");
-        }
-        if (channel == 1) {
-            this.closeForwarder();
-            throw new AzureToolkitRuntimeException("Received an error from the remote socket.");
+            final byte[] byteArray = new byte[buffer.remaining()];
+            buffer.get(byteArray);
+            final String errorMessage = new String(byteArray);
+            AzureMessager.getMessager().error(errorMessage, "Received an error from the remote socket.");
+            return;
         }
         super.writeMessage(webSocket, ByteString.of(buffer));
     }

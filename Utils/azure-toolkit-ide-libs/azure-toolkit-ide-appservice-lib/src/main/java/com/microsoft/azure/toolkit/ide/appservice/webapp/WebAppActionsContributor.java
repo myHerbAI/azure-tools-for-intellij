@@ -24,7 +24,6 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 
-import static com.microsoft.azure.toolkit.ide.appservice.AppServiceActionsContributor.REFRESH_DEPLOYMENT_SLOTS;
 import static com.microsoft.azure.toolkit.lib.common.operation.OperationBundle.description;
 
 public class WebAppActionsContributor implements IActionsContributor {
@@ -89,7 +88,7 @@ public class WebAppActionsContributor implements IActionsContributor {
         );
         am.registerGroup(DEPLOYMENT_SLOT_ACTIONS, deploymentSlotActionGroup);
 
-        am.registerGroup(DEPLOYMENT_SLOTS_ACTIONS, new ActionGroup(REFRESH_DEPLOYMENT_SLOTS));
+        am.registerGroup(DEPLOYMENT_SLOTS_ACTIONS, new ActionGroup(ResourceCommonActionsContributor.REFRESH));
 
         final IActionGroup group = am.getGroup(ResourceCommonActionsContributor.RESOURCE_GROUP_CREATE_ACTIONS);
         group.addAction(GROUP_CREATE_WEBAPP);

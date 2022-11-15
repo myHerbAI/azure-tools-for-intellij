@@ -34,19 +34,16 @@ public class StartStreamingLogsAction {
     }
 
     public void execute() {
-        final AzureString title = OperationBundle.description("appservice.open_log_stream.app", appService.getName());
-        AzureTaskManager.getInstance().runInBackground(new AzureTask<>(project, title, false, () -> {
-            if (appService instanceof WebApp) {
-                AppServiceStreamingLogManager.INSTANCE.showWebAppStreamingLog(project, resourceId);
-            } else if (appService instanceof WebAppDeploymentSlot) {
-                AppServiceStreamingLogManager.INSTANCE.showWebAppDeploymentSlotStreamingLog(project, resourceId);
-            } else if (appService instanceof FunctionApp) {
-                AppServiceStreamingLogManager.INSTANCE.showFunctionStreamingLog(project, (FunctionApp) appService);
-            } else if (appService instanceof FunctionAppDeploymentSlot) {
-                AppServiceStreamingLogManager.INSTANCE.showFunctionDeploymentSlotStreamingLog(project, (FunctionAppDeploymentSlot) appService);
-            } else {
-                AzureMessager.getMessager().error("Unsupported operation", "Unsupported operation");
-            }
-        }));
+        if (appService instanceof WebApp) {
+            AppServiceStreamingLogManager.INSTANCE.showWebAppStreamingLog(project, resourceId);
+        } else if (appService instanceof WebAppDeploymentSlot) {
+            AppServiceStreamingLogManager.INSTANCE.showWebAppDeploymentSlotStreamingLog(project, resourceId);
+        } else if (appService instanceof FunctionApp) {
+            AppServiceStreamingLogManager.INSTANCE.showFunctionStreamingLog(project, (FunctionApp) appService);
+        } else if (appService instanceof FunctionAppDeploymentSlot) {
+            AppServiceStreamingLogManager.INSTANCE.showFunctionDeploymentSlotStreamingLog(project, (FunctionAppDeploymentSlot) appService);
+        } else {
+            AzureMessager.getMessager().error("Unsupported operation", "Unsupported operation");
+        }
     }
 }

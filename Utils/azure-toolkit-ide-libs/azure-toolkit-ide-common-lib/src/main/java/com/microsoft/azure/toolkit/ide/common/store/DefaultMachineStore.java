@@ -61,6 +61,8 @@ public class DefaultMachineStore implements IMachineStore {
                 final TypeReference<HashMap<String, String>> type = new TypeReference<HashMap<String, String>>(){};
                 map = JsonUtils.fromJson(json, type);
             }
+        } catch (final AzureToolkitRuntimeException e) {
+            throw e;
         } catch (final Exception ex) {
             throw new AzureToolkitRuntimeException("Cannot load property.", ex);
         }
@@ -69,6 +71,8 @@ public class DefaultMachineStore implements IMachineStore {
     public void save() {
         try {
             FileUtils.writeStringToFile(new File(dataFile), JsonUtils.toJson(map), "utf8");
+        } catch (final AzureToolkitRuntimeException e) {
+            throw e;
         } catch (Exception ex) {
             throw new AzureToolkitRuntimeException("Cannot save property", ex);
         }

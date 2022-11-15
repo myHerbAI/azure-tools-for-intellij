@@ -22,7 +22,7 @@ import java.util.Optional;
 @Slf4j
 public class IntellijNeverShowAgainAction extends NotificationAction {
 
-    public static final String ID = "AzureToolkit.AzureSDK.DeprecatedNotification.NeverShowAgain";
+    public static final String ID = "common.never_show_again";
 
     public IntellijNeverShowAgainAction() {
         super("Never Show Again");

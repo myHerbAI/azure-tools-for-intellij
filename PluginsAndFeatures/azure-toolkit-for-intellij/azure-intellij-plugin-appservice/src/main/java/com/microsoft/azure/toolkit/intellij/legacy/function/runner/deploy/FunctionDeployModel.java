@@ -21,6 +21,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public class FunctionDeployModel {
     private String appSettingsKey;
+    private String appSettingsHash;
     private String deploymentStagingDirectoryPath;
     private String moduleName;
 

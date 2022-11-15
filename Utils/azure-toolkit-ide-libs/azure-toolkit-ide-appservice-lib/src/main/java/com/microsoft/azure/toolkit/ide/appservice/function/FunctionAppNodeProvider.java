@@ -8,10 +8,10 @@ package com.microsoft.azure.toolkit.ide.appservice.function;
 import com.microsoft.azure.toolkit.ide.appservice.AppServiceDeploymentSlotsNodeView;
 import com.microsoft.azure.toolkit.ide.appservice.file.AppServiceFileNode;
 import com.microsoft.azure.toolkit.ide.appservice.function.node.FunctionsNode;
-import com.microsoft.azure.toolkit.ide.appservice.webapp.WebAppActionsContributor;
 import com.microsoft.azure.toolkit.ide.appservice.webapp.WebAppNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.ide.common.component.AzureModuleLabelView;
 import com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider;
 import com.microsoft.azure.toolkit.ide.common.component.AzureResourceLabelView;
 import com.microsoft.azure.toolkit.ide.common.component.AzureServiceLabelView;
@@ -69,9 +69,15 @@ public class FunctionAppNodeProvider implements IExplorerNodeProvider {
                 .inlineAction(ResourceCommonActionsContributor.PIN)
                 .actions(FunctionAppActionsContributor.FUNCTION_APP_ACTIONS)
                 .addChildren(Arrays::asList, (app, webAppNode) -> new FunctionsNode(app))
-                .addChild(FunctionApp::getDeploymentModule, (module, webAppNode) -> createDeploymentSlotNode(module, manager))
+                .addChild(FunctionApp::getDeploymentModule, (module, functionAppNode) -> createNode(module, functionAppNode, manager))
                 .addChild(AppServiceFileNode::getRootFileNodeForAppService, (d, p) -> this.createNode(d, p, manager)) // Files
                 .addChild(AppServiceFileNode::getRootLogNodeForAppService, (d, p) -> this.createNode(d, p, manager));
+        } else if (data instanceof FunctionAppDeploymentSlotModule) {
+            final FunctionAppDeploymentSlotModule module = (FunctionAppDeploymentSlotModule) data;
+            return new Node<>(module)
+                    .view(new AzureModuleLabelView<>(module, "Deployment Slots", AzureIcons.WebApp.DEPLOYMENT_SLOT.getIconPath()))
+                    .actions(FunctionAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
+                    .addChildren(FunctionAppDeploymentSlotModule::list, (d, p) -> this.createNode(d, p, manager));
         } else if (data instanceof FunctionAppDeploymentSlot) {
             final FunctionAppDeploymentSlot slot = (FunctionAppDeploymentSlot) data;
             return new Node<>(slot)

@@ -73,11 +73,15 @@ public class FunctionAppConfig extends AppServiceConfig {
         final Subscription subscription = Optional.ofNullable(sub).orElseGet(() -> Optional.ofNullable(historyRg).map(AzResource::getSubscription).orElse(null));
         final ResourceGroupConfig group = Optional.ofNullable(historyRg).map(ResourceGroupConfig::fromResource).orElseGet(() -> ResourceGroupConfig.builder().subscriptionId(sub.getId()).name(rgName).region(region).build());
 
+        final Runtime historyRuntime = CacheManager.getUsageHistory(Runtime.class).peek(runtime -> Runtime.FUNCTION_APP_RUNTIME.contains(runtime));
+        final Runtime runtime = Optional.ofNullable(historyRuntime).orElse(FunctionAppConfig.DEFAULT_RUNTIME);
+
         final String planName = Utils.generateRandomResourceName(String.format("sp-%s", namePrefix), SP_NAME_MAX_LENGTH);
         final AppServicePlan historyPlan = CacheManager.getUsageHistory(AppServicePlan.class).peek();
         final AppServicePlanConfig plan = Optional.ofNullable(historyPlan)
             .filter(p -> p.getSubscriptionId().equals(subscription.getId()))
             .filter(p -> p.getResourceGroupName().equals(group.getName()))
+            .filter(p -> p.getOperatingSystem() == runtime.getOperatingSystem())
             .map(AppServicePlanConfig::fromResource)
             .orElseGet(() -> AppServicePlanConfig.builder()
                 .subscriptionId(subscription.getId())
@@ -86,9 +90,6 @@ public class FunctionAppConfig extends AppServiceConfig {
                 .region(region)
                 .os(FunctionAppConfig.DEFAULT_RUNTIME.getOperatingSystem())
                 .pricingTier(PricingTier.CONSUMPTION).build());
-
-        final Runtime historyRuntime = CacheManager.getUsageHistory(Runtime.class).peek(runtime -> Runtime.FUNCTION_APP_RUNTIME.contains(runtime));
-        final Runtime runtime = Optional.ofNullable(historyRuntime).orElse(FunctionAppConfig.DEFAULT_RUNTIME);
 
         final ApplicationInsightsConfig insightsConfig = ApplicationInsightsConfig.builder().name(appName).newCreate(true).build();
         final MonitorConfig monitorConfig = MonitorConfig.builder().applicationInsightsConfig(insightsConfig).build();

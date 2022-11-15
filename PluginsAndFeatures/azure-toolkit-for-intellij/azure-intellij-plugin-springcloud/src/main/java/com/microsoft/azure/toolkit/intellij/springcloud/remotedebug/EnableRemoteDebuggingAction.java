@@ -28,7 +28,7 @@ public class EnableRemoteDebuggingAction {
     private static final String REMOTE_DEBUGGING_DOCS = "https://aka.ms/asa-remotedebug";
     private static final String FAILED_TITLE = "Failed to %s remote debugging";
     private static final String NO_ACTIVE_DEPLOYMENT = "No active deployment in current app %s.";
-    private static final String CONFIRM_MESSAGE = "Are you sure to %s remote debugging for %s?<p>To learn more about remote debugging, please refer our <a href=\"%s\">wiki</a>";
+    private static final String CONFIRM_MESSAGE = "Are you sure to %s remote debugging for %s?<p>To learn more about remote debugging, please refer to our <a href=\"%s\">wiki</a>";
     private static final String CONFIRM_DIALOG_TITLE = "%s Remote Debugging";
     private static final String SUCCESS_MESSAGE = "Remote debugging is %sd for app %s successfully";
 
@@ -52,25 +52,19 @@ public class EnableRemoteDebuggingAction {
             return;
         }
         AzureTaskManager.getInstance().runInBackground(new AzureTask<>(project, title, false, () -> {
-            try {
-                final SpringCloudDeployment deployment = app.getActiveDeployment();
-                if (deployment == null || !deployment.exists()) {
-                    messager.error(NO_ACTIVE_DEPLOYMENT, String.format(FAILED_TITLE, action));
-                    return;
-                }
-                if (isEnabled) {
-                    deployment.enableRemoteDebugging(AttachDebuggerAction.getDefaultPort());
-                    messager.success(String.format(SUCCESS_MESSAGE, action, app.getName()), null, generateDebugAction(app, project), generateLearnMoreAction());
-                } else {
-                    deployment.disableRemoteDebugging();
-                    messager.success(String.format(SUCCESS_MESSAGE, action, app.getName()));
-                }
-            } catch (final Exception e) {
-                final String errorMessage = e.getMessage();
-                messager.error(errorMessage, String.format(FAILED_TITLE, action));
-            } finally {
-                app.refresh();
+            final SpringCloudDeployment deployment = app.getActiveDeployment();
+            if (deployment == null || !deployment.exists()) {
+                messager.error(NO_ACTIVE_DEPLOYMENT, String.format(FAILED_TITLE, action));
+                return;
             }
+            if (isEnabled) {
+                deployment.enableRemoteDebugging(AttachDebuggerAction.getDefaultPort());
+                messager.success(String.format(SUCCESS_MESSAGE, action, app.getName()), null, generateDebugAction(app, project), generateLearnMoreAction());
+            } else {
+                deployment.disableRemoteDebugging();
+                messager.success(String.format(SUCCESS_MESSAGE, action, app.getName()));
+            }
+            app.refresh();
         }));
     }
 

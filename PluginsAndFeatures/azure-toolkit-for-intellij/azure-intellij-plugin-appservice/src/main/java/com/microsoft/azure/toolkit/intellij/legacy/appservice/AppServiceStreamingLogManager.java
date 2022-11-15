@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.intellij.legacy.appservice;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceUtils;
 import com.google.gson.JsonObject;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.StreamingLogsToolWindowManager;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlotDra
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDraft;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -81,14 +82,11 @@ public enum AppServiceStreamingLogManager {
 
     @AzureOperation(name = "appservice.close_log_stream.app", params = {"nameFromResourceId(appId)"}, type = AzureOperation.Type.SERVICE)
     public void closeStreamingLog(Project project, String appId) {
-        final AzureString title = OperationBundle.description("appservice.close_log_stream.app", ResourceUtils.nameFromResourceId(appId));
-        AzureTaskManager.getInstance().runInBackground(new AzureTask(project, title, false, () -> {
-            if (consoleViewMap.containsKey(appId) && consoleViewMap.get(appId).isActive()) {
-                consoleViewMap.get(appId).closeStreamingLog();
-            } else {
-                AzureTaskManager.getInstance().runLater(() -> AzureMessager.getMessager().error(STREAMING_LOG_NOT_STARTED, FAILED_TO_CLOSE_STREAMING_LOG));
-            }
-        }));
+        if (consoleViewMap.containsKey(appId) && consoleViewMap.get(appId).isActive()) {
+            consoleViewMap.get(appId).closeStreamingLog();
+        } else {
+            AzureTaskManager.getInstance().runLater(() -> AzureMessager.getMessager().error(STREAMING_LOG_NOT_STARTED, FAILED_TO_CLOSE_STREAMING_LOG));
+        }
     }
 
     @AzureOperation(name = "appservice.open_log_stream.app", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.SERVICE)
@@ -116,8 +114,11 @@ public enum AppServiceStreamingLogManager {
                     }
                     consoleView.startStreamingLog(log);
                 }
-                StreamingLogsToolWindowManager.getInstance().showStreamingLogConsole(
-                        project, resourceId, logStreaming.getTitle(), consoleView);
+                AzureTaskManager.getInstance().runLater(() ->
+                    StreamingLogsToolWindowManager.getInstance().showStreamingLogConsole(project, resourceId, logStreaming.getTitle(), consoleView)
+                );
+            } catch (final AzureToolkitRuntimeException e) {
+                throw e;
             } catch (final Throwable e) {
                 throw new AzureToolkitRuntimeException("failed to open streaming log", e, retry);
             }
@@ -177,7 +178,7 @@ public enum AppServiceStreamingLogManager {
             return functionApp.streamAllLogsAsync();
         }
 
-        // Refers https://github.com/microsoft/vscode-azurefunctions/blob/v0.22.0/src/
+        // Refers https://github.com/microsoft/vscode-azurefunctions/blob/v0.22.0.JAVA17/src/
         // commands/logstream/startStreamingLogs.ts#L53
         private void openLiveMetricsStream() {
             final String aiKey = Optional.ofNullable(functionApp.getAppSettings()).map(settings -> settings.get(APPINSIGHTS_INSTRUMENTATIONKEY)).orElse(null);
@@ -192,7 +193,7 @@ public enum AppServiceStreamingLogManager {
                     .findFirst()
                     .orElseThrow(() -> new AzureToolkitRuntimeException(message("appService.logStreaming.error.aiNotFound", subscriptionId)));
             final String aiUrl = getApplicationInsightLiveMetricsUrl(target, Azure.az(AzureAccount.class).account().getPortalUrl());
-            BrowserUtil.browse(aiUrl);
+            AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(aiUrl);
         }
 
         private String getApplicationInsightLiveMetricsUrl(ApplicationInsight target, String portalUrl) {

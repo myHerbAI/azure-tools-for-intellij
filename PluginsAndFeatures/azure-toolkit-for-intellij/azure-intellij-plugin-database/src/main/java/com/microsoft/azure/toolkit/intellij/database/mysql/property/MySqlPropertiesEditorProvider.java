@@ -30,7 +30,7 @@ public class MySqlPropertiesEditorProvider implements FileEditorProvider, DumbAw
     @Nonnull
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "mysql.create_server_properties_editor", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "mysql.create_server_properties_editor.server", params = {"virtualFile.getName()"}, type = AzureOperation.Type.ACTION, target = AzureOperation.Target.PLATFORM)
     public FileEditor createEditor(@Nonnull Project project, @Nonnull VirtualFile virtualFile) {
         final MySqlServer server = (MySqlServer) virtualFile.getUserData(AzureResourceEditorViewManager.AZURE_RESOURCE_KEY);
         assert server != null;

@@ -81,6 +81,7 @@
                         <SPARK_SCALA_VERSION>${scala.version.major}</SPARK_SCALA_VERSION>
                         <SPARK_TESTING>1</SPARK_TESTING>
                         <JAVA_HOME>${java.home}</JAVA_HOME>
+                        <JDK_JAVA_OPTIONS>--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED -Dsun.reflect.debugModuleAccessChecks=access</JDK_JAVA_OPTIONS>
                     </environmentVariables>
                     <systemProperties>
                         <log4j.configuration>file:../src/test/resources/log4j.properties</log4j.configuration>

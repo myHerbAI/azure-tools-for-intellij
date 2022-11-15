@@ -12,6 +12,7 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.intellij.common.properties.AzureResourceEditorViewManager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.containerservice.KubernetesCluster;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +26,7 @@ public class KubernetesServicePropertiesEditorProvider implements FileEditorProv
     }
 
     @Override
+    @AzureOperation(name = "kubernetes.create_cluster_properties_editor.cluster", params = {"file.getName()"}, type = AzureOperation.Type.ACTION, target = AzureOperation.Target.PLATFORM)
     public @NotNull FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
         final KubernetesCluster server = (KubernetesCluster) file.getUserData(AzureResourceEditorViewManager.AZURE_RESOURCE_KEY);
         assert server != null;

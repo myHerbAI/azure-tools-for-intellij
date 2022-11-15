@@ -55,10 +55,6 @@ public class WebAppService {
         }
     }
 
-    @AzureOperation(
-        name = "webapp.init_config",
-        type = AzureOperation.Type.TASK
-    )
     public static WebAppSettingModel convertConfig2Settings(final WebAppConfig config) {
         final WebAppSettingModel settings = new WebAppSettingModel();
         settings.setSubscriptionId(config.getSubscription().getId());

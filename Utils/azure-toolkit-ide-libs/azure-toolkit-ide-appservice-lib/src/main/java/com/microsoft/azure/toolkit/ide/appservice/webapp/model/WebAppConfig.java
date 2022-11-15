@@ -80,6 +80,7 @@ public class WebAppConfig extends AppServiceConfig {
         final AppServicePlanConfig plan = Optional.ofNullable(historyPlan)
             .filter(p -> p.getSubscriptionId().equals(subscription.getId()))
             .filter(p -> p.getResourceGroupName().equals(group.getName()))
+            .filter(p -> p.getOperatingSystem() == runtime.getOperatingSystem())
             .map(AppServicePlanConfig::fromResource)
             .orElseGet(() -> AppServicePlanConfig.builder()
                 .subscriptionId(subscription.getId())

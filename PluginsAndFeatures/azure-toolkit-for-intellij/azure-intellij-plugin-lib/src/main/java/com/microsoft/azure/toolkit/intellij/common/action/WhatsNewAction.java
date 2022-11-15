@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.common.action;
 
-import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -20,6 +19,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.StreamUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.LightVirtualFile;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
@@ -81,7 +81,7 @@ public class WhatsNewAction extends AnAction implements DumbAware {
             final FileEditor[] editors = manager.openFile(file, true, true);
             if (editors.length < 1) {
                 if (manually) {
-                    BrowserUtil.browse(WHATSNEW_URL);
+                    AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(WHATSNEW_URL);
                 } else {
                     final String message = String.format("Azure Toolkit for Java is updated to <b><u>%s</u></b>", version.toString());
                     final String title = "Azure Toolkit for Java Updated";

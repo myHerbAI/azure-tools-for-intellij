@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -37,21 +38,23 @@ public abstract class AbstractAzureStorageExplorerHandler {
     private static final String STORAGE_EXPLORER_DOWNLOAD_URL = "https://go.microsoft.com/fwlink/?LinkId=723579";
     private static final String STORAGE_EXPLORER = "StorageExplorer";
 
-    public void openResource(@Nonnull StorageAccount storageAccount) {
+    @AzureOperation(name = "storage.open_azure_storage_explorer.account", params = {"account.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    public void openResource(@Nonnull StorageAccount account) {
         // Get resource url
         final Charset charset = Charset.forName("UTF-8");
         String resourceUrl = "storageexplorer://v=1" +
-            "&accountid=" + URLEncoder.encode(storageAccount.getId(), charset) +
-            "&subscriptionid=" + URLEncoder.encode(storageAccount.getSubscriptionId(), charset) +
+            "&accountid=" + URLEncoder.encode(account.getId(), charset) +
+            "&subscriptionid=" + URLEncoder.encode(account.getSubscriptionId(), charset) +
             "&source=AzureToolkitForIntelliJ";
         // try launch with uri
-        boolean result = launchStorageExplorerWithUri(storageAccount, resourceUrl);
+        boolean result = launchStorageExplorerWithUri(account, resourceUrl);
         if (!result) {
             // fall back to launch with command
-            launchStorageExplorerThroughCommand(storageAccount, resourceUrl);
+            launchStorageExplorerThroughCommand(account, resourceUrl);
         }
     }
 
+    @AzureOperation(name = "storage.open_azure_storage_explorer.storage", params = {"storage.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
     public void openResource(@Nonnull final AbstractAzResource<?, StorageAccount, ?> storage) {
         // Get resource url
         final StorageAccount storageAccount = storage.getParent();
@@ -92,7 +95,7 @@ public abstract class AbstractAzureStorageExplorerHandler {
             final String storageExplorerExecutable = getStorageExplorerExecutable();
             // Launch storage explorer with resource url
             if (StringUtils.isEmpty(storageExplorerExecutable) || !Files.exists(Path.of(storageExplorerExecutable))) {
-                throw new AzureToolkitRuntimeException("Cannot find Azure Storage Explorer.");
+                throw new RuntimeException("Cannot find Azure Storage Explorer.");
             }
             launchStorageExplorer(storageExplorerExecutable, resourceUrl);
         } catch (final RuntimeException e) {

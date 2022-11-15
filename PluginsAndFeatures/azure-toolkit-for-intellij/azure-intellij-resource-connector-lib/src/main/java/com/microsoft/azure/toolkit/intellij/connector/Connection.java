@@ -72,7 +72,7 @@ public class Connection<R, C> {
      * do some preparation in the {@code Connect Azure Resource} before run task
      * of the {@code configuration}<br>
      */
-    @AzureOperation(name = "connector.prepare_before_run", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "connector.prepare_before_run", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
     public boolean prepareBeforeRun(@Nonnull RunConfiguration configuration, DataContext dataContext) {
         try {
             this.env = getEnvironmentVariables(configuration.getProject());

@@ -90,9 +90,9 @@ public class GitCloneTask implements Task {
             if (!context.getProject().isDisposed()) {
                 GuidanceViewManager.getInstance().closeGuidanceToolWindow(context.getProject());
             }
-        } catch (final Exception ex) {
-            AzureMessager.getMessager().error(ex);
-            throw new AzureToolkitRuntimeException(ex);
+        } catch (final Exception t) {
+            AzureMessager.getMessager().error(t);
+            throw t instanceof AzureToolkitRuntimeException ? (AzureToolkitRuntimeException) t : new AzureToolkitRuntimeException(t);
         }
     }
 

@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.common.action;
 
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeBundle;
+import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.FUSEventSource;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
@@ -17,7 +18,10 @@ import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
+import javax.annotation.Nonnull;
+import java.io.File;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
@@ -27,7 +31,7 @@ public class IntellijActionsContributor implements IActionsContributor {
 
     @Override
     public void registerHandlers(AzureActionManager am) {
-        am.registerHandler(ResourceCommonActionsContributor.OPEN_URL, Objects::nonNull, BrowserUtil::browse);
+        am.registerHandler(ResourceCommonActionsContributor.OPEN_URL, Objects::nonNull, IntellijActionsContributor::browseUrl);
         am.<AzResourceBase, AnActionEvent>registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES,
             (s, e) -> Objects.nonNull(s) && Objects.nonNull(e.getProject()),
             (s, e) -> IntellijShowPropertiesViewAction.showPropertyView(s, Objects.requireNonNull(e.getProject())));
@@ -37,6 +41,12 @@ public class IntellijActionsContributor implements IActionsContributor {
             AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_AZURE_EXPLORER).handle(null, e);
         };
         am.registerHandler(ResourceCommonActionsContributor.HIGHLIGHT_RESOURCE_IN_EXPLORER, (s, e) -> Objects.nonNull(s) && Objects.nonNull(e.getProject()), highlightResource);
+    }
+
+
+    @AzureOperation(name = "resource.open_url.url", params = {"u"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    private static void browseUrl(String u) {
+        BrowserUtil.browse(u);
     }
 
     @Override

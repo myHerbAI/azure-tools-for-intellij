@@ -1,15 +1,15 @@
 plugins {
-    id "org.jetbrains.intellij" version "1.5.2"
-    id "org.jetbrains.kotlin.jvm" version "1.6.10"
+    id "org.jetbrains.intellij" version "1.9.0"
+    id "org.jetbrains.kotlin.jvm" version "1.7.20"
     id "de.undercouch.download" version "4.1.1"
     id "com.github.ben-manes.versions" version "0.39.0"
-    id "io.freefair.aspectj.post-compile-weaving" version "6.0.0-m2"
+    id "io.freefair.aspectj.post-compile-weaving" version "6.5.1"
     id "io.spring.dependency-management" version "1.0.11.RELEASE"
 }
 
 ext {
-    azureToolkitVersion = "0.26.0"
-    azureToolkitUtilsVersion = "3.70.0"
+    azureToolkitVersion = "0.27.0-SNAPSHOT"
+    azureToolkitUtilsVersion = "3.71.0-SNAPSHOT"
 }
 
 compileKotlin {
@@ -29,6 +29,7 @@ compileTestKotlin {
 import org.apache.tools.ant.filters.*
 
 processResources {
+    duplicatesStrategy(DuplicatesStrategy.INCLUDE)
     filesMatching('**/ApplicationInsights.xml') {
         filter(ReplaceTokens, tokens: ["applicationinsights.key": project.property("applicationinsights.key")])
     }
@@ -82,8 +83,8 @@ subprojects {
     apply plugin: 'io.freefair.aspectj.post-compile-weaving'
     apply plugin: 'io.spring.dependency-management'
     ext {
-        azureToolkitVersion = "0.26.0"
-        azureToolkitUtilsVersion = "3.70.0"
+        azureToolkitVersion = "0.27.0-SNAPSHOT"
+        azureToolkitUtilsVersion = "3.71.0-SNAPSHOT"
     }
 
     sourceCompatibility = javaVersion
@@ -115,7 +116,7 @@ subprojects {
         // https://mvnrepository.com/artifact/org.projectlombok/lombok
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
-        compile 'com.microsoft.azure:azure-toolkit-common-lib'
+        implementation 'com.microsoft.azure:azure-toolkit-common-lib'
         aspect 'com.microsoft.azure:azure-toolkit-common-lib'
         compileOnly 'org.jetbrains:annotations'
     }
@@ -148,15 +149,16 @@ repositories {
     mavenCentral()
 }
 
-configurations {
-    compile.exclude module:'slf4j-api'
-    compile.exclude module:'log4j'
-    compile.exclude module:'stax-api'
-    compile.exclude module:'groovy-xml'
-    compile.exclude module:'groovy-templates'
-    compile.exclude module:'jna'
-    cucumberRuntime {
-        extendsFrom testImplementation
+allprojects {
+    configurations {
+        implementation.exclude module:'slf4j-api'
+        implementation.exclude module:'log4j'
+        implementation.exclude module:'stax-api'
+        implementation.exclude module:'groovy-xml'
+        implementation.exclude module:'groovy-templates'
+        cucumberRuntime {
+            extendsFrom testImplementation
+        }
     }
 }
 
@@ -169,81 +171,80 @@ dependencyManagement {
 }
 
 dependencies {
-    compile project(':azure-intellij-plugin-lib')
-    compile project(':azure-intellij-plugin-lib-java')
-    compile project(':azure-sdk-reference-book')
-    compile project(':azure-intellij-resource-connector-lib')
-    compile project(':azure-intellij-resource-connector-lib-java')
-    compile project(':azure-intellij-resource-connector-aad')
-    compile project(':azure-intellij-plugin-common')
-    compile project(':azure-intellij-plugin-vm')
-    compile project(':azure-intellij-plugin-springcloud')
-    compile project(':azure-intellij-plugin-storage')
-    compile project(':azure-intellij-plugin-redis')
-    compile project(':azure-intellij-plugin-service-explorer')
-    compile project(':azure-intellij-plugin-database')
-    compile project(':azure-intellij-plugin-database-java')
-    compile project(':azure-intellij-plugin-appservice')
-    compile project(':azure-intellij-plugin-arm')
-    compile project(':azure-intellij-plugin-containerregistry')
-    compile project(':azure-intellij-plugin-containerservice')
-    compile project(':azure-intellij-plugin-applicationinsights')
-    compile project(':azure-intellij-plugin-guidance')
-    compile project(':azure-intellij-plugin-cosmos')
-    compile 'com.microsoft.azure:azure-toolkit-ide-appservice-lib'
-    compile 'com.microsoft.azure:azure-toolkit-applicationinsights-lib'
-    compile 'com.microsoft.azure:azure-toolkit-storage-lib'
-    compile 'com.microsoft.azure:azure-mgmt-eventhub'
+    implementation project(':azure-intellij-plugin-lib')
+    implementation project(':azure-intellij-plugin-lib-java')
+    implementation project(':azure-sdk-reference-book')
+    implementation project(':azure-intellij-resource-connector-lib')
+    implementation project(':azure-intellij-resource-connector-lib-java')
+    implementation project(':azure-intellij-resource-connector-aad')
+    implementation project(':azure-intellij-plugin-vm')
+    implementation project(':azure-intellij-plugin-springcloud')
+    implementation project(':azure-intellij-plugin-storage')
+    implementation project(':azure-intellij-plugin-redis')
+    implementation project(':azure-intellij-plugin-service-explorer')
+    implementation project(':azure-intellij-plugin-database')
+    implementation project(':azure-intellij-plugin-database-java')
+    implementation project(':azure-intellij-plugin-appservice')
+    implementation project(':azure-intellij-plugin-appservice-java')
+    implementation project(':azure-intellij-plugin-arm')
+    implementation project(':azure-intellij-plugin-containerregistry')
+    implementation project(':azure-intellij-plugin-containerservice')
+    implementation project(':azure-intellij-plugin-applicationinsights')
+    implementation project(':azure-intellij-plugin-guidance')
+    implementation project(':azure-intellij-plugin-cosmos')
+    implementation 'com.microsoft.azure:azure-toolkit-ide-appservice-lib'
+    implementation 'com.microsoft.azure:azure-toolkit-applicationinsights-lib'
+    implementation 'com.microsoft.azure:azure-toolkit-storage-lib'
+    implementation 'com.microsoft.azure:azure-mgmt-eventhub'
     aspect "com.microsoft.azure:azure-toolkit-common-lib", {
         exclude group: "com.squareup.okhttp3", module: "okhttp"
         exclude group: "com.squareup.okhttp3", module: "okhttp-urlconnection"
         exclude group: "com.squareup.okhttp3", module: "logging-interceptor"
     }
-    compile 'com.microsoft.azure:azure-client-runtime', {
+    implementation 'com.microsoft.azure:azure-client-runtime', {
         exclude group: "com.squareup.okhttp3", module: "okhttp"
         exclude group: "com.squareup.okhttp3", module: "okhttp-urlconnection"
         exclude group: "com.squareup.okhttp3", module: "logging-interceptor"
     }
-    compile 'commons-io:commons-io'
-    compile 'org.apache.commons:commons-lang3'
+    implementation 'commons-io:commons-io'
+    implementation 'org.apache.commons:commons-lang3'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    compile 'com.microsoft.azuretools:azuretools-core:3.70.0', {
+    implementation 'com.microsoft.azuretools:azuretools-core:3.71.0-SNAPSHOT', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
-    compile 'com.microsoft.azuretools:azure-explorer-common:3.70.0', {
+    implementation 'com.microsoft.azuretools:azure-explorer-common:3.71.0-SNAPSHOT', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
-    compile 'com.microsoft.azuretools:hdinsight-node-common:3.70.0', {
+    implementation 'com.microsoft.azuretools:hdinsight-node-common:3.71.0-SNAPSHOT', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
 
-    compile 'com.spotify:docker-client:8.16.0'
-    compile group: 'org.dom4j', name: 'dom4j', {
+    implementation 'com.spotify:docker-client:8.16.0'
+    implementation group: 'org.dom4j', name: 'dom4j', {
         exclude group: "javax.xml.stream", module: "stax-api"
         exclude group: "xpp3", module: "xpp3"
         exclude group: "pull-parser", module: "pull-parser"
         exclude group: "net.java.dev.msv", module: "xsdlib"
     }
-    compile group: 'jaxen', name: 'jaxen', version: '1.2.0'
+    implementation group: 'jaxen', name: 'jaxen', version: '1.2.0'
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21")
-
+    implementation 'net.java.dev.jna:jna:5.12.1'
     testImplementation 'io.cucumber:cucumber-java:7.0.0'
     testImplementation 'io.cucumber:cucumber-junit:7.0.0'
     testImplementation 'org.assertj:assertj-core:3.19.0'
-    testImplementation 'com.microsoft.azure:azure-client-authentication:1.7.13'
-    testCompile 'junit:junit'
-    testCompile 'org.mockito:mockito-core'
+    testImplementation 'junit:junit'
+    testImplementation 'org.mockito:mockito-core'
 
-    testCompile 'org.powermock:powermock-module-junit4:1.7.0RC4'
-    testCompile 'org.powermock:powermock-api-mockito2:1.7.0RC4'
-    testCompile 'javax.servlet:javax.servlet-api:4.0.1'
+    testImplementation 'org.powermock:powermock-module-junit4:1.7.0RC4'
+    testImplementation 'org.powermock:powermock-api-mockito2:1.7.0RC4'
+    testImplementation 'javax.servlet:javax.servlet-api:4.0.1'
 
-    testCompile "org.jetbrains.kotlin:kotlin-stdlib"
-    testCompile "org.jetbrains.kotlin:kotlin-test"
-    testCompile "org.jetbrains.kotlin:kotlin-test-junit"
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib"
+    testImplementation "org.jetbrains.kotlin:kotlin-test"
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
 }
 
 test {
@@ -288,7 +289,7 @@ test.dependsOn cucumber
 defaultTasks 'buildPlugin'
 
 wrapper() {
-    gradleVersion = '6.9'
+    gradleVersion = '7.5.1'
     distributionUrl = "https://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }
 

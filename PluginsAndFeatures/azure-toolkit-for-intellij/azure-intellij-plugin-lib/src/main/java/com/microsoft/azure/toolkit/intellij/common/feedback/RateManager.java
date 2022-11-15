@@ -5,19 +5,28 @@
 
 package com.microsoft.azure.toolkit.intellij.common.feedback;
 
+import com.azure.core.exception.HttpResponseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
+import com.intellij.openapi.util.registry.Registry;
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
+import com.microsoft.azure.toolkit.ide.common.store.IIdeStore;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationException;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationListener;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationManager;
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
 import lombok.Data;
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -25,6 +34,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -36,12 +46,22 @@ public class RateManager {
     public static final String POPPED_TIMES = "popped_times";
     public static final String NEXT_POP_AFTER = "next_pop_after";
     public static final String TOTAL_SCORE = "action_total_score";
+    public static final String NEXT_REWIND_DATE = "next_rewind_date";
 
-    private static final RateManager manager = new RateManager();
-    private static final String SCORES_YML = "/com/microsoft/azure/toolkit/intellij/common/feedback/action-scores.yml";
-    private static final Map<String, ScoreConfig> scores = loadScores();
-    private static final AtomicInteger score = new AtomicInteger(0);
-    private static final int THRESHOLD = 10;
+    private static final String SCORES_YML = "/com/microsoft/azure/toolkit/intellij/common/feedback/operation-scores.yml";
+    private final Map<String, ScoreConfig> scores;
+    private final AtomicInteger score = new AtomicInteger(0);
+
+    private RateManager() {
+        scores = loadScores();
+        final IIdeStore store = AzureStoreManager.getInstance().getIdeStore();
+        final int totalScore = Integer.parseInt(Objects.requireNonNull(store.getProperty(SERVICE, TOTAL_SCORE, "0")));
+        score.set(totalScore);
+    }
+
+    public static RateManager getInstance() {
+        return SingletonHolder.INSTANCE;
+    }
 
     private static Map<String, ScoreConfig> loadScores() {
         final ObjectMapper YML_MAPPER = new YAMLMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -53,50 +73,81 @@ public class RateManager {
         return Collections.emptyMap();
     }
 
-    public static void addScore(int score) {
-        final int total = RateManager.score.addAndGet(score);
-        if (total > THRESHOLD && RatePopup.tryPopup(null)) {
-            RateManager.score.set(THRESHOLD / 2);
+    @AzureOperation(name = "feedback.add_operation_score", type = AzureOperation.Type.TASK)
+    public void addScore(int score) {
+        final int total = this.score.addAndGet(score);
+        OperationContext.current().setTelemetryProperty("addScore", String.valueOf(score));
+        OperationContext.current().setTelemetryProperty("totalScore", String.valueOf(total));
+        final int threshold = Registry.intValue("azure.toolkit.feedback.score.threshold", 20);
+        if (total >= threshold) {
+            if (RatePopup.tryPopup(null)) {
+                this.score.set(threshold / 2);
+            } else {
+                this.score.set(threshold);
+            }
         }
-        AzureStoreManager.getInstance().getIdeStore().setProperty(SERVICE, TOTAL_SCORE, String.valueOf(total));
+        final IIdeStore store = AzureStoreManager.getInstance().getIdeStore();
+        if (score > 0) {
+            store.setProperty(SERVICE, NEXT_REWIND_DATE, String.valueOf(System.currentTimeMillis() + 15 * DateUtils.MILLIS_PER_DAY));
+        }
+        store.setProperty(SERVICE, TOTAL_SCORE, "" + this.score.get());
     }
 
-    public static int getScore() {
-        return RateManager.score.get();
+    public synchronized int getScore() {
+        return score.get();
     }
 
-    public static void clearScore() {
-        RateManager.score.set(0);
+    @AzureOperation(name = "feedback.rewind_operation_score_on_error", type = AzureOperation.Type.TASK)
+    public void rewindScore() {
+        score.set(score.get() / 2);
+        final IIdeStore store = AzureStoreManager.getInstance().getIdeStore();
+        store.setProperty(SERVICE, TOTAL_SCORE, "" + score.get());
     }
 
     public static class WhenToPopup implements StartupActivity, OperationListener {
         @Override
         public void runActivity(@Nonnull Project project) {
             final char c = InstallationIdUtils.getHashMac().toLowerCase().charAt(0);
-            if (Character.digit(c, 16) % 4 == 0) { // enabled for only 1/4
+            final boolean testMode = Registry.is("azure.toolkit.test.mode.enabled", false);
+            final IIdeStore store = AzureStoreManager.getInstance().getIdeStore();
+            final String nextPopAfter = store.getProperty(SERVICE, NEXT_POP_AFTER);
+            if (testMode || (!StringUtils.equals(nextPopAfter, "-1") && Character.digit(c, 16) % 4 == 0)) { // enabled for only 1/4
+                final String nextRewindDate = store.getProperty(SERVICE, NEXT_REWIND_DATE);
+                if (StringUtils.isBlank(nextRewindDate)) {
+                    store.setProperty(SERVICE, NEXT_REWIND_DATE, String.valueOf(System.currentTimeMillis() + 15 * DateUtils.MILLIS_PER_DAY));
+                } else if (Long.parseLong(nextRewindDate) > System.currentTimeMillis()) {
+                    final int totalScore = Integer.parseInt(Objects.requireNonNull(store.getProperty(SERVICE, TOTAL_SCORE, "0")));
+                    store.setProperty(SERVICE, TOTAL_SCORE, totalScore / 2 + "");
+                }
                 OperationManager.getInstance().addListener(this);
             }
         }
 
         @Override
         public void afterReturning(Operation operation, Object source) {
-            final ScoreConfig config = scores.get(operation.getId());
-            if (config != null) {
-                final String actionId = Optional.ofNullable(operation.getActionParent()).map(Operation::getId).orElse(null);
-                if (ArrayUtils.isEmpty(config.getActions()) || Arrays.asList(config.getActions()).contains(actionId)) {
-                    RateManager.addScore(config.getSuccess());
+            final RateManager manager = RateManager.getInstance();
+            if (StringUtils.equalsIgnoreCase(operation.getType(), AzureOperation.Type.REQUEST.name()) ||
+                operation.getTarget() == AzureOperation.Target.PLATFORM ||
+                operation.getTarget() == AzureOperation.Target.AZURE) {
+                final ScoreConfig config = manager.scores.get(operation.getId());
+                if (config != null) {
+                    final String actionId = Optional.ofNullable(operation.getActionParent()).map(Operation::getId).orElse(null);
+                    if (ArrayUtils.isEmpty(config.getActions()) || Arrays.asList(config.getActions()).contains(actionId)) {
+                        manager.addScore(config.getSuccess());
+                    }
                 }
             }
         }
 
         @Override
         public void afterThrowing(Throwable e, Operation operation, Object source) {
-            final ScoreConfig config = scores.get(operation.getId());
-            if (config != null) {
-                final String actionId = Optional.ofNullable(operation.getActionParent()).map(Operation::getId).orElse(null);
-                if (ArrayUtils.isEmpty(config.getActions()) || Arrays.asList(config.getActions()).contains(actionId)) {
-                    RateManager.addScore(config.getFailure());
-                }
+            if (e instanceof OperationException) {
+                return;
+            }
+            final RateManager manager = RateManager.getInstance();
+            final Throwable cause = ExceptionUtils.getRootCause(e);
+            if (!(cause instanceof HttpResponseException || cause.getClass().getPackageName().contains("java.net"))) {
+                manager.rewindScore();
             }
         }
     }
@@ -106,5 +157,9 @@ public class RateManager {
         private String[] actions;
         private int success;
         private int failure;
+    }
+
+    private static class SingletonHolder {
+        public static final RateManager INSTANCE = new RateManager();
     }
 }

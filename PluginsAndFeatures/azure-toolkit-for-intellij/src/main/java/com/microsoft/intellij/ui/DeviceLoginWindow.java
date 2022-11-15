@@ -8,6 +8,8 @@ package com.microsoft.intellij.ui;
 import com.azure.identity.DeviceCodeInfo;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.intellij.ui.components.AzureDialogWrapper;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,7 +67,7 @@ public class DeviceLoginWindow extends AzureDialogWrapper {
         final StringSelection selection = new StringSelection(deviceCode.getUserCode());
         final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         clipboard.setContents(selection, selection);
-        BrowserUtil.open(deviceCode.getVerificationUrl());
+        AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(deviceCode.getVerificationUrl());
     }
 
     @Override

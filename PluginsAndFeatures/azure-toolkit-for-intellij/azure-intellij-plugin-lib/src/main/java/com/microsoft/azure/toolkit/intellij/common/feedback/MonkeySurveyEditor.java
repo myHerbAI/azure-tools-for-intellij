@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.common.feedback;
 
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -18,9 +17,11 @@ import com.intellij.ui.jcef.JBCefJSQuery;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBFont;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.BaseEditor;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -127,7 +128,7 @@ public class MonkeySurveyEditor extends BaseEditor implements DumbAware {
                     return false;
                 }
                 if (!StringUtils.equals(target, SURVEY_THANKS)) {
-                    BrowserUtil.browse(request.getURL());
+                    AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(request.getURL());
                 }
                 return true;
             }

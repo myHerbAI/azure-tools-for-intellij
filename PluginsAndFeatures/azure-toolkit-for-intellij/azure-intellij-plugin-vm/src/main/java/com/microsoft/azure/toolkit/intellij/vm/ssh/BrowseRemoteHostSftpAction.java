@@ -45,13 +45,16 @@ public class BrowseRemoteHostSftpAction {
     public static void browseRemoteHost(VirtualMachine vm, @Nonnull Project project) {
         final SshConfig curSshConfig = AddSshConfigAction.getOrCreateSshConfig(vm, project);
         final SshConfig sshConfig = validateSshConfig(curSshConfig);
-        final Runnable openToolWindowHandler = () -> {
-            final WebServerConfig server = getOrCreateWebServerConfigFromSsh(sshConfig, project);
-            final ToolWindow toolWindow = WebServerToolWindowFactory.getWebServerToolWindow(project);
-            toolWindow.show(null);
-            toolWindow.activate(() -> selectServerInToolWindow(toolWindow, server.getName(), project));
-        };
+        final Runnable openToolWindowHandler = () -> openSftpToolWindow(project, sshConfig);
         tryConnecting(project, sshConfig, openToolWindowHandler);
+    }
+
+    @AzureOperation(name = "vm.open_sftp_toolwindow", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    private static void openSftpToolWindow(@Nonnull Project project, SshConfig sshConfig) {
+        final WebServerConfig server = getOrCreateWebServerConfigFromSsh(sshConfig, project);
+        final ToolWindow toolWindow = WebServerToolWindowFactory.getWebServerToolWindow(project);
+        toolWindow.show(null);
+        toolWindow.activate(() -> selectServerInToolWindow(toolWindow, server.getName(), project));
     }
 
     private static void tryConnecting(@Nonnull Project project, SshConfig sshConfig, Runnable callback) {

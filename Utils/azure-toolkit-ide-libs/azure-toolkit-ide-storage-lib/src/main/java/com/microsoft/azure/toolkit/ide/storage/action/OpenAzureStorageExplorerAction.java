@@ -27,12 +27,10 @@ public class OpenAzureStorageExplorerAction {
         }
     }
 
-    @AzureOperation(name = "storage.open_azure_storage_explorer.account", params = {"storageAccount.getName()"}, type = AzureOperation.Type.ACTION)
     public void openResource(final StorageAccount storageAccount) {
         this.handler.openResource(storageAccount);
     }
 
-    @AzureOperation(name = "storage.open_azure_storage_explorer.storage", params = {"storage.getName()"}, type = AzureOperation.Type.ACTION)
     public void openResource(final AbstractAzResource<?, StorageAccount, ?> storage) {
         this.handler.openResource(storage);
     }

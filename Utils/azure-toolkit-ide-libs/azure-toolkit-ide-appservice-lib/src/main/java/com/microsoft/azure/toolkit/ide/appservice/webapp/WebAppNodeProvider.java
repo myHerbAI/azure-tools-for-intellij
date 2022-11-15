@@ -9,6 +9,7 @@ import com.microsoft.azure.toolkit.ide.appservice.AppServiceDeploymentSlotsNodeV
 import com.microsoft.azure.toolkit.ide.appservice.file.AppServiceFileNode;
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.ide.common.component.AzureModuleLabelView;
 import com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider;
 import com.microsoft.azure.toolkit.ide.common.component.AzureResourceLabelView;
 import com.microsoft.azure.toolkit.ide.common.component.AzureServiceLabelView;
@@ -28,7 +29,6 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlotMod
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.Optional;
 
 public class WebAppNodeProvider implements IExplorerNodeProvider {
@@ -68,9 +68,15 @@ public class WebAppNodeProvider implements IExplorerNodeProvider {
                 .view(new AzureResourceLabelView<>(webApp, WebApp::getStatus, WEBAPP_ICON_PROVIDER))
                 .inlineAction(ResourceCommonActionsContributor.PIN)
                 .actions(WebAppActionsContributor.WEBAPP_ACTIONS)
-                .addChildren(app -> Arrays.asList(app.getDeploymentModule()), (d, p) -> this.createDeploymentSlotNode(d, manager))
+                .addChild(WebApp::getDeploymentModule, (module, webAppNode) -> createNode(module, webAppNode, manager))
                 .addChild(AppServiceFileNode::getRootFileNodeForAppService, (d, p) -> this.createNode(d, p, manager)) // Files
                 .addChild(AppServiceFileNode::getRootLogNodeForAppService, (d, p) -> this.createNode(d, p, manager));
+        } else if (data instanceof WebAppDeploymentSlotModule) {
+            final WebAppDeploymentSlotModule module = (WebAppDeploymentSlotModule) data;
+            return new Node<>(module)
+                    .view(new AzureModuleLabelView<>(module, "Deployment Slots", AzureIcons.WebApp.DEPLOYMENT_SLOT.getIconPath()))
+                    .actions(WebAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
+                    .addChildren(WebAppDeploymentSlotModule::list, (d, p) -> this.createNode(d, p, manager));
         } else if (data instanceof WebAppDeploymentSlot) {
             final WebAppDeploymentSlot slot = (WebAppDeploymentSlot) data;
             return new Node<>(slot)

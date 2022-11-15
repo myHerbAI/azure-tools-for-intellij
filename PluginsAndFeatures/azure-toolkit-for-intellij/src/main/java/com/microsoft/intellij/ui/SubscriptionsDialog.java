@@ -6,7 +6,6 @@
 package com.microsoft.intellij.ui;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -18,10 +17,12 @@ import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.TextDocumentListenerAdapter;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
@@ -109,7 +110,7 @@ public class SubscriptionsDialog extends AzureDialogWrapper implements TableMode
                 "No subscription in current account", "No Subscription", "Try Azure for Free",
                 Messages.getCancelButton(), Messages.getWarningIcon());
             if (result == Messages.OK) {
-                BrowserUtil.browse("https://azure.microsoft.com/en-us/free/");
+                AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle("https://azure.microsoft.com/en-us/free/");
             }
         }
     }

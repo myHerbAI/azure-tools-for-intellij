@@ -160,6 +160,8 @@ public class CreateDeploymentDialog extends AzureDialogWrapper {
                     return;
                 }
                 createDeployment(deploymentName, parametersPath, templatePath, messager, group);
+            } catch (final AzureToolkitRuntimeException e) {
+                throw e;
             } catch (final Throwable e) {
                 throw new AzureToolkitRuntimeException(e);
             }

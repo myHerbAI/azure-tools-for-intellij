@@ -12,9 +12,13 @@ sourceSets {
 
 dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-reflect:1.6.21'
-    compile project(':azure-intellij-plugin-lib')
-    compile project(':azure-intellij-plugin-storage')
-    compile 'com.microsoft.azure:azure-toolkit-compute-lib'
-    compile 'com.microsoft.azure:azure-toolkit-ide-common-lib'
-    compile 'com.microsoft.azure:azure-toolkit-ide-vm-lib:' + azureToolkitVersion
+    implementation project(':azure-intellij-plugin-lib')
+    implementation project(':azure-intellij-plugin-storage')
+    implementation 'com.microsoft.azure:azure-toolkit-compute-lib'
+    implementation 'com.microsoft.azure:azure-toolkit-ide-common-lib'
+    implementation 'com.microsoft.azure:azure-toolkit-ide-vm-lib:' + azureToolkitVersion
+}
+
+processResources {
+    duplicatesStrategy(DuplicatesStrategy.INCLUDE)
 }

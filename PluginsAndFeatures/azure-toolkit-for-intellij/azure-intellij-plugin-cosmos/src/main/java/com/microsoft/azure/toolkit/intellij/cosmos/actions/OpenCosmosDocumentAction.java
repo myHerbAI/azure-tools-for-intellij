@@ -7,20 +7,14 @@ package com.microsoft.azure.toolkit.intellij.cosmos.actions;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.intellij.AppTopics;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
-import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.Consumer;
-import com.intellij.util.messages.MessageBusConnection;
+import com.microsoft.azure.toolkit.intellij.common.fileexplorer.VirtualFileActions;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -29,14 +23,13 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocument;
 import lombok.SneakyThrows;
-import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Objects;
+import java.util.function.Function;
 
 public class OpenCosmosDocumentAction {
     private static final String APP_SERVICE_FILE_EDITING = "App Service File Editing";
@@ -51,7 +44,7 @@ public class OpenCosmosDocumentAction {
     private static final String FILE_HAS_BEEN_SAVED = "File %s has been saved to Azure";
 
     @AzureOperation(
-            name = "appservice.open_file.file",
+            name = "cosmos.open_document.document",
             params = {"target.getName()"},
             type = AzureOperation.Type.SERVICE
     )
@@ -59,49 +52,25 @@ public class OpenCosmosDocumentAction {
     public static void open(ICosmosDocument target, Project project) {
         final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
         final VirtualFile virtualFile = getOrCreateVirtualFile(target, fileEditorManager);
-        final OutputStream output = virtualFile.getOutputStream(null);
+        final Function<String, Boolean> onSave = content -> {
+            AzureTaskManager.getInstance().runInBackground(new AzureTask<>(OperationBundle.description("cosmos.update_document.document", target.getName()), () -> {
+                try {
+                    final ObjectNode node = new ObjectMapper().readValue(content, ObjectNode.class);
+                    target.updateDocument(node);
+                    AzureMessager.getMessager().info(String.format("Save document %s to Azure successfully.", virtualFile.getName()));
+                } catch (final RuntimeException | JsonProcessingException e) {
+                    AzureMessager.getMessager().error(e);
+                }
+            }));
+            return true;
+        };
+        final Runnable onClose = () -> WriteAction.run(() -> FileUtil.delete(new File(virtualFile.getPath())));
         final AzureString title = OperationBundle.description("appservice.open_file.file", virtualFile.getName());
         AzureTaskManager.getInstance().runLater(new AzureTask<>(title, () -> {
-            openFileInEditor(target::updateDocument, virtualFile, fileEditorManager);
+            VirtualFileActions.openFileInEditor(virtualFile, onSave, onClose, fileEditorManager);
         }));
     }
 
-    private static boolean openFileInEditor(final Consumer<? super ObjectNode> contentSaver, VirtualFile virtualFile, FileEditorManager fileEditorManager) {
-        final FileEditor[] editors = fileEditorManager.openFile(virtualFile, true, true);
-        if (editors.length == 0) {
-            return false;
-        }
-        for (final FileEditor fileEditor : editors) {
-            if (fileEditor instanceof TextEditor) {
-                final Document sqlDocument = FileDocumentManager.getInstance().getDocument(virtualFile);
-                final MessageBusConnection messageBusConnection = fileEditorManager.getProject().getMessageBus().connect(fileEditor);
-                messageBusConnection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, new FileDocumentManagerListener() {
-                    @Override
-                    public void beforeDocumentSaving(@NotNull Document document) {
-                        if (!ObjectUtils.equals(document, sqlDocument)) {
-                            return;
-                        }
-                        final AzureString title = AzureString.format("Saving document %s to Azure", virtualFile.getName());
-                        AzureTaskManager.getInstance().runInBackground(new AzureTask<>(title, () -> {
-                            try {
-                                final String content = getTextEditorContent((TextEditor) fileEditor);
-                                final ObjectNode node = new ObjectMapper().readValue(content, ObjectNode.class);
-                                contentSaver.consume(node);
-                                AzureMessager.getMessager().info(String.format("Save document %s to Azure successfully.", virtualFile.getName()));
-                            } catch (RuntimeException | JsonProcessingException e) {
-                                AzureMessager.getMessager().error(e);
-                            }
-                        }));
-                    }
-                });
-            }
-        }
-        return true;
-    }
-
-    private static String getTextEditorContent(TextEditor textEditor) {
-        return textEditor.getEditor().getDocument().getText();
-    }
 
     private static synchronized VirtualFile getOrCreateVirtualFile(final ICosmosDocument document, final FileEditorManager manager) {
         synchronized (document) {
@@ -114,8 +83,8 @@ public class OpenCosmosDocumentAction {
     @SneakyThrows
     private static VirtualFile createVirtualFile(final ICosmosDocument document, FileEditorManager manager) {
         final File tempFile = FileUtil.createTempFile(document.getName(), ".json", true);
-        FileUtil.writeToFile(tempFile, document.getDocument().toPrettyString());
-        final VirtualFile result = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(tempFile);
+        FileUtil.writeToFile(tempFile, Objects.requireNonNull(document.getDocument()).toPrettyString());
+        final VirtualFile result = Objects.requireNonNull(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(tempFile));
         result.setCharset(StandardCharsets.UTF_8);
         result.putUserData(DOCUMENT_FILE_ID, document.getName());
         result.setWritable(true);

@@ -32,7 +32,7 @@ open class SeqActions(private vararg val actionIds: String): AzureAnAction(), IL
     override fun onActionPerformed(anActionEvent: AnActionEvent, operation: Operation?): Boolean {
         try {
             for (actiondId: String in actionIds) {
-                val action = ActionManagerEx.getInstance().getAction(actiondId)
+                val action = ActionManagerEx.getInstanceEx().getAction(actiondId)
                 action?.actionPerformed(anActionEvent)
                         ?: log().error("Can't perform the action with id $actiondId")
             }

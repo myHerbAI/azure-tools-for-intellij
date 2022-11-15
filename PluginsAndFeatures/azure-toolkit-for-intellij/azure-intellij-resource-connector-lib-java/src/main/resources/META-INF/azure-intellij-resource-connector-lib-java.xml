@@ -8,6 +8,10 @@
         <codeInsight.lineMarkerProvider language="Properties" implementationClass="com.microsoft.azure.toolkit.intellij.connector.spring.SpringPropertiesLineMarkerProvider"/>
     </extensions>
 
+    <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
+        <connectionProvider implementation="com.microsoft.azure.toolkit.intellij.connector.JavaConnection$JavaConnectionProvider"/>
+    </extensions>
+
     <projectListeners>
         <listener class="com.microsoft.azure.toolkit.intellij.connector.BeforeRunTaskAdder"
                   topic="com.intellij.execution.RunManagerListener" />

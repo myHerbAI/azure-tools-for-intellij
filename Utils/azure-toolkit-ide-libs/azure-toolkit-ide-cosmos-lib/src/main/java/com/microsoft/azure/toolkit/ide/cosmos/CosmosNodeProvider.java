@@ -156,14 +156,14 @@ public class CosmosNodeProvider implements IExplorerNodeProvider {
             final MongoDocument document = (MongoDocument) data;
             return new Node<>(document)
                     .view(new AzureResourceLabelView<>(document, MongoDocument::getDocumentDisplayName,
-                            doc -> StringUtils.isEmpty(doc.getSharedKey()) ? "None" : doc.getSharedKey(), DEFAULT_AZURE_RESOURCE_ICON_PROVIDER))
+                            doc -> StringUtils.isEmpty(doc.getSharedKey()) ? StringUtils.EMPTY : doc.getSharedKey(), ignore -> AzureIcons.Cosmos.DOCUMENT))
                     .actions(CosmosActionsContributor.COSMOS_DOCUMENT_ACTIONS)
                     .doubleClickAction(CosmosActionsContributor.OPEN_DOCUMENT);
         } else if (data instanceof SqlDocument) {
             final SqlDocument document = (SqlDocument) data;
             return new Node<>(document)
                     .view(new AzureResourceLabelView<>(document, SqlDocument::getDocumentDisplayName,
-                            doc -> StringUtils.isEmpty(doc.getDocumentPartitionKey()) ? "None" : doc.getDocumentPartitionKey(), DEFAULT_AZURE_RESOURCE_ICON_PROVIDER))
+                            doc -> StringUtils.isEmpty(doc.getDocumentPartitionKey()) ? StringUtils.EMPTY : doc.getDocumentPartitionKey(), ignore -> AzureIcons.Cosmos.DOCUMENT))
                     .actions(CosmosActionsContributor.COSMOS_DOCUMENT_ACTIONS)
                     .doubleClickAction(CosmosActionsContributor.OPEN_DOCUMENT);
         }

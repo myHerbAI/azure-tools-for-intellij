@@ -194,6 +194,7 @@ public final class AzureIcons {
 
     public static final class Cosmos {
         public static final AzureIcon MODULE = AzureIcon.builder().iconPath("/icons/Microsoft.DocumentDB/default.svg").build();
+        public static final AzureIcon DOCUMENT = AzureIcon.builder().iconPath("file/json").build();
     }
 
     public static final class Connector {

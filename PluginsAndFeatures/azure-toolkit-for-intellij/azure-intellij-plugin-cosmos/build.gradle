@@ -1,3 +1,5 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 intellij {
     plugins = ['com.intellij.database']
 }
@@ -11,9 +13,14 @@ sourceSets {
 }
 
 dependencies {
-    compile project(':azure-intellij-plugin-lib')
-    compile project(':azure-intellij-resource-connector-lib-java')
-    compile 'com.microsoft.azure:azure-toolkit-cosmos-lib'
-    compile 'com.microsoft.azure:azure-toolkit-ide-common-lib'
-    compile 'com.microsoft.azure:azure-toolkit-ide-cosmos-lib:' + azureToolkitVersion
+    implementation project(':azure-intellij-plugin-lib')
+    implementation project(':azure-intellij-resource-connector-lib')
+    implementation project(':azure-intellij-resource-connector-lib-java')
+    implementation 'com.microsoft.azure:azure-toolkit-cosmos-lib'
+    implementation 'com.microsoft.azure:azure-toolkit-ide-common-lib'
+    implementation 'com.microsoft.azure:azure-toolkit-ide-cosmos-lib:' + azureToolkitVersion
+}
+
+processResources {
+    duplicatesStrategy(DuplicatesStrategy.INCLUDE)
 }

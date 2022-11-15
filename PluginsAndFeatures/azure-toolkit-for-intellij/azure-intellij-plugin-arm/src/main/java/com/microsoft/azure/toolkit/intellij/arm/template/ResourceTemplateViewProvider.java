@@ -30,7 +30,7 @@ public class ResourceTemplateViewProvider implements FileEditorProvider, DumbAwa
     @Nonnull
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "arm.create_deployment_editor", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "arm.create_deployment_editor.deployment", params = {"virtualFile.getName()"}, type = AzureOperation.Type.ACTION, target = AzureOperation.Target.PLATFORM)
     public FileEditor createEditor(@Nonnull Project project, @Nonnull VirtualFile virtualFile) {
         final ResourceDeployment deployment = (ResourceDeployment) virtualFile.getUserData(AzureResourceEditorViewManager.AZURE_RESOURCE_KEY);
         assert deployment != null;

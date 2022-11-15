@@ -32,12 +32,12 @@ public class GetStartAction extends NodeAction {
             @Override
             @AzureOperation(name = "guidance.show_courses_view", type = AzureOperation.Type.ACTION)
             protected void actionPerformed(NodeActionEvent e) {
+                OperationContext.action().setTelemetryProperty("FromPlace", PLACE);
+                OperationContext.action().setTelemetryProperty("ShowBlueIcon", String.valueOf(!isActionTriggered));
                 if (!isActionTriggered) {
                     isActionTriggered = true;
                     AzureStoreManager.getInstance().getIdeStore().setProperty(ShowGettingStartAction.GUIDANCE, ShowGettingStartAction.IS_ACTION_TRIGGERED, String.valueOf(true));
                 }
-                OperationContext.action().setTelemetryProperty("FromPlace", PLACE);
-                OperationContext.action().setTelemetryProperty("ShowBlueIcon", String.valueOf(isActionTriggered));
                 GuidanceViewManager.getInstance().showCoursesView((Project) Objects.requireNonNull(azureModule.getProject()));
             }
         });

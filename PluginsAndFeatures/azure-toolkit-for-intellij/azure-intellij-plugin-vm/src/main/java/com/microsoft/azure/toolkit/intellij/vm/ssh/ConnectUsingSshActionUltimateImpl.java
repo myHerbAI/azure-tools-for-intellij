@@ -56,29 +56,35 @@ public class ConnectUsingSshActionUltimateImpl implements ConnectUsingSshAction 
         final SshTerminalCachingRunner runner = new SshTerminalCachingRunner(project, sshCredential, provider.getCharset());
         try {
             runner.connect();
-            AppUIUtil.invokeLaterIfProjectAlive(project, () -> {
-                final TerminalTabState tabState = new TerminalTabState();
-                tabState.myTabName = ssh.getName();
-                TerminalView.getInstance(project).createNewSession(runner, tabState);
-            });
+            AppUIUtil.invokeLaterIfProjectAlive(project, () -> createSshSession(project, ssh, runner));
         } catch (final RemoteSdkException e) {
             AzureMessager.getMessager().warning(e.getMessage(), SSH_CONNECTION_TITLE,
                     openSshConfigurationAction(project, sshCredential));
         }
     }
 
+    @AzureOperation(name = "vm.create_ssh_session_iu", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    private static void createSshSession(@Nonnull Project project, SshConfig ssh, SshTerminalCachingRunner runner) {
+        final TerminalTabState tabState = new TerminalTabState();
+        tabState.myTabName = ssh.getName();
+        TerminalView.getInstance(project).createNewSession(runner, tabState);
+    }
+
     private Action<?> openSshConfigurationAction(final @NotNull Project project, RemoteCredentials sshCredential) {
         final Action.Id<Void> id = Action.Id.of("vm.open_ssh_configuration");
-        return new Action<>(id, v -> AzureTaskManager.getInstance().runLater(() -> {
-            final SshConfigConfigurable configurable = new SshConfigConfigurable.Main(project);
-            ShowSettingsUtil.getInstance().editConfigurable(project, configurable, () -> {
-                try {
-                    MethodUtils.invokeMethod(configurable, true, "select", sshCredential);
-                } catch (final NoSuchMethodException | IllegalAccessException | InvocationTargetException e2) {
-                    AzureMessager.getMessager().error(e2);
-                }
-            });
-        }), new ActionView.Builder("Modify SSH Configuration"));
+        return new Action<>(id, v -> AzureTaskManager.getInstance().runLater(() -> openSshConfiguration(project, sshCredential)), new ActionView.Builder("Modify SSH Configuration"));
+    }
+
+    @AzureOperation(name = "vm.open_ssh_configuration", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    private static void openSshConfiguration(@Nonnull Project project, RemoteCredentials sshCredential) {
+        final SshConfigConfigurable configurable = new SshConfigConfigurable.Main(project);
+        ShowSettingsUtil.getInstance().editConfigurable(project, configurable, () -> {
+            try {
+                MethodUtils.invokeMethod(configurable, true, "select", sshCredential);
+            } catch (final NoSuchMethodException | IllegalAccessException | InvocationTargetException e2) {
+                AzureMessager.getMessager().error(e2);
+            }
+        });
     }
 
 }

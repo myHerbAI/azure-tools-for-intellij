@@ -108,10 +108,7 @@ public class AppServiceFileAction {
             .getFileContent(file.getPath())
             .doOnComplete(() -> AzureTaskManager.getInstance().runLater(() -> {
                 final VirtualFile virtualFile = VirtualFileActions.createVirtualFile(file.getId(), file.getFullName(), temp, fileEditorManager);
-                if (!VirtualFileActions.openFileInEditor(virtualFile, onSave, onClose, fileEditorManager)) {
-                    final String failure = String.format("Can not open file (%s). Try downloading it first and open it manually.", file.getName());
-                    Messages.showWarningDialog(failure, "Open File");
-                }
+                VirtualFileActions.openFileInEditor(virtualFile, onSave, onClose, fileEditorManager);
             }, AzureTask.Modality.NONE))
             .doAfterTerminate(() -> IOUtils.closeQuietly(output, null))
             .subscribe(bytes -> {

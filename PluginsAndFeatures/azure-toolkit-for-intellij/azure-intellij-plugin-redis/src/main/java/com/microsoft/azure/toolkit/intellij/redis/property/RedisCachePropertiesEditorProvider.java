@@ -30,7 +30,7 @@ public class RedisCachePropertiesEditorProvider implements FileEditorProvider, D
     @Nonnull
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "redis.create_properties_editor", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "redis.create_properties_editor.redis", params = {"virtualFile.getName()"}, type = AzureOperation.Type.ACTION, target = AzureOperation.Target.PLATFORM)
     public FileEditor createEditor(@Nonnull Project project, @Nonnull VirtualFile virtualFile) {
         final RedisCache redis = (RedisCache) virtualFile.getUserData(AzureResourceEditorViewManager.AZURE_RESOURCE_KEY);
         assert redis != null;

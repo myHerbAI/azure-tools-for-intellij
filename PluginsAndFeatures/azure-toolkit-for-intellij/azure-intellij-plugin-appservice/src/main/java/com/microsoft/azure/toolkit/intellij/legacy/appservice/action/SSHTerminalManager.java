@@ -7,7 +7,9 @@ package com.microsoft.azure.toolkit.intellij.legacy.appservice.action;
 
 import com.jediterm.terminal.TerminalDataStream;
 import com.jediterm.terminal.emulator.Emulator;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -53,12 +55,17 @@ public enum SSHTerminalManager {
             while ((shellTerminalWidget.getTerminalStarter() == null) && count++ < 200) {
                 Thread.sleep(100);
             }
-            shellTerminalWidget.executeCommand(String.format(CMD_SSH_TO_LOCAL_PROXY, connectionInfo.getUsername(), connectionInfo.getPort()));
-            waitForInputPassword(shellTerminalWidget, 30000);
-            shellTerminalWidget.executeCommand(connectionInfo.getPassword());
+            doOpenTerminal(shellTerminalWidget, connectionInfo);
         } catch (IOException | InterruptedException | IllegalAccessException e) {
-            AzureMessager.getMessager().error(SSH_INTO_WEB_APP_ERROR_MESSAGE, SSH_INTO_WEB_APP_ERROR_DIALOG_TITLE);
+            throw new AzureToolkitRuntimeException(e);
         }
+    }
+
+    @AzureOperation(name = "appservice.open_ssh_terminal", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    private void doOpenTerminal(ShellTerminalWidget shellTerminalWidget, CreateRemoteConnectionInfo connectionInfo) throws IOException, IllegalAccessException {
+        shellTerminalWidget.executeCommand(String.format(CMD_SSH_TO_LOCAL_PROXY, connectionInfo.getUsername(), connectionInfo.getPort()));
+        waitForInputPassword(shellTerminalWidget, 30000);
+        shellTerminalWidget.executeCommand(connectionInfo.getPassword());
     }
 
     private void waitForInputPassword(ShellTerminalWidget shellTerminalWidget, int timeout) throws IllegalAccessException {

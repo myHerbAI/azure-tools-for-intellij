@@ -11,7 +11,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -43,9 +42,11 @@ import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.Consumer;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -283,7 +284,7 @@ public class IDEHelperImpl implements IDEHelper {
 
     public void openLinkInBrowser(@NotNull String url) {
         try {
-            BrowserUtil.browse(url);
+            AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(url);
         } catch (final Exception e) {
             DefaultLoader.getUIHelper().showException("Unexpected exception: " + e.getMessage(), e, "Browse Web App", true, false);
             DefaultLoader.getUIHelper().logError("Unexpected exception: " + e.getMessage(), e);

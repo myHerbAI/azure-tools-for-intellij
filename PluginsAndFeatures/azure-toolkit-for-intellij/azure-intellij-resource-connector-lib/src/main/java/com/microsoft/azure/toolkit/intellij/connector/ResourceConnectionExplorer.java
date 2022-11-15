@@ -127,7 +127,7 @@ public class ResourceConnectionExplorer extends Tree {
     public static class ToolWindowOpener implements ConnectionTopics.ConnectionChanged {
         @Override
         @ExceptionNotification
-        @AzureOperation(name = "connector.open_explorer", type = AzureOperation.Type.ACTION)
+        @AzureOperation(name = "connector.open_explorer", type = AzureOperation.Type.TASK)
         public void connectionChanged(Project project, Connection<?, ?> connection, ConnectionTopics.Action change) {
             final com.intellij.openapi.wm.ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowFactory.ID);
             assert toolWindow != null;

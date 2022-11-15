@@ -20,7 +20,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -46,6 +46,7 @@ public class TriggerFunctionAction {
     private static final String EMPTY_CONTENT = "{}";
     private static final String INPUT_CONTENT = "{ \"input\" : \"test\" }";
 
+    @AzureOperation(name = "function.trigger_with_http_client.function", params = {"functionEntity.getName()"},type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
     public static void triggerFunction(@Nonnull FunctionEntity functionEntity, @Nonnull Project project) {
         try {
             final ResourceId resourceId = ResourceId.fromString(functionEntity.getTriggerId());
@@ -57,15 +58,11 @@ public class TriggerFunctionAction {
                     .filter(editor -> editor instanceof TextEditor && StringUtils.equals(editor.getFile().getPath(), file.getPath()))
                     .map(editor -> (TextEditor) editor)
                     .findFirst().orElse(null);
-            if (file != null) {
-                final Document document = textEditor.getEditor().getDocument();
-                if (StringUtils.isEmpty(document.getText())) {
-                    WriteAction.run(() -> document.setText(getRequestContent(functionEntity)));
-                }
-            } else {
-                AzureMessager.getMessager().warning("Failed to open http client to send requests");
+            final Document document = textEditor.getEditor().getDocument();
+            if (StringUtils.isEmpty(document.getText())) {
+                WriteAction.run(() -> document.setText(getRequestContent(functionEntity)));
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
         }
     }

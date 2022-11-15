@@ -30,7 +30,7 @@ public class SqlServerPropertiesEditorProvider implements FileEditorProvider, Du
     @Nonnull
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "sqlserver.create_server_properties_editor", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "sqlserver.create_server_properties_editor.server", params = {"virtualFile.getName()"}, type = AzureOperation.Type.ACTION, target = AzureOperation.Target.PLATFORM)
     public FileEditor createEditor(@Nonnull Project project, @Nonnull VirtualFile virtualFile) {
         final MicrosoftSqlServer server = (MicrosoftSqlServer) virtualFile.getUserData(AzureResourceEditorViewManager.AZURE_RESOURCE_KEY);
         assert server != null;

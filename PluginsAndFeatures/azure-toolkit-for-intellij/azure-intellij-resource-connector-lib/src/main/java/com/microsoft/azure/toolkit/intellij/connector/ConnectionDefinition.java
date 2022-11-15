@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.connector;
 
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -23,6 +24,8 @@ import java.util.Objects;
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ConnectionDefinition<R, C> {
+    private static final ExtensionPointName<ConnectionProvider> exPoints =
+            ExtensionPointName.create("com.microsoft.tooling.msservices.intellij.azure.connectionProvider");
     @Nonnull
     @EqualsAndHashCode.Include
     private final ResourceDefinition<R> resourceDefinition;
@@ -45,7 +48,12 @@ public class ConnectionDefinition<R, C> {
      */
     @Nonnull
     public Connection<R, C> define(Resource<R> resource, Resource<C> consumer) {
-        return new Connection<>(resource, consumer, this);
+        // todo: @Miller @hanli get connection provider by connection type, eg: Java, Csharp...
+        return getConnectionProvider().define(resource, consumer, this);
+    }
+
+    private ConnectionProvider getConnectionProvider() {
+        return exPoints.getExtensionList().stream().findFirst().orElse(Connection::new);
     }
 
     /**

@@ -35,11 +35,16 @@ public class ConnectUsingSshActionCommunityImpl implements ConnectUsingSshAction
             final ShellTerminalWidget shellTerminalWidget = terminalView.createLocalShellWidget(null, terminalTitle);
             try {
                 // create ssh connection in terminal
-                shellTerminalWidget.executeCommand(String.format(CMD_SSH_KEY_PAIR, vm.getAdminUserName(), vm.getHostIp()));
+                openTerminal(vm, shellTerminalWidget);
             } catch (final IOException e) {
                 AzureMessager.getMessager().error(e);
             }
         });
+    }
+
+    @AzureOperation(name = "vm.create_ssh_session_ic", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    private static void openTerminal(VirtualMachine vm, ShellTerminalWidget shellTerminalWidget) throws IOException {
+        shellTerminalWidget.executeCommand(String.format(CMD_SSH_KEY_PAIR, vm.getAdminUserName(), vm.getHostIp()));
     }
 
 }

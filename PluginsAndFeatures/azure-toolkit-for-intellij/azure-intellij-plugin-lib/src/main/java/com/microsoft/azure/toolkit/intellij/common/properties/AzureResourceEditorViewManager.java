@@ -13,6 +13,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.LightVirtualFile;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -45,15 +46,25 @@ public class AzureResourceEditorViewManager {
         }
         itemVirtualFile.putUserData(AZURE_RESOURCE_KEY, resource);
         itemVirtualFile.putUserData(AZURE_RESOURCE_EDITOR_MANAGER_KEY, this);
-        AzureTaskManager.getInstance().runLater(() -> manager.openFile(itemVirtualFile, true, true));
+        AzureTaskManager.getInstance().runLater(() -> openFile(manager, itemVirtualFile));
     }
 
     public void closeEditor(@Nonnull AzResourceBase resource, @Nonnull Project project) {
         final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
         final LightVirtualFile file = searchOpenedFile(fileEditorManager, resource);
         if (file != null) {
-            AzureTaskManager.getInstance().runLater(() -> fileEditorManager.closeFile(file));
+            AzureTaskManager.getInstance().runLater(() -> closeFile(fileEditorManager, file));
         }
+    }
+
+    @AzureOperation(name = "common.open_properties_editor.file", params = {"file.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    private static void openFile(FileEditorManager manager, LightVirtualFile file) {
+        manager.openFile(file, true, true);
+    }
+
+    @AzureOperation(name = "common.close_properties_editor.file", params = {"file.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    private static void closeFile(FileEditorManager fileEditorManager, LightVirtualFile file) {
+        fileEditorManager.closeFile(file);
     }
 
     @Nullable

@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.legacy.appservice;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.project.Project;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.jetbrains.annotations.NotNull;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
@@ -40,6 +41,7 @@ public class AppServiceStreamingLogConsoleView extends ConsoleViewImpl {
         }
     }
 
+    @AzureOperation(name = "appservice.close_log_streaming", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
     public void closeStreamingLog() {
         if (isActive()) {
             subscription.dispose();

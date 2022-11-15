@@ -51,6 +51,12 @@ public class CosmosSQLContainerCreationDialog extends AzureDialog<SqlContainerDr
         txtContainerId.addValidator(this::validateContainerId);
         txtPartitionKey.setRequired(true);
         txtPartitionKey.addValidator(this::validatePartitionKey);
+        txtPartitionKey.addValueChangedListener(value -> {
+            if (!StringUtils.startsWith(value, "/")) {
+                txtPartitionKey.setValue("/" + value);
+                txtPartitionKey.setCaretPosition(value.length() + 1);
+            }
+        });
         pnlThroughput.setVisible(chkDedicatedThroughput.isSelected());
         chkDedicatedThroughput.addItemListener(e -> pnlThroughput.setVisible(chkDedicatedThroughput.isSelected()));
 
@@ -64,7 +70,7 @@ public class CosmosSQLContainerCreationDialog extends AzureDialog<SqlContainerDr
             return AzureValidationInfo.builder().input(txtContainerId).type(AzureValidationInfo.Type.ERROR).message("Container ID cannot be empty.").build();
         } else if (!value.matches(CONTAINER_ID_PATTERN)) {
             return AzureValidationInfo.error("Container names can only contain lowercase letters, numbers, or the dash (-) character, " +
-                    "it should between 3 and 63 characters long and must start with a lowercase letter or number", txtPartitionKey);
+                    "it should between 3 and 63 characters long and must start with a lowercase letter or number", txtContainerId);
         }
         final SqlContainer sqlContainer = database.containers().get(value, database.getResourceGroupName());
         if (sqlContainer != null) {
@@ -75,7 +81,7 @@ public class CosmosSQLContainerCreationDialog extends AzureDialog<SqlContainerDr
 
     private AzureValidationInfo validatePartitionKey() {
         final String value = txtPartitionKey.getValue();
-        if (StringUtils.isEmpty(value)) {
+        if (StringUtils.isEmpty(value) || StringUtils.equalsIgnoreCase(value, "/")) {
             return AzureValidationInfo.error("Partition key should not be empty", txtPartitionKey);
         } else if (!value.matches(PARTITION_KEY_PATTERN)) {
             return AzureValidationInfo.error("Partition key path accepts alphanumeric and underscore (_) characters. " +

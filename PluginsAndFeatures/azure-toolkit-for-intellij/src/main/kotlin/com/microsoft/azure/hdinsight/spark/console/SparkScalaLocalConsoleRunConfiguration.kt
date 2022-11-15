@@ -119,7 +119,9 @@ class SparkScalaLocalConsoleRunConfiguration(
 
         // Check repl dependence and prompt the user to fix it
         checkReplDependenceAndTryToFix(replLibraryCoord)
-        params.classPath.addAll(getDependencyClassPaths(replLibraryCoord))
+        val replClassPath = getDependencyClassPaths(replLibraryCoord)
+        if (replClassPath != null)
+            params.classPath.addAll(replClassPath)
 
         // Workaround for Spark 2.3 jline issue, refer to:
         // - https://github.com/Microsoft/azure-tools-for-java/issues/2285
@@ -128,7 +130,9 @@ class SparkScalaLocalConsoleRunConfiguration(
         if (getLibraryByCoord(jlineLibraryCoord) == null) {
             promptAndFix(jlineLibraryCoord)
         }
-        params.classPath.addAll(getDependencyClassPaths(jlineLibraryCoord))
+        val jlineClassPath = getDependencyClassPaths(jlineLibraryCoord)
+        if (jlineClassPath != null)
+            params.classPath.addAll(jlineClassPath)
 
         params.classPath.addAll(localRunParams.classPath.pathList)
         params.mainClass = mainClass
@@ -150,12 +154,9 @@ class SparkScalaLocalConsoleRunConfiguration(
         return params
     }
 
-    private fun getDependencyClassPaths(libraryCoord: String): List<String> {
-        val library = getLibraryByCoord(libraryCoord) ?: throw ExecutionException("""
-                The library $libraryCoord is not in project dependencies, please add it as the top one of list.
-                ( Refer to https://www.jetbrains.com/help/idea/library.html#add-library-to-module-dependencies )
-                """.trimIndent())
-
+    private fun getDependencyClassPaths(libraryCoord: String): List<String>? {
+        val library = getLibraryByCoord(libraryCoord)
+        if (library==null)return library
         return library.getFiles(OrderRootType.CLASSES).map { it.presentableUrl }
     }
 

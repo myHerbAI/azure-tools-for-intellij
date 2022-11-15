@@ -2,6 +2,7 @@
     <extensionPoints>
         <extensionPoint name="connectorResourceType" interface="com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition"/>
         <extensionPoint name="connectorConnectionType" interface="com.microsoft.azure.toolkit.intellij.connector.ConnectionDefinition"/>
+        <extensionPoint name="connectionProvider" interface="com.microsoft.azure.toolkit.intellij.connector.ConnectionProvider"/>
     </extensionPoints>
     <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
         <connectorResourceType implementation="com.microsoft.azure.toolkit.intellij.connector.ModuleResource$Definition"/>

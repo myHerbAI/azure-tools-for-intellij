@@ -20,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang3.StringUtils;
 
@@ -68,21 +69,28 @@ public class KubernetesUtils {
             return;
         }
         final DataContext context = dataId -> CommonDataKeys.PROJECT.getName().equals(dataId) ? project : null;
-        AzureTaskManager.getInstance().runLater(() -> {
-            ActionUtil.invokeAction(action, context, "KubernetesNotification", null, null);
-            toolWindow.activate(null);
-        });
+        AzureTaskManager.getInstance().runLater(() -> doCallK8sPlugin(action, toolWindow, context));
+    }
+
+    @AzureOperation(name = "kubernetes.open_in_k8s_plugin", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    private static void doCallK8sPlugin(AnAction action, ToolWindow toolWindow, DataContext context) {
+        ActionUtil.invokeAction(action, context, "KubernetesNotification", null, null);
+        toolWindow.activate(null);
     }
 
     private static Action<?> getRecommendKubernetesPluginAction(@Nonnull final Project project) {
-        final Consumer<Void> consumer = ignore -> AzureTaskManager.getInstance().runLater(() ->
-                ShowSettingsUtil.getInstance().editConfigurable(null, new PluginManagerConfigurable(), it ->
-                        it.openMarketplaceTab("/tag: \"Cloud\" Kubernetes")
-                ));
+        final Consumer<Void> consumer = ignore -> AzureTaskManager.getInstance().runLater(KubernetesUtils::searchK8sPlugin);
         final ActionView.Builder view = new ActionView.Builder("Install kubernetes plugin")
                 .title(ignore -> AzureString.fromString("Install kubernetes plugin")).enabled(ignore -> true);
         final Action.Id<Void> id = Action.Id.of("kubernetes.install_kubernetes_plugin");
         return new Action<>(id, consumer, view);
+    }
+
+    @AzureOperation(name = "kubernetes.search_k8s_plugin", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    private static void searchK8sPlugin() {
+        ShowSettingsUtil.getInstance().editConfigurable(null, new PluginManagerConfigurable(), it ->
+            it.openMarketplaceTab("/tag: \"Cloud\" Kubernetes")
+        );
     }
 
     @Nullable

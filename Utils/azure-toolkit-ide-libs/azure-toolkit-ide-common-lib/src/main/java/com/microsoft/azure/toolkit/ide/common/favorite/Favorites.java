@@ -29,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -37,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.File;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -117,6 +119,7 @@ public class Favorites extends AbstractAzResourceModule<Favorite, AzResource.Non
 
     @Override
     @SneakyThrows
+    @AzureOperation(name = "favorite.delete_favorite", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
     protected void deleteResourceFromAzure(@Nonnull String favoriteId) {
         final String resourceId = URLDecoder.decode(ResourceId.fromString(favoriteId).name(), StandardCharsets.UTF_8.name());
         this.favorites.remove(resourceId.toLowerCase());
@@ -160,12 +163,15 @@ public class Favorites extends AbstractAzResourceModule<Favorite, AzResource.Non
         return this.favorites.contains(resourceId.toLowerCase());
     }
 
+
+    @AzureOperation(name = "favorite.unpin_all", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
     public void unpinAll() {
         this.clear();
         this.persist();
         this.refresh();
     }
 
+    @AzureOperation(name = "favorite.add_favorite", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
     public synchronized void pin(@Nonnull AbstractAzResource<?, ?, ?> resource) {
         if (this.exists(resource.getId())) {
             final String message = String.format("%s '%s' is already pinned.", resource.getResourceTypeName(), resource.getName());

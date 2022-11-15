@@ -37,7 +37,7 @@ public class ThroughputConfigPanel implements AzureForm<ThroughputConfig> {
         autoScaleRadioButton.addItemListener(e -> toggleThroughputStatus());
         manualRadioButton.addItemListener(e -> toggleThroughputStatus());
         txtThroughputRu.setMinValue(400);
-        txtThroughputRu.setMaxValue(1000000);
+        txtThroughputRu.setMaxValue(999999);
         txtThroughputRu.setValue(400);
         txtThroughputRu.addValidator(() -> validateThroughputIncrements(txtThroughputRu, 100));
         txtMaxThroughput.setMinValue(1000);

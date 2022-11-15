@@ -102,11 +102,7 @@ public class DockerUtil {
     /**
      * Push image to a private registry.
      */
-    @AzureOperation(
-        name = "docker.push_image.image|registry",
-        params = {"targetImageName", "registryUrl"},
-        type = AzureOperation.Type.TASK
-    )
+    @AzureOperation(name = "docker.push_image.image|registry", params = {"targetImageName", "registryUrl"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
     public static void pushImage(DockerClient dockerClient, String registryUrl, String registryUsername,
                                  String registryPassword, String targetImageName,
                                  ProgressHandler handler)

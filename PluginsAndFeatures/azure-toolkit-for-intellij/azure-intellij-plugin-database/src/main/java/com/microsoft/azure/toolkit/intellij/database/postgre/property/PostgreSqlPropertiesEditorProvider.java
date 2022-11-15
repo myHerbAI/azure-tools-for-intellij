@@ -30,7 +30,7 @@ public class PostgreSqlPropertiesEditorProvider implements FileEditorProvider, D
     @Nonnull
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "postgre.create_server_properties_editor", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "postgre.create_server_properties_editor.server", params = {"virtualFile.getName()"}, type = AzureOperation.Type.ACTION, target = AzureOperation.Target.PLATFORM)
     public FileEditor createEditor(@Nonnull Project project, @Nonnull VirtualFile virtualFile) {
         final PostgreSqlServer postgreSql = (PostgreSqlServer) virtualFile.getUserData(AzureResourceEditorViewManager.AZURE_RESOURCE_KEY);
         assert postgreSql != null;

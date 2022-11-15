@@ -2,9 +2,9 @@ intellij {
 }
 
 dependencies {
-    compile project(':azure-intellij-plugin-lib')
-    compile project(':azure-intellij-resource-connector-lib')
-    compile 'com.microsoft.azure:azure-toolkit-ide-common-lib'
-    compile 'org.eclipse.jgit:org.eclipse.jgit:6.1.0.202203080745-r'
-    compile 'org.yaml:snakeyaml:1.30'
+    implementation project(':azure-intellij-plugin-lib')
+    implementation project(':azure-intellij-resource-connector-lib')
+    implementation 'com.microsoft.azure:azure-toolkit-ide-common-lib'
+    implementation 'org.eclipse.jgit:org.eclipse.jgit:6.1.0.202203080745-r'
+    implementation 'org.yaml:snakeyaml:1.30'
 }

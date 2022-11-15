@@ -80,7 +80,7 @@ abstract class RunSparkScalaConsoleAction
 
             val batchConfigurationType = SelectSparkApplicationTypeAction.getRunConfigurationType()
             if (batchConfigurationType == null) {
-                val action = ActionManagerEx.getInstance().getAction(selectedMenuActionId)
+                val action = ActionManagerEx.getInstanceEx().getAction(selectedMenuActionId)
                 action?.actionPerformed(event)
                 operation?.complete()
                 return false

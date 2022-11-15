@@ -69,7 +69,7 @@ public class AzureVmTargetType extends TargetEnvironmentType<AzureVmTargetEnviro
     @Nullable
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "vm.open_create_run_target_dialog", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "vm.open_create_run_target_dialog", type = AzureOperation.Type.ACTION, target = AzureOperation.Target.PLATFORM)
     @SuppressWarnings("KotlinInternalInJava")
     public List<AbstractWizardStepEx> createStepsForNewWizard(@Nonnull Project project, @Nonnull AzureVmTargetEnvironmentConfiguration config, @Nullable LanguageRuntimeType<?> runtimeType) {
         final boolean isCustomToolConfiguration = runtimeType instanceof CustomToolLanguageRuntimeType;
@@ -118,14 +118,14 @@ public class AzureVmTargetType extends TargetEnvironmentType<AzureVmTargetEnviro
     @Nonnull
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "vm.create_environment_request", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "vm.create_environment_request", type = AzureOperation.Type.ACTION, target = AzureOperation.Target.PLATFORM)
     @SuppressWarnings("UnstableApiUsage")
     public TargetEnvironmentRequest createEnvironmentRequest(@Nonnull Project project, @Nonnull AzureVmTargetEnvironmentConfiguration config) {
         return new SshRemoteEnvironmentRequest(project, config, new TargetPlatform(Platform.UNIX));
     }
 
     @Override
-    public @NotNull <T extends Component> ActionListener createBrowser(@NotNull Project project, @NlsContexts.DialogTitle String title, @NotNull TextComponentAccessor<T> textComponentAccessor, @NotNull T component, @NotNull Supplier<TargetEnvironmentConfiguration> configurationSupplier) {
+    public @NotNull <T extends Component> ActionListener createBrowser(@NotNull Project project, @NlsContexts.DialogTitle String title, @NotNull TextComponentAccessor<T> textComponentAccessor, @NotNull T component, @NotNull Supplier<? extends TargetEnvironmentConfiguration> configurationSupplier) {
         return new ActionListener() {
             public final void actionPerformed(ActionEvent it) {
                 final TargetEnvironmentConfiguration configuration = configurationSupplier.get();
