@@ -29,8 +29,8 @@ public class MySqlActionsContributor implements IActionsContributor {
     public static final String SERVER_ACTIONS = "actions.mysql.server";
 
     private static final String NAME_PREFIX = "MySQL Server - %s";
-    public static final Action.Id<AzResource> OPEN_DATABASE_TOOL = Action.Id.of("mysql.open_database_tool");
-    public static final Action.Id<ResourceGroup> GROUP_CREATE_MYSQL = Action.Id.of("group.create_mysql_server");
+    public static final Action.Id<AzResource> OPEN_DATABASE_TOOL = Action.Id.of("mysql.open_database_tools.server");
+    public static final Action.Id<ResourceGroup> GROUP_CREATE_MYSQL = Action.Id.of("mysql.create_server.group");
 
     @Override
     public void registerActions(AzureActionManager am) {
@@ -39,12 +39,12 @@ public class MySqlActionsContributor implements IActionsContributor {
             .enabled(s -> s instanceof MySqlServer && ((AzResourceBase) s).getFormalStatus().isRunning());
         final Action<AzResource> action = new Action<>(OPEN_DATABASE_TOOL, openDatabaseTool);
         action.setShortcuts("control alt D");
-        am.registerAction(OPEN_DATABASE_TOOL, action);
+        am.registerAction(action);
 
         final ActionView.Builder createServerView = new ActionView.Builder("MySQL server")
             .title(s -> Optional.ofNullable(s).map(r -> description("mysql.create_server.group", ((ResourceGroup) r).getName())).orElse(null))
             .enabled(s -> s instanceof ResourceGroup && ((ResourceGroup) s).getFormalStatus().isConnected());
-        am.registerAction(GROUP_CREATE_MYSQL, new Action<>(GROUP_CREATE_MYSQL, createServerView));
+        am.registerAction(new Action<>(GROUP_CREATE_MYSQL, createServerView));
     }
 
     public int getOrder() {

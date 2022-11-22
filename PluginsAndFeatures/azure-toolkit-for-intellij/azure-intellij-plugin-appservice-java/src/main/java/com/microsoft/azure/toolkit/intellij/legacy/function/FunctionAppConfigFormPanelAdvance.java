@@ -89,8 +89,8 @@ public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFo
         // Function does not support file deployment
         appServiceConfigPanelAdvanced.setDeploymentVisible(false);
         insightsConfig = ApplicationInsightsConfig.builder().newCreate(true)
-                                                  .name(appServiceConfigPanelAdvanced.getTextName().getValue())
-                                                  .build();
+                .name(appServiceConfigPanelAdvanced.getTextName().getValue())
+                .build();
 
         appServiceMonitorPanel = new AppServiceMonitorPanel(project);
         appServiceMonitorPanel.setWebServerLogEnabled(false);
@@ -104,5 +104,8 @@ public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFo
                     .map(Runtime::getOperatingSystem).orElse(null);
             appServiceMonitorPanel.setApplicationLogVisible(operatingSystem == OperatingSystem.WINDOWS);
         });
+
+        appServiceConfigPanelAdvanced.getSelectorRegion().addItemListener(event ->
+                appServiceMonitorPanel.getApplicationInsightsComboBox().setRegion(appServiceConfigPanelAdvanced.getValue().getRegion()));
     }
 }

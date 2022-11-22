@@ -24,7 +24,7 @@ public class EclipseActionsContributor implements IActionsContributor {
 
     @Override
     public void registerActions(AzureActionManager am) {
-        am.registerAction(Action.REQUIRE_AUTH, new Action<>(Action.REQUIRE_AUTH, (Runnable r, Object e) -> {
+        am.registerAction(new Action<>(Action.REQUIRE_AUTH, (Runnable r, Object e) -> {
             AzureTaskManager.getInstance().runLater(() -> {
                 SignInCommandHandler.requireSignedIn(PluginUtil.getParentShell(), r);
             });

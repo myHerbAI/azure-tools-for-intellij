@@ -44,9 +44,9 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
@@ -74,23 +74,23 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
             .getInstance().runLater(() -> new AppServiceFileAction().openAppServiceFile(file, e.getProject()));
         final ActionView.Builder openFileView = new ActionView.Builder("Open File", null)
             .title(s -> Optional.ofNullable(s)
-                .map(r -> AzureString.format("appservice|file.download", ((AppServiceFile) r).getName()))
+                .map(r -> OperationBundle.description("appservice.open_file.file", ((AppServiceFile) r).getName()))
                 .orElse(null))
             .enabled(s -> s instanceof AppServiceFile);
         final Action<AppServiceFile> openFileAction = new Action<>(APP_SERVICE_FILE_VIEW, openFileHandler, openFileView);
         openFileAction.setShortcuts(am.getIDEDefaultShortcuts().edit());
-        am.registerAction(APP_SERVICE_FILE_VIEW, openFileAction);
+        am.registerAction(openFileAction);
 
         final BiConsumer<AppServiceFile, AnActionEvent> downloadFileHandler = (file, e) -> AzureTaskManager
             .getInstance().runLater(() -> new AppServiceFileAction().saveAppServiceFile(file, e.getProject(), null));
         final ActionView.Builder downloadFileView = new ActionView.Builder("Download", null)
             .title(s -> Optional.ofNullable(s)
-                .map(r -> AzureString.format("appservice|file.download", ((AppServiceFile) r).getName()))
+                .map(r -> OperationBundle.description("appservice.download_file.file", ((AppServiceFile) r).getName()))
                 .orElse(null))
             .enabled(s -> s instanceof AppServiceFile);
         final Action<AppServiceFile> downloadFileAction = new Action<>(APP_SERVICE_FILE_DOWNLOAD, downloadFileHandler, downloadFileView);
         downloadFileAction.setShortcuts("control alt D");
-        am.registerAction(APP_SERVICE_FILE_DOWNLOAD, downloadFileAction);
+        am.registerAction(downloadFileAction);
     }
 
     @Override

@@ -29,8 +29,8 @@ public class SqlServerActionsContributor implements IActionsContributor {
     public static final String SERVER_ACTIONS = "actions.sqlserver.server";
 
     private static final String NAME_PREFIX = "SqlServer Server - %s";
-    public static final Action.Id<AzResource> OPEN_DATABASE_TOOL = Action.Id.of("sqlserver.open_database_tool");
-    public static final Action.Id<ResourceGroup> GROUP_CREATE_SQLSERVER = Action.Id.of("group.create_sqlserver");
+    public static final Action.Id<AzResource> OPEN_DATABASE_TOOL = Action.Id.of("sqlserver.open_database_tools.server");
+    public static final Action.Id<ResourceGroup> GROUP_CREATE_SQLSERVER = Action.Id.of("sqlserver.create_server.group");
 
     @Override
     public void registerActions(AzureActionManager am) {
@@ -39,12 +39,12 @@ public class SqlServerActionsContributor implements IActionsContributor {
             .enabled(s -> s instanceof MicrosoftSqlServer && ((AzResourceBase) s).getFormalStatus().isRunning());
         final Action<AzResource> action = new Action<>(OPEN_DATABASE_TOOL, openDatabaseTool);
         action.setShortcuts("control alt D");
-        am.registerAction(OPEN_DATABASE_TOOL, action);
+        am.registerAction(action);
 
         final ActionView.Builder createServerView = new ActionView.Builder("SQL Server")
             .title(s -> Optional.ofNullable(s).map(r -> description("sqlserver.create_server.group", ((ResourceGroup) r).getName())).orElse(null))
             .enabled(s -> s instanceof ResourceGroup && ((ResourceGroup) s).getFormalStatus().isConnected());
-        am.registerAction(GROUP_CREATE_SQLSERVER, new Action<>(GROUP_CREATE_SQLSERVER, createServerView));
+        am.registerAction(new Action<>(GROUP_CREATE_SQLSERVER, createServerView));
     }
 
     public int getOrder() {

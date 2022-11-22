@@ -26,11 +26,11 @@ public class DeploymentActionsContributor implements IActionsContributor {
     public static final String DEPLOYMENT_ACTIONS = "actions.resourceDeployments.deployment";
     public static final String DEPLOYMENTS_ACTIONS = "actions.resourceDeployments.deployments";
 
-    public static final Action.Id<ResourceDeployment> EDIT = Action.Id.of("arm.edit_deployment");
-    public static final Action.Id<ResourceDeployment> UPDATE = Action.Id.of("arm.update_deployment");
-    public static final Action.Id<ResourceDeployment> EXPORT_TEMPLATE = Action.Id.of("arm.export_template");
-    public static final Action.Id<ResourceDeployment> EXPORT_PARAMETER = Action.Id.of("arm.export_parameter");
-    public static final Action.Id<ResourceGroup> GROUP_CREATE_DEPLOYMENT = Action.Id.of("group.create_arm_deployment");
+    public static final Action.Id<ResourceDeployment> EDIT = Action.Id.of("arm.edit_deployment.deployment");
+    public static final Action.Id<ResourceDeployment> UPDATE = Action.Id.of("arm.update_deployment.deployment");
+    public static final Action.Id<ResourceDeployment> EXPORT_TEMPLATE = Action.Id.of("arm.export_template.deployment");
+    public static final Action.Id<ResourceDeployment> EXPORT_PARAMETER = Action.Id.of("arm.export_parameter.deployment");
+    public static final Action.Id<ResourceGroup> GROUP_CREATE_DEPLOYMENT = Action.Id.of("arm.create_deployment.group");
 
     @Override
     public void registerActions(AzureActionManager am) {
@@ -51,15 +51,15 @@ public class DeploymentActionsContributor implements IActionsContributor {
         final Action<ResourceDeployment> exportParameterAction = new Action<>(EXPORT_PARAMETER, exportParameter);
         editAction.setShortcuts(am.getIDEDefaultShortcuts().view());
         exportTemplateAction.setShortcuts("control alt E");
-        am.registerAction(EDIT, editAction);
-        am.registerAction(UPDATE, new Action<>(UPDATE, updateDeployment));
-        am.registerAction(EXPORT_TEMPLATE, exportTemplateAction);
-        am.registerAction(EXPORT_PARAMETER, exportParameterAction);
+        am.registerAction(editAction);
+        am.registerAction(new Action<>(UPDATE, updateDeployment));
+        am.registerAction(exportTemplateAction);
+        am.registerAction(exportParameterAction);
 
         final ActionView.Builder createDeploymentView = new ActionView.Builder("Deployment")
             .title(s -> Optional.ofNullable(s).map(r -> description("arm.create_deployment.group", ((ResourceGroup) r).getName())).orElse(null))
             .enabled(s -> s instanceof ResourceGroup && ((ResourceGroup) s).getFormalStatus().isConnected());
-        am.registerAction(GROUP_CREATE_DEPLOYMENT, new Action<>(GROUP_CREATE_DEPLOYMENT, createDeploymentView));
+        am.registerAction(new Action<>(GROUP_CREATE_DEPLOYMENT, createDeploymentView));
     }
 
     @Override

@@ -60,11 +60,10 @@ public class IntellijAzureActionManager extends AzureActionManager {
         contributors.stream().sorted(Comparator.comparing(IActionsContributor::getOrder)).forEach((e) -> e.registerGroups(am));
     }
 
-    @Override
-    public <D> void registerAction(Action.Id<D> id, Action<D> action) {
+    public <D> void registerAction(Action<D> action) {
         final ActionManager manager = ActionManager.getInstance();
-        if (Objects.isNull(manager.getAction(id.getId()))) {
-            manager.registerAction(id.getId(), new AnActionWrapper<>(action));
+        if (Objects.isNull(manager.getAction(action.getId()))) {
+            manager.registerAction(action.getId(), new AnActionWrapper<>(action));
         }
     }
 

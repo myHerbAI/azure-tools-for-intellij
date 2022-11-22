@@ -26,32 +26,32 @@ public class VirtualMachineActionsContributor implements IActionsContributor {
     public static final String SERVICE_ACTIONS = "actions.vm.service";
     public static final String VM_ACTIONS = "actions.vm.management";
 
-    public static final Action.Id<VirtualMachine> ADD_SSH_CONFIG = Action.Id.of("vm.add_ssh_configuration");
-    public static final Action.Id<VirtualMachine> CONNECT_SSH = Action.Id.of("vm.connect_ssh");
-    public static final Action.Id<VirtualMachine> SFTP_CONNECTION =  Action.Id.of("vm.browse_files_sftp");
-    public static final Action.Id<ResourceGroup> GROUP_CREATE_VM = Action.Id.of("group.create_vm");
+    public static final Action.Id<VirtualMachine> ADD_SSH_CONFIG = Action.Id.of("vm.add_ssh_config.vm");
+    public static final Action.Id<VirtualMachine> CONNECT_SSH = Action.Id.of("vm.connect_using_ssh.vm");
+    public static final Action.Id<VirtualMachine> SFTP_CONNECTION =  Action.Id.of("vm.browse_files_sftp.vm");
+    public static final Action.Id<ResourceGroup> GROUP_CREATE_VM = Action.Id.of("vm.create_vm.group");
 
     @Override
     public void registerActions(AzureActionManager am) {
         final ActionView.Builder addSshConfigView = new ActionView.Builder("Edit SSH Configuration", AzureIcons.Action.ADD.getIconPath())
             .title(s -> Optional.ofNullable(s).map(r -> description("vm.add_ssh_config.vm", ((VirtualMachine) r).getName())).orElse(null))
             .enabled(s -> s instanceof VirtualMachine && ((VirtualMachine) s).getFormalStatus().isRunning());
-        am.registerAction(ADD_SSH_CONFIG, new Action<>(ADD_SSH_CONFIG, addSshConfigView));
+        am.registerAction(new Action<>(ADD_SSH_CONFIG, addSshConfigView));
 
         final ActionView.Builder connectSshView = new ActionView.Builder("Connect Using SSH", AzureIcons.Action.CONSOLE.getIconPath())
                 .title(s -> Optional.ofNullable(s).map(r -> description("vm.connect_using_ssh.vm", ((VirtualMachine) r).getName())).orElse(null))
                 .enabled(s -> s instanceof VirtualMachine && ((VirtualMachine) s).getFormalStatus().isRunning());
-        am.registerAction(CONNECT_SSH, new Action<>(CONNECT_SSH, connectSshView));
+        am.registerAction(new Action<>(CONNECT_SSH, connectSshView));
 
         final ActionView.Builder sftpConnectionView = new ActionView.Builder("Browse Files Using SFTP", AzureIcons.Action.SFTP.getIconPath())
                 .title(s -> Optional.ofNullable(s).map(r -> description("vm.browse_files_sftp.vm", ((VirtualMachine) r).getName())).orElse(null))
                 .enabled(s -> s instanceof VirtualMachine && ((VirtualMachine) s).getFormalStatus().isRunning());
-        am.registerAction(SFTP_CONNECTION, new Action<>(SFTP_CONNECTION, sftpConnectionView));
+        am.registerAction(new Action<>(SFTP_CONNECTION, sftpConnectionView));
 
         final ActionView.Builder createVmView = new ActionView.Builder("Virtual Machine")
             .title(s -> Optional.ofNullable(s).map(r -> description("vm.create_vm.group", ((ResourceGroup) r).getName())).orElse(null))
             .enabled(s -> s instanceof ResourceGroup && ((ResourceGroup) s).getFormalStatus().isConnected());
-        am.registerAction(GROUP_CREATE_VM, new Action<>(GROUP_CREATE_VM, createVmView));
+        am.registerAction(new Action<>(GROUP_CREATE_VM, createVmView));
     }
 
     @Override

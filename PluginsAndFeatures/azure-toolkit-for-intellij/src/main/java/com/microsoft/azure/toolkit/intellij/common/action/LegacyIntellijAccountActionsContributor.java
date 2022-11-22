@@ -42,7 +42,7 @@ public class LegacyIntellijAccountActionsContributor implements IActionsContribu
         final ActionView.Builder authzView = new ActionView.Builder("Authorize").title((s) -> authzTitle);
         final BiConsumer<Runnable, AnActionEvent> authzHandler = (Runnable r, AnActionEvent e) ->
             AzureSignInAction.requireSignedIn(Optional.ofNullable(e).map(AnActionEvent::getProject).orElse(null), r);
-        am.registerAction(Action.REQUIRE_AUTH, new Action<>(Action.REQUIRE_AUTH, authzHandler, authzView).setAuthRequired(false));
+        am.registerAction(new Action<>(Action.REQUIRE_AUTH, authzHandler, authzView).setAuthRequired(false));
 
         final AzureString authnTitle = OperationBundle.description("account.authenticate");
         final ActionView.Builder authnView = new ActionView.Builder("Sign in").title((s) -> authnTitle);
@@ -51,13 +51,13 @@ public class LegacyIntellijAccountActionsContributor implements IActionsContribu
             if (az.isLoggedIn()) az.logout();
             AzureSignInAction.authActionPerformed(e.getProject());
         };
-        am.registerAction(Action.AUTHENTICATE, new Action<>(Action.AUTHENTICATE, authnHandler, authnView).setAuthRequired(false));
+        am.registerAction(new Action<>(Action.AUTHENTICATE, authnHandler, authnView).setAuthRequired(false));
 
         final ActionView.Builder selectSubsView = new ActionView.Builder("Select Subscriptions", AzureIcons.Action.SELECT_SUBSCRIPTION.getIconPath())
             .title((s) -> authnTitle);
         final BiConsumer<Object, AnActionEvent> selectSubsHandler = (Object v, AnActionEvent e) ->
             SelectSubscriptionsAction.selectSubscriptions(e.getProject());
-        am.registerAction(IAccountActions.SELECT_SUBS, new Action<>(IAccountActions.SELECT_SUBS, selectSubsHandler, selectSubsView).setAuthRequired(true));
+        am.registerAction(new Action<>(IAccountActions.SELECT_SUBS, selectSubsHandler, selectSubsView).setAuthRequired(true));
     }
 
     @Override
@@ -72,9 +72,7 @@ public class LegacyIntellijAccountActionsContributor implements IActionsContribu
         };
         am.registerHandler(ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS, (i, e) -> true, openSettingsHandler);
 
-        final BiConsumer<Object, AnActionEvent> openAzureExplorer = (ignore, e) -> {
-            openAzureExplorer(e);
-        };
+        final BiConsumer<Object, AnActionEvent> openAzureExplorer = (ignore, e) -> openAzureExplorer(e);
         am.registerHandler(ResourceCommonActionsContributor.OPEN_AZURE_EXPLORER, (i, e) -> true, openAzureExplorer);
     }
 

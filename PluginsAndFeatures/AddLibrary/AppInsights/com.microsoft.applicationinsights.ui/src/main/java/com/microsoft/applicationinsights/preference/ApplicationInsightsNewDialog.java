@@ -328,7 +328,7 @@ public class ApplicationInsightsNewDialog extends TitleAreaDialog {
                     public void run() {
                         try {
                             ApplicationInsight resource = AzureSDKManager.createInsightsResource(currentSub,
-                                    resourceGroup, isNewGroup, name, location);
+                                    resourceGroup, isNewGroup, name, location, null);
                             resourceToAdd = new ApplicationInsightsResource(resource, currentSub, true);
                             if (onCreate != null) {
                                 onCreate.run();

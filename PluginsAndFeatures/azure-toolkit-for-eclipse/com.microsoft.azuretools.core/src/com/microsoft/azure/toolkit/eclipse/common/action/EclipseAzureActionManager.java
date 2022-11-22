@@ -86,8 +86,8 @@ public class EclipseAzureActionManager extends AzureActionManager {
     }
 
     @Override
-    public <D> void registerAction(Id<D> id, Action<D> action) {
-        final String actionId = ACTION_ID_PREFIX + id.getId();
+    public <D> void registerAction(Action<D> action) {
+        final String actionId = ACTION_ID_PREFIX + action.getId();
         Command command = cmdService.getCommand(actionId);
         if (command.isDefined()) {
             command.undefine();

@@ -26,8 +26,8 @@ public class RedisActionsContributor implements IActionsContributor {
 
     public static final String SERVICE_ACTIONS = "actions.redis.service";
     public static final String REDIS_ACTIONS = "actions.redis.instance";
-    public static final Action.Id<AzResource> OPEN_EXPLORER = Action.Id.of("redis.open_explorer");
-    public static final Action.Id<ResourceGroup> GROUP_CREATE_REDIS = Action.Id.of("group.create_redis");
+    public static final Action.Id<AzResource> OPEN_EXPLORER = Action.Id.of("redis.open_redis_explorer.redis");
+    public static final Action.Id<ResourceGroup> GROUP_CREATE_REDIS = Action.Id.of("redis.create_redis.group");
 
     @Override
     public void registerActions(AzureActionManager am) {
@@ -36,12 +36,12 @@ public class RedisActionsContributor implements IActionsContributor {
             .enabled(s -> s instanceof RedisCache && ((RedisCache) s).getFormalStatus().isRunning());
         final Action<AzResource> action = new Action<>(OPEN_EXPLORER, showExplorerView);
         action.setShortcuts(am.getIDEDefaultShortcuts().view());
-        am.registerAction(OPEN_EXPLORER, action);
+        am.registerAction(action);
 
         final ActionView.Builder createRedisView = new ActionView.Builder("Redis Cache")
             .title(s -> Optional.ofNullable(s).map(r -> description("redis.create_redis.group", ((ResourceGroup) r).getName())).orElse(null))
             .enabled(s -> s instanceof ResourceGroup && ((ResourceGroup) s).getFormalStatus().isConnected());
-        am.registerAction(GROUP_CREATE_REDIS, new Action<>(GROUP_CREATE_REDIS, createRedisView));
+        am.registerAction(new Action<>(GROUP_CREATE_REDIS, createRedisView));
     }
 
     @Override

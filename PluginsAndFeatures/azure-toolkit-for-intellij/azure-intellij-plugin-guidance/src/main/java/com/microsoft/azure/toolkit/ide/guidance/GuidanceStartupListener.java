@@ -2,6 +2,7 @@ package com.microsoft.azure.toolkit.ide.guidance;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
+import com.microsoft.azure.toolkit.ide.common.experiment.ExperimentationClient;
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
 import com.microsoft.azure.toolkit.ide.common.store.IIdeStore;
 import com.microsoft.azure.toolkit.ide.guidance.config.CourseConfig;

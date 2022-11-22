@@ -26,9 +26,9 @@ public class AppServiceFileActionsContributor implements IActionsContributor {
     public static final String APP_SERVICE_FILE_ACTIONS = "actions.appservice.file";
     public static final String APP_SERVICE_DIRECTORY_ACTIONS = "actions.appservice.directory";
 
-    public static final Action.Id<AppServiceFile> APP_SERVICE_DIRECTORY_REFRESH = Action.Id.of("appservice.refresh_directory");
-    public static final Action.Id<AppServiceFile> APP_SERVICE_FILE_VIEW = Action.Id.of("appservice.view_file");
-    public static final Action.Id<AppServiceFile> APP_SERVICE_FILE_DOWNLOAD = Action.Id.of("appservice.download_file");
+    public static final Action.Id<AppServiceFile> APP_SERVICE_DIRECTORY_REFRESH = Action.Id.of("appservice.refresh_directory.dir");
+    public static final Action.Id<AppServiceFile> APP_SERVICE_FILE_VIEW = Action.Id.of("appservice.open_file.file");
+    public static final Action.Id<AppServiceFile> APP_SERVICE_FILE_DOWNLOAD = Action.Id.of("appservice.download_file.file");
 
     @Override
     public void registerGroups(AzureActionManager am) {
@@ -48,11 +48,11 @@ public class AppServiceFileActionsContributor implements IActionsContributor {
     public void registerActions(AzureActionManager am) {
         final Consumer<AppServiceFile> refresh = file -> AzureEventBus.emit("resource.refreshed.resource", file);
         final ActionView.Builder refreshView = new ActionView.Builder("Refresh", AzureIcons.Action.REFRESH.getIconPath())
-                .title(s -> Optional.ofNullable(s).map(r -> description("resource.refresh.resource", ((AppServiceFile) r).getName())).orElse(null))
+                .title(s -> Optional.ofNullable(s).map(r -> description("appservice.refresh_directory.dir", ((AppServiceFile) r).getName())).orElse(null))
                 .enabled(s -> s instanceof AppServiceFile);
         final Action<AppServiceFile> action = new Action<>(APP_SERVICE_DIRECTORY_REFRESH, refresh, refreshView);
         action.setShortcuts(am.getIDEDefaultShortcuts().refresh());
-        am.registerAction(APP_SERVICE_DIRECTORY_REFRESH, action);
+        am.registerAction(action);
     }
 
     public int getOrder() {

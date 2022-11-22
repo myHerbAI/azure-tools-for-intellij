@@ -14,8 +14,8 @@ import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContri
 import com.microsoft.azure.toolkit.ide.database.sqlserver.SqlServerActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.action.IntellijActionsContributor;
 import com.microsoft.azure.toolkit.intellij.connector.ConnectorDialog;
-import com.microsoft.azure.toolkit.intellij.database.OpenInDatabaseToolsAction;
 import com.microsoft.azure.toolkit.intellij.database.connection.SqlDatabaseResource;
+import com.microsoft.azure.toolkit.intellij.database.dbtools.OpenWithDatabaseToolsAction;
 import com.microsoft.azure.toolkit.intellij.database.sqlserver.connection.SqlServerDatabaseResourceDefinition;
 import com.microsoft.azure.toolkit.intellij.database.sqlserver.creation.CreateSqlServerAction;
 import com.microsoft.azure.toolkit.intellij.database.sqlserver.creation.SqlServerCreationDialog;
@@ -25,13 +25,11 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
-import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.sqlserver.AzureSqlServer;
 import com.microsoft.azure.toolkit.lib.sqlserver.MicrosoftSqlServer;
 
 import javax.annotation.Nonnull;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
@@ -75,13 +73,7 @@ public class IntellijSqlServerActionsContributor implements IActionsContributor 
         if (PluginManagerCore.getPlugin(PluginId.findId(DATABASE_TOOLS_PLUGIN_ID)) == null) {
             throw new AzureToolkitRuntimeException(DATABASE_PLUGIN_NOT_INSTALLED, NOT_SUPPORT_ERROR_ACTION, IntellijActionsContributor.TRY_ULTIMATE);
         }
-        final OpenInDatabaseToolsAction.DatasourceProperties properties = OpenInDatabaseToolsAction.DatasourceProperties.builder()
-            .name(String.format(NAME_PREFIX, server.getName()))
-            .driverClassName(DEFAULT_DRIVER_CLASS_NAME)
-            .url(JdbcUrl.sqlserver(Objects.requireNonNull(server.getFullyQualifiedDomainName())).toString())
-            .username(server.getAdminName() + "@" + server.getName())
-            .build();
-        AzureTaskManager.getInstance().runLater(() -> OpenInDatabaseToolsAction.openDataSourceManagerDialog(project, properties));
+        AzureTaskManager.getInstance().runLater(() -> OpenWithDatabaseToolsAction.openDataSourceManagerDialog(server, project));
     }
 
     @Override

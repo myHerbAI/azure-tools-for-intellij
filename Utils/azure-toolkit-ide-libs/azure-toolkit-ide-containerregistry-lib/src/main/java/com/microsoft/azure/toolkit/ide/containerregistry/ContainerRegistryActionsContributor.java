@@ -23,14 +23,14 @@ public class ContainerRegistryActionsContributor implements IActionsContributor 
     public static final String SERVICE_ACTIONS = "actions.registry.service";
     public static final String REGISTRY_ACTIONS = "actions.registry.registry";
 
-    public static final Action.Id<ContainerRegistry> PUSH_IMAGE = Action.Id.of("acr.push_image");
+    public static final Action.Id<ContainerRegistry> PUSH_IMAGE = Action.Id.of("acr.push_image.acr");
 
     @Override
     public void registerActions(AzureActionManager am) {
         final ActionView.Builder pushImageView = new ActionView.Builder("Push Image")
                 .title(s -> Optional.ofNullable(s).map(r -> description("acr.push_image.acr", ((ContainerRegistry) r).name())).orElse(null))
                 .enabled(s -> s instanceof ContainerRegistry && ((ContainerRegistry) s).getFormalStatus().isRunning());
-        am.registerAction(PUSH_IMAGE, new Action<>(PUSH_IMAGE, pushImageView));
+        am.registerAction(new Action<>(PUSH_IMAGE, pushImageView));
     }
 
     @Override

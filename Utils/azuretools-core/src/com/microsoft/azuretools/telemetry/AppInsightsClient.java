@@ -5,6 +5,7 @@
 
 package com.microsoft.azuretools.telemetry;
 
+import com.microsoft.azure.toolkit.ide.common.experiment.ExperimentationClient;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetryClient;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
@@ -110,6 +111,7 @@ public class AppInsightsClient {
         Map<String, String> properties = myProperties == null ? new HashMap<>() : new HashMap<>(myProperties);
         properties.put("SessionId", configuration.sessionId());
         properties.put("IDE", configuration.ide());
+        properties.put("AssignmentContext", ExperimentationClient.getAssignmentContext());
 
         // Telemetry client doesn't accept null value for ConcurrentHashMap doesn't accept null as key or value..
         properties.entrySet().removeIf(entry -> StringUtils.isEmpty(entry.getKey()) || StringUtils.isEmpty(entry.getValue()));

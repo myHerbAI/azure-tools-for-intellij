@@ -1,0 +1,9 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij.database">
+        <connectionInterceptor implementation="com.microsoft.azure.toolkit.intellij.database.dbtools.DatabaseServerConnectionInterceptor"/>
+        <urlParamEditorProvider implementation="com.microsoft.azure.toolkit.intellij.database.dbtools.DatabaseServerTypeFactory" order="first"/>
+    </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <preloadingActivity implementation="com.microsoft.azure.toolkit.intellij.database.dbtools.DatabaseDbToolsWorkaround"/>
+    </extensions>
+</idea-plugin>

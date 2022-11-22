@@ -12,8 +12,10 @@ import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.component.CreateApplicationInsightsDialog;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.applicationinsights.AzureApplicationInsights;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import lombok.Setter;
 import org.apache.commons.collections.ListUtils;
 
 import javax.annotation.Nonnull;
@@ -33,6 +35,8 @@ public class ApplicationInsightsComboBox extends AzureComboBox<ApplicationInsigh
     private final List<ApplicationInsightsConfig> draftItems = new LinkedList<>();
 
     private Subscription subscription;
+    @Setter
+    private Region region;
 
     public void setSubscription(Subscription subscription) {
         if (Objects.equals(subscription, this.subscription)) {
@@ -100,10 +104,11 @@ public class ApplicationInsightsComboBox extends AzureComboBox<ApplicationInsigh
     }
 
     private void onCreateApplicationInsights() {
-        final CreateApplicationInsightsDialog dialog = new CreateApplicationInsightsDialog();
+        final CreateApplicationInsightsDialog dialog = new CreateApplicationInsightsDialog(subscription, region);
         dialog.pack();
         if (dialog.showAndGet()) {
-            final ApplicationInsightsConfig config = ApplicationInsightsConfig.builder().newCreate(true).name(dialog.getApplicationInsightsName()).build();
+            final ApplicationInsightsConfig config = ApplicationInsightsConfig.builder().newCreate(true).name(dialog.getApplicationInsightsName())
+                    .workspaceConfig(dialog.getWorkspaceConfig()).build();
             this.setValue(config);
         }
     }

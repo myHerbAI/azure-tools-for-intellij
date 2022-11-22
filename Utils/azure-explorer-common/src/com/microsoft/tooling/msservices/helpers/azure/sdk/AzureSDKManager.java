@@ -21,6 +21,7 @@ import com.microsoft.azure.management.storage.implementation.StorageManager;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
 import com.microsoft.azure.toolkit.lib.applicationinsights.AzureApplicationInsights;
 import com.microsoft.azure.toolkit.lib.applicationinsights.task.GetOrCreateApplicationInsightsTask;
+import com.microsoft.azure.toolkit.lib.applicationinsights.workspace.LogAnalyticsWorkspaceConfig;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.logging.Log;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -168,23 +169,26 @@ public class AzureSDKManager {
     public static ApplicationInsight getOrCreateApplicationInsights(@NotNull String subscriptionId,
                                                                     @NotNull String resourceGroupName,
                                                                     @NotNull String resourceName,
-                                                                    @NotNull String location) throws IOException {
-        return new GetOrCreateApplicationInsightsTask(subscriptionId, resourceGroupName, Region.fromName(location), resourceName).execute();
+                                                                    @NotNull String location,
+                                                                    @NotNull LogAnalyticsWorkspaceConfig workspaceConfig) throws IOException {
+        return new GetOrCreateApplicationInsightsTask(subscriptionId, resourceGroupName, Region.fromName(location), resourceName, workspaceConfig).execute();
     }
 
     public static ApplicationInsight createInsightsResource(@NotNull String subscriptionId,
                                                                       @NotNull String resourceGroupName,
                                                                       @NotNull String resourceName,
-                                                                      @NotNull String location) throws IOException {
-        return getOrCreateApplicationInsights(subscriptionId, resourceGroupName, resourceName, location);
+                                                                      @NotNull String location,
+                                                                      @NotNull LogAnalyticsWorkspaceConfig workspaceConfig) throws IOException {
+        return getOrCreateApplicationInsights(subscriptionId, resourceGroupName, resourceName, location, workspaceConfig);
     }
 
     public static ApplicationInsight createInsightsResource(@NotNull Subscription subscription,
                                                                       @NotNull String resourceGroupName,
                                                                       boolean isNewGroup,
                                                                       @NotNull String resourceName,
-                                                                      @NotNull String location) throws IOException {
-        return createInsightsResource(subscription.getId(), resourceGroupName, resourceName, location);
+                                                                      @NotNull String location,
+                                                                      @NotNull LogAnalyticsWorkspaceConfig workspaceConfig) throws IOException {
+        return createInsightsResource(subscription.getId(), resourceGroupName, resourceName, location, workspaceConfig);
     }
 
     public static List<String> getLocationsForInsights(String subscriptionId) throws IOException {

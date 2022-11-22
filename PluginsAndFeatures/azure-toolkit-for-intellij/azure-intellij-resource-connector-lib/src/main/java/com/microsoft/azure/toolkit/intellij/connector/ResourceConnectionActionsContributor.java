@@ -65,10 +65,10 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
                 .enabled(m -> m instanceof Connection);
         final Action<Connection<?, ?>> removeAction = new Action<>(REMOVE_CONNECTION, removeHandler, removeView);
 
-        am.registerAction(REFRESH_CONNECTIONS, refreshAction);
-        am.registerAction(ADD_CONNECTION, addAction);
-        am.registerAction(EDIT_CONNECTION, editAction);
-        am.registerAction(REMOVE_CONNECTION, removeAction);
+        am.registerAction(refreshAction);
+        am.registerAction(addAction);
+        am.registerAction(editAction);
+        am.registerAction(removeAction);
         IActionsContributor.super.registerActions(am);
     }
 

@@ -54,7 +54,7 @@ public class IntellijActionsContributor implements IActionsContributor {
         final BiConsumer<Object, AnActionEvent> handler = (r, e) -> FUSEventSource.NOTIFICATION.openDownloadPageAndLog(e.getProject(), IDE_DOWNLOAD_URL);
         final ActionView.Builder view = new ActionView.Builder(IdeBundle.message("plugins.advertiser.action.try.ultimate", "IntelliJ IDEA Ultimate"));
         final Action<Object> tryUltimate = new Action<>(TRY_ULTIMATE, handler, view);
-        am.registerAction(TRY_ULTIMATE, tryUltimate);
+        am.registerAction(tryUltimate);
     }
 
     @Override

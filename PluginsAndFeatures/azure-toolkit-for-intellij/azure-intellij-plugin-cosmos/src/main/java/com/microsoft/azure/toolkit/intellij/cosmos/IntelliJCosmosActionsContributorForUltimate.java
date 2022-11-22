@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.cosmos;
 
-import com.intellij.database.autoconfig.DataSourceRegistry;
 import com.intellij.database.dataSource.DatabaseDriverManager;
 import com.intellij.database.dataSource.LocalDataSource;
 import com.intellij.database.dataSource.LocalDataSourceManager;
@@ -41,7 +40,6 @@ public class IntelliJCosmosActionsContributorForUltimate implements IActionsCont
 
     @AzureOperation(name = "cosmos.open_database_tools.account", params = {"account.getName()"}, type = AzureOperation.Type.ACTION, target = AzureOperation.Target.PLATFORM)
     private void openDatabaseTool(Project project, CosmosDBAccount account) {
-        final DataSourceRegistry registry = new DataSourceRegistry(project);
         final String driver = account instanceof MongoCosmosDBAccount ? "az_cosmos_mongo" : "az_cosmos_cassandra";
         final LocalDataSource ds = DatabaseDriverManager.getInstance().getDriver(driver).createDataSource(null);
         final DbPsiFacade facade = DbPsiFacade.getInstance(project);

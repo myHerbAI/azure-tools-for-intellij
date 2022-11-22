@@ -34,8 +34,8 @@ public class WebAppActionsContributor implements IActionsContributor {
     public static final String DEPLOYMENT_SLOTS_ACTIONS = "actions.webapp.deployment_slots";
     public static final String DEPLOYMENT_SLOT_ACTIONS = "actions.webapp.deployment_slot";
 
-    public static final Action.Id<WebAppDeploymentSlot> SWAP_DEPLOYMENT_SLOT = Action.Id.of("webapp.swap_deployment_slot");
-    public static final Action.Id<ResourceGroup> GROUP_CREATE_WEBAPP = Action.Id.of("group.create_webapp");
+    public static final Action.Id<WebAppDeploymentSlot> SWAP_DEPLOYMENT_SLOT = Action.Id.of("webapp.swap_deployment.deployment|app");
+    public static final Action.Id<ResourceGroup> GROUP_CREATE_WEBAPP = Action.Id.of("webapp.create_app.group");
 
     @Override
     public void registerGroups(AzureActionManager am) {
@@ -101,12 +101,12 @@ public class WebAppActionsContributor implements IActionsContributor {
             .title(s -> Optional.ofNullable(s).map(r -> description("webapp.swap_deployment.deployment|app",
                 ((WebAppDeploymentSlot) s).getName(), ((WebAppDeploymentSlot) s).getParent().getName())).orElse(null))
             .enabled(s -> s instanceof WebAppDeploymentSlot && ((WebAppDeploymentSlot) s).getFormalStatus().isRunning());
-        am.registerAction(SWAP_DEPLOYMENT_SLOT, new Action<>(SWAP_DEPLOYMENT_SLOT, swap, swapView));
+        am.registerAction(new Action<>(SWAP_DEPLOYMENT_SLOT, swap, swapView));
 
         final ActionView.Builder createWebAppView = new ActionView.Builder("Web App")
             .title(s -> Optional.ofNullable(s).map(r -> description("webapp.create_app.group", ((ResourceGroup) r).getName())).orElse(null))
             .enabled(s -> s instanceof ResourceGroup && ((ResourceGroup) s).getFormalStatus().isConnected());
-        am.registerAction(GROUP_CREATE_WEBAPP, new Action<>(GROUP_CREATE_WEBAPP, createWebAppView));
+        am.registerAction(new Action<>(GROUP_CREATE_WEBAPP, createWebAppView));
     }
 
     @Override

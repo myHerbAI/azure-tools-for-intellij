@@ -18,7 +18,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
 
-import static com.microsoft.azure.toolkit.ide.applicationinsights.ApplicationInsightsActionsContributor.LIVE_METRICS;
+import static com.microsoft.azure.toolkit.ide.applicationinsights.ApplicationInsightsActionsContributor.OPEN_LIVE_METRICS;
 
 public class OpenLiveMetricsTask implements Task {
 
@@ -42,7 +42,7 @@ public class OpenLiveMetricsTask implements Task {
         final String instrumentKey = (String) context.getParameter("instrumentKey");
         final ApplicationInsight applicationInsight = StringUtils.isNoneEmpty(applicationInsightsId) ?
                 getInsightsById(applicationInsightsId) : getInsightsByInstrumentKey(instrumentKey);
-        AzureActionManager.getInstance().getAction(LIVE_METRICS).handle(applicationInsight);
+        AzureActionManager.getInstance().getAction(OPEN_LIVE_METRICS).handle(applicationInsight);
     }
 
     private ApplicationInsight getInsightsById(@Nonnull final String id) {

@@ -38,6 +38,7 @@ public class ApplicationInsightsCreationDialog extends AzureDialog<ApplicationIn
     private ResourceGroupComboBox resourceGroupComboBox;
     private RegionComboBox regionComboBox;
     private InsightNameTextField txtName;
+    private WorkspaceComboBox workspaceComboBox;
 
     public ApplicationInsightsCreationDialog(Project project) {
         super(project);
@@ -51,7 +52,9 @@ public class ApplicationInsightsCreationDialog extends AzureDialog<ApplicationIn
         this.resourceGroupComboBox.setRequired(true);
         this.txtName.setRequired(true);
         this.regionComboBox.setRequired(true);
+        this.workspaceComboBox.setRequired(true);
         this.subscriptionComboBox.addItemListener(this::onSubscriptionChanged);
+        this.regionComboBox.addItemListener(this::onRegionChanged);
     }
 
     @Override
@@ -79,6 +82,7 @@ public class ApplicationInsightsCreationDialog extends AzureDialog<ApplicationIn
         final ApplicationInsightDraft result =
                 Azure.az(AzureApplicationInsights.class).forSubscription(subscription.getId()).applicationInsights().create(name, resourceGroupName);
         result.setRegion(region);
+        result.setWorkspaceConfig(workspaceComboBox.getValue());
         return result;
     }
 
@@ -90,12 +94,13 @@ public class ApplicationInsightsCreationDialog extends AzureDialog<ApplicationIn
         AzureTaskManager.getInstance().runOnPooledThread(() -> {
             Optional.ofNullable(data.getResourceGroup()).ifPresent(resourceGroupComboBox::setValue);
             Optional.ofNullable(data.getRegion()).ifPresent(regionComboBox::setValue);
+            Optional.ofNullable(data.getWorkspaceConfig()).ifPresent(workspaceComboBox::setValue);
         });
     }
 
     @Override
     public List<AzureFormInput<?>> getInputs() {
-        return Arrays.asList(txtName, subscriptionComboBox, resourceGroupComboBox, regionComboBox);
+        return Arrays.asList(txtName, subscriptionComboBox, resourceGroupComboBox, regionComboBox, workspaceComboBox);
     }
 
     private void onSubscriptionChanged(final ItemEvent e) {
@@ -104,9 +109,18 @@ public class ApplicationInsightsCreationDialog extends AzureDialog<ApplicationIn
             this.resourceGroupComboBox.setSubscription(subscription);
             this.regionComboBox.setSubscription(subscription);
             this.txtName.setSubscriptionId(subscription.getId());
+            this.workspaceComboBox.setSubscription(subscription);
         } else if (e.getStateChange() == ItemEvent.DESELECTED) {
             this.resourceGroupComboBox.setSubscription(null);
             this.regionComboBox.setSubscription(null);
+            this.workspaceComboBox.setSubscription(null);
+        }
+    }
+
+    private void onRegionChanged(final ItemEvent e) {
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+            final Region region = (Region) e.getItem();
+            this.workspaceComboBox.setRegion(region);
         }
     }
 
@@ -120,5 +134,6 @@ public class ApplicationInsightsCreationDialog extends AzureDialog<ApplicationIn
                 return Collections.emptyList();
             }
         };
+        this.workspaceComboBox = new WorkspaceComboBox();
     }
 }

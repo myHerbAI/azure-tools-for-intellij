@@ -161,8 +161,16 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
         return selectorServicePlan;
     }
 
+    public ResourceGroupComboBox getSelectorGroup() {
+        return selectorGroup;
+    }
+
     public AppNameInput getTextName() {
         return textName;
+    }
+
+    public RegionComboBox getSelectorRegion() {
+        return selectorRegion;
     }
 
     private void init() {
