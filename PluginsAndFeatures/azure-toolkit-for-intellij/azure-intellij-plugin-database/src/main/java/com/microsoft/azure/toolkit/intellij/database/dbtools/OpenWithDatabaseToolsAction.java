@@ -25,20 +25,20 @@ public class OpenWithDatabaseToolsAction {
         final DataSourceDetector.Builder builder = registry.getBuilder()
             .withDriverClass(server.getJdbcUrl().getDefaultDriverClass())
             .withUrl(server.getJdbcUrl().toString())
+            .withUser(String.format("%s@%s", server.getAdminName(), server.getName()))
             .withDbms(getDbms(server))
-            .withJdbcAdditionalProperty(DatabaseServerParamEditor.KEY_DB_SERVER_ID, server.getId())
             .commit();
         DataSourceManagerDialog.showDialog(dbPsiFacade, registry);
     }
 
     private static Dbms getDbms(IDatabaseServer<?> server) {
-        if (MicrosoftSqlServer.class.equals(server.getClass())) {
+        if (server instanceof MicrosoftSqlServer) {
             return Dbms.MSSQL;
-        } else if (MySqlServer.class.equals(server.getClass())) {
+        } else if (server instanceof MySqlServer) {
             return Dbms.MYSQL;
-        } else if (PostgreSqlServer.class.equals(server.getClass())) {
+        } else if (server instanceof PostgreSqlServer) {
             return Dbms.POSTGRES;
         }
-        return Dbms.MYSQL;
+        return Dbms.UNKNOWN;
     }
 }

@@ -5,10 +5,12 @@
 package com.microsoft.azure.toolkit.intellij.azuresdk.model.module;
 
 import com.intellij.openapi.project.Project;
+import com.microsoft.azure.toolkit.intellij.azuresdk.model.AzureSdkArtifactEntity;
 import com.microsoft.intellij.util.MavenUtils;
 import icons.MavenIcons;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.idea.maven.model.MavenArtifact;
 import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.utils.MavenArtifactUtilKt;
@@ -39,6 +41,14 @@ public class MavenProjectModule implements ProjectModule {
                 .filter(MavenArtifactUtilKt::resolved)
                 .filter(dependency -> StringUtils.equalsIgnoreCase(groupId, dependency.getGroupId()) &&
                         StringUtils.equalsIgnoreCase(artifactId, dependency.getArtifactId())).findFirst().orElse(null);
+    }
+
+    @Override
+    public ComparableVersion getDependencyVersion(AzureSdkArtifactEntity entity) {
+        return Optional.ofNullable(entity)
+                .map(e -> this.getMavenDependency(e.getGroupId(), e.getArtifactId()))
+                .map(MavenArtifact::getVersion)
+                .map(ComparableVersion::new).orElse(null);
     }
 
     @Override

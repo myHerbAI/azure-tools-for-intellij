@@ -74,10 +74,12 @@ public class RateManager {
     }
 
     @AzureOperation(name = "feedback.add_operation_score", type = AzureOperation.Type.TASK)
-    public void addScore(int score) {
+    public void addScore(Operation causeOperation, int score) {
         final int total = this.score.addAndGet(score);
         OperationContext.current().setTelemetryProperty("addScore", String.valueOf(score));
         OperationContext.current().setTelemetryProperty("totalScore", String.valueOf(total));
+        OperationContext.current().setTelemetryProperty("causeOperation", causeOperation.getId());
+        OperationContext.current().setTelemetryProperty("causeOperationId", causeOperation.getExecutionId());
         final int threshold = Registry.intValue("azure.toolkit.feedback.score.threshold", 20);
         if (total >= threshold) {
             if (RatePopup.tryPopup(null)) {
@@ -98,7 +100,9 @@ public class RateManager {
     }
 
     @AzureOperation(name = "feedback.rewind_operation_score_on_error", type = AzureOperation.Type.TASK)
-    public void rewindScore() {
+    public void rewindScore(Operation causeOperation) {
+        OperationContext.current().setTelemetryProperty("causeOperation", causeOperation.getId());
+        OperationContext.current().setTelemetryProperty("causeOperationId", causeOperation.getExecutionId());
         score.set(score.get() / 2);
         final IIdeStore store = AzureStoreManager.getInstance().getIdeStore();
         store.setProperty(SERVICE, TOTAL_SCORE, "" + score.get());
@@ -133,7 +137,7 @@ public class RateManager {
                 if (config != null) {
                     final String actionId = Optional.ofNullable(operation.getActionParent()).map(Operation::getId).orElse(null);
                     if (ArrayUtils.isEmpty(config.getActions()) || Arrays.asList(config.getActions()).contains(actionId)) {
-                        manager.addScore(config.getSuccess());
+                        manager.addScore(operation, config.getSuccess());
                     }
                 }
             }
@@ -146,8 +150,8 @@ public class RateManager {
             }
             final RateManager manager = RateManager.getInstance();
             final Throwable cause = ExceptionUtils.getRootCause(e);
-            if (!(cause instanceof HttpResponseException || cause.getClass().getPackageName().contains("java.net"))) {
-                manager.rewindScore();
+            if (!(cause instanceof HttpResponseException || cause.getClass().getPackageName().contains("java.net") || cause instanceof InterruptedException)) {
+                manager.rewindScore(operation);
             }
         }
     }

@@ -14,6 +14,7 @@ import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.ui.components.ActionLink;
 import com.intellij.util.ui.UIUtil;
 import com.microsoft.azure.toolkit.ide.common.store.AzureConfigInitializer;
 import com.microsoft.azure.toolkit.intellij.common.AzureIntegerInput;
@@ -25,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.auth.AzureEnvironmentUtils;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.legacy.function.FunctionCoreToolsCombobox;
 import com.microsoft.azuretools.authmanage.CommonSettings;
@@ -46,6 +48,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppActionsContributor.DOWNLOAD_CORE_TOOLS;
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 import static com.microsoft.azuretools.telemetry.TelemetryConstants.ACCOUNT;
 import static com.microsoft.azuretools.telemetry.TelemetryConstants.SIGNOUT;
@@ -63,6 +66,7 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
     private AzureFileInput txtStorageExplorer;
     private AzureIntegerInput txtBatchSize;
     private AzureTextInput txtLabelFields;
+    private ActionLink installFuncCoreToolsAction;
 
     private AzureConfiguration originalConfig;
 
@@ -283,5 +287,10 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
         txtStorageExplorer.addActionListener(new ComponentWithBrowseButton.BrowseFolderActionListener("Select path for Azure Storage Explorer", null, txtStorageExplorer,
                 null, FileChooserDescriptorFactory.createSingleLocalFileDescriptor(), TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT));
         txtStorageExplorer.addValidator(this::validateStorageExplorerPath);
+        this.installFuncCoreToolsAction = new ActionLink("Install the latest version", e -> {
+            FocusManager.getCurrentManager().getActiveWindow().dispose();
+            AzureActionManager.getInstance().getAction(DOWNLOAD_CORE_TOOLS).handle(null);
+        });
+
     }
 }

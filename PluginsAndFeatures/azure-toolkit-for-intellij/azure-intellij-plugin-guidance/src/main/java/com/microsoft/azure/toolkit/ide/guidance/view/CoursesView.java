@@ -43,20 +43,18 @@ public class CoursesView {
     private final Project project;
 
     private final List<CoursePanel> coursePanels = new ArrayList<>();
-    private final boolean showNewUIFlag;
 
     public CoursesView(@Nonnull Project project) {
         this.project = project;
-        this.showNewUIFlag = Boolean.parseBoolean(ExperimentationClient.getFeatureVariable(ExperimentationClient.FeatureFlag.GETTING_STARTED_UI.getFlagName()));
         $$$setupUI$$$();
         init();
-        JBList a;
     }
 
     private void init() {
         this.lblTitle.setFont(JBFont.h2().asBold());
         this.lblLoading.setIcon(IntelliJAzureIcons.getIcon(AzureIcons.Common.REFRESH_ICON));
-        actionLinkPanel.setVisible(showNewUIFlag);
+        final String showNewUiFlag = ExperimentationClient.getExperimentationService().getFeatureVariable(ExperimentationClient.FeatureFlag.GETTING_STARTED_UI.getFlagName());
+        this.actionLinkPanel.setVisible(Boolean.parseBoolean(showNewUiFlag));
         AzureTaskManager.getInstance().runInBackgroundAsObservable("Loading lesson", () -> GuidanceConfigManager.getInstance().loadCourses())
                 .subscribeOn(Schedulers.computation())
                 .subscribe(courses -> AzureTaskManager.getInstance().runLater(() -> this.setCourses(courses)));

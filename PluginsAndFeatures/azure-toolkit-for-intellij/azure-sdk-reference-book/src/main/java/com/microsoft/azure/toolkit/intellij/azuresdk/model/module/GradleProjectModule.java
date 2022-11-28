@@ -4,19 +4,20 @@
  */
 package com.microsoft.azure.toolkit.intellij.azuresdk.model.module;
 
-import com.intellij.openapi.externalSystem.model.project.ExternalProjectPojo;
 import com.intellij.openapi.project.Project;
+import com.microsoft.azure.toolkit.intellij.azuresdk.model.AzureSdkArtifactEntity;
 import com.microsoft.intellij.util.GradleUtils;
 import icons.GradleIcons;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.plugins.gradle.model.ExternalDependency;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet;
 import org.jetbrains.plugins.gradle.model.UnresolvedExternalDependency;
-import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,6 +46,14 @@ public class GradleProjectModule implements ProjectModule {
                 .filter(dependency -> StringUtils.equalsIgnoreCase(groupId, dependency.getGroup()) &&
                         StringUtils.equalsIgnoreCase(artifactId, dependency.getName()))
                 .filter(dependency -> !(dependency instanceof UnresolvedExternalDependency)).findFirst().orElse(null);
+    }
+
+    @Override
+    public ComparableVersion getDependencyVersion(@Nullable AzureSdkArtifactEntity entity) {
+        return Optional.ofNullable(entity)
+                .map(e -> this.getGradleDependency(e.getGroupId(), e.getArtifactId()))
+                .map(dependency -> new ComparableVersion(dependency.getVersion()))
+                .orElse(null);
     }
 
     @Override

@@ -30,7 +30,7 @@ public class DatabaseServerConnectionInterceptor implements DatabaseConnectionIn
     public CompletionStage<ProtoConnection> intercept(@Nonnull DatabaseConnectionInterceptor.ProtoConnection proto, boolean silent) {
         final DatabaseConnectionPoint point = proto.getConnectionPoint();
         final String accountId = point.getAdditionalProperty(DatabaseServerParamEditor.KEY_DB_SERVER_ID);
-        if (StringUtils.isNotBlank(accountId) && !StringUtils.equals(accountId, DatabaseServerParamEditor.NONE)) {
+        if (StringUtils.isNotBlank(accountId)) {
             final Map<String, String> properties = new HashMap<>();
             final ResourceId id = ResourceId.fromString(accountId);
             properties.put("subscriptionId", id.subscriptionId());

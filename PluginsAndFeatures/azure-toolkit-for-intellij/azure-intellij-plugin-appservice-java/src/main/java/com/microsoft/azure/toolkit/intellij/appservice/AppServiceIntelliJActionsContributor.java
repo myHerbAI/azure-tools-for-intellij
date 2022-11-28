@@ -7,10 +7,14 @@ package com.microsoft.azure.toolkit.intellij.appservice;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.fileChooser.FileChooser;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.Messages;
 import com.microsoft.azure.toolkit.ide.appservice.AppServiceActionsContributor;
 import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppActionsContributor;
 import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig;
+import com.microsoft.azure.toolkit.ide.appservice.function.coretools.FunctionsCoreToolsManager;
 import com.microsoft.azure.toolkit.ide.appservice.webapp.WebAppActionsContributor;
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
@@ -44,6 +48,8 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
@@ -201,6 +207,28 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
         final BiConsumer<FunctionAppBase<?, ?, ?>, AnActionEvent> remoteDebuggingHandler = (c, e) ->
                 AzureTaskManager.getInstance().runLater(() -> FunctionRemoteDebuggingAction.startDebugging(c, e.getProject()));
         am.registerHandler(FunctionAppActionsContributor.REMOTE_DEBUGGING, isFunction, remoteDebuggingHandler);
+
+        final BiConsumer<Object, AnActionEvent> downloadFuncCoreToolsHandler = (v, e) -> {
+            final FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
+            descriptor.setTitle("Select Path to Install Azure Functions Core Tools");
+            AzureTaskManager.getInstance().runLater(() -> FileChooser.chooseFile(descriptor, null, null, files -> {
+                final String installPath = files.getPath();
+                AzureTaskManager.getInstance().runInBackground("Download and Install Azure Functions Core Tools",
+                        () -> FunctionsCoreToolsManager.getInstance().downloadReleaseTools(installPath));
+            }));
+        };
+        am.registerHandler(FunctionAppActionsContributor.DOWNLOAD_CORE_TOOLS, downloadFuncCoreToolsHandler);
+        AzureEventBus.on("function.download_func_core_tools_succeed.version", new AzureEventBus.EventListener((azureEvent) -> {
+            final Action<Object> openSettingsAction = AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS);
+            final Action<Object> openSettingsActionInMessage = new Action<>(Action.Id.of("common.open_azure_settings_dialog"), new ActionView.Builder("Open Azure Settings")) {
+                @Override
+                public void handle(Object source, Object e) {
+                    AzureTaskManager.getInstance().runLater(() -> openSettingsAction.handle(null, e));
+                }
+            };
+            final String INSTALL_SUCCEED_MESSAGE = "Download and install Azure Functions Core Tools(%s) successfully. Auto configured Azure Functions Core Tools path in Azure Settings";
+            AzureMessager.getMessager().success(String.format(INSTALL_SUCCEED_MESSAGE, azureEvent.getSource().toString()), "Install succeed", openSettingsActionInMessage);
+        }));
     }
 
     @Override

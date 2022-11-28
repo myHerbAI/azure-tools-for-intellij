@@ -83,10 +83,13 @@ public class DependencyUtils {
             }
             FileEditorManager.getInstance(project).openFile(file.getVirtualFile(), true, false);
         });
+        final AzureString message = module.isDependencyExists(entity) ?
+                AzureString.format("Library (%s) in project (%s) has been upgraded to (%s)", entity.getArtifactId(), module.getName(), version) :
+                AzureString.format("Library (%s) with version (%s) has been added to project (%s)", entity.getArtifactId(), version, module.getName());
         final AnAction action = ActionManager.getInstance().getAction("Maven.Reimport");
         final DataContext context = dataId -> CommonDataKeys.PROJECT.getName().equals(dataId) ? project : null;
         AzureTaskManager.getInstance().runLater(() -> ActionUtil.invokeAction(action, context, "AzureSdkReferenceBook", null, null));
-        AzureMessager.getMessager().info(AzureString.format("Library %s with version %s has been added to project %s", entity.getArtifactId(), version, module.getName()));
+        AzureMessager.getMessager().info(message);
     }
 
     public static void addOrUpdateGradleDependency(@Nonnull final GradleProjectModule module, @Nonnull final AzureSdkArtifactEntity entity, @Nonnull final String version) {
@@ -124,10 +127,13 @@ public class DependencyUtils {
             }
             FileEditorManager.getInstance(project).openFile(virtualFile, true, false);
         });
+        final AzureString message = module.isDependencyExists(entity) ?
+                AzureString.format("Library (%s) in project (%s) has been upgraded to (%s)", entity.getArtifactId(), module.getName(), version) :
+                AzureString.format("Library (%s) with version (%s) has been added to project (%s)", entity.getArtifactId(), version, module.getName());
         final AnAction action = ActionManager.getInstance().getAction("ExternalSystem.RefreshAllProjects");
         final DataContext context = dataId -> CommonDataKeys.PROJECT.getName().equals(dataId) ? project : null;
         AzureTaskManager.getInstance().runLater(() -> ActionUtil.invokeAction(action, context, "AzureSdkReferenceBook", null, null));
-        AzureMessager.getMessager().info(AzureString.format("Library %s with version %s has been added to project %s", entity.getArtifactId(), version, module.getName()));
+        AzureMessager.getMessager().info(message);
     }
 
     @Nullable

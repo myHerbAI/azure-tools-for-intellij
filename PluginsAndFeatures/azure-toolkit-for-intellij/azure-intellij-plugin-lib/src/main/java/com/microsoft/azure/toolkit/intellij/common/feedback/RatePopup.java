@@ -25,7 +25,6 @@ import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
 import com.microsoft.azure.toolkit.ide.common.store.IIdeStore;
 import com.microsoft.azure.toolkit.intellij.common.IdeUtils;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
@@ -42,11 +41,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.net.http.HttpResponse;
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 public class RatePopup {
     public static final JBColor BACKGROUND_COLOR =
@@ -138,14 +134,6 @@ public class RatePopup {
                 store.setProperty(RateManager.SERVICE, RateManager.RATED_AT, String.valueOf(System.currentTimeMillis()));
                 store.setProperty(RateManager.SERVICE, RateManager.RATED_SCORE, String.valueOf(index + 1));
                 if (index >= 3) {
-                    AzureTaskManager.getInstance().runOnPooledThread(() -> {
-                        final CompletableFuture<HttpResponse<String>> response = MonkeySurvey.send(index + 1);
-                        try {
-                            System.out.println(response.get());
-                        } catch (final InterruptedException | ExecutionException ex) {
-                            throw new AzureToolkitRuntimeException(ex);
-                        }
-                    });
                     AzureMessager.getMessager().success("Thank you for the feedback!");
                     popDaysLater(-1);
                 } else {
@@ -184,7 +172,6 @@ public class RatePopup {
             final String strNextPopAfter = store.getProperty(RateManager.SERVICE, RateManager.NEXT_POP_AFTER, "0");
             final long nextPopAfter = Long.parseLong(Objects.requireNonNull(strNextPopAfter));
             if (nextPopAfter >= 0 && System.currentTimeMillis() > nextPopAfter) {
-                store.setProperty(RateManager.SERVICE, RateManager.NEXT_POP_AFTER, String.valueOf(System.currentTimeMillis() + 15 * DateUtils.MILLIS_PER_DAY));
                 popup.debounce();
                 return true;
             }
@@ -218,7 +205,9 @@ public class RatePopup {
         final int times = Integer.parseInt(Objects.requireNonNull(strTimes)) + 1;
         store.setProperty(RateManager.SERVICE, RateManager.POPPED_AT, String.valueOf(System.currentTimeMillis()));
         store.setProperty(RateManager.SERVICE, RateManager.POPPED_TIMES, String.valueOf(times));
-        store.setProperty(RateManager.SERVICE, RateManager.NEXT_POP_AFTER, String.valueOf(System.currentTimeMillis() + 15 * DateUtils.MILLIS_PER_DAY));
+        OperationContext.current().setTelemetryProperty(RateManager.POPPED_TIMES, String.valueOf(times));
+        // popup 3 days later if the popup is faded out automatically
+        popDaysLater(3);
 
         final JFrame frame = ((JFrame) IdeUtils.getWindow(project));
         RatePopup.balloon.show(new PositionTracker<>(frame.getRootPane()) {

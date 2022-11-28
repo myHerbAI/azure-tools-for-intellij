@@ -63,29 +63,29 @@ import java.util.stream.Collectors;
 
 public class AzureCosmosDbAccountParamEditor extends ParamEditorBase<AzureCosmosDbAccountParamEditor.CosmosDbAccountComboBox> {
     public static final String KEY_COSMOS_ACCOUNT_ID = "AZURE_COSMOS_ACCOUNT";
-    public static final String NONE = "<NONE>";
     public static final String NO_ACCOUNT_TIPS_TEMPLATE = "<html>No Azure Cosmos DB accounts (%s). You can <a href=''>create one</a> first.</html>";
     public static final String NOT_SIGNIN_TIPS = "<html><a href=\"\">Sign in</a> to select an existing Azure Cosmos DB account.</html>";
     private final DatabaseAccountKind kind;
     @Getter
     @Setter
     private String text = "";
-    private CosmosDBAccount account;
+    private String accountId;
     private CosmosDBAccountConnectionString connectionString;
     private boolean updating;
 
     public AzureCosmosDbAccountParamEditor(@Nonnull DatabaseAccountKind kind, @Nonnull String label, @Nonnull DataInterchange interchange) {
         super(new CosmosDbAccountComboBox(kind), interchange, FieldSize.LARGE, label);
         this.kind = kind;
+        this.accountId = interchange.getProperty(KEY_COSMOS_ACCOUNT_ID);
         final CosmosDbAccountComboBox combox = this.getEditorComponent();
+        combox.addValueChangedListener(this::setAccount);
         interchange.addPersistentProperty(KEY_COSMOS_ACCOUNT_ID);
-        final String initialAccountId = interchange.getProperty(KEY_COSMOS_ACCOUNT_ID);
-        if (StringUtils.isNotBlank(initialAccountId)) {
-            combox.setValue(new AzureComboBox.ItemReference<>(i -> i.getId().equals(initialAccountId)));
+        if (StringUtils.isNotBlank(this.accountId)) {
+            interchange.putProperty(KEY_COSMOS_ACCOUNT_ID, null);
+            combox.setValue(new AzureComboBox.ItemReference<>(i -> i.getId().equals(this.accountId)));
         }
 
         interchange.addPropertyChangeListener((evt -> onPropertiesChanged(evt.getPropertyName(), evt.getNewValue())), this);
-        combox.addValueChangedListener(this::setAccount);
     }
 
     @Override
@@ -169,18 +169,17 @@ public class AzureCosmosDbAccountParamEditor extends ParamEditorBase<AzureCosmos
         Optional.ofNullable(account).ifPresent(a -> {
             OperationContext.action().setTelemetryProperty("subscriptionId", a.getSubscriptionId());
             OperationContext.action().setTelemetryProperty("resourceType", a.getFullResourceType());
-            OperationContext.action().setTelemetryProperty("kind", a.getKind().getValue());
+            OperationContext.action().setTelemetryProperty("kind", Optional.ofNullable(a.getKind()).map(DatabaseAccountKind::getValue).orElse("unknown"));
         });
-        if (this.updating || Objects.equals(this.account, account)) {
-            return;
-        }
+
         final DataInterchange interchange = this.getInterchange();
-        this.account = account;
-        if (account == null) {
-            this.connectionString = null;
-            interchange.putProperty(KEY_COSMOS_ACCOUNT_ID, NONE);
+        final String newAccountId = Optional.ofNullable(account).map(AbstractAzResource::getId).orElse(null);
+        interchange.putProperty(KEY_COSMOS_ACCOUNT_ID, newAccountId);
+        if (this.updating || Objects.isNull(newAccountId) || StringUtils.equalsIgnoreCase(newAccountId, this.accountId)) {
             return;
         }
+        this.connectionString = null;
+        this.accountId = newAccountId;
         this.updating = true;
         // AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle(combox::reloadItems);
         AzureTaskManager.getInstance().runOnPooledThread(() -> {

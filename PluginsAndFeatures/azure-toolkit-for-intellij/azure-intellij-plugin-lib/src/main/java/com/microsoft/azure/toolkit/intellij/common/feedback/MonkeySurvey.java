@@ -14,14 +14,8 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.AzureFileType;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
 
 import javax.annotation.Nonnull;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.concurrent.CompletableFuture;
 
 public class MonkeySurvey {
     public static final Key<String> SURVEY_URL = Key.create("survey_url");
@@ -60,59 +54,5 @@ public class MonkeySurvey {
             }
         }
         return virtualFile;
-    }
-
-    /**
-     * @param score 1, 2, 3, 4, 5
-     */
-    public static CompletableFuture<HttpResponse<String>> send(int score) {
-        final String json = buildRequestBody(score);
-        final HttpClient client = HttpClient.newHttpClient();
-        final HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("https://api.surveymonkey.com/v3/collectors/445843454/responses"))
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .header("Authorization", "Bearer rzK6HA54nZqRBAaYSMIcikdUzK0SjW9YcZKKXVSQFwj7AteEwiwv9LJ2VAkNhb-NfWltTMq63kTS4s9IypTK7pqX1al7UoD4ty3HUf-LqSh.tSfGLeVAHoQdeYdguP.P")
-            .POST(HttpRequest.BodyPublishers.ofString(json))
-            .build();
-        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
-    }
-
-    @Nonnull
-    private static String buildRequestBody(int score) {
-        return "{" +
-            "  \"pages\": [" +
-            "    {" +
-            "      \"id\": \"27440878\"," +
-            "      \"questions\": [" +
-            "        {" +
-            "          \"id\": \"72189355\"," +
-            "          \"answers\": [" +
-            "            {" +
-            "              \"choice_id\": \"58129617" + score + "\"," +
-            "              \"row_id\": \"581296170\"" +
-            "            }" +
-            "          ]" +
-            "        }," +
-            "        {" +
-            "          \"id\": \"70321780\"," +
-            "          \"answers\": [" +
-            "            {" +
-            "              \"text\": \"" + score + "\"" +
-            "            }" +
-            "          ]" +
-            "        }," +
-            "        {" +
-            "          \"id\": \"70321940\"," +
-            "          \"answers\": [" +
-            "            {" +
-            "              \"text\": \"" + InstallationIdUtils.getHashMac() + "@AzureToolkitForIntelliJ\"" +
-            "            }" +
-            "          ]" +
-            "        }" +
-            "      ]" +
-            "    }" +
-            "  ]" +
-            "}";
     }
 }

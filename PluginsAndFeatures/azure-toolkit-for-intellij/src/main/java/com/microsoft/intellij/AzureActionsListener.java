@@ -18,7 +18,6 @@ import com.microsoft.azure.cosmosspark.CosmosSparkClusterOpsCtrl;
 import com.microsoft.azure.cosmosspark.serverexplore.cosmossparknode.CosmosSparkClusterOps;
 import com.microsoft.azure.hdinsight.common.HDInsightHelperImpl;
 import com.microsoft.azure.hdinsight.common.HDInsightLoader;
-import com.microsoft.azure.toolkit.ide.common.experiment.ExperimentationClient;
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
 import com.microsoft.azure.toolkit.ide.common.store.DefaultMachineStore;
 import com.microsoft.azure.toolkit.intellij.common.action.IntellijAzureActionManager;
@@ -116,6 +115,8 @@ public class AzureActionsListener implements AppLifecycleListener, PluginCompone
                     throw Lombok.sneakyThrow(ex);
                 }
             });
+        } catch (final Throwable e){
+            LOG.error(e);
         } finally {
             Thread.currentThread().setContextClassLoader(current);
         }
@@ -125,41 +126,43 @@ public class AzureActionsListener implements AppLifecycleListener, PluginCompone
     @ExceptionNotification
     @AzureOperation(name = "common.init_plugin", type = AzureOperation.Type.SERVICE)
     public void appFrameCreated(@NotNull List<String> commandLineArgs) {
-        DefaultLoader.setPluginComponent(this);
-        DefaultLoader.setUiHelper(new UIHelperImpl());
-        DefaultLoader.setIdeHelper(new IDEHelperImpl());
-        AzureTaskManager.register(new IntellijAzureTaskManager());
-        AzureRxTaskManager.register();
-        AzureMessager.setDefaultMessager(new IntellijAzureMessager());
-        IntellijAzureActionManager.register();
-        Node.setNode2Actions(NodeActionsMap.NODE_ACTIONS);
-        SchedulerProviderFactory.getInstance().init(new AppSchedulerProvider());
-        MvpUIHelperFactory.getInstance().init(new MvpUIHelperImpl());
-
-        HDInsightLoader.setHHDInsightHelper(new HDInsightHelperImpl());
-
-        AzureStoreManager.register(new DefaultMachineStore(PluginHelper.getTemplateFile("azure.json")),
-                IntellijStore.getInstance(), IntelliJSecureStore.getInstance());
-        ExperimentationClient.init();
-
         try {
-            loadPluginSettings();
-        } catch (IOException e) {
-            PluginUtil.displayErrorDialogAndLog("Error", "An error occurred while attempting to load settings", e);
-        }
-        AzureInitializer.initialize();
-        if (!AzurePlugin.IS_ANDROID_STUDIO) {
-            // enable spark serverless node subscribe actions
-            ServiceManager.setServiceProvider(CosmosSparkClusterOpsCtrl.class,
-                    new CosmosSparkClusterOpsCtrl(CosmosSparkClusterOps.getInstance()));
+            DefaultLoader.setPluginComponent(this);
+            DefaultLoader.setUiHelper(new UIHelperImpl());
+            DefaultLoader.setIdeHelper(new IDEHelperImpl());
+            AzureTaskManager.register(new IntellijAzureTaskManager());
+            AzureRxTaskManager.register();
+            AzureMessager.setDefaultMessager(new IntellijAzureMessager());
+            IntellijAzureActionManager.register();
+            Node.setNode2Actions(NodeActionsMap.NODE_ACTIONS);
+            SchedulerProviderFactory.getInstance().init(new AppSchedulerProvider());
+            MvpUIHelperFactory.getInstance().init(new MvpUIHelperImpl());
 
-            ServiceManager.setServiceProvider(TrustStrategy.class, IdeaTrustStrategy.INSTANCE);
-            initAuthManage();
-            ActionManager am = ActionManager.getInstance();
-            DefaultActionGroup toolbarGroup = (DefaultActionGroup) am.getAction(IdeActions.GROUP_MAIN_TOOLBAR);
-            toolbarGroup.addAll((DefaultActionGroup) am.getAction("AzureToolbarGroup"));
-            DefaultActionGroup popupGroup = (DefaultActionGroup) am.getAction(IdeActions.GROUP_PROJECT_VIEW_POPUP);
-            popupGroup.add(am.getAction("AzurePopupGroup"));
+            HDInsightLoader.setHHDInsightHelper(new HDInsightHelperImpl());
+
+            AzureStoreManager.register(new DefaultMachineStore(PluginHelper.getTemplateFile("azure.json")),
+                    IntellijStore.getInstance(), IntelliJSecureStore.getInstance());
+            try {
+                loadPluginSettings();
+            } catch (IOException e) {
+                PluginUtil.displayErrorDialogAndLog("Error", "An error occurred while attempting to load settings", e);
+            }
+            AzureInitializer.initialize();
+            if (!AzurePlugin.IS_ANDROID_STUDIO) {
+                // enable spark serverless node subscribe actions
+                ServiceManager.setServiceProvider(CosmosSparkClusterOpsCtrl.class,
+                        new CosmosSparkClusterOpsCtrl(CosmosSparkClusterOps.getInstance()));
+
+                ServiceManager.setServiceProvider(TrustStrategy.class, IdeaTrustStrategy.INSTANCE);
+                initAuthManage();
+                ActionManager am = ActionManager.getInstance();
+                DefaultActionGroup toolbarGroup = (DefaultActionGroup) am.getAction(IdeActions.GROUP_MAIN_TOOLBAR);
+                toolbarGroup.addAll((DefaultActionGroup) am.getAction("AzureToolbarGroup"));
+                DefaultActionGroup popupGroup = (DefaultActionGroup) am.getAction(IdeActions.GROUP_PROJECT_VIEW_POPUP);
+                popupGroup.add(am.getAction("AzurePopupGroup"));
+            }
+        }catch (final Throwable t){
+            LOG.error(t);
         }
         try {
             PlatformDependent.isAndroid();

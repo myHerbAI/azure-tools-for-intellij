@@ -32,10 +32,8 @@ public class AzureCosmosDbAccountConnectionInterceptor implements DatabaseConnec
         final String accountId = point.getAdditionalProperty(AzureCosmosDbAccountParamEditor.KEY_COSMOS_ACCOUNT_ID);
         if (StringUtils.isNotBlank(accountId)) {
             final Map<String, String> properties = new HashMap<>();
-            if (!StringUtils.equals(accountId, AzureCosmosDbAccountParamEditor.NONE)) {
-                final ResourceId id = ResourceId.fromString(accountId);
-                properties.put("subscriptionId", id.subscriptionId());
-            }
+            final ResourceId id = ResourceId.fromString(accountId);
+            properties.put("subscriptionId", id.subscriptionId());
             properties.put(SERVICE_NAME, "cosmos");
             properties.put(OPERATION_NAME, "connect_jdbc_from_dbtools");
             properties.put(OP_NAME, "cosmos.connect_jdbc_from_dbtools");

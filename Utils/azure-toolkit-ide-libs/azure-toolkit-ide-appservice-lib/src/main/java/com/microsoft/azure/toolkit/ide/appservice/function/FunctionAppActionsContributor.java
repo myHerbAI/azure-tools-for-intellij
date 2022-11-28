@@ -27,7 +27,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import static com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS;
-import static com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor.OPEN_URL;
 import static com.microsoft.azure.toolkit.lib.common.operation.OperationBundle.description;
 
 public class FunctionAppActionsContributor implements IActionsContributor {
@@ -152,7 +151,7 @@ public class FunctionAppActionsContributor implements IActionsContributor {
 
         final ActionView.Builder downloadCliView = new ActionView.Builder("Download")
                 .title(s -> description("function.download_core_tools"));
-        final Action<Object> downloadCliAction = new Action<>(DOWNLOAD_CORE_TOOLS, (v) -> am.getAction(OPEN_URL).handle(CORE_TOOLS_URL), downloadCliView);
+        final Action<Object> downloadCliAction = new Action<>(DOWNLOAD_CORE_TOOLS, downloadCliView);
         downloadCliAction.setAuthRequired(false);
         am.registerAction(downloadCliAction);
 

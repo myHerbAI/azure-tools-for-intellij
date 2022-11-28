@@ -26,16 +26,16 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.utils.FunctionCliResolver;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
-import java.awt.event.InputEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -54,6 +54,7 @@ import java.util.stream.Collectors;
 public class FunctionCoreToolsCombobox extends AzureComboBox<String> {
     private static final String AZURE_TOOLKIT_FUNCTION_CORE_TOOLS_HISTORY = "azure_toolkit.function.core.tools.history";
     private static final String OPEN_AZURE_SETTINGS = "Open Azure Settings";
+    private static final String FUNCTIONS_CORE_TOOLS_NOT_FOUND = "Functions Core Tools not found";
     private static final int MAX_HISTORY_SIZE = 15;
     private final Set<String> funcCoreToolsPathList = new LinkedHashSet<>();
 
@@ -107,9 +108,23 @@ public class FunctionCoreToolsCombobox extends AzureComboBox<String> {
         openSettingsAction.getHandler(null, event).accept(null, event); // Open Azure Settings Panel sync
     }
 
+    @Nullable
     private String getDefaultFuncPath() {
         final String functionCoreToolsPath = Azure.az().config().getFunctionCoreToolsPath();
         return StringUtils.isNotEmpty(functionCoreToolsPath) && Files.exists(Path.of(functionCoreToolsPath)) ? functionCoreToolsPath : null;
+    }
+
+    @Nullable
+    @Override
+    public String getDefaultValue() {
+        final List<String> items = this.getItems().stream().filter(s -> !s.equals(OPEN_AZURE_SETTINGS)).toList();
+        final String value = doGetDefaultValue();
+        final int index = items.indexOf(value);
+        if (Objects.nonNull(value) && index > -1) {
+            return items.get(index);
+        } else {
+            return items.size() > 0 ? items.get(0) : null;
+        }
     }
 
     @Nonnull
@@ -119,22 +134,26 @@ public class FunctionCoreToolsCombobox extends AzureComboBox<String> {
         result.addAll(loadHistory());
         try {
             result.addAll(FunctionCliResolver.resolve());
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             // swallow exception while resolve function path
             // todo @hanli: handle the exception in lib
             log.warn(e.getMessage(), e);
         }
         result.add(getDefaultFuncPath());
+        if (result.stream().noneMatch(Objects::nonNull)) {
+            this.setValidationInfo(includeSettings ? AzureValidationInfo.error(FUNCTIONS_CORE_TOOLS_NOT_FOUND, this)
+                    :  AzureValidationInfo.warning(FUNCTIONS_CORE_TOOLS_NOT_FOUND, this));
+        }
         result.add(includeSettings ? OPEN_AZURE_SETTINGS : null);
         return result.stream().filter(Objects::nonNull).distinct().sorted().collect(Collectors.toList());
     }
 
     public void reset() {
+        this.reloadItems();
         final String defaultFuncPath = getDefaultFuncPath();
         if (StringUtils.isNotEmpty(defaultFuncPath)) {
             this.setValue(defaultFuncPath);
         }
-        this.reloadItems();
     }
 
     @Override
