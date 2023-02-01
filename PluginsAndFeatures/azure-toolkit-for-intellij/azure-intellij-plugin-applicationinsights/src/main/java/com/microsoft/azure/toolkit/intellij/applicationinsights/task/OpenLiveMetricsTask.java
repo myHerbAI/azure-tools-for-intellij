@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-
 import java.util.List;
 import java.util.Objects;
 
@@ -36,7 +35,7 @@ public class OpenLiveMetricsTask implements Task {
     }
 
     @Override
-    @AzureOperation(name = "guidance.open_live_metrics", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "internal/guidance.open_live_metrics")
     public void execute() throws Exception {
         final String applicationInsightsId = (String) context.getParameter("applicationInsightsId");
         final String instrumentKey = (String) context.getParameter("instrumentKey");

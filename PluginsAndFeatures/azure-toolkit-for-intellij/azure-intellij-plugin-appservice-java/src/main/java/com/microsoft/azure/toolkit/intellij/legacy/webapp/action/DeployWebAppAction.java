@@ -39,7 +39,7 @@ public class DeployWebAppAction {
         this.webApp = webApp;
     }
 
-    @AzureOperation(name = "webapp.run_deploy_configuration.app", params = {"this.webApp.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "boundary/webapp.run_deploy_configuration.app", params = {"this.webApp.getName()"})
     public void execute() {
         final RunManagerEx manager = RunManagerEx.getInstanceEx(project);
         final RunnerAndConfigurationSettings settings = getRunConfigurationSettings(manager);

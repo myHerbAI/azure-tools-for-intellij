@@ -9,12 +9,12 @@ import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.favorite.Favorites;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.AzService;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.account.IAccount;
+import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -25,196 +25,236 @@ import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Refreshable;
 import com.microsoft.azure.toolkit.lib.common.model.Startable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
-import static com.microsoft.azure.toolkit.lib.common.operation.OperationBundle.description;
 
 public class ResourceCommonActionsContributor implements IActionsContributor {
 
     public static final int INITIALIZE_ORDER = 0;
 
-    public static final Action.Id<AzResource> START = Action.Id.of("resource.start_resource.resource");
-    public static final Action.Id<AzResource> STOP = Action.Id.of("resource.stop_resource.resource");
-    public static final Action.Id<AzResource> RESTART = Action.Id.of("resource.restart_resource.resource");
-    public static final Action.Id<Refreshable> REFRESH = Action.Id.of("resource.refresh_resource.resource");
-    public static final Action.Id<AzResource> DELETE = Action.Id.of("resource.delete_resource.resource");
-    public static final Action.Id<AzResource> OPEN_PORTAL_URL = Action.Id.of("resource.open_portal_url.resource");
-    public static final Action.Id<AzResourceBase> SHOW_PROPERTIES = Action.Id.of("resource.show_properties.resource");
-    public static final Action.Id<AzResource> DEPLOY = Action.Id.of("resource.deploy_resource.resource");
-    public static final Action.Id<AzResource> CONNECT = Action.Id.of("resource.connect_resource.resource");
-    public static final Action.Id<Object> CREATE = Action.Id.of("resource.create_resource.type");
-    public static final Action.Id<AbstractAzResource<?, ?, ?>> PIN = Action.Id.of("resource.pin");
-    public static final Action.Id<String> OPEN_URL = Action.Id.of("common.open_url.url");
-    public static final Action.Id<String> COPY_STRING = Action.Id.of("common.copy_string");
-    public static final Action.Id<Object> OPEN_AZURE_SETTINGS = Action.Id.of("common.open_azure_settings");
-    public static final Action.Id<Object> OPEN_AZURE_EXPLORER = Action.Id.of("common.open_azure_explorer");
-    public static final Action.Id<Object> OPEN_AZURE_REFERENCE_BOOK = Action.Id.of("common.open_azure_reference_book");
-    public static final Action.Id<Object> HIGHLIGHT_RESOURCE_IN_EXPLORER = Action.Id.of("common.highlight_resource_in_explorer");
+    public static final Action.Id<AzResource> START = Action.Id.of("user/resource.start_resource.resource");
+    public static final Action.Id<AzResource> STOP = Action.Id.of("user/resource.stop_resource.resource");
+    public static final Action.Id<AzResource> RESTART = Action.Id.of("user/resource.restart_resource.resource");
+    public static final Action.Id<Refreshable> REFRESH = Action.Id.of("user/resource.refresh_resource.resource");
+    public static final Action.Id<AzResource> DELETE = Action.Id.of("user/resource.delete_resource.resource");
+    public static final Action.Id<AzResource> OPEN_PORTAL_URL = Action.Id.of("user/resource.open_portal_url.resource");
+    public static final Action.Id<AzResourceBase> SHOW_PROPERTIES = Action.Id.of("user/resource.show_properties.resource");
+    public static final Action.Id<AzResource> DEPLOY = Action.Id.of("user/resource.deploy_resource.resource");
+    public static final Action.Id<AzResource> CONNECT = Action.Id.of("user/resource.connect_resource.resource");
+    public static final Action.Id<Object> CREATE = Action.Id.of("user/resource.create_resource.type");
+    public static final Action.Id<AzService> CREATE_IN_PORTAL = Action.Id.of("user/resource.create_resource_in_portal.type");
+    public static final Action.Id<AbstractAzResource<?, ?, ?>> PIN = Action.Id.of("user/resource.pin");
+    public static final Action.Id<String> OPEN_URL = Action.Id.of("user/common.open_url.url");
+    public static final Action.Id<String> COPY_STRING = Action.Id.of("user/common.copy_string");
+    public static final Action.Id<Object> OPEN_AZURE_SETTINGS = Action.Id.of("user/common.open_azure_settings");
+    public static final Action.Id<Object> OPEN_AZURE_EXPLORER = Action.Id.of("user/common.open_azure_explorer");
+    public static final Action.Id<Object> OPEN_AZURE_REFERENCE_BOOK = Action.Id.of("user/common.open_azure_reference_book");
+    public static final Action.Id<Object> HIGHLIGHT_RESOURCE_IN_EXPLORER = Action.Id.of("internal/common.highlight_resource_in_explorer");
+    public static final Action.Id<Object> INSTALL_DOTNET_RUNTIME = Action.Id.of("user/bicep.install_dotnet_runtime");
+    public static final Action.Id<Object> RESTART_IDE = Action.Id.of("user/common.restart_ide");
+    public static final Action.Id<File> REVEAL_FILE = Action.Id.of("user/common.reveal_file_in_explorer");
+    public static final Action.Id<File> OPEN_FILE = Action.Id.of("user/common.open_file_in_editor");
 
     public static final String RESOURCE_GROUP_CREATE_ACTIONS = "actions.resource.create.group";
 
     @Override
     public void registerActions(AzureActionManager am) {
         final AzureActionManager.Shortcuts shortcuts = am.getIDEDefaultShortcuts();
-        final ActionView.Builder startView = new ActionView.Builder("Start", AzureIcons.Action.START.getIconPath())
-            .title(s -> Optional.ofNullable(s).map(r -> description("resource.start_resource.resource", ((AzResourceBase) r).getName())).orElse(null))
-            .enabled(s -> s instanceof AzResource);
-        final Action<AzResource> startAction = new Action<>(START, startView);
-        startAction.setShortcuts(shortcuts.start());
-        startAction.registerHandler((s) -> s instanceof Startable && ((Startable) s).isStartable(), s -> ((Startable) s).start());
-        am.registerAction(startAction);
+        new Action<>(START)
+            .withLabel("Start")
+            .withIcon(AzureIcons.Action.START.getIconPath())
+            .withIdParam(AzResource::getName)
+            .withShortcut(shortcuts.start())
+            .visibleWhen(s -> s instanceof AzResource && s instanceof Startable && ((Startable) s).isStartable())
+            .withHandler(s -> ((Startable) s).start())
+            .register(am);
 
-        final ActionView.Builder stopView = new ActionView.Builder("Stop", AzureIcons.Action.STOP.getIconPath())
-            .title(s -> Optional.ofNullable(s).map(r -> description("resource.stop_resource.resource", ((AzResource) r).name())).orElse(null))
-            .enabled(s -> s instanceof AzResource);
-        final Action<AzResource> stopAction = new Action<>(STOP, stopView);
-        stopAction.setShortcuts(shortcuts.stop());
-        stopAction.registerHandler((s) -> s instanceof Startable && ((Startable) s).isStoppable(), s -> ((Startable) s).stop());
-        am.registerAction(stopAction);
+        new Action<>(STOP)
+            .withLabel("Stop")
+            .withIcon(AzureIcons.Action.STOP.getIconPath())
+            .withIdParam(AzResource::getName)
+            .withShortcut(shortcuts.stop())
+            .visibleWhen(s -> s instanceof AzResource && s instanceof Startable && ((Startable) s).isStoppable())
+            .withHandler(s -> ((Startable) s).stop())
+            .register(am);
 
-        final ActionView.Builder restartView = new ActionView.Builder("Restart", AzureIcons.Action.RESTART.getIconPath())
-            .title(s -> Optional.ofNullable(s).map(r -> description("resource.restart_resource.resource", ((AzResource) r).name())).orElse(null))
-            .enabled(s -> s instanceof AzResource);
-        final Action<AzResource> restartAction = new Action<>(RESTART, restartView);
-        restartAction.setShortcuts(shortcuts.restart());
-        restartAction.registerHandler((s) -> s instanceof Startable && ((Startable) s).isRestartable(), s -> ((Startable) s).restart());
-        am.registerAction(restartAction);
+        new Action<>(RESTART)
+            .withLabel("Restart")
+            .withIcon(AzureIcons.Action.RESTART.getIconPath())
+            .withIdParam(AzResource::getName)
+            .withShortcut(shortcuts.restart())
+            .visibleWhen(s -> s instanceof AzResource && s instanceof Startable && ((Startable) s).isRestartable())
+            .withHandler(s -> ((Startable) s).restart())
+            .register(am);
 
-        final Consumer<AzResource> delete = s -> {
-            if (AzureMessager.getMessager().confirm(String.format("Are you sure to delete %s \"%s\"", s.getResourceTypeName(), s.getName()))) {
-                ((Deletable) s).delete();
-            }
-        };
-        final ActionView.Builder deleteView = new ActionView.Builder("Delete", AzureIcons.Action.DELETE.getIconPath())
-            .title(s -> Optional.ofNullable(s).map(r -> description("resource.delete_resource.resource", ((AzResource) r).name())).orElse(null))
-            .enabled(s -> {
+        new Action<>(DELETE)
+            .withLabel("Delete")
+            .withIcon(AzureIcons.Action.DELETE.getIconPath())
+            .withIdParam(AzResource::getName)
+            .withShortcut(shortcuts.delete())
+            .visibleWhen(s -> s instanceof AzResource && s instanceof Deletable)
+            .enableWhen(s -> {
                 if (s instanceof AbstractAzResource) {
                     final AbstractAzResource<?, ?, ?> r = (AbstractAzResource<?, ?, ?>) s;
-                    return s instanceof Deletable && !r.getFormalStatus().isDeleted() && !r.isDraftForCreating();
+                    return !r.getFormalStatus().isDeleted() && !r.isDraftForCreating();
                 }
-                return s instanceof Deletable;
-            });
-        final Action<AzResource> deleteAction = new Action<>(DELETE, delete, deleteView);
-        deleteAction.setShortcuts(shortcuts.delete());
-        am.registerAction(deleteAction);
+                return true;
+            })
+            .withHandler((s) -> {
+                if (AzureMessager.getMessager().confirm(String.format("Are you sure to delete %s \"%s\"", s.getResourceTypeName(), s.getName()))) {
+                    ((Deletable) s).delete();
+                }
+            }).register(am);
 
-        final Consumer<Refreshable> refresh = Refreshable::refresh;
-        final ActionView.Builder refreshView = new ActionView.Builder("Refresh", AzureIcons.Action.REFRESH.getIconPath())
-            .title(s -> Optional.ofNullable(s).map(r -> {
+        new Action<>(REFRESH)
+            .withLabel("Refresh")
+            .withIcon(AzureIcons.Action.REFRESH.getIconPath())
+            .withIdParam(s -> Optional.ofNullable(s).map(r -> {
                 if (r instanceof AzResource) {
-                    return description("resource.refresh_resource.resource", ((AzResource) r).name());
+                    return ((AzResource) r).getName();
                 } else if (r instanceof AbstractAzResourceModule) {
-                    return description("resource.refresh_resource.resource", ((AbstractAzResourceModule<?, ?, ?>) r).getResourceTypeName());
-                } else {
-                    return AzureString.fromString("refresh");
+                    return ((AbstractAzResourceModule<?, ?, ?>) r).getResourceTypeName();
                 }
+                throw new IllegalArgumentException("Unsupported type: " + r.getClass());
             }).orElse(null))
-            .enabled(s -> s instanceof Refreshable);
-        final Action<Refreshable> refreshAction = new Action<>(REFRESH, refresh, refreshView);
-        refreshAction.setShortcuts(shortcuts.refresh());
-        am.registerAction(refreshAction);
+            .withShortcut(shortcuts.refresh())
+            .visibleWhen(s -> s instanceof Refreshable)
+            .withHandler(Refreshable::refresh)
+            .register(am);
 
-        final Consumer<AzResource> openPortalUrl = s -> am.getAction(OPEN_URL).handle(s.getPortalUrl());
-        final ActionView.Builder openPortalUrlView = new ActionView.Builder("Open in Portal", AzureIcons.Action.PORTAL.getIconPath())
-            .title(s -> Optional.ofNullable(s).map(r -> description("resource.open_portal_url.resource", ((AzResource) r).name())).orElse(null))
-            .enabled(s -> s instanceof AzResource);
-        final Action<AzResource> openPortalUrlAction = new Action<>(OPEN_PORTAL_URL, openPortalUrl, openPortalUrlView);
-        openPortalUrlAction.setShortcuts("control alt O");
-        am.registerAction(openPortalUrlAction.setAuthRequired(false));
+        new Action<>(OPEN_PORTAL_URL)
+            .withLabel("Open in Portal")
+            .withIcon(AzureIcons.Action.PORTAL.getIconPath())
+            .withIdParam(AzResource::getName)
+            .withShortcut("control alt O")
+            .visibleWhen(s -> s instanceof AzResource)
+            .withHandler(s -> am.getAction(OPEN_URL).handle(s.getPortalUrl()))
+            .register(am);
 
-        // register commands
-        final ActionView.Builder openUrlView = new ActionView.Builder("Open Url").title(url -> description("resource.open_url.url", url));
-        final Action<String> action = new Action<>(OPEN_URL, (s) -> {
-            throw new AzureToolkitRuntimeException(String.format("no matched handler for action %s.", s));
-        }, openUrlView);
-        action.setAuthRequired(false);
-        am.registerAction(action);
+        new Action<>(OPEN_URL)
+            .withLabel("Open Url")
+            .withIdParam(u -> u)
+            .withAuthRequired(false)
+            .register(am);
 
-        final ActionView.Builder copyStringView = new ActionView.Builder("Copy").title(str -> description("common.copy_string.string", str));
-        final Action<String> copyStringAction = new Action<>(COPY_STRING, ResourceCommonActionsContributor::copyString, copyStringView);
-        action.setAuthRequired(false);
-        am.registerAction(copyStringAction);
+        new Action<>(COPY_STRING)
+            .withLabel("Copy")
+            .withIdParam(u -> u)
+            .withAuthRequired(false)
+            .register(am);
 
-        final ActionView.Builder connectView = new ActionView.Builder("Connect to Project", AzureIcons.Connector.CONNECT.getIconPath())
-            .title(s -> Optional.ofNullable(s).map(r -> description("resource.connect_resource.resource", ((AzResource) r).name())).orElse(null))
-            .enabled(s -> s instanceof AzResourceBase && ((AzResourceBase) s).getFormalStatus().isRunning());
-        am.registerAction(new Action<>(CONNECT, connectView));
+        new Action<>(CONNECT)
+            .withLabel("Connect to Project")
+            .withIcon(AzureIcons.Connector.CONNECT.getIconPath())
+            .withIdParam(AzResource::getName)
+            .visibleWhen(s -> s instanceof AzResourceBase)
+            .enableWhen(s -> s.getFormalStatus().isRunning())
+            .register(am);
 
-        final ActionView.Builder showPropertiesView = new ActionView.Builder("Show Properties", AzureIcons.Action.PROPERTIES.getIconPath())
-            .title(s -> Optional.ofNullable(s).map(r -> description("resource.show_properties.resource", ((AzResource) r).name())).orElse(null))
-            .enabled(s -> s instanceof AzResourceBase && ((AzResourceBase) s).getFormalStatus().isConnected());
-        final Action<AzResourceBase> showPropertiesAction = new Action<>(SHOW_PROPERTIES, showPropertiesView);
-        showPropertiesAction.setShortcuts(shortcuts.edit());
-        am.registerAction(showPropertiesAction);
+        new Action<>(SHOW_PROPERTIES)
+            .withLabel("Show Properties")
+            .withIcon(AzureIcons.Action.PROPERTIES.getIconPath())
+            .withIdParam(AzResourceBase::getName)
+            .visibleWhen(s -> s instanceof AzResourceBase)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .withShortcut(shortcuts.edit())
+            .register(am);
 
-        final ActionView.Builder deployView = new ActionView.Builder("Deploy", AzureIcons.Action.DEPLOY.getIconPath())
-            .title(s -> Optional.ofNullable(s).map(r -> description("resource.deploy_resource.resource", ((AzResource) r).name())).orElse(null))
-            .enabled(s -> s instanceof AzResourceBase && ((AzResourceBase) s).getFormalStatus().isWritable());
-        final Action<AzResource> deployAction = new Action<>(DEPLOY, deployView);
-        deployAction.setShortcuts(shortcuts.deploy());
-        am.registerAction(deployAction);
+        new Action<>(DEPLOY)
+            .withLabel("Deploy")
+            .withIcon(AzureIcons.Action.DEPLOY.getIconPath())
+            .withIdParam(AzResource::getName)
+            .withShortcut("control alt O")
+            .visibleWhen(s -> s instanceof AzResourceBase)
+            .enableWhen(s -> s.getFormalStatus().isWritable())
+            .withShortcut(shortcuts.deploy())
+            .register(am);
 
-        final ActionView.Builder openSettingsView = new ActionView.Builder("Open Azure Settings")
-            .title((s) -> OperationBundle.description("common.open_azure_settings"));
-        am.registerAction(new Action<>(OPEN_AZURE_SETTINGS, openSettingsView).setAuthRequired(false));
+        new Action<>(OPEN_AZURE_SETTINGS)
+            .withLabel("Open Azure Settings")
+            .withAuthRequired(false)
+            .register(am);
 
-        final ActionView.Builder openAzureExplorer = new ActionView.Builder("Open Azure Explorer")
-            .title((s) -> OperationBundle.description("common.open_azure_explorer"));
-        am.registerAction(new Action<>(OPEN_AZURE_EXPLORER, openAzureExplorer).setAuthRequired(false));
+        new Action<>(OPEN_AZURE_EXPLORER)
+            .withLabel("Open Azure Explorer")
+            .withAuthRequired(false)
+            .register(am);
 
-        final ActionView.Builder highlightResourceView = new ActionView.Builder("highlight resource in Azure Explorer")
-            .title((s) -> OperationBundle.description("common.highlight_resource_in_explorer"));
-        am.registerAction(new Action<>(HIGHLIGHT_RESOURCE_IN_EXPLORER, highlightResourceView).setAuthRequired(false));
+        new Action<>(HIGHLIGHT_RESOURCE_IN_EXPLORER)
+            .withLabel("Highlight resource in Azure Explorer")
+            .withAuthRequired(false)
+            .register(am);
 
-        final ActionView.Builder openReferenceBookView = new ActionView.Builder("View Azure SDK")
-            .title((s) -> OperationBundle.description("common.open_azure_reference_book"));
-        am.registerAction(new Action<>(OPEN_AZURE_REFERENCE_BOOK, openReferenceBookView).setAuthRequired(false));
+        new Action<>(OPEN_AZURE_REFERENCE_BOOK)
+            .withLabel("View Azure SDK")
+            .withAuthRequired(false)
+            .register(am);
 
-        final ActionView.Builder createView = new ActionView.Builder("Create", AzureIcons.Action.CREATE.getIconPath())
-            .title(s -> Optional.ofNullable(s).map(r -> {
-                String name = r.getClass().getSimpleName();
+        new Action<>(CREATE)
+            .withLabel("Create")
+            .withIcon(AzureIcons.Action.CREATE.getIconPath())
+            .withIdParam(r -> {
                 if (r instanceof AzResource) {
-                    name = ((AzResource) r).getName();
+                    return ((AzResource) r).getName();
                 } else if (r instanceof AzService) {
-                    name = ((AzService) r).getName();
+                    return ((AzService) r).getName();
                 } else if (r instanceof AzResourceModule) {
-                    name = ((AzResourceModule<?>) r).getResourceTypeName();
+                    return ((AzResourceModule<?>) r).getResourceTypeName();
                 }
-                return description("resource.create_resource.type", name);
-            }).orElse(null)).enabled(s -> s instanceof AzService || s instanceof AzResourceModule ||
-                (s instanceof AzResource && !StringUtils.equalsIgnoreCase(((AzResourceBase) s).getStatus(), AzResource.Status.CREATING)));
-        final Action<Object> createAction = new Action<>(CREATE, createView);
-        createAction.setShortcuts(shortcuts.add());
-        am.registerAction(createAction);
+                return r.getClass().getSimpleName();
+            })
+            .withShortcut(shortcuts.add())
+            .visibleWhen(s -> s instanceof AzService || s instanceof AzResourceModule || s instanceof AzResource)
+            .enableWhen(s -> !(s instanceof AzResource) || !StringUtils.equalsIgnoreCase(((AzResourceBase) s).getStatus(), AzResource.Status.CREATING))
+            .register(am);
+
+        new Action<>(CREATE_IN_PORTAL)
+            .withLabel("Create In Azure Portal")
+            .withIcon(AzureIcons.Action.CREATE.getIconPath())
+            .visibleWhen(s -> s instanceof AzService)
+            .withHandler(s -> {
+                final IAccount account = Azure.az(IAzureAccount.class).account();
+                final String url = String.format("%s/#create/%s", account.getPortalUrl(), s.getName());
+                am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(url);
+            })
+            .withShortcut(shortcuts.add())
+            .register(am);
 
         final Favorites favorites = Favorites.getInstance();
-        final Function<Object, String> title = s -> Objects.nonNull(s) && favorites.exists(((AbstractAzResource<?, ?, ?>) s).getId()) ?
-            "Unmark As Favorite" : "Mark As Favorite";
-        final ActionView.Builder pinView = new ActionView.Builder(title).enabled(s -> s instanceof AbstractAzResource);
-        pinView.iconPath(s -> Objects.nonNull(s) && favorites.exists(((AbstractAzResource<?, ?, ?>) s).getId()) ?
-            AzureIcons.Action.PIN.getIconPath() : AzureIcons.Action.UNPIN.getIconPath());
-        final Action<AbstractAzResource<?, ?, ?>> pinAction = new Action<>(ResourceCommonActionsContributor.PIN, (r) -> {
-            if (favorites.exists(r.getId())) {
-                favorites.unpin(r.getId());
-            } else {
-                favorites.pin(r);
-            }
-        }, pinView);
-        pinAction.setShortcuts("F11");
-        am.registerAction(pinAction.setAuthRequired(false));
+        new Action<>(PIN)
+            .withLabel(s -> Objects.nonNull(s) && favorites.exists(s.getId()) ? "Unmark As Favorite" : "Mark As Favorite")
+            .withIcon(s -> Objects.nonNull(s) && favorites.exists(s.getId()) ? AzureIcons.Action.PIN.getIconPath() : AzureIcons.Action.UNPIN.getIconPath())
+            .withShortcut("F11")
+            .visibleWhen(s -> s instanceof AbstractAzResource)
+            .withHandler((r) -> {
+                if (favorites.exists(r.getId())) {
+                    favorites.unpin(r.getId());
+                } else {
+                    favorites.pin(r);
+                }
+            })
+            .withAuthRequired(false)
+            .register(am);
+
+        new Action<>(INSTALL_DOTNET_RUNTIME)
+            .withLabel("Install .Net Runtime")
+            .withAuthRequired(false)
+            .register(am);
+
+        new Action<>(RESTART_IDE)
+            .withLabel("Restart IDE")
+            .withAuthRequired(false)
+            .register(am);
     }
 
-    @AzureOperation(name = "common.copy_string.string", params = {"s"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "boundary/common.copy_string.string", params = {"s"})
     private static void copyString(String s) {
         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(s), null);
     }

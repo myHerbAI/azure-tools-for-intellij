@@ -40,7 +40,6 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabaseServer;
 import com.microsoft.azure.toolkit.lib.mysql.AzureMySql;
 import com.microsoft.azure.toolkit.lib.mysql.MySqlServer;
@@ -70,27 +69,26 @@ import java.util.stream.Collectors;
 
 public class DatabaseServerParamEditor extends ParamEditorBase<DatabaseServerParamEditor.SqlDbServerComboBox> {
     public static final String KEY_DB_SERVER_ID = "AZURE_SQL_DB_SERVER";
+    public static final String NONE = "<NONE>";
     public static final String NO_SERVERS_TIPS = "<html>No existing %s servers in Azure. You can <a href=''>create one</a> first.</html>";
     public static final String NOT_SIGNIN_TIPS = "<html><a href=\"\">Sign in</a> to select an existing %s server in Azure.</html>";
     private final Class<? extends IDatabaseServer<?>> clazz;
     @Getter
     @Setter
     private String text = "";
-    @Nullable
-    private JdbcUrl jdbcUrl;
     private boolean updating;
 
     public DatabaseServerParamEditor(@Nonnull Class<? extends IDatabaseServer<?>> clazz, @Nonnull String label, @Nonnull DataInterchange interchange) {
         super(new SqlDbServerComboBox(clazz), interchange, FieldSize.LARGE, label);
         this.clazz = clazz;
-        this.jdbcUrl = Optional.ofNullable(interchange.getDataSource().getUrl()).filter(StringUtils::isNotBlank).map(JdbcUrl::from).orElse(null);
+        final LocalDataSource dataSource = getDataSourceConfigurable().getDataSource();
         final SqlDbServerComboBox combox = this.getEditorComponent();
         combox.addValueChangedListener(this::setServer);
         interchange.addPersistentProperty(KEY_DB_SERVER_ID);
-        final boolean isModifying = StringUtils.isNotBlank(interchange.getDataSource().getUsername());
-        if (isModifying && Objects.nonNull(this.jdbcUrl)) {
-            final JdbcUrl url = this.jdbcUrl;
-            combox.setValue(new AzureComboBox.ItemReference<>(i -> i.getJdbcUrl().getServerHost().equals(url.getServerHost())));
+        final String serverId = interchange.getProperty(KEY_DB_SERVER_ID);
+        final boolean isModifying = StringUtils.isNotBlank(dataSource.getUsername());
+        if (isModifying && Objects.nonNull(serverId)) {
+            combox.setValue(new AzureComboBox.ItemReference<>(i -> i.getId().equals(serverId)));
         }
 
         interchange.addPropertyChangeListener((evt -> onPropertiesChanged(evt.getPropertyName(), evt.getNewValue())), this);
@@ -115,7 +113,7 @@ public class DatabaseServerParamEditor extends ParamEditorBase<DatabaseServerPar
         return container;
     }
 
-    @AzureOperation(name = "database.signin_from_dbtools", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/database.signin_from_dbtools")
     private void signInAndReloadItems(SqlDbServerComboBox combox, HyperlinkLabel notSignInTips) {
         OperationContext.action().setTelemetryProperty("kind", this.clazz.getName());
         AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle(() -> {
@@ -146,7 +144,7 @@ public class DatabaseServerParamEditor extends ParamEditorBase<DatabaseServerPar
         return label;
     }
 
-    @AzureOperation(name = "database.create_database_from_dbtools", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/database.create_database_from_dbtools")
     private void createServerInIde(InputEvent e) {
         OperationContext.action().setTelemetryProperty("kind", this.clazz.getName());
         final DataContext context = DataManager.getInstance().getDataContext(e.getComponent());
@@ -171,33 +169,37 @@ public class DatabaseServerParamEditor extends ParamEditorBase<DatabaseServerPar
     }
 
     private void onPropertiesChanged(String propertyName, Object newValue) {
-        if (!this.updating && Objects.nonNull(this.jdbcUrl) && StringUtils.isNotEmpty((String) newValue)) {
-            if (StringUtils.equals(propertyName, "host") && !Objects.equals(this.jdbcUrl.getServerHost(), newValue)) {
-                this.getEditorComponent().setValue((IDatabaseServer<?>) null);
+        if (!this.updating && StringUtils.isNotEmpty((String) newValue) && StringUtils.equals(propertyName, "host")) {
+            final SqlDbServerComboBox combox = this.getEditorComponent();
+            final IDatabaseServer<?> server = combox.getValue();
+            if (Objects.nonNull(server) && !Objects.equals(server.getJdbcUrl().getServerHost(), newValue)) {
+                combox.setValue((IDatabaseServer<?>) null);
                 this.setServer(null);
             }
         }
     }
 
-    @AzureOperation(name = "database.select_server_dbtools.server", params = {"server.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/database.select_server_dbtools.server", params = {"server.getName()"})
     private void setServer(@Nullable IDatabaseServer<?> server) {
         Optional.ofNullable(server).ifPresent(a -> {
             OperationContext.action().setTelemetryProperty("subscriptionId", a.getSubscriptionId());
             OperationContext.action().setTelemetryProperty("resourceType", ((AzResource) a).getFullResourceType());
         });
         final DataInterchange interchange = this.getInterchange();
-        interchange.putProperty(KEY_DB_SERVER_ID, Optional.ofNullable(server).map(IDatabaseServer::getId).orElse(null));
-        final JdbcUrl newUrl = Optional.ofNullable(server).map(IDatabaseServer::getJdbcUrl).orElse(null);
-        if (this.updating || Objects.isNull(newUrl) || Objects.nonNull(jdbcUrl) && Objects.equals(jdbcUrl.getServerHost(), newUrl.getServerHost())) {
-            return;
-        }
-        this.jdbcUrl = newUrl;
+        final String oldServerId = interchange.getProperty(KEY_DB_SERVER_ID);
+        final String newServerId = Optional.ofNullable(server).map(IDatabaseServer::getId).orElse(null);
         this.updating = true;
-        final String user = String.format("%s@%s", server.getAdminName(), server.getName());
         AzureTaskManager.getInstance().runLater(() -> {
+            // null will not be saved at com/intellij/database/dataSource/url/ui/DynamicJdbcUrlEditor#storeProperties
+            interchange.putProperty(KEY_DB_SERVER_ID, Optional.ofNullable(newServerId).orElse(NONE));
+            if (Objects.isNull(server) || Objects.equals(oldServerId, newServerId)) {
+                this.updating = false;
+                return;
+            }
+            final String user = server.getFullAdminName();
             LocalDataSource.setUsername(interchange.getDataSource(), user);
             this.setUsername(user);
-            this.setJdbcUrl(jdbcUrl.toString());
+            this.setJdbcUrl(server.getJdbcUrl().toString());
             this.updating = false;
         }, AzureTask.Modality.ANY);
     }

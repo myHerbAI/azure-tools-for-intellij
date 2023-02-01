@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 public class ModuleConnectorAction extends AnAction {
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "connector.connect_from_project_open_dialog", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/connector.connect_from_project_open_dialog")
     public void actionPerformed(@NotNull final AnActionEvent event) {
         final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
         if (module != null) {

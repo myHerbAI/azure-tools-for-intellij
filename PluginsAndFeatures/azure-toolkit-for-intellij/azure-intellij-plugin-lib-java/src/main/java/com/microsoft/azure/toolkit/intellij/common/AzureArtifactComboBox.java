@@ -70,11 +70,7 @@ public class AzureArtifactComboBox extends AzureComboBox<AzureArtifact> {
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "common.list_artifacts.project",
-        params = {"this.project.getName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/common.list_artifacts.project", params = {"this.project.getName()"})
     protected List<? extends AzureArtifact> loadItems() throws Exception {
         final List<AzureArtifact> collect = fileArtifactOnly ?
             new ArrayList<>() : AzureArtifactManager.getInstance(project).getAllSupportedAzureArtifacts();

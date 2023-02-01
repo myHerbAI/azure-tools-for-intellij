@@ -1,14 +1,15 @@
 plugins {
-    id "org.jetbrains.intellij" version "1.5.2"
-    id "org.jetbrains.kotlin.jvm" version "1.6.21"
+    id "org.jetbrains.intellij" version "1.12.0"
+    id "org.jetbrains.kotlin.jvm" version "1.7.20"
     id "de.undercouch.download" version "4.1.1"
     id "com.github.ben-manes.versions" version "0.39.0"
-    id "io.freefair.aspectj.post-compile-weaving" version "6.0.0-m2"
+    id "io.freefair.aspectj.post-compile-weaving" version "6.5.1"
     id "io.spring.dependency-management" version "1.0.11.RELEASE"
 }
+
 ext {
-    azureToolkitVersion = "0.27.0"
-    azureToolkitUtilsVersion = "3.71.0"
+    azureToolkitVersion = "0.30.0-SNAPSHOT"
+    azureToolkitUtilsVersion = "3.74.0-SNAPSHOT"
 }
 
 group 'com.microsoft.azure.toolkit'
@@ -48,8 +49,8 @@ subprojects {
     apply plugin: 'io.freefair.aspectj.post-compile-weaving'
     apply plugin: 'io.spring.dependency-management'
     ext {
-        azureToolkitVersion = "0.27.0"
-        azureToolkitUtilsVersion = "3.71.0"
+        azureToolkitVersion = "0.30.0-SNAPSHOT"
+        azureToolkitUtilsVersion = "3.74.0-SNAPSHOT"
     }
 
     sourceCompatibility = javaVersion
@@ -80,10 +81,12 @@ subprojects {
         // https://mvnrepository.com/artifact/org.projectlombok/lombok
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
-        compile 'com.microsoft.azure:azure-toolkit-common-lib'
+        implementation 'com.microsoft.azure:azure-toolkit-common-lib'
         aspect 'com.microsoft.azure:azure-toolkit-common-lib'
         compileOnly 'org.jetbrains:annotations'
     }
+
+    buildSearchableOptions.onlyIf {false}
 }
 
 sourceSets {
@@ -108,15 +111,16 @@ repositories {
     mavenCentral()
 }
 
-configurations {
-    compile.exclude module:'slf4j-api'
-    compile.exclude module:'log4j'
-    compile.exclude module:'stax-api'
-    compile.exclude module:'groovy-xml'
-    compile.exclude module:'groovy-templates'
-    compile.exclude module:'jna'
-    cucumberRuntime {
-        extendsFrom testImplementation
+allprojects {
+    configurations {
+        implementation.exclude module:'slf4j-api'
+        implementation.exclude module:'log4j'
+        implementation.exclude module:'stax-api'
+        implementation.exclude module:'groovy-xml'
+        implementation.exclude module:'groovy-templates'
+        cucumberRuntime {
+            extendsFrom testImplementation
+        }
     }
 }
 
@@ -128,15 +132,15 @@ dependencyManagement {
 }
 
 dependencies {
-    compile 'com.microsoft.azure:azure-toolkit-auth-lib:' + azureToolkitVersion
-    compile 'com.microsoft.azure:azure-toolkit-ide-common-lib:' + azureToolkitVersion
+    implementation 'com.microsoft.azure:azure-toolkit-auth-lib:' + azureToolkitVersion
+    implementation 'com.microsoft.azure:azure-toolkit-ide-common-lib:' + azureToolkitVersion
 
-    compile project(':azure-intellij-plugin-lib')
-    compile project(':azure-intellij-plugin-service-explorer')
+    implementation project(':azure-intellij-plugin-lib')
+    implementation project(':azure-intellij-plugin-service-explorer')
 
     def modules = IntellijPluginModules.split(",")
     modules.each { m ->
-        compile project(':' + m)
+        implementation project(':' + m)
     }
 
     aspect "com.microsoft.azure:azure-toolkit-common-lib", {
@@ -147,7 +151,7 @@ dependencies {
 }
 
 wrapper() {
-    gradleVersion = '6.9'
+    gradleVersion = '7.5.1'
     distributionUrl = "https://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }
 

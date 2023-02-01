@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class AzureStorageAccountComboBox extends AzureComboBox<StorageAccountConfig> {
-    private static final StorageAccountConfig NONE = StorageAccountConfig.builder().name("None").build();
+    private static final StorageAccountConfig NONE = StorageAccountConfig.builder().name("<none>").build();
     private Subscription subscription;
     private StorageAccountConfig draft;
 

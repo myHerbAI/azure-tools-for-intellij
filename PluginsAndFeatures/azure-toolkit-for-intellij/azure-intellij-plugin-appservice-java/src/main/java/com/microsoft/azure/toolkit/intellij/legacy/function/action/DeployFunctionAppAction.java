@@ -40,7 +40,7 @@ public class DeployFunctionAppAction {
         this.functionApp = functionApp;
     }
 
-    @AzureOperation(name = "function.run_deploy_configuration.app", params = {"this.functionApp.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "boundary/function.run_deploy_configuration.app", params = {"this.functionApp.getName()"})
     public void execute() {
         final RunManagerEx manager = RunManagerEx.getInstanceEx(project);
         final RunnerAndConfigurationSettings settings = getRunConfigurationSettings(manager);

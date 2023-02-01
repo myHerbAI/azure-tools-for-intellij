@@ -27,7 +27,11 @@ import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -70,11 +74,7 @@ public class AzureArtifactManager {
         }
     }
 
-    @AzureOperation(
-        name = "common.get_artifact_file.artifact",
-        params = {"artifact.getName()"},
-        type = AzureOperation.Type.TASK
-    )
+    @AzureOperation(name = "internal/common.get_artifact_file.artifact", params = {"artifact.getName()"})
     public String getFileForDeployment(AzureArtifact artifact) {
         switch (artifact.getType()) {
             case Gradle:
@@ -130,11 +130,7 @@ public class AzureArtifactManager {
     }
 
     @Nullable
-    @AzureOperation(
-        name = "common.get_artifact_module.artifact",
-        params = {"azureArtifact.getName()"},
-        type = AzureOperation.Type.TASK
-    )
+    @AzureOperation(name = "boundary/common.get_artifact_module.artifact", params = {"azureArtifact.getName()"})
     public Module getModuleFromAzureArtifact(AzureArtifact azureArtifact) {
         if (azureArtifact == null || azureArtifact.getReferencedObject() == null) {
             return null;

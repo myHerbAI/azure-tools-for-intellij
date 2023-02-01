@@ -32,7 +32,7 @@ public class SignInTask implements Task {
     private final ComponentContext context;
 
     @Override
-    @AzureOperation(name = "guidance.sign_in", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "internal/guidance.sign_in")
     public void execute() {
         final AzureAccount az = Azure.az(AzureAccount.class);
         if (!az.isLoggedIn()) {

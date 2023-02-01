@@ -5,13 +5,19 @@
 
 package com.microsoft.azure.toolkit.intellij.springcloud.creation;
 
+import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
+import com.intellij.ui.TitledSeparator;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox;
 import com.microsoft.azure.toolkit.intellij.springcloud.component.SpringCloudClusterComboBox;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.AccessLevel;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
@@ -24,11 +30,47 @@ public class SpringCloudAppInfoBasicPanel extends AbstractSpringCloudAppInfoPane
     private SubscriptionComboBox selectorSubscription;
     private SpringCloudClusterComboBox selectorCluster;
     private AzureTextInput textName;
+    private JRadioButton useJava8;
+    private JRadioButton useJava11;
+    private JRadioButton useJava17;
+    private JLabel lblRuntime;
+    private TitledSeparator sectionConfiguration;
 
     public SpringCloudAppInfoBasicPanel(@Nullable final SpringCloudCluster cluster) {
         super(cluster);
         $$$setupUI$$$();
         this.init();
+    }
+
+    protected void onAppChanged(SpringCloudApp app) {
+        final String sku = app.getParent().getSku();
+        final boolean enterprise = sku.toLowerCase().startsWith("e");
+        this.useJava8.setVisible(!enterprise);
+        this.useJava11.setVisible(!enterprise);
+        this.useJava17.setVisible(!enterprise);
+        this.lblRuntime.setVisible(!enterprise);
+        this.sectionConfiguration.setVisible(!enterprise);
+    }
+
+    @Override
+    public SpringCloudAppConfig getValue() {
+        final SpringCloudAppConfig config = super.getValue();
+        if (this.useJava17.isVisible()) {
+            final String javaVersion = this.useJava17.isSelected() ? RuntimeVersion.JAVA_17.toString() :
+                this.useJava11.isSelected() ? RuntimeVersion.JAVA_11.toString() : RuntimeVersion.JAVA_8.toString();
+            final SpringCloudDeploymentConfig deployment = config.getDeployment();
+            deployment.setRuntimeVersion(javaVersion);
+        }
+        return config;
+    }
+
+    @Override
+    public void setValue(final SpringCloudAppConfig config) {
+        super.setValue(config);
+        final SpringCloudDeploymentConfig deployment = config.getDeployment();
+        this.useJava17.setSelected(StringUtils.equalsIgnoreCase(deployment.getRuntimeVersion(), RuntimeVersion.JAVA_17.toString()));
+        this.useJava11.setSelected(StringUtils.equalsIgnoreCase(deployment.getRuntimeVersion(), RuntimeVersion.JAVA_11.toString()));
+        this.useJava8.setSelected(StringUtils.equalsIgnoreCase(deployment.getRuntimeVersion(), RuntimeVersion.JAVA_8.toString()));
     }
 
     @Override

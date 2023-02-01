@@ -23,7 +23,6 @@ import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -37,6 +36,7 @@ import javax.swing.*;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class IntellijAzureActionManager extends AzureActionManager {
     private static final ExtensionPointName<IActionsContributor> actionsExtensionPoint =
@@ -74,8 +74,9 @@ public class IntellijAzureActionManager extends AzureActionManager {
         if (origin instanceof AnActionWrapper) {
             return (Action<D>) ((AnActionWrapper<?>) origin).getAction();
         } else {
-            final ActionView.Builder view = new ActionView.Builder(origin.getTemplateText());
-            return new Action<>(id, (D d, AnActionEvent e) -> origin.actionPerformed(e), view).setAuthRequired(false);
+            return new Action<>(id)
+                .withLabel(Objects.requireNonNull(origin.getTemplateText()))
+                .withHandler((D d, AnActionEvent e) -> origin.actionPerformed(e));
         }
     }
 
@@ -102,12 +103,11 @@ public class IntellijAzureActionManager extends AzureActionManager {
         private AnActionWrapper(@Nonnull Action<T> action) {
             super();
             this.action = action;
-            final IView.Label view = action.getView(null);
         }
 
         @Nullable
         public ShortcutSet getShortcuts() {
-            final Object shortcuts = action.getShortcuts();
+            final Object shortcuts = action.getShortcut();
             if (shortcuts instanceof Action.Id) {
                 return ActionManager.getInstance().getAction(((Action.Id<?>) shortcuts).getId()).getShortcutSet();
             } else if (shortcuts instanceof String) {
@@ -130,27 +130,17 @@ public class IntellijAzureActionManager extends AzureActionManager {
         @Override
         public void update(@Nonnull AnActionEvent e) {
             final T source = (T) e.getDataContext().getData(Action.SOURCE);
+            final Presentation presentation = e.getPresentation();
             final IView.Label view = this.action.getView(source);
-            final boolean visible;
-            if (source instanceof AbstractAzResource && !((AbstractAzResource<?, ?, ?>) source).getSubscription().isSelected() && this.action.isAuthRequired()) {
-                visible = false;
-            } else {
-                visible = Objects.nonNull(view) && view.isEnabled() && Objects.nonNull(action.getHandler(source, e));
-            }
-            e.getPresentation().setVisible(visible);
+            final boolean isResourceInOtherSubs = source instanceof AbstractAzResource && !((AbstractAzResource<?, ?, ?>) source).getSubscription().isSelected() && this.action.isAuthRequired();
+            final boolean visible = !isResourceInOtherSubs && view.isVisible() && Objects.nonNull(action.getHandler(source, e));
+            presentation.setVisible(visible);
             if (visible) {
-                applyView(view, e.getPresentation());
-            }
-        }
-
-        private static void applyView(IView.Label view, Presentation presentation) {
-            if (Objects.nonNull(view)) {
-                if (Objects.nonNull(view.getIconPath())) {
-                    presentation.setIcon(IntelliJAzureIcons.getIcon(view.getIconPath(), AnActionWrapper.class));
-                }
+                final boolean enabled = view.isEnabled() && Objects.nonNull(action.getHandler(source, e));
+                presentation.setEnabled(enabled);
+                presentation.setIcon(Optional.ofNullable(view.getIconPath()).map(IntelliJAzureIcons::getIcon).orElse(null));
                 presentation.setText(view.getLabel());
                 presentation.setDescription(view.getDescription());
-                presentation.setEnabled(view.isEnabled());
             }
         }
     }

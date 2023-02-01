@@ -124,7 +124,7 @@ public abstract class RefreshableNode extends Node {
         final RefreshableNode node = this;
         final SettableFuture<List<Node>> future = SettableFuture.create();
 
-        final AzureString title = OperationBundle.description("common.load_node_children.node", node.getName());
+        final AzureString title = OperationBundle.description("internal/common.load_node_children.node", node.getName());
         AzureTaskManager.getInstance().runInBackground(new AzureTask<>(getProject(), title, false, new Runnable() {
             @Override
             public void run() {

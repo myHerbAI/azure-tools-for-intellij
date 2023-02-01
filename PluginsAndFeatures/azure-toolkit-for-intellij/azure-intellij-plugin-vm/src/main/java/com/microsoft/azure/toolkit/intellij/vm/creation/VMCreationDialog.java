@@ -69,6 +69,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -525,8 +526,8 @@ public class VMCreationDialog extends AzureDialog<VirtualMachineDraft> implement
     }
 
     @Override
-    public List<AzureValidationInfo> validateData() {
-        final List<AzureValidationInfo> result = AzureForm.super.validateData();
+    public List<AzureValidationInfo> validateAdditionalInfo() {
+        final List<AzureValidationInfo> result = new ArrayList<>();
         if (rdoPassword.isSelected()) {
             final String password = passwordFieldInput.getValue();
             final String confirmPassword = confirmPasswordFieldInput.getValue();

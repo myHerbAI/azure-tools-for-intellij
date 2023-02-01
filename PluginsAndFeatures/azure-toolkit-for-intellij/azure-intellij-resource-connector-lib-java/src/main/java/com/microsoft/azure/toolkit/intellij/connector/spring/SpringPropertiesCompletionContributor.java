@@ -74,7 +74,7 @@ public class SpringPropertiesCompletionContributor extends CompletionContributor
 
         @Override
         @ExceptionNotification
-        @AzureOperation(name = "connector.insert_spring_properties", type = AzureOperation.Type.ACTION)
+        @AzureOperation(name = "user/connector.insert_spring_properties")
         public void handleInsert(@Nonnull InsertionContext context, @Nonnull LookupElement lookupElement) {
             final Project project = context.getProject();
             final Module module = ModuleUtil.findModuleForFile(context.getFile().getVirtualFile(), project);

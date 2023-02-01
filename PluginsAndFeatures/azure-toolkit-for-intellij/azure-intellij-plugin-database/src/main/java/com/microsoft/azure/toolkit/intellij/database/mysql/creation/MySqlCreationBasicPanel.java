@@ -14,13 +14,13 @@ import com.microsoft.azure.toolkit.intellij.database.PasswordUtils;
 import com.microsoft.azure.toolkit.intellij.database.ServerNameTextField;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import com.microsoft.azure.toolkit.lib.mysql.AzureMySql;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
-import javax.swing.event.DocumentListener;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -54,24 +54,19 @@ public class MySqlCreationBasicPanel extends JPanel implements AzureFormPanel<Da
     private void init() {
         serverNameTextField.setSubscription(config.getSubscription());
         confirmPasswordFieldInput = PasswordUtils.generateConfirmPasswordFieldInput(this.confirmPasswordField, this.passwordField);
-        passwordFieldInput = PasswordUtils.generatePasswordFieldInput(this.passwordField, this.adminUsernameTextField,  this.confirmPasswordFieldInput);
-        serverNameTextField.addValidator(new BaseNameValidator(serverNameTextField, (sid, name) ->
-            Azure.az(AzureMySql.class).forSubscription(sid).checkNameAvailability(name)));
+        passwordFieldInput = PasswordUtils.generatePasswordFieldInput(this.passwordField, this.adminUsernameTextField, this.confirmPasswordFieldInput);
+        serverNameTextField.addValidator(new BaseNameValidator(serverNameTextField, (sid, name) -> {
+            final Region region = config.getRegion();
+            return Azure.az(AzureMySql.class).forSubscription(sid).checkNameAvailability(region.getName(), name);
+        }));
     }
 
     private void initListeners() {
-        this.adminUsernameTextField.getDocument().addDocumentListener(generateAdminUsernameListener());
-    }
-
-    private DocumentListener generateAdminUsernameListener() {
-        return new TextDocumentListenerAdapter() {
-            @Override
-            public void onDocumentChanged() {
-                if (!adminUsernameTextField.isValueInitialized()) {
-                    adminUsernameTextField.setValueInitialized(true);
-                }
+        this.adminUsernameTextField.getDocument().addDocumentListener((TextDocumentListenerAdapter) () -> {
+            if (!adminUsernameTextField.isValueInitialized()) {
+                adminUsernameTextField.setValueInitialized(true);
             }
-        };
+        });
     }
 
     @Override

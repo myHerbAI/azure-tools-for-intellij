@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 import static com.microsoft.azure.toolkit.lib.Azure.az;
 
 public class MySqlNodeProvider implements IExplorerNodeProvider {
-    private static final String NAME = "Azure Database for MySQL";
+    private static final String NAME = "Azure Database for MySQL (Flexible)";
     private static final String ICON = AzureIcons.MySQL.MODULE.getIconPath();
 
     @Nullable

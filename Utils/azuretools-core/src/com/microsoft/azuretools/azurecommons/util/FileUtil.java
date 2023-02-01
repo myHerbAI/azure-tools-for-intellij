@@ -137,11 +137,7 @@ public class FileUtil {
      * @param sourceFiles source files array
      * @param targetZipFile ZIP file that will be created or overwritten
      */
-    @AzureOperation(
-        name = "common.zip_artifact_files.file",
-        params = {"targetZipFile.getName()"},
-        type = AzureOperation.Type.TASK
-    )
+    @AzureOperation(name = "boundary/common.zip_artifact_files.file", params = {"targetZipFile.getName()"})
     public static void zipFiles(@NotNull final File[] sourceFiles,
                                 @NotNull final File targetZipFile) throws Exception {
         ensureValidZipSourceAndTarget(sourceFiles, targetZipFile);

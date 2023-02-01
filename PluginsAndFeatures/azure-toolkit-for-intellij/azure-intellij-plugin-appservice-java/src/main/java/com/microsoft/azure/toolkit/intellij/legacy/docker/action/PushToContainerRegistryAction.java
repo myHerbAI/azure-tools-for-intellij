@@ -66,7 +66,7 @@ public class PushToContainerRegistryAction {
     }
 
     @SuppressWarnings({"deprecation", "Duplicates"})
-    @AzureOperation(name = "acr.run_push_image_configuration.config", params = {"settings.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "boundary/acr.run_push_image_configuration.config", params = {"settings.getName()"})
     private static void openRunDialog(Project project, RunnerAndConfigurationSettings settings) {
         final RunManagerEx manager = RunManagerEx.getInstanceEx(project);
         if (RunDialog.editConfiguration(project, settings, DIALOG_TITLE, DefaultRunExecutor.getRunExecutorInstance())) {

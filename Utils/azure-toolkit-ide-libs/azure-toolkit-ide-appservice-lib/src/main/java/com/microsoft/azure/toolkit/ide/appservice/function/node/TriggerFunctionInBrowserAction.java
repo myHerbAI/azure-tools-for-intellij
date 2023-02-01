@@ -20,9 +20,7 @@ import javax.annotation.Nonnull;
 import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.ide.appservice.function.AzureFunctionsUtils.HTTP_TRIGGER;
-import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.ADMIN;
-import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.ANONYMOUS;
-import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.FUNCTION;
+import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunctionsAnnotationConstants.*;
 
 public class TriggerFunctionInBrowserAction {
     private static final String HTTP_TRIGGER_URL = "https://%s/api/%s";
@@ -34,12 +32,12 @@ public class TriggerFunctionInBrowserAction {
 
     public TriggerFunctionInBrowserAction(@Nonnull final FunctionEntity functionEntity) {
         final String functionId = Optional.ofNullable(functionEntity.getFunctionAppId()).orElseGet(() ->
-                ResourceId.fromString(functionEntity.getTriggerId()).parent().id());
+            ResourceId.fromString(functionEntity.getTriggerId()).parent().id());
         this.functionApp = Azure.az(AzureFunctions.class).functionApp(functionId);
         this.functionEntity = functionEntity;
         this.trigger = functionEntity.getTrigger();
         final String triggerType = Optional.ofNullable(trigger)
-                .map(functionTrigger -> functionTrigger.getProperty("type")).orElse(null);
+            .map(functionTrigger -> functionTrigger.getProperty("type")).orElse(null);
         if (StringUtils.isEmpty(triggerType)) {
             final String error = String.format("failed to get trigger type of function[%s].", functionEntity.getName());
             final String action = "confirm trigger type is configured.";
@@ -52,14 +50,10 @@ public class TriggerFunctionInBrowserAction {
         }
     }
 
-    @AzureOperation(
-            name = "function.trigger_func_http.app",
-            params = {"this.functionApp.name()"},
-            type = AzureOperation.Type.TASK
-    )
+    @AzureOperation(name = "internal/function.trigger_func_http.app", params = {"this.functionApp.name()"})
     public void trigger() {
         final String authLevel = trigger.getProperty("authLevel");
-        String targetUrl;
+        final String targetUrl;
         switch (authLevel) {
             case ANONYMOUS:
                 targetUrl = getAnonymousHttpTriggerUrl();
@@ -87,7 +81,7 @@ public class TriggerFunctionInBrowserAction {
             return getAdminHttpTriggerUrl();
         }
         final String key = functionApp.listFunctionKeys(functionEntity.getName()).values().stream().filter(StringUtils::isNotBlank)
-                .findFirst().orElse(functionApp.getMasterKey());
+            .findFirst().orElse(functionApp.getMasterKey());
         return String.format(HTTP_TRIGGER_URL_WITH_CODE, functionApp.getHostName(), functionEntity.getName(), key);
     }
 

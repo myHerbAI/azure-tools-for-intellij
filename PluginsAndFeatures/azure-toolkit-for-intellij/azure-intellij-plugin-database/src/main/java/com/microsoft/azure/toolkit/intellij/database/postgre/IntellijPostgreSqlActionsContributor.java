@@ -48,7 +48,7 @@ public class IntellijPostgreSqlActionsContributor implements IActionsContributor
                 final ConnectorDialog dialog = new ConnectorDialog(e.getProject());
                 final PostgreSqlServer server = (PostgreSqlServer) o;
                 dialog.setResource(new SqlDatabaseResource<>(server.databases().list().get(0),
-                    server.getAdminName() + "@" + server.getName(), PostgreSqlDatabaseResourceDefinition.INSTANCE));
+                    server.getFullAdminName(), PostgreSqlDatabaseResourceDefinition.INSTANCE));
                 dialog.show();
             }));
 
@@ -65,7 +65,7 @@ public class IntellijPostgreSqlActionsContributor implements IActionsContributor
         am.registerHandler(PostgreSqlActionsContributor.OPEN_DATABASE_TOOL, (r, e) -> true, openDatabaseHandler);
     }
 
-    @AzureOperation(name = "postgre.open_database_tools.server", params = {"server.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/postgre.open_database_tools.server", params = {"server.getName()"})
     private void openDatabaseTool(Project project, @Nonnull PostgreSqlServer server) {
         final String DATABASE_TOOLS_PLUGIN_ID = "com.intellij.database";
         final String DATABASE_PLUGIN_NOT_INSTALLED = "\"Database tools and SQL\" plugin is not installed.";

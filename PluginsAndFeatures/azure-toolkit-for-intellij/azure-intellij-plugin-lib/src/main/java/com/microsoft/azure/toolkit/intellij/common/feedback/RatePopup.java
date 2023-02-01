@@ -92,25 +92,25 @@ public class RatePopup {
         this.notNow.addActionListener(e -> rateNextTime());
     }
 
-    @AzureOperation(name = "feedback.rate_next_time", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/feedback.rate_next_time")
     private static void rateNextTime() {
         final int times = getPoppedTimes();
         popDaysLater(15 * times);
     }
 
-    @AzureOperation(name = "feedback.report_issue", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/feedback.report_issue")
     private void reportIssue(ActionEvent e) {
         AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle("https://aka.ms/azure-ij-new-issue");
         popDaysLater(90);
     }
 
-    @AzureOperation(name = "feedback.request_feature", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/feedback.request_feature")
     private void requestFeature(ActionEvent e) {
         AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle("https://aka.ms/azure-ij-new-feature");
         popDaysLater(90);
     }
 
-    @AzureOperation(name = "feedback.review_marketplace", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/feedback.review_marketplace")
     private void reviewInMarketplace(ActionEvent e) {
         AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle("https://aka.ms/azure-ij-new-review");
         popDaysLater(-1);
@@ -127,7 +127,7 @@ public class RatePopup {
         Arrays.stream(stars).forEach(star -> star.setIcon(outlined));
         Arrays.stream(stars).forEach(star -> star.addMouseListener(new MouseAdapter() {
             @Override
-            @AzureOperation(name = "feedback.rate_in_popup", type = AzureOperation.Type.ACTION)
+            @AzureOperation(name = "user/feedback.rate_in_popup")
             public void mouseClicked(MouseEvent e) {
                 final int index = ArrayUtils.indexOf(stars, star);
                 OperationContext.current().setTelemetryProperty("score", String.valueOf(index + 1));
@@ -164,7 +164,7 @@ public class RatePopup {
     void $$$setupUI$$$() {
     }
 
-    @AzureOperation(name = "feedback.try_popup_rating", type = AzureOperation.Type.TASK)
+    @AzureOperation(name = "internal/feedback.try_popup_rating")
     public static synchronized boolean tryPopup(@Nullable Project project) {
         final int times = getPoppedTimes();
         if (times < MOST_TIMES) {
@@ -179,7 +179,7 @@ public class RatePopup {
         return false;
     }
 
-    @AzureOperation(name = "feedback.show_popup_rating", type = AzureOperation.Type.TASK)
+    @AzureOperation(name = "boundary/feedback.show_popup_rating")
     public static synchronized void popup(@Nullable Project project) {
         if (RatePopup.balloon == null || RatePopup.balloon.isDisposed()) {
             final JPanel rateUsPanel = new RatePopup().getContentPanel();
@@ -210,6 +210,9 @@ public class RatePopup {
         popDaysLater(3);
 
         final JFrame frame = ((JFrame) IdeUtils.getWindow(project));
+        if (RatePopup.balloon.isDisposed()) {
+            return;
+        }
         RatePopup.balloon.show(new PositionTracker<>(frame.getRootPane()) {
             @Override
             public RelativePoint recalculateLocation(@NotNull Balloon balloon) {

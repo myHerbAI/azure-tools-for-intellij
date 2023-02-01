@@ -12,6 +12,7 @@ import com.intellij.ui.AnActionButton;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.ToolbarDecorator;
 import com.microsoft.azure.toolkit.intellij.common.TextDocumentListenerAdapter;
+import com.microsoft.azure.toolkit.intellij.common.component.HighLightedCellRenderer;
 import com.nimbusds.jose.util.ArrayUtils;
 
 import javax.annotation.Nonnull;

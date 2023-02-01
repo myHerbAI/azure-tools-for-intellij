@@ -46,7 +46,7 @@ public class VMNode extends RefreshableNode implements TelemetryProperties {
         return running ? AzureIcons.VirtualMachine.RUNNING : AzureIcons.VirtualMachine.STOPPED;
     }
 
-    @AzureOperation(name = "vm.delete_vm.vm", params = {"this.virtualMachine.name()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/vm.delete_vm.vm", params = {"this.virtualMachine.name()"})
     private void delete() {
         final ComputeManager.Configurable configurable = ComputeManager.configure();
         final ComputeManager azure = IdeAzureAccount.getInstance().authenticateForTrack1(subscriptionId, configurable, (t, c) -> c.authenticate(t, subscriptionId));
@@ -57,25 +57,25 @@ public class VMNode extends RefreshableNode implements TelemetryProperties {
         });
     }
 
-    @AzureOperation(name = "vm.start_vm.vm", params = {"this.virtualMachine.name()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/vm.start_vm.vm", params = {"this.virtualMachine.name()"})
     private void start() {
         virtualMachine.start();
         refreshItems();
     }
 
-    @AzureOperation(name = "vm.restart_vm.vm", params = {"this.virtualMachine.name()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/vm.restart_vm.vm", params = {"this.virtualMachine.name()"})
     private void restart() {
         virtualMachine.restart();
         refreshItems();
     }
 
-    @AzureOperation(name = "vm.stop_vm.vm", params = {"this.virtualMachine.name()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/vm.stop_vm.vm", params = {"this.virtualMachine.name()"})
     private void stop() {
         virtualMachine.powerOff();
         refreshItems();
     }
 
-    @AzureOperation(name = "vm.open_portal.vm", params = {"this.virtualMachine.name()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/vm.open_portal.vm", params = {"this.virtualMachine.name()"})
     private void openInPortal() {
         this.openResourcesInPortal(ResourceId.fromString(this.virtualMachine.id()).subscriptionId(), this.virtualMachine.id());
     }

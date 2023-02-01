@@ -32,7 +32,7 @@ public class RedisCacheExplorerProvider implements FileEditorProvider, DumbAware
     @NotNull
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "redis.create_explorer_editor.redis", params = {"virtualFile.getName()"}, type = AzureOperation.Type.ACTION, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "user/redis.create_explorer_editor.redis", params = {"virtualFile.getName()"})
     public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile virtualFile) {
         final RedisCache redis = (RedisCache) virtualFile.getUserData(AzureResourceEditorViewManager.AZURE_RESOURCE_KEY);
         return new RedisCacheExplorer(redis, virtualFile, project);

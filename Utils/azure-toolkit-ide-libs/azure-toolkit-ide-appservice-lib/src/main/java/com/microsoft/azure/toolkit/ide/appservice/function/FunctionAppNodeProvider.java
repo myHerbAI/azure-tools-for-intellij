@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlotModule;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -75,14 +76,16 @@ public class FunctionAppNodeProvider implements IExplorerNodeProvider {
         } else if (data instanceof FunctionAppDeploymentSlotModule) {
             final FunctionAppDeploymentSlotModule module = (FunctionAppDeploymentSlotModule) data;
             return new Node<>(module)
-                    .view(new AzureModuleLabelView<>(module, "Deployment Slots", AzureIcons.WebApp.DEPLOYMENT_SLOT.getIconPath()))
-                    .actions(FunctionAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
-                    .addChildren(FunctionAppDeploymentSlotModule::list, (d, p) -> this.createNode(d, p, manager));
+                .view(new AzureModuleLabelView<>(module, "Deployment Slots", AzureIcons.WebApp.DEPLOYMENT_SLOT.getIconPath()))
+                .actions(FunctionAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
+                .addChildren(FunctionAppDeploymentSlotModule::list, (d, p) -> this.createNode(d, p, manager))
+                .hasMoreChildren(AbstractAzResourceModule::hasMoreResources)
+                .loadMoreChildren(AbstractAzResourceModule::loadMoreResources);
         } else if (data instanceof FunctionAppDeploymentSlot) {
             final FunctionAppDeploymentSlot slot = (FunctionAppDeploymentSlot) data;
             return new Node<>(slot)
-                    .view(new AzureResourceLabelView<>(slot))
-                    .actions(FunctionAppActionsContributor.DEPLOYMENT_SLOT_ACTIONS);
+                .view(new AzureResourceLabelView<>(slot))
+                .actions(FunctionAppActionsContributor.DEPLOYMENT_SLOT_ACTIONS);
         } else if (data instanceof AppServiceFile) {
             final AppServiceFile file = (AppServiceFile) data;
             return new AppServiceFileNode(file);
@@ -92,8 +95,10 @@ public class FunctionAppNodeProvider implements IExplorerNodeProvider {
 
     private Node<?> createDeploymentSlotNode(@Nonnull FunctionAppDeploymentSlotModule module, @Nonnull Manager manager) {
         return new Node<>(module)
-                .view(new AppServiceDeploymentSlotsNodeView(module.getParent()))
-                .actions(FunctionAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
-                .addChildren(FunctionAppDeploymentSlotModule::list, (d, p) -> this.createNode(d, p, manager));
+            .view(new AppServiceDeploymentSlotsNodeView(module.getParent()))
+            .actions(FunctionAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
+            .addChildren(FunctionAppDeploymentSlotModule::list, (d, p) -> this.createNode(d, p, manager))
+            .hasMoreChildren(AbstractAzResourceModule::hasMoreResources)
+            .loadMoreChildren(AbstractAzResourceModule::loadMoreResources);
     }
 }

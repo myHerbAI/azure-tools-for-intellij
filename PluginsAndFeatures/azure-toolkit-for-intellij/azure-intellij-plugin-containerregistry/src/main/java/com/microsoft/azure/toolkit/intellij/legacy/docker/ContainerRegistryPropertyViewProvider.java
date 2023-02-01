@@ -28,7 +28,7 @@ public class ContainerRegistryPropertyViewProvider implements FileEditorProvider
     @NotNull
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "container.create_registry_properties_editor.registry", params = {"virtualFile.getName()"},type = AzureOperation.Type.ACTION, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "platform/acr.create_properties_editor.registry", params = {"virtualFile.getName()"})
     public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile virtualFile) {
         return new ContainerRegistryPropertyView(project, virtualFile);
     }

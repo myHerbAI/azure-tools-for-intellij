@@ -25,7 +25,7 @@ public class FunctionAppPropertyViewProvider extends WebAppBasePropertyViewProvi
     @NotNull
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "function.create_app_properties_editor.app", params = {"virtualFile.getName()"}, type = AzureOperation.Type.ACTION, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "user/function.create_app_properties_editor.app", params = {"virtualFile.getName()"})
     public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile virtualFile) {
         final String subscriptionId = virtualFile.getUserData(OpenAppServicePropertyViewAction.SUBSCRIPTION_ID);
         final String functionAppId = virtualFile.getUserData(OpenAppServicePropertyViewAction.RESOURCE_ID);

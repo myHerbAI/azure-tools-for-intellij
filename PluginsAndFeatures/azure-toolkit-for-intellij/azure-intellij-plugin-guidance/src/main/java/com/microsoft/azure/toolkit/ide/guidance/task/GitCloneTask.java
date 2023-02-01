@@ -62,7 +62,7 @@ public class GitCloneTask implements Task {
     }
 
     @Override
-    @AzureOperation(name = "guidance.clone", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "boundary/guidance.clone")
     public void execute() throws Exception {
         final String repository = (String) context.getParameter(REPOSITORY);
         final String branch = (String) context.getParameter(BRANCH);

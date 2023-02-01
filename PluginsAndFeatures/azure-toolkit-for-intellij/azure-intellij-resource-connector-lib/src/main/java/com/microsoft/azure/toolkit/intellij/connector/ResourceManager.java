@@ -86,7 +86,7 @@ public interface ResourceManager {
 
         @Override
         @ExceptionNotification
-        @AzureOperation(name = "connector.persist_connection_resources", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+        @AzureOperation(name = "platform/connector.persist_connection_resources")
         public Element getState() {
             final Element resourcesEle = new Element(ELEMENT_NAME_RESOURCES);
             this.resources.forEach(resource -> {
@@ -105,7 +105,7 @@ public interface ResourceManager {
 
         @Override
         @ExceptionNotification
-        @AzureOperation(name = "connector.load_connection_resources", type = AzureOperation.Type.SERVICE)
+        @AzureOperation(name = "user/connector.load_connection_resources")
         public void loadState(@Nonnull Element resourcesEle) {
             for (final Element resourceEle : resourcesEle.getChildren()) {
                 final String resDef = resourceEle.getAttributeValue(ATTR_DEFINITION);

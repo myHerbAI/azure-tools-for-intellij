@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -51,9 +52,10 @@ public class Node<D> {
     private Action<? super D> clickAction;
     private Action<? super D> doubleClickAction;
     private Action<? super D> inlineAction;
-    private Action<? super D> loadMoreAction;
+    private Consumer<? super D> loadMoreChildren;
     // by default, we will load all children, so return false for has more child
-    private Predicate<? super D> hasMoreChildrenPredicate = ignore -> false;
+    @Getter(AccessLevel.NONE)
+    private Predicate<? super D> hasMoreChildren = ignore -> false;
 
     public Node(@Nonnull D data) {
         this(data, null);
@@ -109,23 +111,21 @@ public class Node<D> {
         return !this.childrenBuilders.isEmpty();
     }
 
-    public boolean hasMoreChild() {
-        return this.hasMoreChildrenPredicate.test(this.data);
+    public boolean hasMoreChildren() {
+        return this.hasMoreChildren.test(this.data);
     }
 
-    public Node<D> hasMorePredicate(Predicate<? super D> predicate) {
-        this.hasMoreChildrenPredicate = predicate;
+    public Node<D> hasMoreChildren(Predicate<? super D> hasMoreChildren) {
+        this.hasMoreChildren = hasMoreChildren;
         return this;
     }
 
-    public void triggerLoadMoreAction(final Object event) {
-        if (this.loadMoreAction != null) {
-            this.loadMoreAction.handle(this.data, event);
-        }
+    public void loadMoreChildren() {
+        this.loadMoreChildren.accept(this.data);
     }
 
-    public Node<D> loadMoreAction(Action.Id<? super D> actionId) {
-        this.loadMoreAction = AzureActionManager.getInstance().getAction(actionId);
+    public Node<D> loadMoreChildren(Consumer<? super D> loadMoreChildren) {
+        this.loadMoreChildren = loadMoreChildren;
         return this;
     }
 

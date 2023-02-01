@@ -42,10 +42,12 @@ import com.microsoft.azuretools.telemetrywrapper.EventUtil;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
 import com.microsoft.azuretools.telemetrywrapper.TelemetryManager;
 import com.microsoft.intellij.telemetry.TelemetryKeys;
+import com.microsoft.intellij.util.ApplicationHelpersKt;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom.Element;
 import rx.Observable;
 
+import javax.ws.rs.core.Application;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -372,8 +374,10 @@ public class LivySparkBatchJobRunConfiguration extends ModuleBasedConfiguration<
         final String debugTarget = executionEnvironment.getUserData(SparkBatchJobDebuggerRunner.DEBUG_TARGET_KEY);
         final boolean isExecutor = StringUtils.equals(debugTarget, SparkBatchJobDebuggerRunner.DEBUG_EXECUTOR);
         RunProfileStateWithAppInsightsEvent state = null;
-        final Artifact selectedArtifact = ArtifactUtil
-                .getArtifactWithOutputPaths(getProject()).stream()
+        List<Artifact> ArtifactWithOutputPaths = ApplicationHelpersKt.runInReadAction(()->{
+            return ArtifactUtil.getArtifactWithOutputPaths(getProject());
+        });
+        final Artifact selectedArtifact = ArtifactWithOutputPaths.stream()
                 .filter(artifact -> artifact.getName().equals(getSubmitModel().getArtifactName()))
                 .findFirst()
                 .orElse(null);

@@ -80,7 +80,7 @@ public enum AppServiceStreamingLogManager {
         showAppServiceStreamingLog(project, app.getId(), new FunctionDeploymentSlotLogStreaming(app));
     }
 
-    @AzureOperation(name = "appservice.close_log_stream.app", params = {"nameFromResourceId(appId)"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "user/appservice.close_log_stream.app", params = {"nameFromResourceId(appId)"})
     public void closeStreamingLog(Project project, String appId) {
         if (consoleViewMap.containsKey(appId) && consoleViewMap.get(appId).isActive()) {
             consoleViewMap.get(appId).closeStreamingLog();
@@ -89,10 +89,10 @@ public enum AppServiceStreamingLogManager {
         }
     }
 
-    @AzureOperation(name = "appservice.open_log_stream.app", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "user/appservice.open_log_stream.app", params = {"nameFromResourceId(resourceId)"})
     private void showAppServiceStreamingLog(Project project, String resourceId, ILogStreaming logStreaming) {
         final Action<Void> retry = Action.retryFromFailure(() -> this.showAppServiceStreamingLog(project, resourceId, logStreaming));
-        final AzureString title = OperationBundle.description("appservice.open_log_stream.app", ResourceUtils.nameFromResourceId(resourceId));
+        final AzureString title = OperationBundle.description("user/appservice.open_log_stream.app", ResourceUtils.nameFromResourceId(resourceId));
         AzureTaskManager.getInstance().runInBackground(new AzureTask(project, title, false, () -> {
             try {
                 final String name = logStreaming.getTitle();

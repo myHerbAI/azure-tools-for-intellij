@@ -122,7 +122,7 @@ public class CreateDeploymentDialog extends AzureDialogWrapper {
     protected void doOKAction() {
         final String deploymentName = deploymentNameTextField.getText();
         final StatusBar statusBar = WindowManager.getInstance().getStatusBar(project);
-        final AzureString title = OperationBundle.description("arm.create_deployment.deployment", deploymentName);
+        final AzureString title = OperationBundle.description("user/arm.create_deployment.deployment", deploymentName);
         final Subscription subs = (Subscription) subscriptionCombobox.getSelectedItem();
         final String parametersPath = parametersTextField.getText();
         final String templatePath = templateTextField.getText();
@@ -168,7 +168,7 @@ public class CreateDeploymentDialog extends AzureDialogWrapper {
         });
     }
 
-    @AzureOperation(name = "arm.create_deployment.deployment", params = {"deploymentName"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/arm.create_deployment.deployment", params = {"deploymentName"})
     private void createDeployment(String deploymentName, String parametersPath, String templatePath, IAzureMessager messager, ResourceGroup group)
         throws IOException {
         final String template = IOUtils.toString(new FileReader(templatePath));

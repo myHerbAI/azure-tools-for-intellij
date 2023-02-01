@@ -41,7 +41,7 @@ public class AppServiceStreamingLogConsoleView extends ConsoleViewImpl {
         }
     }
 
-    @AzureOperation(name = "appservice.close_log_streaming", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "boundary/appservice.close_log_streaming")
     public void closeStreamingLog() {
         if (isActive()) {
             subscription.dispose();

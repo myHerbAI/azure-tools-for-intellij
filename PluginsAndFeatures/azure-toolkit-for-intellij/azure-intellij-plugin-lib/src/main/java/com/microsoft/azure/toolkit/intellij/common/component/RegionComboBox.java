@@ -45,11 +45,7 @@ public class RegionComboBox extends AzureComboBox<Region> {
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "appservice.list_regions.tier|subscription",
-        params = {"this.tier.toString()", "this.subscription.getId()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/appservice.list_regions.tier|subscription", params = {"this.tier.toString()", "this.subscription.getId()"})
     protected List<? extends Region> loadItems() throws Exception {
         if (Objects.nonNull(this.subscription)) {
             final String sid = this.subscription.getId();

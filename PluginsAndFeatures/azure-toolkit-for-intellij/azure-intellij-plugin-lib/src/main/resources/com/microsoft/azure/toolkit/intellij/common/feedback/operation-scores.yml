@@ -1,471 +1,471 @@
-springcloud.start_debug_configuration.instance:
+boundary/springcloud.start_debug_configuration.instance:
   success: 5
   failure: 0
-function.start_debug_configuration.app:
+boundary/function.start_debug_configuration.app:
   success: 5
   failure: 0
-appservice.deploy_app.app:
+boundary/appservice.deploy_app.app:
   success: 5
   failure: 0
-vm.open_sftp_toolwindow:
+boundary/vm.open_sftp_toolwindow:
   success: 5
   failure: 0
-vm.create_ssh_session_iu:
+boundary/vm.create_ssh_session_iu:
   success: 5
   failure: 0
-cosmos.open_database_tools.account:
+user/cosmos.open_database_tools.account:
   success: 3
   failure: 0
-kubernetes.open_in_k8s_plugin:
+boundary/kubernetes.open_in_k8s_plugin:
   success: 3
   failure: 0
-database.open_database_tools.server:
+boundary/database.open_database_tools.server:
   success: 3
   failure: 0
-kubernetes.merge_into_kube_config:
+boundary/kubernetes.merge_into_kube_config:
   success: 3
   failure: 0
-common.open_file_in_editor.file:
+boundary/common.open_file_in_editor.file:
   success: 3
   failure: 0
-storage.update_blob_in_azure.blob:
+azure/storage.update_blob.blob:
   success: 2
   failure: 0
-cosmos.update_sql_document_in_azure.document:
+azure/cosmos.update_sql_document.document:
   success: 2
   failure: 0
-storage.update_share_file_in_azure.file:
+azure/storage.update_share_file.file:
   success: 2
   failure: 0
-cosmos.update_mongo_document_in_azure.document:
+azure/cosmos.update_mongo_document.document:
   success: 2
   failure: 0
 # create resources, success:2
-ai.create_ai_in_azure.ai:
+azure/ai.create_ai.ai:
   success: 2
   failure: 0
-storage.create_blob_container_in_azure.container:
+azure/storage.create_blob_container.container:
   success: 2
   failure: 0
-storage.create_blob_in_azure.blob:
+azure/storage.create_blob.blob:
   success: 2
   failure: 0
-cosmos.create_cassandra_keyspace_in_azure.keyspace:
+azure/cosmos.create_cassandra_keyspace.keyspace:
   success: 2
   failure: 0
-cosmos.create_cassandra_table_in_azure.table:
+azure/cosmos.create_cassandra_table.table:
   success: 2
   failure: 0
-container.create_registry_in_azure.registry:
+azure/container.create_registry.registry:
   success: 2
   failure: 0
-cosmos.create_account_in_azure.account:
+azure/cosmos.create_account.account:
   success: 2
   failure: 0
-function.create_deployment_slot_in_azure.slot:
+azure/function.create_deployment_slot.slot:
   success: 2
   failure: 0
-function.create_app_in_azure.app:
+azure/function.create_app.app:
   success: 2
   failure: 0
-kubernetes.create_cluster_in_azure.cluster:
+azure/kubernetes.create_cluster.cluster:
   success: 2
   failure: 0
-sqlserver.create_firewall_rule_in_azure.rule:
+azure/sqlserver.create_firewall_rule.rule:
   success: 2
   failure: 0
-sqlserver.create_server_in_azure.server:
+azure/sqlserver.create_server.server:
   success: 2
   failure: 0
-cosmos.create_mongo_collection_in_azure.collection:
+azure/cosmos.create_mongo_collection.collection:
   success: 2
   failure: 0
-cosmos.create_mongo_database_in_azure.database:
+azure/cosmos.create_mongo_database.database:
   success: 2
   failure: 0
-cosmos.create_mongo_document_in_azure.document:
+azure/cosmos.create_mongo_document.document:
   success: 2
   failure: 0
-mysql.create_firewall_rule_in_azure.rule:
+azure/mysql.create_firewall_rule.rule:
   success: 2
   failure: 0
-mysql.create_server_in_azure.server:
+azure/mysql.create_server.server:
   success: 2
   failure: 0
-postgre.create_firewall_rule_in_azure.rule:
+azure/postgre.create_firewall_rule.rule:
   success: 2
   failure: 0
-postgre.create_server_in_azure.server:
+azure/postgre.create_server.server:
   success: 2
   failure: 0
-storage.create_queue_in_azure.queue:
+azure/storage.create_queue.queue:
   success: 2
   failure: 0
-redis.create_redis_in_azure.redis:
+azure/redis.create_redis.redis:
   success: 2
   failure: 0
-arm.create_deployment_in_azure.deployment:
+azure/arm.create_deployment.deployment:
   success: 2
   failure: 0
-storage.create_share_in_azure.share:
+azure/storage.create_share.share:
   success: 2
   failure: 0
-storage.create_share_file_in_azure.file:
+azure/storage.create_share_file.file:
   success: 2
   failure: 0
-springcloud.create_app_in_azure.app:
+azure/springcloud.create_app.app:
   success: 2
   failure: 0
-springcloud.create_app_deployment_in_azure.deployment:
+azure/springcloud.create_app_deployment.deployment:
   success: 2
   failure: 0
-cosmos.create_sql_container_in_azure.container:
+azure/cosmos.create_sql_container.container:
   success: 2
   failure: 0
-cosmos.create_sql_database_in_azure.database:
+azure/cosmos.create_sql_database.database:
   success: 2
   failure: 0
-cosmos.create_sql_document_in_azure.document:
+azure/cosmos.create_sql_document.document:
   success: 2
   failure: 0
-storage.create_account_in_azure.account:
+azure/storage.create_account.account:
   success: 2
   failure: 0
-storage.create_table_in_azure.table:
+azure/storage.create_table.table:
   success: 2
   failure: 0
-vm.create_vm_in_azure.vm:
+azure/vm.create_vm.vm:
   success: 2
   failure: 0
-webapp.create_app_in_azure.app:
+azure/webapp.create_app.app:
   success: 2
   failure: 0
 # other operations, success:2
-storage.open_azure_storage_explorer.account:
+user/storage.open_azure_storage_explorer.account:
   success: 2
   failure: 0
-storage.open_azure_storage_explorer.storage:
+user/storage.open_azure_storage_explorer.storage:
   success: 2
   failure: 0
-vm.open_ssh_config_dialog:
+user/vm.open_ssh_config_dialog:
   success: 2
   failure: 0
-sdk.open_sdk_reference_book:
+internal/sdk.open_sdk_reference_book:
   success: 2
   failure: 0
-vm.create_environment_request:
+user/vm.create_environment_request:
   success: 2
   failure: 0
-vm.create_ssh_session_ic:
+boundary/vm.create_ssh_session_ic:
   success: 2
   failure: 0
-kubernetes.download_config:
+azure/kubernetes.download_config:
   success: 2
   failure: 0
-appservice.open_ssh_terminal:
+boundary/appservice.open_ssh_terminal:
   success: 2
   failure: 0
 common.start_log_streaming.resource:
   success: 2
   failure: 0
-common.reveal_file_in_explorer.file:
+boundary/common.reveal_file_in_explorer.file:
   success: 2
   failure: 0
-cosmos.load_more_mongo_documents_in_azure:
+azure/cosmos.load_more_mongo_documents:
   success: 2
   failure: 0
-cosmos.load_more_sql_documents_in_azure:
+azure/cosmos.load_more_sql_documents:
   success: 2
   failure: 0
 # delete resources, success:1
-resource.delete_resource_in_azure.resource|type:
+azure/resource.delete_resource.resource|type:
   success: 1
   failure: 0
-ai.delete_ai_in_azure.ai:
+azure/ai.delete_ai.ai:
   success: 1
   failure: 0
-container.delete_registry_in_azure.registry:
+azure/container.delete_registry.registry:
   success: 1
   failure: 0
-storage.delete_blob_container_in_azure.container:
+azure/storage.delete_blob_container.container:
   success: 1
   failure: 0
-storage.delete_blob_in_azure.blob:
+azure/storage.delete_blob.blob:
   success: 1
   failure: 0
-cosmos.delete_cassandra_keyspace_in_azure.keyspace:
+azure/cosmos.delete_cassandra_keyspace.keyspace:
   success: 1
   failure: 0
-cosmos.delete_cassandra_table_in_azure.table:
+azure/cosmos.delete_cassandra_table.table:
   success: 1
   failure: 0
-kubernetes.delete_cluster_in_azure.cluster:
+azure/kubernetes.delete_cluster.cluster:
   success: 1
   failure: 0
-sqlserver.delete_database_in_azure.database:
+azure/sqlserver.delete_database.database:
   success: 1
   failure: 0
-sqlserver.delete_firewall_rule_in_azure.rule:
+azure/sqlserver.delete_firewall_rule.rule:
   success: 1
   failure: 0
-sqlserver.delete_server_in_azure.server:
+azure/sqlserver.delete_server.server:
   success: 1
   failure: 0
-cosmos.delete_mongo_collection_in_azure.collection:
+azure/cosmos.delete_mongo_collection.collection:
   success: 1
   failure: 0
-cosmos.delete_mongo_table_in_azure.table:
+azure/cosmos.delete_mongo_table.table:
   success: 1
   failure: 0
-mysql.delete_database_in_azure.database:
+azure/mysql.delete_database.database:
   success: 1
   failure: 0
-mysql.delete_firewall_rule_in_azure.rule:
+azure/mysql.delete_firewall_rule.rule:
   success: 1
   failure: 0
-mysql.delete_server_in_azure.server:
+azure/mysql.delete_server.server:
   success: 1
   failure: 0
-postgre.delete_database_in_azure.database:
+azure/postgre.delete_database.database:
   success: 1
   failure: 0
-postgre.delete_server_in_azure.server:
+azure/postgre.delete_server.server:
   success: 1
   failure: 0
-storage.delete_queue_in_azure.queue:
+azure/storage.delete_queue.queue:
   success: 1
   failure: 0
-storage.delete_share_in_azure.share:
+azure/storage.delete_share.share:
   success: 1
   failure: 0
-storage.delete_share_file_in_azure.file:
+azure/storage.delete_share_file.file:
   success: 1
   failure: 0
-cosmos.delete_sql_container_in_azure.container:
+azure/cosmos.delete_sql_container.container:
   success: 1
   failure: 0
-cosmos.delete_sql_database_in_azure.database:
+azure/cosmos.delete_sql_database.database:
   success: 1
   failure: 0
-cosmos.delete_sql_document_in_azure.document:
+azure/cosmos.delete_sql_document.document:
   success: 1
   failure: 0
-storage.delete_table_in_azure.table:
+azure/storage.delete_table.table:
   success: 1
   failure: 0
 # update resources, success:1
-ai.update_ai_in_azure.ai:
+azure/ai.update_ai.ai:
   success: 1
   failure: 0
-storage.update_blob_container_in_azure.container:
+azure/storage.update_blob_container.container:
   success: 1
   failure: 0
-cosmos.update_cassandra_keyspace_in_azure.keyspace:
+azure/cosmos.update_cassandra_keyspace.keyspace:
   success: 1
   failure: 0
-cosmos.update_cassandra_table_in_azure.table:
+azure/cosmos.update_cassandra_table.table:
   success: 1
   failure: 0
-container.update_registry_in_azure.registry:
+azure/container.update_registry.registry:
   success: 1
   failure: 0
-cosmos.update_account_in_azure.account:
+azure/cosmos.update_account.account:
   success: 1
   failure: 0
-function.update_deployment_slot_in_azure.slot:
+azure/function.update_deployment_slot.slot:
   success: 1
   failure: 0
-function.update_app_in_azure.app:
+azure/function.update_app.app:
   success: 1
   failure: 0
-kubernetes.update_cluster_in_azure.cluster:
+azure/kubernetes.update_cluster.cluster:
   success: 1
   failure: 0
-sqlserver.update_server_in_azure.server:
+azure/sqlserver.update_server.server:
   success: 1
   failure: 0
-cosmos.update_mongo_collection_in_azure.collection:
+azure/cosmos.update_mongo_collection.collection:
   success: 1
   failure: 0
-cosmos.update_mongo_database_in_azure.database:
+azure/cosmos.update_mongo_database.database:
   success: 1
   failure: 0
-mysql.update_server_in_azure.server:
+azure/mysql.update_server.server:
   success: 1
   failure: 0
-postgre.update_server_in_azure.server:
+azure/postgre.update_server.server:
   success: 1
   failure: 0
-storage.update_queue_in_azure.queue:
+azure/storage.update_queue.queue:
   success: 1
   failure: 0
-redis.update_redis_in_azure.redis:
+azure/redis.update_redis.redis:
   success: 1
   failure: 0
-arm.update_deployment_in_azure.deployment:
+azure/arm.update_deployment.deployment:
   success: 1
   failure: 0
-arm.update_group_in_azure.rg:
+azure/arm.update_group.rg:
   success: 1
   failure: 0
-storage.update_share_in_azure.share:
+azure/storage.update_share.share:
   success: 1
   failure: 0
-springcloud.update_app_in_azure.app:
+azure/springcloud.update_app.app:
   success: 1
   failure: 0
-springcloud.update_app_deployment_in_azure.deployment:
+azure/springcloud.update_app_deployment.deployment:
   success: 1
   failure: 0
-cosmos.update_sql_container_in_azure.container:
+azure/cosmos.update_sql_container.container:
   success: 1
   failure: 0
-cosmos.update_sql_database_in_azure.database:
+azure/cosmos.update_sql_database.database:
   success: 1
   failure: 0
-storage.update_account_in_azure.account:
+azure/storage.update_account.account:
   success: 1
   failure: 0
-storage.update_table_in_azure.table:
+azure/storage.update_table.table:
   success: 1
   failure: 0
-vm.update_vm_in_azure.vm:
+azure/vm.update_vm.vm:
   success: 1
   failure: 0
-webapp.update_deployment_slot_in_azure.slot:
+azure/webapp.update_deployment_slot.slot:
   success: 1
   failure: 0
-webapp.update_app_in_azure.app:
+azure/webapp.update_app.app:
   success: 1
   failure: 0
 # open properties view, success:1
-common.open_properties_editor.file:
+boundary/common.open_properties_editor.file:
   success: 1
   failure: 0
-container.create_registry_properties_editor.registry:
+platform/container.create_registry_properties_editor.registry:
   success: 1
   failure: 0
-arm.create_deployment_properties_editor.deployment:
+user/arm.create_deployment_properties_editor.deployment:
   success: 1
   failure: 0
-webapp.create_slot_properties_editor.slot:
+user/webapp.create_slot_properties_editor.slot:
   success: 1
   failure: 0
-function.create_slot_properties_editor.slot:
+user/function.create_slot_properties_editor.slot:
   success: 1
   failure: 0
-function.create_app_properties_editor.app:
+user/function.create_app_properties_editor.app:
   success: 1
   failure: 0
-kubernetes.create_cluster_properties_editor.cluster:
+platform/kubernetes.create_cluster_properties_editor.cluster:
   success: 1
   failure: 0
-mysql.create_server_properties_editor.server:
+user/mysql.create_server_properties_editor.server:
   success: 1
   failure: 0
-postgre.create_server_properties_editor.server:
+user/postgre.create_server_properties_editor.server:
   success: 1
   failure: 0
-redis.create_explorer_editor.redis:
+user/redis.create_explorer_editor.redis:
   success: 1
   failure: 0
-redis.create_properties_editor.redis:
+user/redis.create_properties_editor.redis:
   success: 1
   failure: 0
-arm.create_deployment_editor.deployment:
+user/arm.create_deployment_editor.deployment:
   success: 1
   failure: 0
-springcloud.create_app_properties_editor.app:
+user/springcloud.create_app_properties_editor.app:
   success: 1
   failure: 0
-sqlserver.create_server_properties_editor.server:
+user/sqlserver.create_server_properties_editor.server:
   success: 1
   failure: 0
-webapp.create_app_properties_editor.app:
+platform/webapp.create_app_properties_editor.app:
   success: 1
   failure: 0
 # other operations, success:1
-resource.start_resource_in_azure.resource:
+azure/resource.start_resource.resource:
   success: 1
   failure: 0
-resource.stop_resource_in_azure.resource:
+azure/resource.stop_resource.resource:
   success: 1
   failure: 0
-resource.restart_resource_in_azure.resource:
+azure/resource.restart_resource.resource:
   success: 1
   failure: 0
-arm.create_group_in_azure.rg:
+azure/arm.create_group.rg:
   success: 1
   failure: 0
-webapp.create_deployment_slot_in_azure.slot:
+azure/webapp.create_deployment_slot.slot:
   success: 1
   failure: 0
-function.run_deploy_configuration.app:
+boundary/function.run_deploy_configuration.app:
   success: 1
   failure: 0
-webapp.run_deploy_configuration.app:
+boundary/webapp.run_deploy_configuration.app:
   success: 1
   failure: 0
-appservice.profile_flight_recorder_in_azure:
+azure/appservice.profile_flight_recorder:
   success: 1
   failure: 0
-acr.run_push_image_configuration.config:
+boundary/acr.run_push_image_configuration.config:
   success: 1
   failure: 0
-common.copy_string.string:
+boundary/common.copy_string.string:
   success: 1
   failure: 0
-storage.copy_file_url.file:
+user/storage.copy_file_url.file:
   success: 1
   failure: 0
-storage.copy_file_sas_url.file:
+user/storage.copy_file_sas_url.file:
   success: 1
   failure: 0
-function.trigger_with_http_client.function:
+boundary/function.trigger_with_http_client.function:
   success: 1
   failure: 0
-webapp.swap_slot_in_azure.app|slot:
+azure/webapp.swap_slot.app|slot:
   success: 1
   failure: 0
-function.prepare_staging_folder:
+boundary/function.prepare_staging_folder:
   success: 1
   failure: 0
-function.enable_remote_debugging_in_azure.app:
+azure/function.enable_remote_debugging.app:
   success: 1
   failure: 0
-function.disable_remote_debugging_in_azure.app:
+azure/function.disable_remote_debugging.app:
   success: 1
   failure: 0
-function.trigger_function_in_azure.func:
+azure/function.trigger_function.func:
   success: 1
   failure: 0
-function.swap_slot_in_azure.app|slot:
+azure/function.swap_slot.app|slot:
   success: 1
   failure: 0
-vm.open_create_run_target_dialog:
+user/vm.open_create_run_target_dialog:
   success: 1
   failure: 0
-connector.update_connection_task:
+boundary/connector.update_connection_task:
   success: 1
   failure: 0
-connector.prepare_before_run:
+internal/connector.prepare_before_run:
   success: 1
   failure: 0
-vm.open_ssh_configuration:
+boundary/vm.open_ssh_configuration:
   success: 1
   failure: 0
-arm.export_template_to_file.file:
+boundary/arm.export_template_to_file.file:
   success: 1
   failure: 0
-arm.export_parameters_to_file.file:
+boundary/arm.export_parameters_to_file.file:
   success: 1
   failure: 0
-favorite.add_favorite:
+internal/favorite.add_favorite:
   success: 1
   failure: 0
-resource.open_url.url:
+boundary/resource.open_url.url:
   success: 1
   failure: 0
-kubernetes.search_k8s_plugin:
+boundary/kubernetes.search_k8s_plugin:
   success: 1
   failure: 0

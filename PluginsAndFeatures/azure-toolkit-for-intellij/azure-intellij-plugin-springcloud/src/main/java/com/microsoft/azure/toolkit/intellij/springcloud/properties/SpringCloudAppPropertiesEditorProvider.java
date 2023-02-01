@@ -29,7 +29,7 @@ public class SpringCloudAppPropertiesEditorProvider implements FileEditorProvide
     @NotNull
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "springcloud.create_app_properties_editor.app", params = {"virtualFile.getName()"}, type = AzureOperation.Type.ACTION, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "user/springcloud.create_app_properties_editor.app", params = {"virtualFile.getName()"})
     public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile virtualFile) {
         final SpringCloudApp app = (SpringCloudApp) virtualFile.getUserData(AzureResourceEditorViewManager.AZURE_RESOURCE_KEY);
         assert app != null;

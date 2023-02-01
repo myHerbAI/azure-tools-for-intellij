@@ -192,7 +192,7 @@ public class SqlServerPropertiesEditor extends AzResourcePropertiesEditor<Micros
     private void onDatabaseComboBoxChanged(ItemEvent e) {
         if (e.getStateChange() == ItemEvent.SELECTED && e.getItem() instanceof MicrosoftSqlDatabase) {
             final MicrosoftSqlDatabase database = (MicrosoftSqlDatabase) e.getItem();
-            final String username = this.draft.getAdminName() + "@" + this.draft.getName();
+            final String username = this.draft.getFullAdminName();
             connectionStringsJDBC.getOutputTextArea().setText(getConnectionString(SQL_SERVER_OUTPUT_TEXT_PATTERN_JDBC,
                 this.draft.getFullyQualifiedDomainName(), database.getName(), username));
             connectionStringsSpring.getOutputTextArea().setText(getConnectionString(SQL_SERVER_OUTPUT_TEXT_PATTERN_SPRING,

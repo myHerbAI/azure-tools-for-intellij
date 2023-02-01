@@ -11,7 +11,6 @@ import com.microsoft.azure.toolkit.ide.guidance.GuidanceViewManager;
 import com.microsoft.azure.toolkit.ide.guidance.action.ShowGettingStartAction;
 import com.microsoft.azure.toolkit.ide.guidance.config.CourseConfig;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -41,7 +40,8 @@ public class CoursePanel {
 
     public CoursePanel(@Nonnull final CourseConfig course, @Nonnull final Project project) {
         super();
-        this.showNewUIFlag = Boolean.parseBoolean(ExperimentationClient.getExperimentationService().getFeatureVariable(ExperimentationClient.FeatureFlag.GETTING_STARTED_UI.getFlagName()));
+        this.showNewUIFlag = Boolean.parseBoolean(Optional.ofNullable(ExperimentationClient.getExperimentationService())
+                .map(service -> service.getFeatureVariable(ExperimentationClient.FeatureFlag.GETTING_STARTED_UI.getFlagName())).orElse("false"));
         this.course = course;
         this.project = project;
         $$$setupUI$$$();
@@ -85,7 +85,7 @@ public class CoursePanel {
         this.rootPanel.addMouseListener(coursePanelListener);
     }
 
-    @AzureOperation(name = "guidance.open_course.course", params = {"this.course.getTitle()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/guidance.open_course.course", params = {"this.course.getTitle()"})
     public void openGuidance() {
         if (!isStartedActionTriggered) {
             isStartedActionTriggered = true;

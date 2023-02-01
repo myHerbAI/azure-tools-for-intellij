@@ -6,11 +6,10 @@
 package com.microsoft.azure.toolkit.ide.storage.action.explorer;
 
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -29,7 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -38,7 +37,7 @@ public abstract class AbstractAzureStorageExplorerHandler {
     private static final String STORAGE_EXPLORER_DOWNLOAD_URL = "https://go.microsoft.com/fwlink/?LinkId=723579";
     private static final String STORAGE_EXPLORER = "StorageExplorer";
 
-    @AzureOperation(name = "storage.open_azure_storage_explorer.account", params = {"account.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "user/storage.open_azure_storage_explorer.account", params = {"account.getName()"})
     public void openResource(@Nonnull StorageAccount account) {
         // Get resource url
         final Charset charset = Charset.forName("UTF-8");
@@ -54,7 +53,7 @@ public abstract class AbstractAzureStorageExplorerHandler {
         }
     }
 
-    @AzureOperation(name = "storage.open_azure_storage_explorer.storage", params = {"storage.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "user/storage.open_azure_storage_explorer.storage", params = {"storage.getName()"})
     public void openResource(@Nonnull final AbstractAzResource<?, StorageAccount, ?> storage) {
         // Get resource url
         final StorageAccount storageAccount = storage.getParent();
@@ -73,6 +72,7 @@ public abstract class AbstractAzureStorageExplorerHandler {
         }
     }
 
+    @AzureOperation(name = "boundary/storage.open_azure_storage_explorer")
     protected boolean launchStorageExplorerWithUri(@Nonnull final StorageAccount storageAccount, @Nonnull final String resourceUrl) {
         if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
             try {
@@ -109,35 +109,29 @@ public abstract class AbstractAzureStorageExplorerHandler {
     }
 
     protected Action<?>[] getStorageNotFoundActions(@Nonnull final StorageAccount storageAccount) {
-        // Open in Azure Action
-        final Consumer<Void> openInAzureConsumer = ignore -> AzureActionManager.getInstance()
-            .getAction(ResourceCommonActionsContributor.OPEN_URL).handle(storageAccount.getPortalUrl() + "/storagebrowser");
-        final ActionView.Builder openInAzureView = new ActionView.Builder("Open in Azure")
-            .title(ignore -> AzureString.fromString("Open Storage account in Azure")).enabled(ignore -> true);
-        final Action.Id<Void> OPEN = Action.Id.of("storage.open_portal_storage_browser");
-        final Action<Void> openInAzureAction = new Action<>(OPEN, openInAzureConsumer, openInAzureView);
-        openInAzureAction.setAuthRequired(false);
-        // Download Storage Explorer
-        final Consumer<Void> downloadConsumer = ignore ->
-            AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(STORAGE_EXPLORER_DOWNLOAD_URL);
-        final ActionView.Builder downloadView = new ActionView.Builder("Download")
-            .title(ignore -> AzureString.fromString("Download Azure Storage Explorer")).enabled(ignore -> true);
-        final Action.Id<Void> DOWNLOAD = Action.Id.of("storage.download_explorer");
-        final Action<Void> downloadAction = new Action<>(DOWNLOAD, downloadConsumer, downloadView);
-        downloadAction.setAuthRequired(false);
-        // Open Azure Settings Panel, and re-run
-        final Action<Object> openSettingsAction = AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS);
-        final Consumer<Void> configureConsumer = ignore -> {
-            openSettingsAction.getHandler(null, null).accept(null, null); // Open Azure Settings Panel sync
-            if (StringUtils.isNotBlank(Azure.az().config().getStorageExplorerPath())) {
-                openResource(storageAccount);
-            }
-        };
-        final ActionView.Builder configureView = new ActionView.Builder("Configure")
-            .title(ignore -> AzureString.fromString("Configure path for Azure Storage Explorer")).enabled(ignore -> true);
-        final Action.Id<Void> CONFIG = Action.Id.of("storage.config_explorer_path");
-        final Action<Void> configureAction = new Action<>(CONFIG, configureConsumer, configureView);
-        configureAction.setAuthRequired(false);
+        final AzureActionManager am = AzureActionManager.getInstance();
+        final Action<Void> openInAzureAction = new Action<>(Action.Id.<Void>of("user/storage.open_portal_storage_browser.account"))
+            .withLabel("Open in Azure")
+            .withIcon(AzureIcons.Action.PORTAL.getIconPath())
+            .withIdParam(storageAccount.getId())
+            .withHandler(ignore -> am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(storageAccount.getPortalUrl() + "/storagebrowser"))
+            .withAuthRequired(false);
+
+        final Action<Void> downloadAction = new Action<>(Action.Id.<Void>of("user/storage.download_explorer"))
+            .withLabel("Download")
+            .withHandler(ignore -> am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(STORAGE_EXPLORER_DOWNLOAD_URL))
+            .withAuthRequired(false);
+
+        final Action<Void> configureAction = new Action<>(Action.Id.<Void>of("user/storage.config_explorer_path"))
+            .withLabel("Configure")
+            .withHandler(ignore -> {
+                final Action<Object> openSettingsAction = am.getAction(ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS);
+                Objects.requireNonNull(openSettingsAction.getHandler(null, null)).accept(null, null); // Open Azure Settings Panel sync
+                if (StringUtils.isNotBlank(Azure.az().config().getStorageExplorerPath())) {
+                    openResource(storageAccount);
+                }
+            })
+            .withAuthRequired(false);
         return new Action[]{openInAzureAction, downloadAction, configureAction};
     }
 

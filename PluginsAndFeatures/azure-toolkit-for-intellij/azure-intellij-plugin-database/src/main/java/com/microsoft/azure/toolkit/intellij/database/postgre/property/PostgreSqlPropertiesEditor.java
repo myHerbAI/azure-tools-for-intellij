@@ -192,7 +192,7 @@ public class PostgreSqlPropertiesEditor extends AzResourcePropertiesEditor<Postg
     private void onDatabaseComboBoxChanged(ItemEvent e) {
         if (e.getStateChange() == ItemEvent.SELECTED && e.getItem() instanceof PostgreSqlDatabase) {
             final PostgreSqlDatabase database = (PostgreSqlDatabase) e.getItem();
-            final String username = this.draft.getAdminName() + "@" + this.draft.getName();
+            final String username = this.draft.getFullAdminName();
             connectionStringsJDBC.getOutputTextArea().setText(getConnectionString(POSTGRE_SQL_OUTPUT_TEXT_PATTERN_JDBC,
                 this.draft.getFullyQualifiedDomainName(), database.getName(), username));
             connectionStringsSpring.getOutputTextArea().setText(getConnectionString(POSTGRE_SQL_OUTPUT_TEXT_PATTERN_SPRING,

@@ -38,7 +38,7 @@ public class PushImageAction extends AzureAnAction {
     private final AzureDockerSupportConfigurationType configType = AzureDockerSupportConfigurationType.getInstance();
 
     @Override
-    @AzureOperation(name = "docker.push_image", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/docker.push_image")
     public boolean onActionPerformed(@NotNull AnActionEvent event, @Nullable Operation operation) {
 
         Module module = DataKeys.MODULE.getData(event.getDataContext());

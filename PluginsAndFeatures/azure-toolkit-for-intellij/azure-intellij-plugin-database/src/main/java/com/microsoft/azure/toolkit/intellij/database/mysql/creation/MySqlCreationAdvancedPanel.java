@@ -20,6 +20,7 @@ import com.microsoft.azure.toolkit.intellij.database.ServerNameTextField;
 import com.microsoft.azure.toolkit.intellij.database.component.ConnectionSecurityPanel;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import com.microsoft.azure.toolkit.lib.mysql.AzureMySql;
@@ -78,8 +79,10 @@ public class MySqlCreationAdvancedPanel extends JPanel implements AzureFormPanel
             Azure.az(AzureMySql.class).forSubscription(this.subscriptionComboBox.getValue().getId()).listSupportedRegions());
         regionComboBox.addValidator(new BaseRegionValidator(regionComboBox, (sid, region) ->
             Azure.az(AzureMySql.class).forSubscription(sid).checkRegionAvailability(region)));
-        serverNameTextField.addValidator(new BaseNameValidator(serverNameTextField, (sid, name) ->
-            Azure.az(AzureMySql.class).forSubscription(sid).checkNameAvailability(name)));
+        serverNameTextField.addValidator(new BaseNameValidator(serverNameTextField, (sid, name) -> {
+            final Region region = Optional.ofNullable(this.regionComboBox.getValue()).orElse(this.config.getRegion());
+            return Azure.az(AzureMySql.class).forSubscription(sid).checkNameAvailability(region.getName(), name);
+        }));
     }
 
     private void initListeners() {

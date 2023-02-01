@@ -40,7 +40,7 @@ public class IntellijStorageActionsContributor implements IActionsContributor {
         am.registerHandler(ResourceCommonActionsContributor.CREATE, condition, handler);
 
         am.<AzResource, AnActionEvent>registerHandler(ResourceCommonActionsContributor.CONNECT, (r, e) -> r instanceof StorageAccount,
-            (r, e) -> AzureTaskManager.getInstance().runLater(OperationBundle.description("storage.open_azure_storage_explorer.account", r.getName()), () -> {
+            (r, e) -> AzureTaskManager.getInstance().runLater(OperationBundle.description("user/storage.open_azure_storage_explorer.account", r.getName()), () -> {
                 final ConnectorDialog dialog = new ConnectorDialog(e.getProject());
                 dialog.setResource(new AzureServiceResource<>(((StorageAccount) r), StorageAccountResourceDefinition.INSTANCE));
                 dialog.show();
@@ -77,7 +77,7 @@ public class IntellijStorageActionsContributor implements IActionsContributor {
             final StorageCreationDialog dialog = new StorageCreationDialog(module, event.getProject());
             dialog.setOkActionListener((name) -> {
                 dialog.close();
-                final AzureString title = OperationBundle.description("storage.create_storage.type|storage", module.getResourceTypeName(), name);
+                final AzureString title = OperationBundle.description("internal/storage.create_storage.type|storage", module.getResourceTypeName(), name);
                 AzureTaskManager.getInstance().runInBackground(title, () -> module.create(name, "").createIfNotExist());
             });
             dialog.show();

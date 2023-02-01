@@ -21,7 +21,7 @@ public class ShowGettingStartAction extends AzureAnAction {
     private static boolean isActionTriggered = false;
 
     @Override
-    @AzureOperation(name = "guidance.show_courses_view", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/guidance.show_courses_view")
     public boolean onActionPerformed(@NotNull AnActionEvent anActionEvent, @Nullable Operation operation) {
         if (anActionEvent.getProject() != null) {
             OperationContext.action().setTelemetryProperty("FromPlace", anActionEvent.getPlace());

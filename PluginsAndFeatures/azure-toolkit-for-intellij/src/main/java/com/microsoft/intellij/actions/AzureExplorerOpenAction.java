@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class AzureExplorerOpenAction extends AzureAnAction {
     @Override
-    @AzureOperation(name = "common.open_explorer", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/common.open_explorer")
     public boolean onActionPerformed(@NotNull AnActionEvent event, @Nullable Operation operation) {
         Project project = DataKeys.PROJECT.getData(event.getDataContext());
         ToolWindowManager.getInstance(project).getToolWindow(ServerExplorerToolWindowFactory.EXPLORER_WINDOW).activate(null);

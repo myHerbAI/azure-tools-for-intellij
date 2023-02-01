@@ -56,7 +56,7 @@ public class SSHIntoWebAppAction {
         final Action<Void> retry = Action.retryFromFailure(this::execute);
         logger.info(message("webapp.ssh.hint.startSSH", webAppName));
         // ssh to connect to remote web app container.
-        final AzureString title = description("webapp.connect_ssh.app", webAppName);
+        final AzureString title = description("user/webapp.connect_ssh.app", webAppName);
         AzureTaskManager.getInstance().runInBackground(new AzureTask(project, title, false,
             () -> {
                 if (webApp.getRuntime().getOperatingSystem() == OperatingSystem.WINDOWS) {
@@ -83,7 +83,7 @@ public class SSHIntoWebAppAction {
                     // create a new terminal tab.
                     TerminalView terminalView = TerminalView.getInstance(project);
                     ShellTerminalWidget shellTerminalWidget = terminalView.createLocalShellWidget(null, String.format(WEBAPP_TERMINAL_TABLE_NAME, webAppName));
-                    final AzureString messageTitle = description("webapp.open_ssh.app", webAppName);
+                    final AzureString messageTitle = description("boundary/webapp.open_ssh.app", webAppName);
                     AzureTaskManager.getInstance().runInBackground(new AzureTask(project, messageTitle, false, () -> {
                         // create connection to the local proxy.
                         final SSHTerminalManager.CreateRemoteConnectionInfo info = new SSHTerminalManager.CreateRemoteConnectionInfo();

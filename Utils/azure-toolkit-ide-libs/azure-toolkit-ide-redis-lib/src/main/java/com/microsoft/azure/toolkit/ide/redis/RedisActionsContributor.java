@@ -9,39 +9,36 @@ import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.redis.RedisCache;
-
-import java.util.Optional;
-
-import static com.microsoft.azure.toolkit.lib.common.operation.OperationBundle.description;
 
 public class RedisActionsContributor implements IActionsContributor {
     public static final int INITIALIZE_ORDER = ResourceCommonActionsContributor.INITIALIZE_ORDER + 1;
 
     public static final String SERVICE_ACTIONS = "actions.redis.service";
     public static final String REDIS_ACTIONS = "actions.redis.instance";
-    public static final Action.Id<AzResource> OPEN_EXPLORER = Action.Id.of("redis.open_redis_explorer.redis");
-    public static final Action.Id<ResourceGroup> GROUP_CREATE_REDIS = Action.Id.of("redis.create_redis.group");
+    public static final Action.Id<AzResource> OPEN_EXPLORER = Action.Id.of("user/redis.open_redis_explorer.redis");
+    public static final Action.Id<ResourceGroup> GROUP_CREATE_REDIS = Action.Id.of("user/redis.create_redis.group");
 
     @Override
     public void registerActions(AzureActionManager am) {
-        final ActionView.Builder showExplorerView = new ActionView.Builder("Open Redis Explorer")
-            .title(s -> Optional.ofNullable(s).map(r -> description("redis.open_redis_explorer.redis", ((AzResourceBase) r).getName())).orElse(null))
-            .enabled(s -> s instanceof RedisCache && ((RedisCache) s).getFormalStatus().isRunning());
-        final Action<AzResource> action = new Action<>(OPEN_EXPLORER, showExplorerView);
-        action.setShortcuts(am.getIDEDefaultShortcuts().view());
-        am.registerAction(action);
+        new Action<>(OPEN_EXPLORER)
+            .withLabel("Open Redis Explorer")
+            .withIdParam(AzResource::getName)
+            .withShortcut(am.getIDEDefaultShortcuts().view())
+            .visibleWhen(s -> s instanceof RedisCache)
+            .enableWhen(s -> s.getFormalStatus().isRunning())
+            .register(am);
 
-        final ActionView.Builder createRedisView = new ActionView.Builder("Redis Cache")
-            .title(s -> Optional.ofNullable(s).map(r -> description("redis.create_redis.group", ((ResourceGroup) r).getName())).orElse(null))
-            .enabled(s -> s instanceof ResourceGroup && ((ResourceGroup) s).getFormalStatus().isConnected());
-        am.registerAction(new Action<>(GROUP_CREATE_REDIS, createRedisView));
+        new Action<>(GROUP_CREATE_REDIS)
+            .withLabel("Redis Cache")
+            .withIdParam(AzResource::getName)
+            .visibleWhen(s -> s instanceof ResourceGroup)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .register(am);
     }
 
     @Override

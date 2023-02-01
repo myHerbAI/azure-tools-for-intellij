@@ -89,8 +89,7 @@ public abstract class SqlDatabaseResourcePanel<T extends IDatabase> implements A
             .orElse(Password.SaveType.UNTIL_RESTART));
         // username loader
         this.usernameComboBox.setItemsLoader(() -> Objects.isNull(this.databaseComboBox.getServer()) ? Collections.emptyList() :
-            Collections.singletonList(this.databaseComboBox.getServer().getAdminName() + "@" +
-                this.databaseComboBox.getServer().getName()));
+            Collections.singletonList(this.databaseComboBox.getServer().getFullAdminName()));
     }
 
     protected void initListeners() {

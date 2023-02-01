@@ -83,7 +83,7 @@ public class AppSettingsTable extends JBTable {
 
     public void removeAppSettings() {
         try {
-            this.removeAppSettings(this.getSelectedRow());
+            this.removeAppSettings(sorter.convertRowIndexToModel(getSelectedRow()));
         } catch (final IllegalArgumentException iae) {
             AzureMessager.getMessager().error(message("function.appSettings.remove.error.title"), iae.getMessage());
         }

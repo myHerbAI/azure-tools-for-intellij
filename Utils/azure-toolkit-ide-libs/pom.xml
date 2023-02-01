@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-ide-libs</artifactId>
-    <version>0.27.0</version>
+    <version>0.30.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Libs for Azure Toolkit for IDEs</name>
     <description>Wrapped libs of Microsoft Azure Toolkits for IDEs</description>
@@ -47,12 +47,13 @@
         <module>azure-toolkit-ide-applicationinsights-lib</module>
         <module>azure-toolkit-ide-containerservice-lib</module>
         <module>azure-toolkit-ide-cosmos-lib</module>
+        <module>azure-toolkit-ide-containerapps-lib</module>
     </modules>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <azure.toolkit-lib.version>0.27.0</azure.toolkit-lib.version>
+        <azure.toolkit-lib.version>0.30.0-SNAPSHOT</azure.toolkit-lib.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -121,6 +122,11 @@
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-ide-cosmos-lib</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-ide-containerapps-lib</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -13,75 +13,81 @@ import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContri
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import static com.microsoft.azure.toolkit.intellij.connector.ConnectionTopics.CONNECTION_CHANGED;
 
 public class ResourceConnectionActionsContributor implements IActionsContributor {
-    public static final Action.Id<Object> REFRESH_CONNECTIONS = Action.Id.of("connector.refresh_connections");
-    public static final Action.Id<Module> ADD_CONNECTION = Action.Id.of("connector.add_connection");
-    public static final Action.Id<Connection<?, ?>> EDIT_CONNECTION = Action.Id.of("connector.edit_connection");
-    public static final Action.Id<Connection<?, ?>> REMOVE_CONNECTION = Action.Id.of("connector.remove_connection");
+    public static final Action.Id<Object> REFRESH_CONNECTIONS = Action.Id.of("user/connector.refresh_connections");
+    public static final Action.Id<Module> ADD_CONNECTION = Action.Id.of("user/connector.add_connection");
+    public static final Action.Id<Connection<?, ?>> EDIT_CONNECTION = Action.Id.of("user/connector.edit_connection");
+    public static final Action.Id<Connection<?, ?>> REMOVE_CONNECTION = Action.Id.of("user/connector.remove_connection");
     public static final String MODULE_ACTIONS = "actions.connector.module";
     public static final String CONNECTION_ACTIONS = "actions.connector.connection";
 
     @Override
     public void registerActions(AzureActionManager am) {
-        final BiConsumer<Object, AnActionEvent> refreshHandler = (project, e) -> Objects.requireNonNull(e.getProject())
-                .getMessageBus().syncPublisher(ConnectionTopics.CONNECTIONS_REFRESHED)
-                .connectionsRefreshed();
-        final ActionView.Builder refreshView = new ActionView.Builder("Refresh", AzureIcons.Action.REFRESH.getIconPath())
-                .title(t -> OperationBundle.description("connector.refresh_connections"));
-        final Action<Object> refreshAction = new Action<>(REFRESH_CONNECTIONS, refreshHandler, refreshView);
+        new Action<>(REFRESH_CONNECTIONS)
+            .withLabel("Refresh")
+            .withIcon(AzureIcons.Action.REFRESH.getIconPath())
+            .withHandler((project, e) -> refreshConnections((AnActionEvent) e))
+            .withShortcut(am.getIDEDefaultShortcuts().refresh())
+            .register(am);
 
-        final Consumer<Module> addHandler = (m) -> openDialog(null, new ModuleResource(m.getName()), m.getProject());
-        final ActionView.Builder addView = new ActionView.Builder("Add", AzureIcons.Action.ADD.getIconPath())
-                .title(t -> OperationBundle.description("connector.add_connection"))
-                .enabled(m -> m instanceof Module);
-        final Action<Module> addAction = new Action<>(ADD_CONNECTION, addHandler, addView);
+        new Action<>(ADD_CONNECTION)
+            .withLabel("Add")
+            .withIcon(AzureIcons.Action.ADD.getIconPath())
+            .enableWhen(m -> m instanceof Module)
+            .withHandler((m) -> openDialog(null, new ModuleResource(m.getName()), m.getProject()))
+            .withShortcut(am.getIDEDefaultShortcuts().add())
+            .register(am);
 
-        final BiConsumer<Connection<?, ?>, AnActionEvent> editHandler = (c, e) -> openDialog(c, e.getProject());
-        final ActionView.Builder editView = new ActionView.Builder("Edit", AzureIcons.Action.EDIT.getIconPath())
-                .title(t -> OperationBundle.description("connector.edit_connection"))
-                .enabled(m -> m instanceof Connection);
-        final Action<Connection<?, ?>> editAction = new Action<>(EDIT_CONNECTION, editHandler, editView);
+        new Action<>(EDIT_CONNECTION)
+            .withLabel("Edit")
+            .withIcon(AzureIcons.Action.EDIT.getIconPath())
+            .enableWhen(m -> m instanceof Connection<?, ?>)
+            .withHandler((c, e) -> openDialog(c, ((AnActionEvent) e).getProject()))
+            .withShortcut(am.getIDEDefaultShortcuts().edit())
+            .register(am);
 
-        final BiConsumer<Connection<?, ?>, AnActionEvent> removeHandler =
-                (c, e) -> {
-                    final Project project = Objects.requireNonNull(e.getProject());
-                    project.getService(ConnectionManager.class).removeConnection(c.getResource().getId(), c.getConsumer().getId());
-                    project.getMessageBus().syncPublisher(CONNECTION_CHANGED).connectionChanged(project, c, ConnectionTopics.Action.REMOVE);
-                };
-        final ActionView.Builder removeView = new ActionView.Builder("Remove", AzureIcons.Action.REMOVE.getIconPath())
-                .title(t -> OperationBundle.description("connector.remove_connection"))
-                .enabled(m -> m instanceof Connection);
-        final Action<Connection<?, ?>> removeAction = new Action<>(REMOVE_CONNECTION, removeHandler, removeView);
+        new Action<>(REMOVE_CONNECTION)
+            .withLabel("Remove")
+            .withIcon(AzureIcons.Action.REMOVE.getIconPath())
+            .enableWhen(m -> m instanceof Connection<?, ?>)
+            .withHandler((c, e) -> ResourceConnectionActionsContributor.removeConnection(c, (AnActionEvent) e))
+            .withShortcut(am.getIDEDefaultShortcuts().delete())
+            .register(am);
+    }
 
-        am.registerAction(refreshAction);
-        am.registerAction(addAction);
-        am.registerAction(editAction);
-        am.registerAction(removeAction);
-        IActionsContributor.super.registerActions(am);
+    @AzureOperation(value = "user/connector.remove_connection.resource", params = "connection.getResource()")
+    private static void removeConnection(Connection<?, ?> connection, AnActionEvent e) {
+        final Project project = Objects.requireNonNull(e.getProject());
+        project.getService(ConnectionManager.class).removeConnection(connection.getResource().getId(), connection.getConsumer().getId());
+        project.getMessageBus().syncPublisher(CONNECTION_CHANGED).connectionChanged(project, connection, ConnectionTopics.Action.REMOVE);
+    }
+
+    @AzureOperation("user/connector.refresh_connections")
+    private static void refreshConnections(AnActionEvent e) {
+        Objects.requireNonNull(e.getProject())
+            .getMessageBus().syncPublisher(ConnectionTopics.CONNECTIONS_REFRESHED)
+            .connectionsRefreshed();
     }
 
     @Override
     public void registerGroups(AzureActionManager am) {
         final ActionGroup moduleActions = new ActionGroup(
-                ADD_CONNECTION
+            ADD_CONNECTION
         );
         am.registerGroup(MODULE_ACTIONS, moduleActions);
 
         final ActionGroup connectionActions = new ActionGroup("",
-                EDIT_CONNECTION,
-                REMOVE_CONNECTION
+            EDIT_CONNECTION,
+            REMOVE_CONNECTION
         );
         am.registerGroup(CONNECTION_ACTIONS, connectionActions);
     }

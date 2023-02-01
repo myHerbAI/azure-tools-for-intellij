@@ -25,7 +25,7 @@ public class FocusResourceInAzureExplorerTask implements Task {
     private final ComponentContext context;
 
     @Override
-    @AzureOperation(name = "guidance.focus_resource", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "internal/guidance.focus_resource")
     public void execute() {
         final String resourceId = (String) context.getParameter(RESOURCE_ID);
         final AbstractAzResource<?, ?, ?> resource = Objects.requireNonNull(Azure.az().getById(resourceId), String.format("failed to get resource with id (%s) in Azure", resourceId));

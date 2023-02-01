@@ -68,11 +68,7 @@ public class AzureMvpModel {
      * @param sid Subscription Id
      * @return Instance of Subscription
      */
-    @AzureOperation(
-        name = "account.get_subscription_detail.subscription",
-        params = {"sid"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/account.get_subscription_detail.subscription", params = {"sid"})
     public Subscription getSubscriptionById(String sid) {
         return az(AzureAccount.class).account().getSubscription(sid);
     }
@@ -82,10 +78,7 @@ public class AzureMvpModel {
      *
      * @return List of Subscription instances
      */
-    @AzureOperation(
-        name = "account.get_subscription_detail",
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/account.get_subscription_detail")
     public List<Subscription> getSelectedSubscriptions() {
         final List<Subscription> ret = new ArrayList<>(az(AzureAccount.class).account().getSelectedSubscriptions());
         ret.sort(getComparator(Subscription::getName));
@@ -96,10 +89,7 @@ public class AzureMvpModel {
      * List all the resource groups in specific subscription.
      * @return
      */
-    @AzureOperation(
-        name = "arm.list_resource_groups",
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/arm.list_resource_groups")
     public List<ResourceGroup> getResourceGroups(String sid) {
         return az(AzureResources.class).groups(sid).list().stream()
             .sorted(getComparator(AbstractAzResource::getName))
@@ -110,10 +100,7 @@ public class AzureMvpModel {
      * List all the resource groups in selected subscriptions.
      * @return
      */
-    @AzureOperation(
-            name = "arm.list_resource_groups",
-            type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/arm.list_resource_groups")
     public List<ResourceGroup> getResourceGroups() {
         return az(AzureResources.class).list().stream()
             .flatMap(r -> r.resourceGroups().list().stream())
@@ -127,11 +114,7 @@ public class AzureMvpModel {
      * @param sid subscription id
      * @return
      */
-    @AzureOperation(
-        name = "arm.delete_resource_group.rg",
-        params = {"rgName"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/arm.delete_resource_group.rg", params = {"rgName"})
     public void deleteResourceGroup(String rgName, String sid) {
         az(AzureResources.class).groups(sid).delete(rgName, rgName);
     }
@@ -142,11 +125,7 @@ public class AzureMvpModel {
      * @param sid subscription Id
      * @return List of ResourceGroup instances
      */
-    @AzureOperation(
-        name = "arm.list_resource_groups.subscription",
-        params = {"sid"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/arm.list_resource_groups.subscription", params = {"sid"})
     public List<ResourceGroup> getResourceGroupsBySubscriptionId(String sid) {
         return az(AzureResources.class).groups(sid).list().stream()
             .sorted(getComparator(ResourceGroup::getName)).collect(Collectors.toList());
@@ -155,20 +134,13 @@ public class AzureMvpModel {
     /**
      * Get Resource Group by Subscription ID and Resource Group name.
      */
-    @AzureOperation(
-        name = "arm.get_resource_group.rg|subscription",
-        params = {"name", "sid"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/arm.get_resource_group.rg|subscription", params = {"name", "sid"})
     public ResourceGroup getResourceGroupBySubscriptionIdAndName(String sid, String name) throws Exception {
         return Optional.ofNullable(az(AzureResources.class).groups(sid).get(name, name))
             .orElseThrow(() -> new Exception(CANNOT_GET_RESOURCE_GROUP));
     }
 
-    @AzureOperation(
-        name = "arm.list_deployments",
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/arm.list_deployments")
     public List<Deployment> listAllDeployments() {
         List<Deployment> deployments = new ArrayList<>();
         List<Subscription> subs = getSelectedSubscriptions();
@@ -184,11 +156,7 @@ public class AzureMvpModel {
         return deployments;
     }
 
-    @AzureOperation(
-        name = "arm.list_deployments.subscription",
-        params = {"sid"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "azure/arm.list_deployments.subscription", params = {"sid"})
     public List<Deployment> listDeploymentsBySid(String sid) {
         final ResourceManager.Configurable configurable = ResourceManager.configure();
         final ResourceManager azure = IdeAzureAccount.getInstance().authenticateForTrack1(sid, configurable, (t, c) -> c.authenticate(t).withSubscription(sid));
@@ -202,11 +170,7 @@ public class AzureMvpModel {
      * @param rgName
      * @return
      */
-    @AzureOperation(
-        name = "arm.list_deployments.rg|subscription",
-        params = {"rgName", "sid"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "azure/arm.list_deployments.rg|subscription", params = {"rgName", "sid"})
     public List<Deployment> getDeploymentByRgName(String sid, String rgName) {
         final ResourceManager.Configurable configurable = ResourceManager.configure();
         final ResourceManager azure = IdeAzureAccount.getInstance().authenticateForTrack1(sid, configurable, (t, c) -> c.authenticate(t).withSubscription(sid));
@@ -221,11 +185,7 @@ public class AzureMvpModel {
      * @param sid subscription Id
      * @return List of Location instances
      */
-    @AzureOperation(
-        name = "common.list_regions.subscription",
-        params = {"sid"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/common.list_regions.subscription", params = {"sid"})
     public List<Region> listLocationsBySubscriptionId(String sid) {
         List<Region> locations = new ArrayList<>();
         Subscription subscription = getSubscriptionById(sid);
@@ -243,10 +203,7 @@ public class AzureMvpModel {
      *
      * @return List of PricingTier instances.
      */
-    @AzureOperation(
-        name = "common.list_tiers",
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/common.list_tiers")
     public List<PricingTier> listPricingTier() {
         final List<PricingTier> ret = new ArrayList<>(WEB_APP_PRICING);
         ret.sort(getComparator(PricingTier::toString));

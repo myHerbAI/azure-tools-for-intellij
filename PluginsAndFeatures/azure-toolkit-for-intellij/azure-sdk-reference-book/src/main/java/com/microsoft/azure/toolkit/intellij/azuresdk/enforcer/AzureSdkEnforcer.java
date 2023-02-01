@@ -41,7 +41,7 @@ public class AzureSdkEnforcer {
         final Set<String> projectLibPackageNames = ProjectLibraryService.getProjectLibraries(project).stream()
                 .map(ProjectLibEntity::getPackageName).collect(Collectors.toSet());
         final SetUtils.SetView<String> deprecatedProjectLibNames = SetUtils.intersection(projectLibPackageNames, allDeprecatedAzureLibNames);
-        final String neverShowGainActionId = "common.never_show_again";
+        final String neverShowGainActionId = "user/common.never_show_again";
         if (Boolean.TRUE.equals(IntellijStore.getInstance().getState().getSuppressedActions().get(neverShowGainActionId))) {
             return;
         }
@@ -51,7 +51,7 @@ public class AzureSdkEnforcer {
         }
     }
 
-    @AzureOperation(name = "sdk.warn_deprecated_libs", type = AzureOperation.Type.DEFAULT)
+    @AzureOperation(name = "ui/sdk.warn_deprecated_libs")
     private static void warnDeprecatedLibs(@AzureTelemetry.Property List<? extends AzureJavaSdkEntity> deprecatedLibs) {
         final String message = buildMessage(deprecatedLibs);
         final AzureActionManager am = AzureActionManager.getInstance();

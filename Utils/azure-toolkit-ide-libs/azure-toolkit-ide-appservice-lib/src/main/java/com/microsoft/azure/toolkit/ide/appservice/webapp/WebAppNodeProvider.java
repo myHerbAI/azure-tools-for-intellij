@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlotModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -74,14 +75,16 @@ public class WebAppNodeProvider implements IExplorerNodeProvider {
         } else if (data instanceof WebAppDeploymentSlotModule) {
             final WebAppDeploymentSlotModule module = (WebAppDeploymentSlotModule) data;
             return new Node<>(module)
-                    .view(new AzureModuleLabelView<>(module, "Deployment Slots", AzureIcons.WebApp.DEPLOYMENT_SLOT.getIconPath()))
-                    .actions(WebAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
-                    .addChildren(WebAppDeploymentSlotModule::list, (d, p) -> this.createNode(d, p, manager));
+                .view(new AzureModuleLabelView<>(module, "Deployment Slots", AzureIcons.WebApp.DEPLOYMENT_SLOT.getIconPath()))
+                .actions(WebAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
+                .addChildren(WebAppDeploymentSlotModule::list, (d, p) -> this.createNode(d, p, manager))
+                .hasMoreChildren(AbstractAzResourceModule::hasMoreResources)
+                .loadMoreChildren(AbstractAzResourceModule::loadMoreResources);
         } else if (data instanceof WebAppDeploymentSlot) {
             final WebAppDeploymentSlot slot = (WebAppDeploymentSlot) data;
             return new Node<>(slot)
-                    .view(new AzureResourceLabelView<>(slot))
-                    .actions(WebAppActionsContributor.DEPLOYMENT_SLOT_ACTIONS);
+                .view(new AzureResourceLabelView<>(slot))
+                .actions(WebAppActionsContributor.DEPLOYMENT_SLOT_ACTIONS);
         } else if (data instanceof AppServiceFile) {
             final AppServiceFile file = (AppServiceFile) data;
             return new AppServiceFileNode(file);
@@ -91,9 +94,11 @@ public class WebAppNodeProvider implements IExplorerNodeProvider {
 
     private Node<?> createDeploymentSlotNode(@Nonnull WebAppDeploymentSlotModule module, @Nonnull Manager manager) {
         return new Node<>(module)
-                .view(new AppServiceDeploymentSlotsNodeView(module.getParent()))
-                .actions(WebAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
-                .addChildren(WebAppDeploymentSlotModule::list, (d, p) -> this.createNode(d, p, manager));
+            .view(new AppServiceDeploymentSlotsNodeView(module.getParent()))
+            .actions(WebAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
+            .addChildren(WebAppDeploymentSlotModule::list, (d, p) -> this.createNode(d, p, manager))
+            .hasMoreChildren(AbstractAzResourceModule::hasMoreResources)
+            .loadMoreChildren(AbstractAzResourceModule::loadMoreResources);
     }
 
     @Nullable

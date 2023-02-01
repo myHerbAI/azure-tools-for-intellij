@@ -18,7 +18,7 @@ public class ProvideFeedbackAction extends AnAction implements DumbAware {
     public static final Key<String> ID = new Key<>("ProvideFeedbackAction");
 
     @Override
-    @AzureOperation(name = "feedback.open_monkey_survey", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/feedback.open_monkey_survey")
     public void actionPerformed(@Nonnull AnActionEvent event) {
         MonkeySurvey.openInIDE(Objects.requireNonNull(event.getProject()));
     }

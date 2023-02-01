@@ -10,21 +10,14 @@ import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContri
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocument;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocumentContainer;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
-
-import java.util.Optional;
-import java.util.function.Consumer;
-
-import static com.microsoft.azure.toolkit.lib.common.operation.OperationBundle.description;
 
 public class CosmosActionsContributor implements IActionsContributor {
     public static final int INITIALIZE_ORDER = ResourceCommonActionsContributor.INITIALIZE_ORDER + 1;
@@ -42,91 +35,90 @@ public class CosmosActionsContributor implements IActionsContributor {
     public static final String CASSANDRA_TABLE_ACTIONS = "actions.cosmos.cassandra_table";
     public static final String COSMOS_DOCUMENT_ACTIONS = "actions.cosmos.sql_document";
 
-    public static final Action.Id<CosmosDBAccount> OPEN_DATABASE_TOOL = Action.Id.of("cosmos.open_database_tools.account");
-    public static final Action.Id<CosmosDBAccount> OPEN_DATA_EXPLORER = Action.Id.of("cosmos.open_data_explorer.account");
-    public static final Action.Id<CosmosDBAccount> COPY_CONNECTION_STRING = Action.Id.of("cosmos.copy_connection_string.account");
-    public static final Action.Id<ICosmosDocumentContainer<?>> IMPORT_DOCUMENT = Action.Id.of("cosmos.import_document.container");
-    public static final Action.Id<ICosmosDocument> OPEN_DOCUMENT = Action.Id.of("cosmos.open_document.document");
-    public static final Action.Id<ICosmosDocumentContainer<?>> LOAD_MODE_DOCUMENT = Action.Id.of("cosmos.load_more_documents.container");
-    public static final Action.Id<ResourceGroup> GROUP_CREATE_COSMOS_SERVICE = Action.Id.of("cosmos.create_cosmos_db_account.group");
+    public static final Action.Id<CosmosDBAccount> OPEN_DATABASE_TOOL = Action.Id.of("user/cosmos.open_database_tools.account");
+    public static final Action.Id<CosmosDBAccount> OPEN_DATA_EXPLORER = Action.Id.of("user/cosmos.open_data_explorer.account");
+    public static final Action.Id<CosmosDBAccount> COPY_CONNECTION_STRING = Action.Id.of("user/cosmos.copy_connection_string.account");
+    public static final Action.Id<ICosmosDocumentContainer<?>> IMPORT_DOCUMENT = Action.Id.of("user/cosmos.import_document.container");
+    public static final Action.Id<ICosmosDocument> OPEN_DOCUMENT = Action.Id.of("user/cosmos.open_document.document");
+    public static final Action.Id<ResourceGroup> GROUP_CREATE_COSMOS_SERVICE = Action.Id.of("user/cosmos.create_cosmos_db_account.group");
 
     @Override
     public void registerActions(AzureActionManager am) {
-        final ActionView.Builder openDatabaseTool = new ActionView.Builder("Open with Database Tools", AzureIcons.Action.OPEN_DATABASE_TOOL.getIconPath())
-                .title(s -> Optional.ofNullable(s).map(r -> description("cosmos.open_database_tools.account", ((AzResource) r).getName())).orElse(null))
-                .enabled(s -> s instanceof CosmosDBAccount && ((AzResourceBase) s).getFormalStatus().isRunning());
-        final Action<CosmosDBAccount> action = new Action<>(OPEN_DATABASE_TOOL, openDatabaseTool);
-        action.setShortcuts("control alt D");
-        am.registerAction(action);
+        new Action<>(OPEN_DATABASE_TOOL)
+            .withLabel("Open with Database Tools")
+            .withIcon(AzureIcons.Action.OPEN_DATABASE_TOOL.getIconPath())
+            .withIdParam(AzResource::getName)
+            .visibleWhen(s -> s instanceof CosmosDBAccount)
+            .enableWhen(s -> s.getFormalStatus().isRunning())
+            .register(am);
 
-        final Consumer<CosmosDBAccount> copyConnectionString = resource -> {
-            final String connectionString = resource.listConnectionStrings().getPrimaryConnectionString();
-            am.getAction(ResourceCommonActionsContributor.COPY_STRING).handle(connectionString);
-            AzureMessager.getMessager().info("Connection string copied");
-        };
-        final ActionView.Builder copyConnectionStringView = new ActionView.Builder("Copy Connection String")
-                .title(s -> Optional.ofNullable(s).map(r -> description("cosmos.copy_connection_string.account", ((CosmosDBAccount) r).getName())).orElse(null))
-                .enabled(s -> s instanceof CosmosDBAccount && ((CosmosDBAccount) s).getFormalStatus().isConnected());
-        final Action<CosmosDBAccount> copyConnectionStringAction = new Action<>(COPY_CONNECTION_STRING, copyConnectionString, copyConnectionStringView);
-        am.registerAction(copyConnectionStringAction);
+        new Action<>(COPY_CONNECTION_STRING)
+            .withLabel("Copy Connection String")
+            .withIdParam(AzResource::getName)
+            .visibleWhen(s -> s instanceof CosmosDBAccount)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .withHandler(resource -> {
+                final String connectionString = resource.listConnectionStrings().getPrimaryConnectionString();
+                am.getAction(ResourceCommonActionsContributor.COPY_STRING).handle(connectionString);
+                AzureMessager.getMessager().info("Connection string copied");
+            })
+            .register(am);
 
-        final Consumer<CosmosDBAccount> openAzureStorageExplorer = resource ->
-                AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(resource.getPortalUrl() + "/dataExplorer");
-        final ActionView.Builder openAzureStorageExplorerView = new ActionView.Builder("Open Data Explorer")
-                .title(s -> Optional.ofNullable(s).map(r -> description("cosmos.open_data_explorer.account", ((CosmosDBAccount) r).getName())).orElse(null))
-                .enabled(s -> s instanceof CosmosDBAccount && ((CosmosDBAccount) s).getFormalStatus().isConnected());
-        final Action<CosmosDBAccount> openDataExplorerAction = new Action<>(OPEN_DATA_EXPLORER, openAzureStorageExplorer, openAzureStorageExplorerView);
-        am.registerAction(openDataExplorerAction);
+        new Action<>(OPEN_DATA_EXPLORER)
+            .withLabel("Open Data Explorer")
+            .withIdParam(AzResource::getName)
+            .visibleWhen(s -> s instanceof CosmosDBAccount)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .withHandler(resource -> am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(resource.getPortalUrl() + "/dataExplorer"))
+            .register(am);
 
-        final ActionView.Builder createClusterView = new ActionView.Builder("Azure Cosmos DB")
-                .title(s -> Optional.ofNullable(s).map(r ->
-                        description("cosmos.create_cosmos_db_account.group", ((ResourceGroup) r).getName())).orElse(null))
-                .enabled(s -> s instanceof ResourceGroup && ((ResourceGroup) s).getFormalStatus().isConnected());
-        am.registerAction(new Action<>(GROUP_CREATE_COSMOS_SERVICE, createClusterView));
+        new Action<>(GROUP_CREATE_COSMOS_SERVICE)
+            .withLabel("Azure Cosmos DB")
+            .withIdParam(AzResource::getName)
+            .visibleWhen(s -> s instanceof ResourceGroup)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .register(am);
 
-        final ActionView.Builder openDocumentView = new ActionView.Builder("Open Document")
-                .title(s -> Optional.ofNullable(s).map(r ->
-                        description("cosmos.open_document.document", ((ICosmosDocument) r).getName())).orElse(null))
-                .enabled(s -> s instanceof ICosmosDocument && ((ICosmosDocument) s).getFormalStatus().isConnected());
-        am.registerAction(new Action<>(OPEN_DOCUMENT, openDocumentView));
+        new Action<>(OPEN_DOCUMENT)
+            .withLabel("Open Document")
+            .withIdParam(AzResource::getName)
+            .visibleWhen(s -> s instanceof ICosmosDocument)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .register(am);
 
-        final ActionView.Builder importDocumentView = new ActionView.Builder("Import Document")
-                .title(s -> Optional.ofNullable(s).map(r ->
-                        description("cosmos.import_document.container", ((ICosmosDocumentContainer) r).getName())).orElse(null))
-                .enabled(s -> s instanceof ICosmosDocumentContainer<?> && ((ICosmosDocumentContainer<?>) s).getFormalStatus().isConnected());
-        am.registerAction(new Action<>(IMPORT_DOCUMENT, importDocumentView));
-
-        final ActionView.Builder loadMoreDocumentView = new ActionView.Builder("Load More Document")
-                .title(s -> Optional.ofNullable(s).map(r -> description("cosmos.load_more_documents.container", ((AzResource) r).getName())).orElse(null))
-                .enabled(s -> s instanceof ICosmosDocumentContainer && ((ICosmosDocumentContainer<?>) s).getFormalStatus().isConnected());
-        am.registerAction(new Action<>(LOAD_MODE_DOCUMENT, container -> container.getDocumentModule().loadMoreDocuments(), loadMoreDocumentView));
+        new Action<>(IMPORT_DOCUMENT)
+            .withLabel("Import Document")
+            .withIdParam(AzResource::getName)
+            .visibleWhen(s -> s instanceof ICosmosDocumentContainer<?>)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .register(am);
     }
 
     @Override
     public void registerGroups(AzureActionManager am) {
         final ActionGroup serviceActionGroup = new ActionGroup(
-                ResourceCommonActionsContributor.REFRESH,
-                ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
-                "---",
-                ResourceCommonActionsContributor.CREATE
+            ResourceCommonActionsContributor.REFRESH,
+            ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            "---",
+            ResourceCommonActionsContributor.CREATE
         );
         am.registerGroup(SERVICE_ACTIONS, serviceActionGroup);
 
         final ActionGroup accountActionGroup = new ActionGroup(
-                ResourceCommonActionsContributor.PIN,
-                "---",
-                ResourceCommonActionsContributor.REFRESH,
-                ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
-                ResourceCommonActionsContributor.OPEN_PORTAL_URL,
-                CosmosActionsContributor.OPEN_DATA_EXPLORER,
-                "---",
-                CosmosActionsContributor.OPEN_DATABASE_TOOL,
-                "---",
-                ResourceCommonActionsContributor.CREATE,
-                ResourceCommonActionsContributor.DELETE,
-                "---",
-                ResourceCommonActionsContributor.CONNECT,
-                CosmosActionsContributor.COPY_CONNECTION_STRING
+            ResourceCommonActionsContributor.PIN,
+            "---",
+            ResourceCommonActionsContributor.REFRESH,
+            ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.OPEN_PORTAL_URL,
+            CosmosActionsContributor.OPEN_DATA_EXPLORER,
+            "---",
+            CosmosActionsContributor.OPEN_DATABASE_TOOL,
+            "---",
+            ResourceCommonActionsContributor.CREATE,
+            ResourceCommonActionsContributor.DELETE,
+            "---",
+            ResourceCommonActionsContributor.CONNECT,
+            CosmosActionsContributor.COPY_CONNECTION_STRING
         );
         am.registerGroup(ACCOUNT_ACTIONS, accountActionGroup);
         am.registerGroup(SQL_ACCOUNT_ACTIONS, accountActionGroup);
@@ -134,47 +126,47 @@ public class CosmosActionsContributor implements IActionsContributor {
         am.registerGroup(CASSANDRA_ACCOUNT_ACTIONS, accountActionGroup);
 
         final ActionGroup databaseGroup = new ActionGroup(
-                ResourceCommonActionsContributor.PIN,
-                "---",
-                ResourceCommonActionsContributor.REFRESH,
-                ResourceCommonActionsContributor.OPEN_PORTAL_URL,
-                "---",
-                ResourceCommonActionsContributor.CONNECT,
-                "---",
-                ResourceCommonActionsContributor.CREATE,
-                ResourceCommonActionsContributor.DELETE
+            ResourceCommonActionsContributor.PIN,
+            "---",
+            ResourceCommonActionsContributor.REFRESH,
+            ResourceCommonActionsContributor.OPEN_PORTAL_URL,
+            "---",
+            ResourceCommonActionsContributor.CONNECT,
+            "---",
+            ResourceCommonActionsContributor.CREATE,
+            ResourceCommonActionsContributor.DELETE
         );
         am.registerGroup(SQL_DATABASE_ACTIONS, databaseGroup);
         am.registerGroup(MONGO_DATABASE_ACTIONS, databaseGroup);
         am.registerGroup(CASSANDRA_KEYSPACE_ACTIONS, databaseGroup);
 
         final ActionGroup collectionGroup = new ActionGroup(
-                ResourceCommonActionsContributor.PIN,
-                "---",
-                ResourceCommonActionsContributor.REFRESH,
-                ResourceCommonActionsContributor.OPEN_PORTAL_URL,
-                "---",
-                ResourceCommonActionsContributor.DELETE
+            ResourceCommonActionsContributor.PIN,
+            "---",
+            ResourceCommonActionsContributor.REFRESH,
+            ResourceCommonActionsContributor.OPEN_PORTAL_URL,
+            "---",
+            ResourceCommonActionsContributor.DELETE
         );
         am.registerGroup(CASSANDRA_TABLE_ACTIONS, collectionGroup);
 
         final ActionGroup cosmosDocumentModuleGroup = new ActionGroup(
-                ResourceCommonActionsContributor.PIN,
-                "---",
-                ResourceCommonActionsContributor.REFRESH,
-                ResourceCommonActionsContributor.OPEN_PORTAL_URL,
-                "---",
-                CosmosActionsContributor.IMPORT_DOCUMENT,
-                "---",
-                ResourceCommonActionsContributor.DELETE
+            ResourceCommonActionsContributor.PIN,
+            "---",
+            ResourceCommonActionsContributor.REFRESH,
+            ResourceCommonActionsContributor.OPEN_PORTAL_URL,
+            "---",
+            CosmosActionsContributor.IMPORT_DOCUMENT,
+            "---",
+            ResourceCommonActionsContributor.DELETE
         );
         am.registerGroup(SQL_CONTAINER_ACTIONS, cosmosDocumentModuleGroup);
         am.registerGroup(MONGO_COLLECTION_ACTIONS, cosmosDocumentModuleGroup);
 
         am.registerGroup(COSMOS_DOCUMENT_ACTIONS, new ActionGroup(
-                CosmosActionsContributor.OPEN_DOCUMENT,
-                "---",
-                ResourceCommonActionsContributor.DELETE
+            CosmosActionsContributor.OPEN_DOCUMENT,
+            "---",
+            ResourceCommonActionsContributor.DELETE
         ));
 
         final IActionGroup group = am.getGroup(ResourceCommonActionsContributor.RESOURCE_GROUP_CREATE_ACTIONS);

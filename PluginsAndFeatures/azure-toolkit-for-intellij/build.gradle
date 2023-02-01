@@ -1,5 +1,5 @@
 plugins {
-    id "org.jetbrains.intellij" version "1.10.0"
+    id "org.jetbrains.intellij" version "1.12.0"
     id "org.jetbrains.kotlin.jvm" version "1.7.20"
     id "de.undercouch.download" version "4.1.1"
     id "com.github.ben-manes.versions" version "0.39.0"
@@ -8,8 +8,9 @@ plugins {
 }
 
 ext {
-    azureToolkitVersion = "0.27.0"
-    azureToolkitUtilsVersion = "3.71.0"
+    azureToolkitVersion = "0.30.0-SNAPSHOT"
+    azureToolkitUtilsVersion = "3.74.0-SNAPSHOT"
+    azureToolkitHDInsightVersion = "0.1.0"
 }
 
 compileKotlin {
@@ -26,7 +27,8 @@ compileTestKotlin {
 }
 
 //import com.microsoft.azuretools.plugins.BundleBuildIDEAPlugin
-import org.apache.tools.ant.filters.*
+
+import org.apache.tools.ant.filters.ReplaceTokens
 
 processResources {
     duplicatesStrategy(DuplicatesStrategy.INCLUDE)
@@ -58,7 +60,7 @@ intellij {
     version = intellij_version
     updateSinceUntilBuild = Boolean.valueOf(updateVersionRange)
     plugins = ['java', 'maven', 'maven-model', 'gradle', dep_plugins, "properties", 'terminal', 'gradle-java']
-	downloadSources = Boolean.valueOf(sources)
+    downloadSources = Boolean.valueOf(sources)
 }
 
 
@@ -83,8 +85,9 @@ subprojects {
     apply plugin: 'io.freefair.aspectj.post-compile-weaving'
     apply plugin: 'io.spring.dependency-management'
     ext {
-        azureToolkitVersion = "0.27.0"
-        azureToolkitUtilsVersion = "3.71.0"
+        azureToolkitVersion = "0.30.0-SNAPSHOT"
+        azureToolkitUtilsVersion = "3.74.0-SNAPSHOT"
+        azureToolkitHDInsightVersion = "0.1.0"
     }
 
     sourceCompatibility = javaVersion
@@ -109,6 +112,7 @@ subprojects {
             mavenBom 'com.microsoft.azure:azure-toolkit-libs:' + azureToolkitVersion
             mavenBom 'com.microsoft.azure:azure-toolkit-ide-libs:' + azureToolkitVersion
             mavenBom 'com.microsoft.azuretools:utils:' + azureToolkitUtilsVersion
+            mavenBom 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-libs:' + azureToolkitHDInsightVersion
         }
     }
 
@@ -121,7 +125,7 @@ subprojects {
         compileOnly 'org.jetbrains:annotations'
     }
 
-    buildSearchableOptions.onlyIf {false}
+    buildSearchableOptions.onlyIf { false }
 }
 
 sourceSets {
@@ -151,11 +155,11 @@ repositories {
 
 allprojects {
     configurations {
-        implementation.exclude module:'slf4j-api'
-        implementation.exclude module:'log4j'
-        implementation.exclude module:'stax-api'
-        implementation.exclude module:'groovy-xml'
-        implementation.exclude module:'groovy-templates'
+        implementation.exclude module: 'slf4j-api'
+        implementation.exclude module: 'log4j'
+        implementation.exclude module: 'stax-api'
+        implementation.exclude module: 'groovy-xml'
+        implementation.exclude module: 'groovy-templates'
         cucumberRuntime {
             extendsFrom testImplementation
         }
@@ -167,6 +171,7 @@ dependencyManagement {
         mavenBom 'com.microsoft.azure:azure-toolkit-libs:' + azureToolkitVersion
         mavenBom 'com.microsoft.azure:azure-toolkit-ide-libs:' + azureToolkitVersion
         mavenBom 'com.microsoft.azuretools:utils:' + azureToolkitUtilsVersion
+        mavenBom 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-libs:' + azureToolkitHDInsightVersion
     }
 }
 
@@ -192,6 +197,11 @@ dependencies {
     implementation project(':azure-intellij-plugin-applicationinsights')
     implementation project(':azure-intellij-plugin-guidance')
     implementation project(':azure-intellij-plugin-cosmos')
+    implementation project(':azure-intellij-plugin-bicep')
+    implementation project(':azure-intellij-plugin-containerapps')
+    implementation project(':azure-intellij-plugin-monitor')
+    implementation project(':azure-intellij-plugin-hdinsight')
+    implementation 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-spark-lib'
     implementation 'com.microsoft.azure:azure-toolkit-ide-appservice-lib'
     implementation 'com.microsoft.azure:azure-toolkit-applicationinsights-lib'
     implementation 'com.microsoft.azure:azure-toolkit-storage-lib'
@@ -211,13 +221,13 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    implementation 'com.microsoft.azuretools:azuretools-core:3.71.0', {
+    implementation 'com.microsoft.azuretools:azuretools-core:3.74.0-SNAPSHOT', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
-    implementation 'com.microsoft.azuretools:azure-explorer-common:3.71.0', {
+    implementation 'com.microsoft.azuretools:azure-explorer-common:3.74.0-SNAPSHOT', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
-    implementation 'com.microsoft.azuretools:hdinsight-node-common:3.71.0', {
+    implementation 'com.microsoft.azuretools:hdinsight-node-common:3.74.0-SNAPSHOT', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
 
@@ -266,7 +276,7 @@ task cucumberPackJar(type: Jar) {
     }
 }
 
-buildSearchableOptions.onlyIf {false}
+buildSearchableOptions.onlyIf { false }
 
 task cucumber() {
     dependsOn assemble, testClasses, compileTestJava, cucumberPackJar
@@ -275,10 +285,10 @@ task cucumber() {
             main = "io.cucumber.core.cli.Main"
             classpath = files(sourceSets.main.output, sourceSets.test.output, cucumberPackJar.archivePath)
             args = [
-                '--plugin', 'progress',
-                '--glue', 'com.microsoft.azure.hdinsight.spark.common',
-                '-m',
-                'Test/resources']
+                    '--plugin', 'progress',
+                    '--glue', 'com.microsoft.azure.hdinsight.spark.common',
+                    '-m',
+                    'Test/resources']
         }
     }
 }
@@ -316,6 +326,32 @@ patchPluginXml {
     sinceBuild = patchPluginXmlSinceBuild
 }
 
+task prepareBicepBinariesForSandbox(type: Copy) {
+    def bicepBinariesDir = file("$projectDir/build/idea-sandbox/plugins/azure-toolkit-for-intellij/bicep")
+    bicepBinariesDir.deleteDir();
+    from("$projectDir/azure-intellij-plugin-bicep/binaries") into("$projectDir/build/idea-sandbox/plugins/azure-toolkit-for-intellij/")
+}
+
+task downloadBicepLanguageServer(type: Copy) {
+    def langServerDir = file('azure-intellij-plugin-bicep/binaries/bicep/bicep-langserver')
+    if (!langServerDir.exists()) {
+        logger.info('Downloading bicep language server ...')
+        def zipFile = new File('azure-intellij-plugin-bicep/downloaded.zip')
+        new URL('https://aka.ms/java-toolkit-bicep-ls').withInputStream { i -> zipFile.withOutputStream { it << i } }
+        logger.info('Unzipping bicep language server ...')
+        from zipTree(zipFile) into langServerDir
+    }
+}
+
 buildPlugin {
     archiveVersion = getPatchedVersion()
+    from("$projectDir/NOTICE")
+    // buildPlugin zips result of `prepareSandbox`, so no need to copy again?
+    // copy bicep textmate bundles/language server files to root of the plugin zip, so that we don't need to unzip them manually from jar resources
+    //    from("$projectDir/azure-intellij-plugin-bicep/binaries")
+}
+
+prepareSandbox {
+    dependsOn(downloadBicepLanguageServer)
+    finalizedBy(prepareBicepBinariesForSandbox)
 }

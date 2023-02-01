@@ -34,7 +34,7 @@ public class SpringCloudStreamingLogAction {
 
     public static void startLogStreaming(@Nonnull SpringCloudApp app, @Nullable Project project) {
         final IAzureMessager messager = AzureMessager.getMessager();
-        final AzureString title = OperationBundle.description("springcloud.open_log_stream.instance", app.getName());
+        final AzureString title = OperationBundle.description("internal/springcloud.open_log_stream.instance", app.getName());
         AzureTaskManager.getInstance().runInBackground(new AzureTask<>(project, title, false, () -> {
             try {
                 final SpringCloudDeployment deployment = app.getActiveDeployment();

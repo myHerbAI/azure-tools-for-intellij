@@ -54,16 +54,12 @@ public class AppServiceFileAction {
     private static final String ERROR_DOWNLOADING = "Failed to download file[%s] to [%s].";
     private static final String FILE_HAS_BEEN_SAVED = "File %s has been saved to Azure";
 
-    @AzureOperation(
-        name = "appservice.open_file.file",
-        params = {"target.getName()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "user/appservice.open_file.file", params = {"target.getName()"})
     @SneakyThrows
     public void openAppServiceFile(AppServiceFile target, Object context) {
         final AppServiceAppBase<?, ?, ?> appService = target.getApp();
         final FileEditorManager manager = FileEditorManager.getInstance((Project) context);
-        final AzureString title = OperationBundle.description("appservice.open_file.file", target.getName());
+        final AzureString title = OperationBundle.description("user/appservice.open_file.file", target.getName());
         final AzureTask<Void> task = new AzureTask<>(null, title, false, () -> {
             final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
             indicator.setIndeterminate(true);
@@ -125,13 +121,8 @@ public class AppServiceFileAction {
             }, AppServiceFileAction::onRxException);
     }
 
-    @AzureOperation(
-        name = "appservice.save_file.file",
-        params = {"appServiceFile.getName()"},
-        type = AzureOperation.Type.SERVICE
-    )
     private void saveFileToAzure(final AppServiceFile appServiceFile, final String content, final Project project) {
-        final AzureString title = OperationBundle.description("appservice.save_file.file", appServiceFile.getName());
+        final AzureString title = OperationBundle.description("internal/appservice.save_file.file", appServiceFile.getName());
         AzureTaskManager.getInstance().runInBackground(new AzureTask<>(project, title, false, () -> {
             final AppServiceAppBase<?, ?, ?> appService = appServiceFile.getApp();
             final AppServiceFile target = appService.getFileByPath(appServiceFile.getPath());
@@ -163,7 +154,7 @@ public class AppServiceFileAction {
             return;
         }
         final OutputStream output = new FileOutputStream(destFile);
-        final AzureString title = OperationBundle.description("appservice.download_file.file", file.getName());
+        final AzureString title = OperationBundle.description("user/appservice.download_file.file", file.getName());
         final AzureTask<Void> task = new AzureTask<>(project, title, false, () -> {
             ProgressManager.getInstance().getProgressIndicator().setIndeterminate(true);
             file.getApp()

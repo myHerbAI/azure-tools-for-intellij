@@ -20,11 +20,14 @@ import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.ActionLink;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.azuresdk.model.AzureJavaSdkArtifactExampleEntity;
-import com.microsoft.azure.toolkit.intellij.azuresdk.model.AzureJavaSdkArtifactExampleIndexEntity;
+import com.microsoft.azure.toolkit.intellij.azuresdk.model.AzureJavaSdkArtifactExamplesEntity;
+import com.microsoft.azure.toolkit.intellij.azuresdk.model.AzureSdkArtifactEntity;
 import com.microsoft.azure.toolkit.intellij.azuresdk.referencebook.components.ExampleComboBox;
 import com.microsoft.azure.toolkit.intellij.azuresdk.service.AzureSdkExampleService;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
@@ -32,14 +35,13 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.datatransfer.StringSelection;
-import java.util.List;
 import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor.OPEN_URL;
-import static com.microsoft.azure.toolkit.intellij.azuresdk.referencebook.AzureSdkArtifactGroupPanel.SDK_EXAMPLE_REQUEST_URL;
 
 public class AzureSdkArtifactExamplePanel {
-    private static final String NEED_MORE_SAMPLES = "Report Example Issue";
+    public static final String SDK_EXAMPLE_REQUEST_URL = "https://github.com/Azure/azure-rest-api-specs-examples/issues/new?assignees=&labels=&template=sample_issue_report_java.yml&title=%5BJava+Sample+Issue%5D";
+    private static final String NEED_MORE_SAMPLES = "Report Example Issues";
     private static final String NO_EXAMPLE_TEXT = "// No example available for current library, please click `Report Example Issue` to request more samples.";
     private EditorTextField viewer;
     private ExampleComboBox cbExample;
@@ -47,12 +49,13 @@ public class AzureSdkArtifactExamplePanel {
     @Getter
     private JPanel pnlRoot;
     private ActionLink linkRequestMoreExamples;
-    private AzureJavaSdkArtifactExampleIndexEntity entity;
+    private AzureSdkArtifactEntity artifact;
+    private AzureJavaSdkArtifactExamplesEntity examples;
 
-    public void setExampleIndex(final AzureJavaSdkArtifactExampleIndexEntity entity) {
-        this.entity = entity;
-        this.cbExample.setEntity(entity);
-        final List<AzureJavaSdkArtifactExampleEntity> examples = Optional.ofNullable(entity).map(e -> e.getExamples()).orElse(null);
+    public void setArtifact(final AzureSdkArtifactEntity artifact) {
+        this.artifact = artifact;
+        this.examples = AzureSdkExampleService.getArtifactExamples(artifact);
+        this.cbExample.setEntity(examples);
     }
 
     private void createUIComponents() {
@@ -79,7 +82,7 @@ public class AzureSdkArtifactExamplePanel {
             }
             AzureTaskManager.getInstance().runLater(() -> this.viewer.setText("Loading..."));
             AzureTaskManager.getInstance().runInBackground("Loading example", () -> {
-                final String example = AzureSdkExampleService.loadSdkTemplate(value);
+                final String example = AzureSdkExampleService.loadArtifactExample(value);
                 AzureTaskManager.getInstance().runLater(() -> this.viewer.setText(example));
             });
         });
@@ -102,14 +105,24 @@ public class AzureSdkArtifactExamplePanel {
         final DefaultActionGroup group = new DefaultActionGroup();
         group.add(new AnAction(ActionsBundle.message("action.$Copy.text"), ActionsBundle.message("action.$Copy.description"), AllIcons.Actions.Copy) {
             @Override
+            @AzureOperation(name = "user/sdk.copy_artifact_example")
             public void actionPerformed(@NotNull final AnActionEvent e) {
+                OperationContext.action().setTelemetryProperty("artifact", artifact.getArtifactId());
+                OperationContext.action().setTelemetryProperty("example_id", String.valueOf(Optional.ofNullable(cbExample.getValue())
+                        .filter(v -> v != ExampleComboBox.NONE)
+                        .map(AzureJavaSdkArtifactExampleEntity::getId).orElse(-1)));
                 CopyPasteManager.getInstance().setContents(new StringSelection(viewer.getText()));
             }
         });
         group.add(new AnAction("Browse", "Browse Source Code", IntelliJAzureIcons.getIcon(AzureIcons.Common.OPEN_IN_PORTAL)) {
             @Override
+            @AzureOperation(name = "user/sdk.open_example_in_browser")
             public void actionPerformed(@NotNull final AnActionEvent e) {
                 final AzureJavaSdkArtifactExampleEntity value = cbExample.getValue();
+                OperationContext.action().setTelemetryProperty("artifact", artifact.getArtifactId());
+                OperationContext.action().setTelemetryProperty("example_id", String.valueOf(Optional.ofNullable(cbExample.getValue())
+                        .filter(v -> v != ExampleComboBox.NONE)
+                        .map(AzureJavaSdkArtifactExampleEntity::getId).orElse(-1)));
                 Optional.ofNullable(value).ifPresent(v -> AzureActionManager.getInstance().getAction(OPEN_URL).handle(v.getGithubUrl()));
             }
         });

@@ -34,10 +34,10 @@ public class IntelliJReferenceBookActionContributor implements IActionsContribut
             put("Microsoft.Compute/virtualMachines", "Compute");
             put("Microsoft.ContainerRegistry", "Container Registry");
             put("Microsoft.ContainerRegistry/registries", "Container Registry");
-            put("Microsoft.DBforMySQL", "MySQL");
-            put("Microsoft.DBforMySQL/servers", "MySQL");
-            put("Microsoft.DBforPostgreSQL", "PostgreSQL");
-            put("Microsoft.DBforPostgreSQL/servers", "PostgreSQL");
+            put("Microsoft.DBforMySQL", "Database for MySQL");
+            put("Microsoft.DBforMySQL/flexibleServers", "Database for MySQL");
+            put("Microsoft.DBforPostgreSQL", "Database for PostgreSQL");
+            put("Microsoft.DBforPostgreSQL/servers", "Database for PostgreSQL");
             put("Microsoft.Cache", "Redis");
             put("Microsoft.Cache/Redis", "Redis");
             put("Microsoft.AppPlatform", "Spring Cloud");
@@ -50,6 +50,8 @@ public class IntelliJReferenceBookActionContributor implements IActionsContribut
             put("Microsoft.Insights/components", "Monitor Ingestion");
             put("Microsoft.DocumentDB", "Cosmos DB");
             put("Microsoft.DocumentDB/databaseAccounts", "Cosmos DB");
+            put("Microsoft.HDInsight", "HDInsight");
+            put("Microsoft.HDInsight/clusters", "HDInsight");
         }
     };
 

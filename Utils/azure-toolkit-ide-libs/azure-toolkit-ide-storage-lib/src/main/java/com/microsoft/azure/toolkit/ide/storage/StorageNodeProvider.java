@@ -69,7 +69,9 @@ public class StorageNodeProvider implements IExplorerNodeProvider {
                 .addChildren(StorageAccount::getSubModules, (module, p) -> new Node<>(module)
                     .view(new AzureModuleLabelView<>(module, module.getResourceTypeName() + "s"))
                     .actions(StorageActionsContributor.STORAGE_MODULE_ACTIONS)
-                    .addChildren(AbstractAzResourceModule::list, (d, mn) -> this.createNode(d, mn, manager)));
+                    .addChildren(AbstractAzResourceModule::list, (d, mn) -> this.createNode(d, mn, manager))
+                    .hasMoreChildren(AbstractAzResourceModule::hasMoreResources)
+                    .loadMoreChildren(AbstractAzResourceModule::loadMoreResources));
         } else if (data instanceof BlobContainer) {
             final BlobContainer container = (BlobContainer) data;
             final AzureResourceLabelView<BlobContainer> view = new AzureResourceLabelView<>(container);
@@ -78,7 +80,9 @@ public class StorageNodeProvider implements IExplorerNodeProvider {
             view.setTips(tips.toString());
             return new Node<>(container).view(view)
                 .actions(StorageActionsContributor.CONTAINER_ACTIONS)
-                .addChildren(c -> c.getSubFileModule().list(), (blob, p) -> this.createNode(blob, p, manager));
+                .addChildren(c -> c.getSubFileModule().list(), (blob, p) -> this.createNode(blob, p, manager))
+                .hasMoreChildren(c -> c.getSubFileModule().hasMoreResources())
+                .loadMoreChildren(c -> c.getSubFileModule().loadMoreResources());
         } else if (data instanceof Share) {
             final Share share = (Share) data;
             final AzureResourceLabelView<Share> view = new AzureResourceLabelView<>(share);
@@ -87,7 +91,9 @@ public class StorageNodeProvider implements IExplorerNodeProvider {
             view.setTips(tips.toString());
             return new Node<>(share).view(view)
                 .actions(StorageActionsContributor.SHARE_ACTIONS)
-                .addChildren(s -> s.getSubFileModule().list(), (file, p) -> this.createNode(file, p, manager));
+                .addChildren(s -> s.getSubFileModule().list(), (file, p) -> this.createNode(file, p, manager))
+                .hasMoreChildren(c -> c.getSubFileModule().hasMoreResources())
+                .loadMoreChildren(c -> c.getSubFileModule().loadMoreResources());
         } else if (data instanceof Queue) {
             final Queue queue = (Queue) data;
             return new Node<>(queue)
@@ -107,7 +113,9 @@ public class StorageNodeProvider implements IExplorerNodeProvider {
                 Optional.ofNullable(file.getCreationTime()).map(ct -> String.format("Date created: %s", ct.format(DATE_TIME_FORMATTER))).ifPresent(tips::append);
                 view.setTips(tips.toString());
                 node.actions(StorageActionsContributor.DIRECTORY_ACTIONS)
-                    .addChildren(f -> f.getSubFileModule().list(), (f, p) -> this.createNode(f, p, manager));
+                    .addChildren(f -> f.getSubFileModule().list(), (f, p) -> this.createNode(f, p, manager))
+                    .hasMoreChildren(c -> c.getSubFileModule().hasMoreResources())
+                    .loadMoreChildren(c -> c.getSubFileModule().loadMoreResources());
             } else {
                 final StringBuilder tips = new StringBuilder().append(String.format("Size: %s", FileUtils.byteCountToDisplaySize(file.getSize())));
                 Optional.ofNullable(file.getLastModified()).map(lm -> String.format("Date modified: %s", lm.format(DATE_TIME_FORMATTER))).ifPresent(d -> tips.append(String.format(", %s", d)));

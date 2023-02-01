@@ -85,11 +85,7 @@ public class ResourceGroupComboBox extends AzureComboBox<ResourceGroup> {
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "arm.list_resource_groups.subscription",
-        params = {"this.subscription.getId()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/arm.list_resource_groups.subscription", params = {"this.subscription.getId()"})
     protected List<? extends ResourceGroup> loadItems() {
         final List<ResourceGroup> groups = new ArrayList<>();
         if (Objects.nonNull(this.subscription)) {

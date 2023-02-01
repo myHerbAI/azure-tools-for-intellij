@@ -9,7 +9,6 @@ import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppActionsContributor;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -29,12 +28,12 @@ public class FunctionEnableRemoteDebuggingAction {
     private static final String CONFIRM_DIALOG_TITLE = "%s Remote Debugging";
     private static final String SUCCESS_MESSAGE = "Remote debugging is %sd for app %s successfully";
 
-    @AzureOperation(name = "function.enable_remote_debugging.app", params = {"app.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/function.enable_remote_debugging.app", params = {"app.getName()"})
     public static void enableRemoteDebugging(@Nonnull FunctionAppBase<?, ?, ?> app, @Nullable Project project) {
         toggleDebuggingAction(app, true, project);
     }
 
-    @AzureOperation(name = "function.disable_remote_debugging.app", params = {"app.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/function.disable_remote_debugging.app", params = {"app.getName()"})
     public static void disableRemoteDebugging(@Nonnull FunctionAppBase<?, ?, ?> app, @Nullable Project project) {
         toggleDebuggingAction(app, false, project);
     }
@@ -50,7 +49,7 @@ public class FunctionEnableRemoteDebuggingAction {
         }
         final String action = isEnabled ? "enable" : "disable";
         final boolean useInput = messager.confirm(String.format(CONFIRM_MESSAGE, action, app.getName()),
-                StringUtils.capitalize(String.format(CONFIRM_DIALOG_TITLE, action)));
+            StringUtils.capitalize(String.format(CONFIRM_DIALOG_TITLE, action)));
         if (!useInput) {
             return;
         }
@@ -74,7 +73,6 @@ public class FunctionEnableRemoteDebuggingAction {
     }
 
     private static Action<?> generateDebugAction(@Nonnull FunctionAppBase<?, ?, ?> app, @Nullable Project project) {
-        final Action<FunctionAppBase<?, ?, ?>> remoteDebuggingAction = AzureActionManager.getInstance().getAction(FunctionAppActionsContributor.REMOTE_DEBUGGING);
-        return new Action<>(Action.Id.of("function.start_remote_debugging"), (d, e) -> remoteDebuggingAction.handle(app, e), new ActionView.Builder("Attach Debugger"));
+        return AzureActionManager.getInstance().getAction(FunctionAppActionsContributor.REMOTE_DEBUGGING).bind(app);
     }
 }

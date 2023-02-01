@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.ide.common.favorite;
 
+import com.azure.core.http.rest.Page;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +22,6 @@ import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -29,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
@@ -38,17 +39,16 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.File;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -89,6 +89,12 @@ public class Favorites extends AbstractAzResourceModule<Favorite, AzResource.Non
 
     @Nonnull
     @Override
+    protected Iterator<? extends Page<AbstractAzResource<?, ?, ?>>> loadResourcePagesFromAzure() {
+        return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
+    }
+
+    @Nonnull
+    @Override
     protected Stream<AbstractAzResource<?, ?, ?>> loadResourcesFromAzure() {
         final Account account = Azure.az(AzureAccount.class).account();
         final String user = account.getUsername();
@@ -119,7 +125,7 @@ public class Favorites extends AbstractAzResourceModule<Favorite, AzResource.Non
 
     @Override
     @SneakyThrows
-    @AzureOperation(name = "favorite.delete_favorite", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "internal/favorite.delete_favorite")
     protected void deleteResourceFromAzure(@Nonnull String favoriteId) {
         final String resourceId = URLDecoder.decode(ResourceId.fromString(favoriteId).name(), StandardCharsets.UTF_8.name());
         this.favorites.remove(resourceId.toLowerCase());
@@ -164,14 +170,14 @@ public class Favorites extends AbstractAzResourceModule<Favorite, AzResource.Non
     }
 
 
-    @AzureOperation(name = "favorite.unpin_all", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "internal/favorite.unpin_all")
     public void unpinAll() {
         this.clear();
         this.persist();
         this.refresh();
     }
 
-    @AzureOperation(name = "favorite.add_favorite", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "internal/favorite.add_favorite")
     public synchronized void pin(@Nonnull AbstractAzResource<?, ?, ?> resource) {
         if (this.exists(resource.getId())) {
             final String message = String.format("%s '%s' is already pinned.", resource.getResourceTypeName(), resource.getName());
@@ -205,12 +211,13 @@ public class Favorites extends AbstractAzResourceModule<Favorite, AzResource.Non
         final AzureActionManager am = AzureActionManager.getInstance();
         final AzureActionManager.Shortcuts shortcuts = am.getIDEDefaultShortcuts();
 
-        final ActionView.Builder unpinAllView = new ActionView.Builder("Unmark All As Favorite", AzureIcons.Action.UNPIN.getIconPath())
-            .enabled(s -> s instanceof Favorites);
-        final Consumer<Favorites> unpinAllHandler = Favorites::unpinAll;
-        final Action.Id<Favorites> UNPIN_ALL = Action.Id.of("resource.unpin_all");
-        final Action<Favorites> unpinAllAction = new Action<>(UNPIN_ALL, unpinAllHandler, unpinAllView);
-        unpinAllAction.setShortcuts("control F11");
+        final Action<Favorites> unpinAllAction = new Action<>(Action.Id.<Favorites>of("user/resource.unpin_all"))
+            .withLabel("Unmark All As Favorite")
+            .withIcon(AzureIcons.Action.UNPIN.getIconPath())
+            .visibleWhen(s -> s instanceof Favorites)
+            .enableWhen(s -> !Favorites.getInstance().favorites.isEmpty())
+            .withHandler(Favorites::unpinAll)
+            .withShortcut("control F11");
 
         final AzureModuleLabelView<Favorites> rootView = new AzureModuleLabelView<>(Favorites.getInstance(), "Favorites", FAVORITE_ICON);
         return new Node<>(Favorites.getInstance(), rootView).lazy(false)

@@ -10,12 +10,7 @@ import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.lib.auth.IAccountActions;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
-
-import java.util.function.BiConsumer;
 
 import static com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor.OPEN_URL;
 
@@ -24,11 +19,11 @@ public class IntellijAccountActionsContributor implements IActionsContributor, I
 
     @Override
     public void registerActions(AzureActionManager am) {
-        final AzureString tryAzureTitle = OperationBundle.description("account.try_aure");
-        final ActionView.Builder tryAzureView = new ActionView.Builder("Try Azure for Free").title((s) -> tryAzureTitle);
-        final BiConsumer<Object, AnActionEvent> tryAzureHandler = (Object v, AnActionEvent e) ->
-            AzureActionManager.getInstance().getAction(OPEN_URL).handle(URL_TRY_AZURE_FOR_FREE);
-        am.registerAction(new Action<>(IAccountActions.TRY_AZURE, tryAzureHandler, tryAzureView).setAuthRequired(false));
+        new Action<>(IAccountActions.TRY_AZURE)
+            .withLabel("Try Azure for Free")
+            .withHandler((Object v, AnActionEvent e) -> AzureActionManager.getInstance().getAction(OPEN_URL).handle(URL_TRY_AZURE_FOR_FREE))
+            .withAuthRequired(false)
+            .register(am);
     }
 
     @Override

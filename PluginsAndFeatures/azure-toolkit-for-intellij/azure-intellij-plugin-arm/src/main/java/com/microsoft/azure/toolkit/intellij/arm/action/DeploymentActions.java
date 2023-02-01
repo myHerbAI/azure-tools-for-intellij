@@ -5,23 +5,19 @@
 
 package com.microsoft.azure.toolkit.intellij.arm.action;
 
-import com.intellij.ide.actions.RevealFileAction;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.arm.creation.CreateDeploymentDialog;
 import com.microsoft.azure.toolkit.intellij.arm.template.ResourceTemplateViewProvider;
 import com.microsoft.azure.toolkit.intellij.arm.update.UpdateDeploymentDialog;
 import com.microsoft.azure.toolkit.intellij.common.FileChooser;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
-import com.microsoft.azure.toolkit.intellij.common.fileexplorer.VirtualFileActions;
 import com.microsoft.azure.toolkit.intellij.common.properties.AzureResourceEditorViewManager;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -49,7 +45,7 @@ public class DeploymentActions {
     public static final String NOTIFY_UPDATE_DEPLOYMENT_SUCCESS = "Update deployment successfully";
     public static final String NOTIFY_UPDATE_DEPLOYMENT_FAIL = "Update deployment failed";
 
-    @AzureOperation(name = "arm.create_deployment_ui.rg", params = {"rg.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/arm.create_deployment_ui.rg", params = {"rg.getName()"})
     public static void createDeployment(@Nonnull final Project project, @Nullable ResourceGroup rg) {
         Azure.az(AzureAccount.class).account();
         AzureTaskManager.getInstance().runLater(() -> {
@@ -58,7 +54,7 @@ public class DeploymentActions {
         });
     }
 
-    @AzureOperation(name = "arm.open_template_view.deployment", params = {"deployment.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/arm.open_template_view.deployment", params = {"deployment.getName()"})
     public static void openTemplateView(@Nonnull final Project project, @Nonnull ResourceDeployment deployment) {
         Azure.az(AzureAccount.class).account();
         AzureTaskManager.getInstance().runLater(() -> {
@@ -70,12 +66,12 @@ public class DeploymentActions {
         });
     }
 
-    @AzureOperation(name = "arm.update_deployment_ui.deployment", params = {"deployment.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/arm.update_deployment_ui.deployment", params = {"deployment.getName()"})
     public static void updateDeployment(@Nonnull final Project project, @Nonnull final ResourceDeployment deployment) {
         AzureTaskManager.getInstance().runLater(() -> new UpdateDeploymentDialog(project, deployment).show());
     }
 
-    @AzureOperation(name = "arm.export_template.deployment", params = {"deployment.getName"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/arm.export_template.deployment", params = {"deployment.getName"})
     public static void exportTemplate(@Nonnull final Project project, @Nonnull final ResourceDeployment deployment) {
         Azure.az(AzureAccount.class).account();
         AzureTaskManager.getInstance().runLater(() -> {
@@ -96,12 +92,12 @@ public class DeploymentActions {
         });
     }
 
-    @AzureOperation(name = "arm.export_template_to_file.file", params = {"file.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "boundary/arm.export_template_to_file.file", params = {"file.getName()"})
     private static void doExportTemplate(File file, String template) throws IOException {
         IOUtils.write(template, new FileOutputStream(file), Charset.defaultCharset());
     }
 
-    @AzureOperation(name = "arm.export_parameter.deployment", params = {"deployment.getName"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/arm.export_parameter.deployment", params = {"deployment.getName"})
     public static void exportParameters(@Nonnull final Project project, final ResourceDeployment deployment) {
         Azure.az(AzureAccount.class).account();
         AzureTaskManager.getInstance().runLater(() -> {
@@ -122,23 +118,16 @@ public class DeploymentActions {
         });
     }
 
-    @AzureOperation(name = "arm.export_parameters_to_file.file", params = {"file.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "boundary/arm.export_parameters_to_file.file", params = {"file.getName()"})
     private static void doExportParameters(File file, String parameters) throws IOException {
         IOUtils.write(parameters, new FileOutputStream(file), Charset.defaultCharset());
     }
 
-    private static Action<Void> newShowInExplorerAction(@Nonnull final File dest) {
-        final Action.Id<Void> REVEAL = Action.Id.of("common.reveal_file_in_explorer");
-        return new Action<>(REVEAL, v -> VirtualFileActions.revealInExplorer(dest), new ActionView.Builder(RevealFileAction.getActionName()));
+    private static Action<File> newShowInExplorerAction(@Nonnull final File dest) {
+        return AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.REVEAL_FILE).bind(dest);
     }
 
-    private static Action<Void> newOpenInEditorAction(@Nonnull final File dest, @Nonnull final Project project) {
-        final Action.Id<Void> OPEN = Action.Id.of("common.open_file_in_editor");
-        return new Action<>(OPEN, v -> AzureTaskManager.getInstance().runLater(() -> {
-            final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-            final VirtualFile virtualFile = VfsUtil.findFileByIoFile(dest, true);
-            VirtualFileActions.openFileInEditor(virtualFile, (a) -> false, () -> {
-            }, fileEditorManager);
-        }), new ActionView.Builder("Open In Editor"));
+    private static Action<File> newOpenInEditorAction(@Nonnull final File dest, @Nonnull final Project project) {
+        return AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_FILE).bind(dest);
     }
 }

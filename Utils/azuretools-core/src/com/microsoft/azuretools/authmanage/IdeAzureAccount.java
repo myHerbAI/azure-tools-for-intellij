@@ -108,7 +108,7 @@ public class IdeAzureAccount {
         ideStore.ifPresent(s -> s.setProperty(ACCOUNT, AUTH_CONFIG_CACHE, null));
     }
 
-    @AzureOperation(name = "account.restore_signin", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "internal/account.restore_signin")
     public void loginWithCachedConfiguration() {
         AzureTaskManager.getInstance().runOnPooledThread(() -> {
             try {
@@ -124,7 +124,7 @@ public class IdeAzureAccount {
         });
     }
 
-    @AzureOperation(name = "account.cache_auth_config", type = AzureOperation.Type.TASK)
+    @AzureOperation(name = "boundary/account.cache_auth_config")
     private void cacheAuthConfiguration(@Nonnull final AuthConfiguration config) {
         try {
             log.debug("cache auth configuration...");
@@ -147,7 +147,7 @@ public class IdeAzureAccount {
     }
 
     @Nullable
-    @AzureOperation(name = "account.load_auth_config_cache", type = AzureOperation.Type.TASK)
+    @AzureOperation(name = "boundary/account.load_auth_config_cache")
     private static AuthConfiguration loadAuthConfigurationCache() {
         log.debug("loading auth configuration cache...");
         try {

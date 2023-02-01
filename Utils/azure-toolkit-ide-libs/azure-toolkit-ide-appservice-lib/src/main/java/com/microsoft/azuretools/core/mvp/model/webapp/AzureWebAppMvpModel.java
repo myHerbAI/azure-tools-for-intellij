@@ -66,15 +66,7 @@ public class AzureWebAppMvpModel {
      * @param model parameters
      * @return instance of created WebApp
      */
-    @AzureOperation(
-            name = "webapp.create_app.app|subscription|image",
-            params = {
-                "model.getWebAppName()",
-                "model.getSubscriptionId()",
-                "model.getPrivateRegistryImageSetting().getImageNameWithTag()"
-            },
-            type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/webapp.create_app.app|subscription|image", params = {"model.getWebAppName()", "model.getSubscriptionId()", "model.getPrivateRegistryImageSetting().getImageNameWithTag()"})
     public WebApp createAzureWebAppWithPrivateRegistryImage(@Nonnull WebAppOnLinuxDeployModel model) {
         final ResourceGroup resourceGroup = getOrCreateResourceGroup(model.getSubscriptionId(), model.getResourceGroupName(), model.getLocationName());
         final AppServicePlanConfig servicePlanConfig = AppServicePlanConfig.builder()
@@ -109,11 +101,7 @@ public class AzureWebAppMvpModel {
      * @param imageSetting new container settings
      * @return instance of the updated Web App on Linux
      */
-    @AzureOperation(
-        name = "docker.update_image.app|image",
-        params = {"nameFromResourceId(webAppId)", "imageSetting.getImageNameWithTag()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/docker.update_image.app|image", params = {"nameFromResourceId(webAppId)", "imageSetting.getImageNameWithTag()"})
     public WebApp updateWebAppOnDocker(String webAppId, ImageSetting imageSetting) {
         final WebApp app = Objects.requireNonNull(Azure.az(AzureWebApp.class).webApp(webAppId));
         // clearTags(app);
@@ -137,11 +125,7 @@ public class AzureWebAppMvpModel {
     /**
      * API to create new Web App by setting model.
      */
-    @AzureOperation(
-            name = "webapp.create_app.app",
-            params = {"model.getWebAppName()"},
-            type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "user/webapp.create_app.app", params = {"model.getWebAppName()"})
     public WebApp createWebAppFromSettingModel(@Nonnull WebAppSettingModel model) {
         final ResourceGroup resourceGroup = getOrCreateResourceGroup(model.getSubscriptionId(), model.getResourceGroup(), model.getRegion());
         final AppServicePlanConfig servicePlanConfig = AppServicePlanConfig.builder()
@@ -191,11 +175,7 @@ public class AzureWebAppMvpModel {
     /**
      * API to create a new Deployment Slot by setting model.
      */
-    @AzureOperation(
-            name = "webapp.create_deployment.deployment|app",
-            params = {"model.getNewSlotName()", "model.getWebAppName()"},
-            type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/webapp.create_deployment.deployment|app", params = {"model.getNewSlotName()", "model.getWebAppName()"})
     public WebAppDeploymentSlot createDeploymentSlotFromSettingModel(@Nonnull final WebApp webApp, @Nonnull final WebAppSettingModel model) {
         String configurationSource = model.getNewSlotConfigurationSource();
         if (StringUtils.equalsIgnoreCase(configurationSource, webApp.name())) {
@@ -209,11 +189,7 @@ public class AzureWebAppMvpModel {
         return draft.createIfNotExist();
     }
 
-    @AzureOperation(
-        name = "webapp.upload_artifact.artifact|app",
-        params = {"file.getName()", "deployTarget.name()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/webapp.upload_artifact.artifact|app", params = {"file.getName()", "deployTarget.name()"})
     public void deployArtifactsToWebApp(@Nonnull final WebAppBase<?, ?, ?> deployTarget, @Nonnull final File file,
                                         boolean isDeployToRoot, @Nonnull final IProgressIndicator progressIndicator) {
         final Action<Void> retry = Action.retryFromFailure(() -> deployArtifactsToWebApp(deployTarget, file, isDeployToRoot, progressIndicator));
@@ -233,11 +209,7 @@ public class AzureWebAppMvpModel {
      * Update app settings of deployment slot.
      * todo: move to app service library
      */
-    @AzureOperation(
-            name = "webapp.update_deployment_settings.deployment|app",
-            params = {"slot.entity().getName()", "slot.entity().getWebappName()"},
-            type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/webapp.update_deployment_settings.deployment|app", params = {"slot.entity().getName()", "slot.entity().getWebappName()"})
     public void updateDeploymentSlotAppSettings(final WebAppDeploymentSlot slot, final Map<String, String> toUpdate) {
         final WebAppDeploymentSlotDraft draft = (WebAppDeploymentSlotDraft) slot.update();
         draft.setAppSettings(toUpdate);

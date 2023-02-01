@@ -23,8 +23,8 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppInstance;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -52,7 +52,7 @@ public class IntellijSpringCloudActionsContributor implements IActionsContributo
             am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(url, null);
         };
         am.registerHandler(ResourceCommonActionsContributor.CREATE, condition, handler);
-        am.registerHandler(SpringCloudActionsContributor.GROUP_CREATE_CLUSTER, (r, e) -> true, handler);
+        am.registerHandler(SpringCloudActionsContributor.GROUP_CREATE_CLUSTER, (r, e) -> true, (r, e) -> handler.accept(r, (AnActionEvent) e));
     }
 
     private void registerCreateAppActionHandler(AzureActionManager am) {

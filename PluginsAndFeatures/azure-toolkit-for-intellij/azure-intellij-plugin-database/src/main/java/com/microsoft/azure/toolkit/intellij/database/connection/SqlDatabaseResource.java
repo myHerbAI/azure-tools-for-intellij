@@ -91,7 +91,7 @@ public class SqlDatabaseResource<T extends IDatabase> extends AzureServiceResour
 
     public String inputPassword(@Nonnull final Project project) {
         final AtomicReference<Password> passwordRef = new AtomicReference<>();
-        final AzureString title = OperationBundle.description("connector.update_database_password.database", this.database.getName());
+        final AzureString title = OperationBundle.description("internal/connector.update_database_password.database", this.database.getName());
         AzureTaskManager.getInstance().runAndWait(title, () -> {
             final PasswordDialog dialog = new PasswordDialog(project, this.database);
             if (dialog.showAndGet()) {

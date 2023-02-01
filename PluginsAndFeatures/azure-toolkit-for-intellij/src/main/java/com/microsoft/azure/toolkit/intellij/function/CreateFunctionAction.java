@@ -70,7 +70,7 @@ public class CreateFunctionAction extends CreateElementActionBase {
 
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "function.create_function_class", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/function.create_function_class")
     protected PsiElement[] invokeDialog(Project project, PsiDirectory psiDirectory) {
         final Operation operation = TelemetryManager.createOperation(TelemetryConstants.FUNCTION, TelemetryConstants.CREATE_FUNCTION_TRIGGER);
         try {

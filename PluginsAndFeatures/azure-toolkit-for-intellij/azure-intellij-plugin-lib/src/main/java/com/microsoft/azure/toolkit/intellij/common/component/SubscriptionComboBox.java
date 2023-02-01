@@ -29,10 +29,7 @@ public class SubscriptionComboBox extends AzureComboBox<Subscription> {
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "account.list_subscriptions",
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/account.list_subscriptions")
     protected List<Subscription> loadItems() throws Exception {
         return az(AzureAccount.class).account().getSelectedSubscriptions().stream()
             .sorted(Comparator.comparing(Subscription::getName))

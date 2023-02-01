@@ -65,7 +65,7 @@ public class ClusterNode extends RefreshableNode implements TelemetryProperties,
             addAction("Open Azure Storage Explorer for storage", new NodeActionListener() {
                 @Override
                 protected void actionPerformed(NodeActionEvent e) {
-                    final AzureString title =  OperationBundle.description("storage.open_azure_storage_explorer.account", clusterDetail.getName());
+                    final AzureString title =  OperationBundle.description("user/storage.open_azure_storage_explorer.account", clusterDetail.getName());
                     AzureTaskManager.getInstance().runInBackground(new AzureTask<>(title, () -> {
                         OpenHDIAzureStorageExplorerAction openHDIAzureStorageExplorerAction = new OpenHDIAzureStorageExplorerAction();
                         openHDIAzureStorageExplorerAction.openResource(clusterDetail);

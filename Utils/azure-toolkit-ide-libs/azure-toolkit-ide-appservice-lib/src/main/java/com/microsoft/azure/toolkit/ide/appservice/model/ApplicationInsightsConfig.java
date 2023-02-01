@@ -4,7 +4,7 @@
  */
 package com.microsoft.azure.toolkit.ide.appservice.model;
 
-import com.microsoft.azure.toolkit.lib.applicationinsights.workspace.LogAnalyticsWorkspaceConfig;
+import com.microsoft.azure.toolkit.lib.monitor.LogAnalyticsWorkspaceConfig;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

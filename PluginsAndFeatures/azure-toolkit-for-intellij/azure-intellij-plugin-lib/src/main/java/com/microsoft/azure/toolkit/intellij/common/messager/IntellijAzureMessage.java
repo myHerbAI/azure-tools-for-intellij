@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.intellij.common.messager;
 
 import com.azure.core.http.HttpResponse;
-import com.azure.core.http.rest.Response;
 import com.azure.core.management.exception.ManagementException;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -16,7 +15,6 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureHtmlMessage;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessage;
@@ -30,7 +28,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 public class IntellijAzureMessage extends AzureHtmlMessage {
     @Nullable
@@ -120,18 +117,17 @@ class NotificationMessage extends IntellijAzureMessage {
         final Throwable rootCause = ExceptionUtils.getRootCause(throwable);
         if (rootCause instanceof ManagementException) {
             final int errorCode = Optional.ofNullable((ManagementException) rootCause).map(ManagementException::getResponse)
-                    .map(HttpResponse::getStatusCode).orElse(0);
+                .map(HttpResponse::getStatusCode).orElse(0);
             if (errorCode == FORBIDDEN) {
-                final Consumer<Void> consumer = ignore -> {
-                    final AnAction action = ActionManager.getInstance().getAction("AzureToolkit.SelectSubscriptions");
-                    final DataContext context = dataId -> CommonDataKeys.PROJECT.getName().equals(dataId) ? project : null;
-                    AzureTaskManager.getInstance().runLater(() -> ActionUtil.invokeAction(action, context, "AzurePluginErrorNotification", null, null));
-                };
-                final ActionView.Builder view = new ActionView.Builder("Select Subscription")
-                        .title(ignore -> AzureString.fromString("Select subscription")).enabled(ignore -> true);
-                final Action.Id<Void> id = Action.Id.of("account.select_subscription");
-                final Action<Void> action = new Action<>(id, consumer, view);
-                action.setAuthRequired(false);
+                final Action.Id<Void> id = Action.Id.of("user/account.select_subscription");
+                final Action<Void> action = new Action<>(id)
+                    .withLabel("Select Subscription")
+                    .withHandler(ignore -> {
+                        final AnAction s = ActionManager.getInstance().getAction("AzureToolkit.SelectSubscriptions");
+                        final DataContext context = dataId -> CommonDataKeys.PROJECT.getName().equals(dataId) ? project : null;
+                        AzureTaskManager.getInstance().runLater(() -> ActionUtil.invokeAction(s, context, "AzurePluginErrorNotification", null, null));
+                    })
+                    .withAuthRequired(false);
                 return new Action[]{action};
             }
         }

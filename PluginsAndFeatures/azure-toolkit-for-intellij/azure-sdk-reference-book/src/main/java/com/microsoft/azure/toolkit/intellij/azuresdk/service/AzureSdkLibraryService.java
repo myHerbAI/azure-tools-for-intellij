@@ -32,7 +32,13 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -169,7 +175,7 @@ public class AzureSdkLibraryService {
 
     @SneakyThrows(MalformedURLException.class)
     @Cacheable("sdk/packages/spring")
-    @AzureOperation(name = "sdk.load_spring_libs_metadata", type = AzureOperation.Type.TASK)
+    @AzureOperation(name = "boundary/sdk.load_spring_libs_metadata")
     private static List<AzureSdkServiceEntity> loadSpringSDKEntities() {
         final List<AzureSdkServiceEntity> remote = loadSpringSDKEntities(new URL(SPRING_SDK_METADATA_URL));
         if (CollectionUtils.isEmpty(remote)) {
@@ -180,7 +186,7 @@ public class AzureSdkLibraryService {
 
     @SneakyThrows(MalformedURLException.class)
     @Cacheable("sdk/packages")
-    @AzureOperation(name = "sdk.load_java_libs_meta_data", type = AzureOperation.Type.TASK)
+    @AzureOperation(name = "boundary/sdk.load_java_libs_meta_data")
     public static List<AzureJavaSdkEntity> loadAzureSDKEntities() {
         final List<AzureJavaSdkEntity> remote = loadAzureSDKEntities(new URL(CLIENT_MGMT_SDK_METADATA_URL));
         if (CollectionUtils.isEmpty(remote)) {
@@ -214,7 +220,7 @@ public class AzureSdkLibraryService {
     }
 
     @Cacheable("sdk/packages/whitelist")
-    @AzureOperation(name = "sdk.load_whitelist_metadata", type = AzureOperation.Type.TASK)
+    @AzureOperation(name = "boundary/sdk.load_whitelist_metadata")
     private static Set<String> loadAzureSDKWhitelist() {
         try {
             final URL destination = AzureSdkLibraryService.class.getResource(SDK_ALLOW_LIST_CSV);

@@ -14,7 +14,6 @@ import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.content.ContentManagerAdapter;
 import com.intellij.ui.content.ContentManagerEvent;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 
@@ -32,7 +31,7 @@ public class StreamingLogsToolWindowManager {
         return SingletonHolder.INSTANCE;
     }
 
-    @AzureOperation(name = "common.start_log_streaming.resource", params = {"resourceName"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "boundary/common.open_log_streaming_console.resource", params = {"resourceName"})
     public void showStreamingLogConsole(Project project, String resourceId, String resourceName, ConsoleView consoleView) {
         final ToolWindow toolWindow = getToolWindow(project);
         final ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();

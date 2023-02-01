@@ -13,7 +13,6 @@ import com.microsoft.azure.toolkit.intellij.common.messager.IntellijAzureMessage
 import com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppCreationDialog;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -30,12 +29,11 @@ import rx.Single;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 import static com.microsoft.azure.toolkit.lib.common.operation.OperationBundle.description;
 
 public class CreateFunctionAppAction {
-    @AzureOperation(name = "function.open_creation_dialog", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/function.open_creation_dialog")
     public static void openDialog(final Project project, @Nullable final FunctionAppConfig data) {
         AzureTaskManager.getInstance().runLater(() -> {
             final FunctionAppCreationDialog dialog = new FunctionAppCreationDialog(project);
@@ -47,10 +45,9 @@ public class CreateFunctionAppAction {
                 createFunctionApp(config)
                     .subscribe(functionApp -> {
                     }, (error) -> {
-                        final String title = String.format("Reopen dialog \"%s\"", dialog.getTitle());
-                        final Consumer<Object> act = t -> openDialog(project, config);
-                        final Action.Id<Object> REOPEN = Action.Id.of("function.reopen_creation_dialog");
-                        final Action<?> action = new Action<>(REOPEN, act, new ActionView.Builder(title));
+                        final Action<?> action = new Action<>(Action.Id.of("user/function.reopen_creation_dialog"))
+                            .withLabel(String.format("Reopen dialog \"%s\"", dialog.getTitle()))
+                            .withHandler(t -> openDialog(project, config));
                         AzureMessager.getMessager().error(error, null, action);
                     });
             });
@@ -58,9 +55,9 @@ public class CreateFunctionAppAction {
         });
     }
 
-    @AzureOperation(name = "function.create_app.app", params = {"config.getName()"}, type = AzureOperation.Type.ACTION)
-    private static Single<FunctionAppBase<?,?,?>> createFunctionApp(final FunctionAppConfig config) {
-        final AzureString title = description("function.create_app.app", config.getName());
+    @AzureOperation(name = "user/function.create_app.app", params = {"config.getName()"})
+    private static Single<FunctionAppBase<?, ?, ?>> createFunctionApp(final FunctionAppConfig config) {
+        final AzureString title = description("user/function.create_app.app", config.getName());
         final IntellijAzureMessager actionMessenger = new IntellijAzureMessager() {
             @Override
             public boolean show(IAzureMessage raw) {
@@ -70,7 +67,7 @@ public class CreateFunctionAppAction {
                 return false;
             }
         };
-        final AzureTask<FunctionAppBase<?,?,?>> task = new AzureTask<>(null, title, false, () -> {
+        final AzureTask<FunctionAppBase<?, ?, ?>> task = new AzureTask<>(null, title, false, () -> {
             final Operation operation = TelemetryManager.createOperation(TelemetryConstants.FUNCTION, TelemetryConstants.CREATE_FUNCTION_APP);
             operation.trackProperties(config.getTelemetryProperties());
             try {

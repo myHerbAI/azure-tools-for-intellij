@@ -35,7 +35,6 @@ public class SelectSubscriptionTask implements Task {
     }
 
     @Override
-    @AzureOperation(name = "guidance.select_subscription", type = AzureOperation.Type.SERVICE)
     public void execute() {
         selectSubscription();
     }
@@ -46,6 +45,7 @@ public class SelectSubscriptionTask implements Task {
         return "task.auth.select_subscription";
     }
 
+    @AzureOperation(name = "internal/guidance.select_subscription")
     private void selectSubscription() {
         final Account account = Azure.az(AzureAccount.class).account();
         final List<Subscription> subscriptions = account.getSubscriptions();

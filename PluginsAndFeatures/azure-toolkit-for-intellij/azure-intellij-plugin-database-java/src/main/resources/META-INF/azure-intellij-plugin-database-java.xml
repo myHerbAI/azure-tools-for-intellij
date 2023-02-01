@@ -1,0 +1,7 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
+        <connectorResourceType implementation="com.microsoft.azure.toolkit.intellij.database.mysql.connection.JavaMySqlDatabaseResourceDefinition"/>
+        <connectorResourceType implementation="com.microsoft.azure.toolkit.intellij.database.postgre.connection.JavaPostgreSqlDatabaseResourceDefinition"/>
+        <connectorResourceType implementation="com.microsoft.azure.toolkit.intellij.database.sqlserver.connection.JavaSqlServerDatabaseResourceDefinition"/>
+    </extensions>
+</idea-plugin>

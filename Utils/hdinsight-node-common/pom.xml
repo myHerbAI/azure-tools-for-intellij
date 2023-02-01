@@ -4,7 +4,7 @@
         <relativePath>../pom.xml</relativePath>
         <groupId>com.microsoft.azuretools</groupId>
         <artifactId>utils</artifactId>
-        <version>3.71.0</version>
+        <version>3.74.0-SNAPSHOT</version>
     </parent>
     <artifactId>hdinsight-node-common</artifactId>
     <properties>
@@ -219,6 +219,10 @@
                     <groupId>org.codehaus.jettison</groupId>
                     <artifactId>jettison</artifactId>
                 </exclusion>
+                <exclusion><!--CVE-2022-42889-->
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-text</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -337,6 +341,12 @@
         <dependency>
             <groupId>net.sourceforge.htmlunit</groupId>
             <artifactId>htmlunit</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-text</artifactId>
+                </exclusion>
+            </exclusions>
          </dependency>
         <dependency>
             <groupId>commons-logging</groupId>
@@ -395,6 +405,10 @@
                 <exclusion>
                     <groupId>commons-httpclient</groupId>
                     <artifactId>commons-httpclient</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.ivy</groupId>
+                    <artifactId>ivy</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -471,6 +485,11 @@
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>adal4j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.azure.resourcemanager</groupId>
+            <artifactId>azure-resourcemanager-hdinsight</artifactId>
+            <version>1.0.0</version>
         </dependency>
     </dependencies>
 </project>

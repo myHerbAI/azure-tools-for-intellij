@@ -36,7 +36,7 @@ public class GetKubuCredentialAction {
         }
     }
 
-    @AzureOperation(name = "kubernetes.merge_into_kube_config", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "boundary/kubernetes.merge_into_kube_config")
     private static void mergeConfigToKubConfig(@Nonnull final byte[] content) throws IOException {
         final File configFile = Path.of(System.getProperty("user.home"), KubeConfig.KUBEDIR, KubeConfig.KUBECONFIG).toFile();
         if (!configFile.exists() || configFile.getTotalSpace() == 0) {

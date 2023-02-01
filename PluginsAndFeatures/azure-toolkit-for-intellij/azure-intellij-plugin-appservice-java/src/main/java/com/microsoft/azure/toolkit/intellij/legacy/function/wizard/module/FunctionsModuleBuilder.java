@@ -130,7 +130,7 @@ public class FunctionsModuleBuilder extends JavaModuleBuilder {
 
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "function.create_function_module.module", params = {"module.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/function.create_function_module.module", params = {"module.getName()"})
     protected void setupModule(Module module) throws ConfigurationException {
         super.setupModule(module);
         final Project project = module.getProject();

@@ -38,11 +38,11 @@ public class CreateCosmosDatabaseAction {
         });
     }
 
-    @AzureOperation(name = "cosmos.create_database.database|account", params = {"config.getName()", "account.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/cosmos.create_database.database|account", params = {"config.getName()", "account.getName()"})
     private static <T extends CosmosDBAccount> void doCreate(@Nonnull T account,
                                                              @Nonnull BiFunction<T, DatabaseConfig, ICosmosDatabaseDraft<?, ?>> draftSupplier,
                                                              @Nullable final DatabaseConfig config) {
-        final AzureString title = OperationBundle.description("cosmos.create_database.database|account", Objects.requireNonNull(config).getName(), account.getName());
+        final AzureString title = OperationBundle.description("user/cosmos.create_database.database|account", Objects.requireNonNull(config).getName(), account.getName());
         AzureTaskManager.getInstance().runInBackground(title, () -> {
             final ICosmosDatabaseDraft<?, ?> draft = draftSupplier.apply(account, config);
             draft.setConfig(config);

@@ -77,7 +77,12 @@ import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 @Log
@@ -303,11 +308,7 @@ public class IDEHelperImpl implements IDEHelper {
         return type.getIcon();
     }
 
-    @AzureOperation(
-            name = "appservice.open_file.file",
-            params = {"target.getName()"},
-            type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "user/appservice.open_file.file", params = {"target.getName()"})
     @SneakyThrows
     public void openAppServiceFile(AppServiceFile target, Object context) {
         final com.microsoft.azure.toolkit.lib.common.action.Action<Void> retry = Action.retryFromFailure((() -> this.openAppServiceFile(target, context)));
@@ -315,7 +316,7 @@ public class IDEHelperImpl implements IDEHelper {
         final FileEditorManager fileEditorManager = FileEditorManager.getInstance((Project) context);
         final VirtualFile virtualFile = getOrCreateVirtualFile(target, fileEditorManager);
         final OutputStream output = virtualFile.getOutputStream(null);
-        final AzureString title = OperationBundle.description("appservice.open_file.file", virtualFile.getName());
+        final AzureString title = OperationBundle.description("user/appservice.open_file.file", virtualFile.getName());
         final AzureTask<Void> task = new AzureTask<>(null, title, false, () -> {
             final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
             indicator.setIndeterminate(true);
@@ -389,13 +390,8 @@ public class IDEHelperImpl implements IDEHelper {
         return textEditor.getEditor().getDocument().getText();
     }
 
-    @AzureOperation(
-            name = "appservice.save_file.file",
-            params = {"appServiceFile.getName()"},
-            type = AzureOperation.Type.SERVICE
-    )
     private void saveFileToAzure(final AppServiceFile appServiceFile, final String content, final Project project) {
-        final AzureString title = OperationBundle.description("appservice.save_file.file", appServiceFile.getName());
+        final AzureString title = OperationBundle.description("internal/appservice.save_file.file", appServiceFile.getName());
         AzureTaskManager.getInstance().runInBackground(new AzureTask<>(project, title, false, () -> {
             final AppServiceAppBase<?, ?, ?> appService = appServiceFile.getApp();
             final AppServiceFile target = appService.getFileByPath(appServiceFile.getPath());
@@ -426,7 +422,7 @@ public class IDEHelperImpl implements IDEHelper {
         }
         final OutputStream output = new FileOutputStream(destFile);
         final Project project = (Project) context;
-        final AzureString title = OperationBundle.description("appservice.download_file.file", file.getName());
+        final AzureString title = OperationBundle.description("user/appservice.download_file.file", file.getName());
         final AzureTask<Void> task = new AzureTask<>(project, title, false, () -> {
             ProgressManager.getInstance().getProgressIndicator().setIndeterminate(true);
             file.getApp()

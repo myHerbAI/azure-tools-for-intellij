@@ -19,7 +19,7 @@ import java.util.*;
 
 public class ExperimentationService {
     private static final String ASSIGNMENT_CONTEXT = "AssignmentContext";
-    private final String NAME_SPACE = "IntelliJ";    // todo need support setting name space
+    private final String NAME_SPACE = "IntelliJ";
     private final OkHttpClient client = new OkHttpClient();
     private Request request;
     private String endPoint;
@@ -57,9 +57,8 @@ public class ExperimentationService {
     }
 
     private void updateFeatures() {
-        try {
-            final Response response = client.newCall(request).execute();
-            if (response.isSuccessful()) {
+        try (final Response response = client.newCall(request).execute()) {
+            if (response.isSuccessful() && Objects.nonNull(response.body())) {
                 final AssignmentResponse assignmentResponse = JSON_MAPPER.readValue(response.body().byteStream(), AssignmentResponse.class);
                 final List<AssignmentResponse.Config> configList = assignmentResponse.getConfigs();
                 configList.forEach(config -> {

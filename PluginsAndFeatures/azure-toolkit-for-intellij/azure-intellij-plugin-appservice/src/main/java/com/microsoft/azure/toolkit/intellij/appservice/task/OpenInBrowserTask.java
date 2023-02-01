@@ -9,7 +9,6 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
-
 import java.util.Objects;
 
 import static com.microsoft.azure.toolkit.ide.appservice.AppServiceActionsContributor.OPEN_IN_BROWSER;
@@ -24,7 +23,7 @@ public class OpenInBrowserTask implements Task {
     }
 
     @Override
-    @AzureOperation(name = "guidance.open_in_browser", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "internal/guidance.open_in_browser")
     public void execute() throws Exception {
         final String webAppId = Objects.requireNonNull((String) context.getParameter("webappId"), "Failed to get the web app id created in tasks");
         final WebApp webApp = Objects.requireNonNull(Azure.az(AzureWebApp.class).webApp(webAppId), String.format("failed to find web app with id (%s) in Azure", webAppId));

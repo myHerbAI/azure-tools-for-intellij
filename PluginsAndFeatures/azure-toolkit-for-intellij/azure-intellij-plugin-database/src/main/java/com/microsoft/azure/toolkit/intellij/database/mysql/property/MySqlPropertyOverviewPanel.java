@@ -36,18 +36,12 @@ public class MySqlPropertyOverviewPanel extends JPanel {
 
     private JTextField performanceConfigurationsTextField;
 
-    private JTextField subscriptionIDTextField;
-
-    private JTextField sslEnforceStatusTextField;
-
     MySqlPropertyOverviewPanel() {
         super();
         TextFieldUtils.disableTextBoard(resourceGroupTextField, serverNameTextField, statusTextField, serverAdminLoginNameTextField,
-            locationTextField, versionTextField, subscriptionTextField, performanceConfigurationsTextField,
-            subscriptionIDTextField, sslEnforceStatusTextField);
+            locationTextField, versionTextField, subscriptionTextField, performanceConfigurationsTextField);
         TextFieldUtils.makeTextOpaque(resourceGroupTextField, serverNameTextField, statusTextField, serverAdminLoginNameTextField,
-            locationTextField, versionTextField, subscriptionTextField, performanceConfigurationsTextField,
-            subscriptionIDTextField, sslEnforceStatusTextField);
+            locationTextField, versionTextField, subscriptionTextField, performanceConfigurationsTextField);
     }
 
     public void setFormData(MySqlServer server) {
@@ -58,18 +52,15 @@ public class MySqlPropertyOverviewPanel extends JPanel {
         resourceGroupTextField.setText(server.getResourceGroupName());
         statusTextField.setText(server.getStatus());
         locationTextField.setText(Optional.ofNullable(server.getRegion()).map(Region::getLabel).orElse(""));
-        subscriptionIDTextField.setText(server.getSubscriptionId());
         serverNameTextField.setText(StringUtils.firstNonBlank(server.getFullyQualifiedDomainName(), server.getName()));
         serverNameTextField.setCaretPosition(0);
-        serverAdminLoginNameTextField.setText(server.getAdminName() + "@" + server.name());
+        serverAdminLoginNameTextField.setText(server.getFullAdminName());
         serverAdminLoginNameTextField.setCaretPosition(0);
         versionTextField.setText(server.getVersion());
         final String skuTier = server.getSkuTier();
-        final int skuCapacity = server.getVCore();
         final int storageGB = server.getStorageInMB() / 1024;
-        final String performanceConfigurations = skuTier + ", " + skuCapacity + " vCore(s), " + storageGB + " GB";
+        final String performanceConfigurations = skuTier + ", " + storageGB + " GB";
         performanceConfigurationsTextField.setText(performanceConfigurations);
-        sslEnforceStatusTextField.setText(server.getSslEnforceStatus());
     }
 
     @Override

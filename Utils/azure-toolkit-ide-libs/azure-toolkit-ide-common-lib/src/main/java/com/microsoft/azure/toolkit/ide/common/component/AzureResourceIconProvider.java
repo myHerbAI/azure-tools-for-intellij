@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -51,13 +52,11 @@ public class AzureResourceIconProvider<T extends AzResource> implements AzureIco
         return String.format("/icons/%s/default.svg", modulePath);
     }
 
-    public static <T extends AzResource> String getAzureBaseResourceIconPath(T resource) {
-        if (resource instanceof AzResource) {
-            return AzureResourceIconProvider.getAzResourceIconPath((AzResource) resource);
-        }
-        return String.format("/icons/%s/default.svg", resource.getClass().getSimpleName().toLowerCase());
+    public static <T extends AzResource> String getAzureBaseResourceIconPath(@Nonnull T resource) {
+        return AzureResourceIconProvider.getAzResourceIconPath((AzResource) resource);
     }
 
+    @Nullable
     public static <T extends AzResource> AzureIcon.Modifier getStatusModifier(T resource) {
         final AzResourceBase.FormalStatus formalStatus = resource.getFormalStatus();
         if (formalStatus.isWaiting()) {

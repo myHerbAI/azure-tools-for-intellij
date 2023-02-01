@@ -29,7 +29,7 @@ public class GuidanceViewManager {
         return instance;
     }
 
-    @AzureOperation(name = "guidance.open_course.course", params = {"courseConfig.getTitle()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/guidance.open_course.course", params = {"courseConfig.getTitle()"})
     public void openCourseView(@Nonnull final Project project, @Nonnull final CourseConfig courseConfig) {
         final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(GuidanceViewManager.TOOL_WINDOW_ID);
         AzureTaskManager.getInstance().runLater(() -> {
@@ -61,7 +61,7 @@ public class GuidanceViewManager {
         });
     }
 
-    @AzureOperation(name = "guidance.close_course", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/guidance.close_course")
     public void closeGuidanceToolWindow(@Nonnull final Project project) {
         final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(GuidanceViewManager.TOOL_WINDOW_ID);
         AzureTaskManager.getInstance().runLater(() -> {

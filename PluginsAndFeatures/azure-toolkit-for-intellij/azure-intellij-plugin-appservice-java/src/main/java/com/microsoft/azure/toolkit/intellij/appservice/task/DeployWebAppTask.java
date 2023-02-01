@@ -69,7 +69,7 @@ public class DeployWebAppTask implements Task {
     }
 
     @Override
-    @AzureOperation(name = "guidance.deploy_webapp", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "boundary/guidance.deploy_webapp")
     public void execute() throws Exception {
         AzureMessager.getMessager().info("Setting up run configuration for web app deployment...");
         final RunManagerEx manager = RunManagerEx.getInstanceEx(project);

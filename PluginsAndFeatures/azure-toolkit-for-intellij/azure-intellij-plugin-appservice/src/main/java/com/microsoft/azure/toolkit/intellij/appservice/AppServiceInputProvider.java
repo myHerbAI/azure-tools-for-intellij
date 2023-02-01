@@ -13,11 +13,9 @@ public class AppServiceInputProvider implements GuidanceInputProvider {
     @Override
     public GuidanceInput createInputComponent(@Nonnull InputConfig config, @Nonnull Context context) {
         final ComponentContext inputContext = new ComponentContext(config, context);
-        switch (config.getName()) {
-            case "input.appservice.name":
-                return new AppServiceNameInput(config, inputContext);
-            default:
-                return null;
+        if (config.getName().equals("input.appservice.name")) {
+            return new AppServiceNameInput(config, inputContext);
         }
+        return null;
     }
 }

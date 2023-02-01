@@ -42,7 +42,7 @@ public class WebAppOnLinuxDeployState extends AzureRunProfileState<AppServiceApp
     }
 
     @Override
-    @AzureOperation(name = "docker.deploy_image", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "platform/docker.deploy_image")
     public AppServiceAppBase<?, ?, ?> executeSteps(@NotNull RunProcessHandler processHandler, @NotNull Operation operation) throws Exception {
         processHandler.setText("Starting job ...  ");
         final String basePath = project.getBasePath();
@@ -117,11 +117,7 @@ public class WebAppOnLinuxDeployState extends AzureRunProfileState<AppServiceApp
     }
 
     @Override
-    @AzureOperation(
-        name = "webapp.complete_deployment.app",
-        params = {"this.deployModel.getWebAppName()"},
-        type = AzureOperation.Type.TASK
-    )
+    @AzureOperation(name = "boundary/webapp.complete_deployment.app", params = {"this.deployModel.getWebAppName()"})
     protected void onSuccess(AppServiceAppBase<?, ?, ?> result, @NotNull RunProcessHandler processHandler) {
         processHandler.notifyComplete();
     }

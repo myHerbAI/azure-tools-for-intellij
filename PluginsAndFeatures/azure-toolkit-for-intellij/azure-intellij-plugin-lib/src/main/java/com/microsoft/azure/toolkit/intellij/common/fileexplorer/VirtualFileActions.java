@@ -23,8 +23,9 @@ import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -52,7 +53,7 @@ public class VirtualFileActions {
     private static final String SUCCESS_DOWNLOADING = "File %s is successfully downloaded to %s.";
     private static final String NOTIFICATION_GROUP_ID = "Azure Plugin";
 
-    @AzureOperation(name = "common.open_file_in_editor.file", params = {"file.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "boundary/common.open_file_in_editor.file", params = {"file.getName()"})
     public static void openFileInEditor(VirtualFile file, final Function<? super String, Boolean> onSave, Runnable onClose, FileEditorManager manager) {
         final Project project = manager.getProject();
         final FileEditor[] editors = manager.openFile(file, true, true);
@@ -136,22 +137,15 @@ public class VirtualFileActions {
         AzureMessager.getMessager().success(msg, title, newOpenInEditorAction(dest, project), newShowInExplorerAction(dest));
     }
 
-    private static Action<Void> newShowInExplorerAction(@Nonnull final File dest) {
-        final Action.Id<Void> REVEAL = Action.Id.of("common.reveal_file_in_explorer");
-        return new Action<>(REVEAL, v -> revealInExplorer(dest), new ActionView.Builder(RevealFileAction.getActionName()));
+    private static Action<File> newShowInExplorerAction(@Nonnull final File file) {
+        return AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.REVEAL_FILE).bind(file);
     }
 
-    private static Action<Void> newOpenInEditorAction(@Nonnull final File dest, @Nonnull final Project project) {
-        final Action.Id<Void> OPEN = Action.Id.of("common.open_file_in_editor");
-        return new Action<>(OPEN, v -> AzureTaskManager.getInstance().runLater(() -> {
-            final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-            final VirtualFile virtualFile = VfsUtil.findFileByIoFile(dest, true);
-            VirtualFileActions.openFileInEditor(virtualFile, (a) -> false, () -> {
-            }, fileEditorManager);
-        }), new ActionView.Builder("Open In Editor"));
+    private static Action<File> newOpenInEditorAction(@Nonnull final File file, @Nonnull final Project project) {
+        return AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_FILE).bind(file);
     }
 
-    @AzureOperation(name = "common.reveal_file_in_explorer.file", params = {"file.getName()"}, type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "boundary/common.reveal_file_in_explorer.file", params = {"file.getName()"})
     public static void revealInExplorer(@Nonnull File file) {
         AzureTaskManager.getInstance().runLater(() -> RevealFileAction.openFile(file));
     }

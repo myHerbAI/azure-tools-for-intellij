@@ -32,6 +32,7 @@ import com.microsoft.azure.toolkit.intellij.azuresdk.service.AzureSdkLibraryServ
 import com.microsoft.azure.toolkit.intellij.common.TextDocumentListenerAdapter;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
@@ -93,8 +94,9 @@ public class AzureSdkTreePanel implements TextDocumentListenerAdapter {
         });
     }
 
-    @AzureOperation(name = "sdk.show_lib_details.feature", params = "feature.getName()", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/sdk.show_lib_details.feature", params = "feature.getName()")
     private void selectFeature(final AzureSdkFeatureEntity feature) {
+        OperationContext.action().setTelemetryProperty("feature", feature.getName());
         this.onSdkFeatureNodeSelected.accept(feature);
     }
 
@@ -185,7 +187,7 @@ public class AzureSdkTreePanel implements TextDocumentListenerAdapter {
                 .stream().sorted(Comparator.comparing(AzureSdkCategoryEntity::getServiceName))
                 .forEach(categoryService -> {
                     final AzureSdkServiceEntity service = serviceMap.get(getServiceKeyByName(categoryService.getServiceName()));
-                    this.loadServiceData(service, categoryService, categoryNode, filters);
+                    AzureTaskManager.getInstance().runAndWait(() -> this.loadServiceData(service, categoryService, categoryNode, filters));
                 });
             if (ArrayUtils.isEmpty(filters) || categoryMatched || categoryNode.getChildCount() > 0) {
                 this.model.insertNodeInto(categoryNode, root, root.getChildCount());

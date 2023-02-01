@@ -109,7 +109,7 @@
         <children>
           <component id="7d9dc" class="javax.swing.JLabel">
             <constraints>
-              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
                 <minimum-size width="100" height="24"/>
                 <preferred-size width="100" height="24"/>
                 <maximum-size width="100" height="24"/>
@@ -122,7 +122,7 @@
           <grid id="da7cf" layout-manager="GridLayoutManager" row-count="1" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="0" left="0" bottom="0" right="0"/>
             <constraints>
-              <grid row="0" column="1" row-span="1" col-span="4" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="1" column="1" row-span="1" col-span="4" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties/>
             <border type="none"/>
@@ -158,7 +158,7 @@
           </grid>
           <component id="5faee" class="javax.swing.JLabel" binding="lblDisk">
             <constraints>
-              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
                 <minimum-size width="100" height="24"/>
                 <preferred-size width="100" height="24"/>
                 <maximum-size width="100" height="24"/>
@@ -172,7 +172,7 @@
           <grid id="a28b7" binding="pnlDisk" layout-manager="GridLayoutManager" row-count="1" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="0" left="0" bottom="0" right="0"/>
             <constraints>
-              <grid row="2" column="1" row-span="1" col-span="4" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="3" column="1" row-span="1" col-span="4" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties/>
             <border type="none"/>
@@ -206,18 +206,6 @@
               </component>
             </children>
           </grid>
-          <component id="c8e4" class="javax.swing.JLabel" binding="lblRuntime">
-            <constraints>
-              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                <minimum-size width="100" height="24"/>
-                <preferred-size width="100" height="24"/>
-                <maximum-size width="100" height="24"/>
-              </grid>
-            </constraints>
-            <properties>
-              <text value="Runtime: "/>
-            </properties>
-          </component>
           <component id="19915" class="javax.swing.JLabel">
             <constraints>
               <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
@@ -261,7 +249,7 @@
           </component>
           <component id="11d34" class="javax.swing.JLabel" binding="lblTestEndpoint">
             <constraints>
-              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
                 <minimum-size width="100" height="24"/>
                 <preferred-size width="100" height="24"/>
                 <maximum-size width="100" height="24"/>
@@ -273,37 +261,50 @@
           </component>
           <component id="5aaff" class="com.intellij.ui.HyperlinkLabel" binding="txtTestEndpoint">
             <constraints>
-              <grid row="1" column="1" row-span="1" col-span="4" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false">
+              <grid row="2" column="1" row-span="1" col-span="4" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false">
                 <maximum-size width="1000" height="-1"/>
               </grid>
             </constraints>
             <properties/>
           </component>
-          <component id="fefff" class="javax.swing.JRadioButton" binding="useJava8" default-binding="true">
+          <component id="491d0" class="javax.swing.JLabel" binding="lblRuntime">
             <constraints>
-              <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                <minimum-size width="100" height="24"/>
+                <preferred-size width="100" height="24"/>
+                <maximum-size width="100" height="24"/>
+              </grid>
             </constraints>
             <properties>
-              <selected value="true"/>
+              <text value="Runtime: "/>
+            </properties>
+          </component>
+          <component id="28687" class="javax.swing.JRadioButton" binding="useJava8" default-binding="true">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <selected value="false"/>
               <text value="Java 8"/>
             </properties>
           </component>
-          <component id="9d535" class="javax.swing.JRadioButton" binding="useJava11">
+          <component id="81010" class="javax.swing.JRadioButton" binding="useJava11">
             <constraints>
-              <grid row="3" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
+              <selected value="true"/>
               <text value="Java 11"/>
             </properties>
           </component>
-          <hspacer id="74f59">
+          <hspacer id="631ed">
             <constraints>
-              <grid row="3" column="4" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
           </hspacer>
-          <component id="aa7f4" class="javax.swing.JRadioButton" binding="useJava17">
+          <component id="65552" class="javax.swing.JRadioButton" binding="useJava17">
             <constraints>
-              <grid row="3" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+              <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <text value="Java 17"/>

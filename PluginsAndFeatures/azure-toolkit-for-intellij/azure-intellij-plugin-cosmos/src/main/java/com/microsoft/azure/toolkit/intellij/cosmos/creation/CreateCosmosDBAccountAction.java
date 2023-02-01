@@ -37,9 +37,9 @@ public class CreateCosmosDBAccountAction {
         });
     }
 
-    @AzureOperation(name = "cosmos.create_account.account", params = {"config.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/cosmos.create_account.account", params = {"config.getName()"})
     private static void doCreate(final CosmosDBAccountDraft.Config config, final Project project) {
-        final AzureString title = OperationBundle.description("cosmos.create_account.account", config.getName());
+        final AzureString title = OperationBundle.description("user/cosmos.create_account.account", config.getName());
         AzureTaskManager.getInstance().runInBackground(title, () -> {
             final ResourceGroup rg = config.getResourceGroup();
             if (rg.isDraftForCreating()) {

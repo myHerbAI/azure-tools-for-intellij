@@ -91,7 +91,7 @@ public class SpringCloudStreamingLogConsoleView extends ConsoleViewImpl {
             }
             setStatus(ConsoleViewStatus.STOPPING);
         }
-        final AzureString title = OperationBundle.description("springcloud.close_log_stream.instance", resourceName);
+        final AzureString title = OperationBundle.description("boundary/springcloud.close_log_stream.instance", resourceName);
         AzureTaskManager.getInstance().runInBackground(new AzureTask<>(getProject(), title, false, () -> {
             try {
                 if (logInputStream != null) {

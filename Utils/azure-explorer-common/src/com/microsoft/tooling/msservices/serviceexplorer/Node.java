@@ -424,7 +424,7 @@ public class Node implements MvpView, BasicTelemetryProperty, Sortable {
         return TelemetryConstants.ACTION;
     }
 
-    @AzureOperation(name = "common.open_portal.resource", params = {"nameFromResourceId(resourceId)"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/common.open_portal.resource", params = {"nameFromResourceId(resourceId)"})
     public void openResourcesInPortal(String subscriptionId, String resourceId) {
         final Account account = Azure.az(AzureAccount.class).account();
         final String portalUrl = account.getPortalUrl();

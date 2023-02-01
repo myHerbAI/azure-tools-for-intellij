@@ -193,7 +193,7 @@ public class MySqlPropertiesEditor extends AzResourcePropertiesEditor<MySqlServe
     private void onDatabaseComboBoxChanged(ItemEvent e) {
         if (e.getStateChange() == ItemEvent.SELECTED && e.getItem() instanceof MySqlDatabase) {
             final MySqlDatabase database = (MySqlDatabase) e.getItem();
-            final String username = this.draft.getAdminName() + "@" + this.draft.getName();
+            final String username = this.draft.getFullAdminName();
             connectionStringsJDBC.getOutputTextArea().setText(getConnectionString(MYSQL_OUTPUT_TEXT_PATTERN_JDBC,
                 draft.getFullyQualifiedDomainName(), database.getName(), username));
             connectionStringsSpring.getOutputTextArea().setText(getConnectionString(MYSQL_OUTPUT_TEXT_PATTERN_SPRING,

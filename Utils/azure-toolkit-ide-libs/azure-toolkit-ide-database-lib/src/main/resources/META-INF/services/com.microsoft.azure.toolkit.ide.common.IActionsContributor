@@ -1,3 +1,4 @@
 com.microsoft.azure.toolkit.ide.database.postgre.PostgreSqlActionsContributor
 com.microsoft.azure.toolkit.ide.database.mysql.MySqlActionsContributor
+com.microsoft.azure.toolkit.ide.database.mysql.single.MySqlActionsContributor
 com.microsoft.azure.toolkit.ide.database.sqlserver.SqlServerActionsContributor

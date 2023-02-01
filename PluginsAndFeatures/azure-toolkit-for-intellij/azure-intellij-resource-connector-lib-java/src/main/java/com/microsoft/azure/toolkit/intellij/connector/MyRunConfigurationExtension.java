@@ -13,7 +13,7 @@ public class MyRunConfigurationExtension extends RunConfigurationExtension {
 
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "connector.setup_connection_for_configuration.config", params = {"config.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/connector.setup_connection_for_configuration.config", params = {"config.getName()"})
     public <T extends RunConfigurationBase<?>> void updateJavaParameters(@Nonnull T config, @Nonnull JavaParameters params, RunnerSettings s) {
         config.getBeforeRunTasks().stream()
                 .filter(t -> t instanceof ConnectionRunnerForRunConfiguration.MyBeforeRunTask)

@@ -35,9 +35,9 @@ public class CreateCosmosContainerAction {
         });
     }
 
-    @AzureOperation(name = "cosmos.create_container.container|database", params = {"config.getContainerId()", "database.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/cosmos.create_container.container|database", params = {"config.getContainerId()", "database.getName()"})
     private static void doCreateSqlContainer(@Nonnull SqlDatabase database, @Nullable final SqlContainerDraft.SqlContainerConfig config) {
-        final AzureString title = OperationBundle.description("cosmos.create_container.container|database", config.getContainerId(), database.getName());
+        final AzureString title = OperationBundle.description("user/cosmos.create_container.container|database", config.getContainerId(), database.getName());
         AzureTaskManager.getInstance().runInBackground(title, () -> {
             final SqlContainerDraft draft = database.containers().create(config.getContainerId(), database.getResourceGroupName());
             draft.setConfig(config);
@@ -60,9 +60,9 @@ public class CreateCosmosContainerAction {
         });
     }
 
-    @AzureOperation(name = "cosmos.create_collection.collection|database", params = {"config.getCollectionId()", "database.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/cosmos.create_collection.collection|database", params = {"config.getCollectionId()", "database.getName()"})
     private static void doCreateMongoCollection(@Nonnull MongoDatabase database, @Nullable final MongoCollectionDraft.MongoCollectionConfig config) {
-        final AzureString title = OperationBundle.description("cosmos.create_collection.collection|database", config.getCollectionId(), database.getName());
+        final AzureString title = OperationBundle.description("user/cosmos.create_collection.collection|database", config.getCollectionId(), database.getName());
         AzureTaskManager.getInstance().runInBackground(title, () -> {
             final MongoCollectionDraft draft = database.collections().create(config.getCollectionId(), database.getResourceGroupName());
             draft.setConfig(config);
@@ -85,9 +85,9 @@ public class CreateCosmosContainerAction {
         });
     }
 
-    @AzureOperation(name = "cosmos.create_table.table|keyspace", params = {"config.getTableId()", "keyspace.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/cosmos.create_table.table|keyspace", params = {"config.getTableId()", "keyspace.getName()"})
     private static void doCreateCassandraTable(@Nonnull CassandraKeyspace keyspace, @Nullable final CassandraTableDraft.CassandraTableConfig config) {
-        final AzureString title = OperationBundle.description("cosmos.create_table.table|keyspace", config.getTableId(), keyspace.getName());
+        final AzureString title = OperationBundle.description("user/cosmos.create_table.table|keyspace", config.getTableId(), keyspace.getName());
         AzureTaskManager.getInstance().runInBackground(title, () -> {
             final CassandraTableDraft draft = keyspace.tables().create(config.getTableId(), keyspace.getResourceGroupName());
             draft.setConfig(config);

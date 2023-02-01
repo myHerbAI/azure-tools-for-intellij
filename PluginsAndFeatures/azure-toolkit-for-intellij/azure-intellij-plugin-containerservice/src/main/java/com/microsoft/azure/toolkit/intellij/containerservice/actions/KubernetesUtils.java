@@ -17,7 +17,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -28,7 +27,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
 public class KubernetesUtils {
     public static final String KUBERNETES_PLUGIN_ID = "com.intellij.kubernetes";
@@ -53,11 +51,9 @@ public class KubernetesUtils {
     }
 
     private static Action<?> getOpenInKubernetesPluginAction(@Nonnull final Project project, String installedPluginId) {
-        final Consumer<Void> consumer = ignore -> openInKubernetesPlugin(project, installedPluginId);
-        final ActionView.Builder view = new ActionView.Builder("Open in kubernetes plugin")
-                .title(ignore -> AzureString.fromString("Open in kubernetes plugin")).enabled(ignore -> true);
-        final Action.Id<Void> id = Action.Id.of("kubernetes.open_kubernetes_plugin");
-        return new Action<>(id, consumer, view);
+        return new Action<>(Action.Id.of("user/kubernetes.open_kubernetes_plugin"))
+            .withLabel("Open in kubernetes plugin")
+            .withHandler(ignore -> openInKubernetesPlugin(project, installedPluginId));
     }
 
     private static void openInKubernetesPlugin(@Nonnull final Project project, String pluginId) {
@@ -72,21 +68,19 @@ public class KubernetesUtils {
         AzureTaskManager.getInstance().runLater(() -> doCallK8sPlugin(action, toolWindow, context));
     }
 
-    @AzureOperation(name = "kubernetes.open_in_k8s_plugin", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "boundary/kubernetes.open_in_k8s_plugin")
     private static void doCallK8sPlugin(AnAction action, ToolWindow toolWindow, DataContext context) {
         ActionUtil.invokeAction(action, context, "KubernetesNotification", null, null);
         toolWindow.activate(null);
     }
 
     private static Action<?> getRecommendKubernetesPluginAction(@Nonnull final Project project) {
-        final Consumer<Void> consumer = ignore -> AzureTaskManager.getInstance().runLater(KubernetesUtils::searchK8sPlugin);
-        final ActionView.Builder view = new ActionView.Builder("Install kubernetes plugin")
-                .title(ignore -> AzureString.fromString("Install kubernetes plugin")).enabled(ignore -> true);
-        final Action.Id<Void> id = Action.Id.of("kubernetes.install_kubernetes_plugin");
-        return new Action<>(id, consumer, view);
+        return new Action<>(Action.Id.of("user/kubernetes.install_kubernetes_plugin"))
+            .withLabel("Install kubernetes plugin")
+            .withHandler(ignore -> AzureTaskManager.getInstance().runLater(KubernetesUtils::searchK8sPlugin));
     }
 
-    @AzureOperation(name = "kubernetes.search_k8s_plugin", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "boundary/kubernetes.search_k8s_plugin")
     private static void searchK8sPlugin() {
         ShowSettingsUtil.getInstance().editConfigurable(null, new PluginManagerConfigurable(), it ->
             it.openMarketplaceTab("/tag: \"Cloud\" Kubernetes")
@@ -96,8 +90,7 @@ public class KubernetesUtils {
     @Nullable
     private static String getInstalledKubernetesPlugin() {
         return KUBERNETES_TERMINAL_MAP.keySet().stream()
-                .filter(id -> PluginManagerCore.isPluginInstalled(PluginId.getId(id)))
-                .findFirst().orElse(null);
+            .filter(id -> PluginManagerCore.isPluginInstalled(PluginId.getId(id)))
+            .findFirst().orElse(null);
     }
-
 }

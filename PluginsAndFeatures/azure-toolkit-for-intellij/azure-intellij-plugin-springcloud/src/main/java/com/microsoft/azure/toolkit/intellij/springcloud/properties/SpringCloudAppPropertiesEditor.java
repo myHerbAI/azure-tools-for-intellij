@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.intellij.common.properties.IntellijShowProper
 import com.microsoft.azure.toolkit.intellij.springcloud.component.SpringCloudAppConfigPanel;
 import com.microsoft.azure.toolkit.intellij.springcloud.component.SpringCloudAppInstancesPanel;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessageBundle;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
@@ -80,22 +79,22 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
     private void initListeners() {
         this.resetButton.addActionListener(e -> this.reset());
         this.refreshButton.addActionListener(e -> refresh());
-        final AzureString deleteTitle = OperationBundle.description("resource.delete_resource.resource", this.draft.getName());
+        final AzureString deleteTitle = OperationBundle.description("user/resource.delete_resource.resource", this.draft.getName());
         final AzureTaskManager tm = AzureTaskManager.getInstance();
         this.deleteButton.addActionListener(e -> {
             final String message = String.format("Are you sure to delete Spring app(%s)", this.draft.name());
             if (AzureMessager.getMessager().confirm(message, "Delete Spring app")) {
-                tm.runInModal(deleteTitle, () -> {
+                tm.runInBackground(deleteTitle, () -> {
                     IntellijShowPropertiesViewAction.closePropertiesView(this.draft, this.project);
                     this.draft.delete();
                 });
             }
         });
-        final AzureString startTitle = OperationBundle.description("resource.start_resource.resource", this.draft.getName());
+        final AzureString startTitle = OperationBundle.description("user/resource.start_resource.resource", this.draft.getName());
         this.startButton.addActionListener(e -> tm.runInBackground(startTitle, this.draft::start));
-        final AzureString stopTitle = OperationBundle.description("resource.stop_resource.resource", this.draft.getName());
+        final AzureString stopTitle = OperationBundle.description("user/resource.stop_resource.resource", this.draft.getName());
         this.stopButton.addActionListener(e -> tm.runInBackground(stopTitle, this.draft::stop));
-        final AzureString restartTitle = OperationBundle.description("resource.restart_resource.resource", this.draft.getName());
+        final AzureString restartTitle = OperationBundle.description("user/resource.restart_resource.resource", this.draft.getName());
         this.restartButton.addActionListener(e -> tm.runInBackground(restartTitle, this.draft::restart));
         final String saveTitle = String.format("Saving updates of app(%s)", this.draft.name());
         this.saveButton.addActionListener(e -> tm.runInBackground(saveTitle, this::save));
@@ -117,7 +116,7 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
         final SpringCloudAppConfig config = getConfig();
         this.draft.setConfig(config);
         final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(config);
-        AzureTaskManager.getInstance().runInBackground("Saving updates", task::execute);
+        AzureTaskManager.getInstance().runInBackground("Saving updates", () -> task.execute());
     }
 
     private void reset() {

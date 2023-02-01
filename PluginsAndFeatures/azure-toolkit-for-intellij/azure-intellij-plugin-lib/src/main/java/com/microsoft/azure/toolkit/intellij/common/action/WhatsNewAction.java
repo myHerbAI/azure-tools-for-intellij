@@ -21,7 +21,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.LightVirtualFile;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -56,7 +55,7 @@ public class WhatsNewAction extends AnAction implements DumbAware {
 
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "common.open_whats_new", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/common.open_whats_new")
     public void actionPerformed(@Nonnull final AnActionEvent event) {
         final boolean manually = !"AzurePluginStartupActivity".equals(event.getPlace());
         final String content = getWhatsNewContent();
@@ -71,8 +70,8 @@ public class WhatsNewAction extends AnAction implements DumbAware {
     private static void doShow(String content, DefaultArtifactVersion version, boolean manually, @Nonnull Project project) {
         final FileEditorManager manager = FileEditorManager.getInstance(project);
         final VirtualFile file = Arrays.stream(manager.getOpenFiles())
-                .filter(f -> StringUtils.equals(f.getUserData(CONTENT_KEY), CONTENT_PATH))
-                .findFirst().orElse(createVirtualFile(content));
+            .filter(f -> StringUtils.equals(f.getUserData(CONTENT_KEY), CONTENT_PATH))
+            .findFirst().orElse(createVirtualFile(content));
         AzureTaskManager.getInstance().runAndWait(() -> {
             if (project.isDisposed()) {
                 return;
@@ -84,10 +83,10 @@ public class WhatsNewAction extends AnAction implements DumbAware {
                     AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(WHATSNEW_URL);
                 } else {
                     final String message = String.format("Azure Toolkit for Java is updated to <b><u>%s</u></b>", version.toString());
-                    final String title = "Azure Toolkit for Java Updated";
-                    final AzureActionManager am = AzureActionManager.getInstance();
-                    final Action.Id<?> OPEN = Action.Id.of("common.open_whats_new_in_browser");
-                    final Action<?> changelog = new Action<>(OPEN, (n) -> am.getAction(OPEN_URL).handle(WHATSNEW_URL), new ActionView.Builder("What's New"));
+                    final String title = "Azure Toolkit for IntelliJ Updated";
+                    final Action<?> changelog = new Action<>(Action.Id.of("user/common.open_whats_new_in_browser"))
+                        .withLabel("What's New")
+                        .withHandler((n) -> AzureActionManager.getInstance().getAction(OPEN_URL).handle(WHATSNEW_URL));
                     AzureMessager.getMessager().info(message, title, changelog);
                 }
             }

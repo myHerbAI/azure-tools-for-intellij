@@ -28,11 +28,7 @@ public class ProcessComboBox extends AzureComboBox<ProcessInfo> {
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "appservice.list_flight_recorders.app",
-        params = {"this.appService.name()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/appservice.list_flight_recorders.app", params = {"this.appService.name()"})
     protected List<ProcessInfo> loadItems() throws Exception {
         if (Objects.isNull(appService)) {
             return Collections.emptyList();

@@ -147,6 +147,10 @@ public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputCompo
         });
     }
 
+    public void setValue(Predicate<T> predicate) {
+        this.setValue(new ItemReference<>(predicate));
+    }
+
     public void setValue(final ItemReference<T> val) {
         this.setValue(val, null);
     }
@@ -219,7 +223,7 @@ public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputCompo
         this.reloader.debounce();
     }
 
-    @AzureOperation(name = "common.load_combobox_items.type", params = {"this.getLabel()"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "interal/common.load_combobox_items.type", params = {"this.getLabel()"})
     private void doReloadItems() {
         AzureTaskManager.getInstance().runOnPooledThread(() -> {
             this.setLoading(true);
@@ -356,9 +360,6 @@ public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputCompo
             if (!AzureComboBox.this.isPopupVisible()) {
                 this.editor.setText(getItemText(item));
             }
-            if (item == null && AzureComboBox.this.loading) {
-                this.editor.setText("Refreshing...");
-            }
         }
 
         @Override
@@ -392,7 +393,15 @@ public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputCompo
         }
 
         public void rerender() {
-            ((ExtendableTextField) this.getEditorComponent()).setExtensions(this.getExtensions());
+            final ExtendableTextField editor = (ExtendableTextField) this.getEditorComponent();
+            editor.setExtensions(this.getExtensions());
+            if (AzureComboBox.this.enabled && AzureComboBox.this.loading) {
+                editor.setToolTipText("Loading...");
+                editor.getEmptyText().setText("Loading...");
+            } else {
+                editor.setToolTipText("");
+                editor.getEmptyText().setText("");
+            }
         }
     }
 

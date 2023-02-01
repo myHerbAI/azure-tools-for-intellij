@@ -1,0 +1,144 @@
+{
+  "Application Insights": [
+    {
+      "displayName": "Exceptions causing request failures",
+      "queryString": "AppRequests\n| where TimeGenerated > ago(1h) and Success == false\n| join kind= inner (\nAppExceptions\n| where TimeGenerated > ago(1h)\n) on OperationId\n| project exceptionType = Type, failedMethod = Method, requestName = Name, requestDuration = DurationMs, _ResourceId"
+    },
+    {
+      "displayName": "Failed operations",
+      "queryString": "AppRequests\n| where Success == false\n| summarize failedCount=sum(ItemCount), impactedUsers=dcount(UserId) by OperationName, _ResourceId\n| order by failedCount desc"
+    },
+    {
+      "displayName": "Failed requests – top 10 ",
+      "queryString": "AppRequests\n| where Success == false\n| summarize failedCount=sum(ItemCount) by Name\n| top 10 by failedCount desc"
+    },
+    {
+      "displayName": "Failing dependencies",
+      "queryString": "AppDependencies\n| where Success == false\n| summarize totalCount=sum(ItemCount) by DependencyType\n| top 5 by totalCount desc"
+    },
+    {
+      "displayName": "Operations performance",
+      "queryString": "AppRequests\n| summarize RequestsCount=sum(ItemCount), AverageDuration=avg(DurationMs), percentiles(DurationMs, 50, 95, 99) by OperationName, _ResourceId | order by RequestsCount desc"
+    },
+    {
+      "displayName": "Page views trend",
+      "queryString": "AppPageViews\n| where ClientType == 'Browser'\n| summarize count_sum = sum(ItemCount) by bin(TimeGenerated,30m), _ResourceId"
+    },
+    {
+      "displayName": "Request count trend",
+      "queryString": "AppRequests\n| summarize totalCount=sum(ItemCount) by bin(TimeGenerated, 30m), _ResourceId"
+    },
+    {
+      "displayName": "Response time buckets",
+      "queryString": "AppRequests\n| summarize requestCount=sum(ItemCount), avgDuration=avg(DurationMs) by PerformanceBucket\n| order by avgDuration asc | project-away avgDuration"
+    },
+    {
+      "displayName": "Response time trend",
+      "queryString": "AppRequests\n| where TimeGenerated > ago(12h) \n| summarize avgRequestDuration=avg(DurationMs) by bin(TimeGenerated, 10m), _ResourceId"
+    },
+    {
+      "displayName": "Slowest pages",
+      "queryString": "AppPageViews\n| where notempty(DurationMs) and ClientType == 'Browser'\n| extend total_duration=DurationMs*ItemCount\n| summarize avg_duration=(sum(total_duration)/sum(ItemCount)) by OperationName\n| top 3 by avg_duration desc"
+    },
+    {
+      "displayName": "Top 10 countries by traffic",
+      "queryString": "AppRequests\n| summarize CountByCountry=count() by ClientCountryOrRegion\n| top 10 by CountByCountry"
+    },
+    {
+      "displayName": "Top 3 browser exceptions",
+      "queryString": "AppExceptions\n| where notempty(ClientBrowser) and ClientType == 'Browser'\n| summarize total_exceptions = sum(ItemCount) by ProblemId\n| top 3 by total_exceptions desc"
+    }
+  ],
+  "App Service": [
+    {
+      "displayName": "App logs for each App Service",
+      "queryString": "AppServiceAppLogs | project CustomLevel, _ResourceId | summarize count() by CustomLevel, _ResourceId"
+    },
+    {
+      "displayName": "App Service Health",
+      "queryString": "AppServiceHTTPLogs | summarize (count() - countif(ScStatus >= 500)) * 100.0 / count() by bin(TimeGenerated, 5m), _ResourceId"
+    },
+    {
+      "displayName": "Count app logs by severity",
+      "queryString": "AppServiceAppLogs | summarize count()  by CustomLevel, bin(TimeGenerated, 1h), _ResourceId"
+    },
+    {
+      "displayName": "Count of denied access from IP Security Audit Logs by resource in selected time range",
+      "queryString": "AppServiceIPSecAuditLogs | where Result == \"Denied\"| summarize count() by  _ResourceId, CsHost, CIp, Details"
+    },
+    {
+      "displayName": "Error and exception count",
+      "queryString": "FunctionAppLogs | where TimeGenerated > ago(1h) | where Level == \"Warning\" or Level == \"Error\" | summarize count_per_app = count() by _ResourceId | sort by count_per_app desc"
+    },
+    {
+      "displayName": "Failure Categorization",
+      "queryString": "AppServiceHTTPLogs | where ScStatus >= 500"
+    },
+    {
+      "displayName": "Find console logs relating to application startup",
+      "queryString": "AppServiceConsoleLogs | where tolower(ResultDescription) contains \"starting\""
+    },
+    {
+      "displayName": "Function activity over time",
+      "queryString": "FunctionAppLogs | where Category startswith \"Function.\" and Message startswith \"Executed \"\n| summarize count() by bin(TimeGenerated, 1h), FunctionName // Aggregate by hour\n| render timechart"
+    },
+    {
+      "displayName": "Function Error rate",
+      "queryString": "FunctionAppLogs\n| where Category startswith \"Function.\" and Message startswith \"Executed \"\n| parse Message with \"Executed '\" Name \"' (\"  Result \", Id=\" Id \", Duration=\" Duration:long \"ms)\" | summarize count() by bin(TimeGenerated, 1h), Name, Result, _ResourceId\n| order by TimeGenerated desc"
+    },
+    {
+      "displayName": "Function results",
+      "queryString": "FunctionAppLogs\n| where TimeGenerated > ago(1h)\n| where Category startswith \"Function.\" and Message startswith \"Executed \"\n| parse Message with \"Executed '\" Name \"' (\"  Result \", Id=\" Id \", Duration=\" Duration:long \"ms)\"\n| project TimeGenerated, FunctionName, Result, FunctionInvocationId, Duration, _ResourceId\n| sort by TimeGenerated desc"
+    },
+    {
+      "displayName": "Response times",
+      "queryString": "AzureMetrics \n| extend timeBin = bin(TimeGenerated, 5m) \n| summarize ResponseTime = sumif(Average, MetricName==\"AverageResponseTime\") by timeBin, bin(TimeGenerated, 1h) \n| sort by TimeGenerated desc"
+    },
+    {
+      "displayName": "HTTP response codes",
+      "queryString": "AzureMetrics \n| where TimeGenerated > ago(12h)  \n| where MetricName in (\"Http2xx\", \"Http3xx\", \"Http4xx\", \"Http5xx\") \n| summarize sum(Total) by MetricName"
+    },
+    {
+      "displayName": "Response times of requests",
+      "queryString": "AppServiceHTTPLogs \n| summarize avg(TimeTaken), percentiles(TimeTaken, 90, 95, 99) by _ResourceId"
+    },
+    {
+      "displayName": "Show application logs from Function Apps",
+      "queryString": "FunctionAppLogs \n| project TimeGenerated, HostInstanceId, Message, _ResourceId\n| sort by TimeGenerated desc"
+    },
+    {
+      "displayName": "Show logs with warnings or exceptions",
+      "queryString": "FunctionAppLogs\n| where Level == \"Warning\" or Level == \"Error\"\n| project TimeGenerated, HostInstanceId, Level, Message, _ResourceId\n| sort by TimeGenerated desc"
+    },
+    {
+      "displayName": "Functions took longer than 1000 ms",
+      "queryString": "let threshold=1000;\nFunctionAppLogs\n| where Category startswith \"Function.\" and Message startswith \"Executed \"\n| parse Message with \"Executed '\" Name \"' (\"  Result \", Id=\" Id \", Duration=\" Duration:long \"ms)\"\n| project TimeGenerated, FunctionName, Result, FunctionInvocationId, Duration, _ResourceId\n| where Duration > threshold \n| sort by TimeGenerated desc"
+    },
+    {
+      "displayName": "Top 5 Clients",
+      "queryString": "AppServiceHTTPLogs\n| top-nested of _ResourceId by dummy=max(0), top-nested 5 of UserAgent by count()\n| project-away dummy"
+    },
+    {
+      "displayName": "Top 5 Machines",
+      "queryString": "AppServiceHTTPLogs\n| top-nested of _ResourceId by dummy=max(0), top-nested 5 of CIp by count()\n| project-away dummy"
+    }
+  ],
+  "Azure Spring Apps": [
+    {
+      "displayName": "Show the application logs which contain the \"error\" or \"exception\" terms",
+      "queryString": "AppPlatformLogsforSpring\n| where TimeGenerated > ago(1h)\n| where Log contains \"error\" or Log contains \"exception\"\n| project TimeGenerated , ServiceName , AppName , InstanceName , Log , _ResourceId "
+    },
+    {
+      "displayName": "Show the config server logs",
+      "queryString": "AppPlatformSystemLogs \n| where LogType == \"ConfigServer\" and Level in (\"WARN\", \"ERROR\")\n| project TimeGenerated , Level , ServiceName , Thread , Stack , Log , _ResourceId \n| limit 100"
+    },
+    {
+      "displayName": "Show the error and exception number of each application",
+      "queryString": "AppPlatformLogsforSpring \n| where TimeGenerated > ago(24h)\n| where Log contains \"error\" or Log contains \"exception\"\n| extend FullAppName = strcat(ServiceName, \"/\", AppName)\n| summarize count_per_app = count() by FullAppName, ServiceName, AppName, _ResourceId\n| sort by count_per_app desc"
+    },
+    {
+      "displayName": "Show the service registry logs",
+      "queryString": "AppPlatformSystemLogs \n| where LogType == \"ServiceRegistry\" and Level in (\"WARN\", \"ERROR\")\n| project TimeGenerated , Level , ServiceName , Thread , Stack , Log , _ResourceId \n| limit 100"
+    }
+  ]
+}

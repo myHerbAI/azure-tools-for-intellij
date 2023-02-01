@@ -20,15 +20,15 @@ import com.intellij.util.ThrowableRunnable;
 import com.intellij.util.ui.UIUtil;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessage;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
-import com.microsoft.azure.toolkit.lib.common.view.IView;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class IntellijAzureMessager implements IAzureMessager {
@@ -51,8 +51,7 @@ public class IntellijAzureMessager implements IAzureMessager {
             log.warn("caught an error by messager", ((Throwable) raw.getPayload()));
         }
         switch (raw.getType()) {
-            case ALERT:
-            case CONFIRM:
+            case ALERT, CONFIRM -> {
                 final boolean[] result = new boolean[]{true};
                 try {
                     UIUtil.invokeAndWaitIfNeeded((ThrowableRunnable<?>) () -> {
@@ -63,7 +62,9 @@ public class IntellijAzureMessager implements IAzureMessager {
                     e.printStackTrace();
                 }
                 return result[0];
-            default:
+            }
+            default -> {
+            }
         }
         this.showNotification(raw);
         return true;
@@ -84,15 +85,16 @@ public class IntellijAzureMessager implements IAzureMessager {
         final NotificationType type = types.get(message.getType());
         final String content = message.getContent();
         final Notification notification = this.createNotification(message.getTitle(), content, type);
-        notification.addActions(Arrays.stream(message.getActions()).map(a -> {
-            final String title = Optional.ofNullable(a.getView(null)).map(IView.Label::getLabel).orElse(a.toString());
-            return new NotificationAction(title) {
+        final Collection<NotificationAction> actions = Arrays.stream(message.getActions())
+            .map(a -> ImmutablePair.of(a, a.getView(null)))
+            .filter(p -> p.getValue().isVisible() && p.getValue().isEnabled())
+            .map(p -> new NotificationAction(p.getValue().getLabel()) {
                 @Override
                 public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-                    a.handle(null, e);
+                    p.getKey().handle(null, e);
                 }
-            };
-        }).collect(Collectors.toList()));
+            }).collect(Collectors.toList());
+        notification.addActions(actions);
         Notifications.Bus.notify(notification, message.getProject());
     }
 }

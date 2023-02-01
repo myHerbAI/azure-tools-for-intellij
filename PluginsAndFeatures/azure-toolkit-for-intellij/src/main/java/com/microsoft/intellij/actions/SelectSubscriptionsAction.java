@@ -28,7 +28,7 @@ public class SelectSubscriptionsAction extends AzureAnAction implements DumbAwar
     }
 
     @Override
-    @AzureOperation(name = "account.select_subscription", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/account.select_subscription")
     public boolean onActionPerformed(@NotNull AnActionEvent e, @Nullable Operation operation) {
         selectSubscriptions(e.getProject());
         return true;

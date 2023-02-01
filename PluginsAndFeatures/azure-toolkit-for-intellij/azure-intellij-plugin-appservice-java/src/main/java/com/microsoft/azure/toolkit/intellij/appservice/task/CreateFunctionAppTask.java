@@ -34,7 +34,7 @@ public class CreateFunctionAppTask implements Task {
     }
 
     @Override
-    @AzureOperation(name = "guidance.create_function_app", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "internal/guidance.create_function_app")
     public void execute() throws Exception {
         final String name = (String) Objects.requireNonNull(context.getParameter(FUNCTION_APP_NAME), "`name` is required to create function app");
         final Subscription subscription = Optional.ofNullable((String) context.getParameter(SignInTask.SUBSCRIPTION_ID))

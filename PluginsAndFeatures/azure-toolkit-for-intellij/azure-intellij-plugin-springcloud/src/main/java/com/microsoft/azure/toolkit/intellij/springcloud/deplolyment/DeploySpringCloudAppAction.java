@@ -33,7 +33,7 @@ public class DeploySpringCloudAppAction extends AnAction {
     private static final SpringCloudDeploymentConfigurationType configType = SpringCloudDeploymentConfigurationType.getInstance();
 
     @ExceptionNotification
-    @AzureOperation(name = "springcloud.deploy_app", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/springcloud.deploy_app")
     public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
         final Project project = anActionEvent.getProject();
         if (project != null) {

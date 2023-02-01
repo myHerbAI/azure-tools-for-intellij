@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.intellij.vm.ssh;
 
 import com.intellij.openapi.project.Project;
-
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.remote.AuthType;
@@ -41,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 
 public class BrowseRemoteHostSftpAction {
 
-    @AzureOperation(name = "vm.browse_files_sftp.vm", params = "vm.getName()", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/vm.browse_files_sftp.vm", params = "vm.getName()")
     public static void browseRemoteHost(VirtualMachine vm, @Nonnull Project project) {
         final SshConfig curSshConfig = AddSshConfigAction.getOrCreateSshConfig(vm, project);
         final SshConfig sshConfig = validateSshConfig(curSshConfig);
@@ -49,7 +48,7 @@ public class BrowseRemoteHostSftpAction {
         tryConnecting(project, sshConfig, openToolWindowHandler);
     }
 
-    @AzureOperation(name = "vm.open_sftp_toolwindow", type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "boundary/vm.open_sftp_toolwindow")
     private static void openSftpToolWindow(@Nonnull Project project, SshConfig sshConfig) {
         final WebServerConfig server = getOrCreateWebServerConfigFromSsh(sshConfig, project);
         final ToolWindow toolWindow = WebServerToolWindowFactory.getWebServerToolWindow(project);
@@ -59,7 +58,7 @@ public class BrowseRemoteHostSftpAction {
 
     private static void tryConnecting(@Nonnull Project project, SshConfig sshConfig, Runnable callback) {
         final SshUiData sshUiData = new SshUiData(sshConfig);
-        final AzureString title = OperationBundle.description("vm.connecting.vm", sshConfig.getName());
+        final AzureString title = OperationBundle.description("boundary/vm.connecting.vm", sshConfig.getName());
         final AzureTask<Void> task = new AzureTask<>(title, () -> {
             try {
                 RemoteCredentialsUtil.connectionBuilder(sshUiData, project)

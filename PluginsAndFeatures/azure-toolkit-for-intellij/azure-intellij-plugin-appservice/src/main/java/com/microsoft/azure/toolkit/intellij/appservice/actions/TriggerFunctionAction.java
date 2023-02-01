@@ -46,7 +46,7 @@ public class TriggerFunctionAction {
     private static final String EMPTY_CONTENT = "{}";
     private static final String INPUT_CONTENT = "{ \"input\" : \"test\" }";
 
-    @AzureOperation(name = "function.trigger_with_http_client.function", params = {"functionEntity.getName()"},type = AzureOperation.Type.TASK, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "boundary/function.trigger_with_http_client.function", params = {"functionEntity.getName()"})
     public static void triggerFunction(@Nonnull FunctionEntity functionEntity, @Nonnull Project project) {
         try {
             final ResourceId resourceId = ResourceId.fromString(functionEntity.getTriggerId());

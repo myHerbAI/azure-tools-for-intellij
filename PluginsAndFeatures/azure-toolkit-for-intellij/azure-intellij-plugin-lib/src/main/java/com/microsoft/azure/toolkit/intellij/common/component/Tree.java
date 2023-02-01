@@ -36,10 +36,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static com.intellij.ui.AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED;
 
@@ -123,9 +121,9 @@ public class Tree extends SimpleTree implements DataProvider {
         @Nullable
         public IView.Label getInlineActionView() {
             return Optional.ofNullable(this.inner.inlineAction())
-                    .map(a -> a.getView(this.inner.data()))
-                    .filter(IView.Label::isEnabled)
-                    .orElse(null);
+                .map(a -> a.getView(this.inner.data()))
+                .filter(IView.Label::isEnabled)
+                .orElse(null);
         }
 
         @Override
@@ -148,7 +146,7 @@ public class Tree extends SimpleTree implements DataProvider {
         }
 
         @Override
-        @AzureOperation(name = "common.load_children.node", params = "this.getLabel()", type = AzureOperation.Type.ACTION)
+        @AzureOperation(name = "user/common.load_children.node", params = "this.getLabel()")
         public synchronized void refreshChildren(boolean... incremental) {
             if (this.getAllowsChildren() && BooleanUtils.isNotFalse(this.loaded)) {
                 final DefaultTreeModel model = (DefaultTreeModel) this.tree.getModel();
@@ -192,8 +190,8 @@ public class Tree extends SimpleTree implements DataProvider {
 
         private synchronized void updateChildren(List<Node<?>> children) {
             final Map<Object, DefaultMutableTreeNode> oldChildren = IntStream.range(0, this.getChildCount() - 1).mapToObj(this::getChildAt)
-                    .filter(n -> n instanceof DefaultMutableTreeNode).map(n -> ((DefaultMutableTreeNode) n))
-                    .collect(Collectors.toMap(DefaultMutableTreeNode::getUserObject, n -> n));
+                .filter(n -> n instanceof DefaultMutableTreeNode).map(n -> ((DefaultMutableTreeNode) n))
+                .collect(Collectors.toMap(DefaultMutableTreeNode::getUserObject, n -> n));
 
             final Set<Object> newChildrenData = children.stream().map(Node::data).collect(Collectors.toSet());
             final Set<Object> oldChildrenData = oldChildren.keySet();
@@ -213,7 +211,7 @@ public class Tree extends SimpleTree implements DataProvider {
                 }
             } else {
                 final List<Node<?>> newChildren = children.stream()
-                        .filter(c -> !oldChildrenData.contains(c.data())).collect(Collectors.toList());
+                    .filter(c -> !oldChildrenData.contains(c.data())).toList();
                 newChildren.forEach(node -> this.insert(new TreeNode<>(node, this.tree), getChildCount()));
             }
 
@@ -255,8 +253,8 @@ public class Tree extends SimpleTree implements DataProvider {
         }
 
         private void addLoadMoreNode() {
-            if (this.inner.hasMoreChild()) {
-                this.add(new LoadMoreNode(e -> this.inner.triggerLoadMoreAction(e)));
+            if (this.inner.hasMoreChildren()) {
+                this.add(new LoadMoreNode());
             }
         }
 
@@ -282,18 +280,14 @@ public class Tree extends SimpleTree implements DataProvider {
     }
 
     public static class LoadMoreNode extends DefaultMutableTreeNode {
+        public static final String LABEL = "load more...";
 
-        @Getter
-        private final Consumer<Object> consumer;
-
-        public LoadMoreNode(@Nonnull final Consumer<Object> consumer) {
-            this("Load More", consumer);
+        public LoadMoreNode() {
+            super(LABEL);
         }
 
-        public LoadMoreNode(@Nonnull final String title, @Nonnull final Consumer<Object> consumer) {
-            super(title);
-            this.consumer = consumer;
+        public void load() {
+            Optional.ofNullable(this.getParent()).map(p -> (TreeNode<?>) p).map(p -> p.inner).ifPresent(Node::loadMoreChildren);
         }
     }
 }
-

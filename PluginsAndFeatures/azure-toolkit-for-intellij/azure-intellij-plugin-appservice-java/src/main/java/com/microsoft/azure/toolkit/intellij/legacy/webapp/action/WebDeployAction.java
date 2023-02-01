@@ -55,7 +55,7 @@ public class WebDeployAction extends AzureAnAction {
     }
 
     @SuppressWarnings("deprecation")
-    @AzureOperation(name = "webapp.deploy_module.module", params = {"module.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/webapp.deploy_module.module", params = {"module.getName()"})
     private void runConfiguration(Module module) {
         Project project = module.getProject();
         final RunManagerEx manager = RunManagerEx.getInstanceEx(project);

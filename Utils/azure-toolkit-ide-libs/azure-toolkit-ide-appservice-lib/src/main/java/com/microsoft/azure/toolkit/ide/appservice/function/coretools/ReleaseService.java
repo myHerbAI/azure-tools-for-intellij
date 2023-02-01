@@ -36,8 +36,7 @@ public class ReleaseService {
         final ObjectMapper jsonMapper = new JsonMapper()
                 .configure(JsonParser.Feature.ALLOW_COMMENTS, true)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        try {
-            final Response response = client.newCall(request).execute();
+        try (final Response response = client.newCall(request).execute()) {
             if (response.isSuccessful()) {
                 return jsonMapper.readValue(response.body().string(), ReleaseFeedData.class);
             }

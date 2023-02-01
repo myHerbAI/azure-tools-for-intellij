@@ -76,11 +76,7 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
 
     @NotNull
     @Override
-    @AzureOperation(
-        name = "springcloud.list_apps.cluster",
-        params = {"this.cluster.name()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/springcloud.list_apps.cluster", params = {"this.cluster.name()"})
     protected List<? extends SpringCloudApp> loadItems() {
         final List<SpringCloudApp> apps = new ArrayList<>();
         if (Objects.nonNull(this.cluster)) {

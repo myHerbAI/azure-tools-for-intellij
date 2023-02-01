@@ -51,7 +51,7 @@ public class DeployFunctionAction extends AzureAnAction {
         event.getPresentation().setEnabledAndVisible(FunctionUtils.isFunctionProject(event.getProject()));
     }
 
-    @AzureOperation(name = "function.deploy_app.module", params = {"module.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/function.deploy_app.module", params = {"module.getName()"})
     private void runConfiguration(Module module) {
         final Project project = module.getProject();
         final RunManagerEx manager = RunManagerEx.getInstanceEx(project);

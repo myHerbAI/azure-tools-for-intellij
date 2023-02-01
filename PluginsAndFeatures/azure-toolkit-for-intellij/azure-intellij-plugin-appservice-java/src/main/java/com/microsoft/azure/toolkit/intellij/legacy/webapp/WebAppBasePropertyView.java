@@ -140,7 +140,7 @@ public abstract class WebAppBasePropertyView extends BaseEditor implements WebAp
             public void actionPerformedFunc(ActionEvent event) {
                 updateMapStatus(editedAppSettings, cachedAppSettings);
                 tblAppSetting.clear();
-                tblAppSetting.addAppSettings(editedAppSettings);
+                tblAppSetting.setAppSettings(editedAppSettings);
             }
         });
 

@@ -10,6 +10,8 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
@@ -74,55 +76,52 @@ public class FunctionsCoreToolsManager {
         });
     }
 
-    @AzureOperation(name = "function.download_func_core_tools", type = AzureOperation.Type.ACTION)
     private void doDownloadReleaseTools(@Nullable ReleaseInfo releaseInfo, String downloadDirPath) {
         if (Objects.isNull(releaseInfo)) {
             return;
         }
+        final String unzipRootDir = Paths.get(downloadDirPath, extractFileNameFromUrl(releaseInfo.downloadLink)).toString();
+        final String executionFilePath = Paths.get(unzipRootDir, "windows".equalsIgnoreCase(generateFilter().os) ? "func.exe" : "func").toString();
+        final String AZURE_FUNCTIONS = "AzureFunctions";
         try {
-            final String AZURE_FUNCTIONS = "AzureFunctions";
             final File tempFile = File.createTempFile(
                     String.format("%s-%s", AZURE_FUNCTIONS, releaseInfo.releaseVersion),
                     ".zip", Files.createTempDirectory(AZURE_FUNCTIONS).toFile());
             final FileOutputStream outputStream = new FileOutputStream(tempFile);
             outputStream.getChannel().transferFrom(Channels.newChannel(new URL(releaseInfo.downloadLink).openStream()), 0, Long.MAX_VALUE);
-            unzip(tempFile, Paths.get(downloadDirPath, releaseInfo.releaseVersion).toString());
+            unzip(tempFile, unzipRootDir);
             tempFile.deleteOnExit();
+            final File executionFile = new File(executionFilePath);
+            if (executionFile.exists() && !executionFile.canExecute()) {
+                executionFile.setExecutable(true);
+            }
         } catch (final Exception e) {
             throw new AzureToolkitRuntimeException(e);
         }
-        Azure.az().config().setFunctionCoreToolsPath(Paths.get(downloadDirPath, releaseInfo.releaseVersion, "func.exe").toString());
+        Azure.az().config().setFunctionCoreToolsPath(executionFilePath);
         AzureConfigInitializer.saveAzConfig();
         AzureEventBus.emit("function.download_func_core_tools_succeed.version", releaseInfo.releaseVersion);
     }
 
     private void unzip(File zipFile, String destDirPath) throws Exception {
-        createIfNotExist(destDirPath);
-        final FileInputStream fileInputStream = new FileInputStream(zipFile);
-        final ZipInputStream zipInputStream = new ZipInputStream(fileInputStream);
-        final byte[] buffer = new byte[1024];
+        Files.createDirectories(Paths.get(destDirPath));
+        final ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zipFile));
         ZipEntry zipEntry = zipInputStream.getNextEntry();
         while (zipEntry != null) {
             final File zipEntryFile = new File(destDirPath + File.separator + zipEntry.getName());
-            createIfNotExist(zipEntryFile.getParent());
-            final FileOutputStream fileOutputStream = new FileOutputStream(zipEntryFile);
-            int len = zipInputStream.read(buffer);
-            while (len > 0) {
-                fileOutputStream.write(buffer, 0, len);
-                len = zipInputStream.read(buffer);
+            if (zipEntry.isDirectory()) {
+                Files.createDirectories(zipEntryFile.toPath());
+            } else {
+                Files.createDirectories(zipEntryFile.toPath().getParent());
+                try (final OutputStream out = new FileOutputStream(zipEntryFile)) {
+                    IOUtils.copy(zipInputStream, out);
+                }
             }
-            fileOutputStream.close();
             zipInputStream.closeEntry();
             zipEntry = zipInputStream.getNextEntry();
         }
         zipInputStream.closeEntry();
         zipInputStream.close();
-        fileInputStream.close();
-    }
-
-    private void createIfNotExist(String dirPath) {
-        final File dstDir = new File(dirPath);
-        dstDir.mkdirs();
     }
 
     /**
@@ -134,9 +133,9 @@ public class FunctionsCoreToolsManager {
         final boolean isIntel64 = "x86_64".equalsIgnoreCase(architectureName) || "amd64".equalsIgnoreCase(architectureName);
         final boolean isArm64 = "aarch64".equalsIgnoreCase(architectureName) || "arm64".equalsIgnoreCase(architectureName);
         if (osName.startsWith("windows") && isIntel64) {
-            return new ReleaseFilter("windows", List.of("x64"), List.of("minified", "full"));
+            return new ReleaseFilter("windows", List.of("x64"), List.of("full"));
         } else if (osName.startsWith("windows")) {
-            return new FunctionsCoreToolsManager.ReleaseFilter("windows", List.of("x86"), List.of("minified", "full"));
+            return new FunctionsCoreToolsManager.ReleaseFilter("windows", List.of("x86"), List.of("full"));
         } else if (osName.startsWith("mac") && isArm64) {
             return new FunctionsCoreToolsManager.ReleaseFilter("macOS", List.of("arm64", "x64"), List.of("full"));
         } else if (osName.startsWith("mac")) {
@@ -145,6 +144,11 @@ public class FunctionsCoreToolsManager {
             return new FunctionsCoreToolsManager.ReleaseFilter("linux", List.of("x64"), List.of("full"));
         }
         return new FunctionsCoreToolsManager.ReleaseFilter("unknown", List.of("x64"), List.of("full"));
+    }
+
+    private String extractFileNameFromUrl(String downloadLink) {
+        final String[] urlParts = downloadLink.split("/");
+        return FilenameUtils.removeExtension(urlParts[urlParts.length - 1]);
     }
 
     private static class ReleaseInfo {
@@ -159,7 +163,7 @@ public class FunctionsCoreToolsManager {
     public static class ReleaseFilter {
         private final String os;
         private final List<String> architectures;
-        private final List<String> sizes;
+        private final List<String> sizes;   // todo only one size(full-size), should change list to string
         public ReleaseFilter(String os, List<String> architectures, List<String> sizes) {
             this.os = os;
             this.architectures = architectures;

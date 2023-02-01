@@ -24,10 +24,7 @@ import com.microsoft.azure.toolkit.intellij.appservice.actions.AppServiceFileAct
 import com.microsoft.azure.toolkit.intellij.appservice.actions.OpenAppServicePropertyViewAction;
 import com.microsoft.azure.toolkit.intellij.function.remotedebug.FunctionEnableRemoteDebuggingAction;
 import com.microsoft.azure.toolkit.intellij.function.remotedebug.FunctionRemoteDebuggingAction;
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.action.ProfileFlightRecordAction;
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.action.SSHIntoWebAppAction;
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.action.StartStreamingLogsAction;
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.action.StopStreamingLogsAction;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.action.*;
 import com.microsoft.azure.toolkit.intellij.legacy.docker.action.PushToContainerRegistryAction;
 import com.microsoft.azure.toolkit.intellij.legacy.function.action.CreateFunctionAppAction;
 import com.microsoft.azure.toolkit.intellij.legacy.function.action.DeployFunctionAppAction;
@@ -46,13 +43,11 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
@@ -76,36 +71,32 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
 
     @Override
     public void registerActions(AzureActionManager am) {
-        final BiConsumer<AppServiceFile, AnActionEvent> openFileHandler = (file, e) -> AzureTaskManager
-            .getInstance().runLater(() -> new AppServiceFileAction().openAppServiceFile(file, e.getProject()));
-        final ActionView.Builder openFileView = new ActionView.Builder("Open File", null)
-            .title(s -> Optional.ofNullable(s)
-                .map(r -> OperationBundle.description("appservice.open_file.file", ((AppServiceFile) r).getName()))
-                .orElse(null))
-            .enabled(s -> s instanceof AppServiceFile);
-        final Action<AppServiceFile> openFileAction = new Action<>(APP_SERVICE_FILE_VIEW, openFileHandler, openFileView);
-        openFileAction.setShortcuts(am.getIDEDefaultShortcuts().edit());
-        am.registerAction(openFileAction);
+        final AzureTaskManager tm = AzureTaskManager.getInstance();
 
-        final BiConsumer<AppServiceFile, AnActionEvent> downloadFileHandler = (file, e) -> AzureTaskManager
-            .getInstance().runLater(() -> new AppServiceFileAction().saveAppServiceFile(file, e.getProject(), null));
-        final ActionView.Builder downloadFileView = new ActionView.Builder("Download", null)
-            .title(s -> Optional.ofNullable(s)
-                .map(r -> OperationBundle.description("appservice.download_file.file", ((AppServiceFile) r).getName()))
-                .orElse(null))
-            .enabled(s -> s instanceof AppServiceFile);
-        final Action<AppServiceFile> downloadFileAction = new Action<>(APP_SERVICE_FILE_DOWNLOAD, downloadFileHandler, downloadFileView);
-        downloadFileAction.setShortcuts("control alt D");
-        am.registerAction(downloadFileAction);
+        new Action<>(APP_SERVICE_FILE_VIEW)
+            .withLabel("Open File")
+            .withIdParam(AppServiceFile::getName)
+            .visibleWhen(s -> s instanceof AppServiceFile)
+            .withHandler((file, e) -> tm.runLater(() -> new AppServiceFileAction().openAppServiceFile(file, ((AnActionEvent) e).getProject())))
+            .withShortcut(am.getIDEDefaultShortcuts().edit())
+            .register(am);
+
+        new Action<>(APP_SERVICE_FILE_DOWNLOAD)
+            .withLabel("Download")
+            .withIdParam(AppServiceFile::getName)
+            .visibleWhen(s -> s instanceof AppServiceFile)
+            .withHandler((file, e) -> tm.runLater(() -> new AppServiceFileAction().saveAppServiceFile(file, ((AnActionEvent) e).getProject(), null)))
+            .register(am);
     }
 
     @Override
     public void registerHandlers(AzureActionManager am) {
         final BiPredicate<AppServiceAppBase<?, ?, ?>, AnActionEvent> isAppService = (r, e) -> r instanceof AppServiceAppBase<?, ?, ?>;
         final BiPredicate<AppServiceAppBase<?, ?, ?>, AnActionEvent> nonLinuxFunction = (r, e) -> Objects.nonNull(r) &&
-                !(r instanceof FunctionApp && Optional.ofNullable(r.getRuntime()).map(Runtime::isLinux).orElse(Boolean.FALSE));
+            !(r instanceof FunctionApp && Optional.ofNullable(r.getRuntime()).map(Runtime::isLinux).orElse(Boolean.FALSE));
+        final AzureTaskManager tm = AzureTaskManager.getInstance();
         final BiConsumer<AppServiceAppBase<?, ?, ?>, AnActionEvent> flightRecorderHandler = (c, e) ->
-            AzureTaskManager.getInstance().runLater(() -> new ProfileFlightRecordAction(c, e.getProject()).execute());
+            tm.runLater(() -> new ProfileFlightRecordAction(c, e.getProject()).execute());
         am.registerHandler(AppServiceActionsContributor.PROFILE_FLIGHT_RECORD, isAppService, flightRecorderHandler);
 
         final BiConsumer<AppServiceAppBase<?, ?, ?>, AnActionEvent> startStreamingLogHandler = (c, e) ->
@@ -113,41 +104,43 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
         am.registerHandler(AppServiceActionsContributor.START_STREAM_LOG, isAppService, startStreamingLogHandler);
 
         final BiConsumer<AppServiceAppBase<?, ?, ?>, AnActionEvent> stopStreamingLogHandler = (c, e) ->
-            AzureTaskManager.getInstance().runLater(() -> new StopStreamingLogsAction(c, e.getProject()).execute());
+            tm.runLater(() -> new StopStreamingLogsAction(c, e.getProject()).execute());
         am.registerHandler(AppServiceActionsContributor.STOP_STREAM_LOG, nonLinuxFunction, stopStreamingLogHandler);
+
+        final BiConsumer<AppServiceAppBase<?, ?, ?>, AnActionEvent> openLogsInMonitorHandler = (c, e) ->
+                new OpenLogsInMonitorAction(c, e.getProject()).execute();
+        am.registerHandler(AppServiceActionsContributor.OPEN_LOGS_IN_MONITOR, isAppService, openLogsInMonitorHandler);
 
         final BiPredicate<AppServiceAppBase<?, ?, ?>, AnActionEvent> isWebApp = (r, e) -> r instanceof WebApp;
         final BiConsumer<AppServiceAppBase<?, ?, ?>, AnActionEvent> sshHandler = (c, e) ->
-            AzureTaskManager.getInstance().runLater(() -> new SSHIntoWebAppAction((WebApp) c, e.getProject()).execute());
+            tm.runLater(() -> new SSHIntoWebAppAction((WebApp) c, e.getProject()).execute());
         am.registerHandler(AppServiceActionsContributor.SSH_INTO_WEBAPP, isAppService, sshHandler);
 
-        final BiConsumer<AzResource, AnActionEvent> deployWebAppHandler = (c, e) -> AzureTaskManager
-            .getInstance().runLater(() -> new DeployWebAppAction((WebApp) c, e.getProject()).execute());
+        final BiConsumer<AzResource, AnActionEvent> deployWebAppHandler = (c, e) -> tm.runLater(() -> new DeployWebAppAction((WebApp) c, e.getProject()).execute());
         am.registerHandler(ResourceCommonActionsContributor.DEPLOY, (r, e) -> r instanceof WebApp, deployWebAppHandler);
 
         final BiConsumer<Object, AnActionEvent> createWebAppHandler = (c, e) -> CreateWebAppAction.openDialog(e.getProject(), null);
         am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof AzureWebApp, createWebAppHandler);
 
-        final BiConsumer<AzResource, AnActionEvent> deployFunctionAppHandler = (c, e) -> AzureTaskManager
-            .getInstance().runLater(() -> new DeployFunctionAppAction((FunctionApp) c, e.getProject()).execute());
+        final BiConsumer<AzResource, AnActionEvent> deployFunctionAppHandler = (c, e) -> tm.runLater(() -> new DeployFunctionAppAction((FunctionApp) c, e.getProject()).execute());
         am.registerHandler(ResourceCommonActionsContributor.DEPLOY, (r, e) -> r instanceof FunctionApp, deployFunctionAppHandler);
 
         final BiConsumer<Object, AnActionEvent> createFunctionHandler = (c, e) -> CreateFunctionAppAction.openDialog(e.getProject(), null);
         am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof AzureFunctions, createFunctionHandler);
 
-        final BiConsumer<AzResourceBase, AnActionEvent> showFunctionPropertyViewHandler = (c, e) -> AzureTaskManager.getInstance()
+        final BiConsumer<AzResourceBase, AnActionEvent> showFunctionPropertyViewHandler = (c, e) -> tm
             .runLater(() -> new OpenAppServicePropertyViewAction().openFunctionAppPropertyView((FunctionApp) c, e.getProject()));
         am.registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES, (r, e) -> r instanceof FunctionApp, showFunctionPropertyViewHandler);
 
-        final BiConsumer<AzResourceBase, AnActionEvent> showFunctionSlotPropertyViewHandler = (c, e) -> AzureTaskManager.getInstance()
-                .runLater(() -> new OpenAppServicePropertyViewAction().openFunctionAppDeploymentSlotPropertyView((FunctionAppDeploymentSlot) c, e.getProject()));
+        final BiConsumer<AzResourceBase, AnActionEvent> showFunctionSlotPropertyViewHandler = (c, e) -> tm
+            .runLater(() -> new OpenAppServicePropertyViewAction().openFunctionAppDeploymentSlotPropertyView((FunctionAppDeploymentSlot) c, e.getProject()));
         am.registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES, (r, e) -> r instanceof FunctionAppDeploymentSlot, showFunctionSlotPropertyViewHandler);
 
-        final BiConsumer<AzResourceBase, AnActionEvent> showWebAppPropertyViewHandler = (c, e) -> AzureTaskManager.getInstance()
+        final BiConsumer<AzResourceBase, AnActionEvent> showWebAppPropertyViewHandler = (c, e) -> tm
             .runLater(() -> new OpenAppServicePropertyViewAction().openWebAppPropertyView((WebApp) c, e.getProject()));
         am.registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES, (r, e) -> r instanceof WebApp, showWebAppPropertyViewHandler);
 
-        final BiConsumer<AzResourceBase, AnActionEvent> showWebAppSlotPropertyViewHandler = (c, e) -> AzureTaskManager.getInstance()
+        final BiConsumer<AzResourceBase, AnActionEvent> showWebAppSlotPropertyViewHandler = (c, e) -> tm
             .runLater(() -> new OpenAppServicePropertyViewAction().openDeploymentSlotPropertyView((WebAppDeploymentSlot) c, e.getProject()));
         am.registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES, (r, e) -> r instanceof WebAppDeploymentSlot, showWebAppSlotPropertyViewHandler);
 
@@ -162,7 +155,7 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
             if (StringUtils.equalsIgnoreCase(triggerType, "timertrigger")) {
                 request = new Object();
             } else {
-                final String input = AzureTaskManager.getInstance().runAndWaitAsObservable(new AzureTask<>(() -> Messages.showInputDialog(e.getProject(), "Please set the input value: ",
+                final String input = tm.runAndWaitAsObservable(new AzureTask<>(() -> Messages.showInputDialog(e.getProject(), "Please set the input value: ",
                     String.format("Trigger function %s", entity.getName()), null))).toBlocking().single();
                 if (input == null) {
                     return;
@@ -197,37 +190,31 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
 
         final BiPredicate<FunctionAppBase<?, ?, ?>, AnActionEvent> isFunction = (r, e) -> r instanceof FunctionAppBase<?, ?, ?>;
         final BiConsumer<FunctionAppBase<?, ?, ?>, AnActionEvent> enableRemoteDebuggingHandler = (c, e) ->
-                FunctionEnableRemoteDebuggingAction.enableRemoteDebugging(c, e.getProject());
+            FunctionEnableRemoteDebuggingAction.enableRemoteDebugging(c, e.getProject());
         am.registerHandler(FunctionAppActionsContributor.ENABLE_REMOTE_DEBUGGING, isFunction, enableRemoteDebuggingHandler);
 
         final BiConsumer<FunctionAppBase<?, ?, ?>, AnActionEvent> disableRemoteDebuggingHandler = (c, e) ->
-                FunctionEnableRemoteDebuggingAction.disableRemoteDebugging(c, e.getProject());
+            FunctionEnableRemoteDebuggingAction.disableRemoteDebugging(c, e.getProject());
         am.registerHandler(FunctionAppActionsContributor.DISABLE_REMOTE_DEBUGGING, isFunction, disableRemoteDebuggingHandler);
 
         final BiConsumer<FunctionAppBase<?, ?, ?>, AnActionEvent> remoteDebuggingHandler = (c, e) ->
-                AzureTaskManager.getInstance().runLater(() -> FunctionRemoteDebuggingAction.startDebugging(c, e.getProject()));
+            tm.runLater(() -> FunctionRemoteDebuggingAction.startDebugging(c, e.getProject()));
         am.registerHandler(FunctionAppActionsContributor.REMOTE_DEBUGGING, isFunction, remoteDebuggingHandler);
 
         final BiConsumer<Object, AnActionEvent> downloadFuncCoreToolsHandler = (v, e) -> {
             final FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
             descriptor.setTitle("Select Path to Install Azure Functions Core Tools");
-            AzureTaskManager.getInstance().runLater(() -> FileChooser.chooseFile(descriptor, null, null, files -> {
+            tm.runLater(() -> FileChooser.chooseFile(descriptor, null, null, files -> {
                 final String installPath = files.getPath();
-                AzureTaskManager.getInstance().runInBackground("Download and Install Azure Functions Core Tools",
-                        () -> FunctionsCoreToolsManager.getInstance().downloadReleaseTools(installPath));
+                tm.runInBackground("Download and Install Azure Functions Core Tools",
+                    () -> FunctionsCoreToolsManager.getInstance().downloadReleaseTools(installPath));
             }));
         };
         am.registerHandler(FunctionAppActionsContributor.DOWNLOAD_CORE_TOOLS, downloadFuncCoreToolsHandler);
         AzureEventBus.on("function.download_func_core_tools_succeed.version", new AzureEventBus.EventListener((azureEvent) -> {
-            final Action<Object> openSettingsAction = AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS);
-            final Action<Object> openSettingsActionInMessage = new Action<>(Action.Id.of("common.open_azure_settings_dialog"), new ActionView.Builder("Open Azure Settings")) {
-                @Override
-                public void handle(Object source, Object e) {
-                    AzureTaskManager.getInstance().runLater(() -> openSettingsAction.handle(null, e));
-                }
-            };
-            final String INSTALL_SUCCEED_MESSAGE = "Download and install Azure Functions Core Tools(%s) successfully. Auto configured Azure Functions Core Tools path in Azure Settings";
-            AzureMessager.getMessager().success(String.format(INSTALL_SUCCEED_MESSAGE, azureEvent.getSource().toString()), "Install succeed", openSettingsActionInMessage);
+            final Action<Object> openSettingsActionInMessage = am.getAction(ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS);
+            final String INSTALL_SUCCEED_MESSAGE = "Download and install Azure Functions Core Tools successfully. Auto configured Azure Functions Core Tools path in Azure Settings";
+            AzureMessager.getMessager().success(INSTALL_SUCCEED_MESSAGE, null, openSettingsActionInMessage);
         }));
     }
 

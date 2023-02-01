@@ -57,7 +57,7 @@ public class ConnectionRunnerForRunConfiguration extends BeforeRunTaskProvider<C
 
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "connector.get_task_description", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/connector.get_task_description")
     public String getDescription(MyBeforeRunTask task) {
         final List<Connection<?, ?>> connections = task.getConnections();
         if (CollectionUtils.isEmpty(connections)) {
@@ -78,7 +78,7 @@ public class ConnectionRunnerForRunConfiguration extends BeforeRunTaskProvider<C
 
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "connector.setup_connection_for_configuration", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "platform/connector.setup_connection_for_configuration")
     public boolean executeTask(
         @Nonnull DataContext dataContext,
         @Nonnull RunConfiguration configuration,

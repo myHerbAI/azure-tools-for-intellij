@@ -9,7 +9,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.intellij.azuresdk.model.AzureJavaSdkArtifactExampleEntity;
-import com.microsoft.azure.toolkit.intellij.azuresdk.model.AzureJavaSdkArtifactExampleIndexEntity;
+import com.microsoft.azure.toolkit.intellij.azuresdk.model.AzureJavaSdkArtifactExamplesEntity;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import lombok.Getter;
 
@@ -23,7 +23,7 @@ public class ExampleComboBox extends AzureComboBox<AzureJavaSdkArtifactExampleEn
     public final static AzureJavaSdkArtifactExampleEntity NONE = new AzureJavaSdkArtifactExampleEntity();
     private final Project project;
     @Getter
-    private AzureJavaSdkArtifactExampleIndexEntity entity;
+    private AzureJavaSdkArtifactExamplesEntity entity;
 
     public ExampleComboBox() {
         this(ProjectManager.getInstance().getDefaultProject());
@@ -34,7 +34,7 @@ public class ExampleComboBox extends AzureComboBox<AzureJavaSdkArtifactExampleEn
         this.project = project;
     }
 
-    public void setEntity(@Nonnull final AzureJavaSdkArtifactExampleIndexEntity entity) {
+    public void setEntity(@Nonnull final AzureJavaSdkArtifactExamplesEntity entity) {
         this.entity = entity;
         this.refreshItems();
     }
@@ -43,7 +43,7 @@ public class ExampleComboBox extends AzureComboBox<AzureJavaSdkArtifactExampleEn
     @Override
     protected List<AzureJavaSdkArtifactExampleEntity> loadItems() {
         return Optional.ofNullable(entity)
-                .map(AzureJavaSdkArtifactExampleIndexEntity::getExamples)
+                .map(AzureJavaSdkArtifactExamplesEntity::getExamples)
                 .orElseGet(() -> Arrays.asList(NONE));
     }
 

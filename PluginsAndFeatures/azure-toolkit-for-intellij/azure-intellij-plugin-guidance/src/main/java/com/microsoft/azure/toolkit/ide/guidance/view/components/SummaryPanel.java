@@ -123,7 +123,7 @@ public class SummaryPanel extends JPanel {
         detailsPanel.add(new Spacer(), new GridConstraints(0, steps.size(), 1, 1, 0, FILL_HORIZONTAL, 7, 3, null, null, null, 0));
     }
 
-    @AzureOperation(name = "guidance.execute_summary_step.step", params = {"this.step.getTitle()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/guidance.execute_summary_step.step", params = {"this.step.getTitle()"})
     private void executeStep(final Step step) {
         step.execute();
     }

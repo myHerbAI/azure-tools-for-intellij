@@ -51,15 +51,15 @@ public class ResourceGroupNodeProvider implements IExplorerNodeProvider {
         } else if (data instanceof ResourceGroup) {
             final ResourceGroup rg = (ResourceGroup) data;
             return new Node<>(rg)
-                .view(new AzureResourceLabelView<>(rg,
-                    (r) -> Optional.ofNullable(r).map(ResourceGroup::getRegion).map(Region::getLabel).orElse(null),
-                    DEFAULT_AZURE_RESOURCE_ICON_PROVIDER))
+                .view(new AzureResourceLabelView<>(rg, ResourceGroupNodeProvider::getResourceDescription, DEFAULT_AZURE_RESOURCE_ICON_PROVIDER))
                 .actions(ResourceGroupActionsContributor.RESOURCE_GROUP_ACTIONS)
                 .inlineAction(ResourceCommonActionsContributor.PIN)
                 .addChild(ResourceGroup::deployments, (module, p) -> new Node<>(module)
                     .view(new AzureModuleLabelView<>(module, "Deployments", AzureIcons.Resources.DEPLOYMENT_MODULE.getIconPath()))
                     .actions(DeploymentActionsContributor.DEPLOYMENTS_ACTIONS)
-                    .addChildren(AbstractAzResourceModule::list, (d, mn) -> manager.createNode(d, mn, ViewType.APP_CENTRIC)))
+                    .addChildren(AbstractAzResourceModule::list, (d, mn) -> manager.createNode(d, mn, ViewType.APP_CENTRIC))
+                    .hasMoreChildren(AbstractAzResourceModule::hasMoreResources)
+                    .loadMoreChildren(AbstractAzResourceModule::loadMoreResources))
                 .addChildren(group -> group.genericResources().list().stream().map(GenericResource::toConcreteResource)
                     .map(r -> manager.createNode(r, parent, ViewType.APP_CENTRIC))
                     .sorted(Comparator.comparing(r -> ((Node<?>) r).view() instanceof GenericResourceLabelView)
@@ -68,5 +68,14 @@ public class ResourceGroupNodeProvider implements IExplorerNodeProvider {
                     .collect(Collectors.toList()));
         }
         return null;
+    }
+
+    @Nullable
+    private static String getResourceDescription(@Nonnull final ResourceGroup r) {
+        if (r.getFormalStatus().isRunning()) {
+            return Optional.ofNullable(r.getRegion()).map(Region::getLabel).orElse(null);
+        } else {
+            return r.getStatus();
+        }
     }
 }

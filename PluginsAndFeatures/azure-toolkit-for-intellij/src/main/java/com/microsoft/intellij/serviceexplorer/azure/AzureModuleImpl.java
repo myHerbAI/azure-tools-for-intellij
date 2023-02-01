@@ -21,6 +21,7 @@ public class AzureModuleImpl extends AzureModule {
         addAction(new SignInOutAction(this));
         addAction(new ManageSubscriptionsAction(this));
         addAction(new GetStartAction(this));
+        addAction(new OpenAzureMonitorAction(this));
     }
 
     @Override

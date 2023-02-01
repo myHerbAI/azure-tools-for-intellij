@@ -65,7 +65,7 @@ public abstract class AzureRunProfileState<T> implements RunProfileState {
                 err.printStackTrace();
                 this.sendTelemetry(operation, err);
                 this.onFail(err, processHandler);
-                AzureMessager.getMessager().error(err, "Azure", (Object[]) getErrorActions(executor, programRunner, err));
+                AzureMessager.getMessager().error(err, null, (Object[]) getErrorActions(executor, programRunner, err));
             });
 
         processHandler.addProcessListener(new ProcessAdapter() {

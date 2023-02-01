@@ -59,10 +59,7 @@ public class RedundancyComboBox extends AzureComboBox<Redundancy> {
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "storage|account.redundancy.list.supported",
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/storage.list_supported_redundancies")
     protected List<? extends Redundancy> loadItems() {
         return Objects.isNull(this.performance) ? Collections.emptyList() :
             Azure.az(AzureStorageAccount.class).listSupportedRedundancies(this.performance, this.kind);

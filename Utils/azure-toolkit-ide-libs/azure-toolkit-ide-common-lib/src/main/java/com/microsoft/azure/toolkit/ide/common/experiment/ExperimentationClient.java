@@ -5,9 +5,12 @@
 
 package com.microsoft.azure.toolkit.ide.common.experiment;
 
-import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.AzureConfiguration;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -19,6 +22,7 @@ public class ExperimentationClient {
     private static final String END_POINT = "https://aka.ms/azure-ij-ab-exp";
     private static ExperimentationService experimentationService;
 
+    @Nullable
     public static ExperimentationService getExperimentationService() {
         if (Objects.isNull(experimentationService)) {
             init();
@@ -26,11 +30,13 @@ public class ExperimentationClient {
         return experimentationService;
     }
 
+    @AzureOperation(name = "internal/exp.assignment")
     private static void init() {
         try {
             final Map<String, String> audienceFilters = new HashMap<>();
             final Map<String, String> assignmentIds = new HashMap<>();
-            assignmentIds.put(ASSIGNMENT_UNIT_ID, InstallationIdUtils.getHashMac());
+            final AzureConfiguration config = Azure.az().config();
+            assignmentIds.put(ASSIGNMENT_UNIT_ID, config.getMachineId());
             experimentationService = new ExperimentationService()
                     .withEndPoint(END_POINT)
                     .withAudienceFilters(audienceFilters)

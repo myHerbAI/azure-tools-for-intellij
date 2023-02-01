@@ -62,7 +62,7 @@ public class PostgrePropertyOverviewPanel extends JPanel {
         subscriptionIDTextField.setText(server.getSubscriptionId());
         serverNameTextField.setText(StringUtils.firstNonBlank(server.getFullyQualifiedDomainName(), server.getName()));
         serverNameTextField.setCaretPosition(0);
-        serverAdminLoginNameTextField.setText(server.getAdminName() + "@" + server.name());
+        serverAdminLoginNameTextField.setText(server.getFullAdminName());
         serverAdminLoginNameTextField.setCaretPosition(0);
         postgreSqlVersionTextField.setText(server.getVersion());
         final String skuTier = server.getSkuTier();

@@ -1,0 +1,10 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
+        <explorerNodeProvider implementation="com.microsoft.azure.toolkit.ide.containerapps.ContainerAppsNodeProvider"/>
+        <actions implementation="com.microsoft.azure.toolkit.ide.containerapps.ContainerAppsActionsContributor"/>
+        <actions implementation="com.microsoft.azure.toolkit.intellij.containerapps.IntelliJContainerAppsActionsContributor"/>
+    </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.containerapps.properties.ContainerAppPropertiesEditorProvider"/>
+    </extensions>
+</idea-plugin>

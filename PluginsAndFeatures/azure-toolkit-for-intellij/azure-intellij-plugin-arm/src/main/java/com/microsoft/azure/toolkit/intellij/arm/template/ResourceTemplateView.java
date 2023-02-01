@@ -135,7 +135,7 @@ public class ResourceTemplateView extends AzResourcePropertiesEditor<ResourceDep
             this.draft.commit();
             this.updateDeploymentButton.setEnabled(this.isModified());
         };
-        final AzureString title = OperationBundle.description("arm.update_deployment.deployment", this.draft.getName());
+        final AzureString title = OperationBundle.description("user/arm.update_deployment.deployment", this.draft.getName());
         AzureTaskManager.getInstance().runInBackground(title, false, runnable);
     }
 

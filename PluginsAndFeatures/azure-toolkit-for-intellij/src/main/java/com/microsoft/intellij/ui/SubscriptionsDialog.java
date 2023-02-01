@@ -25,6 +25,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -213,13 +214,14 @@ public class SubscriptionsDialog extends AzureDialogWrapper implements TableMode
         table.registerKeyboardAction(actionListener, KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         final AnActionButton refreshAction = new AnActionButton("Refresh", AllIcons.Actions.Refresh) {
             @Override
+            @AzureOperation("user/account.refresh_subscriptions")
             public void actionPerformed(AnActionEvent anActionEvent) {
                 this.setEnabled(false);
                 model.setRowCount(0);
                 model.fireTableDataChanged();
                 table.getEmptyText().setText("Refreshing...");
                 AppInsightsClient.createByType(AppInsightsClient.EventType.Subscription, "", "Refresh", null);
-                final AzureString title = OperationBundle.description("account.refresh_subscriptions");
+                final AzureString title = OperationBundle.description("internal/account.refresh_subscriptions");
                 final AzureTask<Void> task = new AzureTask<>(project, title, true, () -> {
                     try {
                         SubscriptionsDialog.this.reloadSubscriptions();

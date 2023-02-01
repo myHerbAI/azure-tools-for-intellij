@@ -45,12 +45,12 @@ public class StorageNode extends Node implements TelemetryProperties {
         return properties;
     }
 
-    @AzureOperation(name = "storage.open_portal.account", params = {"this.storageAccount.name()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/storage.open_portal.account", params = {"this.storageAccount.name()"})
     private void openInPortal() {
         openResourcesInPortal(this.storageAccount.getSubscriptionId(), storageAccount.id());
     }
 
-    @AzureOperation(name = "storage.delete_account.account", params = {"this.storageAccount.name()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/storage.delete_account.account", params = {"this.storageAccount.name()"})
     private void delete() {
         storageAccount.delete();
     }

@@ -34,7 +34,7 @@ public class CreateApplicationInsightsResourceConnectionTask implements Task {
     }
 
     @Override
-    @AzureOperation(name = "guidance.create_ai_resource_connection", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "internal/guidance.create_ai_resource_connection")
     public void execute() throws Exception {
         final Resource resource = getResource();
         final Resource consumer = getModuleConsumer();

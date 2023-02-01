@@ -52,7 +52,7 @@ public class DeployFunctionAppTask implements Task {
     }
 
     @Override
-    @AzureOperation(name = "guidance.deploy_function_app", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "boundary/guidance.deploy_function_app")
     public void execute() throws Exception {
         AzureMessager.getMessager().info("Setting up run configuration for function app deployment...");
         final RunManagerEx manager = RunManagerEx.getInstanceEx(project);

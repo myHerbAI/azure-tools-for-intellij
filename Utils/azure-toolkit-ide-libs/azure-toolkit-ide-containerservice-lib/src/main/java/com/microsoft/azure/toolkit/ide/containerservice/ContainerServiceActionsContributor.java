@@ -9,15 +9,11 @@ import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.containerservice.KubernetesCluster;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
-
-import java.util.Optional;
-
-import static com.microsoft.azure.toolkit.lib.common.operation.OperationBundle.description;
 
 public class ContainerServiceActionsContributor implements IActionsContributor {
     public static final int INITIALIZE_ORDER = ResourceCommonActionsContributor.INITIALIZE_ORDER + 1;
@@ -27,73 +23,83 @@ public class ContainerServiceActionsContributor implements IActionsContributor {
 
     public static final String AGENT_POOL_ACTIONS = "actions.kubernetes.agent_pool";
 
-    public static final Action.Id<KubernetesCluster> DOWNLOAD_CONFIG_ADMIN = Action.Id.of("kubernetes.kubu_config_admin.kubernetes");
-    public static final Action.Id<KubernetesCluster> DOWNLOAD_CONFIG_USER = Action.Id.of("kubernetes.kubu_config_user.kubernetes");
-    public static final Action.Id<KubernetesCluster> GET_CREDENTIAL_ADMIN = Action.Id.of("kubernetes.get_credential_admin.kubernetes");
-    public static final Action.Id<KubernetesCluster> GET_CREDENTIAL_USER = Action.Id.of("kubernetes.get_credential_user.kubernetes");
-    public static final Action.Id<ResourceGroup> GROUP_CREATE_KUBERNETES_SERVICE = Action.Id.of("kubernetes.create_kubernetes.group");
+    public static final Action.Id<KubernetesCluster> DOWNLOAD_CONFIG_ADMIN = Action.Id.of("user/kubernetes.kubu_config_admin.kubernetes");
+    public static final Action.Id<KubernetesCluster> DOWNLOAD_CONFIG_USER = Action.Id.of("user/kubernetes.kubu_config_user.kubernetes");
+    public static final Action.Id<KubernetesCluster> GET_CREDENTIAL_ADMIN = Action.Id.of("user/kubernetes.get_credential_admin.kubernetes");
+    public static final Action.Id<KubernetesCluster> GET_CREDENTIAL_USER = Action.Id.of("user/kubernetes.get_credential_user.kubernetes");
+    public static final Action.Id<ResourceGroup> GROUP_CREATE_KUBERNETES_SERVICE = Action.Id.of("user/kubernetes.create_kubernetes.group");
+
     @Override
     public void registerActions(AzureActionManager am) {
-        final ActionView.Builder createClusterView = new ActionView.Builder("Kubernetes service")
-                .title(s -> Optional.ofNullable(s).map(r ->
-                        description("kubernetes.create_kubernetes.group", ((ResourceGroup) r).getName())).orElse(null))
-                .enabled(s -> s instanceof ResourceGroup && ((ResourceGroup) s).getFormalStatus().isConnected());
-        am.registerAction(new Action<>(GROUP_CREATE_KUBERNETES_SERVICE, createClusterView));
+        new Action<>(GROUP_CREATE_KUBERNETES_SERVICE)
+            .withLabel("Kubernetes service")
+            .withIdParam(AzResource::getName)
+            .visibleWhen(s -> s instanceof ResourceGroup)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .register(am);
 
-        final ActionView.Builder adminConfigView = new ActionView.Builder("Download Kubeconfig (Admin)")
-                .title(s -> Optional.ofNullable(s).map(r -> description("kubernetes.kubu_config_admin.kubernetes", ((KubernetesCluster) r).getName())).orElse(null))
-                .enabled(s -> s instanceof KubernetesCluster && ((KubernetesCluster) s).getFormalStatus().isConnected());
-        am.registerAction(new Action<>(DOWNLOAD_CONFIG_ADMIN, adminConfigView));
+        new Action<>(DOWNLOAD_CONFIG_ADMIN)
+            .withLabel("Download Kubeconfig (Admin)")
+            .withIdParam(AzResource::getName)
+            .visibleWhen(s -> s instanceof KubernetesCluster)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .register(am);
 
-        final ActionView.Builder userConfigView = new ActionView.Builder("Download Kubeconfig (User)")
-                .title(s -> Optional.ofNullable(s).map(r -> description("kubernetes.kubu_config_user.kubernetes", ((KubernetesCluster) r).getName())).orElse(null))
-                .enabled(s -> s instanceof KubernetesCluster && ((KubernetesCluster) s).getFormalStatus().isConnected());
-        am.registerAction(new Action<>(DOWNLOAD_CONFIG_USER, userConfigView));
+        new Action<>(DOWNLOAD_CONFIG_USER)
+            .withLabel("Download Kubeconfig (User)")
+            .withIdParam(AzResource::getName)
+            .visibleWhen(s -> s instanceof KubernetesCluster)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .register(am);
 
-        final ActionView.Builder getAdminCredentialView = new ActionView.Builder("Set as Current Cluster (Admin)")
-                .title(s -> Optional.ofNullable(s).map(r -> description("kubernetes.get_credential_admin.kubernetes", ((KubernetesCluster) r).getName())).orElse(null))
-                .enabled(s -> s instanceof KubernetesCluster && ((KubernetesCluster) s).getFormalStatus().isConnected());
-        am.registerAction(new Action<>(GET_CREDENTIAL_ADMIN, getAdminCredentialView));
+        new Action<>(GET_CREDENTIAL_ADMIN)
+            .withLabel("Set as Current Cluster (Admin)")
+            .withIdParam(AzResource::getName)
+            .visibleWhen(s -> s instanceof KubernetesCluster)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .register(am);
 
-        final ActionView.Builder getUserCredentialView = new ActionView.Builder("Set as Current Cluster (User)")
-                .title(s -> Optional.ofNullable(s).map(r -> description("kubernetes.get_credential_user.kubernetes", ((KubernetesCluster) r).getName())).orElse(null))
-                .enabled(s -> s instanceof KubernetesCluster && ((KubernetesCluster) s).getFormalStatus().isConnected());
-        am.registerAction(new Action<>(GET_CREDENTIAL_USER, getUserCredentialView));
+        new Action<>(GET_CREDENTIAL_USER)
+            .withLabel("Set as Current Cluster (User)")
+            .withIdParam(AzResource::getName)
+            .visibleWhen(s -> s instanceof KubernetesCluster)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .register(am);
     }
 
     @Override
     public void registerGroups(AzureActionManager am) {
         final ActionGroup serviceActionGroup = new ActionGroup(
-                ResourceCommonActionsContributor.REFRESH,
-                ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
-                "---",
-                ResourceCommonActionsContributor.CREATE
+            ResourceCommonActionsContributor.REFRESH,
+            ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            "---",
+            ResourceCommonActionsContributor.CREATE
         );
         am.registerGroup(SERVICE_ACTIONS, serviceActionGroup);
 
         final ActionGroup registryActionGroup = new ActionGroup(
-                ResourceCommonActionsContributor.PIN,
-                "---",
-                ResourceCommonActionsContributor.REFRESH,
-                ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
-                ResourceCommonActionsContributor.OPEN_PORTAL_URL,
-                ResourceCommonActionsContributor.SHOW_PROPERTIES,
-                "---",
-                ResourceCommonActionsContributor.START,
-                ResourceCommonActionsContributor.STOP,
-                ResourceCommonActionsContributor.DELETE,
-                "---",
-                ContainerServiceActionsContributor.DOWNLOAD_CONFIG_ADMIN,
-                ContainerServiceActionsContributor.DOWNLOAD_CONFIG_USER,
-                ContainerServiceActionsContributor.GET_CREDENTIAL_ADMIN,
-                ContainerServiceActionsContributor.GET_CREDENTIAL_USER
+            ResourceCommonActionsContributor.PIN,
+            "---",
+            ResourceCommonActionsContributor.REFRESH,
+            ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.OPEN_PORTAL_URL,
+            ResourceCommonActionsContributor.SHOW_PROPERTIES,
+            "---",
+            ResourceCommonActionsContributor.START,
+            ResourceCommonActionsContributor.STOP,
+            ResourceCommonActionsContributor.DELETE,
+            "---",
+            ContainerServiceActionsContributor.DOWNLOAD_CONFIG_ADMIN,
+            ContainerServiceActionsContributor.DOWNLOAD_CONFIG_USER,
+            ContainerServiceActionsContributor.GET_CREDENTIAL_ADMIN,
+            ContainerServiceActionsContributor.GET_CREDENTIAL_USER
         );
         am.registerGroup(CLUSTER_ACTIONS, registryActionGroup);
 
         final ActionGroup agentPoolGroup = new ActionGroup(
-                ResourceCommonActionsContributor.PIN,
-                "---",
-                ResourceCommonActionsContributor.DELETE
+            ResourceCommonActionsContributor.PIN,
+            "---",
+            ResourceCommonActionsContributor.DELETE
         );
         am.registerGroup(AGENT_POOL_ACTIONS, agentPoolGroup);
 

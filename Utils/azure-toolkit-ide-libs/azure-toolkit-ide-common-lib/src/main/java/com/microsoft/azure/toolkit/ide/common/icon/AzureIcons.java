@@ -26,6 +26,8 @@ public final class AzureIcons {
         public static final AzureIcon SHOW_PROPERTIES = AzureIcon.builder().iconPath("/icons/Common/ShowProperties.svg").build();
         public static final AzureIcon APACHE_SPARK_FAILURE_DEBUG = AzureIcon.builder().iconPath("/icons/Common/ApacheSparkFailureDebug.svg").build();
         public static final AzureIcon FAVORITE = AzureIcon.builder().iconPath("/icons/Common/favorite.svg").build();
+        public static final AzureIcon AZURE_MONITOR = AzureIcon.builder().iconPath("icons/Common/log_analytics_workspace.svg").build();
+        public static final AzureIcon AZURE_MONITOR_NEW = AzureIcon.builder().iconPath("icons/Common/log_analytics_workspace_bluedot.svg").build();
     }
 
     public static final class Action {
@@ -132,12 +134,18 @@ public final class AzureIcons {
         public static final AzureIcon MODULE = AzureIcon.builder().iconPath("/icons/ApacheSparkOnCosmos/ApacheSparkOnCosmos.svg").build();
     }
 
+    public static final class ContainerApps {
+        public static final AzureIcon MODULE = AzureIcon.builder().iconPath("/icons/Microsoft.App/default.svg").build();
+    }
+
     public static final class ContainerRegistry {
         public static final AzureIcon MODULE = AzureIcon.builder().iconPath("/icons/ContainerRegistry/ContainerRegistry.svg").build();
     }
 
     public static final class HDInsight {
         public static final AzureIcon MODULE = AzureIcon.builder().iconPath("/icons/HDInsight/HDInsight.svg").build();
+        public static final AzureIcon CLUSTERS = AzureIcon.builder().iconPath("/icons/Cluster.png").build();
+        public static final AzureIcon JOBS = AzureIcon.builder().iconPath("/icons/StorageAccountFolder.png").build();
     }
 
     public static final class RedisCache {
@@ -199,5 +207,10 @@ public final class AzureIcons {
 
     public static final class Connector {
         public static final AzureIcon CONNECT = AzureIcon.builder().iconPath("/icons/connector/connect.svg").build();
+    }
+
+    public static final class Files {
+        public static final AzureIcon BICEP16 = AzureIcon.builder().iconPath("/icons/Bicep/bicep16.svg").build();
+        public static final AzureIcon BICEP13 = AzureIcon.builder().iconPath("/icons/Bicep/bicep13.svg").build();
     }
 }

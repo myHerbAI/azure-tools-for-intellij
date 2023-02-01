@@ -20,7 +20,6 @@ import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.lang.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -73,7 +72,7 @@ public class AzureSdkProjectDependencyPanel {
         lblMessageIcon.setIcon(AllIcons.General.BalloonInformation);
     }
 
-    @AzureOperation(name = "sdk.refresh_dependency", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/sdk.refresh_dependency")
     public void onSelectModule() {
         messager.clean();
         final ProjectModule module = cbModule.getValue();
@@ -88,8 +87,9 @@ public class AzureSdkProjectDependencyPanel {
         btnAddDependency.setText(exists ? UPDATE_DEPENDENCY : ADD_DEPENDENCY);
     }
 
-    @AzureOperation(name = "sdk.add_dependency", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/sdk.add_dependency")
     private void onAddDependency() {
+        OperationContext.action().setTelemetryProperty("artifact", pkg.getArtifactId());
         messager.clean();
         OperationContext.action().setMessager(messager);
         btnAddDependency.setText("Running...");

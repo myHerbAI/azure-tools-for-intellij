@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.core;
 
-import com.google.gson.JsonObject;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.MetaAnnotationUtil;
 import com.intellij.lang.jvm.JvmAnnotation;
@@ -15,6 +14,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
+import com.intellij.openapi.roots.LibraryOrderEntry;
+import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
@@ -28,6 +29,8 @@ import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.workspaceModel.ide.impl.legacyBridge.module.roots.ModuleOrderEntryBridge;
+import com.microsoft.azure.toolkit.intellij.common.AzureArtifactManager;
 import com.microsoft.azure.toolkit.intellij.common.AzureBundle;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
@@ -52,6 +55,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
@@ -68,7 +72,11 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
@@ -77,7 +85,6 @@ import static com.microsoft.azure.toolkit.lib.appservice.function.core.AzureFunc
 public class FunctionUtils {
     private static final int MAX_PORT = 65535;
 
-    public static final String FUNCTION_JAVA_LIBRARY_ARTIFACT_ID = "azure-functions-java-library";
     private static final String AZURE_FUNCTION_ANNOTATION_CLASS =
             "com.microsoft.azure.functions.annotation.FunctionName";
     private static final String FUNCTION_JSON = "function.json";
@@ -94,6 +101,7 @@ public class FunctionUtils {
     private static final String AZURE_FUNCTIONS_APP_SETTINGS = "Azure Functions App Settings";
     private static final String AZURE_FUNCTIONS_JAVA_LIBRARY = "azure-functions-java-library";
     private static final String AZURE_FUNCTIONS_JAVA_CORE_LIBRARY = "azure-functions-java-core-library";
+    private static final Pattern ARTIFACT_NAME_PATTERN = Pattern.compile("(.*)-(\\d+\\.)?(\\d+\\.)?(\\*|\\d+).*");
 
     static {
         //initialize required attributes, which will be saved to function.json even if it equals to its default value
@@ -128,11 +136,7 @@ public class FunctionUtils {
         }
     }
 
-    @AzureOperation(
-        name = "function.clean_staging_folder.folder",
-        params = {"stagingFolder.getName()"},
-        type = AzureOperation.Type.TASK
-    )
+    @AzureOperation(name = "boundary/function.clean_staging_folder.folder", params = {"stagingFolder.getName()"})
     public static void cleanUpStagingFolder(File stagingFolder) {
         try {
             if (stagingFolder != null) {
@@ -143,11 +147,7 @@ public class FunctionUtils {
         }
     }
 
-    @AzureOperation(
-        name = "function.list_function_modules.project",
-        params = {"project.getName()"},
-        type = AzureOperation.Type.TASK
-    )
+    @AzureOperation(name = "boundary/function.list_function_modules.project", params = {"project.getName()"})
     public static Module[] listFunctionModules(Project project) {
         final Module[] modules = ModuleManager.getInstance(project).getModules();
         return Arrays.stream(modules).filter(m -> {
@@ -168,18 +168,14 @@ public class FunctionUtils {
                      .findFirst().orElse(null);
     }
 
-    @AzureOperation(
-        name = "common.validate_func_project.project",
-        params = {"project.getName()"},
-        type = AzureOperation.Type.TASK
-    )
+    @AzureOperation(name = "boundary/common.validate_func_project.project", params = {"project.getName()"})
     public static boolean isFunctionProject(Project project) {
         if (project == null) {
             return false;
         }
         final List<Library> libraries = new ArrayList<>();
         OrderEnumerator.orderEntries(project).productionOnly().forEachLibrary(library -> {
-            if (StringUtils.contains(library.getName(), FUNCTION_JAVA_LIBRARY_ARTIFACT_ID)) {
+            if (StringUtils.containsAnyIgnoreCase(library.getName(), AZURE_FUNCTIONS_JAVA_LIBRARY, AZURE_FUNCTIONS_JAVA_CORE_LIBRARY)) {
                 libraries.add(library);
             }
             return true;
@@ -187,11 +183,7 @@ public class FunctionUtils {
         return libraries.size() > 0;
     }
 
-    @AzureOperation(
-        name = "function.list_function_methods.module",
-        params = {"module.getName()"},
-        type = AzureOperation.Type.TASK
-    )
+    @AzureOperation(name = "boundary/function.list_function_methods.module", params = {"module.getName()"})
     public static PsiMethod[] findFunctionsByAnnotation(Module module) {
         if (module == null) {
             return new PsiMethod[0];
@@ -229,11 +221,7 @@ public class FunctionUtils {
         }
     }
 
-    @AzureOperation(
-        name = "function.copy_settings.settings|folder",
-        params = {"localSettingJson", "stagingFolder"},
-        type = AzureOperation.Type.TASK
-    )
+    @AzureOperation(name = "internal/function.copy_settings.settings|folder", params = {"localSettingJson", "stagingFolder"})
     public static void copyLocalSettingsToStagingFolder(Path stagingFolder,
                                                         Path localSettingJson,
                                                         Map<String, String> appSettings) throws IOException {
@@ -244,10 +232,7 @@ public class FunctionUtils {
         }
     }
 
-    @AzureOperation(
-        name = "function.prepare_staging_folder",
-        type = AzureOperation.Type.TASK
-    )
+    @AzureOperation(name = "boundary/function.prepare_staging_folder")
     public static Map<String, FunctionConfiguration> prepareStagingFolder(Path stagingFolder, Path hostJson, Project project, Module module, PsiMethod[] methods)
             throws AzureExecutionException, IOException {
         final Map<String, FunctionConfiguration> configMap = ReadAction.compute(() -> generateConfigurations(methods));
@@ -287,24 +272,51 @@ public class FunctionUtils {
         if (gradleProject.isValid()) {
             gradleProject.getDependencies().forEach(lib -> dependencies.add(lib));
         } else {
-            OrderEnumerator.orderEntries(module).productionOnly().forEachLibrary(lib -> {
-                Arrays.stream(lib.getFiles(OrderRootType.CLASSES)).map(virtualFile -> new File(stripExtraCharacters(virtualFile.getPath())))
-                        .filter(File::exists)
-                        .forEach(dependencies::add);
+            OrderEnumerator.orderEntries(module).productionOnly().forEach(lib -> {
+                if (lib instanceof ModuleOrderEntry) {
+                    Optional.ofNullable(getArtifactFromModule(((ModuleOrderEntry) lib).getModule())).ifPresent(dependencies::add);
+                } else if (lib instanceof LibraryOrderEntry) {
+                    Arrays.stream(lib.getFiles(OrderRootType.CLASSES)).map(virtualFile -> new File(stripExtraCharacters(virtualFile.getPath())))
+                            .filter(File::exists)
+                            .forEach(dependencies::add);
+                }
                 return true;
             });
         }
         final String libraryToExclude = dependencies.stream()
-                .filter(artifact -> StringUtils.equalsAnyIgnoreCase(artifact.getName(), AZURE_FUNCTIONS_JAVA_CORE_LIBRARY))
-                .map(File::getName).findFirst().orElse(AZURE_FUNCTIONS_JAVA_LIBRARY);
+                .map(FunctionUtils::getArtifactIdFromFile)
+                .filter(name -> StringUtils.equalsAnyIgnoreCase(name, AZURE_FUNCTIONS_JAVA_CORE_LIBRARY))
+                .findFirst().orElse(AZURE_FUNCTIONS_JAVA_LIBRARY);
 
         final File libFolder = new File(stagingFolder.toFile(), "lib");
         for (final File file : dependencies) {
-            if (!StringUtils.containsIgnoreCase(file.getName(), libraryToExclude)) {
+            if (!StringUtils.equalsIgnoreCase(getArtifactIdFromFile(file), libraryToExclude)) {
+                if (!file.exists()) {
+                    throw new AzureToolkitRuntimeException(String.format("Dependency artifact (%s) not found, please correct the dependency and try again", file.getAbsolutePath()));
+                }
                 FileUtils.copyFileToDirectory(file, libFolder);
             }
         }
         return configMap;
+    }
+
+    // get artifact based on module
+    @Nullable
+    private static File getArtifactFromModule(final Module module) {
+        final Project project = module.getProject();
+        final AzureArtifactManager artifactManager = AzureArtifactManager.getInstance(project);
+        return artifactManager.getAllSupportedAzureArtifacts().stream()
+                .filter(artifact -> Objects.equals(artifactManager.getModuleFromAzureArtifact(artifact), module))
+                .findFirst()
+                .map(azureArtifact -> artifactManager.getFileForDeployment(azureArtifact))
+                .map(File::new)
+                .orElse(null);
+    }
+
+    private static String getArtifactIdFromFile(@Nonnull final File file) {
+        final Matcher matcher = ARTIFACT_NAME_PATTERN.matcher(file.getName());
+        return matcher.matches() ? StringUtils.substringBeforeLast(file.getName(), "-") :
+                StringUtils.substringBeforeLast(file.getName(), ".jar");
     }
 
     public static String getTargetFolder(Module module) {

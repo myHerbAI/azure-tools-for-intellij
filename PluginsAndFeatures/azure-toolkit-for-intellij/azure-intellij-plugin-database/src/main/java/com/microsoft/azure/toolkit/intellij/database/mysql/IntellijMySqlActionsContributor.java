@@ -48,7 +48,7 @@ public class IntellijMySqlActionsContributor implements IActionsContributor {
                 final ConnectorDialog dialog = new ConnectorDialog(e.getProject());
                 final MySqlServer server = (MySqlServer) o;
                 dialog.setResource(new SqlDatabaseResource<>(server.databases().list().get(0),
-                    server.getAdminName() + "@" + server.getName(), MySqlDatabaseResourceDefinition.INSTANCE));
+                    server.getFullAdminName(), MySqlDatabaseResourceDefinition.INSTANCE));
                 dialog.show();
             }));
 
@@ -65,7 +65,7 @@ public class IntellijMySqlActionsContributor implements IActionsContributor {
         am.registerHandler(MySqlActionsContributor.OPEN_DATABASE_TOOL, (r, e) -> true, openDatabaseHandler);
     }
 
-    @AzureOperation(name = "mysql.open_database_tools.server", params = {"server.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/mysql.open_database_tools.server", params = {"server.getName()"})
     private void openDatabaseTool(Project project, @Nonnull MySqlServer server) {
         final String DATABASE_TOOLS_PLUGIN_ID = "com.intellij.database";
         final String DATABASE_PLUGIN_NOT_INSTALLED = "\"Database tools and SQL\" plugin is not installed.";

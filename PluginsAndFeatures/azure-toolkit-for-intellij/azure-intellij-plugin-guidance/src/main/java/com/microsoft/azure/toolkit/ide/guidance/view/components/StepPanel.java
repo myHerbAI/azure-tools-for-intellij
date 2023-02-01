@@ -6,11 +6,9 @@ import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
 import com.microsoft.azure.toolkit.ide.guidance.Status;
 import com.microsoft.azure.toolkit.ide.guidance.Step;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessage;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -51,7 +49,7 @@ public class StepPanel extends JPanel {
         this.step.getContext().addContextListener(ignore -> this.renderDescription());
     }
 
-    @AzureOperation(name = "guidance.execute_step.step", params = {"this.step.getTitle()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/guidance.execute_step.step", params = {"this.step.getTitle()"})
     private void execute() {
         this.step.execute();
     }

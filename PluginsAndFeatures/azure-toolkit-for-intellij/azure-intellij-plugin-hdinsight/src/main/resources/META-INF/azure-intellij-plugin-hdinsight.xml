@@ -1,0 +1,71 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
+        <explorerNodeProvider implementation="com.microsoft.azure.toolkit.ide.hdinsight.spark.HDInsightNodeProvider"/>
+        <actions implementation="com.microsoft.azure.toolkit.ide.hdinsight.spark.HDInsightActionsContributor"/>
+        <actions implementation="com.microsoft.azure.toolkit.intellij.hdinsight.IntellijHDInsightActionsContributor"/>
+    </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <executor implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobRunExecutor" id="SparkJobRun" />
+        <executor implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobDebugExecutor" id="SparkJobDebug" />
+        <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.LivySparkBatchJobRunConfigurationType"/>
+        <runConfigurationProducer implementation="com.microsoft.azure.hdinsight.spark.run.LivySparkRunConfigurationProducer"/>
+        <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobRunner" />
+        <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobDebuggerRunner" />
+    </extensions>
+    <applicationListeners>
+        <listener class="com.microsoft.azure.hdinsight.common.ConsoleViewTypeRegistrationListener" topic="com.intellij.ide.ApplicationInitializedListener"/>
+        <listener class="com.microsoft.azure.hdinsight.jobs.JobViewApplicationListener" topic="com.intellij.ide.AppLifecycleListener"/>
+    </applicationListeners>
+    <actions>
+        <action id="Actions.SubmitLivySparkApplicationAction"
+                class="com.microsoft.azure.hdinsight.spark.actions.LivySparkSelectAndSubmitAction" text="Apache Spark on HDInsight"
+                description="Submit Apache Spark on HDInsight Application" icon="/icons/Spark.png"/>
+        <action id="Actions.SparkJobDisconnect" class="com.microsoft.azure.hdinsight.spark.run.action.SparkBatchJobDisconnectAction"
+                text="Disconnect" description="Disconnect the log view from remote Spark Job"
+                icon="/icons/SparkJobDisconnect.png">
+            <keyboard-shortcut first-keystroke="ctrl shift alt F2" keymap="$default"/>
+        </action>
+        <action id="Spark.RunScalaLocalConsole" class="com.microsoft.azure.hdinsight.spark.console.RunSparkLocalConsoleActionDelegate"
+                text="Run Apache Spark Local Console(Scala)" description="Run Apache Spark Local Console (Scala language)">
+        </action>
+        <action id="Spark.RunScalaLivyConsole" class="com.microsoft.azure.hdinsight.spark.console.RunSparkLivyConsoleActionDelegate"
+                text="Run Apache Spark Livy Interactive Session Console(Scala)" description="Run Apache Spark Livy Interactive Session Console (Scala language)">
+        </action>
+        <action id="SparkConsole.Execute" class="com.microsoft.azure.hdinsight.spark.console.SparkConsoleExecuteAction" text="Execute Spark Console Statement">
+            <keyboard-shortcut first-keystroke="control ENTER" keymap="$default"/>
+            <keyboard-shortcut keymap="Mac OS X" first-keystroke="meta shift ENTER"/>
+        </action>
+        <action id="Spark.SendSelectionToConsole" class="com.microsoft.azure.hdinsight.spark.console.SparkSendSelectionToConsoleActionDelegate"
+                text="Send Selection To Apache Spark Console" description="Send selection to Apache Spark console">
+            <add-to-group group-id="RunContextPopupGroup" anchor="last"/>
+            <keyboard-shortcut first-keystroke="control shift S" keymap="$default"/>
+            <keyboard-shortcut keymap="Mac OS X" first-keystroke="ctrl shift S"/>
+            <keyboard-shortcut keymap="Mac OS X" first-keystroke="meta shift S" remove="true"/>
+            <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="ctrl shift S"/>
+            <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta shift S" remove="true"/>
+        </action>
+        <action id="SparkJobRun" class="com.microsoft.azure.hdinsight.spark.run.action.SparkJobRunAction"
+                text="SparkJobRun"/>
+        <action id="SparkJobDebug" class="com.microsoft.azure.hdinsight.spark.run.action.SparkJobDebugAction"
+                text="SparkJobDebug"/>
+        <group id="SparkConsoleGroup" text="Apache Spark Console" description="Apache Spark Console" popup="true">
+            <add-to-group group-id="RunContextPopupGroup" anchor="last"/>
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <reference ref="Spark.RunScalaLocalConsole"/>
+            <reference ref="Spark.RunScalaLivyConsole"/>
+        </group>
+
+        <action id="Actions.SparkSubmitJobActionGroups" class="com.microsoft.azure.hdinsight.spark.run.action.SparkSubmitJobActionGroups" text="Submit Apache Spark Application"/>
+
+        <action id="Actions.SparkRunLivyConsoleActionGroups" class="com.microsoft.azure.hdinsight.spark.console.SparkRunLivyConsoleActionGroups" text="Run Apache Spark Console"/>
+
+        <action id="Actions.SparkRunLocalConsoleActionGroups" class="com.microsoft.azure.hdinsight.spark.console.SparkRunLocalConsoleActionGroups" text="Run Apache Spark Local Console"/>
+
+        <action id="Actions.RunLivySparkConsoleAction"
+                class="com.microsoft.azure.hdinsight.spark.console.SelectLivySparkTypeThenRunLivyConsoleAction" text="Apache Spark on HDInsight"
+                description="Start an interactive console for Apache Spark on HDInsight Application" icon="/icons/Spark.png"/>
+        <action id="Actions.RunLivySparkLocalConsoleAction"
+                class="com.microsoft.azure.hdinsight.spark.console.SelectLivySparkTypeThenRunLocalConsoleAction" text="Apache Spark on HDInsight"
+                description="Start a Apache Spark local console for Apache Spark on HDInsight Application" icon="/icons/Spark.png"/>
+    </actions>
+</idea-plugin>

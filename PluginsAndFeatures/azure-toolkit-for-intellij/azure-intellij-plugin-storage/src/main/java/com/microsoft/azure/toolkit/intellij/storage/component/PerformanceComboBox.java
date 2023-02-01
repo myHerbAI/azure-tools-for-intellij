@@ -9,8 +9,8 @@ import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.storage.model.Performance;
 import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.model.Performance;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -20,10 +20,7 @@ public class PerformanceComboBox extends AzureComboBox<Performance> {
 
     @Nonnull
     @Override
-    @AzureOperation(
-            name = "storage|account.performance.list.supported",
-            type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/storage.list_supported_performance_tiers")
     protected List<? extends Performance> loadItems() {
         return Azure.az(AzureStorageAccount.class).listSupportedPerformances();
     }

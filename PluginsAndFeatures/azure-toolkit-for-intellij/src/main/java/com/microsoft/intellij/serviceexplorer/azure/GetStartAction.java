@@ -30,7 +30,7 @@ public class GetStartAction extends NodeAction {
         super(azureModule, "Getting Started");
         addListener(new NodeActionListener() {
             @Override
-            @AzureOperation(name = "guidance.show_courses_view", type = AzureOperation.Type.ACTION)
+            @AzureOperation(name = "user/guidance.show_courses_view")
             protected void actionPerformed(NodeActionEvent e) {
                 OperationContext.action().setTelemetryProperty("FromPlace", PLACE);
                 OperationContext.action().setTelemetryProperty("ShowBlueIcon", String.valueOf(!isActionTriggered));

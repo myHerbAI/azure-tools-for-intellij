@@ -63,26 +63,28 @@ import java.util.stream.Collectors;
 
 public class AzureCosmosDbAccountParamEditor extends ParamEditorBase<AzureCosmosDbAccountParamEditor.CosmosDbAccountComboBox> {
     public static final String KEY_COSMOS_ACCOUNT_ID = "AZURE_COSMOS_ACCOUNT";
+    public static final String NONE = "<NONE>";
+    public static final String KEY_FROM_AZURE_EXPLORER = "FROM_EXPLORER";
     public static final String NO_ACCOUNT_TIPS_TEMPLATE = "<html>No Azure Cosmos DB accounts (%s). You can <a href=''>create one</a> first.</html>";
     public static final String NOT_SIGNIN_TIPS = "<html><a href=\"\">Sign in</a> to select an existing Azure Cosmos DB account.</html>";
     private final DatabaseAccountKind kind;
     @Getter
     @Setter
     private String text = "";
-    private String accountId;
+    @Nullable
     private CosmosDBAccountConnectionString connectionString;
     private boolean updating;
 
     public AzureCosmosDbAccountParamEditor(@Nonnull DatabaseAccountKind kind, @Nonnull String label, @Nonnull DataInterchange interchange) {
         super(new CosmosDbAccountComboBox(kind), interchange, FieldSize.LARGE, label);
         this.kind = kind;
-        this.accountId = interchange.getProperty(KEY_COSMOS_ACCOUNT_ID);
+        final LocalDataSource dataSource = getDataSourceConfigurable().getDataSource();
         final CosmosDbAccountComboBox combox = this.getEditorComponent();
         combox.addValueChangedListener(this::setAccount);
         interchange.addPersistentProperty(KEY_COSMOS_ACCOUNT_ID);
-        if (StringUtils.isNotBlank(this.accountId)) {
-            interchange.putProperty(KEY_COSMOS_ACCOUNT_ID, null);
-            combox.setValue(new AzureComboBox.ItemReference<>(i -> i.getId().equals(this.accountId)));
+        final String accountId = interchange.getProperty(KEY_COSMOS_ACCOUNT_ID);
+        if (StringUtils.isNotBlank(accountId)) {
+            combox.setValue(new AzureComboBox.ItemReference<>(i -> i.getId().equals(accountId)));
         }
 
         interchange.addPropertyChangeListener((evt -> onPropertiesChanged(evt.getPropertyName(), evt.getNewValue())), this);
@@ -107,7 +109,7 @@ public class AzureCosmosDbAccountParamEditor extends ParamEditorBase<AzureCosmos
         return container;
     }
 
-    @AzureOperation(name = "cosmos.signin_from_dbtools", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/cosmos.signin_from_dbtools")
     private void signInAndReloadItems(CosmosDbAccountComboBox combox, HyperlinkLabel notSignInTips) {
         OperationContext.action().setTelemetryProperty("kind", this.kind.getValue());
         AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle(() -> {
@@ -138,7 +140,7 @@ public class AzureCosmosDbAccountParamEditor extends ParamEditorBase<AzureCosmos
         return label;
     }
 
-    @AzureOperation(name = "cosmos.create_account_from_dbtools", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/cosmos.create_account_from_dbtools")
     private void createAccountInIde(InputEvent e) {
         OperationContext.action().setTelemetryProperty("kind", this.kind.getValue());
         final DataContext context = DataManager.getInstance().getDataContext(e.getComponent());
@@ -155,16 +157,17 @@ public class AzureCosmosDbAccountParamEditor extends ParamEditorBase<AzureCosmos
     }
 
     private void onPropertiesChanged(String propertyName, Object newValue) {
-        if (!this.updating && Objects.nonNull(this.connectionString) && StringUtils.isNotEmpty((String) newValue)) {
-            if (StringUtils.equals(propertyName, "host") && !Objects.equals(this.connectionString.getHost(), newValue) ||
-                StringUtils.equals(propertyName, "port") && !Objects.equals(this.connectionString.getPort() + "", newValue)) {
+        if (!this.updating && StringUtils.isNotEmpty((String) newValue) && StringUtils.equals(propertyName, "host") && Objects.nonNull(this.connectionString)) {
+            final AzureCosmosDbAccountParamEditor.CosmosDbAccountComboBox combox = this.getEditorComponent();
+            final CosmosDBAccount account = combox.getValue();
+            if (Objects.nonNull(account) && !Objects.equals(this.connectionString.getHost(), newValue)) {
                 this.getEditorComponent().setValue((CosmosDBAccount) null);
                 this.setAccount(null);
             }
         }
     }
 
-    @AzureOperation(name = "cosmos.select_account_dbtools.account", params = {"account.getName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/cosmos.select_account_dbtools.account", params = {"account.getName()"})
     private void setAccount(@Nullable CosmosDBAccount account) {
         Optional.ofNullable(account).ifPresent(a -> {
             OperationContext.action().setTelemetryProperty("subscriptionId", a.getSubscriptionId());
@@ -173,35 +176,35 @@ public class AzureCosmosDbAccountParamEditor extends ParamEditorBase<AzureCosmos
         });
 
         final DataInterchange interchange = this.getInterchange();
+        final String oldAccountId = interchange.getProperty(KEY_COSMOS_ACCOUNT_ID);
         final String newAccountId = Optional.ofNullable(account).map(AbstractAzResource::getId).orElse(null);
-        interchange.putProperty(KEY_COSMOS_ACCOUNT_ID, newAccountId);
-        if (this.updating || Objects.isNull(newAccountId) || StringUtils.equalsIgnoreCase(newAccountId, this.accountId)) {
-            return;
-        }
-        this.connectionString = null;
-        this.accountId = newAccountId;
+        final AzureTaskManager manager = AzureTaskManager.getInstance();
         this.updating = true;
-        // AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle(combox::reloadItems);
-        AzureTaskManager.getInstance().runOnPooledThread(() -> {
-            this.connectionString = account.getCosmosDBAccountPrimaryConnectionString();
-            final LocalDataSource dataSource = interchange.getDataSource();
-            final String host = connectionString.getHost();
-            final String port = String.valueOf(connectionString.getPort());
-            final String user = connectionString.getUsername();
-            final String password = String.valueOf(connectionString.getPassword());
-            this.text = connectionString.getConnectionString();
-            AzureTaskManager.getInstance().runLater(() -> {
+        manager.runOnPooledThread(() -> {
+            this.connectionString = Optional.ofNullable(account).map(CosmosDBAccount::getCosmosDBAccountPrimaryConnectionString).orElse(null);
+            manager.runLater(() -> {
+                final boolean fromExplorer = Objects.nonNull(interchange.getProperty(KEY_FROM_AZURE_EXPLORER));
+                interchange.putProperty(KEY_FROM_AZURE_EXPLORER, null);
+                interchange.putProperty(KEY_COSMOS_ACCOUNT_ID, Optional.ofNullable(newAccountId).orElse(NONE));
+                if (Objects.isNull(account) || Objects.isNull(connectionString) || StringUtils.equalsIgnoreCase(oldAccountId, newAccountId) && !fromExplorer) {
+                    this.updating = false;
+                    return;
+                }
+                final LocalDataSource dataSource = interchange.getDataSource();
+                final String host = connectionString.getHost();
+                final String port = String.valueOf(connectionString.getPort());
+                final String user = connectionString.getUsername();
+                final String password = String.valueOf(connectionString.getPassword());
                 LocalDataSource.setUsername(dataSource, user);
                 interchange.getCredentials().storePassword(dataSource, new OneTimeString(password));
                 this.setUseSsl(true);
                 interchange.putProperties(consumer -> {
-                    consumer.consume(KEY_COSMOS_ACCOUNT_ID, account.getId());
                     consumer.consume("host", host);
                     consumer.consume("user", user);
                     consumer.consume("port", port);
-                    this.updating = false;
                 });
                 this.setUsername(user);
+                this.updating = false;
             }, AzureTask.Modality.ANY);
         });
     }

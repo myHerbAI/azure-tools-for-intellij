@@ -22,7 +22,7 @@ public class OpenResourceInAzureTask implements Task {
     }
 
     @Override
-    @AzureOperation(name = "guidance.open_resource_in_azure", type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "internal/guidance.open_resource_in_portal")
     public void execute() {
         final String id = (String) taskContext.getParameter("webappId");
         final ResourceId resourceId = ResourceId.fromString(id);

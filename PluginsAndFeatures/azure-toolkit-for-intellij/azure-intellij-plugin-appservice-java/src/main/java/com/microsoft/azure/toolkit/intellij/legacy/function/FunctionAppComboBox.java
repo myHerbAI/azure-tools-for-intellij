@@ -42,10 +42,7 @@ public class FunctionAppComboBox extends AppServiceComboBox<FunctionAppConfig> {
 
     @Nonnull
     @Override
-    @AzureOperation(
-        name = "function.list_java_apps",
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/function.list_java_apps")
     protected List<FunctionAppConfig> loadAppServiceModels() {
         return Azure.az(AzureFunctions.class).functionApps().parallelStream()
             .map(functionApp -> convertAppServiceToConfig(FunctionAppConfig::new, functionApp))

@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.accessibility.AccessibleRelation;
 import javax.annotation.Nullable;
@@ -66,6 +67,7 @@ public interface AzureFormInputComponent<T> extends AzureFormInput<T>, Disposabl
         final JLabel label = (JLabel) this.getInputComponent().getClientProperty(AccessibleRelation.LABELED_BY);
         return Optional.ofNullable(label).map(JLabel::getText)
             .map(t -> t.endsWith(":") ? t.substring(0, t.length() - 1) : t)
+            .or(() -> Optional.ofNullable(AzureFormInput.super.getLabel()).filter(StringUtils::isNotBlank))
             .orElse(this.getClass().getSimpleName());
     }
 

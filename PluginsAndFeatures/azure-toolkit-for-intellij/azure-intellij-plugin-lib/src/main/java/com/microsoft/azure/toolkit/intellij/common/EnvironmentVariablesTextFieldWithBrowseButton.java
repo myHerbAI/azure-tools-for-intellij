@@ -144,7 +144,7 @@ public class EnvironmentVariablesTextFieldWithBrowseButton extends TextFieldWith
             pnlRoot.add(label, "hmax pref, wrap");
             pnlRoot.add(environmentVariableTable.getComponent(), "push, grow, wrap, gaptop 5");
 
-            setTitle("Set environment variables for Azure Spring App");
+            setTitle("Environment Variables");
             init();
         }
 

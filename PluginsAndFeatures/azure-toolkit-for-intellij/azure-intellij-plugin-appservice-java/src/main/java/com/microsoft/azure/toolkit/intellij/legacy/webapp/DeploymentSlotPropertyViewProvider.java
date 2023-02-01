@@ -19,7 +19,7 @@ public class DeploymentSlotPropertyViewProvider extends WebAppBasePropertyViewPr
     @NotNull
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "webapp.create_slot_properties_editor.slot", params = {"virtualFile.getName()"}, type = AzureOperation.Type.ACTION, target = AzureOperation.Target.PLATFORM)
+    @AzureOperation(name = "user/webapp.create_slot_properties_editor.slot", params = {"virtualFile.getName()"})
     public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile virtualFile) {
         final String sid = virtualFile.getUserData(OpenAppServicePropertyViewAction.SUBSCRIPTION_ID);
         final String webAppId = virtualFile.getUserData(OpenAppServicePropertyViewAction.WEBAPP_ID);

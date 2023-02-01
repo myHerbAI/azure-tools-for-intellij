@@ -9,7 +9,6 @@ import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -26,7 +25,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 public class CreateVirtualMachineAction {
 
@@ -58,15 +56,15 @@ public class CreateVirtualMachineAction {
 
     private static void doCreateVirtualMachine(final Project project, final VirtualMachineDraft draft) {
         final AzureTaskManager tm = AzureTaskManager.getInstance();
-        tm.runInBackground(OperationBundle.description("vm.create_vm.vm", draft.getName()), () -> {
+        tm.runInBackground(OperationBundle.description("internal/vm.create_vm.vm", draft.getName()), () -> {
             OperationContext.action().setTelemetryProperty("subscriptionId", draft.getSubscriptionId());
             try {
                 new CreateVirtualMachineTask(draft).execute();
                 CacheManager.getUsageHistory(VirtualMachine.class).push(draft);
             } catch (final Exception e) {
-                final Consumer<Object> act = t -> tm.runLater("open dialog", () -> openDialog(project, draft));
-                final Action.Id<Object> REOPEN = Action.Id.of("vm.reopen_creation_dialog");
-                final Action<?> action = new Action<>(REOPEN, act, new ActionView.Builder(REOPEN_CREATION_DIALOG));
+                final Action<?> action = new Action<>(Action.Id.of("user/vm.reopen_creation_dialog"))
+                    .withLabel(REOPEN_CREATION_DIALOG)
+                    .withHandler(t -> tm.runLater(() -> openDialog(project, draft)));
                 AzureMessager.getMessager().error(e, null, action);
             }
         });

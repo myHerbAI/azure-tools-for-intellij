@@ -1,0 +1,30 @@
+plugins{
+    id "java"
+    id "org.jetbrains.kotlin.jvm" version "1.7.20"
+}
+
+intellij {
+    plugins = ['java',dep_plugins]
+}
+
+dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.22")
+    implementation project(':azure-intellij-plugin-lib')
+    implementation project(':azure-intellij-plugin-lib-java')
+    implementation project(':azure-sdk-reference-book')
+    implementation project(':azure-intellij-resource-connector-lib')
+    implementation project(':azure-intellij-resource-connector-lib-java')
+    implementation 'com.microsoft.azure:azure-toolkit-ide-common-lib'
+    implementation 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-spark-lib:' + azureToolkitHDInsightVersion
+}
+
+repositories {
+    mavenCentral()
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = javaVersion
+    ajc {
+        enabled = false
+    }
+}

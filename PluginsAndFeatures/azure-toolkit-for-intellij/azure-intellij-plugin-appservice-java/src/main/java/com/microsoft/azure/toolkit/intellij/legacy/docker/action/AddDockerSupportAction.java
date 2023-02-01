@@ -48,7 +48,7 @@ public class AddDockerSupportAction extends AzureAnAction {
     String pomXmlBasePath;
 
     @Override
-    @AzureOperation(name = "docker.add_docker_support", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/docker.add_docker_support")
     public boolean onActionPerformed(@NotNull AnActionEvent anActionEvent, @Nullable Operation operation) {
         module = DataKeys.MODULE.getData(anActionEvent.getDataContext());
         if (module == null) {

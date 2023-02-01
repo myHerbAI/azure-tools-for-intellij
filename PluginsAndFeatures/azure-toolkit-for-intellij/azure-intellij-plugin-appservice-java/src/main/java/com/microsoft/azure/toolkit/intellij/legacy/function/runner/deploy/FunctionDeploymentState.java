@@ -63,7 +63,7 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
 
     @Nullable
     @Override
-    @AzureOperation(name = "function.deploy_app", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "internal/function.deploy_app")
     public FunctionAppBase<?, ?, ?> executeSteps(@NotNull RunProcessHandler processHandler, @NotNull Operation operation) {
         final RunProcessHandlerMessenger messenger = new RunProcessHandlerMessenger(processHandler);
         OperationContext.current().setMessager(messenger);
@@ -76,11 +76,7 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
         return target;
     }
 
-    @AzureOperation(
-            name = "function.prepare_staging_folder.folder|app",
-            params = {"stagingFolder.getName()", "this.deployModel.getFunctionAppConfig().getName()"},
-            type = AzureOperation.Type.TASK
-    )
+    @AzureOperation(name = "boundary/function.prepare_staging_folder.folder|app", params = {"stagingFolder.getName()", "this.deployModel.getFunctionAppConfig().getName()"})
     private void prepareStagingFolder(File stagingFolder, RunProcessHandler processHandler, final @NotNull Operation operation) {
         final Module module = functionDeployConfiguration.getModule();
         if (module == null) {
@@ -107,11 +103,7 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
     }
 
     @Override
-    @AzureOperation(
-            name = "function.complete_deployment.app",
-            params = {"this.deployModel.getFunctionAppConfig().getName()"},
-            type = AzureOperation.Type.TASK
-    )
+    @AzureOperation(name = "boundary/function.complete_deployment.app", params = {"this.deployModel.getFunctionAppConfig().getName()"})
     protected void onSuccess(FunctionAppBase<?, ?, ?> result, @NotNull RunProcessHandler processHandler) {
         processHandler.setText(message("appService.deploy.hint.succeed"));
         processHandler.notifyComplete();

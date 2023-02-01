@@ -5,8 +5,9 @@
 
 package com.microsoft.intellij.ui;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.gson.JsonSyntaxException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.lang.Language;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.event.DocumentEvent;
@@ -33,7 +34,6 @@ import com.microsoft.azure.toolkit.lib.auth.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.AuthType;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
-import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import com.microsoft.azuretools.azurecommons.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -214,11 +214,6 @@ public class ServicePrincipalLoginDialog extends AzureDialog<AuthConfiguration> 
         return new ArrayList<>();
     }
 
-    @Override
-    public List<AzureValidationInfo> validateData() {
-        return Collections.emptyList();
-    }
-
     private void initJsonData() {
         final String textFromClip = findTextInClipboard(str ->
             StringUtils.contains(str, "appId") && StringUtils.contains(str, "tenant") &&
@@ -281,8 +276,9 @@ public class ServicePrincipalLoginDialog extends AzureDialog<AuthConfiguration> 
 
     private void json2UIComponents(String json) {
         try {
+            final ObjectMapper mapper = new ObjectMapper();
             final TypeReference<HashMap<String, String>> type = new TypeReference<>() {};
-            final Map<String, String> map = JsonUtils.fromJson(json, type);
+            final Map<String, String> map = mapper.readValue(json, type);
             if (map != null) {
                 ApplicationManager.getApplication().invokeAndWait(() -> {
                     if (!intermediateState.compareAndSet(false, true)) {
@@ -314,7 +310,7 @@ public class ServicePrincipalLoginDialog extends AzureDialog<AuthConfiguration> 
                 });
             }
 
-        } catch (final JsonSyntaxException ex) {
+        } catch (final JsonProcessingException ex) {
             // ignore all json errors
         }
     }

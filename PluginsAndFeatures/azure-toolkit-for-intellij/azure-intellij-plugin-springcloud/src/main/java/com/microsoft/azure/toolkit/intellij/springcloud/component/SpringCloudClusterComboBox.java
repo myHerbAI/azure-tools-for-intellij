@@ -5,8 +5,15 @@
 
 package com.microsoft.azure.toolkit.intellij.springcloud.component;
 
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.keymap.KeymapUtil;
+import com.intellij.ui.components.fields.ExtendableTextComponent;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.account.IAccount;
+import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -15,7 +22,11 @@ import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterModule;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.swing.*;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -54,11 +65,7 @@ public class SpringCloudClusterComboBox extends AzureComboBox<SpringCloudCluster
 
     @NotNull
     @Override
-    @AzureOperation(
-        name = "springcloud.list_clusters.subscription",
-        params = {"this.subscription.getId()"},
-        type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/springcloud.list_clusters.subscription", params = {"this.subscription.getId()"})
     protected List<? extends SpringCloudCluster> loadItems() {
         if (Objects.nonNull(this.subscription)) {
             final String sid = this.subscription.getId();
@@ -72,5 +79,21 @@ public class SpringCloudClusterComboBox extends AzureComboBox<SpringCloudCluster
     protected void refreshItems() {
         Optional.ofNullable(this.subscription).ifPresent(s -> Azure.az(AzureSpringCloud.class).clusters(s.getId()).refresh());
         super.refreshItems();
+    }
+
+    @Nonnull
+    @Override
+    protected List<ExtendableTextComponent.Extension> getExtensions() {
+        final List<ExtendableTextComponent.Extension> extensions = super.getExtensions();
+        final KeyStroke keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, InputEvent.ALT_DOWN_MASK);
+        final String tooltip = String.format("Create Azure Spring Apps in Azure Portal (%s)", KeymapUtil.getKeystrokeText(keyStroke));
+        final ExtendableTextComponent.Extension addEx = ExtendableTextComponent.Extension.create(AllIcons.General.Add, tooltip, () -> {
+            final IAccount account = Azure.az(IAzureAccount.class).account();
+            final String url = String.format("%s/#create/Microsoft.AppPlatform", account.getPortalUrl());
+            AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(url, null);
+        });
+        this.registerShortcut(keyStroke, addEx);
+        extensions.add(addEx);
+        return extensions;
     }
 }
