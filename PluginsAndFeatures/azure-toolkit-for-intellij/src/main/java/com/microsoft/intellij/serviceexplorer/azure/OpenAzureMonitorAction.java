@@ -13,7 +13,6 @@ import com.microsoft.azure.toolkit.intellij.monitor.AzureMonitorManager;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.monitor.AzureLogAnalyticsWorkspace;
 import com.microsoft.azure.toolkit.lib.monitor.LogAnalyticsWorkspace;
@@ -26,16 +25,13 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 
 public class OpenAzureMonitorAction extends NodeAction {
     private static boolean isActionTriggered = false;
     private static final String AZURE_MONITOR_TRIGGERED = "AzureMonitor.Triggered";
 
     public OpenAzureMonitorAction(@Nonnull AzureModule azureModule) {
-        super(azureModule, "Open Azure Monitor");
+        super(azureModule, "Open Logs with Azure Monitor");
         addListener(new NodeActionListener() {
             @Override
             protected void actionPerformed(NodeActionEvent nodeActionEvent) {
@@ -50,15 +46,10 @@ public class OpenAzureMonitorAction extends NodeAction {
                             if (Objects.nonNull(account) && account.getSelectedSubscriptions().size() > 0) {
                                 final Subscription subscription = account.getSelectedSubscriptions().get(0);
                                 final List<LogAnalyticsWorkspace> workspaceList = Azure.az(AzureLogAnalyticsWorkspace.class)
-                                        .logAnalyticsWorkspaces(subscription.getId()).list().stream().collect(Collectors.toList());
-                                if (workspaceList.size() == 0) {
-                                    AzureMessager.getMessager().info(message("azure.monitor.info.workspaceNotFoundInSub", subscription.getId()));
-                                    return;
+                                        .logAnalyticsWorkspaces(subscription.getId()).list().stream().toList();
+                                if (workspaceList.size() > 0) {
+                                    defaultWorkspace = workspaceList.get(0);
                                 }
-                                defaultWorkspace = workspaceList.get(0);
-                            } else {
-                                AzureMessager.getMessager().info(message("azure.monitor.info.selectSubscription"));
-                                return;
                             }
                             AzureMonitorManager.getInstance().openMonitorWindow((Project) project, defaultWorkspace, null);
                         });

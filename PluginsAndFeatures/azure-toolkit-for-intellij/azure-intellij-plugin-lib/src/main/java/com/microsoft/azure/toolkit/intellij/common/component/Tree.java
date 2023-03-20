@@ -31,11 +31,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -118,12 +114,10 @@ public class Tree extends SimpleTree implements DataProvider {
             return this.inner.view().getLabel();
         }
 
-        @Nullable
-        public IView.Label getInlineActionView() {
-            return Optional.ofNullable(this.inner.inlineAction())
-                .map(a -> a.getView(this.inner.data()))
-                .filter(IView.Label::isEnabled)
-                .orElse(null);
+        public List<IView.Label> getInlineActionViews() {
+            return this.inner.inlineActionList().stream().map(action -> action.getView(this.inner.data()))
+                    .filter(IView.Label::isEnabled)
+                    .collect(Collectors.toList());
         }
 
         @Override

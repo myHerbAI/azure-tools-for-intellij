@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -51,7 +52,7 @@ public class Node<D> {
     private Order newItemOrder = Order.LIST_ORDER;
     private Action<? super D> clickAction;
     private Action<? super D> doubleClickAction;
-    private Action<? super D> inlineAction;
+    private final List<Action<? super D>> inlineActionList = new ArrayList<>();
     private Consumer<? super D> loadMoreChildren;
     // by default, we will load all children, so return false for has more child
     @Getter(AccessLevel.NONE)
@@ -155,14 +156,16 @@ public class Node<D> {
         return this;
     }
 
-    public void triggerInlineAction(final Object event) {
-        if (this.inlineAction != null) {
-            this.inlineAction.handle(this.data, event);
+    public void triggerInlineAction(final Object event, int index) {
+        final List<Action<? super D>> enabledActions =  this.inlineActionList.stream()
+                .filter(action -> action.getView(this.data).isEnabled()).collect(Collectors.toList());
+        if (index >=0 && index < enabledActions.size()) {
+            Optional.ofNullable(enabledActions.get(index)).ifPresent(a -> a.handle(this.data, event));
         }
     }
 
-    public Node<D> inlineAction(Action.Id<? super D> actionId) {
-        this.inlineAction = AzureActionManager.getInstance().getAction(actionId);
+    public Node<D> addInlineAction(Action.Id<? super D> actionId) {
+        this.inlineActionList.add(AzureActionManager.getInstance().getAction(actionId));
         return this;
     }
 

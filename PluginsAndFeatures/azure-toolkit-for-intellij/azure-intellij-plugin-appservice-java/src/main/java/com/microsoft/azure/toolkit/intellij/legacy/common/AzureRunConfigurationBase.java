@@ -19,7 +19,7 @@ import com.intellij.util.xmlb.Accessor;
 import com.intellij.util.xmlb.SerializationFilterBase;
 import com.intellij.util.xmlb.XmlSerializer;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
-import com.microsoft.intellij.util.AzureLoginHelper;
+import com.microsoft.azure.toolkit.intellij.common.auth.AzureLoginHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;

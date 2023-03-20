@@ -5,4 +5,9 @@
                 factoryClass="com.microsoft.azure.toolkit.intellij.monitor.AzureMonitorManager$AzureMonitorFactory"
                 id="Azure Monitor" canCloseContents="true"/>
     </extensions>
+    <projectListeners>
+        <listener
+                class="com.microsoft.azure.toolkit.intellij.monitor.AzureMonitorToolWindowListener"
+                topic="com.intellij.openapi.wm.ex.ToolWindowManagerListener"/>
+    </projectListeners>
 </idea-plugin>

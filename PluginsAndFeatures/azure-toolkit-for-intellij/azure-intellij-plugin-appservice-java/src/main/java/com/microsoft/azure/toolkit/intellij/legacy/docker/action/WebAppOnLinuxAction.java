@@ -20,8 +20,8 @@ import com.microsoft.azure.toolkit.intellij.legacy.docker.AzureDockerSupportConf
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
-import com.microsoft.intellij.AzureAnAction;
-import com.microsoft.intellij.util.AzureLoginHelper;
+import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction;
+import com.microsoft.azure.toolkit.intellij.common.auth.AzureLoginHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -30,7 +30,7 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.intellij.IToolWindowProcessor;
 import com.microsoft.intellij.ToolWindowKey;
-import com.microsoft.intellij.CommonConst;
+import com.microsoft.azure.toolkit.intellij.common.CommonConst;
 import org.apache.commons.lang3.ArrayUtils;
 
 import javax.swing.Icon;

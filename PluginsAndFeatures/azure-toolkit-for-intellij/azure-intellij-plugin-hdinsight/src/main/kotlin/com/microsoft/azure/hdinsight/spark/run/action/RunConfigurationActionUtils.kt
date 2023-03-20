@@ -41,7 +41,7 @@ import com.microsoft.azuretools.telemetrywrapper.EventUtil.logErrorClassNameOnly
 import com.microsoft.azuretools.telemetrywrapper.EventUtil.logErrorClassNameOnlyWithComplete
 import com.microsoft.intellij.rxjava.IdeaSchedulers
 import com.microsoft.intellij.telemetry.TelemetryKeys
-import com.microsoft.intellij.ui.util.UIUtils.assertInDispatchThread
+import com.microsoft.azure.toolkit.intellij.common.component.UIUtils.assertInDispatchThread
 import rx.Observable
 import rx.Observable.empty
 import rx.Observable.fromCallable

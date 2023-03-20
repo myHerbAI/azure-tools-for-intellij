@@ -31,7 +31,7 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.TextRange
 import com.microsoft.azure.hdinsight.common.logger.ILogger
 import com.microsoft.azure.hdinsight.spark.run.action.SelectSparkApplicationTypeAction
-import com.microsoft.intellij.AzureAnAction
+import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction
 import com.microsoft.azuretools.telemetrywrapper.Operation
 import com.microsoft.intellij.rxjava.IdeaSchedulers
 import com.microsoft.intellij.util.runInReadAction

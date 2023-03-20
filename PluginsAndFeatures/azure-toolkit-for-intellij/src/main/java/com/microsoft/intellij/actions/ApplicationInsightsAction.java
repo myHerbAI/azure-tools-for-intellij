@@ -10,7 +10,7 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleTypeId;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
-import com.microsoft.intellij.AzureAnAction;
+import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
 import com.microsoft.intellij.ui.components.DefaultDialogWrapper;
 import com.microsoft.intellij.ui.libraries.ApplicationInsightsPanel;

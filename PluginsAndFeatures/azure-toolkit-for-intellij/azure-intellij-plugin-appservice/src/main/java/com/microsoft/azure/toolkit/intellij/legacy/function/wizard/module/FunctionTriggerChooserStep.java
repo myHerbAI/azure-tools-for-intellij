@@ -14,23 +14,30 @@ import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.components.BorderLayoutPanel;
 import com.microsoft.azure.toolkit.intellij.legacy.function.wizard.AzureFunctionsConstants;
+import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionExtensionVersion;
+import com.microsoft.azure.toolkit.lib.legacy.function.template.FunctionTemplate;
+import com.microsoft.azure.toolkit.lib.legacy.function.utils.FunctionUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 
-import org.jetbrains.annotations.NotNull;
-
+import javax.annotation.Nonnull;
 import javax.swing.*;
-
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FunctionTriggerChooserStep extends ModuleWizardStep {
-    public static final List<String> SUPPORTED_TRIGGERS = Arrays.asList("HttpTrigger", "BlobTrigger", "QueueTrigger", "TimerTrigger", "EventHubTrigger");
+    // only shown v3 bundle template as a workaround
+    // todo: @hanli add bundle version options in trigger step
+    public static final List<FunctionTemplate> FUNCTION_TEMPLATES = FunctionUtils.loadAllFunctionTemplates().stream()
+            .filter(t -> t.isBundleSupported(FunctionExtensionVersion.VERSION_3)).collect(Collectors.toList());
     private final WizardContext wizardContext;
     private CheckBoxList<String> triggerList;
-    private static final List<String> INITIAL_SELECTED_TRIGGERS = Arrays.asList("HttpTrigger");
+    private static final List<String> INITIAL_SELECTED_TRIGGERS = List.of("HttpTrigger");
 
     FunctionTriggerChooserStep(final WizardContext wizardContext) {
+        super();
         this.wizardContext = wizardContext;
     }
 
@@ -54,11 +61,11 @@ public class FunctionTriggerChooserStep extends ModuleWizardStep {
 
     @Override
     public void updateDataModel() {
-        wizardContext.putUserData(AzureFunctionsConstants.WIZARD_TRIGGERS_KEY, getSelectedTriggers().toArray(new String[0]));
+        wizardContext.putUserData(AzureFunctionsConstants.WIZARD_TRIGGERS_KEY, getSelectedTriggers().toArray(new FunctionTemplate[0]));
     }
 
-    @NotNull
-    private List<String> getSelectedTriggers() {
+    @Nonnull
+    private List<FunctionTemplate> getSelectedTriggers() {
         final DefaultListModel model = (DefaultListModel) triggerList.getModel();
         final int rc = model.getSize();
         final List<String> selectedTriggers = new ArrayList<>();
@@ -68,7 +75,9 @@ public class FunctionTriggerChooserStep extends ModuleWizardStep {
                 selectedTriggers.add(checkBox.getText());
             }
         }
-        return selectedTriggers;
+        return FUNCTION_TEMPLATES.stream()
+                .filter(template -> selectedTriggers.contains(template.getName()))
+                .toList();
     }
 
     @Override
@@ -81,8 +90,9 @@ public class FunctionTriggerChooserStep extends ModuleWizardStep {
 
     private void setupFunctionTriggers() {
         final DefaultListModel model = (DefaultListModel) triggerList.getModel();
-        for (final String trigger : SUPPORTED_TRIGGERS) {
-            model.addElement(new JCheckBox(trigger, INITIAL_SELECTED_TRIGGERS.contains(trigger)));
-        }
+        FUNCTION_TEMPLATES.stream().map(FunctionTemplate::getName)
+                .filter(StringUtils::isNotEmpty) // filter out invalid data
+                .map(name -> new JCheckBox(name, INITIAL_SELECTED_TRIGGERS.contains(name)))
+                .forEach(model::addElement);
     }
 }

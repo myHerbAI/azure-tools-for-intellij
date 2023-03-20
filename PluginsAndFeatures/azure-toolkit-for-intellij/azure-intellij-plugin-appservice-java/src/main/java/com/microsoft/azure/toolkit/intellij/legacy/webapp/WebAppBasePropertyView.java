@@ -26,7 +26,7 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azuretools.core.mvp.ui.webapp.WebAppProperty;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.EventUtil;
-import com.microsoft.intellij.ui.components.AzureActionListenerWrapper;
+import com.microsoft.azure.toolkit.intellij.common.action.AzureActionListenerWrapper;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.webapp.WebAppBasePropertyMvpView;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.webapp.WebAppPropertyViewPresenter;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.webapp.base.WebAppBasePropertyViewPresenter;

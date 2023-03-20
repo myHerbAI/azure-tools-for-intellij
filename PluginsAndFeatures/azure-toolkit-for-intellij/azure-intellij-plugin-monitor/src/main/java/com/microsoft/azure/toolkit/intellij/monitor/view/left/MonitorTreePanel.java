@@ -15,6 +15,7 @@ import com.intellij.ui.render.RenderingUtil;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.ui.treeStructure.Tree;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
 import lombok.Setter;
@@ -118,8 +119,10 @@ public class MonitorTreePanel extends JPanel {
             });
         } catch (final Exception ignored) {
         }
-        this.treeModel.reload();
-        TreeUtil.expandAll(this.tree);
+        AzureTaskManager.getInstance().runLater(() -> {
+            this.treeModel.reload();
+            TreeUtil.expandAll(this.tree);
+        }, AzureTask.Modality.ANY);
     }
 
     private void loadQueryTreeData() {
@@ -141,8 +144,10 @@ public class MonitorTreePanel extends JPanel {
             });
         } catch (final Exception ignored) {
         }
-        this.treeModel.reload();
-        TreeUtil.expandAll(this.tree);
+        AzureTaskManager.getInstance().runLater(() -> {
+            this.treeModel.reload();
+            TreeUtil.expandAll(this.tree);
+        }, AzureTask.Modality.ANY);
     }
 
     private Tree initTree(DefaultTreeModel treeModel) {

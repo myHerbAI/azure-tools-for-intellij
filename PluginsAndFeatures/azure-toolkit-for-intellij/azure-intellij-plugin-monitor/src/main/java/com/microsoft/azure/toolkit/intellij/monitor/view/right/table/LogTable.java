@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.intellij.monitor.view.right.table;
 
 import com.azure.monitor.query.models.LogsTableRow;
 import com.intellij.ui.table.JBTable;
-import com.microsoft.intellij.CommonConst;
+import com.microsoft.azure.toolkit.intellij.common.CommonConst;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 

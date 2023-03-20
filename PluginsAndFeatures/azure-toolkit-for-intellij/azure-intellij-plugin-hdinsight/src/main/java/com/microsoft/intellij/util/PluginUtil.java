@@ -28,7 +28,7 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.intellij.CommonConst;
+import com.microsoft.azure.toolkit.intellij.common.CommonConst;
 import com.microsoft.intellij.IToolWindowProcessor;
 import com.microsoft.intellij.ToolWindowKey;
 import org.apache.commons.lang3.ArrayUtils;

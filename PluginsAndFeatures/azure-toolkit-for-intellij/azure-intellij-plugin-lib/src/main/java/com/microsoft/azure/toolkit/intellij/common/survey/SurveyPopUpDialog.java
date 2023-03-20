@@ -99,7 +99,7 @@ public class SurveyPopUpDialog extends JDialog {
 
         // Add listener to intellij theme change
         renderUiByTheme(LafManager.getInstance());
-        connection.subscribe(LafManagerListener.TOPIC, manager -> renderUiByTheme(manager));
+        connection.subscribe(LafManagerListener.TOPIC, (LafManagerListener) manager -> renderUiByTheme(manager));
 
         this.pack();
         this.disposeTimer.restart();

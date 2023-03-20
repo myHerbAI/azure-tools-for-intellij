@@ -5,16 +5,20 @@
 
 package com.microsoft.azure.toolkit.intellij.common;
 
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.ProjectFrameHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
+import java.util.Objects;
+import java.util.Optional;
 
 public class IdeUtils {
 
@@ -55,5 +59,15 @@ public class IdeUtils {
             project = ProjectManager.getInstance().getDefaultProject();
         }
         return project;
+    }
+
+    public static boolean isSameModule(@Nullable final Module first, @Nullable final Module second) {
+        return Objects.equals(first, second) || StringUtils.equals(getFormalModuleId(first), getFormalModuleId(second));
+    }
+
+    private static String getFormalModuleId(@Nullable Module module) {
+        return Optional.ofNullable(module).map(Module::getName)
+                .map(name -> StringUtils.removeEnd(name, ".main"))
+                .map(name -> StringUtils.removeEnd(name, ".test")).orElse(null);
     }
 }

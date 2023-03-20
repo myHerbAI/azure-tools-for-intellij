@@ -73,7 +73,7 @@ public class CosmosNodeProvider implements IExplorerNodeProvider {
             final SqlCosmosDBAccount sqlCosmosDBAccount = (SqlCosmosDBAccount) data;
             return new Node<>(sqlCosmosDBAccount)
                 .view(new CosmosDBAccountLabelView<>(sqlCosmosDBAccount))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .actions(CosmosActionsContributor.SQL_ACCOUNT_ACTIONS)
                 .addChildren(account -> account.sqlDatabases().list(), (database, accountNode) -> this.createNode(database, accountNode, manager))
                 .hasMoreChildren(account -> account.sqlDatabases().hasMoreResources())
@@ -82,7 +82,7 @@ public class CosmosNodeProvider implements IExplorerNodeProvider {
             final MongoCosmosDBAccount mongoCosmosDBAccount = (MongoCosmosDBAccount) data;
             return new Node<>(mongoCosmosDBAccount)
                 .view(new CosmosDBAccountLabelView<>(mongoCosmosDBAccount))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .actions(CosmosActionsContributor.MONGO_ACCOUNT_ACTIONS)
                 .addChildren(account -> account.mongoDatabases().list(), (database, accountNode) -> this.createNode(database, accountNode, manager))
                 .hasMoreChildren(account -> account.mongoDatabases().hasMoreResources())
@@ -91,7 +91,7 @@ public class CosmosNodeProvider implements IExplorerNodeProvider {
             final CassandraCosmosDBAccount cassandraCosmosDBAccount = (CassandraCosmosDBAccount) data;
             return new Node<>(cassandraCosmosDBAccount)
                 .view(new CosmosDBAccountLabelView<>(cassandraCosmosDBAccount))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .actions(CosmosActionsContributor.CASSANDRA_ACCOUNT_ACTIONS)
                 .addChildren(account -> account.keySpaces().list(), (keyspace, accountNode) -> this.createNode(keyspace, accountNode, manager))
                 .hasMoreChildren(account -> account.keySpaces().hasMoreResources())
@@ -101,14 +101,14 @@ public class CosmosNodeProvider implements IExplorerNodeProvider {
             final CosmosDBAccount account = (CosmosDBAccount) data;
             return new Node<>(account)
                 .view(new CosmosDBAccountLabelView<>(account))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .actions(CosmosActionsContributor.ACCOUNT_ACTIONS)
                 .doubleClickAction(ResourceCommonActionsContributor.OPEN_PORTAL_URL);
         } else if (data instanceof MongoDatabase) {
             final MongoDatabase mongoDatabase = (MongoDatabase) data;
             return new Node<>(mongoDatabase)
                 .view(new AzureResourceLabelView<>(mongoDatabase))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .actions(CosmosActionsContributor.MONGO_DATABASE_ACTIONS)
                 .addChildren(database -> database.collections().list(), (collection, databaseNode) -> this.createNode(collection, databaseNode, manager))
                 .hasMoreChildren(database -> database.collections().hasMoreResources())
@@ -117,7 +117,7 @@ public class CosmosNodeProvider implements IExplorerNodeProvider {
             final MongoCollection table = (MongoCollection) data;
             return new Node<>(table)
                 .view(new AzureResourceLabelView<>(table))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .actions(CosmosActionsContributor.MONGO_COLLECTION_ACTIONS)
                 .addChildren(collection -> collection.getDocumentModule().list(), (document, collectionNode) -> this.createNode(document, collectionNode, manager))
                 .hasMoreChildren(collection -> collection.getDocumentModule().hasMoreResources())
@@ -131,7 +131,7 @@ public class CosmosNodeProvider implements IExplorerNodeProvider {
             final SqlDatabase sqlDatabase = (SqlDatabase) data;
             return new Node<>(sqlDatabase)
                 .view(new AzureResourceLabelView<>(sqlDatabase))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .actions(CosmosActionsContributor.SQL_DATABASE_ACTIONS)
                 .addChildren(database -> database.containers().list(), (container, databaseNode) -> this.createNode(container, databaseNode, manager))
                 .hasMoreChildren(database -> database.containers().hasMoreResources())
@@ -140,7 +140,7 @@ public class CosmosNodeProvider implements IExplorerNodeProvider {
             final SqlContainer table = (SqlContainer) data;
             return new Node<>(table)
                 .view(new AzureResourceLabelView<>(table))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .actions(CosmosActionsContributor.SQL_CONTAINER_ACTIONS)
                 .addChildren(container -> container.getDocumentModule().list(), (document, containerNode) -> this.createNode(document, containerNode, manager))
                 .hasMoreChildren(container -> container.getDocumentModule().hasMoreResources())
@@ -154,7 +154,7 @@ public class CosmosNodeProvider implements IExplorerNodeProvider {
             final CassandraKeyspace cassandraKeyspace = (CassandraKeyspace) data;
             return new Node<>(cassandraKeyspace)
                 .view(new AzureResourceLabelView<>(cassandraKeyspace))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .actions(CosmosActionsContributor.CASSANDRA_KEYSPACE_ACTIONS)
                 .addChildren(keyspace -> keyspace.tables().list(), (table, keyspaceNode) -> this.createNode(table, keyspaceNode, manager))
                 .hasMoreChildren(keyspace -> keyspace.tables().hasMoreResources())
@@ -163,7 +163,7 @@ public class CosmosNodeProvider implements IExplorerNodeProvider {
             final CassandraTable table = (CassandraTable) data;
             return new Node<>(table)
                 .view(new AzureResourceLabelView<>(table))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .actions(CosmosActionsContributor.CASSANDRA_TABLE_ACTIONS)
                 .doubleClickAction(ResourceCommonActionsContributor.OPEN_PORTAL_URL);
         } else if (data instanceof MongoDocument) {

@@ -27,6 +27,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -38,7 +39,7 @@ public class LanguageServerDefinition {
 
     public String ext;
     protected Map<String, String> languageIds = Collections.emptyMap();
-    private Map<String, StreamConnectionProvider> streamConnectionProviders = new ConcurrentHashMap<>();
+    private final Map<String, StreamConnectionProvider> streamConnectionProviders = new ConcurrentHashMap<>();
     public static final String SPLIT_CHAR = ",";
 
     /**
@@ -49,15 +50,13 @@ public class LanguageServerDefinition {
      * @throws IOException if the stream connection provider is crashed
      */
     public Pair<InputStream, OutputStream> start(String workingDir) throws IOException {
-        StreamConnectionProvider streamConnectionProvider = streamConnectionProviders.get(workingDir);
-        if (streamConnectionProvider != null) {
-            return new ImmutablePair<>(streamConnectionProvider.getInputStream(), streamConnectionProvider.getOutputStream());
-        } else {
+        StreamConnectionProvider streamConnectionProvider = Optional.ofNullable(workingDir).map(streamConnectionProviders::get).orElse(null);
+        if (streamConnectionProvider == null) {
             streamConnectionProvider = createConnectionProvider(workingDir);
             streamConnectionProvider.start();
             streamConnectionProviders.put(workingDir, streamConnectionProvider);
-            return new ImmutablePair<>(streamConnectionProvider.getInputStream(), streamConnectionProvider.getOutputStream());
         }
+        return new ImmutablePair<>(streamConnectionProvider.getInputStream(), streamConnectionProvider.getOutputStream());
     }
 
     /**
@@ -66,7 +65,7 @@ public class LanguageServerDefinition {
      * @param workingDir The root directory
      */
     public void stop(String workingDir) {
-        StreamConnectionProvider streamConnectionProvider = streamConnectionProviders.get(workingDir);
+        final StreamConnectionProvider streamConnectionProvider = Optional.ofNullable(workingDir).map(streamConnectionProviders::get).orElse(null);
         if (streamConnectionProvider != null) {
             streamConnectionProvider.stop();
             streamConnectionProviders.remove(workingDir);

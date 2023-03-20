@@ -76,7 +76,8 @@ public class IntellijAzureActionManager extends AzureActionManager {
         } else {
             return new Action<>(id)
                 .withLabel(Objects.requireNonNull(origin.getTemplateText()))
-                .withHandler((D d, AnActionEvent e) -> origin.actionPerformed(e));
+                .withHandler((D d, AnActionEvent e) -> origin.actionPerformed(e))
+                .withAuthRequired(false);
         }
     }
 
@@ -132,8 +133,17 @@ public class IntellijAzureActionManager extends AzureActionManager {
             final T source = (T) e.getDataContext().getData(Action.SOURCE);
             final Presentation presentation = e.getPresentation();
             final IView.Label view = this.action.getView(source);
-            final boolean isResourceInOtherSubs = source instanceof AbstractAzResource && !((AbstractAzResource<?, ?, ?>) source).getSubscription().isSelected() && this.action.isAuthRequired();
-            final boolean visible = !isResourceInOtherSubs && view.isVisible() && Objects.nonNull(action.getHandler(source, e));
+
+            boolean visible;
+            final boolean isAbstractAzResource = source instanceof AbstractAzResource;
+
+            if(isAbstractAzResource && ((AbstractAzResource<?, ?, ?>) source).getSubscription().getId().equals("[LinkedCluster]")) {
+                visible = true;
+            } else {
+                final boolean isResourceInOtherSubs = isAbstractAzResource && !((AbstractAzResource<?, ?, ?>) source).getSubscription().isSelected() && this.action.isAuthRequired();
+                visible = !isResourceInOtherSubs && view.isVisible() && Objects.nonNull(action.getHandler(source, e));
+            }
+
             presentation.setVisible(visible);
             if (visible) {
                 final boolean enabled = view.isEnabled() && Objects.nonNull(action.getHandler(source, e));

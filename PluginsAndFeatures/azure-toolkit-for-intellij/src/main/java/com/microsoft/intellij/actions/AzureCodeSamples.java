@@ -6,7 +6,7 @@
 package com.microsoft.intellij.actions;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.microsoft.intellij.AzureAnAction;
+import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
 import org.jdesktop.swingx.JXHyperlink;

@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localrun;
 
 import com.google.gson.JsonObject;
+import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -17,26 +18,44 @@ import com.intellij.execution.configurations.RunProfileWithCompileBeforeLaunchOp
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
+import com.microsoft.azure.toolkit.intellij.connector.Connection;
+import com.microsoft.azure.toolkit.intellij.connector.ConnectionManager;
+import com.microsoft.azure.toolkit.intellij.connector.ConnectionRunnerForRunConfiguration;
+import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunConfigurationBase;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
+import lombok.Getter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 
 public class FunctionRunConfiguration extends AzureRunConfigurationBase<FunctionRunModel>
-    implements LocatableConfiguration, RunProfileWithCompileBeforeLaunchOption {
+        implements LocatableConfiguration, RunProfileWithCompileBeforeLaunchOption, IConnectionAware {
     private JsonObject appSettingsJsonObject;
     private FunctionRunModel functionRunModel;
+    @Getter
+    private final Set<Connection<?, ?>> connections = new HashSet<>();
 
     protected FunctionRunConfiguration(@NotNull Project project, @NotNull ConfigurationFactory factory, String name) {
         super(project, factory, name);
@@ -48,16 +67,25 @@ public class FunctionRunConfiguration extends AzureRunConfigurationBase<Function
     @Override
     public Module[] getModules() {
         final Module module = getModule();
-        return module == null ? Module.EMPTY_ARRAY : new Module[] { module };
+        return module == null ? Module.EMPTY_ARRAY : new Module[]{module};
     }
 
+    @Override
     public Module getModule() {
-        Module module = ReadAction.compute(() -> getConfigurationModule().getModule());
+        Module module = ReadAction.compute(() ->
+                Optional.ofNullable(getConfigurationModule()).map(JavaRunConfigurationModule::getModule).orElse(null));
         if (module == null && StringUtils.isNotEmpty(this.functionRunModel.getModuleName())) {
-            module = FunctionUtils.getFunctionModuleByName(getProject(), this.functionRunModel.getModuleName());
+            module = Arrays.stream(ModuleManager.getInstance(getProject()).getModules())
+                    .filter(m -> StringUtils.equals(this.functionRunModel.getModuleName(), m.getName()))
+                    .findFirst().orElse(null);
             this.myModule.setModule(module);
         }
         return module;
+    }
+
+    @Override
+    public void addConnection(@Nonnull Connection<?, ?> connection) {
+        connections.add(connection);
     }
 
     @Override
@@ -104,10 +132,6 @@ public class FunctionRunConfiguration extends AzureRunConfigurationBase<Function
         functionRunModel.setDebugOptions(debugOptions);
     }
 
-    public String getStagingFolder() {
-        return functionRunModel.getStagingFolder();
-    }
-
     public String getFuncPath() {
         return functionRunModel.getFuncPath();
     }
@@ -121,8 +145,13 @@ public class FunctionRunConfiguration extends AzureRunConfigurationBase<Function
     }
 
     public String getLocalSettingsJsonPath() {
-        final String path = functionRunModel.getLocalSettingsJsonPath();
-        return StringUtils.isNotEmpty(path) ? path : Paths.get(getProject().getBasePath(), "local.settings.json").toString();
+        return functionRunModel.getLocalSettingsJsonPath();
+    }
+
+    @javax.annotation.Nullable
+    public String getDefaultLocalSettingsJsonPath(final Module module) {
+        // workaround to get module file, todo: investigate the process canceled exception with FilenameIndex API
+        return Paths.get(ModuleUtil.getModuleDirPath(module), "local.settings.json").toString();
     }
 
     public Map<String, String> getAppSettings() {
@@ -165,20 +194,12 @@ public class FunctionRunConfiguration extends AzureRunConfigurationBase<Function
         this.myModule.setModule(module);
     }
 
-    public int getFuncPort() {
-        return this.functionRunModel.getFuncPort();
+    public String getFunctionHostArguments() {
+        return this.functionRunModel.getFunctionHostArguments();
     }
 
-    public void setFuncPort(int funcPort) {
-        this.functionRunModel.setFuncPort(funcPort);
-    }
-
-    public boolean isAutoPort() {
-        return this.functionRunModel.isAutoPort();
-    }
-
-    public void setAutoPort(boolean autoPort) {
-        this.functionRunModel.setAutoPort(autoPort);
+    public void setFunctionHostArguments(final String arguments) {
+        this.functionRunModel.setFunctionHostArguments(arguments);
     }
 
     public void initializeDefaults(Module module) {
@@ -186,7 +207,6 @@ public class FunctionRunConfiguration extends AzureRunConfigurationBase<Function
             return;
         }
         saveModule(module);
-
         if (StringUtils.isEmpty(this.getFuncPath())) {
             try {
                 this.setFuncPath(FunctionUtils.getFuncPath());
@@ -194,16 +214,32 @@ public class FunctionRunConfiguration extends AzureRunConfigurationBase<Function
                 // ignore;
             }
         }
-        if (StringUtils.isEmpty(this.getStagingFolder())) {
-            this.setStagingFolder(FunctionUtils.getTargetFolder(module));
+        if (StringUtils.isEmpty(this.getFunctionHostArguments())) {
+            this.setFunctionHostArguments(FunctionUtils.getDefaultFuncArguments());
         }
-
-        if (StringUtils.isEmpty(this.getHostJsonPath())) {
-            this.setHostJsonPath(Paths.get(getProject().getBasePath(), "host.json").toString());
+        try {
+            prepareBeforeRunTasks();
+        } catch (final Throwable throwable) {
+            // ignore;
         }
+    }
 
-        if (StringUtils.isEmpty(this.getLocalSettingsJsonPath())) {
-            this.setLocalSettingsJsonPath(Paths.get(getProject().getBasePath(), "local.settings.json").toString());
+    // workaround to correct before run tasks in quick launch as BeforeRunTaskAdder may not work or have wrong config in task in this case
+    private void prepareBeforeRunTasks() {
+        final List<Connection<?, ?>> connections = this.getProject().getService(ConnectionManager.class).getConnections();
+        if (CollectionUtils.isEmpty(connections)) {
+            return;
+        }
+        final List<BeforeRunTask<?>> tasks = this.getBeforeRunTasks();
+        final List<ConnectionRunnerForRunConfiguration.MyBeforeRunTask> rcTasks = tasks.stream().filter(t -> t instanceof ConnectionRunnerForRunConfiguration.MyBeforeRunTask)
+                .map(t -> (ConnectionRunnerForRunConfiguration.MyBeforeRunTask)t)
+                .collect(Collectors.toList());
+        final List<ConnectionRunnerForRunConfiguration.MyBeforeRunTask> invalidTasks =
+                rcTasks.stream().filter(t -> !Objects.equals(this, t.getConfig())).collect(Collectors.toList());
+        tasks.removeAll(invalidTasks);
+        rcTasks.removeAll(invalidTasks);
+        if (CollectionUtils.isEmpty(rcTasks) && connections.stream().anyMatch(c -> c.isApplicableFor(this))) {
+            this.getBeforeRunTasks().add(new ConnectionRunnerForRunConfiguration.MyBeforeRunTask(this));
         }
     }
 
@@ -232,9 +268,6 @@ public class FunctionRunConfiguration extends AzureRunConfigurationBase<Function
         final File func = new File(getFuncPath());
         if (!func.exists() || !func.isFile() || !func.getName().contains("func")) {
             throw new ConfigurationException(message("function.run.validate.invalidFuncPath"));
-        }
-        if (!isAutoPort() && (getFuncPort() <= 0 || getFuncPort() >= 65535)) {
-            throw new ConfigurationException(message("function.validate_run_configuration.invalidPort"));
         }
     }
 

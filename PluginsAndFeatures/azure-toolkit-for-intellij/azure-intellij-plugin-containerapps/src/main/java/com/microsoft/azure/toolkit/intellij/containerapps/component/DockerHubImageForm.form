@@ -40,7 +40,7 @@
         </constraints>
         <properties>
           <componentStyle value="SMALL"/>
-          <text value="e.g. 'springio/gs-spring-boot-docker:latest', 'helloworld:latest'."/>
+          <text value="e.g. 'springio/gs-spring-boot-docker:latest'(port: 8080)." noi18n="true"/>
         </properties>
       </component>
     </children>

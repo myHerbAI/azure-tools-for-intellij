@@ -98,7 +98,7 @@ public class DotnetRuntimeHandler {
             }
             Azure.az().config().setDotnetRuntimePath(path);
             AzureConfigInitializer.saveAzConfig();
-            AzureEventBus.emit("dotnet_runtime.installed");
+            AzureEventBus.emit("dotnet_runtime.updated");
             final String INSTALL_SUCCEED_MESSAGE = ".NET runtime is installed and configured successfully.";
             AzureMessager.getMessager().success(INSTALL_SUCCEED_MESSAGE, null, openSettingsAction, ResourceCommonActionsContributor.RESTART_IDE);
         } catch (final IOException | RuntimeException | InterruptedException e) {

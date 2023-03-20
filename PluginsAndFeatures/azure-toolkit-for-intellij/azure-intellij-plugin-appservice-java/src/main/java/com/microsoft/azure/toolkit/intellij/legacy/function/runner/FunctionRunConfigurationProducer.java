@@ -19,8 +19,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.Functi
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localrun.FunctionRunConfiguration;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localrun.FunctionRunConfigurationFactory;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.intellij.actions.RunConfigurationUtils;
+import com.microsoft.azure.toolkit.intellij.common.runconfig.RunConfigurationUtils;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunConfigurationBase;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
 import org.apache.commons.lang3.StringUtils;

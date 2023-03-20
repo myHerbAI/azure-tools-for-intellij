@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.intellij.common;
 import com.intellij.execution.process.ProcessOutputType;
 import com.microsoft.azure.toolkit.intellij.common.messager.IntellijAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessage;
-import com.microsoft.intellij.RunProcessHandler;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor

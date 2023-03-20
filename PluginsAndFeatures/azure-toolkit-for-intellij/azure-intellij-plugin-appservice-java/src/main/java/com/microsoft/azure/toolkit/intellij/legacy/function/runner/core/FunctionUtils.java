@@ -12,6 +12,7 @@ import com.intellij.lang.jvm.JvmParameter;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.LibraryOrderEntry;
@@ -20,18 +21,21 @@ import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.workspaceModel.ide.impl.legacyBridge.module.roots.ModuleOrderEntryBridge;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifactManager;
 import com.microsoft.azure.toolkit.intellij.common.AzureBundle;
+import com.microsoft.azure.toolkit.intellij.common.IdeUtils;
+import com.microsoft.azure.toolkit.intellij.common.auth.IntelliJSecureStore;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.utils.FunctionCliResolver;
@@ -45,7 +49,6 @@ import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.Binding;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.BindingEnum;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionConfiguration;
-import com.microsoft.intellij.secure.IntelliJSecureStore;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -68,6 +71,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -198,10 +202,6 @@ public class FunctionUtils {
         return methods.toArray(new PsiMethod[0]);
     }
 
-    public static Path getDefaultHostJson(Project project) {
-        return new File(project.getBasePath(), "host.json").toPath();
-    }
-
     public static boolean isFunctionClassAnnotated(final PsiMethod method) {
         try {
             return MetaAnnotationUtil.isMetaAnnotated(method,
@@ -222,18 +222,19 @@ public class FunctionUtils {
     }
 
     @AzureOperation(name = "internal/function.copy_settings.settings|folder", params = {"localSettingJson", "stagingFolder"})
-    public static void copyLocalSettingsToStagingFolder(Path stagingFolder,
-                                                        Path localSettingJson,
-                                                        Map<String, String> appSettings) throws IOException {
+    public static void copyLocalSettingsToStagingFolder(@Nonnull final Path stagingFolder,
+                                                        @Nullable final Path localSettingJson,
+                                                        @Nullable Map<String, String> appSettings, boolean useLocalSettings) throws IOException {
         final File localSettingsFile = new File(stagingFolder.toFile(), "local.settings.json");
         copyFilesWithDefaultContent(localSettingJson, localSettingsFile, DEFAULT_LOCAL_SETTINGS_JSON);
         if (MapUtils.isNotEmpty(appSettings)) {
-            updateLocalSettingValues(localSettingsFile, appSettings);
+            updateLocalSettingValues(localSettingsFile, appSettings, useLocalSettings);
         }
     }
 
     @AzureOperation(name = "boundary/function.prepare_staging_folder")
-    public static Map<String, FunctionConfiguration> prepareStagingFolder(Path stagingFolder, Path hostJson, Project project, Module module, PsiMethod[] methods)
+    public static Map<String, FunctionConfiguration> prepareStagingFolder(@Nonnull final Path stagingFolder, @Nullable final Path hostJson,
+                                                                          @Nonnull final Project project, @Nonnull final Module module, PsiMethod[] methods)
             throws AzureExecutionException, IOException {
         final Map<String, FunctionConfiguration> configMap = ReadAction.compute(() -> generateConfigurations(methods));
         if (stagingFolder.toFile().isDirectory()) {
@@ -329,6 +330,29 @@ public class FunctionUtils {
                 "functionAppName");
         final String stagingFolderName = StringUtils.isEmpty(functionAppName) ? module.getName() : functionAppName;
         return Paths.get(project.getBasePath(), "target", "azure-functions", stagingFolderName).toString();
+    }
+
+    public static String getDefaultHostJsonPath(final Module module) {
+        return findFileInFunctionModule(module, "host.json");
+    }
+
+    public static String getDefaultLocalSettingsJsonPath(final Module module) {
+        return findFileInFunctionModule(module, "local.settings.json");
+    }
+
+    public static String findFileInFunctionModule(final Module module, final String file) {
+        String result;
+        try {
+            result = ReadAction.compute(() -> FilenameIndex.getVirtualFilesByName(file, GlobalSearchScope.projectScope(module.getProject())))
+                    .stream().filter(m -> IdeUtils.isSameModule(module, ModuleUtil.findModuleForFile(m, module.getProject())))
+                    .sorted(Comparator.comparing(VirtualFile::getCanonicalPath))
+                    .findFirst()
+                    .map(VirtualFile::getCanonicalPath).orElse(null);
+        } catch (final RuntimeException e) {
+            result = null;
+        }
+        return StringUtils.isNotEmpty(result) ? result :
+                Paths.get(ModuleUtil.getModuleDirPath(module), file).toString();
     }
 
     public static String getFuncPath() throws IOException, InterruptedException {
@@ -539,7 +563,7 @@ public class FunctionUtils {
 
     private static void copyFilesWithDefaultContent(Path sourcePath, File dest, String defaultContent)
             throws IOException {
-        final File src = sourcePath == null ? null : sourcePath.toFile();
+        final File src = Optional.ofNullable(sourcePath).map(Path::toFile).orElse(null);
         if (src != null && src.exists()) {
             FileUtils.copyFile(src, dest);
         } else {
@@ -547,10 +571,16 @@ public class FunctionUtils {
         }
     }
 
-    private static void updateLocalSettingValues(File target, Map<String, String> appSettings) throws IOException {
+    private static void updateLocalSettingValues(File target, Map<String, String> appSettings, boolean useLocalSettings) throws IOException {
         final Map<String, Object> jsonObject = ObjectUtils.firstNonNull(JsonUtils.readFromJsonFile(target, Map.class), new HashMap<>());
-        final Map<String, Object> valueObject = new HashMap<>(appSettings);
-        jsonObject.put("Values", valueObject);
+        if (jsonObject.containsKey("Values") && useLocalSettings) {
+            final Object values = jsonObject.get("Values");
+            if (values instanceof Map) {
+                ((Map) values).putAll(appSettings);
+            }
+        } else {
+            jsonObject.put("Values", new HashMap<>(appSettings));
+        }
         JsonUtils.writeToJsonFile(target, jsonObject);
     }
 
@@ -563,6 +593,10 @@ public class FunctionUtils {
             return false;
         }
         return cme.getCompilerOutputUrl() == null && cme.getCompilerOutputUrlForTests() != null;
+    }
+
+    public static String getDefaultFuncArguments() {
+        return String.format("host start --port %s", findFreePort());
     }
 
     public static int findFreePort() {

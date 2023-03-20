@@ -63,6 +63,9 @@ public class IntellijAzureMessager implements IAzureMessager {
                 }
                 return result[0];
             }
+            case DEBUG -> {
+                return true;
+            }
             default -> {
             }
         }

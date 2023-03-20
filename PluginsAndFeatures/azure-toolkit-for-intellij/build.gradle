@@ -8,8 +8,8 @@ plugins {
 }
 
 ext {
-    azureToolkitVersion = "0.30.0-SNAPSHOT"
-    azureToolkitUtilsVersion = "3.74.0-SNAPSHOT"
+    azureToolkitVersion = "0.31.0-SNAPSHOT"
+    azureToolkitUtilsVersion = "3.75.0-SNAPSHOT"
     azureToolkitHDInsightVersion = "0.1.0"
 }
 
@@ -85,8 +85,8 @@ subprojects {
     apply plugin: 'io.freefair.aspectj.post-compile-weaving'
     apply plugin: 'io.spring.dependency-management'
     ext {
-        azureToolkitVersion = "0.30.0-SNAPSHOT"
-        azureToolkitUtilsVersion = "3.74.0-SNAPSHOT"
+        azureToolkitVersion = "0.31.0-SNAPSHOT"
+        azureToolkitUtilsVersion = "3.75.0-SNAPSHOT"
         azureToolkitHDInsightVersion = "0.1.0"
     }
 
@@ -201,6 +201,7 @@ dependencies {
     implementation project(':azure-intellij-plugin-containerapps')
     implementation project(':azure-intellij-plugin-monitor')
     implementation project(':azure-intellij-plugin-hdinsight')
+    implementation project(':azure-intellij-plugin-eventhubs')
     implementation 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-spark-lib'
     implementation 'com.microsoft.azure:azure-toolkit-ide-appservice-lib'
     implementation 'com.microsoft.azure:azure-toolkit-applicationinsights-lib'
@@ -221,13 +222,13 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    implementation 'com.microsoft.azuretools:azuretools-core:3.74.0-SNAPSHOT', {
+    implementation 'com.microsoft.azuretools:azuretools-core:3.75.0-SNAPSHOT', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
-    implementation 'com.microsoft.azuretools:azure-explorer-common:3.74.0-SNAPSHOT', {
+    implementation 'com.microsoft.azuretools:azure-explorer-common:3.75.0-SNAPSHOT', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
-    implementation 'com.microsoft.azuretools:hdinsight-node-common:3.74.0-SNAPSHOT', {
+    implementation 'com.microsoft.azuretools:hdinsight-node-common:3.75.0-SNAPSHOT', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
 

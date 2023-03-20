@@ -39,10 +39,15 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TimeZone;
 
 public class ContainerAppPropertiesEditor extends AzResourcePropertiesEditor<ContainerApp> {
     public static final String N_A = "N/A";
@@ -91,11 +96,13 @@ public class ContainerAppPropertiesEditor extends AzResourcePropertiesEditor<Con
 
     private final ContainerApp containerApp;
     private final ContainerAppDraft draft;
+    private final ZoneId zoneId;
 
     public ContainerAppPropertiesEditor(@Nonnull Project project, @Nonnull ContainerApp resource, @Nonnull VirtualFile virtualFile) {
         super(virtualFile, resource, project);
         this.containerApp = resource;
         this.draft = (ContainerAppDraft) containerApp.update();
+        this.zoneId = ZoneId.systemDefault();
         init();
         rerender();
     }
@@ -106,8 +113,9 @@ public class ContainerAppPropertiesEditor extends AzResourcePropertiesEditor<Con
                 return false;
             }
         };
+        final String zoneIdDisplayName = zoneId.getDisplayName(TextStyle.SHORT, Locale.getDefault());
         model.addColumn("Name");
-        model.addColumn("Date created");
+        model.addColumn(String.format("Date created (%s)", zoneIdDisplayName));
         model.addColumn("Provision Status");
         model.addColumn("Traffic");
         model.addColumn("Active");
@@ -273,7 +281,7 @@ public class ContainerAppPropertiesEditor extends AzResourcePropertiesEditor<Con
         cbIngress.setValue(Optional.ofNullable(ingressConfig).map(IngressConfig::isEnableIngress).orElse(false));
         cbExternalAccess.setValue(Optional.ofNullable(ingressConfig).map(IngressConfig::isExternal).orElse(false));
         txtInsecureConnections.setText(Optional.ofNullable(ingressConfig).map(IngressConfig::isAllowInsecure).map(String::valueOf).orElse("false"));
-        txtTransportMethod.setText(Optional.ofNullable(ingressConfig).map(IngressConfig::getTransport).map(TransportMethod::getValue).orElse(null));
+        txtTransportMethod.setText(Optional.ofNullable(ingressConfig).map(IngressConfig::getTransport).map(TransportMethod::getDisplayName).orElse(null));
         txtTargetPort.setNumber(Optional.ofNullable(ingressConfig).map(IngressConfig::getTargetPort).orElse(80));
 
         AzureTaskManager.getInstance().runInBackgroundAsObservable(new AzureTask<>("Loading revisions.", () -> this.containerApp.revisions().list()))
@@ -286,7 +294,9 @@ public class ContainerAppPropertiesEditor extends AzResourcePropertiesEditor<Con
         model.setRowCount(0);
         final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         pools.forEach(i -> {
-            final String date = Optional.ofNullable(i.getCreatedTime()).map(formatter::format).orElse(N_A);
+            final String date = Optional.ofNullable(i.getCreatedTime())
+                    .map(odt -> odt.atZoneSameInstant(zoneId))
+                    .map(formatter::format).orElse(N_A);
             model.addRow(new Object[]{i.getName(), date, i.getProvisioningState(), i.getTrafficWeight(), i.isActive()});
         });
         final int rows = model.getRowCount() < 5 ? 5 : pools.size();

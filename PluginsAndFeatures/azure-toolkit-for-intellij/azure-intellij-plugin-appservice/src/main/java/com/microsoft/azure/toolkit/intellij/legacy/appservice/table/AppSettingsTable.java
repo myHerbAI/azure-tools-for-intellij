@@ -11,7 +11,7 @@ import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.intellij.CommonConst;
+import com.microsoft.azure.toolkit.intellij.common.CommonConst;
 import lombok.Getter;
 import org.apache.commons.collections4.MapUtils;
 
@@ -83,7 +83,11 @@ public class AppSettingsTable extends JBTable {
 
     public void removeAppSettings() {
         try {
-            this.removeAppSettings(sorter.convertRowIndexToModel(getSelectedRow()));
+            final int selectedIndex = getSelectedRow();
+            if (selectedIndex < 0) {
+                return;
+            }
+            this.removeAppSettings(sorter.convertRowIndexToModel(selectedIndex));
         } catch (final IllegalArgumentException iae) {
             AzureMessager.getMessager().error(message("function.appSettings.remove.error.title"), iae.getMessage());
         }

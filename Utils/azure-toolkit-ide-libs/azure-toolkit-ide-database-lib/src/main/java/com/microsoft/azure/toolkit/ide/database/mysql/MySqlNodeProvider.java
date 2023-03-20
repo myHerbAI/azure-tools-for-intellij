@@ -51,7 +51,7 @@ public class MySqlNodeProvider implements IExplorerNodeProvider {
             final MySqlServer server = (MySqlServer) data;
             return new Node<>(server)
                 .view(new AzureResourceLabelView<>(server))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .doubleClickAction(ResourceCommonActionsContributor.SHOW_PROPERTIES)
                 .actions(MySqlActionsContributor.SERVER_ACTIONS);
         }

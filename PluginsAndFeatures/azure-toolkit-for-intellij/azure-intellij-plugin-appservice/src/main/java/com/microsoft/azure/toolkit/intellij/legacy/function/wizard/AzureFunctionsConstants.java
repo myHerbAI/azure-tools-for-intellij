@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.legacy.function.wizard;
 
 import com.intellij.openapi.util.Key;
+import com.microsoft.azure.toolkit.lib.legacy.function.template.FunctionTemplate;
 
 public class AzureFunctionsConstants {
     public static final Key<String> WIZARD_TOOL_KEY = Key.create(AzureFunctionsConstants.class.getPackage().getName() + ".tool");
@@ -13,7 +14,7 @@ public class AzureFunctionsConstants {
     public static final Key<String> WIZARD_ARTIFACTID_KEY = Key.create(AzureFunctionsConstants.class.getPackage().getName() + ".artifactId");
     public static final Key<String> WIZARD_VERSION_KEY = Key.create(AzureFunctionsConstants.class.getPackage().getName() + ".version");
     public static final Key<String> WIZARD_PACKAGE_NAME_KEY = Key.create(AzureFunctionsConstants.class.getPackage().getName() + ".packageName");
-    public static final Key<String[]> WIZARD_TRIGGERS_KEY = Key.create(AzureFunctionsConstants.class.getPackage().getName() + ".triggers");
+    public static final Key<FunctionTemplate[]> WIZARD_TRIGGERS_KEY = Key.create(AzureFunctionsConstants.class.getPackage().getName() + ".triggers");
     public static final Key<String> PARENT_PATH = Key.create(AzureFunctionsConstants.class.getPackage().getName() + ".parentPath");
 
 }

@@ -45,6 +45,8 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -52,6 +54,7 @@ public class TreeUtils {
     public static final Key<Pair<Object, Long>> HIGHLIGHTED_RESOURCE_KEY = Key.create("TreeHighlightedResource");
     public static final int INLINE_ACTION_ICON_OFFSET = 28;
     public static final int INLINE_ACTION_ICON_WIDTH = 16;
+    public static final int INLINE_ACTION_ICON_MARGIN = 8;
 
     public static void installSelectionListener(@Nonnull JTree tree) {
         tree.addTreeSelectionListener(e -> {
@@ -101,9 +104,8 @@ public class TreeUtils {
             @Override
             public void mouseMoved(MouseEvent e) {
                 final Tree.TreeNode<?> node = getTreeNodeAtMouse(tree, e);
-                final boolean inlineActionEnabled = Optional.ofNullable(node).map(Tree.TreeNode::getInlineActionView)
-                    .map(IView.Label::isEnabled).orElse(false);
-                final boolean isMouseAtActionIcon = inlineActionEnabled && isMouseAtInlineActionIcon(tree, e);
+                final boolean isMouseAtActionIcon = isMouseAtInlineActionIcon(tree, e, Optional.ofNullable(node)
+                        .map(Tree.TreeNode::getInlineActionViews).map(List::size).orElse(0));
                 final Cursor cursor = isMouseAtActionIcon ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor();
                 tree.setCursor(cursor);
             }
@@ -143,11 +145,15 @@ public class TreeUtils {
             @Override
             public void mousePressed(MouseEvent e) {
                 final Tree.TreeNode<?> node = getTreeNodeAtMouse(tree, e);
-                if (Objects.nonNull(node) && e.getClickCount() == 1 && isMouseAtInlineActionIcon(tree, e)) {
+                final int inlineActionIndex = getHoverInlineActionIndex(tree, e);
+                final List<IView.Label> inlineActionViews = Optional.ofNullable(node)
+                        .map(Tree.TreeNode::getInlineActionViews).orElse(new ArrayList<>());
+                final boolean isMouseAtInlineActionIcon = isMouseAtInlineActionIcon(tree, e, inlineActionViews.size());
+                if (Objects.nonNull(node) && e.getClickCount() == 1 && isMouseAtInlineActionIcon) {
                     final String place = "azure.explorer." + (TreeUtils.isInAppCentricView(node) ? "app" : "type");
                     final DataContext context = DataManager.getInstance().getDataContext(tree);
                     final AnActionEvent event = AnActionEvent.createFromAnAction(new EmptyAction(), e, place, context);
-                    node.inner.triggerInlineAction(event);
+                    node.inner.triggerInlineAction(event, inlineActionIndex);
                 }
             }
         };
@@ -167,10 +173,17 @@ public class TreeUtils {
         return null;
     }
 
-    private static boolean isMouseAtInlineActionIcon(@Nonnull JTree tree, MouseEvent e) {
+    private static boolean isMouseAtInlineActionIcon(@Nonnull JTree tree, MouseEvent e, int maxIndex) {
+        final int hoverIndex = getHoverInlineActionIndex(tree, e);
+        final int offset = tree.getWidth() - e.getX() - INLINE_ACTION_ICON_OFFSET + INLINE_ACTION_ICON_WIDTH - hoverIndex * (INLINE_ACTION_ICON_WIDTH + INLINE_ACTION_ICON_MARGIN);
+        final boolean isInActionIcon = offset > 0 && offset < INLINE_ACTION_ICON_WIDTH;
+        return hoverIndex >= 0 && hoverIndex <= maxIndex && isInActionIcon;
+    }
+
+    private static int getHoverInlineActionIndex(@Nonnull JTree tree, MouseEvent e) {
         final int width = tree.getWidth();
         final int x = e.getX() - INLINE_ACTION_ICON_WIDTH;
-        return x > width - (INLINE_ACTION_ICON_OFFSET + INLINE_ACTION_ICON_WIDTH) && x < width - INLINE_ACTION_ICON_OFFSET;
+        return (width - x - INLINE_ACTION_ICON_OFFSET) / (INLINE_ACTION_ICON_WIDTH + INLINE_ACTION_ICON_MARGIN);
     }
 
     private static IntellijAzureActionManager.ActionGroupWrapper toIntellijActionGroup(IActionGroup actions) {
@@ -192,7 +205,7 @@ public class TreeUtils {
         if (BooleanUtils.isFalse(node.loaded)) {
             renderer.setIcon(AnimatedIcon.Default.INSTANCE);
         } else {
-            renderer.setIcon(IntelliJAzureIcons.getIcon(view.getIcon()));
+            renderer.setIcon(Optional.ofNullable(view.getIcon()).map(IntelliJAzureIcons::getIcon).orElse(null));
         }
         final Object highlighted = tree.getClientProperty(HIGHLIGHTED_RESOURCE_KEY);
         final boolean toHighlightThisNode = Optional.ofNullable(highlighted).map(h -> ((Pair<Object, Long>) h))

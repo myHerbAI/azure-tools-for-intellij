@@ -58,6 +58,9 @@ public class ClusterDetail implements IClusterDetail, LivyCluster, YarnCluster, 
     @Nullable
     private Map<String, String> coresiteMap = null;
 
+    @Nullable
+    private Map<String, String> tempCoresiteMap = null;
+
     public ClusterDetail(Subscription paramSubscription,
                          ClusterRawInfo paramClusterRawInfo,
                          IClusterOperation clusterOperation) {
@@ -281,6 +284,7 @@ public class ClusterDetail implements IClusterDetail, LivyCluster, YarnCluster, 
                 if (coresSiteMap != null) {
                     coresiteMap = coresSiteMap;
                     try {
+                        this.tempCoresiteMap = coresSiteMap;
                         defaultStorageAccount = getDefaultStorageAccount(coresSiteMap, clusterIdentity);
                     } catch (HDIException exp) {
                         String errMsg = String.format("Encounter exception when getting storage configuration for cluster name:%s,type:%s,location:%s," +
@@ -322,7 +326,11 @@ public class ClusterDetail implements IClusterDetail, LivyCluster, YarnCluster, 
 
         try {
             if (!(clusterOperation instanceof ClusterOperationNewAPIImpl)) {
-                requestedCoresiteMap = this.coresiteMap;
+                if (this.coresiteMap==null) {
+                    requestedCoresiteMap = this.tempCoresiteMap;
+                } else {
+                    requestedCoresiteMap = this.coresiteMap;
+                }
             } else {
                 requestedCoresiteMap =
                         ((ClusterOperationNewAPIImpl) clusterOperation).getClusterCoreSiteRequest(clusterRawInfo.getId())

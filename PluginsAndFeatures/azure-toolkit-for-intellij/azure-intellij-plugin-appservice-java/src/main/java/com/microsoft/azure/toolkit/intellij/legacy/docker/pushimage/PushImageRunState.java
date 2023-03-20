@@ -16,7 +16,7 @@ import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
 import com.microsoft.azuretools.telemetrywrapper.TelemetryManager;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState;
-import com.microsoft.intellij.RunProcessHandler;
+import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.intellij.util.MavenRunTaskUtil;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;

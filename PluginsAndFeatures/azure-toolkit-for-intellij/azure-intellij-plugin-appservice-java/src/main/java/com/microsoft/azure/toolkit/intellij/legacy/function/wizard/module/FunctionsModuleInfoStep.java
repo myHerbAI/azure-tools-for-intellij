@@ -21,6 +21,7 @@ import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import com.microsoft.azure.toolkit.intellij.legacy.function.wizard.AzureFunctionsConstants;
 import com.microsoft.intellij.util.GradleUtils;
+import com.microsoft.intellij.util.MavenUtils;
 import com.microsoft.intellij.util.ValidationUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -107,6 +108,8 @@ public class FunctionsModuleInfoStep extends ModuleWizardStep implements Disposa
             final CollectionComboBoxModel<String> toolModel = new CollectionComboBoxModel<>(
                     Arrays.asList(MAVEN_TOOL, GRADLE_TOOL));
             toolComboBox = new ComboBox<>(toolModel);
+            final String defaultBuildTool = context.isCreatingNewProject() || MavenUtils.isMavenProject(context.getProject()) ? MAVEN_TOOL : GRADLE_TOOL;
+            toolComboBox.setSelectedItem(defaultBuildTool);
             toolComboBox.addItemListener(ignore -> refreshProjectComboBox());
             formBuilder.addLabeledComponent("Tool:", toolComboBox);
 

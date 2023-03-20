@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Modifications copyright (c) Microsoft Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +18,8 @@ package org.wso2.lsp4intellij.requests;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -24,14 +27,14 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Timeout {
 
-    private static Map<Timeouts, Integer> timeouts = new ConcurrentHashMap<>();
+    private static final Map<Timeouts, Integer> timeouts = new ConcurrentHashMap<>();
 
     static {
         Arrays.stream(Timeouts.values()).forEach(t -> timeouts.put(t, t.getDefaultTimeout()));
     }
 
     public static int getTimeout(Timeouts type) {
-        return timeouts.get(type);
+        return Optional.ofNullable(type).map(timeouts::get).orElse(2000);
     }
 
     public static Map<Timeouts, Integer> getTimeouts() {
@@ -39,6 +42,6 @@ public class Timeout {
     }
 
     public static void setTimeouts(Map<Timeouts, Integer> loaded) {
-        loaded.forEach((t, v) -> timeouts.replace(t, v));
+        loaded.entrySet().stream().filter(l -> Objects.nonNull(l.getKey())).forEach(l -> timeouts.replace(l.getKey(), l.getValue()));
     }
 }

@@ -13,7 +13,7 @@ import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.DumbAware;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
-import com.microsoft.intellij.AzureAnAction;
+import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction;
 import com.microsoft.azuretools.telemetry.AppInsightsClient;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.Operation;

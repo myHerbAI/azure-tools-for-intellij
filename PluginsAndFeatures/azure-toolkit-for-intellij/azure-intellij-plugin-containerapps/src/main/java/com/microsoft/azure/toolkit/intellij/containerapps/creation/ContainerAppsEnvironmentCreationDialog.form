@@ -82,7 +82,7 @@
           </grid>
         </constraints>
         <properties>
-          <text value="Log analytics Workspace:"/>
+          <text value="Log Analytics workspace:"/>
         </properties>
       </component>
       <component id="6e417" class="com.intellij.ui.TitledSeparator">

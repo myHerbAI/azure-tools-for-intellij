@@ -153,8 +153,7 @@ public class LanguageServerWrapper {
     private volatile boolean alreadyShownTimeout = false;
     private volatile boolean alreadyShownCrash = false;
     private volatile ServerStatus status = STOPPED;
-    private static final Map<Pair<String, String>, LanguageServerWrapper> uriToLanguageServerWrapper =
-            new ConcurrentHashMap<>();
+    private static final Map<Pair<String, String>, LanguageServerWrapper> uriToLanguageServerWrapper = new ConcurrentHashMap<>();
     private static final Map<Project, LanguageServerWrapper> projectToLanguageServerWrapper = new ConcurrentHashMap<>();
     private static final Logger LOG = Logger.getInstance(LanguageServerWrapper.class);
     private static final CloudNotifier notifier = new CloudNotifier("Language Server Protocol client");
@@ -197,7 +196,7 @@ public class LanguageServerWrapper {
 
     @Nullable
     public static LanguageServerWrapper forProject(Project project) {
-        return projectToLanguageServerWrapper.get(project);
+        return Optional.ofNullable(project).map(projectToLanguageServerWrapper::get).orElse(null);
     }
 
     public LanguageServerDefinition getServerDefinition() {

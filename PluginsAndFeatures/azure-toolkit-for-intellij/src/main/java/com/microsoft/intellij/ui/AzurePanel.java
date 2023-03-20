@@ -13,12 +13,14 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.ui.JBIntSpinner;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.ActionLink;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.microsoft.azure.toolkit.ide.common.dotnet.DotnetRuntimeHandler;
 import com.microsoft.azure.toolkit.ide.common.store.AzureConfigInitializer;
-import com.microsoft.azure.toolkit.intellij.common.AzureIntegerInput;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.intellij.common.component.AzureFileInput;
 import com.microsoft.azure.toolkit.intellij.connector.Password;
@@ -28,6 +30,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.auth.AzureEnvironmentUtils;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.legacy.function.FunctionCoreToolsCombobox;
 import com.microsoft.azuretools.authmanage.CommonSettings;
@@ -42,6 +45,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.FocusManager;
 import javax.swing.*;
 import java.awt.*;
@@ -70,12 +74,14 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
     private FunctionCoreToolsCombobox funcCoreToolsPath;
     private JLabel azureEnvDesc;
     private AzureFileInput txtStorageExplorer;
-    private AzureIntegerInput txtPageSize;
+    private JBIntSpinner txtPageSize;
     private AzureTextInput txtLabelFields;
     private ActionLink installFuncCoreToolsAction;
     private AzureFileInput dotnetRuntimePath;
     private ActionLink installDotnetRuntime;
-    private AzureIntegerInput queryRowNumber;
+    private JBIntSpinner queryRowNumber;
+    private JCheckBox enableAuthPersistence;
+    private AzureTextInput consumerGroupName;
 
     private AzureConfiguration originalConfig;
 
@@ -102,9 +108,6 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
                 setText(value.title());
             }
         });
-        txtPageSize.setMinValue(1);
-        queryRowNumber.setMinValue(1);
-        queryRowNumber.setMaxValue(5000);
 
         azureEnvDesc.setForeground(UIUtil.getContextHelpForeground());
         azureEnvDesc.setMaximumSize(new Dimension());
@@ -128,6 +131,7 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
         final AzureEnvironment oldEnv = ObjectUtils.firstNonNull(AzureEnvironmentUtils.stringToAzureEnvironment(config.getCloud()), AzureEnvironment.AZURE);
         final String oldPasswordSaveType = config.getDatabasePasswordSaveType();
         final boolean oldTelemetryEnabled = BooleanUtils.isNotFalse(config.getTelemetryEnabled());
+        final boolean oldEnableAuthPersistence = config.isAuthPersistenceEnabled();
         final String oldFuncCoreToolsPath = config.getFunctionCoreToolsPath();
         azureEnvironmentComboBox.setSelectedItem(oldEnv);
         savePasswordComboBox.setSelectedItem(Optional.ofNullable(oldPasswordSaveType).map(Password.SaveType::valueOf).orElse(Password.SaveType.UNTIL_RESTART));
@@ -141,9 +145,11 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
             dotnetRuntimePath.setValue(config.getDotnetRuntimePath());
         }
         allowTelemetryCheckBox.setSelected(oldTelemetryEnabled);
-        txtPageSize.setValue(config.getPageSize());
+        enableAuthPersistence.setSelected(oldEnableAuthPersistence);
+        txtPageSize.setNumber(config.getPageSize());
         queryRowNumber.setValue(config.getMonitorQueryRowNumber());
         txtLabelFields.setValue(String.join(";", config.getDocumentsLabelFields()));
+        consumerGroupName.setValue(config.getEventHubsConsumerGroup());
     }
 
     public AzureConfiguration getData() {
@@ -153,8 +159,9 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
             .map(i -> ((Password.SaveType) i).name())
             .orElse(Password.SaveType.UNTIL_RESTART.name()));
         data.setTelemetryEnabled(allowTelemetryCheckBox.isSelected());
-        if (Objects.nonNull(funcCoreToolsPath.getItem())) {
-            data.setFunctionCoreToolsPath(funcCoreToolsPath.getItem());
+        data.setAuthPersistenceEnabled(enableAuthPersistence.isSelected());
+        if (Objects.nonNull(funcCoreToolsPath.getSelectedItem())) {
+            data.setFunctionCoreToolsPath((String) funcCoreToolsPath.getSelectedItem());
         } else if (funcCoreToolsPath.getRawValue() instanceof String) {
             data.setFunctionCoreToolsPath((String) funcCoreToolsPath.getRawValue());
         }
@@ -162,10 +169,10 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
             data.setStorageExplorerPath(txtStorageExplorer.getValue());
         }
         if (Objects.nonNull(txtPageSize.getValue())) {
-            data.setPageSize(txtPageSize.getValue());
+            data.setPageSize(txtPageSize.getNumber());
         }
         if (Objects.nonNull(queryRowNumber.getValue())) {
-            data.setMonitorQueryRowNumber(queryRowNumber.getValue());
+            data.setMonitorQueryRowNumber(queryRowNumber.getNumber());
         }
         if (StringUtils.isNotEmpty(txtLabelFields.getValue())) {
             final List<String> fields = Arrays.stream(txtLabelFields.getValue().split(";")).collect(Collectors.toList());
@@ -173,6 +180,9 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
         }
         if (StringUtils.isNoneBlank(dotnetRuntimePath.getValue())) {
             data.setDotnetRuntimePath(dotnetRuntimePath.getValue());
+        }
+        if (StringUtils.isNotBlank(consumerGroupName.getValue())) {
+            data.setEventHubsConsumerGroup(consumerGroupName.getValue());
         }
         return data;
     }
@@ -210,7 +220,9 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
 
     @Override
     public JComponent getPanel() {
-        return contentPane;
+        final JBScrollPane pane = new JBScrollPane(contentPane);
+        pane.setBorder(JBUI.Borders.empty());
+        return pane;
     }
 
     @Override
@@ -229,9 +241,13 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
             }
         }
         final AzureConfiguration newConfig = getData();
+        if (!StringUtils.equalsIgnoreCase(this.originalConfig.getDotnetRuntimePath(), newConfig.getDotnetRuntimePath())) {
+            AzureEventBus.emit("dotnet_runtime.updated");
+        }
         // set partial config to global config
         this.originalConfig.setCloud(newConfig.getCloud());
         this.originalConfig.setTelemetryEnabled(newConfig.getTelemetryEnabled());
+        this.originalConfig.setAuthPersistenceEnabled(newConfig.isAuthPersistenceEnabled());
         this.originalConfig.setDatabasePasswordSaveType(newConfig.getDatabasePasswordSaveType());
         this.originalConfig.setFunctionCoreToolsPath(newConfig.getFunctionCoreToolsPath());
         final String userAgent = String.format(AzurePlugin.USER_AGENT, AzurePlugin.PLUGIN_VERSION,
@@ -242,6 +258,7 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
         this.originalConfig.setDocumentsLabelFields(newConfig.getDocumentsLabelFields());
         this.originalConfig.setDotnetRuntimePath(newConfig.getDotnetRuntimePath());
         this.originalConfig.setMonitorQueryRowNumber(newConfig.getMonitorQueryRowNumber());
+        this.originalConfig.setEventHubsConsumerGroup(newConfig.getEventHubsConsumerGroup());
         CommonSettings.setUserAgent(newConfig.getUserAgent());
 
         if (StringUtils.isNotBlank(newConfig.getCloud())) {
@@ -251,16 +268,19 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
         return true;
     }
 
+    @Nullable
     @Override
     public String getSelectedValue() {
         return null;
     }
 
+    @Nullable
     @Override
     public ValidationInfo doValidate() {
         return null;
     }
 
+    @Nullable
     @Override
     public String getHelpTopic() {
         return null;
@@ -279,9 +299,11 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
             !StringUtils.equalsIgnoreCase(newConfig.getFunctionCoreToolsPath(), originalConfig.getFunctionCoreToolsPath()) ||
             !StringUtils.equalsIgnoreCase(newConfig.getStorageExplorerPath(), originalConfig.getStorageExplorerPath()) ||
             !StringUtils.equalsIgnoreCase(newConfig.getDotnetRuntimePath(), originalConfig.getDotnetRuntimePath()) ||
-            !Objects.equals(newConfig.getTelemetryEnabled(), newConfig.getTelemetryEnabled()) ||
+            !Objects.equals(newConfig.getTelemetryEnabled(), originalConfig.getTelemetryEnabled()) ||
+            !Objects.equals(newConfig.isAuthPersistenceEnabled(), originalConfig.isAuthPersistenceEnabled()) ||
             !Objects.equals(newConfig.getPageSize(), originalConfig.getPageSize()) ||
             !Objects.equals(newConfig.getMonitorQueryRowNumber(), originalConfig.getMonitorQueryRowNumber()) ||
+            !Objects.equals(newConfig.getEventHubsConsumerGroup(), originalConfig.getEventHubsConsumerGroup()) ||
             !Objects.equals(newConfig.getDocumentsLabelFields(), originalConfig.getDocumentsLabelFields());
     }
 
@@ -291,14 +313,17 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
     }
 
     private void createUIComponents() {
+        this.txtPageSize = new JBIntSpinner(99, 1, 999);
+        this.queryRowNumber = new JBIntSpinner(200, 1, 5000);
         this.funcCoreToolsPath = new FunctionCoreToolsCombobox(null, false);
         this.funcCoreToolsPath.setPrototypeDisplayValue(StringUtils.EMPTY);
         this.txtStorageExplorer = new AzureFileInput();
-        this.txtStorageExplorer.addActionListener(new ComponentWithBrowseButton.BrowseFolderActionListener("Select Path of Azure Storage Explorer", null, txtStorageExplorer,
+        this.txtStorageExplorer.addActionListener(new ComponentWithBrowseButton.BrowseFolderActionListener<>("Select Path of Azure Storage Explorer", null, txtStorageExplorer,
             null, FileChooserDescriptorFactory.createSingleLocalFileDescriptor(), TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT));
         this.txtStorageExplorer.addValidator(this::validateStorageExplorerPath);
         this.dotnetRuntimePath = new AzureFileInput();
-        this.dotnetRuntimePath.addActionListener(new ComponentWithBrowseButton.BrowseFolderActionListener("Select Path of .NET Runtime", null, dotnetRuntimePath,
+        // noinspection DialogTitleCapitalization
+        this.dotnetRuntimePath.addActionListener(new ComponentWithBrowseButton.BrowseFolderActionListener<>("Select Path of .NET Runtime", null, dotnetRuntimePath,
             null, FileChooserDescriptorFactory.createSingleFolderDescriptor(), TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT));
         this.dotnetRuntimePath.addValidator(this::validateDotnetRuntime);
         this.installFuncCoreToolsAction = new ActionLink("Install the latest version", e -> {

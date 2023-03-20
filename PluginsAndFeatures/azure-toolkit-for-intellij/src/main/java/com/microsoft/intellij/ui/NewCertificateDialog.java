@@ -18,7 +18,7 @@ import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.microsoft.azuretools.azurecommons.util.CerPfxUtil;
 import com.microsoft.azuretools.azurecommons.util.Utils;
 import com.microsoft.azuretools.azurecommons.util.WAEclipseHelperMethods;
-import com.microsoft.intellij.ui.components.AzureDialogWrapper;
+import com.microsoft.azure.toolkit.intellij.common.component.AzureDialogWrapper;
 import com.microsoft.intellij.util.PluginUtil;
 import com.microsoft.wacommon.commoncontrols.NewCertificateDialogData;
 import org.jetbrains.annotations.Nullable;

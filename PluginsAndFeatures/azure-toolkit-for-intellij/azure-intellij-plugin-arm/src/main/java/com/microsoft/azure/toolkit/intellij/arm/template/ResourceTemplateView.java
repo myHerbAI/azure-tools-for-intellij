@@ -31,7 +31,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.resource.ResourceDeployment;
 import com.microsoft.azure.toolkit.lib.resource.ResourceDeploymentDraft;
-import com.microsoft.intellij.ui.util.UIUtils;
+import com.microsoft.azure.toolkit.intellij.common.component.UIUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;

@@ -10,7 +10,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.microsoft.azuretools.azurecommons.helpers.StringHelper;
 import com.microsoft.intellij.feedback.GithubIssue;
 import com.microsoft.intellij.feedback.ReportableError;
-import com.microsoft.intellij.ui.components.AzureDialogWrapper;
+import com.microsoft.azure.toolkit.intellij.common.component.AzureDialogWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;

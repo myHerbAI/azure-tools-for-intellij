@@ -51,7 +51,7 @@ public class ContainerRegistryNodeProvider implements IExplorerNodeProvider {
             final ContainerRegistry server = (ContainerRegistry) data;
             return new Node<>(server)
                 .view(new AzureResourceLabelView<>(server))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .doubleClickAction(ResourceCommonActionsContributor.SHOW_PROPERTIES)
                 .actions(ContainerRegistryActionsContributor.REGISTRY_ACTIONS);
         }

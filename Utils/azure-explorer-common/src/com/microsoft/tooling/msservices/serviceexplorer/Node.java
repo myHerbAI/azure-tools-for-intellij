@@ -228,6 +228,11 @@ public class Node implements MvpView, BasicTelemetryProperty, Sortable {
     }
 
     public void addAction(NodeAction action) {
+        this.addAction(action, Groupable.DEFAULT_GROUP);
+    }
+
+    public void addAction(NodeAction action, int group) {
+        action.setGroup(group);
         nodeActions.add(action);
     }
 

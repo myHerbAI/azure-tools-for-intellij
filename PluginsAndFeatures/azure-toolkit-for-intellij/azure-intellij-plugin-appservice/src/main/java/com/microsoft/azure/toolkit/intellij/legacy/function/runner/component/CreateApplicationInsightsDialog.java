@@ -12,7 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.monitor.LogAnalyticsWorkspaceConfig;
-import com.microsoft.intellij.ui.components.AzureDialogWrapper;
+import com.microsoft.azure.toolkit.intellij.common.component.AzureDialogWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;

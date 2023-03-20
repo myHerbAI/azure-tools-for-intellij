@@ -53,7 +53,7 @@ public class VirtualMachineNodeProvider implements IExplorerNodeProvider {
             final VirtualMachine vm = (VirtualMachine) data;
             return new Node<>(vm)
                 .view(new AzureResourceLabelView<>(vm, VirtualMachine::getStatus, VIRTUAL_MACHINE_ICON_PROVIDER))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .doubleClickAction(ResourceCommonActionsContributor.OPEN_PORTAL_URL)
                 .actions(VirtualMachineActionsContributor.VM_ACTIONS);
         }

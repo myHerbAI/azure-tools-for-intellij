@@ -32,7 +32,7 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel;
-import com.microsoft.intellij.ui.util.UIUtils;
+import com.microsoft.azure.toolkit.intellij.common.component.UIUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -57,7 +57,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 

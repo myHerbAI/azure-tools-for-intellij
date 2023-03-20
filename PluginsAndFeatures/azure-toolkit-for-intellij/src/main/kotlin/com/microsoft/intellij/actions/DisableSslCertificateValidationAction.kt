@@ -28,7 +28,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.util.ui.UIUtil
 import com.microsoft.azure.hdinsight.common.CommonConst
 import com.microsoft.azuretools.telemetrywrapper.Operation
-import com.microsoft.intellij.AzureAnAction
+import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction
 import com.microsoft.tooling.msservices.components.DefaultLoader
 
 class DisableSslCertificateValidationAction : AzureAnAction(), Toggleable {

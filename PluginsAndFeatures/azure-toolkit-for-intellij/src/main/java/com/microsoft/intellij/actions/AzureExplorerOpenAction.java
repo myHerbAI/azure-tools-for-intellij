@@ -10,7 +10,7 @@ import com.intellij.openapi.actionSystem.DataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.intellij.AzureAnAction;
+import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
 import com.microsoft.intellij.ui.ServerExplorerToolWindowFactory;
 import org.jetbrains.annotations.NotNull;

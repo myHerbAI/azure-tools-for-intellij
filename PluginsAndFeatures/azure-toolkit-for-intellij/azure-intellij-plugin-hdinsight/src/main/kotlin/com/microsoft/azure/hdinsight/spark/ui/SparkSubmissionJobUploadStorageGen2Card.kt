@@ -38,7 +38,7 @@ import com.microsoft.azuretools.authmanage.IdeAzureAccount
 import com.microsoft.intellij.ui.HintTextField
 import com.microsoft.intellij.forms.dsl.panel
 import com.microsoft.intellij.rxjava.IdeaSchedulers
-import com.microsoft.intellij.ui.util.UIUtils
+import com.microsoft.azure.toolkit.intellij.common.component.UIUtils
 import org.apache.commons.lang3.StringUtils
 import rx.Observable
 import java.awt.Dimension

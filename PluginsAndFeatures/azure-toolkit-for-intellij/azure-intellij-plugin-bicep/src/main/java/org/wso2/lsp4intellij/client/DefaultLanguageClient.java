@@ -61,7 +61,7 @@ public class DefaultLanguageClient implements LanguageClient {
 
     @Override
     public CompletableFuture<ApplyWorkspaceEditResponse> applyEdit(ApplyWorkspaceEditParams params) {
-        boolean response = WorkspaceEditHandler.applyEdit(params.getEdit(), "LSP edits");
+        final boolean response = WorkspaceEditHandler.applyEdit(params.getEdit(), "LSP edits");
         return CompletableFuture.supplyAsync(() -> new ApplyWorkspaceEditResponse(response));
     }
 
@@ -78,23 +78,22 @@ public class DefaultLanguageClient implements LanguageClient {
     @Override
     public CompletableFuture<Void> registerCapability(RegistrationParams params) {
         return CompletableFuture.runAsync(() -> params.getRegistrations().forEach(r -> {
-            String id = r.getId();
-            Optional<DynamicRegistrationMethods> method = DynamicRegistrationMethods.forName(r.getMethod());
+            final String id = r.getId();
+            final Optional<DynamicRegistrationMethods> method = DynamicRegistrationMethods.forName(r.getMethod());
             method.ifPresent(dynamicRegistrationMethods -> registrations.put(id, Pair.of(dynamicRegistrationMethods, r.getRegisterOptions())));
-
         }));
     }
 
     @Override
     public CompletableFuture<Void> unregisterCapability(UnregistrationParams params) {
         return CompletableFuture.runAsync(() -> params.getUnregisterations().forEach((Unregistration r) -> {
-            String id = r.getId();
-            Optional<DynamicRegistrationMethods> method = DynamicRegistrationMethods.forName(r.getMethod());
+            final String id = r.getId();
+            final Optional<DynamicRegistrationMethods> method = DynamicRegistrationMethods.forName(r.getMethod());
             if (registrations.containsKey(id)) {
                 registrations.remove(id);
             } else {
-                Map<Pair<DynamicRegistrationMethods, Object>, String> inverted = new HashMap<>();
-                for (Map.Entry<String, Pair<DynamicRegistrationMethods, Object>> entry : registrations.entrySet()) {
+                final Map<Pair<DynamicRegistrationMethods, Object>, String> inverted = new HashMap<>();
+                for (final Map.Entry<String, Pair<DynamicRegistrationMethods, Object>> entry : registrations.entrySet()) {
                     inverted.put(entry.getValue(), entry.getKey());
                 }
                 if (method.isPresent() && inverted.containsKey(method.get())) {
@@ -115,22 +114,22 @@ public class DefaultLanguageClient implements LanguageClient {
 
     @Override
     public void publishDiagnostics(PublishDiagnosticsParams publishDiagnosticsParams) {
-        String uri = FileUtils.sanitizeURI(publishDiagnosticsParams.getUri());
-        List<Diagnostic> diagnostics = publishDiagnosticsParams.getDiagnostics();
-        Set<EditorEventManager> managers = Optional.ofNullable(EditorEventManagerBase.managersForUri(uri)).orElse(Collections.emptySet());
-        for (EditorEventManager manager : managers) {
+        final String uri = FileUtils.sanitizeURI(publishDiagnosticsParams.getUri());
+        final List<Diagnostic> diagnostics = publishDiagnosticsParams.getDiagnostics();
+        final Set<EditorEventManager> managers = Optional.ofNullable(EditorEventManagerBase.managersForUri(uri)).orElse(Collections.emptySet());
+        for (final EditorEventManager manager : managers) {
             manager.diagnostics(diagnostics);
         }
     }
 
     @Override
     public void showMessage(MessageParams messageParams) {
-        String title = "Language Server message";
-        String message = messageParams.getMessage();
+        final String title = "Language Server Message";
+        final String message = messageParams.getMessage();
 
         if (isModal) {
             ApplicationUtils.invokeLater(() -> {
-                MessageType msgType = messageParams.getType();
+                final MessageType msgType = messageParams.getType();
                 switch (msgType) {
                     case Error:
                         Messages.showErrorDialog(message, title);
@@ -148,7 +147,7 @@ public class DefaultLanguageClient implements LanguageClient {
                 }
             });
         } else {
-            NotificationType type = getNotificationType(messageParams.getType());
+            final NotificationType type = getNotificationType(messageParams.getType());
             final Notification notification = new Notification(
                     "lsp", messageParams.getType().toString(), messageParams.getMessage(), type);
             notification.notify(context.getProject());
@@ -157,20 +156,20 @@ public class DefaultLanguageClient implements LanguageClient {
 
     @Override
     public CompletableFuture<MessageActionItem> showMessageRequest(ShowMessageRequestParams showMessageRequestParams) {
-        List<MessageActionItem> actions = showMessageRequestParams.getActions();
-        String title = "Language Server " + showMessageRequestParams.getType().toString();
-        String message = showMessageRequestParams.getMessage();
-        MessageType msgType = showMessageRequestParams.getType();
+        final List<MessageActionItem> actions = showMessageRequestParams.getActions();
+        final String title = "Language Server " + showMessageRequestParams.getType().toString();
+        final String message = showMessageRequestParams.getMessage();
+        final MessageType msgType = showMessageRequestParams.getType();
 
-        String[] options = new String[actions == null ? 0 : actions.size()];
+        final String[] options = new String[actions == null ? 0 : actions.size()];
         for (int i = 0, size = options.length; i < size; i++) {
             options[i] = actions.get(i).getTitle();
         }
 
         int exitCode;
-        FutureTask<Integer> task;
+        final FutureTask<Integer> task;
         if (isModal) {
-            Icon icon;
+            final Icon icon;
             switch (msgType) {
                 case Error:
                     icon = UIUtil.getErrorIcon();
@@ -194,7 +193,7 @@ public class DefaultLanguageClient implements LanguageClient {
 
             try {
                 exitCode = task.get();
-            } catch (InterruptedException | ExecutionException e) {
+            } catch (final InterruptedException | ExecutionException e) {
                 LOG.warn(e.getMessage());
                 exitCode = -1;
             }
@@ -204,7 +203,7 @@ public class DefaultLanguageClient implements LanguageClient {
             final Notification notification = STICKY_NOTIFICATION_GROUP.createNotification(title, null, message, getNotificationType(msgType));
             final CompletableFuture<Integer> integerCompletableFuture = new CompletableFuture<>();
             for (int i = 0, optionsSize = options.length; i < optionsSize; i++) {
-                int finalI = i;
+                final int finalI = i;
                 notification.addAction(new NotificationAction(options[i]) {
                     @Override
                     public boolean isDumbAware() {
@@ -227,7 +226,7 @@ public class DefaultLanguageClient implements LanguageClient {
 
             try {
                 exitCode = integerCompletableFuture.get();
-            } catch (InterruptedException | ExecutionException e) {
+            } catch (final InterruptedException | ExecutionException e) {
                 LOG.warn(e.getMessage());
                 exitCode = -1;
             }
@@ -250,8 +249,8 @@ public class DefaultLanguageClient implements LanguageClient {
 
     @Override
     public void logMessage(MessageParams messageParams) {
-        String message = messageParams.getMessage();
-        MessageType msgType = messageParams.getType();
+        final String message = messageParams.getMessage();
+        final MessageType msgType = messageParams.getType();
 
         switch (msgType) {
             case Error:

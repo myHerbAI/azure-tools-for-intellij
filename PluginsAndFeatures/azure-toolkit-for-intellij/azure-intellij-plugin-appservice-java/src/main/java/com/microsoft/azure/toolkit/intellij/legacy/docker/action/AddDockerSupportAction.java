@@ -25,7 +25,7 @@ import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.ErrorType;
 import com.microsoft.azuretools.telemetrywrapper.EventUtil;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
-import com.microsoft.intellij.AzureAnAction;
+import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import org.apache.commons.lang3.ArrayUtils;

@@ -6,7 +6,7 @@
 package com.microsoft.intellij.ui;
 
 import com.intellij.openapi.project.Project;
-import com.microsoft.intellij.ui.components.AzureDialogWrapper;
+import com.microsoft.azure.toolkit.intellij.common.component.AzureDialogWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;

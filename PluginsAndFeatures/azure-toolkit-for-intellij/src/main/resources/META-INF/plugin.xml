@@ -2,17 +2,19 @@
              xmlns:xi="http://www.w3.org/2001/XInclude">
   <id>com.microsoft.tooling.msservices.intellij.azure</id>
   <name>Azure Toolkit for IntelliJ</name>
-  <version>3.74.0-SNAPSHOT</version>
+  <version>3.75.0-SNAPSHOT</version>
   <vendor email="java@microsoft.com" url="http://www.microsoft.com">Microsoft</vendor>
 
   <description><![CDATA[
       <html>
-        <p>The plugin allows Java developers to easily develop, configure, test, and deploy highly available and scalable Java web apps. It also supports Azure Synapse data engineers, Azure HDInsight developers and Apache Spark on SQL Server users to create, test and submit Apache Spark/Hadoop jobs to Azure from IntelliJ on all supported platforms.</p>
+        <p>The plugin allows Java developers to easily develop, configure, test, and deploy highly available and scalable Java applications to Azure. The plugin supports Azure App Service, Azure Functions, Azure Spring Apps, Azure Kubernetes, Azure Container Apps, Virtual Machines, Azure Database for MySQL, Azure Cosmos DB, SQL Server, Azure Storage, and Application Insights. It also supports Azure Synapse data engineers, Azure HDInsight developers and Apache Spark on SQL Server users to create, test and submit Apache Spark/Hadoop jobs to Azure from IntelliJ on all supported platforms.</p>
         <ul>
-          <li>Azure Web App Workflow: Run your web applications on Azure Web App and view logs.</li>
-          <li>Azure Functions Workflow: Scaffold, run, debug your Functions App locally and deploy it on Azure.</li>
-          <li>Azure Spring Apps Workflow: Run your Spring microservices applications on Azure Spring Apps and view logs.</li>
-          <li>Azure Container Workflow: You can dockerize and run your web application on Azure Web App (Linux) via Azure Container Registry.</li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/developer/java/toolkit-for-intellij/create-hello-world-web-app">Azure Web App Workflow: Run your web applications on Azure Web App and view logs.</li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/azure-functions/functions-create-maven-intellij?toc=%2Fazure%2Fdeveloper%2Fjava%2Ftoolkit-for-intellij%2Ftoc.json&bc=%2Fazure%2Fdeveloper%2Fjava%2Ftoolkit-for-intellij%2Fbreadcrumb%2Ftoc.json">Azure Functions Workflow: Scaffold, run, debug your Functions App locally and deploy it on Azure.</li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/spring-apps/quickstart?tabs=IntelliJ">Azure Spring Apps Workflow: Run your Spring microservices applications on Azure Spring Apps and view logs.</li>
+          <li>Azure Container Apps Workflow: Dockerize and run applications on Azure Container Apps and view logs.</li>
+          <li>Azure Kubernetes Support: Create and manage your Kubernetes Services directly in Azure Explorer.</li>
+          <li>Getting Started Guide: Follow the steps in the getting started guide and deploy an application within several minutes.</li>
           <li>Azure Explorer: View and manage your cloud resources on Azure with embedded Azure Explorer.</li>
           <li>Azure Resource Management template: Create and update your Azure resource deployments with ARM template support.</li>
           <li>Azure Synapse: List workspaces and Apache Spark Pools, compose an Apache Spark project, author and submit Apache Spark jobs to Azure Synapse Spark pools.</li>
@@ -25,23 +27,33 @@
   <change-notes>
     <![CDATA[
     <html>
-      <h3>3.72.0</h2>
+      <h3 id="3-74-0">3.74.0</h3>
       <h4 id="added">Added</h4>
       <ul>
-        <li>Bicep Language Support (preview).</li>
-        <li>Resource Management of Azure Container Apps.</li>
-        <li>Resource Management of Azure Database for MySQL flexible server.</li>
-        <li>Support for proxy with certificate.</li>
+          <li>Support IntelliJ 2023.1 EAP.</li>
+          <li>Add Azure Event Hub support in Azure Toolkits<ul>
+                  <li>Resource Management in Azure explorer</li>
+                  <li>Simple event hub client to send/receive events</li>
+              </ul>
+          </li>
       </ul>
       <h4 id="changed">Changed</h4>
       <ul>
-        <li>deprecated Resource Management support for Azure Database for MySQL (single server).</li>
+          <li>Azure Function: New function class creation workflow with resource connection</li>
+          <li>Azure Function: Support customized function host parameters and path for <code>host.json</code> in function
+              run/deployment</li>
+          <li>App Service: New UX for runtime selection</li>
+          <li>Azure Spring Apps: Integrate with control plane logs, more diagnostic info will be shown during deployment</li>
       </ul>
       <h4 id="fixed">Fixed</h4>
       <ul>
-        <li>installed Function Core Tools doesn&#39;t take effect right now when run/debug functions locally from line gutter.</li>
-        <li>status/icon is wrong for a deleting resource.</li>
-        <li>links are not rendered correctly in notifications.</li>
+          <li>Fix: Toolkit will always select maven as build tool in function module creation wizard</li>
+          <li>Fix: Copy connection string did not work for Cosmos DB</li>
+          <li>Fix: Only <code>local.settings.json</code> in root module could be found when import app settings</li>
+          <li>Fix: Linked cluster cannot display under the HDInsight node.</li>
+          <li>Fix: Open the sign into Azure dialog after click on "Link a cluster/refresh" in the context menu.</li>
+          <li>Fix: Failed to open Azure Storage Explorer.</li>
+          <li>Fix: In config, only display linked cluster in cluster list, but in Azure explorer both linked cluster and signincluster exist.</li>
       </ul>
       <p>You may get the full change log <a href="https://github.com/Microsoft/azure-tools-for-java/blob/develop/CHANGELOG.md">here</a></p>
     </html>
@@ -80,6 +92,7 @@
   <xi:include href="/META-INF/azure-intellij-plugin-bicep.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-monitor.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-containerapps.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/azure-intellij-plugin-eventhubs.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <!-- please see https://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
        on how to target different products -->
   <!-- uncomment to enable plugin in all products
@@ -118,23 +131,20 @@
             id="Cosmos Serverless Spark Jobs"
             canCloseContents="true"/>
 
-<!--    <executor implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobRunExecutor" id="SparkJobRun" />-->
-<!--    <executor implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobDebugExecutor" id="SparkJobDebug" />-->
-<!--    <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.LivySparkBatchJobRunConfigurationType"/>-->
     <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.CosmosSparkConfigurationType"/>
     <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.CosmosServerlessSparkConfigurationType"/>
     <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.ArisSparkConfigurationType"/>
     <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.ArcadiaSparkConfigurationType"/>
     <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.SparkFailureTaskDebugConfigurationType"/>
-    <actionPromoter implementation="com.microsoft.azure.hdinsight.spark.console.SparkExecuteInConsoleActionPromoter"/>
-<!--    <runConfigurationProducer implementation="com.microsoft.azure.hdinsight.spark.run.LivySparkRunConfigurationProducer"/>-->
+
+
     <runConfigurationProducer implementation="com.microsoft.azure.hdinsight.spark.run.CosmosSparkRunConfigurationProducer"/>
     <runConfigurationProducer implementation="com.microsoft.azure.hdinsight.spark.run.CosmosServerlessRunConfigurationProducer"/>
     <runConfigurationProducer implementation="com.microsoft.azure.hdinsight.spark.run.ArisSparkRunConfigurationProducer"/>
     <runConfigurationProducer implementation="com.microsoft.azure.hdinsight.spark.run.ArcadiaSparkRunConfigurationProducer"/>
-<!--    <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobRunner" />-->
+
     <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.CosmosSparkBatchRunner" />
-<!--    <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobDebuggerRunner" />-->
+
     <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.CosmosServerlessSparkBatchRunner" />
     <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.ArisSparkBatchRunner" />
     <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.ArcadiaSparkBatchRunner" />
@@ -144,8 +154,6 @@
   </extensions>
 
   <applicationListeners>
-<!--    <listener class="com.microsoft.azure.hdinsight.common.ConsoleViewTypeRegistrationListener" topic="com.intellij.ide.ApplicationInitializedListener"/>-->
-<!--    <listener class="com.microsoft.azure.hdinsight.jobs.JobViewApplicationListener" topic="com.intellij.ide.AppLifecycleListener"/>-->
     <listener class="com.microsoft.intellij.AzureActionsListener" topic="com.intellij.ide.AppLifecycleListener"/>
   </applicationListeners>
 
@@ -165,9 +173,6 @@
             icon="/icons/CodeSamples_16.png">
     </action>
 
-<!--    <action id="Actions.SubmitLivySparkApplicationAction"-->
-<!--            class="com.microsoft.azure.hdinsight.spark.actions.LivySparkSelectAndSubmitAction" text="Apache Spark on HDInsight"-->
-<!--            description="Submit Apache Spark on HDInsight Application" icon="/icons/Spark.png"/>-->
     <action id="Actions.SubmitCosmosSparkApplicationAction"
             class="com.microsoft.azure.hdinsight.spark.actions.CosmosSparkSelectAndSubmitAction"
             text="Apache Spark on Cosmos"
@@ -184,8 +189,8 @@
             text="Apache Spark on Azure Synapse"
             description="Submit Apache Spark on Azure Synapse Application" icon="/icons/Spark.png"/>
 
-    <action id="AzureToolkit.AzureSignIn" class="com.microsoft.intellij.actions.AzureSignInAction" text="Azure Sign In..." />
-    <action id="AzureToolkit.SelectSubscriptions" class="com.microsoft.intellij.actions.SelectSubscriptionsAction" text="Select Subscriptions..."
+    <action id="AzureToolkit.AzureSignIn" class="com.microsoft.azure.toolkit.intellij.common.auth.AzureSignInAction" text="Azure Sign In..." />
+    <action id="AzureToolkit.SelectSubscriptions" class="com.microsoft.azure.toolkit.intellij.common.subscription.SelectSubscriptionsAction" text="Select Subscriptions..."
             description="ShowSubscriptionsAction" icon="AllIcons.General.Filter" />
     <group id="AzureToolkit.ValidateCertificate" text="Validate Spark Cluster SSL Certificate" popup="true">
       <action id="AzureToolkit.DisableSSLCertificateValidation"
@@ -194,35 +199,7 @@
     </group>
     <action class="com.microsoft.intellij.actions.NewCustomerIssueFeedbackAction" id="AzureToolkit.GithubIssue" text="Report an Issue" />
     <action class="com.microsoft.intellij.actions.NewFeatureRequestFeedbackAction" id="AzureToolkit.FeatureRequest" text="Request a Feature" />
-<!--    <action id="Actions.SparkJobDisconnect" class="com.microsoft.azure.hdinsight.spark.run.action.SparkBatchJobDisconnectAction"-->
-<!--            text="Disconnect" description="Disconnect the log view from remote Spark Job"-->
-<!--            icon="/icons/SparkJobDisconnect.png">-->
-<!--      <keyboard-shortcut first-keystroke="ctrl shift alt F2" keymap="$default"/>-->
-<!--    </action>-->
-<!--    <action id="Spark.RunScalaLocalConsole" class="com.microsoft.azure.hdinsight.spark.console.RunSparkLocalConsoleActionDelegate"-->
-<!--            text="Run Apache Spark Local Console(Scala)" description="Run Apache Spark Local Console (Scala language)">-->
-<!--    </action>-->
-<!--    <action id="Spark.RunScalaLivyConsole" class="com.microsoft.azure.hdinsight.spark.console.RunSparkLivyConsoleActionDelegate"-->
-<!--            text="Run Apache Spark Livy Interactive Session Console(Scala)" description="Run Apache Spark Livy Interactive Session Console (Scala language)">-->
-<!--    </action>-->
-<!--    <action id="SparkConsole.Execute" class="com.microsoft.azure.hdinsight.spark.console.SparkConsoleExecuteAction" text="Execute Spark Console Statement">-->
-<!--      <keyboard-shortcut first-keystroke="control ENTER" keymap="$default"/>-->
-<!--      <keyboard-shortcut keymap="Mac OS X" first-keystroke="meta shift ENTER"/>-->
-<!--    </action>-->
-<!--    <action id="Spark.SendSelectionToConsole" class="com.microsoft.azure.hdinsight.spark.console.SparkSendSelectionToConsoleActionDelegate"-->
-<!--            text="Send Selection To Apache Spark Console" description="Send selection to Apache Spark console">-->
-<!--      <add-to-group group-id="RunContextPopupGroup" anchor="last"/>-->
-<!--      <keyboard-shortcut first-keystroke="control shift S" keymap="$default"/>-->
-<!--      <keyboard-shortcut keymap="Mac OS X" first-keystroke="ctrl shift S"/>-->
-<!--      <keyboard-shortcut keymap="Mac OS X" first-keystroke="meta shift S" remove="true"/>-->
-<!--      <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="ctrl shift S"/>-->
-<!--      <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta shift S" remove="true"/>-->
-<!--    </action>-->
 
-<!--    <action id="SparkJobRun" class="com.microsoft.azure.hdinsight.spark.run.action.SparkJobRunAction"-->
-<!--            text="SparkJobRun"/>-->
-<!--    <action id="SparkJobDebug" class="com.microsoft.azure.hdinsight.spark.run.action.SparkJobDebugAction"-->
-<!--            text="SparkJobDebug"/>-->
     <group id="AzurePopupGroup" text="Azure" description="Azure" icon="/icons/Common/Azure.svg" popup="true" class="com.microsoft.intellij.actions.AzurePopupGroup">
       <reference ref="AzureToolkit.ConnectToAzureResource"/>
       <separator/>
@@ -261,6 +238,10 @@
       <add-to-group group-id="ToolsMenu" anchor="first"/>
       <reference ref="AzureToolkit.SelectSubscriptions"/>
       <separator/>
+      <reference ref="Actions.DeployFunction"/>
+      <reference ref="Actions.DeploySpringCloud"/>
+      <reference ref="Actions.WebDeployAction"/>
+      <separator/>
       <reference ref="AzureToolkit.AzureSignIn"/>
       <separator/>
       <reference ref="AzureToolkit.ValidateCertificate"/>
@@ -276,12 +257,6 @@
       <reference ref="Actions.GettingStart"/>
     </group>
 
-<!--    <group id="SparkConsoleGroup" text="Apache Spark Console" description="Apache Spark Console" popup="true">-->
-<!--      <add-to-group group-id="RunContextPopupGroup" anchor="last"/>-->
-<!--      <add-to-group group-id="ToolsMenu" anchor="last"/>-->
-<!--      <reference ref="Spark.RunScalaLocalConsole"/>-->
-<!--      <reference ref="Spark.RunScalaLivyConsole"/>-->
-<!--    </group>-->
 
     <group id="Actions.SelectDefaultSparkApplicationTypeActionGroup" text="Default Spark Application Type" description="Select default spark application type" popup="true">
       <add-to-group group-id="ToolsMenu" anchor="last"/>
@@ -308,19 +283,11 @@
       </action>
     </group>
 
-<!--    <action id="Actions.SparkSubmitJobActionGroups" class="com.microsoft.azure.hdinsight.spark.run.action.SparkSubmitJobActionGroups" text="Submit Apache Spark Application"/>-->
-
-<!--    <action id="Actions.SparkRunLivyConsoleActionGroups" class="com.microsoft.azure.hdinsight.spark.console.SparkRunLivyConsoleActionGroups" text="Run Apache Spark Console"/>-->
-
-<!--    <action id="Actions.SparkRunLocalConsoleActionGroups" class="com.microsoft.azure.hdinsight.spark.console.SparkRunLocalConsoleActionGroups" text="Run Apache Spark Local Console"/>-->
-
     <action id="Actions.RunArcadiaSparkConsoleAction"
             class="com.microsoft.azure.hdinsight.spark.console.SelectArcadiaSparkTypeThenRunLivyConsoleAction"
             text="Apache Spark on Azure Synapse"
             description="Start an interactive console for Apache Spark on Azure Synapse Application" icon="/icons/Spark.png"/>
-<!--    <action id="Actions.RunLivySparkConsoleAction"-->
-<!--            class="com.microsoft.azure.hdinsight.spark.console.SelectLivySparkTypeThenRunLivyConsoleAction" text="Apache Spark on HDInsight"-->
-<!--            description="Start an interactive console for Apache Spark on HDInsight Application" icon="/icons/Spark.png"/>-->
+
     <action id="Actions.RunCosmosSparkConsoleAction"
             class="com.microsoft.azure.hdinsight.spark.console.SelectCosmosSparkTypeThenRunLivyConsoleAction" text="Apache Spark on Cosmos"
             description="Start an interactive console for Apache Spark on Cosmos Application" icon="/icons/Spark.png"/>
@@ -332,9 +299,7 @@
     <action id="Actions.RunArcadiaSparkLocalConsoleAction"
             class="com.microsoft.azure.hdinsight.spark.console.SelectArcadiaSparkTypeThenRunLocalConsoleAction" text="Apache Spark on Azure Synapse"
             description="Start a Apache Spark local console for Apache Spark on Azure Synapse Application" icon="/icons/Spark.png"/>
-<!--    <action id="Actions.RunLivySparkLocalConsoleAction"-->
-<!--            class="com.microsoft.azure.hdinsight.spark.console.SelectLivySparkTypeThenRunLocalConsoleAction" text="Apache Spark on HDInsight"-->
-<!--            description="Start a Apache Spark local console for Apache Spark on HDInsight Application" icon="/icons/Spark.png"/>-->
+
     <action id="Actions.RunCosmosSparkLocalConsoleAction"
             class="com.microsoft.azure.hdinsight.spark.console.SelectCosmosSparkTypeThenRunLocalConsoleAction" text="Apache Spark on Cosmos"
             description="Start a Apache Spark local console for Apache Spark on Cosmos Application" icon="/icons/Spark.png"/>

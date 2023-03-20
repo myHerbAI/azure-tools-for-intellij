@@ -44,7 +44,7 @@ import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager
 import com.microsoft.azure.toolkit.ide.common.store.ISecureStore
 import com.microsoft.intellij.forms.dsl.panel
 import com.microsoft.intellij.rxjava.IdeaSchedulers
-import com.microsoft.intellij.ui.util.UIUtils
+import com.microsoft.azure.toolkit.intellij.common.component.UIUtils
 import com.microsoft.intellij.ui.util.findFirst
 import com.microsoft.tooling.msservices.helpers.azure.sdk.StorageClientSDKManager
 import com.microsoft.tooling.msservices.model.storage.ClientStorageAccount

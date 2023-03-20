@@ -24,7 +24,7 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azuretools.telemetry.AppInsightsClient;
 import com.microsoft.intellij.AzurePlugin;
 import com.microsoft.intellij.ui.components.DefaultDialogWrapper;
-import com.microsoft.intellij.ui.components.AzureDialogWrapper;
+import com.microsoft.azure.toolkit.intellij.common.component.AzureDialogWrapper;
 import com.microsoft.intellij.util.PluginHelper;
 import com.microsoft.intellij.util.PluginUtil;
 import org.apache.commons.lang3.StringUtils;

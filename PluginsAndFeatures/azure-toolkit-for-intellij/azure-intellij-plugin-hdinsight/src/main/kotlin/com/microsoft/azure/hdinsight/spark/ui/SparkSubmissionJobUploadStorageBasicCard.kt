@@ -34,7 +34,7 @@ import com.microsoft.azure.hdinsight.spark.common.SparkSubmitStorageType
 import com.microsoft.azure.hdinsight.spark.ui.SparkSubmissionJobUploadStorageBasicCard.Model
 import com.microsoft.intellij.rxjava.DisposableObservers
 import com.microsoft.intellij.rxjava.IdeaSchedulers
-import com.microsoft.intellij.ui.util.UIUtils.assertInPooledThread
+import com.microsoft.azure.toolkit.intellij.common.component.UIUtils.assertInPooledThread
 import org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage
 import org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseStackTrace
 import rx.subjects.BehaviorSubject

@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.ide.appservice.function;
 import com.google.common.io.Files;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
@@ -23,7 +24,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class AzureFunctionsUtils {
     public static final String HTTP_TRIGGER = "httptrigger";
@@ -49,7 +55,10 @@ public class AzureFunctionsUtils {
                     for (final String trigger : triggers) {
                         // class name like HttpTriggerFunction
                         final String className = trigger + "Function";
-                        final String fileContent = AzureFunctionsUtils.generateFunctionClassByTrigger(trigger, packageName, className);
+                        final FunctionTemplate functionTemplate = FunctionUtils.loadAllFunctionTemplates().stream()
+                                .filter(template -> StringUtils.equalsIgnoreCase(template.getName(), trigger)).findFirst()
+                                .orElseThrow(() -> new AzureToolkitRuntimeException(String.format("Invalid binding type %s", trigger)));
+                        final String fileContent = functionTemplate.generateDefaultContent(packageName, className);
                         final File targetFile = Paths.get(srcFolder.getAbsolutePath(), String.format("%s/%s.java",
                                 packageName.replace('.', '/'), className)).toFile();
                         targetFile.getParentFile().mkdirs();
@@ -73,12 +82,7 @@ public class AzureFunctionsUtils {
     }
 
     public static FunctionTemplate getFunctionTemplate(String trigger) throws AzureExecutionException {
-        if (functionTemplates == null) {
-            functionTemplates = FunctionUtils.loadAllFunctionTemplates();
-        }
-        return functionTemplates.stream()
-                .filter(template -> StringUtils.equalsIgnoreCase(trigger, template.getFunction()))
-                .findFirst().orElseThrow(() -> new AzureExecutionException("No such template"));
+        return null;
     }
 
     public static void applyKeyValueToLocalSettingFile(File localSettingFile, String key, String value) throws IOException {
@@ -149,18 +153,11 @@ public class AzureFunctionsUtils {
         return folder;
     }
 
-    public static String generateFunctionClassByTrigger(String trigger, String packageName, String className) throws IOException {
-
-        URL url = AzureFunctionsUtils.class.getResource(String.format("/azurefunction/templates/%s.template", trigger));
-        if (url == null) {
-            return null;
-        }
-        final String templateText = IOUtils.toString(
-                AzureFunctionsUtils.class.getResourceAsStream(String.format("/azurefunction/templates/%s.template", trigger)), "utf8");
-        final Map<String, String> map = new HashMap<>();
-        map.put("packageName", packageName);
-        map.put("className", className);
-        return replaceREPL(map, templateText);
+    public static String generateFunctionClassByTrigger(String trigger, String packageName, String className) {
+        final FunctionTemplate functionTemplate = FunctionUtils.loadAllFunctionTemplates().stream()
+                .filter(template -> StringUtils.equalsIgnoreCase(template.getName(), trigger)).findFirst()
+                .orElseThrow(() -> new AzureToolkitRuntimeException(String.format("Invalid binding type %s", trigger)));
+        return functionTemplate.generateDefaultContent(packageName, className);
     }
 
     public static String substituteParametersInTemplate(final FunctionTemplate template, final Map<String, String> params)

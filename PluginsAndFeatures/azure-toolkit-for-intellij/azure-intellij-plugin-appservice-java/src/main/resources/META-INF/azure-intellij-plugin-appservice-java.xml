@@ -30,7 +30,7 @@
     </extensions>
 
     <actions>
-        <action id="Actions.WebDeployAction" class="com.microsoft.azure.toolkit.intellij.legacy.webapp.action.WebDeployAction"
+        <action id="Actions.WebDeployAction" class="com.microsoft.azure.toolkit.intellij.legacy.webapp.action.DeployWebAppAction"
                 text="Deploy to Azure Web Apps" description="Deploy to Azure Web Apps"
                 icon="/icons/WebApp/Deploy.svg">
         </action>
@@ -39,11 +39,11 @@
                 text="Run Function" description="Run function project locally"
                 icon="/icons/FunctionApp/Run.svg">
         </action>
-        <action id="Actions.DeployFunction" class="com.microsoft.azure.toolkit.intellij.legacy.function.action.DeployFunctionAction"
+        <action id="Actions.DeployFunction" class="com.microsoft.azure.toolkit.intellij.legacy.function.action.DeployFunctionAppAction"
                 text="Deploy to Azure Functions" description="Deploy Java Function to Azure"
                 icon="/icons/FunctionApp/Deploy.svg">
         </action>
-        <action id="page.new" class="com.microsoft.azure.toolkit.intellij.function.CreateFunctionAction"
+        <action id="page.new" class="com.microsoft.azure.toolkit.intellij.legacy.function.action.CreateFunctionAction"
                 text="Azure Function Class"
                 description="Create New Azure Function Class">
             <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>

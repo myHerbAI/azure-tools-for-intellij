@@ -67,7 +67,8 @@ public class FunctionAppNodeProvider implements IExplorerNodeProvider {
             final FunctionApp functionApp = (FunctionApp) data;
             return new Node<>(functionApp)
                 .view(new AzureResourceLabelView<>(functionApp, FunctionApp::getStatus, FUNCTIONAPP_ICON_PROVIDER))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.DEPLOY)
                 .actions(FunctionAppActionsContributor.FUNCTION_APP_ACTIONS)
                 .addChildren(Arrays::asList, (app, webAppNode) -> new FunctionsNode(app))
                 .addChild(FunctionApp::getDeploymentModule, (module, functionAppNode) -> createNode(module, functionAppNode, manager))

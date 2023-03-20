@@ -31,7 +31,7 @@ public class ContainerRegistryActionsContributor implements IActionsContributor 
         new Action<>(PUSH_IMAGE)
             .withLabel("Push Image")
             .visibleWhen(s -> s instanceof ContainerRegistry)
-            .enableWhen(s -> s.getFormalStatus().isRunning())
+            .enableWhen(s -> s.getFormalStatus(true).isRunning())
             .withIdParam(AzResource::getName)
             .register(am);
 
@@ -39,7 +39,7 @@ public class ContainerRegistryActionsContributor implements IActionsContributor 
             .withLabel("Container Registry")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ResourceGroup)
-            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .enableWhen(s -> s.getFormalStatus(true).isConnected())
             .withHandler(s -> am.getAction(ResourceCommonActionsContributor.CREATE_IN_PORTAL).handle(Azure.az(AzureContainerRegistry.class)))
             .register(am);
     }

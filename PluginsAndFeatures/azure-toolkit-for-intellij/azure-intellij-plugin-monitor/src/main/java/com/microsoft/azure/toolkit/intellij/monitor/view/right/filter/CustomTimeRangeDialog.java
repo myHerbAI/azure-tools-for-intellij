@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.monitor.view.right.filter;
 
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.vcs.versionBrowser.DateFilterComponent;
 import com.intellij.util.text.DateFormatUtil;
@@ -25,10 +26,13 @@ import java.util.Optional;
 public class CustomTimeRangeDialog extends AzureDialog<String> implements AzureForm<String> {
     private final DateFilterComponent dateFilterComponent;
     private String customKustoString;
+    public static final String CUSTOM_BEFORE = "AzureMonitor.Custom.Before";
+    public static final String CUSTOM_AFTER = "AzureMonitor.Custom.After";
 
     public CustomTimeRangeDialog() {
         super();
         this.dateFilterComponent = new DateFilterComponent(false, DateFormatUtil.getDateFormat().getDelegate());
+        restoreDate();
         init();
     }
     @Override
@@ -66,13 +70,9 @@ public class CustomTimeRangeDialog extends AzureDialog<String> implements AzureF
 
     @Override
     protected void doOKAction() {
-        final VcsLogDateFilter filter = VcsLogFilterObject.fromDates(dateFilterComponent.getAfter(), dateFilterComponent.getBefore());
-        final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        final String kustoAfter = Optional.ofNullable(filter.getAfter())
-                .map(d -> String.format("where TimeGenerated >= datetime(%s)", formatter.format(d))).orElse(StringUtils.EMPTY);
-        final String kustoBefore = Optional.ofNullable(filter.getBefore())
-                .map(d -> String.format("where TimeGenerated <= datetime(%s)", formatter.format(d))).orElse(StringUtils.EMPTY);
-        customKustoString = StringUtils.join(new String[] {kustoBefore, kustoAfter}, " | ");
+        PropertiesComponent.getInstance().setValue(CUSTOM_AFTER, String.valueOf(dateFilterComponent.getAfter()));
+        PropertiesComponent.getInstance().setValue(CUSTOM_BEFORE, String.valueOf(dateFilterComponent.getBefore()));
+        setCustomKustoString();
         super.doOKAction();
     }
 
@@ -90,6 +90,22 @@ public class CustomTimeRangeDialog extends AzureDialog<String> implements AzureF
     @Override
     public List<AzureFormInput<?>> getInputs() {
         return new ArrayList<>();
+    }
+
+    private void restoreDate() {
+        Optional.ofNullable(PropertiesComponent.getInstance().getValue(CUSTOM_AFTER)).ifPresent(t -> this.dateFilterComponent.setAfter(Long.parseLong(t)));
+        Optional.ofNullable(PropertiesComponent.getInstance().getValue(CUSTOM_BEFORE)).ifPresent(t -> this.dateFilterComponent.setBefore(Long.parseLong(t)));
+        setCustomKustoString();
+    }
+
+    private void setCustomKustoString() {
+        final VcsLogDateFilter filter = VcsLogFilterObject.fromDates(dateFilterComponent.getAfter(), dateFilterComponent.getBefore());
+        final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        final String kustoAfter = Optional.ofNullable(filter.getAfter())
+                .map(d -> String.format("where TimeGenerated >= datetime(%s)", formatter.format(d))).orElse(StringUtils.EMPTY);
+        final String kustoBefore = Optional.ofNullable(filter.getBefore())
+                .map(d -> String.format("where TimeGenerated <= datetime(%s)", formatter.format(d))).orElse(StringUtils.EMPTY);
+        customKustoString = StringUtils.join(new String[] {kustoBefore, kustoAfter}, " | ");
     }
 
 }

@@ -19,7 +19,7 @@ import com.microsoft.azuretools.core.mvp.model.container.pojo.DockerHostRunSetti
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
 import com.microsoft.azuretools.telemetrywrapper.TelemetryManager;
-import com.microsoft.intellij.RunProcessHandler;
+import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.intellij.util.MavenRunTaskUtil;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.messages.Container;

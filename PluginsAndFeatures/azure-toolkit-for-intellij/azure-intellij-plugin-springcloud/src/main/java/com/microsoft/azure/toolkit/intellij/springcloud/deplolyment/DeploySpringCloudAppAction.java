@@ -21,10 +21,9 @@ import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -34,7 +33,7 @@ public class DeploySpringCloudAppAction extends AnAction {
 
     @ExceptionNotification
     @AzureOperation(name = "user/springcloud.deploy_app")
-    public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
+    public void actionPerformed(@Nonnull AnActionEvent anActionEvent) {
         final Project project = anActionEvent.getProject();
         if (project != null) {
             AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle(() -> deploy((SpringCloudApp) null, project));
@@ -42,24 +41,25 @@ public class DeploySpringCloudAppAction extends AnAction {
     }
 
     public static void deploy(@Nullable SpringCloudApp app, @Nonnull Project project) {
-        final RunnerAndConfigurationSettings settings = getConfigurationSettings(project);
+        final RunnerAndConfigurationSettings settings = getOrCreateConfigurationSettings(project);
         final SpringCloudDeploymentConfiguration configuration = ((SpringCloudDeploymentConfiguration) settings.getConfiguration());
         configuration.setApp(app);
-        runConfiguration(project, settings, configuration);
+        runConfiguration(project, settings);
     }
 
     public static void deploy(@Nonnull SpringCloudDeploymentConfiguration configuration, @Nonnull Project project) {
-        final RunnerAndConfigurationSettings settings = getConfigurationSettings(project);
-        runConfiguration(project, settings, configuration);
+        final RunnerAndConfigurationSettings settings = getOrCreateConfigurationSettings(project);
+        runConfiguration(project, settings);
     }
 
-    private static void runConfiguration(@Nonnull Project project, RunnerAndConfigurationSettings settings, SpringCloudDeploymentConfiguration configuration) {
+    @AzureOperation(name = "boundary/springcloud.run_deploy_configuration")
+    private static void runConfiguration(@Nonnull Project project, RunnerAndConfigurationSettings settings) {
         final RunManagerEx manager = RunManagerEx.getInstanceEx(project);
         AzureTaskManager.getInstance().runLater(() -> {
             if (RunDialog.editConfiguration(project, settings, DEPLOY_SPRING_CLOUD_APP_TITLE, DefaultRunExecutor.getRunExecutorInstance())) {
                 settings.storeInLocalWorkspace();
                 manager.addConfiguration(settings);
-                manager.setBeforeRunTasks(configuration, new ArrayList<>(manager.getBeforeRunTasks(settings.getConfiguration())));
+                manager.setBeforeRunTasks(settings.getConfiguration(), new ArrayList<>(manager.getBeforeRunTasks(settings.getConfiguration())));
                 manager.setSelectedConfiguration(settings);
                 ProgramRunnerUtil.executeConfiguration(settings, DefaultRunExecutor.getRunExecutorInstance());
             }
@@ -67,7 +67,7 @@ public class DeploySpringCloudAppAction extends AnAction {
     }
 
     @Nonnull
-    private static RunnerAndConfigurationSettings getConfigurationSettings(@Nonnull Project project) {
+    private static RunnerAndConfigurationSettings getOrCreateConfigurationSettings(@Nonnull Project project) {
         final RunManagerEx manager = RunManagerEx.getInstanceEx(project);
         final ConfigurationFactory factory = configType.getConfigurationFactories()[0];
         final String configurationName = String.format("%s: %s", factory.getName(), project.getName());

@@ -5,13 +5,18 @@ import com.azure.resourcemanager.hdinsight.models.ClusterGetProperties;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;
 import com.microsoft.azure.hdinsight.sdk.cluster.SDKAdditionalCluster;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class SparkClusterNode extends AbstractAzResource<SparkClusterNode, HDInsightServiceSubscription, Cluster> {
 
@@ -43,6 +48,45 @@ public class SparkClusterNode extends AbstractAzResource<SparkClusterNode, HDIns
         return modules;
     }
 
+    @Override
+    public void reloadStatus() {
+        if (!Azure.az(AzureAccount.class).isLoggedIn() || this.getSubscriptionId().equals("[LinkedCluster]")) {
+            this.setStatus("Linked");
+        } else {
+            super.reloadStatus();
+        }
+    }
+
+    @Override
+    @Nonnull
+    public String getStatus(boolean immediately) {
+        if (!Azure.az(AzureAccount.class).isLoggedIn() || this.getSubscriptionId().equals("[LinkedCluster]")) {
+            return "Linked";
+        } else {
+            return super.getStatus(immediately);
+        }
+    }
+
+    @Override
+    @Nonnull
+    protected Optional<Cluster> remoteOptional(boolean... sync) {
+        if (!Azure.az(AzureAccount.class).isLoggedIn() || this.getSubscriptionId().equals("[LinkedCluster]")) {
+            return null;
+        } else {
+            return super.remoteOptional(sync);
+        }
+    }
+
+    @Override
+    @Nullable
+    protected Cluster refreshRemoteFromAzure(@Nonnull Cluster remote) {
+        if (!Azure.az(AzureAccount.class).isLoggedIn() || this.getSubscriptionId().equals("[LinkedCluster]")) {
+            return null;
+        } else {
+            return super.refreshRemoteFromAzure(remote);
+        }
+    }
+
     @NotNull
     @Override
     public String loadStatus(@NotNull Cluster remote) {
@@ -53,6 +97,25 @@ public class SparkClusterNode extends AbstractAzResource<SparkClusterNode, HDIns
         return new StringBuffer().append("(Spark:")
                 .append(p.clusterDefinition().componentVersion().get("Spark")).append(")")
                 .append(p.clusterState()).toString();
+    }
+
+    @Override
+    public String getResourceGroupName(){
+        if (!Azure.az(AzureAccount.class).isLoggedIn() || this.getSubscriptionId().equals("[LinkedCluster]")) {
+            return "[LinkedCluster]";
+        } else {
+            return super.getResourceGroupName();
+        }
+    }
+
+    @NotNull
+    @Override
+    public Subscription getSubscription() {
+        if (!Azure.az(AzureAccount.class).isLoggedIn() || this.getSubscriptionId().equals("[LinkedCluster]")) {
+            return new Subscription("[LinkedCluster]");
+        } else {
+            return super.getSubscription();
+        }
     }
 
     public IClusterDetail getClusterDetail() {

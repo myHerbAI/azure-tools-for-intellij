@@ -7,7 +7,7 @@ package com.microsoft.intellij.ui.azureroles;
 
 import com.intellij.openapi.ui.ValidationInfo;
 import com.microsoft.azuretools.azurecommons.util.CerPfxUtil;
-import com.microsoft.intellij.ui.components.AzureDialogWrapper;
+import com.microsoft.azure.toolkit.intellij.common.component.AzureDialogWrapper;
 import com.microsoft.intellij.util.PluginUtil;
 import org.jetbrains.annotations.Nullable;
 

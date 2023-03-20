@@ -51,7 +51,7 @@ public class PostgreSqlNodeProvider implements IExplorerNodeProvider {
             final PostgreSqlServer server = (PostgreSqlServer) data;
             return new Node<>(server)
                 .view(new AzureResourceLabelView<>(server))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .doubleClickAction(ResourceCommonActionsContributor.SHOW_PROPERTIES)
                 .actions(PostgreSqlActionsContributor.SERVER_ACTIONS);
         }

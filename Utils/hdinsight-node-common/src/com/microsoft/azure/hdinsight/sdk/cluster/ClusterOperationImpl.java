@@ -77,8 +77,8 @@ public class ClusterOperationImpl implements IClusterOperation {
                          return AzureAADHelper.executeRequest(managementURI,
                                  String.format("%s/configurations?api-version=%s", clusterId.replaceAll("/+$", ""), VERSION),
                                  RestServiceManager.ContentType.Json,
-                                 "GET",
-                                 null,
+                                 "POST",
+                                 String.format("%s/configurations?api-version=%s", clusterId.replaceAll("/+$", ""), VERSION),
                                  accessToken,
                                  new RestServiceManagerBaseImpl());
                     }

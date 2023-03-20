@@ -60,7 +60,7 @@ public class SpringCloudNodeProvider implements IExplorerNodeProvider {
             final SpringCloudCluster cluster = (SpringCloudCluster) data;
             return new Node<>(cluster)
                 .view(new AzureResourceLabelView<>(cluster))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .actions(SpringCloudActionsContributor.CLUSTER_ACTIONS)
                 .addChildren(c -> c.apps().list(), (app, clusterNode) -> this.createNode(app, clusterNode, manager))
                 .hasMoreChildren(c -> c.apps().hasMoreResources())
@@ -69,7 +69,8 @@ public class SpringCloudNodeProvider implements IExplorerNodeProvider {
             final SpringCloudApp app = (SpringCloudApp) data;
             return new Node<>(app)
                 .view(new AzureResourceLabelView<>(app))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.DEPLOY)
                 .doubleClickAction(ResourceCommonActionsContributor.SHOW_PROPERTIES)
                 .actions(SpringCloudActionsContributor.APP_ACTIONS)
                 .addChildren(c -> Optional.ofNullable(c.getActiveDeployment()).map(SpringCloudDeployment::getInstances).orElse(Collections.emptyList()),

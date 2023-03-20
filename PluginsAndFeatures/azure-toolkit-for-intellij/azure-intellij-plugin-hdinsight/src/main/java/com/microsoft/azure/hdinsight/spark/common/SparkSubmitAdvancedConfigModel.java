@@ -11,10 +11,13 @@ import com.intellij.util.xmlb.annotations.Attribute;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.Transient;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.MessageDigest;
 
 @Tag("ssh_cert")
 public class SparkSubmitAdvancedConfigModel extends SparkBatchRemoteDebugJobSshAuth {
@@ -22,6 +25,10 @@ public class SparkSubmitAdvancedConfigModel extends SparkBatchRemoteDebugJobSshA
     @Transient
     @Nullable
     private String clusterName;
+
+    // This variable has no real meaning and is intended to resolve the problem of
+    //  the apply button not being enabled when a user changes a password
+    public String draft = StringUtils.EMPTY;
 
     @Attribute("remote_debug_enabled")
     public boolean enableRemoteDebug = false;
@@ -86,6 +93,19 @@ public class SparkSubmitAdvancedConfigModel extends SparkBatchRemoteDebugJobSshA
     @Transient
     public void setSshPassword(@Nullable String password) {
         super.setSshPassword(password);
+        this.draft = encode(password);
+    }
+
+    @Transient
+    public String encode(String str) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            md.update(str.getBytes("utf-8"));
+            byte[] digest = md.digest();
+            return String.valueOf(Hex.encodeHex(digest));
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Transient

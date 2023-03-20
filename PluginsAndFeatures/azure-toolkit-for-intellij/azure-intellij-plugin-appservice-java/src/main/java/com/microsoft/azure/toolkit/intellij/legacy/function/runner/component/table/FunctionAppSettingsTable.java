@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.component.table;
 
+import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,6 +23,9 @@ public class FunctionAppSettingsTable extends AppSettingsTable {
     @Getter
     @Setter
     private String localSettingPath;
+    @Getter
+    @Setter
+    private Project project;
 
     public FunctionAppSettingsTable(String localSettingPath) {
         super();

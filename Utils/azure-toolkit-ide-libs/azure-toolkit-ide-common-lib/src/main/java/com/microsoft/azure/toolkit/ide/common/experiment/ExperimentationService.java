@@ -9,19 +9,27 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 
 public class ExperimentationService {
     private static final String ASSIGNMENT_CONTEXT = "AssignmentContext";
     private final String NAME_SPACE = "IntelliJ";
-    private final OkHttpClient client = new OkHttpClient();
-    private Request request;
+    private CloseableHttpClient client;
+    private HttpRequestBase request;
     private String endPoint;
     private final Map<String, String> featuresCache = new HashMap<>();
     private final Map<String, String> expParameters = new HashMap<>();
@@ -47,19 +55,19 @@ public class ExperimentationService {
     public ExperimentationService create() {
         final StringBuilder builder = new StringBuilder();
         expParameters.forEach((key, value) -> builder.append(String.format("%s=%s,", key, value)));
-        this.request = new Request.Builder()
-                .url(endPoint)
-                .addHeader("x-exp-sdk-version", "Microsoft.VariantAssignment.Client/1.0.0")
-                .addHeader("x-exp-parameters", builder.toString())
-                .build();
+        this.client = HttpClients.custom().setSSLContext(Azure.az().config().getSslContext()).build();
+        this.request = new HttpGet(endPoint);
+        this.request.addHeader("x-exp-sdk-version", "Microsoft.VariantAssignment.Client/1.0.0");
+        this.request.addHeader("x-exp-parameters", builder.toString());
         updateFeatures();
         return this;
     }
 
     private void updateFeatures() {
-        try (final Response response = client.newCall(request).execute()) {
-            if (response.isSuccessful() && Objects.nonNull(response.body())) {
-                final AssignmentResponse assignmentResponse = JSON_MAPPER.readValue(response.body().byteStream(), AssignmentResponse.class);
+        try (final CloseableHttpResponse response = client.execute(request)) {
+            final HttpEntity entity = response.getEntity();
+            if (Objects.nonNull(entity)) {
+                final AssignmentResponse assignmentResponse = JSON_MAPPER.readValue(entity.getContent(), AssignmentResponse.class);
                 final List<AssignmentResponse.Config> configList = assignmentResponse.getConfigs();
                 configList.forEach(config -> {
                     if (Objects.equals(config.getId(), NAME_SPACE)) {
@@ -68,6 +76,7 @@ public class ExperimentationService {
                 });
                 featuresCache.put(ASSIGNMENT_CONTEXT, assignmentResponse.getAssignmentContext());
             }
+            client.close();
         } catch (final Exception e) {
             throw new AzureToolkitRuntimeException(e);
         }

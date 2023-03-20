@@ -24,8 +24,8 @@ import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.intellij.AzureConfigurable;
-import com.microsoft.intellij.actions.AzureSignInAction;
-import com.microsoft.intellij.actions.SelectSubscriptionsAction;
+import com.microsoft.azure.toolkit.intellij.common.auth.AzureSignInAction;
+import com.microsoft.azure.toolkit.intellij.common.subscription.SelectSubscriptionsAction;
 import com.microsoft.intellij.ui.ServerExplorerToolWindowFactory;
 import org.apache.commons.lang3.ArrayUtils;
 

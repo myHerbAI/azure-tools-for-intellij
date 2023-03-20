@@ -108,6 +108,7 @@ public class AzureContainerAppsEnvironmentComboBox extends AzureComboBox<Contain
             stream = stream.filter(s -> s.getSubscriptionId().equalsIgnoreCase(this.subscription.getId()));
         }
         final List<ContainerAppsEnvironment> remoteEnvironments = stream.flatMap(s -> s.environments().list().stream())
+                .filter(env -> env.getFormalStatus().isConnected())
                 .filter(env -> Objects.equals(env.getRegion(), this.region))
                 .sorted(Comparator.comparing(ContainerAppsEnvironment::getName)).toList();
         final List<ContainerAppsEnvironment> environments = new ArrayList<>(remoteEnvironments);

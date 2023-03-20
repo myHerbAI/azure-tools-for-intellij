@@ -20,6 +20,7 @@ import com.microsoft.azure.hdinsight.common.HDInsightHelperImpl;
 import com.microsoft.azure.hdinsight.common.HDInsightLoader;
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
 import com.microsoft.azure.toolkit.ide.common.store.DefaultMachineStore;
+import com.microsoft.azure.toolkit.intellij.common.CommonConst;
 import com.microsoft.azure.toolkit.intellij.common.action.IntellijAzureActionManager;
 import com.microsoft.azure.toolkit.intellij.common.messager.IntellijAzureMessager;
 import com.microsoft.azure.toolkit.intellij.common.settings.IntellijStore;
@@ -43,7 +44,7 @@ import com.microsoft.intellij.helpers.IDEHelperImpl;
 import com.microsoft.intellij.helpers.MvpUIHelperImpl;
 import com.microsoft.intellij.helpers.UIHelperImpl;
 import com.microsoft.intellij.secure.IdeaTrustStrategy;
-import com.microsoft.intellij.secure.IntelliJSecureStore;
+import com.microsoft.azure.toolkit.intellij.common.auth.IntelliJSecureStore;
 import com.microsoft.intellij.serviceexplorer.NodeActionsMap;
 import com.microsoft.intellij.util.NetworkDiagnose;
 import com.microsoft.intellij.util.PluginHelper;
@@ -65,18 +66,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.UnknownHostException;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.SimpleFormatter;
 
 import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.OPERATION_NAME;
 import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.SERVICE_NAME;
-import static com.microsoft.azuretools.Constants.FILE_NAME_CORE_LIB_LOG;
 import static com.microsoft.azuretools.telemetry.TelemetryConstants.PROXY;
 import static com.microsoft.azuretools.telemetry.TelemetryConstants.SYSTEM;
 
@@ -181,26 +178,8 @@ public class AzureActionsListener implements AppLifecycleListener, PluginCompone
             final String baseFolder = FileUtil.getDirectoryWithinUserHome(AZURE_TOOLS_FOLDER).toString();
             final String deprecatedFolder = FileUtil.getDirectoryWithinUserHome(AZURE_TOOLS_FOLDER_DEPRECATED).toString();
             CommonSettings.setUpEnvironment(baseFolder, deprecatedFolder);
-            initLoggerFileHandler();
         } catch (IOException ex) {
             LOG.error("initAuthManage()", ex);
-        }
-    }
-
-    private void initLoggerFileHandler() {
-        try {
-            String loggerFilePath = Paths.get(CommonSettings.getSettingsBaseDir(), FILE_NAME_CORE_LIB_LOG).toString();
-            System.out.println("Logger path:" + loggerFilePath);
-            logFileHandler = new FileHandler(loggerFilePath, false);
-            java.util.logging.Logger l = java.util.logging.Logger.getLogger("");
-            logFileHandler.setFormatter(new SimpleFormatter());
-            l.addHandler(logFileHandler);
-            // TODO: use environment variable to set level
-            l.setLevel(Level.INFO);
-            l.info("=== Log session started ===");
-        } catch (IOException e) {
-            e.printStackTrace();
-            LOG.error("initLoggerFileHandler()", e);
         }
     }
 

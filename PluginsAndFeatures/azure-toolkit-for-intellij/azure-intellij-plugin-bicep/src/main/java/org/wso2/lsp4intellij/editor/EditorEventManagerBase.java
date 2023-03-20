@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Modifications copyright (c) Microsoft Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +20,14 @@ import com.intellij.openapi.editor.Editor;
 import org.wso2.lsp4intellij.utils.FileUtils;
 import org.wso2.lsp4intellij.utils.OSUtils;
 
+import javax.annotation.Nullable;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,7 +42,7 @@ public class EditorEventManagerBase {
 
     static {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher((KeyEvent e) -> {
-            int eventId = e.getID();
+            final int eventId = e.getID();
             if (eventId == KeyEvent.KEY_PRESSED) {
                 setIsKeyPressed(true);
                 if (e.getKeyCode() == CTRL_KEY_CODE) {
@@ -83,18 +87,19 @@ public class EditorEventManagerBase {
     }
 
     public static Set<EditorEventManager> managersForUri(String uri) {
-        return uriToManagers.get(uri);
+        return Optional.ofNullable(uri).map(uriToManagers::get).orElse(null);
     }
 
     /**
      * WARNING: avoid using this function! It only gives you one editorEventManager, not all and not the one of the current editor.
      * Only use for operations which are file-level (save, open, close,...) otherwise use {@link #managersForUri(String)} or {@link #forEditor(Editor)}
      */
+    @Nullable
     public static EditorEventManager forUri(String uri) {
         if (uri == null) {
             return null;
         }
-        Set<EditorEventManager> managers = managersForUri(uri);
+        final Set<EditorEventManager> managers = managersForUri(uri);
         if (managers != null && !managers.isEmpty()) {
             return (EditorEventManager) managers.toArray()[0];
         }
@@ -121,22 +126,32 @@ public class EditorEventManagerBase {
     }
 
     public static void registerManager(EditorEventManager manager) {
-        String uri = FileUtils.editorToURIString(manager.editor);
+        final String uri = FileUtils.editorToURIString(manager.editor);
+        if (uri == null) {
+            return;
+        }
         if (EditorEventManagerBase.uriToManagers.containsKey(uri)) {
             EditorEventManagerBase.uriToManagers.get(uri).add(manager);
         } else {
-            HashSet<EditorEventManager> set = new HashSet<>();
+            final HashSet<EditorEventManager> set = new HashSet<>();
             set.add(manager);
             EditorEventManagerBase.uriToManagers.put(uri, set);
         }
-        EditorEventManagerBase.editorToManager.put(manager.editor, manager);
+        if(Objects.nonNull(manager.editor)) {
+            EditorEventManagerBase.editorToManager.put(manager.editor, manager);
+        }
     }
 
     public static void unregisterManager(EditorEventManager manager) {
-        EditorEventManagerBase.editorToManager.remove(manager.editor);
+        if(Objects.nonNull(manager.editor)) {
+            EditorEventManagerBase.editorToManager.remove(manager.editor);
+        }
 
-        String uri = FileUtils.editorToURIString(manager.editor);
-        Set<EditorEventManager> set = EditorEventManagerBase.uriToManagers.get(uri);
+        final String uri = FileUtils.editorToURIString(manager.editor);
+        if (uri == null) {
+            return;
+        }
+        final Set<EditorEventManager> set = EditorEventManagerBase.uriToManagers.get(uri);
         set.remove(manager);
         if (set.isEmpty()) {
             EditorEventManagerBase.uriToManagers.remove(uri);
@@ -149,7 +164,7 @@ public class EditorEventManagerBase {
      */
     public static EditorEventManager forEditor(Editor editor) {
         prune();
-        return editorToManager.get(editor);
+        return Optional.ofNullable(editor).map(editorToManager::get).orElse(null);
     }
 
     /**

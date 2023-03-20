@@ -33,8 +33,8 @@ import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import com.microsoft.azure.toolkit.lib.resource.ResourceDeploymentDraft;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupDraft;
-import com.microsoft.intellij.ui.components.AzureDialogWrapper;
-import com.microsoft.intellij.ui.util.UIUtils;
+import com.microsoft.azure.toolkit.intellij.common.component.AzureDialogWrapper;
+import com.microsoft.azure.toolkit.intellij.common.component.UIUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 

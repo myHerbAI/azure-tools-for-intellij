@@ -34,6 +34,7 @@ import com.microsoft.applicationinsights.preference.ApplicationInsightsResourceR
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
 import com.microsoft.azure.toolkit.intellij.azuresdk.dependencesurvey.activity.WorkspaceTaggingActivity;
 import com.microsoft.azure.toolkit.intellij.azuresdk.enforcer.AzureSdkEnforcer;
+import com.microsoft.azure.toolkit.intellij.common.CommonConst;
 import com.microsoft.azure.toolkit.intellij.common.action.WhatsNewAction;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azuretools.azurecommons.deploy.DeploymentEventArgs;
@@ -80,7 +81,7 @@ import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 
 public class AzurePlugin implements StartupActivity.DumbAware {
     private static final Logger LOG = Logger.getInstance("#com.microsoft.intellij.AzurePlugin");
-    public static final String PLUGIN_VERSION = CommonConst.PLUGIN_VERSION;
+    public static final String PLUGIN_VERSION = com.microsoft.azure.toolkit.intellij.common.CommonConst.PLUGIN_VERSION;
     public static final String AZURE_LIBRARIES_VERSION = "1.0.0";
     public static final String JDBC_LIBRARIES_VERSION = "9.4.0.jre8";
     public static final int REST_SERVICE_MAX_RETRY_COUNT = 7;
@@ -124,7 +125,7 @@ public class AzurePlugin implements StartupActivity.DumbAware {
                         @Override
                         public void uninstall(@NotNull IdeaPluginDescriptor ideaPluginDescriptor) {
                             String pluginId = ideaPluginDescriptor.getPluginId().toString();
-                            if (pluginId.equalsIgnoreCase(CommonConst.PLUGIN_ID)) {
+                            if (pluginId.equalsIgnoreCase(com.microsoft.azure.toolkit.intellij.common.CommonConst.PLUGIN_ID)) {
                                 EventUtil.logEvent(EventType.info, SYSTEM, PLUGIN_UNINSTALL, null, null);
                             }
                         }

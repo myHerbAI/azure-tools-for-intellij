@@ -13,6 +13,7 @@ import com.microsoft.azuretools.azurecommons.helpers.Nullable;
 import com.microsoft.azuretools.telemetrywrapper.TelemetryManager;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -138,16 +139,18 @@ public class AppInsightsClient {
 
     private static void initTelemetryManager() {
         try {
-            final Map<String, String> properties = buildProperties("", new HashMap<>());
-            TelemetryClientSingleton.setConfiguration(configuration);
             final AzureTelemetryClient client = TelemetryClientSingleton.getTelemetry();
+            final Map<String, String> clientDefaultProperties = Optional.ofNullable(client)
+                    .map(AzureTelemetryClient::getDefaultProperties).orElse(Collections.emptyMap());
+            final Map<String, String> toolkitDefaultProperties = buildProperties("", clientDefaultProperties);
+            TelemetryClientSingleton.setConfiguration(configuration);
             final String eventNamePrefix = configuration.eventName();
             TelemetryManager.getInstance().setTelemetryClient(client);
-            TelemetryManager.getInstance().setCommonProperties(properties);
+            TelemetryManager.getInstance().setCommonProperties(toolkitDefaultProperties);
             TelemetryManager.getInstance().setEventNamePrefix(eventNamePrefix);
             TelemetryManager.getInstance().sendCachedTelemetries();
             AzureTelemeter.setClient(client);
-            AzureTelemeter.setCommonProperties(properties);
+            AzureTelemeter.setCommonProperties(toolkitDefaultProperties);
             AzureTelemeter.setEventNamePrefix(eventNamePrefix);
         } catch (Exception ignore) {
         }

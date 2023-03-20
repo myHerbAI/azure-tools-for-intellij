@@ -23,7 +23,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.docker.AzureDockerSupportConf
 import com.microsoft.azure.toolkit.intellij.legacy.docker.utils.Constant;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.intellij.AzureAnAction;
+import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
 import org.jetbrains.annotations.NotNull;

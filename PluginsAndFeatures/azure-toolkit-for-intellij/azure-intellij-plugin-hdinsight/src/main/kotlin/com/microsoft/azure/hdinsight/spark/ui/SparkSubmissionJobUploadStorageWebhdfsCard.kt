@@ -33,7 +33,7 @@ import com.microsoft.azure.hdinsight.spark.ui.SparkSubmissionJobUploadStorageBas
 import com.microsoft.azure.sqlbigdata.sdk.cluster.SqlBigDataLivyLinkClusterDetail
 import com.microsoft.intellij.ui.HintTextField
 import com.microsoft.intellij.forms.dsl.panel
-import com.microsoft.intellij.ui.util.UIUtils
+import com.microsoft.azure.toolkit.intellij.common.component.UIUtils
 import java.awt.CardLayout
 import java.awt.Dimension
 import java.awt.event.FocusAdapter

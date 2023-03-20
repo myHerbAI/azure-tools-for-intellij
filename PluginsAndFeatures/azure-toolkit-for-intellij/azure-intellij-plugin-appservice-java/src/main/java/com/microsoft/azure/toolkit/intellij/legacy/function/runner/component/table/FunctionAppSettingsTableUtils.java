@@ -100,7 +100,7 @@ public class FunctionAppSettingsTableUtils {
     }
 
     public static void importAppSettings(@Nonnull final FunctionAppSettingsTable appSettingsTable) {
-        final ImportAppSettingsDialog importAppSettingsDialog = new ImportAppSettingsDialog(appSettingsTable.getLocalSettingsPath());
+        final ImportAppSettingsDialog importAppSettingsDialog = new ImportAppSettingsDialog(appSettingsTable.getProject());
         importAppSettingsDialog.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent windowEvent) {

@@ -51,7 +51,7 @@ import com.microsoft.azure.hdinsight.spark.ui.filesystem.AzureStorageVirtualFile
 import com.microsoft.intellij.forms.dsl.panel
 import com.microsoft.intellij.rxjava.DisposableObservers
 import com.microsoft.intellij.rxjava.IdeaSchedulers
-import com.microsoft.intellij.ui.util.UIUtils.assertInDispatchThread
+import com.microsoft.azure.toolkit.intellij.common.component.UIUtils.assertInDispatchThread
 import com.microsoft.intellij.ui.util.iterator
 import org.apache.commons.lang3.StringUtils
 import rx.Observable

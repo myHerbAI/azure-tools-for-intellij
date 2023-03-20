@@ -12,8 +12,8 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.table.JBTable;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.intellij.ui.components.AzureDialogWrapper;
-import com.microsoft.intellij.util.JTableUtils;
+import com.microsoft.azure.toolkit.intellij.common.component.AzureDialogWrapper;
+import com.microsoft.azure.toolkit.intellij.common.component.JTableUtils;
 import com.microsoft.tooling.msservices.components.DefaultLoader;
 import org.jetbrains.annotations.Nullable;
 

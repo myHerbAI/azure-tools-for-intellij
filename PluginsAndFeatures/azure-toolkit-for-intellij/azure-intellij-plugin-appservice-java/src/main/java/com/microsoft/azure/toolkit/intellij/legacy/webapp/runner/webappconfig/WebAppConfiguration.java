@@ -31,13 +31,13 @@ import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -56,8 +56,7 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
     public static final String JAVA_VERSION = "javaVersion";
     private final IntelliJWebAppSettingModel webAppSettingModel;
     @Getter
-    @Setter
-    private Connection<?, ?> connection;
+    private final Set<Connection<?, ?>> connections = new HashSet<>();
 
     public WebAppConfiguration(@NotNull Project project, @NotNull ConfigurationFactory factory, String name) {
         super(project, factory, name);
@@ -84,6 +83,11 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
     @Override
     public Map<String, String> getApplicationSettings() {
         return webAppSettingModel.getAppSettings();
+    }
+
+    @Override
+    public void addConnection(@Nonnull Connection<?, ?> connection) {
+        connections.add(connection);
     }
 
     public String getAppSettingsKey() {

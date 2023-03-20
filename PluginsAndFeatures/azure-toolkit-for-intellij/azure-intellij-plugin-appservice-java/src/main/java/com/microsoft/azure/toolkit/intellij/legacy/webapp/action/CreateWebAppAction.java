@@ -24,7 +24,7 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.legacy.webapp.WebAppService;
 import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel;
-import com.microsoft.intellij.RunProcessHandler;
+import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import rx.Single;
 
 import javax.annotation.Nullable;

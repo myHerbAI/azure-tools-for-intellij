@@ -116,13 +116,13 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
             tm.runLater(() -> new SSHIntoWebAppAction((WebApp) c, e.getProject()).execute());
         am.registerHandler(AppServiceActionsContributor.SSH_INTO_WEBAPP, isAppService, sshHandler);
 
-        final BiConsumer<AzResource, AnActionEvent> deployWebAppHandler = (c, e) -> tm.runLater(() -> new DeployWebAppAction((WebApp) c, e.getProject()).execute());
+        final BiConsumer<AzResource, AnActionEvent> deployWebAppHandler = (c, e) -> DeployWebAppAction.deploy((WebApp) c, Objects.requireNonNull(e.getProject()));
         am.registerHandler(ResourceCommonActionsContributor.DEPLOY, (r, e) -> r instanceof WebApp, deployWebAppHandler);
 
         final BiConsumer<Object, AnActionEvent> createWebAppHandler = (c, e) -> CreateWebAppAction.openDialog(e.getProject(), null);
         am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof AzureWebApp, createWebAppHandler);
 
-        final BiConsumer<AzResource, AnActionEvent> deployFunctionAppHandler = (c, e) -> tm.runLater(() -> new DeployFunctionAppAction((FunctionApp) c, e.getProject()).execute());
+        final BiConsumer<AzResource, AnActionEvent> deployFunctionAppHandler = (c, e) -> DeployFunctionAppAction.deploy((FunctionApp) c, Objects.requireNonNull(e.getProject()));
         am.registerHandler(ResourceCommonActionsContributor.DEPLOY, (r, e) -> r instanceof FunctionApp, deployFunctionAppHandler);
 
         final BiConsumer<Object, AnActionEvent> createFunctionHandler = (c, e) -> CreateFunctionAppAction.openDialog(e.getProject(), null);

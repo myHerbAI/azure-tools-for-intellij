@@ -53,7 +53,7 @@ public class ResourceGroupNodeProvider implements IExplorerNodeProvider {
             return new Node<>(rg)
                 .view(new AzureResourceLabelView<>(rg, ResourceGroupNodeProvider::getResourceDescription, DEFAULT_AZURE_RESOURCE_ICON_PROVIDER))
                 .actions(ResourceGroupActionsContributor.RESOURCE_GROUP_ACTIONS)
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .addChild(ResourceGroup::deployments, (module, p) -> new Node<>(module)
                     .view(new AzureModuleLabelView<>(module, "Deployments", AzureIcons.Resources.DEPLOYMENT_MODULE.getIconPath()))
                     .actions(DeploymentActionsContributor.DEPLOYMENTS_ACTIONS)

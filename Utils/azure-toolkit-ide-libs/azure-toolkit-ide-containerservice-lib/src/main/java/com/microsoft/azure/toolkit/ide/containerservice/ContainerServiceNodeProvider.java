@@ -50,7 +50,7 @@ public class ContainerServiceNodeProvider implements IExplorerNodeProvider {
             final KubernetesCluster server = (KubernetesCluster) data;
             return new Node<>(server)
                     .view(new AzureResourceLabelView<>(server))
-                    .inlineAction(ResourceCommonActionsContributor.PIN)
+                    .addInlineAction(ResourceCommonActionsContributor.PIN)
                     .doubleClickAction(ResourceCommonActionsContributor.SHOW_PROPERTIES)
                     .actions(ContainerServiceActionsContributor.CLUSTER_ACTIONS);
 //                    .addChildren(cluster -> cluster.agentPools().list(), (agentPool, clusterNode) -> this.createNode(agentPool, clusterNode, manager));
@@ -59,7 +59,7 @@ public class ContainerServiceNodeProvider implements IExplorerNodeProvider {
 //            final KubernetesClusterAgentPool server = (KubernetesClusterAgentPool) data;
 //            return new Node<>(server)
 //                    .view(new AzureResourceLabelView<>(server))
-//                    .inlineAction(ResourceCommonActionsContributor.PIN)
+//                    .addInlineAction(ResourceCommonActionsContributor.PIN)
 //                    .doubleClickAction(ResourceCommonActionsContributor.SHOW_PROPERTIES)
 //                    .actions(ContainerServiceActionsContributor.AGENT_POOL_ACTIONS);
 //        }

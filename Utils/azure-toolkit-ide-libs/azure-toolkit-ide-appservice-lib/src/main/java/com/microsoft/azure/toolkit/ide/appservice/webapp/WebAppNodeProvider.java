@@ -67,7 +67,8 @@ public class WebAppNodeProvider implements IExplorerNodeProvider {
             final WebApp webApp = (WebApp) data;
             return new Node<>(webApp)
                 .view(new AzureResourceLabelView<>(webApp, WebApp::getStatus, WEBAPP_ICON_PROVIDER))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.DEPLOY)
                 .actions(WebAppActionsContributor.WEBAPP_ACTIONS)
                 .addChild(WebApp::getDeploymentModule, (module, webAppNode) -> createNode(module, webAppNode, manager))
                 .addChild(AppServiceFileNode::getRootFileNodeForAppService, (d, p) -> this.createNode(d, p, manager)) // Files

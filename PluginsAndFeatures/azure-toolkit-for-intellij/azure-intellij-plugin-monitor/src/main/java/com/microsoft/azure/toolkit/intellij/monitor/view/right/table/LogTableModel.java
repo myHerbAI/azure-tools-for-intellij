@@ -10,6 +10,7 @@ import com.azure.monitor.query.models.LogsTableCell;
 import com.azure.monitor.query.models.LogsTableRow;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nls;
 
 import javax.annotation.Nullable;
@@ -20,6 +21,8 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 
@@ -54,7 +57,11 @@ public class LogTableModel implements TableModel {
     @Nls
     @Override
     public String getColumnName(int columnIndex) {
-        return this.columnNames.get(columnIndex);
+        final String columnName = this.columnNames.get(columnIndex);
+        if (Objects.equals(this.columnClasses.get(columnIndex), LogsColumnType.DATETIME)) {
+            return String.format("%s(UTC)", columnName);
+        }
+        return columnName;
     }
 
     @Override
@@ -95,8 +102,8 @@ public class LogTableModel implements TableModel {
         }
         if (LogsColumnType.DATETIME.equals(type)) {
             final OffsetDateTime dateTime = this.logsTableRows.get(rowIndex).getRow().get(columnIndex).getValueAsDateTime();
-            final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.nnn");
-            return dateTime.format(dateTimeFormatter);
+            final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.n a");
+            return Optional.ofNullable(dateTime).map(d -> dateTime.format(dateTimeFormatter)).orElse(StringUtils.EMPTY);
         }
         return this.logsTableRows.get(rowIndex).getRow().get(columnIndex).getValueAsString();
     }

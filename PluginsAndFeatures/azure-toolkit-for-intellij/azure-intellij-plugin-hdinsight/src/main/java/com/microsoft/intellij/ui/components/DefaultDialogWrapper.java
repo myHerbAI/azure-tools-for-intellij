@@ -9,6 +9,7 @@ package com.microsoft.intellij.ui.components;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TitlePanel;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.microsoft.azure.toolkit.intellij.common.component.AzureDialogWrapper;
 import com.microsoft.intellij.ui.AzureAbstractPanel;
 import org.jetbrains.annotations.Nullable;
 

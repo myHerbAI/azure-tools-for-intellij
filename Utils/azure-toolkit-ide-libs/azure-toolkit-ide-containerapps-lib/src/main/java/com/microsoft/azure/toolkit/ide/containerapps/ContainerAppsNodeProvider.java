@@ -63,14 +63,14 @@ public class ContainerAppsNodeProvider implements IExplorerNodeProvider {
             final ContainerAppsEnvironment environment = (ContainerAppsEnvironment) data;
             return new Node<>(environment)
                 .view(new ContainerAppsEnvironmentLabelView(environment))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .addChildren(ContainerAppsEnvironment::listContainerApps, (app, envNode) -> this.createNode(app, envNode, manager))
                 .actions(ContainerAppsActionsContributor.ENVIRONMENT_ACTIONS);
         } else if (data instanceof ContainerApp) {
             final ContainerApp app = (ContainerApp) data;
             return new Node<>(app)
                 .view(new AzureResourceLabelView<>(app))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .addChildren(containerApp -> containerApp.revisions().list(), (revision, appNode) -> this.createNode(revision, appNode, manager))
                 .hasMoreChildren(a -> a.revisions().hasMoreResources())
                 .loadMoreChildren(a -> a.revisions().loadMoreResources())
@@ -79,7 +79,7 @@ public class ContainerAppsNodeProvider implements IExplorerNodeProvider {
             final Revision revision = (Revision) data;
             return new Node<>(revision)
                 .view(new AzureResourceLabelView<>(revision, this::getRevisionDescription, DEFAULT_AZURE_RESOURCE_ICON_PROVIDER))
-                .inlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .actions(ContainerAppsActionsContributor.REVISION_ACTIONS);
         }
         return null;

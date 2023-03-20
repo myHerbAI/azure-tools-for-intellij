@@ -28,6 +28,7 @@ import com.microsoft.tooling.msservices.serviceexplorer.azure.vmarm.VMArmModule;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class AzureModule extends AzureRefreshableNode {
@@ -39,22 +40,20 @@ public class AzureModule extends AzureRefreshableNode {
 
     @Nullable
     private final Object project;
-    @NotNull
-    private final VMArmModule vmArmServiceModule;
-    @NotNull
-    private final RedisCacheModule redisCacheModule;
-    @NotNull
-    private final StorageModule storageModule;
+    @Nullable
+    private VMArmModule vmArmServiceModule;
+    @Nullable
+    private RedisCacheModule redisCacheModule;
+    @Nullable
+    private StorageModule storageModule;
+    @Nullable
+    private ContainerRegistryModule containerRegistryModule;
     @Nullable
     private HDInsightRootModule hdInsightModule;
     @Nullable
     private HDInsightRootModule sparkServerlessClusterRootModule;
     @Nullable
     private HDInsightRootModule arcadiaModule;
-    @NotNull
-    private final ContainerRegistryModule containerRegistryModule;
-
-    private final AzureEventBus.EventListener accountListener;
 
     /**
      * Constructor.
@@ -64,13 +63,15 @@ public class AzureModule extends AzureRefreshableNode {
     public AzureModule(@Nullable Object project) {
         super(AZURE_SERVICE_MODULE_ID, composeName(), null, null);
         this.project = project;
-        storageModule = new StorageModule(this);
-        //hdInsightModule = new HDInsightRootModule(this);
-        vmArmServiceModule = new VMArmModule(this);
-        redisCacheModule = new RedisCacheModule(this);
-        containerRegistryModule = new ContainerRegistryModule(this);
+        if (Objects.isNull(project)) { // in Eclipse
+            this.storageModule = new StorageModule(this);
+            //this.hdInsightModule = new HDInsightRootModule(this);
+            this.vmArmServiceModule = new VMArmModule(this);
+            this.redisCacheModule = new RedisCacheModule(this);
+            this.containerRegistryModule = new ContainerRegistryModule(this);
+        }
 
-        this.accountListener = new AzureEventBus.EventListener(e -> handleSubscriptionChange());
+        final AzureEventBus.EventListener accountListener = new AzureEventBus.EventListener(e -> handleSubscriptionChange());
         AzureEventBus.on("account.logged_in.account", accountListener);
         AzureEventBus.on("account.subscription_changed.account", accountListener);
         AzureEventBus.on("account.logged_out.account", accountListener);
@@ -89,10 +90,10 @@ public class AzureModule extends AzureRefreshableNode {
             } else {
                 return BASE_MODULE_NAME + " (Not Signed In)";
             }
-        } catch (AzureRuntimeException e) {
+        } catch (final AzureRuntimeException e) {
             DefaultLoader.getUIHelper().showInfoNotification(
                     ERROR_GETTING_SUBSCRIPTIONS_TITLE, ErrorEnum.getDisplayMessageByCode(e.getCode()));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             final String msg = String.format(ERROR_GETTING_SUBSCRIPTIONS_MESSAGE, e.getMessage());
             DefaultLoader.getUIHelper().showException(msg, e, ERROR_GETTING_SUBSCRIPTIONS_TITLE, false, true);
         }
@@ -122,17 +123,20 @@ public class AzureModule extends AzureRefreshableNode {
         // already been added first because this method can be called
         // multiple times when the user clicks the "Refresh" context
         // menu item
-        if (!isDirectChild(vmArmServiceModule)) {
+        if (vmArmServiceModule != null && !isDirectChild(vmArmServiceModule)) {
             addChildNode(vmArmServiceModule);
         }
-        if (!isDirectChild(redisCacheModule)) {
+        if (redisCacheModule != null && !isDirectChild(redisCacheModule)) {
             addChildNode(redisCacheModule);
         }
-        if (!isDirectChild(storageModule)) {
+        if (storageModule != null && !isDirectChild(storageModule)) {
             addChildNode(storageModule);
         }
         if (hdInsightModule != null && !isDirectChild(hdInsightModule)) {
             addChildNode(hdInsightModule);
+        }
+        if (containerRegistryModule != null && !isDirectChild(containerRegistryModule)) {
+            addChildNode(containerRegistryModule);
         }
 
         if (sparkServerlessClusterRootModule != null &&
@@ -144,10 +148,6 @@ public class AzureModule extends AzureRefreshableNode {
         if (arcadiaModule != null && arcadiaModule.isFeatureEnabled() && !isDirectChild(arcadiaModule)) {
             addChildNode(arcadiaModule);
         }
-
-        if (!isDirectChild(containerRegistryModule)) {
-            addChildNode(containerRegistryModule);
-        }
     }
 
     @Override
@@ -155,10 +155,18 @@ public class AzureModule extends AzureRefreshableNode {
         try {
             final AzureAccount account = Azure.az(AzureAccount.class);
             if (IdeAzureAccount.getInstance().isLoggedIn() && account.account().getSelectedSubscriptions().size() > 0) {
-                vmArmServiceModule.load(true);
-                redisCacheModule.load(true);
-                storageModule.load(true);
-
+                if (vmArmServiceModule != null) {
+                    vmArmServiceModule.load(true);
+                }
+                if (redisCacheModule != null) {
+                    redisCacheModule.load(true);
+                }
+                if (storageModule != null) {
+                    storageModule.load(true);
+                }
+                if (containerRegistryModule != null) {
+                    containerRegistryModule.load(true);
+                }
                 if (hdInsightModule != null) {
                     hdInsightModule.load(true);
                 }
@@ -170,10 +178,8 @@ public class AzureModule extends AzureRefreshableNode {
                 if (arcadiaModule != null && arcadiaModule.isFeatureEnabled()) {
                     arcadiaModule.load(true);
                 }
-
-                containerRegistryModule.load(true);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new AzureCmdException("Error loading Azure Explorer modules", e);
         }
     }

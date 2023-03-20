@@ -103,7 +103,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .enableWhen(s -> {
                 if (s instanceof AbstractAzResource) {
                     final AbstractAzResource<?, ?, ?> r = (AbstractAzResource<?, ?, ?>) s;
-                    return !r.getFormalStatus().isDeleted() && !r.isDraftForCreating();
+                    return !r.getFormalStatus(true).isDeleted() && !r.isDraftForCreating();
                 }
                 return true;
             })
@@ -147,6 +147,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
         new Action<>(COPY_STRING)
             .withLabel("Copy")
             .withIdParam(u -> u)
+            .withHandler(ResourceCommonActionsContributor::copyString)
             .withAuthRequired(false)
             .register(am);
 
@@ -155,7 +156,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Connector.CONNECT.getIconPath())
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof AzResourceBase)
-            .enableWhen(s -> s.getFormalStatus().isRunning())
+            .enableWhen(s -> s.getFormalStatus(true).isRunning())
             .register(am);
 
         new Action<>(SHOW_PROPERTIES)
@@ -163,7 +164,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.PROPERTIES.getIconPath())
             .withIdParam(AzResourceBase::getName)
             .visibleWhen(s -> s instanceof AzResourceBase)
-            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .enableWhen(s -> s.getFormalStatus(true).isConnected())
             .withShortcut(shortcuts.edit())
             .register(am);
 
@@ -173,7 +174,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withIdParam(AzResource::getName)
             .withShortcut("control alt O")
             .visibleWhen(s -> s instanceof AzResourceBase)
-            .enableWhen(s -> s.getFormalStatus().isWritable())
+            .enableWhen(s -> s.getFormalStatus(true).isRunning())
             .withShortcut(shortcuts.deploy())
             .register(am);
 

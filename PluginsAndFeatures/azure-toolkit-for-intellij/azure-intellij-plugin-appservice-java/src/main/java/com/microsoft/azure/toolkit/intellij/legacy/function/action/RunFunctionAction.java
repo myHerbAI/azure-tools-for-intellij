@@ -18,13 +18,14 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.AzureFunctionSupportConfigurationType;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localrun.FunctionRunConfiguration;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localrun.FunctionRunConfigurationFactory;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
-import com.microsoft.intellij.AzureAnAction;
-import com.microsoft.intellij.actions.RunConfigurationUtils;
+import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction;
+import com.microsoft.azure.toolkit.intellij.common.runconfig.RunConfigurationUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,6 +61,9 @@ public class RunFunctionAction extends AzureAnAction {
         final RunManagerEx manager = RunManagerEx.getInstanceEx(project);
         final ConfigurationFactory factory = new FunctionRunConfigurationFactory(configType);
         final RunnerAndConfigurationSettings settings = RunConfigurationUtils.getOrCreateRunConfigurationSettings(module, manager, factory);
+        if (settings.getConfiguration() instanceof FunctionRunConfiguration) {
+            ((FunctionRunConfiguration) settings.getConfiguration()).saveModule(module);
+        }
         if (RunDialog.editConfiguration(project, settings, message("function.run.configuration.title"), DefaultRunExecutor.getRunExecutorInstance())) {
             final List<BeforeRunTask> tasks = new ArrayList<>(manager.getBeforeRunTasks(settings.getConfiguration()));
             manager.addConfiguration(settings, false, tasks, false);

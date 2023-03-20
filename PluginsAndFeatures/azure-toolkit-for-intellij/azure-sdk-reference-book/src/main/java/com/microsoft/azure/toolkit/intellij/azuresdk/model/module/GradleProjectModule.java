@@ -8,6 +8,7 @@ import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.azuresdk.model.AzureSdkArtifactEntity;
 import com.microsoft.intellij.util.GradleUtils;
 import icons.GradleIcons;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -26,8 +27,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Getter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class GradleProjectModule implements ProjectModule {
     private final Project project;
+    @EqualsAndHashCode.Include
     private final ExternalProject externalProject;
 
     public GradleProjectModule(@Nonnull final Project project, @Nonnull final ExternalProject externalProject) {

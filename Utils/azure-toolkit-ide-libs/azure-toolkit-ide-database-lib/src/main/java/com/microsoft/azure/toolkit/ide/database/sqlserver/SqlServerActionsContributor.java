@@ -31,7 +31,7 @@ public class SqlServerActionsContributor implements IActionsContributor {
     public void registerActions(AzureActionManager am) {
         new Action<>(OPEN_DATABASE_TOOL)
             .visibleWhen(s -> s instanceof MicrosoftSqlServer)
-            .enableWhen(s -> s.getFormalStatus().isRunning())
+            .enableWhen(s -> s.getFormalStatus(true).isRunning())
             .withIcon(AzureIcons.Action.OPEN_DATABASE_TOOL.getIconPath())
             .withLabel("Open with Database Tools")
             .withIdParam(AzResource::getName)
@@ -39,7 +39,7 @@ public class SqlServerActionsContributor implements IActionsContributor {
 
         new Action<>(GROUP_CREATE_SQLSERVER)
             .visibleWhen(s -> s instanceof ResourceGroup)
-            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .enableWhen(s -> s.getFormalStatus(true).isConnected())
             .withLabel("SQL Server")
             .withIdParam(AzResource::getName)
             .register(am);

@@ -190,6 +190,10 @@
                     <groupId>org.apache.ivy</groupId>
                     <artifactId>ivy</artifactId>
                 </exclusion>
+                <exclusion><!--CVE-2014-125087-->
+                    <groupId>com.jamesmurty.utils</groupId>
+                    <artifactId>java-xmlbuilder</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>

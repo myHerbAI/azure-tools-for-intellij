@@ -253,7 +253,7 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
                 .map(e -> new EnvironmentVar().withName(e.getKey()).withValue(e.getValue()))
                 .collect(Collectors.toList());
         Optional.ofNullable(value).ifPresent(config -> config.setEnvironmentVariables(vars));
-        result.setImageConfig(pnlContainer.getValue());
+        result.setImageConfig(value);
         result.setIngressConfig(this.getIngressConfig());
         return result;
     }

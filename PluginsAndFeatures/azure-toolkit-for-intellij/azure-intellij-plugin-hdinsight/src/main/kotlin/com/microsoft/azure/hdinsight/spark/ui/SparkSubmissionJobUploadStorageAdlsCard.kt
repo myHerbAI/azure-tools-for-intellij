@@ -43,7 +43,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.intellij.forms.dsl.panel
 import com.microsoft.intellij.rxjava.IdeaSchedulers
 import com.microsoft.intellij.ui.HintTextField
-import com.microsoft.intellij.ui.util.UIUtils
+import com.microsoft.azure.toolkit.intellij.common.component.UIUtils
 import com.microsoft.intellij.ui.util.findFirst
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.exception.ExceptionUtils

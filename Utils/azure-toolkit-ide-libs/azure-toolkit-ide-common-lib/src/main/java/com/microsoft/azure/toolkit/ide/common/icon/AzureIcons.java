@@ -213,4 +213,8 @@ public final class AzureIcons {
         public static final AzureIcon BICEP16 = AzureIcon.builder().iconPath("/icons/Bicep/bicep16.svg").build();
         public static final AzureIcon BICEP13 = AzureIcon.builder().iconPath("/icons/Bicep/bicep13.svg").build();
     }
+
+    public static final class EventHubs {
+        public static final AzureIcon MODULE = AzureIcon.builder().iconPath("/icons/Microsoft.EventHub/default.svg").build();
+    }
 }

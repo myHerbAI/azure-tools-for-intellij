@@ -5,7 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.docker.utils;
 
-import com.microsoft.intellij.RunProcessHandler;
+import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.spotify.docker.client.ProgressHandler;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.ProgressMessage;

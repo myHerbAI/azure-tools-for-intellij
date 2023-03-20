@@ -3,6 +3,8 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.74.0](#3740)
+  - [3.73.0](#3730)
   - [3.72.0](#3720)
   - [3.71.0](#3710)
   - [3.70.0](#3700)
@@ -91,6 +93,46 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.8](#308)
   - [3.0.7](#307)
   - [3.0.6](#306)
+
+## 3.74.0
+### Added
+- Support IntelliJ 2023.1 EAP.
+- Add Azure Event Hub support in Azure Toolkits
+  - Resource Management in Azure explorer
+  - Simple event hub client to send/receive events
+
+### Changed
+- Azure Function: New function class creation workflow with resource connection
+- Azure Function: Support customized function host parameters and path for `host.json` in function run/deployment
+- App Service: New UX for runtime selection
+- Azure Spring Apps: Integrate with control plane logs, more diagnostic info will be shown during deployment
+
+### Fixed
+- Fix: Toolkit will always select maven as build tool in function module creation wizard
+- Fix: Copy connection string did not work for Cosmos DB
+- Fix: Only `local.settings.json` in root module could be found when import app settings
+- Fix: Linked cluster cannot display under the HDInsight node.
+- Fix: Open the sign into Azure dialog after click on "Link a cluster/refresh" in the context menu.
+- Fix: Failed to open Azure Storage Explorer.
+- Fix: In config, only display linked cluster in cluster list, but in Azure explorer both linked cluster and signincluster exist.
+## 3.73.0
+### Added
+- [Azure Monitor] Azure Monitor to view history logs with rich filters.    
+- [Azure Container Apps] Creation of Azure Container Apps Environment.
+- [Azure Explorer] Pagination support in Azure Explorer.
+
+### Changed
+- Update default Java runtime to Java 11 when creating Azure Spring App.
+- Add setting item to allow users to choose whether to enable authentication cache.    
+
+### Fixed
+- [#7272](https://github.com/microsoft/azure-tools-for-java/issues/7272): `corelibs.log` duplicates all the logs from the IDE.
+- [#7248](https://github.com/microsoft/azure-tools-for-java/issues/7248): Uncaught Exception java.lang.NullPointerException: Cannot invoke "Object.hashCode()" because "key" is null.
+- No error message about failing to create a slot when the app pricing tier is Basic.
+- Transport method for container app in properties window is different with in portal.
+- Unable to download functional core tools from "Settings/Azure" on macOS when Proxy with certificate is configured.
+- Error pops up when deleting App setting in property view of Azure Functions/Web app.
+- Can't connect multiple Azure resources to modules using resource connection feature.
 
 ## 3.72.0
 ### Added

@@ -63,7 +63,7 @@ public class StorageActionsContributor implements IActionsContributor {
             .withLabel("Open Azure Storage Explorer")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof AzResource)
-            .enableWhen(s -> !(s instanceof StorageAccount) || s.getFormalStatus().isConnected())
+            .enableWhen(s -> !(s instanceof StorageAccount) || s.getFormalStatus(true).isConnected())
             .withHandler(resource -> {
                 if (resource instanceof StorageAccount) {
                     new OpenAzureStorageExplorerAction().openResource((StorageAccount) resource);
@@ -81,7 +81,7 @@ public class StorageActionsContributor implements IActionsContributor {
             .withLabel("Copy Connection String")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof StorageAccount)
-            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .enableWhen(s -> s.getFormalStatus(true).isConnected())
             .withHandler(r -> {
                 copyContentToClipboard(r.getConnectionString());
                 AzureMessager.getMessager().info("Connection string copied");
@@ -92,7 +92,7 @@ public class StorageActionsContributor implements IActionsContributor {
             .withLabel("Copy Primary Key")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof StorageAccount)
-            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .enableWhen(s -> s.getFormalStatus(true).isConnected())
             .withHandler(resource -> {
                 copyContentToClipboard(resource.getKey());
                 AzureMessager.getMessager().info("Primary key copied");
@@ -190,7 +190,7 @@ public class StorageActionsContributor implements IActionsContributor {
             .withLabel("Storage Account")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ResourceGroup)
-            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .enableWhen(s -> s.getFormalStatus(true).isConnected())
             .register(am);
     }
 

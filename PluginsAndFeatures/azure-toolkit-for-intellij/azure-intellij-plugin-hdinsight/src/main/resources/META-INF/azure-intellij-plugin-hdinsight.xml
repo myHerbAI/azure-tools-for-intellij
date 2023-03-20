@@ -11,6 +11,7 @@
         <runConfigurationProducer implementation="com.microsoft.azure.hdinsight.spark.run.LivySparkRunConfigurationProducer"/>
         <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobRunner" />
         <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobDebuggerRunner" />
+        <actionPromoter implementation="com.microsoft.azure.hdinsight.spark.console.SparkExecuteInConsoleActionPromoter"/>
     </extensions>
     <applicationListeners>
         <listener class="com.microsoft.azure.hdinsight.common.ConsoleViewTypeRegistrationListener" topic="com.intellij.ide.ApplicationInitializedListener"/>

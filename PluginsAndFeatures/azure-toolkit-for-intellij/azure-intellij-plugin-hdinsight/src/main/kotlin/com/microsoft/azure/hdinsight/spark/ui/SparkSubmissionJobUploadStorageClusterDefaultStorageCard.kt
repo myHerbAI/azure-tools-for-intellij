@@ -25,7 +25,7 @@ package com.microsoft.azure.hdinsight.spark.ui
 import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.microsoft.azure.hdinsight.sdk.storage.StorageAccountType
 import com.microsoft.azure.hdinsight.spark.common.SparkSubmitStorageType
-import com.microsoft.intellij.ui.util.UIUtils
+import com.microsoft.azure.toolkit.intellij.common.component.UIUtils
 import org.apache.commons.lang3.exception.ExceptionUtils
 import java.util.*
 

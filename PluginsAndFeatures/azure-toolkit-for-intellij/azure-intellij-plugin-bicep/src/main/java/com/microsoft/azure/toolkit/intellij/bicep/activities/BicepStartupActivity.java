@@ -13,14 +13,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.ui.EditorNotifications;
 import com.microsoft.azure.toolkit.ide.common.dotnet.DotnetRuntimeHandler;
+import com.microsoft.azure.toolkit.intellij.common.CommonConst;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.SystemException;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.intellij.CommonConst;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -53,11 +52,12 @@ public class BicepStartupActivity implements StartupActivity, PluginStateListene
     public void runActivity(@Nonnull Project project) {
         final File bicep = FileUtils.getFile(CommonConst.PLUGIN_PATH, "bicep", BICEP_LANGSERVER, BICEP_LANG_SERVER_DLL);
         final String dotnet = Azure.az().config().getDotnetRuntimePath();
-        if (ObjectUtils.anyNull(bicep, dotnet) || !bicep.exists()) {
-            return;
-        }
-        if (!DotnetRuntimeHandler.isDotnetRuntimeInstalled(dotnet)) {
-            AzureEventBus.on("dotnet_runtime.installed", new AzureEventBus.EventListener(e -> registerLanguageServerDefinition(project)));
+        final boolean isDotnetReady = StringUtils.isNotEmpty(dotnet) && DotnetRuntimeHandler.isDotnetRuntimeInstalled(dotnet);
+        final boolean isBicepReady = bicep != null && bicep.exists();
+        if (!(isBicepReady && isDotnetReady)) {
+            if (!isDotnetReady) {
+                AzureEventBus.on("dotnet_runtime.updated", new AzureEventBus.EventListener(e -> registerLanguageServerDefinition(project)));
+            }
             return;
         }
         PluginInstaller.addStateListener(this);
@@ -68,13 +68,16 @@ public class BicepStartupActivity implements StartupActivity, PluginStateListene
         EditorNotifications.getInstance(project).updateAllNotifications();
         final File bicep = FileUtils.getFile(CommonConst.PLUGIN_PATH, "bicep", BICEP_LANGSERVER, BICEP_LANG_SERVER_DLL);
         final String dotnet = Azure.az().config().getDotnetRuntimePath();
-        final ProcessBuilder process = SystemUtils.IS_OS_WINDOWS ?
-            new ProcessBuilder("powershell.exe", "./dotnet", bicep.getAbsolutePath(), STDIO) :
-            new ProcessBuilder("./dotnet", bicep.getAbsolutePath(), STDIO);
-        Optional.of(dotnet)
-            .filter(StringUtils::isNotEmpty).map(File::new)
-            .filter(File::exists).ifPresent(process::directory);
-        IntellijLanguageClient.addServerDefinition(new ProcessBuilderServerDefinition(BICEP, process), project);
+        final boolean isDotnetReady = StringUtils.isNotEmpty(dotnet) && DotnetRuntimeHandler.isDotnetRuntimeInstalled(dotnet);
+        if (isDotnetReady) {
+            final ProcessBuilder process = SystemUtils.IS_OS_WINDOWS ?
+                new ProcessBuilder("powershell.exe", "./dotnet", bicep.getAbsolutePath(), STDIO) :
+                new ProcessBuilder("./dotnet", bicep.getAbsolutePath(), STDIO);
+            Optional.of(dotnet)
+                .filter(StringUtils::isNotEmpty).map(File::new)
+                .filter(File::exists).ifPresent(process::directory);
+            IntellijLanguageClient.addServerDefinition(new ProcessBuilderServerDefinition(BICEP, process), project);
+        }
     }
 
     @AzureOperation("boundary/bicep.register_textmate_bundles")

@@ -27,10 +27,10 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Toggleable
 import com.microsoft.azure.hdinsight.spark.run.configuration.*
-import com.microsoft.intellij.AzureAnAction
+import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction
 import com.microsoft.azuretools.telemetry.TelemetryConstants
 import com.microsoft.azuretools.telemetrywrapper.Operation
-import com.microsoft.intellij.CommonConst
+import com.microsoft.azure.toolkit.intellij.common.CommonConst
 import com.microsoft.tooling.msservices.components.DefaultLoader
 
 

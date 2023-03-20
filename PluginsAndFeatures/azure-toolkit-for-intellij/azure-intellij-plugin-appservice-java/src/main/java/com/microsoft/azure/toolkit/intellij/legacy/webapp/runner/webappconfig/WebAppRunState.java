@@ -10,8 +10,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.PathUtil;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifact;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifactManager;
-import com.microsoft.azure.toolkit.intellij.common.RunProcessHandlerMessenger;
-import com.microsoft.azure.toolkit.intellij.connector.Connection;
+import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.connector.IJavaAgentSupported;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState;
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.Constants;
@@ -37,7 +36,6 @@ import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
 import com.microsoft.azuretools.telemetrywrapper.TelemetryManager;
 import com.microsoft.azuretools.utils.WebAppUtils;
-import com.microsoft.intellij.RunProcessHandler;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -87,8 +85,7 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
     @Override
     @AzureOperation(name = "user/webapp.deploy_artifact.app", params = {"this.webAppConfiguration.getWebAppName()"})
     public WebAppBase<?, ?, ?> executeSteps(@NotNull RunProcessHandler processHandler, @NotNull Operation operation) throws Exception {
-        final RunProcessHandlerMessenger messenger = new RunProcessHandlerMessenger(processHandler);
-        OperationContext.current().setMessager(messenger);
+        OperationContext.current().setMessager(getProcessHandlerMessenger());
         artifact = new File(getTargetPath());
         if (!artifact.exists()) {
             throw new FileNotFoundException(message("webapp.deploy.error.noTargetFile", artifact.getAbsolutePath()));
@@ -101,13 +98,12 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
     }
 
     private void applyResourceConnection(@Nonnull WebAppBase<?, ?, ?> deployTarget, RunProcessHandler processHandler) {
-        final Connection<?, ?> connection = webAppConfiguration.getConnection();
-        if (Objects.nonNull(connection)) {
+        Optional.ofNullable(webAppConfiguration.getConnections()).ifPresent(c -> c.stream().filter(Objects::nonNull).forEach(connection -> {
             Optional.ofNullable(connection.getEnvironmentVariables(this.project)).ifPresent(appSettingsForResourceConnection::putAll);
-        }
-        if (Objects.nonNull(connection) && connection.getResource().getDefinition() instanceof IJavaAgentSupported) {
-            uploadJavaAgent(deployTarget, ((IJavaAgentSupported) connection.getResource().getDefinition()).getJavaAgent());
-        }
+            if (connection.getResource().getDefinition() instanceof IJavaAgentSupported) {
+                uploadJavaAgent(deployTarget, ((IJavaAgentSupported) connection.getResource().getDefinition()).getJavaAgent());
+            }
+        }));
     }
 
     private void uploadJavaAgent(@Nonnull WebAppBase<?, ?, ?> deployTarget, @Nullable File javaAgent) {
@@ -227,7 +223,7 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
         }
         // todo: add new boolean indicator instead of comparing string values
         if (StringUtils.equals(webAppSettingModel.getSlotName(), Constants.CREATE_NEW_SLOT)) {
-            return createDeploymentSlot(webApp, processHandler);
+            return AzureWebAppMvpModel.getInstance().createDeploymentSlotFromSettingModel(webApp, webAppSettingModel);
         } else {
             return Objects.requireNonNull(webApp.slots().get(webAppSettingModel.getSlotName(), webAppSettingModel.getResourceGroup()));
         }
@@ -261,17 +257,6 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
             throw new AzureToolkitRuntimeException(error);
         }
         return AzureArtifactManager.getInstance(project).getFileForDeployment(azureArtifact);
-    }
-
-    @AzureOperation(name = "internal/webapp.create_deployment.app", params = {"this.webAppConfiguration.getName()"})
-    private WebAppDeploymentSlot createDeploymentSlot(final WebApp webApp, @NotNull RunProcessHandler processHandler) {
-        processHandler.setText(message("webapp.deploy.hint.creatingDeploymentSlot"));
-        try {
-            return AzureWebAppMvpModel.getInstance().createDeploymentSlotFromSettingModel(webApp, webAppSettingModel);
-        } catch (final RuntimeException e) {
-            processHandler.setText(message("webapp.deploy.error.noWebApp"));
-            throw e;
-        }
     }
 
     @NotNull

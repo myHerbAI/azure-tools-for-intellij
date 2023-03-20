@@ -42,7 +42,7 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
         new Action<>(ADD_CONNECTION)
             .withLabel("Add")
             .withIcon(AzureIcons.Action.ADD.getIconPath())
-            .enableWhen(m -> m instanceof Module)
+            .visibleWhen(m -> m instanceof Module)
             .withHandler((m) -> openDialog(null, new ModuleResource(m.getName()), m.getProject()))
             .withShortcut(am.getIDEDefaultShortcuts().add())
             .register(am);
@@ -50,7 +50,7 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
         new Action<>(EDIT_CONNECTION)
             .withLabel("Edit")
             .withIcon(AzureIcons.Action.EDIT.getIconPath())
-            .enableWhen(m -> m instanceof Connection<?, ?>)
+            .visibleWhen(m -> m instanceof Connection<?, ?>)
             .withHandler((c, e) -> openDialog(c, ((AnActionEvent) e).getProject()))
             .withShortcut(am.getIDEDefaultShortcuts().edit())
             .register(am);
@@ -58,9 +58,10 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
         new Action<>(REMOVE_CONNECTION)
             .withLabel("Remove")
             .withIcon(AzureIcons.Action.REMOVE.getIconPath())
-            .enableWhen(m -> m instanceof Connection<?, ?>)
+            .visibleWhen(m -> m instanceof Connection<?, ?>)
             .withHandler((c, e) -> ResourceConnectionActionsContributor.removeConnection(c, (AnActionEvent) e))
             .withShortcut(am.getIDEDefaultShortcuts().delete())
+            .withAuthRequired(false)
             .register(am);
     }
 

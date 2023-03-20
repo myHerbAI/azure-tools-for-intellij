@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.intellij.monitor.view.right;
 import com.azure.monitor.query.models.LogsTable;
 import com.azure.monitor.query.models.LogsTableCell;
 import com.azure.monitor.query.models.LogsTableRow;
-import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -23,6 +22,7 @@ import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.ActionLink;
 import com.intellij.ui.components.AnActionLink;
 import com.intellij.util.ui.JBUI;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.TextDocumentListenerAdapter;
 import com.microsoft.azure.toolkit.intellij.common.component.HighLightedCellRenderer;
 import com.microsoft.azure.toolkit.intellij.monitor.view.right.filter.KustoFilterComboBox;
@@ -30,6 +30,8 @@ import com.microsoft.azure.toolkit.intellij.monitor.view.right.filter.TimeRangeC
 import com.microsoft.azure.toolkit.intellij.monitor.view.right.table.LogTable;
 import com.microsoft.azure.toolkit.intellij.monitor.view.right.table.LogTableModel;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -43,6 +45,7 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
@@ -79,7 +82,7 @@ public class MonitorLogTablePanel {
         this.customizeTableUi();
         this.hideFilters();
         this.runButton.setIcon(AllIcons.Actions.Execute);
-        AzureEventBus.on("", new AzureEventBus.EventListener(e -> initResourceId = null));
+        AzureEventBus.on("azure.monitor.change_workspace", new AzureEventBus.EventListener(e -> initResourceId = null));
     }
 
     public JPanel getContentPanel() {
@@ -100,14 +103,18 @@ public class MonitorLogTablePanel {
         queryParams.add("sort by TimeGenerated desc");
         final String rowNumberLimitation = String.format("take %s", Azure.az().config().getMonitorQueryRowNumber());
         queryParams.add(rowNumberLimitation);
-        return StringUtils.join(queryParams, " | ");
+        return StringUtils.join(queryParams.stream().filter(StringUtils::isNotBlank).toList(), " | ");
     }
 
-    public void loadTableModel(LogAnalyticsWorkspace selectedWorkspace, String queryString) {
-        logTable.clearModel();
-        logTable.setLoading(true);
+    public void loadTableModel(@Nullable LogAnalyticsWorkspace selectedWorkspace, String queryString) {
         runButton.setEnabled(false);
         exportAction.setEnabled(false);
+        if (Objects.isNull(selectedWorkspace)) {
+            logTable.getEmptyText().setText(message("azure.monitor.info.selectWorkspaceTips"));
+            return;
+        }
+        logTable.clearModel();
+        logTable.setLoading(true);
         AzureTaskManager.getInstance().runInBackground("load Azure Monitor data", () -> {
             try {
                 final LogsTable result = selectedWorkspace.executeQuery(queryString);
@@ -131,7 +138,10 @@ public class MonitorLogTablePanel {
         });
     }
 
-    public void loadFilters(LogAnalyticsWorkspace selectedWorkspace, String tableName) {
+    public void loadFilters(@Nullable LogAnalyticsWorkspace selectedWorkspace, String tableName) {
+        if (Objects.isNull(selectedWorkspace)) {
+            return;
+        }
         timeRangePanel.setVisible(true);
         resourcePanel.setVisible(true);
         levelPanel.setVisible(true);
@@ -163,7 +173,8 @@ public class MonitorLogTablePanel {
 
     @Nullable
     public String getSelectedCellValue() {
-        return (String) this.logTable.getValueAt(this.logTable.getSelectedRow(), this.logTable.getSelectedColumn());
+        final Object value = this.logTable.getValueAt(this.logTable.getSelectedRow(), this.logTable.getSelectedColumn());
+        return Optional.ofNullable(value).map(Object::toString).orElse(StringUtils.EMPTY);
     }
 
     @Nullable
@@ -181,7 +192,7 @@ public class MonitorLogTablePanel {
     private void updateCombobox(Map<String, List<String>> map) {
         resourcePanel.setVisible(false);
         levelPanel.setVisible(false);
-        Arrays.stream(RESOURCE_COMBOBOX_COLUMN_NAMES).filter(s -> map.containsKey(s)).findFirst()
+        Arrays.stream(RESOURCE_COMBOBOX_COLUMN_NAMES).filter(map::containsKey).findFirst()
                 .ifPresent(it -> {
                     final List<String> items = map.get(it);
                     Optional.ofNullable(initResourceId).ifPresent(resourceId -> {
@@ -192,7 +203,7 @@ public class MonitorLogTablePanel {
                     updateComboboxItems(resourcePanel, items, it);
                     resourceComboBox.setValue(Objects.isNull(initResourceId) ? KustoFilterComboBox.ALL : initResourceId);
                 });
-        Arrays.stream(LEVEL_COMBOBOX_COLUMN).filter(s -> map.containsKey(s)).findFirst()
+        Arrays.stream(LEVEL_COMBOBOX_COLUMN).filter(map::containsKey).findFirst()
                 .ifPresent(it -> {
                     updateComboboxItems(levelPanel, map.get(it), it);
                     levelComboBox.setValue(KustoFilterComboBox.ALL);
@@ -226,7 +237,7 @@ public class MonitorLogTablePanel {
                                                           List<String> specificColumnNames, List<String> columnNamesInTable) {
         final Map<String, List<String>> result = new HashMap<>();
         final String kustoColumnNames = StringUtils.join(specificColumnNames.stream()
-                .filter(s -> columnNamesInTable.contains(s)).toList(), ",");
+                .filter(columnNamesInTable::contains).toList(), ",");
         if (StringUtils.isBlank(kustoColumnNames)) {
             return result;
         }
@@ -275,11 +286,15 @@ public class MonitorLogTablePanel {
                 csvPrinter.printRecord(row.getRow().stream().map(LogsTableCell::getValueAsString).toList());
             }
             csvPrinter.close();
-            AzureMessager.getMessager().info(message("azure.monitor.export.succeed.message", target.getAbsolutePath()),
-                    message("azure.monitor.export.succeed.title"));
+            AzureMessager.getMessager().success(message("azure.monitor.export.succeed.message", target.getAbsolutePath()),
+                   null, newShowInExplorerAction(target));
         } catch (final Exception e) {
             throw new AzureToolkitRuntimeException(e);
         }
+    }
+
+    private static Action<File> newShowInExplorerAction(@Nonnull final File dest) {
+        return AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.REVEAL_FILE).bind(dest);
     }
 
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES

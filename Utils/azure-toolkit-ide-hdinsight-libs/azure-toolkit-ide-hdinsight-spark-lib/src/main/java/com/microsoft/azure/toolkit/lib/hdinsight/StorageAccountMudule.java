@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -20,6 +21,15 @@ public class StorageAccountMudule extends AbstractAzResourceModule <StorageAccou
     public StorageAccountMudule(@NotNull SparkClusterNode parent) {
         super(NAME, parent);
         this.sparkClusterNode = parent;
+    }
+
+    @Override
+    public List<StorageAccountNode> list() {
+        if (sparkClusterNode.getSubscription().getId().equals("[LinkedCluster]")) {
+            return Collections.EMPTY_LIST;
+        } else {
+            return super.list();
+        }
     }
 
     @Nonnull

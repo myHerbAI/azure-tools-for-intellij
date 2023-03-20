@@ -31,8 +31,8 @@ import com.microsoft.azuretools.core.mvp.model.container.ContainerRegistryMvpMod
 import com.microsoft.azuretools.core.mvp.model.webapp.PrivateRegistryImageSetting;
 import com.microsoft.azuretools.core.mvp.ui.containerregistry.ContainerRegistryProperty;
 import com.microsoft.azure.toolkit.intellij.common.BaseEditor;
-import com.microsoft.intellij.ui.components.AzureActionListenerWrapper;
-import com.microsoft.intellij.ui.util.UIUtils;
+import com.microsoft.azure.toolkit.intellij.common.action.AzureActionListenerWrapper;
+import com.microsoft.azure.toolkit.intellij.common.component.UIUtils;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.container.ContainerRegistryPropertyMvpView;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.container.ContainerRegistryPropertyViewPresenter;
 import com.spotify.docker.client.DefaultDockerClient;

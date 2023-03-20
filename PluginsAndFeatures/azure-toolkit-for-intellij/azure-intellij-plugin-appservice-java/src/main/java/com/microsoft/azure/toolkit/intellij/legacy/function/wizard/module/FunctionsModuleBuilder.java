@@ -29,6 +29,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.wizard.module.helper
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.legacy.function.template.FunctionTemplate;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.ErrorType;
 import com.microsoft.azuretools.telemetrywrapper.EventUtil;
@@ -142,7 +143,7 @@ public class FunctionsModuleBuilder extends JavaModuleBuilder {
             final String artifactId = wizardContext.getUserData(AzureFunctionsConstants.WIZARD_ARTIFACTID_KEY);
             final String version = wizardContext.getUserData(AzureFunctionsConstants.WIZARD_VERSION_KEY);
             final String packageName = wizardContext.getUserData(AzureFunctionsConstants.WIZARD_PACKAGE_NAME_KEY);
-            final String[] triggers = wizardContext.getUserData(AzureFunctionsConstants.WIZARD_TRIGGERS_KEY);
+            final FunctionTemplate[] triggers = wizardContext.getUserData(AzureFunctionsConstants.WIZARD_TRIGGERS_KEY);
             operation.trackProperty("tool", tool);
             operation.trackProperty(TelemetryConstants.TRIGGER_TYPE, StringUtils.join(triggers, ","));
             File tempProjectFolder = null;
@@ -154,10 +155,10 @@ public class FunctionsModuleBuilder extends JavaModuleBuilder {
                         final File moduleFile = new File(getContentEntryPath());
                         final File srcFolder = Paths.get(tempProjectFolder.getAbsolutePath(), "src/main/java").toFile();
 
-                        for (final String trigger : triggers) {
+                        for (final FunctionTemplate template : triggers) {
                             // class name like HttpTriggerFunction
-                            final String className = trigger + "Function";
-                            final String fileContent = AzureFunctionsUtils.generateFunctionClassByTrigger(trigger, packageName, className);
+                            final String className = StringUtils.capitalize(template.getMetadata().getDefaultFunctionName());
+                            final String fileContent = template.generateDefaultContent(packageName, className);
                             final File targetFile = Paths.get(srcFolder.getAbsolutePath(), String.format("%s/%s.java",
                                     packageName.replace('.', '/'), className)).toFile();
                             targetFile.getParentFile().mkdirs();

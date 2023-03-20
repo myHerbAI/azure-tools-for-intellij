@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.monitor.view.right.filter;
 
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.TextDocumentListenerAdapter;
@@ -14,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 
@@ -28,10 +30,13 @@ public class TimeRangeComboBox extends AzureComboBox<TimeRangeComboBox.TimeRange
                 final TimeRange timeRange = (TimeRange) getSelectedItem();
                 final String selectedText = Optional.ofNullable(timeRange).map(TimeRange::getLabel).orElse(StringUtils.EMPTY);
                 final String text = ((JTextField) component).getText();
-                if (isClicked && Objects.equals(TimeRange.CUSTOM.label, text)) {
-                    final CustomTimeRangeDialog dialog = new CustomTimeRangeDialog();
-                    if (dialog.showAndGet()) {
-                        customKustoString = dialog.getValue();
+                if (Objects.equals(TimeRange.CUSTOM.label, text)) {
+                    restoreKustoString();
+                    if (isClicked) {
+                        final CustomTimeRangeDialog dialog = new CustomTimeRangeDialog();
+                        if (dialog.showAndGet()) {
+                            customKustoString = dialog.getValue();
+                        }
                     }
                 }
                 isClicked = !Objects.equals(selectedText, text);
@@ -86,6 +91,19 @@ public class TimeRangeComboBox extends AzureComboBox<TimeRangeComboBox.TimeRange
             return TimeRange.LAST_24_HOURS;
         }
         return super.getDefaultValue();
+    }
+
+    private void restoreKustoString() {
+        final long after = Optional.ofNullable(PropertiesComponent.getInstance().getValue(CustomTimeRangeDialog.CUSTOM_AFTER)).map(Long::parseLong).orElse(-1L);
+        final long before = Optional.ofNullable(PropertiesComponent.getInstance().getValue(CustomTimeRangeDialog.CUSTOM_BEFORE)).map(Long::parseLong).orElse(-1L);
+        try {
+            final Date afterDate = new Date(after);
+            final Date beforeDate = new Date(before);
+            final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            final String kustoAfter = String.format("where TimeGenerated >= datetime(%s)", formatter.format(afterDate));
+            final String kustoBefore = String.format("where TimeGenerated <= datetime(%s)", formatter.format(beforeDate));
+            customKustoString = StringUtils.join(new String[] {kustoBefore, kustoAfter}, " | ");
+        } catch (final Exception ignored) {}
     }
 
     public static class TimeRange {
