@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.intellij.legacy.function.runner.component.ta
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.FilenameIndex;
@@ -16,7 +15,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.ToolbarDecorator;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
-import com.microsoft.azure.toolkit.intellij.common.IdeUtils;
+import com.microsoft.azure.toolkit.intellij.common.ProjectUtils;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
@@ -31,7 +30,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -119,7 +117,7 @@ public class ImportAppSettingsDialog extends JDialog implements ImportAppSetting
 
     // todo: migrate to AzureComboBox framework
     private void loadAppSettingSources() {
-        final Project project = Optional.ofNullable(this.project).orElseGet(() -> IdeUtils.getProject());
+        final Project project = Optional.ofNullable(this.project).orElseGet(() -> ProjectUtils.getProject());
         Observable.fromCallable(() -> ReadAction.compute(()-> FilenameIndex.getVirtualFilesByName("local.settings.json", GlobalSearchScope.projectScope(project))))
                 .subscribeOn(presenter.getSchedulerProvider().io())
                 .subscribe(files -> AzureTaskManager.getInstance().runLater(() -> files.forEach(ImportAppSettingsDialog.this.cbAppSettingsSource::addItem), AzureTask.Modality.ANY));

@@ -12,7 +12,6 @@ import com.intellij.ide.AppLifecycleListener;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.diagnostic.Logger;
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.exception.ExceptionUtils;
 import com.microsoft.azure.cosmosspark.CosmosSparkClusterOpsCtrl;
 import com.microsoft.azure.cosmosspark.serverexplore.cosmossparknode.CosmosSparkClusterOps;
@@ -22,9 +21,13 @@ import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
 import com.microsoft.azure.toolkit.ide.common.store.DefaultMachineStore;
 import com.microsoft.azure.toolkit.intellij.common.CommonConst;
 import com.microsoft.azure.toolkit.intellij.common.action.IntellijAzureActionManager;
+import com.microsoft.azure.toolkit.intellij.common.auth.IntelliJSecureStore;
 import com.microsoft.azure.toolkit.intellij.common.messager.IntellijAzureMessager;
 import com.microsoft.azure.toolkit.intellij.common.settings.IntellijStore;
 import com.microsoft.azure.toolkit.intellij.common.task.IntellijAzureTaskManager;
+import com.microsoft.azure.toolkit.intellij.containerregistry.AzureDockerSupportConfigurationType;
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapponlinux.DeprecatedWebAppOnLinuxDeployConfigurationFactory;
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapponlinux.WebAppOnLinuxDeployConfigurationFactory;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -44,7 +47,6 @@ import com.microsoft.intellij.helpers.IDEHelperImpl;
 import com.microsoft.intellij.helpers.MvpUIHelperImpl;
 import com.microsoft.intellij.helpers.UIHelperImpl;
 import com.microsoft.intellij.secure.IdeaTrustStrategy;
-import com.microsoft.azure.toolkit.intellij.common.auth.IntelliJSecureStore;
 import com.microsoft.intellij.serviceexplorer.NodeActionsMap;
 import com.microsoft.intellij.util.NetworkDiagnose;
 import com.microsoft.intellij.util.PluginHelper;
@@ -53,15 +55,15 @@ import com.microsoft.tooling.msservices.components.DefaultLoader;
 import com.microsoft.tooling.msservices.components.PluginComponent;
 import com.microsoft.tooling.msservices.components.PluginSettings;
 import com.microsoft.tooling.msservices.serviceexplorer.Node;
-import lombok.Lombok;
 import lombok.extern.slf4j.Slf4j;
+import lombok.Lombok;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.ssl.TrustStrategy;
-import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.Hooks;
 import reactor.core.scheduler.Schedulers;
 import rx.internal.util.PlatformDependent;
 
+import javax.annotation.Nonnull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -80,10 +82,9 @@ import static com.microsoft.azuretools.telemetry.TelemetryConstants.SYSTEM;
 @Slf4j
 public class AzureActionsListener implements AppLifecycleListener, PluginComponent {
     public static final String PLUGIN_ID = CommonConst.PLUGIN_ID;
-    private static final Logger LOG = Logger.getInstance(AzureActionsListener.class);
     private static final String AZURE_TOOLS_FOLDER = ".AzureToolsForIntelliJ";
     private static final String AZURE_TOOLS_FOLDER_DEPRECATED = "AzureToolsForIntelliJ";
-    private static FileHandler logFileHandler = null;
+    private static final FileHandler logFileHandler = null;
 
     private PluginSettings settings;
 
@@ -94,9 +95,8 @@ public class AzureActionsListener implements AppLifecycleListener, PluginCompone
             Thread.currentThread().setContextClassLoader(AzureActionsListener.class.getClassLoader());
             HttpClientProviders.createInstance();
             Azure.az(AzureAccount.class);
-            final Logger logger = Logger.getInstance(AzureActionsListener.class);
             Hooks.onErrorDropped(ex -> {
-                Throwable cause = findExceptionInExceptionChain(ex, Arrays.asList(InterruptedException.class, UnknownHostException.class));
+                final Throwable cause = findExceptionInExceptionChain(ex, Arrays.asList(InterruptedException.class, UnknownHostException.class));
                 if (cause instanceof InterruptedException) {
                     log.info(ex.getMessage());
                 } else if (cause instanceof UnknownHostException) {
@@ -112,8 +112,8 @@ public class AzureActionsListener implements AppLifecycleListener, PluginCompone
                     throw Lombok.sneakyThrow(ex);
                 }
             });
-        } catch (final Throwable e){
-            LOG.error(e);
+        } catch (final Throwable e) {
+            log.error(e.getMessage(), e);
         } finally {
             Thread.currentThread().setContextClassLoader(current);
         }
@@ -122,7 +122,7 @@ public class AzureActionsListener implements AppLifecycleListener, PluginCompone
     @Override
     @ExceptionNotification
     @AzureOperation(name = "platform/common.init_plugin")
-    public void appFrameCreated(@NotNull List<String> commandLineArgs) {
+    public void appFrameCreated(@Nonnull List<String> commandLineArgs) {
         try {
             DefaultLoader.setPluginComponent(this);
             DefaultLoader.setUiHelper(new UIHelperImpl());
@@ -139,35 +139,36 @@ public class AzureActionsListener implements AppLifecycleListener, PluginCompone
             MvpUIHelperFactory.getInstance().init(new MvpUIHelperImpl());
 
             HDInsightLoader.setHHDInsightHelper(new HDInsightHelperImpl());
-
+            // workaround fixes for web app on linux run configuration
+            AzureDockerSupportConfigurationType.registerConfigurationFactory("Web App for Containers", DeprecatedWebAppOnLinuxDeployConfigurationFactory::new);
             try {
                 loadPluginSettings();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 PluginUtil.displayErrorDialogAndLog("Error", "An error occurred while attempting to load settings", e);
             }
             if (!AzurePlugin.IS_ANDROID_STUDIO) {
                 // enable spark serverless node subscribe actions
                 ServiceManager.setServiceProvider(CosmosSparkClusterOpsCtrl.class,
-                        new CosmosSparkClusterOpsCtrl(CosmosSparkClusterOps.getInstance()));
+                    new CosmosSparkClusterOpsCtrl(CosmosSparkClusterOps.getInstance()));
 
                 ServiceManager.setServiceProvider(TrustStrategy.class, IdeaTrustStrategy.INSTANCE);
                 initAuthManage();
-                ActionManager am = ActionManager.getInstance();
-                DefaultActionGroup toolbarGroup = (DefaultActionGroup) am.getAction(IdeActions.GROUP_MAIN_TOOLBAR);
+                final ActionManager am = ActionManager.getInstance();
+                final DefaultActionGroup toolbarGroup = (DefaultActionGroup) am.getAction(IdeActions.GROUP_MAIN_TOOLBAR);
                 toolbarGroup.addAll((DefaultActionGroup) am.getAction("AzureToolbarGroup"));
-                DefaultActionGroup popupGroup = (DefaultActionGroup) am.getAction(IdeActions.GROUP_PROJECT_VIEW_POPUP);
+                final DefaultActionGroup popupGroup = (DefaultActionGroup) am.getAction(IdeActions.GROUP_PROJECT_VIEW_POPUP);
                 popupGroup.add(am.getAction("AzurePopupGroup"));
             }
-        }catch (final Throwable t){
-            LOG.error(t);
+        } catch (final Throwable t) {
+            log.error(t.getMessage(), t);
         }
         try {
             PlatformDependent.isAndroid();
-        } catch (Throwable ignored) {
+        } catch (final Throwable ignored) {
             DefaultLoader.getUIHelper().showError("A problem with your Android Support plugin setup is preventing the"
-                    + " Azure Toolkit from functioning correctly (Retrofit2 and RxJava failed to initialize)"
-                    + ".\nTo fix this issue, try disabling the Android Support plugin or installing the "
-                    + "Android SDK", "Azure Toolkit for IntelliJ");
+                + " Azure Toolkit from functioning correctly (Retrofit2 and RxJava failed to initialize)"
+                + ".\nTo fix this issue, try disabling the Android Support plugin or installing the "
+                + "Android SDK", "Azure Toolkit for IntelliJ");
             // DefaultLoader.getUIHelper().showException("Android Support Error: isAndroid() throws " + ignored
             //         .getMessage(), ignored, "Error Android", true, false);
         }
@@ -178,8 +179,8 @@ public class AzureActionsListener implements AppLifecycleListener, PluginCompone
             final String baseFolder = FileUtil.getDirectoryWithinUserHome(AZURE_TOOLS_FOLDER).toString();
             final String deprecatedFolder = FileUtil.getDirectoryWithinUserHome(AZURE_TOOLS_FOLDER_DEPRECATED).toString();
             CommonSettings.setUpEnvironment(baseFolder, deprecatedFolder);
-        } catch (IOException ex) {
-            LOG.error("initAuthManage()", ex);
+        } catch (final IOException ex) {
+            log.error("initAuthManage()", ex);
         }
     }
 
@@ -194,32 +195,23 @@ public class AzureActionsListener implements AppLifecycleListener, PluginCompone
     }
 
     private void loadPluginSettings() throws IOException {
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new InputStreamReader(
-                    AzureActionsListener.class.getResourceAsStream("/settings.json")));
-            StringBuilder sb = new StringBuilder();
+        try (final BufferedReader reader = new BufferedReader(new InputStreamReader(
+            AzureActionsListener.class.getResourceAsStream("/settings.json")))) {
+            final StringBuilder sb = new StringBuilder();
             String line;
 
             while ((line = reader.readLine()) != null) {
                 sb.append(line);
             }
 
-            Gson gson = new Gson();
+            final Gson gson = new Gson();
             settings = gson.fromJson(sb.toString(), PluginSettings.class);
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException ignored) {
-                }
-            }
         }
     }
 
     private static Throwable findExceptionInExceptionChain(Throwable ex, List<Class> classes) {
-        for (Throwable cause : ExceptionUtils.getThrowableList(ex)) {
-            for (Class clz : classes) {
+        for (final Throwable cause : ExceptionUtils.getThrowableList(ex)) {
+            for (final Class clz : classes) {
                 if (cause != null && clz.isAssignableFrom(cause.getClass())) {
                     return cause;
                 }

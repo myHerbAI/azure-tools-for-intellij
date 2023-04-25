@@ -123,7 +123,7 @@ public abstract class AppServiceConfig {
 
     @Override
     public int hashCode() {
-        final ResourceId thisId = Optional.ofNullable(this.resourceId).map(ResourceId::fromString).orElse(null);
+        final ResourceId thisId = Optional.ofNullable(this.resourceId).filter(StringUtils::isNoneBlank).map(ResourceId::fromString).orElse(null);
         final String thisName = Optional.ofNullable(thisId).map(ResourceId::name).orElse(this.getName());
         final String thisRg = Optional.ofNullable(thisId).map(ResourceId::resourceGroupName).orElse(this.getResourceGroupName());
         final String thisSub = Optional.ofNullable(thisId).map(ResourceId::subscriptionId).orElse(this.getSubscriptionId());

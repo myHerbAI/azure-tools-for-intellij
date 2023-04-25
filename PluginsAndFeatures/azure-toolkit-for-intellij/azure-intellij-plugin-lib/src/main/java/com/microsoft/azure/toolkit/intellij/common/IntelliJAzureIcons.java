@@ -47,8 +47,6 @@ public class IntelliJAzureIcons {
             put(AzureIcons.Action.DEPLOY, AllIcons.Nodes.Deploy);
             put(AzureIcons.Action.CREATE, AllIcons.General.Add);
             put(AzureIcons.Action.DELETE, AllIcons.Actions.GC);
-            put(AzureIcons.Action.PORTAL, IconLoader.getIcon("icons/Common/OpenInPortal.svg", IntelliJAzureIcons.class));
-            put(AzureIcons.Action.BROWSER, IconLoader.getIcon("icons/Common/OpenInPortal.svg", IntelliJAzureIcons.class));
             put(AzureIcons.Action.ADD, AllIcons.General.Add);
             put(AzureIcons.Action.REMOVE, AllIcons.Actions.GC);
             put(AzureIcons.Action.EDIT, AllIcons.Actions.Edit);
@@ -63,8 +61,11 @@ public class IntelliJAzureIcons {
             put(AzureIcons.Action.SFTP, AllIcons.Nodes.Servlet);
             put(AzureIcons.Action.UPLOAD, AllIcons.Actions.Upload);
             put(AzureIcons.Action.DOWNLOAD, AllIcons.Actions.Download);
+            put(AzureIcons.Action.COPY, AllIcons.Actions.Copy);
             put(AzureIcons.Action.ATTACH_DEBUGGER, AllIcons.Debugger.AttachToProcess);
             put(AzureIcons.Action.REMOTE_DEBUG, AllIcons.RunConfigurations.RemoteDebug);
+            put(AzureIcons.Action.SEARCH, AllIcons.Actions.Search);
+            put(AzureIcons.Action.LOG, AllIcons.Nodes.LogFolder);
         }
     };
 

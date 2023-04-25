@@ -62,6 +62,10 @@ public class AzureResourceLabelView<T extends AzResource> implements NodeView {
         this(resource, AzResource::getName, descriptionLoader, iconProvider);
     }
 
+    public AzureResourceLabelView(@Nonnull T resource, @Nonnull Function<T, String> descriptionLoader) {
+        this(resource, AzResource::getName, descriptionLoader, DEFAULT_AZURE_RESOURCE_ICON_PROVIDER);
+    }
+
     public AzureResourceLabelView(@Nonnull T resource, @Nonnull Function<T, String> labelProvider, @Nonnull Function<T, String> descriptionLoader,
                                   @Nonnull final AzureIconProvider<? super T> iconProvider) {
         this.resource = resource;

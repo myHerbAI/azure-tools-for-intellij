@@ -20,12 +20,16 @@ import com.microsoft.azure.toolkit.ide.guidance.Phase;
 import com.microsoft.azure.toolkit.ide.guidance.Status;
 import com.microsoft.azure.toolkit.ide.guidance.Step;
 import com.microsoft.azure.toolkit.ide.guidance.input.GuidanceInput;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessage;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
@@ -34,6 +38,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 public class PhasePanel extends JPanel {
     // JBUI.CurrentTheme.Tree.Hover.background(true)
@@ -54,6 +61,7 @@ public class PhasePanel extends JPanel {
     private JLabel outputStatusIcon;
     private JTextPane outputPanel;
     private boolean isOutputBlank = true;
+    private AzureEventBus.EventListener listener;
 
     public PhasePanel(@Nonnull Phase phase) {
         super();
@@ -95,6 +103,26 @@ public class PhasePanel extends JPanel {
         }
         this.updateStatus(this.phase.getStatus());
         this.phase.getContext().addContextListener(ignore -> this.renderDescription());
+        this.listener = new AzureEventBus.EventListener(this::onExpandPhaseEvent);
+        AzureEventBus.on("guidance.phase.expand", listener);
+    }
+
+    @Override
+    public void removeNotify() {
+        super.removeNotify();
+        Optional.ofNullable(listener).ifPresent(l -> {
+            try {
+                AzureEventBus.off("guidance.phase.expand", listener);
+            } catch (final IllegalArgumentException iae) {
+                // swallow exception when unregistering a listener that is not registered
+            }
+        });
+    }
+
+    private void onExpandPhaseEvent(@Nonnull final AzureEvent azureEvent) {
+        if (Objects.equals(azureEvent.getSource(), this.phase)) {
+            toggleDetails(true);
+        }
     }
 
     @AzureOperation(name = "user/guidance.execute_phase.phase", params = {"this.phase.getTitle()"})
@@ -149,7 +177,7 @@ public class PhasePanel extends JPanel {
                 PhasePanel.this.isOutputBlank = StringUtils.isBlank(content);
                 PhasePanel.this.outputPanel.setText(content);
                 PhasePanel.this.updateView(PhasePanel.this.phase.getStatus(), PhasePanel.this.detailsPanel.isVisible());
-            } catch (RuntimeException e) {
+            } catch (final RuntimeException e) {
                 // swallow exception when update output panel
             }
             return true;
@@ -157,7 +185,7 @@ public class PhasePanel extends JPanel {
     }
 
     private void updateStatus(Status status) {
-        UIUtil.invokeLaterIfNeeded(() -> {
+        UIUtil.invokeAndWaitIfNeeded((Runnable) () -> {
             this.updateStatusIcon(status);
             this.updateView(status, this.detailsPanel.isVisible());
             final boolean focused = status == Status.READY || status == Status.RUNNING || status == Status.FAILED;
@@ -201,7 +229,7 @@ public class PhasePanel extends JPanel {
         };
     }
 
-    private void toggleDetails(boolean expanded) {
+    public void toggleDetails(boolean expanded) {
         this.updateView(this.phase.getStatus(), expanded);
     }
 
@@ -250,6 +278,14 @@ public class PhasePanel extends JPanel {
         func.consume(c);
         Arrays.stream(c.getComponents()).filter(component -> component instanceof JPanel).forEach(child -> doForOffsprings((JComponent) child, func));
         Arrays.stream(c.getComponents()).filter(component -> component instanceof JTextPane || component instanceof JButton || component instanceof JTextField || component instanceof JComboBox).forEach(func::consume);
+    }
+
+    static void setTextAsync(final Supplier<String> supplier, @Nonnull final Consumer<String> consumer) {
+        Mono.fromCallable(supplier::get)
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe(text ->SwingUtilities.invokeLater(() -> consumer.consume(text)), (e) -> {
+                    // swallow exception when update text
+                });
     }
 
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES

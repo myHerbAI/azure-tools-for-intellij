@@ -23,7 +23,7 @@ import com.intellij.util.ui.PositionTracker;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
 import com.microsoft.azure.toolkit.ide.common.store.IIdeStore;
-import com.microsoft.azure.toolkit.intellij.common.IdeUtils;
+import com.microsoft.azure.toolkit.intellij.common.ProjectUtils;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -137,7 +137,7 @@ public class RatePopup {
                     AzureMessager.getMessager().success("Thank you for the feedback!");
                     popDaysLater(-1);
                 } else {
-                    final Project project = IdeUtils.getProject();
+                    final Project project = ProjectUtils.getProject();
                     MonkeySurvey.openInIDE(project, index + 1);
                     popDaysLater(180);
                 }
@@ -209,7 +209,7 @@ public class RatePopup {
         // popup 3 days later if the popup is faded out automatically
         popDaysLater(3);
 
-        final JFrame frame = ((JFrame) IdeUtils.getWindow(project));
+        final JFrame frame = ((JFrame) ProjectUtils.getWindow(project));
         if (RatePopup.balloon.isDisposed()) {
             return;
         }

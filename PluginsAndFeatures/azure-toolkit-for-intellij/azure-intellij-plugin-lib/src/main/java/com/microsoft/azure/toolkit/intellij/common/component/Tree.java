@@ -15,6 +15,7 @@ import com.intellij.util.ui.tree.TreeUtil;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.component.NodeView;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
@@ -31,7 +32,11 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -125,7 +130,7 @@ public class Tree extends SimpleTree implements DataProvider {
             synchronized (this.tree) {
                 final DefaultTreeModel model = (DefaultTreeModel) this.tree.getModel();
                 if (Objects.nonNull(model) && (Objects.nonNull(this.getParent()) || Objects.equals(model.getRoot(), this))) {
-                    model.nodeChanged(this);
+                    AzureTaskManager.getInstance().runLater(() -> model.nodeChanged(this));
                 }
             }
         }
@@ -134,7 +139,7 @@ public class Tree extends SimpleTree implements DataProvider {
             synchronized (this.tree) {
                 final DefaultTreeModel model = (DefaultTreeModel) this.tree.getModel();
                 if (Objects.nonNull(model) && (Objects.nonNull(this.getParent()) || Objects.equals(model.getRoot(), this))) {
-                    model.nodeStructureChanged(this);
+                    AzureTaskManager.getInstance().runLater(() -> model.nodeStructureChanged(this));
                 }
             }
         }
@@ -146,13 +151,11 @@ public class Tree extends SimpleTree implements DataProvider {
                 final DefaultTreeModel model = (DefaultTreeModel) this.tree.getModel();
                 if (incremental.length > 0 && incremental[0] && Objects.nonNull(model)) {
                     this.removeLoadMoreNode();
-                    this.refreshChildrenView();
-                    model.insertNodeInto(new LoadingNode(), this, this.getChildCount());
                 } else {
                     this.removeAllChildren();
-                    this.add(new LoadingNode());
-                    this.refreshChildrenView();
                 }
+                this.add(new LoadingNode());
+                this.refreshChildrenView();
                 this.loaded = null;
                 this.loadChildren(incremental);
             }
@@ -224,7 +227,7 @@ public class Tree extends SimpleTree implements DataProvider {
                 this.loaded = null;
                 if (this.getAllowsChildren()) {
                     this.add(new LoadingNode());
-                    this.tree.collapsePath(new TreePath(this.getPath()));
+                    AzureTaskManager.getInstance().runLater(() -> this.tree.collapsePath(new TreePath(this.getPath())));
                 }
                 this.refreshChildrenView();
             }

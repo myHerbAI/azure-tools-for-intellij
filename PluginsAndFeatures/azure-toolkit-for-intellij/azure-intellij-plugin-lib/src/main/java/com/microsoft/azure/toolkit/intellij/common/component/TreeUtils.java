@@ -19,17 +19,27 @@ import com.intellij.ui.AnimatedIcon;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.tree.TreeModelAdapter;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.microsoft.azure.toolkit.ide.common.component.NodeView;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.action.IntellijAzureActionManager;
 import com.microsoft.azure.toolkit.lib.AzService;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
+import com.microsoft.azure.toolkit.lib.resource.ResourcesServiceSubscription;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -38,6 +48,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
@@ -49,12 +60,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.StreamSupport;
 
 public class TreeUtils {
     public static final Key<Pair<Object, Long>> HIGHLIGHTED_RESOURCE_KEY = Key.create("TreeHighlightedResource");
-    public static final int INLINE_ACTION_ICON_OFFSET = 28;
+    public static final Key<List<AbstractAzResource<?, ?, ?>>> RESOURCES_TO_FOCUS_KEY = Key.create("ResourcesToFocus");
+    public static final int NODE_PADDING = 12;
     public static final int INLINE_ACTION_ICON_WIDTH = 16;
-    public static final int INLINE_ACTION_ICON_MARGIN = 8;
+    public static final int INLINE_ACTION_ICON_MARGIN = 4;
+    public static final String KEY_SCROLL_PANE = "SCROLL_PANE";
 
     public static void installSelectionListener(@Nonnull JTree tree) {
         tree.addTreeSelectionListener(e -> {
@@ -104,8 +120,8 @@ public class TreeUtils {
             @Override
             public void mouseMoved(MouseEvent e) {
                 final Tree.TreeNode<?> node = getTreeNodeAtMouse(tree, e);
-                final boolean isMouseAtActionIcon = isMouseAtInlineActionIcon(tree, e, Optional.ofNullable(node)
-                        .map(Tree.TreeNode::getInlineActionViews).map(List::size).orElse(0));
+                final boolean isMouseAtActionIcon = isHoverInlineAction(tree, e, Optional.ofNullable(node)
+                    .map(Tree.TreeNode::getInlineActionViews).map(List::size).orElse(0));
                 final Cursor cursor = isMouseAtActionIcon ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor();
                 tree.setCursor(cursor);
             }
@@ -145,11 +161,10 @@ public class TreeUtils {
             @Override
             public void mousePressed(MouseEvent e) {
                 final Tree.TreeNode<?> node = getTreeNodeAtMouse(tree, e);
-                final int inlineActionIndex = getHoverInlineActionIndex(tree, e);
                 final List<IView.Label> inlineActionViews = Optional.ofNullable(node)
-                        .map(Tree.TreeNode::getInlineActionViews).orElse(new ArrayList<>());
-                final boolean isMouseAtInlineActionIcon = isMouseAtInlineActionIcon(tree, e, inlineActionViews.size());
-                if (Objects.nonNull(node) && e.getClickCount() == 1 && isMouseAtInlineActionIcon) {
+                    .map(Tree.TreeNode::getInlineActionViews).orElse(new ArrayList<>());
+                final int inlineActionIndex = getHoverInlineActionIndex(tree, e, inlineActionViews.size());
+                if (Objects.nonNull(node) && e.getClickCount() == 1 && inlineActionIndex > -1) {
                     final String place = "azure.explorer." + (TreeUtils.isInAppCentricView(node) ? "app" : "type");
                     final DataContext context = DataManager.getInstance().getDataContext(tree);
                     final AnActionEvent event = AnActionEvent.createFromAnAction(new EmptyAction(), e, place, context);
@@ -173,17 +188,23 @@ public class TreeUtils {
         return null;
     }
 
-    private static boolean isMouseAtInlineActionIcon(@Nonnull JTree tree, MouseEvent e, int maxIndex) {
-        final int hoverIndex = getHoverInlineActionIndex(tree, e);
-        final int offset = tree.getWidth() - e.getX() - INLINE_ACTION_ICON_OFFSET + INLINE_ACTION_ICON_WIDTH - hoverIndex * (INLINE_ACTION_ICON_WIDTH + INLINE_ACTION_ICON_MARGIN);
-        final boolean isInActionIcon = offset > 0 && offset < INLINE_ACTION_ICON_WIDTH;
-        return hoverIndex >= 0 && hoverIndex <= maxIndex && isInActionIcon;
+    private static boolean isHoverInlineAction(@Nonnull JTree tree, MouseEvent e, int actionCount) {
+        return getHoverInlineActionIndex(tree, e, actionCount) > -1;
     }
 
-    private static int getHoverInlineActionIndex(@Nonnull JTree tree, MouseEvent e) {
-        final int width = tree.getWidth();
-        final int x = e.getX() - INLINE_ACTION_ICON_WIDTH;
-        return (width - x - INLINE_ACTION_ICON_OFFSET) / (INLINE_ACTION_ICON_WIDTH + INLINE_ACTION_ICON_MARGIN);
+    private static int getHoverInlineActionIndex(@Nonnull JTree tree, MouseEvent e, int actionCount) {
+        final JBScrollPane scrollPane = (JBScrollPane) tree.getClientProperty(KEY_SCROLL_PANE);
+        final Rectangle viewRect = scrollPane.getViewport().getViewRect();
+        // `viewRect.x` is the scrolled width, `viewRect.width` is the width of the visible view port.
+        final int rightX = viewRect.x + viewRect.width - NODE_PADDING; // the `right` edge of the right action icon.
+        final int iconBoxWidth = INLINE_ACTION_ICON_WIDTH + INLINE_ACTION_ICON_MARGIN;
+        final int distance = rightX - e.getX();
+        final int m = distance % iconBoxWidth;
+        if (m < INLINE_ACTION_ICON_MARGIN / 2 || m > INLINE_ACTION_ICON_WIDTH + INLINE_ACTION_ICON_MARGIN / 2) {// hover at the margin area between icons
+            return -1;
+        }
+        final int index = distance / iconBoxWidth;
+        return index < actionCount ? index : -1;
     }
 
     private static IntellijAzureActionManager.ActionGroupWrapper toIntellijActionGroup(IActionGroup actions) {
@@ -243,5 +264,104 @@ public class TreeUtils {
             tree.putClientProperty(HIGHLIGHTED_RESOURCE_KEY, Pair.of(resource, System.currentTimeMillis()));
             Optional.ofNullable(node).ifPresent(n -> TreeUtil.selectPath(tree, new TreePath(node.getPath()), false));
         }, AzureTask.Modality.ANY);
+    }
+
+    @Nullable
+    public static DefaultMutableTreeNode getExistingResourceParentNode(@Nonnull JTree tree, @Nonnull final AbstractAzResource<?, ?, ?> resource) {
+        AbstractAzResource<?, ?, ?> nodeResource = resource;
+        DefaultMutableTreeNode node = findResourceTreeNode(tree, nodeResource);
+        while (Objects.isNull(node) && Objects.nonNull(nodeResource)) {
+            if (nodeResource.getParent() instanceof ResourcesServiceSubscription) {
+                return findResourceTreeNode(tree, Azure.az(AzureResources.class));
+            }
+            nodeResource = nodeResource.getParent() instanceof AbstractAzServiceSubscription ?
+                    nodeResource.getResourceGroup() : (AbstractAzResource<?, ?, ?>) nodeResource.getParent();
+            node = Objects.isNull(nodeResource) ? null : findResourceTreeNode(tree, nodeResource);
+        }
+        return node;
+    }
+
+    public static void focusResource(@Nonnull final JTree tree, @Nonnull final AbstractAzResource<?, ?, ?> resource) {
+        final List<AbstractAzResource<?, ?, ?>> resourcesToFocus = getResourcesToFocus(tree);
+        final DefaultMutableTreeNode node = findResourceTreeNode(tree, resource);
+        if (Objects.isNull(node)) {
+            final DefaultMutableTreeNode parentNode = getExistingResourceParentNode(tree, resource);
+            Optional.ofNullable(parentNode).ifPresent(n -> {
+                resourcesToFocus.add(resource);
+                expandTreeNode(tree, n);
+            });
+        } else {
+            highlightResource(tree, resource);
+        }
+    }
+
+    private static List<AbstractAzResource<?, ?, ?>> getResourcesToFocus(@Nonnull final JTree tree) {
+        final Object clientProperty = tree.getClientProperty(RESOURCES_TO_FOCUS_KEY);
+        if (clientProperty instanceof List) {
+            return (List<AbstractAzResource<?, ?, ?>>) clientProperty;
+        } else {
+            final List<AbstractAzResource<?, ?, ?>> result = new ArrayList<>();
+            tree.putClientProperty(RESOURCES_TO_FOCUS_KEY, result);
+            return result;
+        }
+    }
+
+    public static boolean isParentResource(@Nonnull final Object parent, @Nonnull final AbstractAzResource<?, ?, ?> resource) {
+        if (parent instanceof AzureResources) {
+            return true;
+        }
+        if (parent instanceof ResourceGroup && StringUtils.equals(((ResourceGroup) parent).getName(), resource.getResourceGroupName()) &&
+                StringUtils.equals(((ResourceGroup) parent).getSubscriptionId(), resource.getSubscriptionId())) {
+            return true;
+        }
+        return (parent instanceof AbstractAzResource<?, ?, ?> && StringUtils.containsIgnoreCase(resource.getId(), ((AbstractAzResource<?, ?, ?>) parent).getId())) ||
+                (parent instanceof AbstractAzResourceModule<?, ?, ?> && StringUtils.containsIgnoreCase(resource.getId(),
+                        ((AbstractAzResourceModule<?, ?, ?>) parent).toResourceId(resource.getResourceGroupName(), resource.getName())));
+    }
+
+    public static void expandTreeNode(@Nonnull JTree tree, @Nonnull DefaultMutableTreeNode node) {
+        AzureTaskManager.getInstance().runLater(() -> tree.expandPath(new TreePath(node.getPath())), AzureTask.Modality.ANY);
+    }
+
+    @Nullable
+    public static DefaultMutableTreeNode findResourceTreeNode(@Nonnull JTree tree, @Nonnull Object resource) {
+        final Condition<DefaultMutableTreeNode> condition = n -> (resource instanceof AzService || isInAppCentricView(n)) &&
+                Objects.equals(n.getUserObject(), resource);
+        return TreeUtil.findNode((DefaultMutableTreeNode) tree.getModel().getRoot(), condition);
+    }
+
+    @AllArgsConstructor
+    public static class FocusResourceListener extends TreeModelAdapter {
+        private final JTree tree;
+
+        @Override
+        protected void process(@Nonnull TreeModelEvent event, @Nonnull EventType type) {
+            final Object[] path = event.getPath();
+            final Object sourceNode = ArrayUtils.isEmpty(path) ? null : path[path.length - 1];
+            if (type == EventType.StructureChanged && sourceNode instanceof Tree.TreeNode<?> && isInAppCentricView((DefaultMutableTreeNode) sourceNode)) {
+                final Tree.TreeNode<?> source = (Tree.TreeNode<?>) sourceNode;
+                final List<AbstractAzResource<?, ?, ?>> resourcesToShow = getResourcesToFocus(tree);
+                final List<AbstractAzResource<?, ?, ?>> targetResources = resourcesToShow.stream()
+                        .filter(resource -> isParentResource(source.getData(), resource)).toList();
+                for (final AbstractAzResource<?, ?, ?> targetResource : targetResources) {
+                    final Tree.TreeNode<?> treeNode = Objects.equals(source.getData(), targetResource) ? source :
+                            StreamSupport.stream(Spliterators.spliteratorUnknownSize(source.children().asIterator(), Spliterator.ORDERED), false)
+                                    .filter(node -> node instanceof Tree.TreeNode<?>)
+                                    .map(node -> (Tree.TreeNode<?>) node)
+                                    .filter(node -> ((Tree.TreeNode<?>) node).getData() != null && isParentResource(((Tree.TreeNode<?>) node).getData(), targetResource))
+                                    .findFirst().orElse(null);
+                    if (Objects.isNull(treeNode)) {
+                        // remove resource from list if its parent was not found
+                        resourcesToShow.remove(targetResource);
+                    } else if (Objects.equals(treeNode.getData(), targetResource)) {
+                        // remove resource from list if it was founded
+                        resourcesToShow.remove(targetResource);
+                        focusResource(tree, targetResource);
+                    } else {
+                        expandTreeNode(tree, treeNode);
+                    }
+                }
+            }
+        }
     }
 }

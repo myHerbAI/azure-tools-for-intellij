@@ -11,7 +11,6 @@ import com.intellij.database.dataSource.DatabaseDriverManagerImpl;
 import com.intellij.database.dataSource.url.ui.UrlPropertiesPanel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PreloadingActivity;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.util.registry.Registry;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
@@ -37,7 +36,7 @@ public class DbToolsWorkaround extends PreloadingActivity {
     public static final String COSMOS_CASSANDRA_DRIVER_CONFIG = "databaseDrivers/azure-cosmos-cassandra-drivers.xml";
 
     @Override
-    public void preload(@Nonnull ProgressIndicator indicator) {
+    public void preload() {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             DbToolsWorkaround.makeAccountShowAtTop();
             loadMongoDriver();

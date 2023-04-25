@@ -23,6 +23,8 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 
+import javax.accessibility.Accessible;
+import javax.accessibility.AccessibleContext;
 import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.event.FocusEvent;
@@ -37,6 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 
@@ -75,8 +78,13 @@ public class FunctionAppSettingsTableUtils {
         exportButton.registerCustomShortcutSet(KeyEvent.VK_E, InputEvent.ALT_DOWN_MASK, result);
 
         appSettingsTable.getSelectionModel().addListSelectionListener(listSelectionEvent -> {
+            final int selectedRow = appSettingsTable.getSelectedRow();
             final String prompt = AzureFunctionsConstants.getAppSettingHint(appSettingsTable.getSelectedKey());
             promptPanel.setText(prompt);
+            IntStream.range(0, appSettingsTable.getColumnCount()).forEach(col -> Optional.ofNullable(appSettingsTable.getAccessibleContext())
+                    .map(AccessibleContext::getAccessibleTable).map(table -> table.getAccessibleAt(selectedRow, col))
+                    .map(Accessible::getAccessibleContext)
+                    .ifPresent(context -> context.setAccessibleDescription(prompt)));
         });
 
         // todo: extract codes for app settings prompt panel

@@ -34,8 +34,8 @@ public class EclipseProjectComboBox extends AzureComboBox<IProject> {
     }
 
     @Override
-    @AzureOperation(name = "common.list_regions.subscription", // TODO: add properties
-            params = { "this.subscription.getId()" }, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(name = "internal/common.list_regions.subscription", // TODO: add properties
+            params = { "this.subscription.getId()" })
     protected List<? extends IProject> loadItems() {
         final IWorkspace workspace = ResourcesPlugin.getWorkspace();
         return Optional.ofNullable(workspace).map(IWorkspace::getRoot).map(IWorkspaceRoot::getProjects)

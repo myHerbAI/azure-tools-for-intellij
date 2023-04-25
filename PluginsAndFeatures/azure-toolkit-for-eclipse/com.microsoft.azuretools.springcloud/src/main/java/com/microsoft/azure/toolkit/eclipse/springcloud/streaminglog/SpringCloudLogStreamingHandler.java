@@ -11,6 +11,9 @@ import com.microsoft.azure.toolkit.eclipse.common.logstream.EclipseAzureLogStrea
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class SpringCloudLogStreamingHandler {
     public static void startLogStreaming(final SpringCloudApp app) {
         AzureTaskManager.getInstance().runLater(() -> {
@@ -19,8 +22,15 @@ public class SpringCloudLogStreamingHandler {
             dialog.setOkActionListener(instance -> {
                 dialog.close();
                 AzureTaskManager.getInstance().runLater(
-                        () -> EclipseAzureLogStreamingManager.getInstance().showLogStreaming(instance.name(),
-                                instance.name(), app.getActiveDeployment().streamLogs(instance.name())));
+                        () -> {
+                            final Map<String, String> streamingLogsParamters = new HashMap<>();
+                            streamingLogsParamters.put("follow", String.valueOf(true));
+                            streamingLogsParamters.put("tailLines", String.valueOf(500));
+                            streamingLogsParamters.put("sinceSeconds", String.valueOf(300));
+                            streamingLogsParamters.put("limitBytes", String.valueOf(1024 * 1024));
+                            EclipseAzureLogStreamingManager.getInstance().showLogStreaming(instance.name(),
+                                    instance.name(), app.getActiveDeployment().streamingLogs(app.getLogStreamingEndpoint(instance.name()), streamingLogsParamters));
+                        });
             });
             dialog.open();
         });

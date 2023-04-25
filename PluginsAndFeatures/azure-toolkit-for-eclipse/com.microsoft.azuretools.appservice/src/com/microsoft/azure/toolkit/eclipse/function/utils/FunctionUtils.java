@@ -74,9 +74,8 @@ public class FunctionUtils {
     }
 
     @AzureOperation(
-            name = "function.clean_staging_folder",
-            params = {"stagingFolder.getName()"},
-            type = AzureOperation.Type.TASK
+            name = "boundary/function.clean_staging_folder.folder",
+            params = {"stagingFolder.getName()"}
     )
     public static void cleanUpStagingFolder(File stagingFolder) {
         try {
@@ -89,19 +88,13 @@ public class FunctionUtils {
     }
 
     @AzureOperation(
-            name = "function.list_function_modules",
-            params = {"project.getName()"},
-            type = AzureOperation.Type.TASK
+            name = "boundary/function.list_function_modules.project",
+            params = {"project.getName()"}
     )
     public static IJavaProject[] listFunctionProjects() {
         return listJavaProjects().stream().filter(FunctionUtils::isFunctionProject).toArray(IJavaProject[]::new);
     }
 
-    @AzureOperation(
-            name = "common.validate_project",
-            params = {"project.getName()"},
-            type = AzureOperation.Type.TASK
-    )
     public static boolean isFunctionProject(IJavaProject project) {
         if (project == null) {
             return false;

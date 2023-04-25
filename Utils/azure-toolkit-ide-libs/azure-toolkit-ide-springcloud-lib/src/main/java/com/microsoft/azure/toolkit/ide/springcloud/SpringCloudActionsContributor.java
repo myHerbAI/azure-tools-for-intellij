@@ -27,6 +27,7 @@ public class SpringCloudActionsContributor implements IActionsContributor {
     public static final String CLUSTER_ACTIONS = "actions.springcloud.cluster";
     public static final String SERVICE_ACTIONS = "actions.springcloud.service";
     public static final String APP_INSTANCE_ACTIONS = "actions.springcould.appInstance";
+    public static final String APP_INSTANCE_MODULE_ACTIONS = "actions.springcould.app_instance_module";
     public static final Action.Id<SpringCloudApp> OPEN_PUBLIC_URL = Action.Id.of("user/springcloud.open_public_url.app");
     public static final Action.Id<SpringCloudApp> OPEN_TEST_URL = Action.Id.of("user/springcloud.open_test_url.app");
     public static final Action.Id<SpringCloudApp> STREAM_LOG_APP = Action.Id.of("user/springcloud.open_stream_log.app");
@@ -60,7 +61,6 @@ public class SpringCloudActionsContributor implements IActionsContributor {
 
         new Action<>(STREAM_LOG_APP)
             .visibleWhen(s -> s instanceof SpringCloudApp)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
             .withLabel("Start Streaming Logs")
             .withIcon(AzureIcons.Action.LOG.getIconPath())
             .withIdParam(AbstractAzResource::getName)
@@ -68,7 +68,6 @@ public class SpringCloudActionsContributor implements IActionsContributor {
 
         new Action<>(STREAM_LOG)
             .visibleWhen(s -> s instanceof SpringCloudAppInstance)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
             .withLabel("Start Streaming Logs")
             .withIcon(AzureIcons.Action.LOG.getIconPath())
             .withIdParam(AbstractAzResource::getName)
@@ -154,6 +153,11 @@ public class SpringCloudActionsContributor implements IActionsContributor {
             SpringCloudActionsContributor.STREAM_LOG_APP
         );
         am.registerGroup(APP_ACTIONS, appActionGroup);
+
+        final ActionGroup appInstanceModuleGroup = new ActionGroup(
+                ResourceCommonActionsContributor.REFRESH
+        );
+        am.registerGroup(APP_INSTANCE_MODULE_ACTIONS, appInstanceModuleGroup);
 
         final ActionGroup appInstanceGroup = new ActionGroup(
             ResourceCommonActionsContributor.REFRESH,

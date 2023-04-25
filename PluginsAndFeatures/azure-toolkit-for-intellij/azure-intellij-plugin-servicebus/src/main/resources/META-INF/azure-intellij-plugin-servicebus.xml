@@ -1,0 +1,13 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
+        <explorerNodeProvider implementation="com.microsoft.azure.toolkit.ide.servicebus.ServiceBusNodeProvider"/>
+        <actions implementation="com.microsoft.azure.toolkit.ide.servicebus.ServiceBusActionsContributor"/>
+        <actions implementation="com.microsoft.azure.toolkit.intellij.servicebus.IntelliJServiceBusActionsContributor"/>
+    </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+    <toolWindow anchor="bottom"
+                icon="/icons/Common/service_bus.svg"
+                factoryClass="com.microsoft.azure.toolkit.intellij.servicebus.view.ServiceBusToolWindowManager$ServiceBusToolWindowFactory"
+                id="Azure Service Bus" canCloseContents="true"/>
+    </extensions>
+</idea-plugin>

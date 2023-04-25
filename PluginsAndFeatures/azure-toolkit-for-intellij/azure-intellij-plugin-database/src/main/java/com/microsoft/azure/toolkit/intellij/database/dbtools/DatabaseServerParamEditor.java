@@ -89,6 +89,8 @@ public class DatabaseServerParamEditor extends ParamEditorBase<DatabaseServerPar
         final boolean isModifying = StringUtils.isNotBlank(dataSource.getUsername());
         if (isModifying && Objects.nonNull(serverId)) {
             combox.setValue(new AzureComboBox.ItemReference<>(i -> i.getId().equals(serverId)));
+        } else if (Objects.isNull(serverId)) {
+            combox.setValue((IDatabaseServer<?>) null);
         }
 
         interchange.addPropertyChangeListener((evt -> onPropertiesChanged(evt.getPropertyName(), evt.getNewValue())), this);

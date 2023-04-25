@@ -21,6 +21,7 @@ import com.microsoft.azure.toolkit.intellij.database.component.ConnectionSecurit
 import com.microsoft.azure.toolkit.intellij.database.mysql.creation.MySqlCreationDialog;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import com.microsoft.azure.toolkit.lib.postgre.AzurePostgreSql;
@@ -79,8 +80,10 @@ public class PostgreSqlCreationAdvancedPanel extends JPanel implements AzureForm
             Azure.az(AzurePostgreSql.class).forSubscription(this.subscriptionComboBox.getValue().getId()).listSupportedRegions());
         regionComboBox.addValidator(new BaseRegionValidator(regionComboBox, (sid, region) ->
             Azure.az(AzurePostgreSql.class).forSubscription(sid).checkRegionAvailability(region)));
-        serverNameTextField.addValidator(new BaseNameValidator(serverNameTextField, (sid, name) ->
-            Azure.az(AzurePostgreSql.class).forSubscription(sid).checkNameAvailability(name)));
+        serverNameTextField.addValidator(new BaseNameValidator(serverNameTextField, (sid, name) -> {
+            final Region region = config.getRegion();
+            return Azure.az(AzurePostgreSql.class).forSubscription(sid).checkNameAvailability(region.getName(), name);
+        }));
     }
 
     private void initListeners() {

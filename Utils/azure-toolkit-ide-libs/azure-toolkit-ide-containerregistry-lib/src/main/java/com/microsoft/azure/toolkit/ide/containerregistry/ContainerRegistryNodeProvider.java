@@ -13,9 +13,12 @@ import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.containerregistry.AzureContainerRegistry;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
+import com.microsoft.azure.toolkit.lib.containerregistry.Repository;
+import com.microsoft.azure.toolkit.lib.containerregistry.Tag;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -34,7 +37,8 @@ public class ContainerRegistryNodeProvider implements IExplorerNodeProvider {
 
     @Override
     public boolean accept(@Nonnull Object data, @Nullable Node<?> parent, ViewType type) {
-        return data instanceof AzureContainerRegistry || data instanceof ContainerRegistry;
+        return data instanceof AzureContainerRegistry || data instanceof ContainerRegistry ||
+            data instanceof Repository || data instanceof Tag;
     }
 
     @Nullable
@@ -50,10 +54,26 @@ public class ContainerRegistryNodeProvider implements IExplorerNodeProvider {
         } else if (data instanceof ContainerRegistry) {
             final ContainerRegistry server = (ContainerRegistry) data;
             return new Node<>(server)
-                .view(new AzureResourceLabelView<>(server))
+                .view(new AzureResourceLabelView<>(server, ContainerRegistry::getLoginServerUrl))
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .doubleClickAction(ResourceCommonActionsContributor.SHOW_PROPERTIES)
-                .actions(ContainerRegistryActionsContributor.REGISTRY_ACTIONS);
+                .actions(ContainerRegistryActionsContributor.REGISTRY_ACTIONS)
+                .addChildren(r -> r.getRepositoryModule().list(), ((repository, registryNode) -> this.createNode(repository, registryNode, manager)))
+                .hasMoreChildren(c -> c.getRepositoryModule().hasMoreResources())
+                .loadMoreChildren(c -> c.getRepositoryModule().loadMoreResources());
+        } else if (data instanceof Repository) {
+            final Repository repository = (Repository) data;
+            return new Node<>(repository)
+                .view(new AzureResourceLabelView<>(repository, r -> ""))
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
+                .actions(ContainerRegistryActionsContributor.REPOSITORY_ACTIONS)
+                .addChildren(r -> r.getArtifactModule().list().stream().flatMap(i -> i.getTagModule().list().stream()).collect(Collectors.toList()), ((tag, repositoryNode) -> this.createNode(tag, repositoryNode, manager)))
+                .hasMoreChildren(c -> c.getArtifactModule().hasMoreResources())
+                .loadMoreChildren(c -> c.getArtifactModule().loadMoreResources());
+        } else if (data instanceof Tag) {
+            final Tag tag = (Tag) data;
+            return new Node<>(tag).view(new AzureResourceLabelView<>(tag, t -> t.getLastUpdatedOn().format(DateTimeFormatter.RFC_1123_DATE_TIME)))
+                .actions(ContainerRegistryActionsContributor.TAG_ACTIONS);
         }
         return null;
     }

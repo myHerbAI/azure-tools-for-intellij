@@ -70,7 +70,7 @@ public class DeploySpringCloudAppAction {
         });
     }
 
-    @AzureOperation(name = "springcloud.deploy", params = "config.getAppName()", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/springcloud.deploy", params = "config.getAppName()")
     private static void deployToApp(@Nonnull SpringCloudAppConfig config) {
         AzureTaskManager.getInstance().runLater(() -> {
             final AzureAsyncConsoleJob job = new AzureAsyncConsoleJob("Deploy to Azure Spring Apps");
@@ -85,7 +85,7 @@ public class DeploySpringCloudAppAction {
             job.setSupplier(() -> {
                 final AzureString title = OperationBundle.description("springcloud.create_update_app", config.getAppName());
                 final AzureTask<Void> task = new AzureTask<Void>(title, () -> execute(config, messager));
-                task.setType(AzureOperation.Type.ACTION.name());
+                task.setType("user");
                 AzureTaskManager.getInstance().runImmediatelyAsObservable(task).subscribe();
                 return Status.OK_STATUS;
             });
@@ -93,7 +93,7 @@ public class DeploySpringCloudAppAction {
         });
     }
 
-    @AzureOperation(name = "springcloud.create_update_app.app", params = {"appConfig.getAppName()"}, type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "internal/springcloud.create_update_app.app", params = {"appConfig.getAppName()"})
     private static SpringCloudDeployment execute(SpringCloudAppConfig appConfig, IAzureMessager messager) {
         OperationContext.current().setMessager(messager);
         final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig);

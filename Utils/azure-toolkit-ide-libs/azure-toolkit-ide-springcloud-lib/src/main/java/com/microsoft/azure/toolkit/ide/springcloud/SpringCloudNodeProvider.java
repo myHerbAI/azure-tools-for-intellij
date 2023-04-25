@@ -7,15 +7,11 @@ package com.microsoft.azure.toolkit.ide.springcloud;
 
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.component.AzureResourceLabelView;
-import com.microsoft.azure.toolkit.ide.common.component.AzureServiceLabelView;
-import com.microsoft.azure.toolkit.ide.common.component.Node;
+import com.microsoft.azure.toolkit.ide.common.component.*;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
-import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppInstance;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
+import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinker;
+import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
+import com.microsoft.azure.toolkit.lib.springcloud.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -73,13 +69,29 @@ public class SpringCloudNodeProvider implements IExplorerNodeProvider {
                 .addInlineAction(ResourceCommonActionsContributor.DEPLOY)
                 .doubleClickAction(ResourceCommonActionsContributor.SHOW_PROPERTIES)
                 .actions(SpringCloudActionsContributor.APP_ACTIONS)
-                .addChildren(c -> Optional.ofNullable(c.getActiveDeployment()).map(SpringCloudDeployment::getInstances).orElse(Collections.emptyList()),
-                    (appInstance, appNode) -> this.createNode(appInstance, appNode, manager));
-        } else if (data instanceof SpringCloudAppInstance) {
+                .addChildren(c -> Optional.ofNullable(c.getActiveDeployment()).map(SpringCloudDeployment::getSubModules).orElse(Collections.emptyList()),
+                    (instanceModule, moduleNode) -> this.createNode(instanceModule, moduleNode, manager));
+        } else if (data instanceof SpringCloudAppInstanceModule) {
+            final SpringCloudAppInstanceModule module = (SpringCloudAppInstanceModule) data;
+            return new Node<>(module)
+                    .view(new AzureModuleLabelView<>(module, "Instances", AzureIcons.SpringCloud.INSTANCE_MODULE.getIconPath()))
+                    .actions(SpringCloudActionsContributor.APP_INSTANCE_MODULE_ACTIONS)
+                    .addChildren(SpringCloudAppInstanceModule::list, (d, p) -> this.createNode(d, p, manager));
+        }
+        else if (data instanceof SpringCloudAppInstance) {
             final SpringCloudAppInstance appInstance = (SpringCloudAppInstance) data;
             return new Node<>(appInstance)
                 .view(new AzureResourceLabelView<>(appInstance))
                 .actions(SpringCloudActionsContributor.APP_INSTANCE_ACTIONS);
+        } else if (data instanceof ServiceLinkerModule) {
+            final ServiceLinkerModule module = (ServiceLinkerModule) data;
+            return new Node<>(module)
+                    .view(new AzureModuleLabelView<>(module, "Service Connectors", AzureIcons.Connector.SERVICE_LINKER_MODULE.getIconPath()))
+                    .actions(ResourceCommonActionsContributor.SERVICE_LINKER_MODULE_ACTIONS)
+                    .addChildren(ServiceLinkerModule::list, (d, p) -> this.createNode(d, p, manager));
+        } else if (data instanceof ServiceLinker) {
+            final ServiceLinker serviceLinker = (ServiceLinker) data;
+            return new ServiceLinkerNode(serviceLinker);
         }
         return null;
     }

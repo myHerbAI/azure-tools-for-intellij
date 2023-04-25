@@ -25,6 +25,7 @@ import javax.swing.*;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -89,7 +90,7 @@ public class AppServiceInfoBasicPanel<T extends AppServiceConfig> extends JPanel
 
         if (Objects.nonNull(artifact)) {
             final AzureArtifactManager manager = AzureArtifactManager.getInstance(this.project);
-            final String path = manager.getFileForDeployment(this.selectorApplication.getValue());
+            final String path = this.selectorApplication.getValue().getFileForDeployment();
             result.setApplication(Paths.get(path));
         }
         this.config = result;
@@ -132,5 +133,11 @@ public class AppServiceInfoBasicPanel<T extends AppServiceConfig> extends JPanel
         this.deploymentTitle.setVisible(visible);
         this.lblArtifact.setVisible(visible);
         this.selectorApplication.setVisible(visible);
+    }
+
+    public void setFixedRuntime(final Runtime runtime) {
+        selectorRuntime.setPlatformList(Collections.singletonList(runtime));
+        lblPlatform.setVisible(false);
+        selectorRuntime.setVisible(false);
     }
 }

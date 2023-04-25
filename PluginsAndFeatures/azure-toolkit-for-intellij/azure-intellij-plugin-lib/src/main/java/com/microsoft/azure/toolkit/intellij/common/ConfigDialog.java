@@ -8,11 +8,11 @@ package com.microsoft.azure.toolkit.intellij.common;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 
-@Log
+@Slf4j
 public abstract class ConfigDialog<T> extends AzureDialog<T> {
     protected Project project;
     private JCheckBox checkboxMode;

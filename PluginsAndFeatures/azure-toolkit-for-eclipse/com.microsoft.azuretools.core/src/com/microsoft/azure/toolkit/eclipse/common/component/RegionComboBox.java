@@ -50,9 +50,8 @@ public class RegionComboBox extends AzureComboBox<Region> {
     @Nonnull
     @Override
     @AzureOperation(
-        name = "common.list_regions.subscription", //TODO: add properties
-        params = {"this.subscription.getId()"},
-        type = AzureOperation.Type.SERVICE
+        name = "internal/common.list_regions.subscription", //TODO: add properties
+        params = {"this.subscription.getId()"}
     )
     protected List<? extends Region> loadItems() throws Exception {
         if (Objects.nonNull(this.subscription)) {

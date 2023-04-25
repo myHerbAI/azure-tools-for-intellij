@@ -9,7 +9,9 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceUtils;
 import com.google.gson.JsonObject;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
-import com.microsoft.azure.toolkit.intellij.common.StreamingLogsToolWindowManager;
+import com.microsoft.azure.toolkit.intellij.common.streaminglog.StreamingLogsConsoleView;
+import com.microsoft.azure.toolkit.intellij.common.streaminglog.StreamingLogsManager;
+import com.microsoft.azure.toolkit.intellij.common.streaminglog.StreamingLogsToolWindowManager;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
 import com.microsoft.azure.toolkit.lib.applicationinsights.AzureApplicationInsights;
@@ -62,7 +64,7 @@ public enum AppServiceStreamingLogManager {
     private static final String SUBSCRIPTIONS = "subscriptions";
     private static final String[] YES_NO = {"Yes", "No"};
 
-    private final Map<String, AppServiceStreamingLogConsoleView> consoleViewMap = new HashMap<>();
+    private final Map<String, StreamingLogsConsoleView> consoleViewMap = new HashMap<>();
 
     public void showWebAppDeploymentSlotStreamingLog(Project project, String slotId) {
         showAppServiceStreamingLog(project, slotId, new WebAppSlotLogStreaming(slotId));
@@ -82,21 +84,17 @@ public enum AppServiceStreamingLogManager {
 
     @AzureOperation(name = "user/appservice.close_log_stream.app", params = {"nameFromResourceId(appId)"})
     public void closeStreamingLog(Project project, String appId) {
-        if (consoleViewMap.containsKey(appId) && consoleViewMap.get(appId).isActive()) {
-            consoleViewMap.get(appId).closeStreamingLog();
-        } else {
-            AzureTaskManager.getInstance().runLater(() -> AzureMessager.getMessager().error(STREAMING_LOG_NOT_STARTED, FAILED_TO_CLOSE_STREAMING_LOG));
-        }
+        StreamingLogsManager.getInstance().closeStreamingLog(project, appId);
     }
 
     @AzureOperation(name = "user/appservice.open_log_stream.app", params = {"nameFromResourceId(resourceId)"})
     private void showAppServiceStreamingLog(Project project, String resourceId, ILogStreaming logStreaming) {
         final Action<Void> retry = Action.retryFromFailure(() -> this.showAppServiceStreamingLog(project, resourceId, logStreaming));
         final AzureString title = OperationBundle.description("user/appservice.open_log_stream.app", ResourceUtils.nameFromResourceId(resourceId));
-        AzureTaskManager.getInstance().runInBackground(new AzureTask(project, title, false, () -> {
+        AzureTaskManager.getInstance().runInBackground(new AzureTask<>(project, title, false, () -> {
             try {
                 final String name = logStreaming.getTitle();
-                final AppServiceStreamingLogConsoleView consoleView = getOrCreateConsoleView(project, resourceId);
+                final StreamingLogsConsoleView consoleView = getOrCreateConsoleView(project, resourceId);
                 if (!consoleView.isActive()) {
                     if (!logStreaming.isLogStreamingEnabled()) {
                         // Enable Log Streaming if log streaming of target is not enabled
@@ -125,9 +123,9 @@ public enum AppServiceStreamingLogManager {
         }));
     }
 
-    private AppServiceStreamingLogConsoleView getOrCreateConsoleView(Project project, String resourceId) {
+    private StreamingLogsConsoleView getOrCreateConsoleView(Project project, String resourceId) {
         return consoleViewMap.compute(resourceId,
-            (id, view) -> (view == null || view.isDisposed()) ? new AppServiceStreamingLogConsoleView(project, id) : view);
+            (id, view) -> (view == null || view.isDisposed()) ? new StreamingLogsConsoleView(project) : view);
     }
 
     interface ILogStreaming {
@@ -175,7 +173,7 @@ public enum AppServiceStreamingLogManager {
                 openLiveMetricsStream();
                 return null;
             }
-            return functionApp.streamAllLogsAsync();
+            return functionApp.streamingLogs(null, null);
         }
 
         // Refers https://github.com/microsoft/vscode-azurefunctions/blob/v0.22.0.JAVA17/src/
@@ -266,7 +264,7 @@ public enum AppServiceStreamingLogManager {
 
         @Override
         public Flux<String> getStreamingLogContent() {
-            return webApp.streamAllLogsAsync();
+            return webApp.streamingLogs(null, null);
         }
     }
 
@@ -299,7 +297,7 @@ public enum AppServiceStreamingLogManager {
 
         @Override
         public Flux<String> getStreamingLogContent() {
-            return deploymentSlot.streamAllLogsAsync();
+            return deploymentSlot.streamingLogs(null, null);
         }
     }
 

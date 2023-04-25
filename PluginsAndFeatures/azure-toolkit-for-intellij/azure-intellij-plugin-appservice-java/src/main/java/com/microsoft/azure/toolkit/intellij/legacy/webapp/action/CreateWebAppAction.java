@@ -94,8 +94,7 @@ public class CreateWebAppAction {
     }
 
     private static void notifyDeploymentSuccess(final WebApp app) {
-        final String title = message("webapp.deploy.success.title");
         final String message = message("webapp.deploy.success.message", app.getName());
-        AzureMessager.getMessager().success(message, title);
+        AzureMessager.getMessager().success(message);
     }
 }

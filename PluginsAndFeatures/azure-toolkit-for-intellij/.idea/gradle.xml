@@ -4,8 +4,6 @@
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
-        <option name="delegatedBuild" value="true" />
-        <option name="testRunner" value="GRADLE" />
         <option name="distributionType" value="WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="gradleHome" value="$USER_HOME$/Tools/gradle-7.1.1-all/gradle-7.1.1" />
@@ -31,6 +29,7 @@
             <option value="$PROJECT_DIR$/azure-intellij-plugin-monitor" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-redis" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-service-explorer" />
+            <option value="$PROJECT_DIR$/azure-intellij-plugin-servicebus" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-springcloud" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-storage" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-vm" />
@@ -43,7 +42,6 @@
         </option>
       </GradleProjectSettings>
       <GradleProjectSettings>
-        <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$/azure-intellij-plugin-base" />
         <option name="gradleHome" value="$PROJECT_DIR$/../../../../../../Program Files/Gradle/gradle-6.5.1" />
         <option name="modules">

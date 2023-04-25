@@ -10,16 +10,14 @@ import com.intellij.database.dataSource.DatabaseDriverManager;
 import com.intellij.database.dataSource.url.template.UrlTemplate;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PreloadingActivity;
-import com.intellij.openapi.progress.ProgressIndicator;
 
-import javax.annotation.Nonnull;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
 public class DatabaseDbToolsWorkaround extends PreloadingActivity {
     @Override
-    public void preload(@Nonnull ProgressIndicator indicator) {
+    public void preload() {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             loadMySqlAzureTemplates();
             loadPostgreSqlAzureTemplates();

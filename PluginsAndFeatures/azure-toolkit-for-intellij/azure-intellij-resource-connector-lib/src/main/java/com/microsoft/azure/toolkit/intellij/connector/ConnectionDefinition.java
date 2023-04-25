@@ -123,7 +123,6 @@ public class ConnectionDefinition<R, C> {
         final List<Connection<?, ?>> existedConnections = connectionManager.getConnectionsByConsumerId(consumer.getId());
         if (CollectionUtils.isNotEmpty(existedConnections)) {
             final Connection<?, ?> existedConnection = existedConnections.stream()
-                    .filter(e -> Objects.equals(e.getResource().getDefinition(), this.resourceDefinition))
                     .filter(e -> StringUtils.equals(e.getEnvPrefix(), connection.getEnvPrefix()))
                     .findFirst().orElse(null);
             if (Objects.nonNull(existedConnection)) { // modified

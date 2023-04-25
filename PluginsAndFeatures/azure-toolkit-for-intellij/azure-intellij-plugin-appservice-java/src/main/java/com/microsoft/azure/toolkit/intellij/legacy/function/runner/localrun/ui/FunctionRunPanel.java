@@ -213,6 +213,11 @@ public class FunctionRunPanel extends AzureSettingPanel<FunctionRunConfiguration
         }
     }
 
+    @Override
+    protected boolean shouldInitializeBeforeRunTasks() {
+        return false;
+    }
+
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES
     void $$$setupUI$$$() {
     }

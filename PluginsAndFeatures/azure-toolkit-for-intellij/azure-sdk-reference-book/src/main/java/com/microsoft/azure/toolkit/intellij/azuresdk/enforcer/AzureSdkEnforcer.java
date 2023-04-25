@@ -26,8 +26,11 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * {@code AzureSdkEnforcer} detects deprecated Azure SDK libs in project and warn
@@ -55,9 +58,10 @@ public class AzureSdkEnforcer {
     private static void warnDeprecatedLibs(@AzureTelemetry.Property List<? extends AzureJavaSdkEntity> deprecatedLibs) {
         final String message = buildMessage(deprecatedLibs);
         final AzureActionManager am = AzureActionManager.getInstance();
-        final Action<?> referenceBook = am.getAction(Action.Id.of(OpenReferenceBookAction.ID));
-        final Action<?> neverShowAgain = am.getAction(Action.Id.of(IntellijNeverShowAgainAction.ID));
-        AzureMessager.getMessager().warning(message, "Deprecated Azure SDK libraries Detected", referenceBook, neverShowAgain);
+        final Action<?> referenceBook = Optional.ofNullable(am).map(manager -> manager.getAction(Action.Id.of(OpenReferenceBookAction.ID))).orElse(null);
+        final Action<?> neverShowAgain = Optional.ofNullable(am).map(manager -> manager.getAction(Action.Id.of(IntellijNeverShowAgainAction.ID))).orElse(null);
+        final Action<?>[] actions = Stream.of(referenceBook, neverShowAgain).filter(Objects::nonNull).toArray(Action[]::new);
+        AzureMessager.getMessager().warning(message, "Deprecated Azure SDK libraries Detected", actions);
     }
 
     private static String buildMessage(@Nonnull List<? extends AzureJavaSdkEntity> libs) {

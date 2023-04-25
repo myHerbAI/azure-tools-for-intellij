@@ -17,7 +17,7 @@ import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
-import com.microsoft.azure.toolkit.intellij.common.IdeUtils;
+import com.microsoft.azure.toolkit.intellij.common.ProjectUtils;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.ConnectionManager;
@@ -73,7 +73,7 @@ public class FunctionConnectionComboBox extends AzureComboBox<FunctionConnection
     @Nullable
     private VirtualFile getLocalSettingsFromModule(final Module module) {
         return ReadAction.compute(() -> FilenameIndex.getVirtualFilesByName("local.settings.json", GlobalSearchScope.projectScope(project))).stream()
-                .filter(file -> IdeUtils.isSameModule(ModuleUtil.findModuleForFile(file, project), module))
+                .filter(file -> ProjectUtils.isSameModule(ModuleUtil.findModuleForFile(file, project), module))
                 .filter(file -> Objects.nonNull(file.getCanonicalPath()))
                 .min(Comparator.comparing(VirtualFile::getCanonicalPath))
                 .orElse(null);

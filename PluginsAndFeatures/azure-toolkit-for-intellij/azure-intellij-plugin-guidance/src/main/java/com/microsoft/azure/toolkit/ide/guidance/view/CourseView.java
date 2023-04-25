@@ -13,7 +13,9 @@ import com.microsoft.azure.toolkit.ide.guidance.Phase;
 import com.microsoft.azure.toolkit.ide.guidance.phase.PhaseManager;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
@@ -21,6 +23,8 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class CourseView {
     private JPanel contentPanel;
@@ -48,17 +52,34 @@ public class CourseView {
         this.closeButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (AzureMessager.getMessager().confirm("Some steps might be lost, are you sure to abort current process?")) {
-                    GuidanceViewManager.getInstance().showCoursesView(project);
-                }
+                GuidanceViewManager.getInstance().showCoursesView(project);
             }
         });
     }
 
-    public void setCourse(@Nonnull Course course) {
+    public boolean closeCourse() {
+        if (Objects.nonNull(course) && !AzureMessager.getMessager().confirm("Some steps might be lost, are you sure to abort current process?")) {
+            return false;
+        }
+        Optional.ofNullable(course).ifPresent(Course::dispose);
+        this.course = null;
+        this.setVisible(false);
+        return true;
+    }
+
+    public void openCourse(@Nonnull Course course) {
+        final String currentCourseId = Optional.ofNullable(this.course).map(Course::getId).orElse(null);
+        if (StringUtils.equals(currentCourseId, course.getId())) {
+            return;
+        }
+        if (!closeCourse()) {
+            return;
+        }
         this.course = course;
         this.guidanceIcon.setIcon(IntelliJAzureIcons.getIcon(AzureIcons.Common.AZURE));
         this.titleLabel.setText(course.getTitle());
+        this.setVisible(true);
+        AzureTaskManager.getInstance().runOnPooledThread(course::prepare);
         fillPhase(course);
     }
 

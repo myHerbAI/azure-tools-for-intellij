@@ -9,7 +9,7 @@ dependencies {
     implementation project(':azure-intellij-plugin-guidance')
     implementation project(':azure-intellij-resource-connector-lib')
     implementation project(':azure-intellij-plugin-containerregistry')
-    implementation 'com.spotify:docker-client:8.16.0'
+    implementation 'com.github.docker-java:docker-java:3.3.0'
     implementation 'com.microsoft.azure:azure-toolkit-appservice-lib'
     implementation 'com.microsoft.azure:azure-toolkit-ide-appservice-lib'
     implementation 'com.microsoft.azure:azure-toolkit-ide-containerregistry-lib'

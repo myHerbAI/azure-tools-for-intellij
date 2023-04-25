@@ -27,8 +27,6 @@ import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
 import reactor.core.publisher.Mono;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -58,7 +56,7 @@ public class AzureArtifactManager {
     private AzureArtifactManager() {
     }
 
-    public static Mono<IStatus> buildArtifact(@Nonnull AzureArtifact artifact) {
+    public static Mono<IStatus> buildArtifact(AzureArtifact artifact) {
         return Mono.create((sink) -> {
             final Object ref = artifact.getReferencedObject();
             if (ref instanceof MavenProject) {
@@ -161,9 +159,8 @@ public class AzureArtifactManager {
     }
 
     @AzureOperation(
-        name = "common.get_artifact_file.artifact",
-        params = {"artifact.getName()"},
-        type = AzureOperation.Type.TASK
+        name = "internal/common.get_artifact_file.artifact",
+        params = {"artifact.getName()"}
     )
     public File getFileForDeployment(AzureArtifact artifact) {
         switch (artifact.getType()) {
@@ -193,7 +190,6 @@ public class AzureArtifactManager {
         return files.iterator().next();
     }
 
-    @Nullable
     protected static File getExecutableJarFiles(File dir, Collection<File> files) throws AzureToolkitRuntimeException {
         if (files.isEmpty()) {
             return null;

@@ -71,6 +71,7 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
     private final IntelliJWebAppSettingModel webAppSettingModel;
 
     private final Map<String, String> appSettingsForResourceConnection = new HashMap<>();
+    private static final String DEPLOYMENT_SUCCEED = "Deployment succeed but the app is still starting at server side.";
 
     /**
      * Place to execute the Web App deployment task.
@@ -169,8 +170,8 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
     }
 
     private Set<String> getAppSettingsToRemove(final WebAppBase<?, ?, ?> target, final Map<String, String> applicationSettings) {
-        return target.getAppSettings().keySet().stream()
-                .filter(key -> !applicationSettings.containsKey(key))
+        return Optional.ofNullable(target.getAppSettings()).map(Map::keySet).orElse(Collections.emptySet())
+                .stream().filter(key -> !applicationSettings.containsKey(key))
                 .collect(Collectors.toSet());
     }
 
@@ -198,7 +199,7 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
         final String fileName = FileNameUtils.getBaseName(artifact.getName());
         final String fileType = FileNameUtils.getExtension(artifact.getName());
         final String url = getUrl(result, fileName, fileType);
-        processHandler.setText(message("appService.deploy.hint.succeed"));
+        processHandler.setText(DEPLOYMENT_SUCCEED);
         processHandler.setText("URL: " + url);
         if (webAppSettingModel.isOpenBrowserAfterDeployment()) {
             openWebAppInBrowser(url, processHandler);
@@ -225,7 +226,8 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
         if (StringUtils.equals(webAppSettingModel.getSlotName(), Constants.CREATE_NEW_SLOT)) {
             return AzureWebAppMvpModel.getInstance().createDeploymentSlotFromSettingModel(webApp, webAppSettingModel);
         } else {
-            return Objects.requireNonNull(webApp.slots().get(webAppSettingModel.getSlotName(), webAppSettingModel.getResourceGroup()));
+            return Objects.requireNonNull(webApp.slots().get(webAppSettingModel.getSlotName(), webAppSettingModel.getResourceGroup()),
+                    String.format("Failed to get deployment slot with name %s", webAppSettingModel.getSlotName()));
         }
     }
 
@@ -256,7 +258,7 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
             final String error = String.format("selected artifact[%s] not found", webAppConfiguration.getArtifactIdentifier());
             throw new AzureToolkitRuntimeException(error);
         }
-        return AzureArtifactManager.getInstance(project).getFileForDeployment(azureArtifact);
+        return azureArtifact.getFileForDeployment();
     }
 
     @NotNull
@@ -280,7 +282,7 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
             webAppConfiguration.setWebAppId(app.getId());
         }
         webAppConfiguration.setApplicationSettings(app.getAppSettings());
-        webAppConfiguration.setWebAppName(app.name());
+        webAppConfiguration.setWebAppName(app.getName());
         webAppConfiguration.setWebAppName("");
         webAppConfiguration.setResourceGroup("");
         webAppConfiguration.setAppServicePlanName("");

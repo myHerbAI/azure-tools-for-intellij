@@ -38,7 +38,7 @@ public class AzureLongDurationTaskRunnerWithConsole {
         job.setMessager(messager);
         job.setSupplier(() -> {
             final AzureTask<Void> task = new AzureTask<Void>(title, runnable);
-            task.setType(AzureOperation.Type.ACTION.name());
+            task.setType("user");
             try {
                 AzureTaskManager.getInstance().runImmediatelyAsObservable(() -> {
                     ConsolePlugin.getDefault().getConsoleManager().showConsoleView(myConsole);

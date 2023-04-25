@@ -20,6 +20,7 @@ import com.intellij.openapi.fileEditor.impl.LoadTextUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
@@ -41,6 +42,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Function;
@@ -52,6 +54,20 @@ public class VirtualFileActions {
     private static final String SAVE_CHANGES = "Do you want to save your changes?";
     private static final String SUCCESS_DOWNLOADING = "File %s is successfully downloaded to %s.";
     private static final String NOTIFICATION_GROUP_ID = "Azure Plugin";
+
+    @SneakyThrows(IOException.class)
+    public static void openJsonStringInEditor(@Nonnull String jsonContent, @Nonnull String title, @Nonnull Project project) {
+        final FileEditorManager manager = FileEditorManager.getInstance(project);
+        VirtualFile vf = VirtualFileActions.getVirtualFile(title, manager);
+        if (Objects.isNull(vf)) {
+            final File temp = FileUtil.createTempFile("", title, true);
+            Files.writeString(temp.toPath(), jsonContent);
+            vf = VirtualFileActions.createVirtualFile(title, title, temp, manager);
+            VirtualFile finalVf = vf;
+            WriteAction.run(() -> finalVf.setWritable(false)); // make it readonly.
+        }
+        final FileEditor[] editors = manager.openFile(vf, true, true);
+    }
 
     @AzureOperation(name = "boundary/common.open_file_in_editor.file", params = {"file.getName()"})
     public static void openFileInEditor(VirtualFile file, final Function<? super String, Boolean> onSave, Runnable onClose, FileEditorManager manager) {

@@ -3,7 +3,7 @@
     "AppBrowserTimings", "AppDependencies", "AppEvents", "AppExceptions", "AppMetrics", "AppPageViews", "AppPerformanceCounters", "AppRequests", "AppSystemEvents", "AppTraces"
   ],
   "App Service": [
-    "AppServiceAppLogs", "AppServiceConsoleLogs", "AppServiceAppLogs", "AppServiceHTTPLogs", "AppServicePlatformLogs", "FunctionAppLogs"
+    "AppServiceAppLogs", "AppServiceConsoleLogs", "AppServiceHTTPLogs", "AppServicePlatformLogs", "FunctionAppLogs"
   ],
   "Azure Spring Apps": ["AppPlatformBuildLogs", "AppPlatformContainerEventLogs", "AppPlatformLogsforSpring", "AppPlatformSystemLogs"]
 }

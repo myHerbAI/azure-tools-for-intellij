@@ -1,6 +1,7 @@
 package com.microsoft.azure.toolkit.lib.hdinsight;
 
 import com.azure.core.util.paging.ContinuablePage;
+import com.azure.resourcemanager.hdinsight.models.StorageAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,7 @@ public class StorageAccountMudule extends AbstractAzResourceModule <StorageAccou
     @Override
     public List<StorageAccountNode> list() {
         if (sparkClusterNode.getSubscription().getId().equals("[LinkedCluster]")) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         } else {
             return super.list();
         }
@@ -34,16 +35,10 @@ public class StorageAccountMudule extends AbstractAzResourceModule <StorageAccou
 
     @Nonnull
     @Override
-    protected Stream<com.azure.resourcemanager.hdinsight.models.StorageAccount> loadResourcesFromAzure() {
-        return Optional.ofNullable(
-                sparkClusterNode.getRemote(true).properties().storageProfile().storageaccounts().stream()
-        ).orElse(Stream.empty());
-    }
-
-    @Nonnull
-    @Override
     protected Iterator<? extends ContinuablePage<String, com.azure.resourcemanager.hdinsight.models.StorageAccount>> loadResourcePagesFromAzure() {
-        return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
+        final Stream<StorageAccount> resources = Optional.ofNullable(sparkClusterNode.getRemote(true))
+            .map(r -> r.properties().storageProfile().storageaccounts().stream()).orElse(Stream.empty());
+        return Collections.singletonList(new ItemPage<>(resources)).iterator();
     }
 
     @NotNull

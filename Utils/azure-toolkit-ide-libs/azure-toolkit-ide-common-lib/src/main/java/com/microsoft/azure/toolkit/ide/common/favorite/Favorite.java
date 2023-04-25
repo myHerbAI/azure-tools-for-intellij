@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +25,7 @@ public class Favorite extends AbstractAzResource<Favorite, AzResource.None, Abst
 
     @Override
     public void invalidateCache() {
-        this.getResource().invalidateCache();
+        Optional.ofNullable(this.getResource()).ifPresent(AbstractAzResource::invalidateCache);
         super.invalidateCache();
     }
 
@@ -45,6 +46,7 @@ public class Favorite extends AbstractAzResource<Favorite, AzResource.None, Abst
         return this.remoteOptional().isPresent();
     }
 
+    @Nullable
     public AbstractAzResource<?, ?, ?> getResource() {
         return this.getRemote();
     }

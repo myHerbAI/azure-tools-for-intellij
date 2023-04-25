@@ -13,6 +13,8 @@ import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.fields.ExtendableTextComponent.Extension;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo.Type;
@@ -47,6 +49,7 @@ public class AzureArtifactComboBox extends AzureComboBox<AzureArtifact> {
         super(false);
         this.project = project;
         this.fileArtifactOnly = fileArtifactOnly;
+        this.setRenderer(new ArtifactItemRenderer());
     }
 
     public void setFileFilter(final Condition<? super VirtualFile> filter) {
@@ -90,7 +93,9 @@ public class AzureArtifactComboBox extends AzureComboBox<AzureArtifact> {
 
     protected String getItemText(Object item) {
         if (item instanceof AzureArtifact) {
-            return String.format("%s : %s", ((AzureArtifact) item).getType(), ((AzureArtifact) item).getName());
+            final Integer level = ((AzureArtifact) item).getBytecodeTargetLevel();
+            final String version = level > 7 ? "Java " + level : "Java 1." + level;
+            return String.format("%s: %s (%s)", ((AzureArtifact) item).getType(), ((AzureArtifact) item).getName(), version);
         } else {
             return StringUtils.EMPTY;
         }
@@ -127,9 +132,9 @@ public class AzureArtifactComboBox extends AzureComboBox<AzureArtifact> {
     }
 
     private void addOrSelectExistingVirtualFile(VirtualFile virtualFile) {
-        final AzureArtifact selectArtifact = AzureArtifact.createFromFile(virtualFile);
+        final AzureArtifact selectArtifact = AzureArtifact.createFromFile(virtualFile, this.project);
         final List<AzureArtifact> artifacts = this.getItems();
-        final AzureArtifactManager manager = AzureArtifactManager.getInstance(project);
+        final AzureArtifactManager manager = AzureArtifactManager.getInstance(this.project);
         final AzureArtifact existingArtifact =
             artifacts.stream().filter(artifact -> manager.equalsAzureArtifact(artifact, selectArtifact)).findFirst().orElse(null);
         if (existingArtifact == null) {
@@ -137,6 +142,21 @@ public class AzureArtifactComboBox extends AzureComboBox<AzureArtifact> {
             this.setSelectedItem(selectArtifact);
         } else {
             this.setSelectedItem(existingArtifact);
+        }
+    }
+
+    public static class ArtifactItemRenderer extends ColoredListCellRenderer<AzureArtifact> {
+
+        @Override
+        protected void customizeCellRenderer(@Nonnull JList<? extends AzureArtifact> list, AzureArtifact artifact, int index, boolean selected, boolean hasFocus) {
+            if (artifact != null) {
+                final Integer level = artifact.getBytecodeTargetLevel();
+                setIcon(artifact.getIcon());
+                append(artifact.getName().trim());
+                if (level != null) {
+                    append(level > 7 ? " Java " + level : " Java 1." + level, SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES);
+                }
+            }
         }
     }
 }

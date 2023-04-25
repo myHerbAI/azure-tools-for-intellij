@@ -13,7 +13,6 @@ dependencies {
     implementation project(':azure-intellij-plugin-containerregistry')
     implementation project(':azure-intellij-plugin-applicationinsights')
     implementation project(':azure-intellij-plugin-monitor')
-    implementation 'com.spotify:docker-client:8.16.0'
     implementation 'com.microsoft.azure:azure-toolkit-appservice-lib'
     implementation 'com.microsoft.azure:azure-toolkit-ide-appservice-lib'
     implementation 'com.microsoft.azure:azure-toolkit-ide-containerregistry-lib'

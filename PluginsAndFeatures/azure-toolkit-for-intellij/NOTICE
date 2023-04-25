@@ -13904,7 +13904,7 @@ POM License: The Apache Software License, Version 2.0 - https://www.apache.org/l
 
 --------------------------------------------------------------------------------
 
-197. Group: org.jetbrains.kotlin  Name: kotlin-reflect  Version: 1.6.21
+197. Group: org.jetbrains.kotlin  Name: kotlin-reflect  Version: 1.7.22
 
 POM Project URL: https://kotlinlang.org/
 
@@ -13912,7 +13912,7 @@ POM License: The Apache License, Version 2.0 - http://www.apache.org/licenses/LI
 
 --------------------------------------------------------------------------------
 
-198. Group: org.jetbrains.kotlin  Name: kotlin-stdlib  Version: 1.6.21
+198. Group: org.jetbrains.kotlin  Name: kotlin-stdlib  Version: 1.7.22
 
 POM Project URL: https://kotlinlang.org/
 
@@ -13920,7 +13920,7 @@ POM License: The Apache License, Version 2.0 - http://www.apache.org/licenses/LI
 
 --------------------------------------------------------------------------------
 
-199. Group: org.jetbrains.kotlin  Name: kotlin-stdlib-common  Version: 1.6.21
+199. Group: org.jetbrains.kotlin  Name: kotlin-stdlib-common  Version: 1.7.22
 
 POM Project URL: https://kotlinlang.org/
 
@@ -13944,7 +13944,7 @@ POM License: The Apache License, Version 2.0 - http://www.apache.org/licenses/LI
 
 --------------------------------------------------------------------------------
 
-202. Group: org.jetbrains.kotlin  Name: kotlin-stdlib-jdk8  Version: 1.4.10
+202. Group: org.jetbrains.kotlin  Name: kotlin-stdlib-jdk8  Version: 1.7.22
 
 POM Project URL: https://kotlinlang.org/
 
@@ -13952,7 +13952,7 @@ POM License: The Apache License, Version 2.0 - http://www.apache.org/licenses/LI
 
 --------------------------------------------------------------------------------
 
-203. Group: org.jetbrains.kotlin  Name: kotlin-stdlib-jdk8  Version: 1.6.21
+203. Group: org.jetbrains.kotlin  Name: kotlin-stdlib-jdk8  Version: 1.7.22
 
 POM Project URL: https://kotlinlang.org/
 

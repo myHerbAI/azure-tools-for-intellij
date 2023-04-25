@@ -17,7 +17,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
 import javax.annotation.Nonnull;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 /**
  * @see "org.jetbrains.idea.maven.tasks.MavenBeforeRunTasksProvider"
  */
-@Log
+@Slf4j
 public class ConnectionRunnerForRunConfiguration extends BeforeRunTaskProvider<ConnectionRunnerForRunConfiguration.MyBeforeRunTask> {
 
     private static final String NAME = "Connect Azure Resource";

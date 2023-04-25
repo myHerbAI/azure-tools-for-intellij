@@ -27,10 +27,7 @@ public class AzureArtifactComboBox extends AzureComboBox<AzureArtifact> {
 
     @Nonnull
     @Override
-    @AzureOperation(
-            name = "common.list_artifacts",
-            type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation( name = "internal/common.list_artifacts")
     protected List<? extends AzureArtifact> loadItems() {
         final List<AzureArtifact> artifacts = AzureArtifactManager.getInstance().getAllSupportedAzureArtifacts();
         Optional.ofNullable(cachedArtifact).filter(artifact -> artifact.getType() == AzureArtifactType.File).ifPresent(artifacts::add);

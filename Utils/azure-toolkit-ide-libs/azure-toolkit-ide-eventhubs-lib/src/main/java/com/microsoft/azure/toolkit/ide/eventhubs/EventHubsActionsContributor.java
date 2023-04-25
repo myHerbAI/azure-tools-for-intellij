@@ -1,5 +1,6 @@
 package com.microsoft.azure.toolkit.ide.eventhubs;
 
+import com.azure.resourcemanager.eventhubs.models.EntityStatus;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
@@ -32,19 +33,19 @@ public class EventHubsActionsContributor implements IActionsContributor {
     public void registerActions(AzureActionManager am) {
         new Action<>(ACTIVE_INSTANCE)
                 .visibleWhen(s -> s instanceof EventHubsInstance)
-                .enableWhen(s -> !s.isActive())
+                .enableWhen(s -> s.getEntityStatus() != EntityStatus.ACTIVE)
                 .withLabel("Active")
                 .withIdParam(AbstractAzResource::getName)
                 .register(am);
         new Action<>(DISABLE_INSTANCE)
                 .visibleWhen(s -> s instanceof EventHubsInstance)
-                .enableWhen(s -> !s.isDisabled())
+                .enableWhen(s -> s.getEntityStatus() != EntityStatus.DISABLED)
                 .withLabel("Disabled")
                 .withIdParam(AbstractAzResource::getName)
                 .register(am);
         new Action<>(SEND_DISABLE_INSTANCE)
                 .visibleWhen(s -> s instanceof EventHubsInstance)
-                .enableWhen(s -> !s.isSendDisabled())
+                .enableWhen(s -> s.getEntityStatus() != EntityStatus.SEND_DISABLED)
                 .withLabel("SendDisabled")
                 .withIdParam(AbstractAzResource::getName)
                 .register(am);
@@ -55,19 +56,19 @@ public class EventHubsActionsContributor implements IActionsContributor {
                 .register(am);
         new Action<>(SEND_MESSAGE_INSTANCE)
                 .visibleWhen(s -> s instanceof EventHubsInstance)
-                .enableWhen(EventHubsInstance::isActive)
+                .enableWhen(EventHubsInstance::isSendEnabled)
                 .withLabel("Send Message")
                 .withIdParam(AbstractAzResource::getName)
                 .register(am);
         new Action<>(START_LISTENING_INSTANCE)
-                .visibleWhen(s -> s instanceof EventHubsInstance)
-                .enableWhen(s -> !s.isDisabled() && !s.isListening())
+                .visibleWhen(s -> s instanceof EventHubsInstance && !((EventHubsInstance) s).isListening())
+                .enableWhen(s -> s.getEntityStatus() != EntityStatus.DISABLED)
                 .withLabel("Start Listening")
                 .withIdParam(AbstractAzResource::getName)
                 .register(am);
         new Action<>(STOP_LISTENING_INSTANCE)
-                .visibleWhen(s -> s instanceof EventHubsInstance && !((EventHubsInstance) s).isDisabled()
-                        && ((EventHubsInstance) s).isListening())
+                .visibleWhen(s -> s instanceof EventHubsInstance && ((EventHubsInstance) s).isListening())
+                .enableWhen(s -> s.getEntityStatus() != EntityStatus.DISABLED)
                 .withLabel("Stop Listening")
                 .withIdParam(AbstractAzResource::getName)
                 .register(am);

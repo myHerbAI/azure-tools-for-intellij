@@ -5,7 +5,7 @@
 
 package com.microsoft.intellij.helpers;
 
-import com.microsoft.intellij.AzurePlugin;
+import lombok.extern.slf4j.Slf4j;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -14,7 +14,7 @@ import java.awt.font.TextAttribute;
 import java.net.URI;
 import java.util.Map;
 
-
+@Slf4j
 public class LinkListener implements MouseListener {
     private Font original;
     private String mLink;
@@ -28,7 +28,7 @@ public class LinkListener implements MouseListener {
         try {
             Desktop.getDesktop().browse(new URI(mLink));
         } catch (Exception e) {
-            AzurePlugin.log(e.getStackTrace().toString());
+            log.error(e.getStackTrace().toString());
         }
     }
 

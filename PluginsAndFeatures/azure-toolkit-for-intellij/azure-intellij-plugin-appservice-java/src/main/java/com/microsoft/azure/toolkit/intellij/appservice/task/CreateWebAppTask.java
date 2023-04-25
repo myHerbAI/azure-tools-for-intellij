@@ -47,7 +47,7 @@ public class CreateWebAppTask implements Task {
         final WebAppConfig webAppConfig = WebAppConfig.getWebAppDefaultConfig(name);
         webAppConfig.setName(name);
         webAppConfig.setSubscription(subscription);
-        webAppConfig.setRuntime(Runtime.LINUX_JAVA11);
+        webAppConfig.setRuntime(Runtime.LINUX_JAVA17);
         final String rgName = Utils.generateRandomResourceName(String.format("rg-%s", name), 90);
         final ResourceGroupConfig newGroupConfig = ResourceGroupConfig.builder().subscriptionId(subscription.getId()).name(rgName).region(webAppConfig.getRegion()).build();
         webAppConfig.setResourceGroup(newGroupConfig);

@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.intellij.database.ServerNameTextField;
 import com.microsoft.azure.toolkit.intellij.database.mysql.creation.MySqlCreationDialog;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import com.microsoft.azure.toolkit.lib.postgre.AzurePostgreSql;
 import lombok.Getter;
@@ -56,8 +57,10 @@ public class PostgreSqlCreationBasicPanel extends JPanel implements AzureFormPan
         serverNameTextField.setSubscription(config.getSubscription());
         confirmPasswordFieldInput = PasswordUtils.generateConfirmPasswordFieldInput(this.confirmPasswordField, this.passwordField);
         passwordFieldInput = PasswordUtils.generatePasswordFieldInput(this.passwordField, this.adminUsernameTextField, this.confirmPasswordFieldInput);
-        serverNameTextField.addValidator(new BaseNameValidator(serverNameTextField, (sid, name) ->
-            Azure.az(AzurePostgreSql.class).forSubscription(sid).checkNameAvailability(name)));
+        serverNameTextField.addValidator(new BaseNameValidator(serverNameTextField, (sid, name) -> {
+            final Region region = config.getRegion();
+            return Azure.az(AzurePostgreSql.class).forSubscription(sid).checkNameAvailability(region.getName(), name);
+        }));
     }
 
     private void initListeners() {

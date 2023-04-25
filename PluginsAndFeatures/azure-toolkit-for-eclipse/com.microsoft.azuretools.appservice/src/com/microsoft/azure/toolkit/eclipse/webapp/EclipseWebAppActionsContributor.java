@@ -42,7 +42,6 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
-import com.microsoft.azure.toolkit.lib.common.action.ActionView;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -52,98 +51,100 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azuretools.azureexplorer.helpers.EditorType;
 
 public class EclipseWebAppActionsContributor implements IActionsContributor {
-    public static final int INITIALIZE_ORDER = WebAppActionsContributor.INITIALIZE_ORDER + 1;
+	public static final int INITIALIZE_ORDER = WebAppActionsContributor.INITIALIZE_ORDER + 1;
 
-    private static final String UNABLE_TO_OPEN_EXPLORER = "Unable to open explorer";
+	private static final String UNABLE_TO_OPEN_EXPLORER = "Unable to open explorer";
 
-    @Override
-    public void registerActions(AzureActionManager am) {
-        final BiConsumer<AppServiceFile, Object> downloadHandler = (file, e) -> AzureTaskManager
-                .getInstance().runLater(() -> DownloadAppServiceFileAction.downloadAppServiceFile(file));
-        final ActionView.Builder downloadView = new ActionView.Builder("Download", "/icons/action/refresh")
-                .title(s -> Optional.ofNullable(s)
-                        .map(r -> AzureString.format("appservice|file.download", ((AppServiceFile) r).getName()))
-                        .orElse(null))
-                .enabled(s -> s instanceof AppServiceFile);
-        am.registerAction(new Action<>(AppServiceFileActionsContributor.APP_SERVICE_FILE_DOWNLOAD, downloadHandler, downloadView));
-    }
+	@Override
+	public void registerActions(AzureActionManager am) {
+		final BiConsumer<AppServiceFile, Object> downloadHandler = (file, e) -> AzureTaskManager.getInstance()
+				.runLater(() -> DownloadAppServiceFileAction.downloadAppServiceFile(file));
+		new Action<>(AppServiceFileActionsContributor.APP_SERVICE_FILE_DOWNLOAD).withLabel("Download")
+				.withIcon("/icons/action/refresh").withIdParam(s -> s.getName())
+				.enableWhen(s -> s instanceof AppServiceFile).withHandler(downloadHandler).register(am);
+	}
 
-    @Override
-    public void registerHandlers(AzureActionManager am) {
-        final BiPredicate<AzResourceBase, Object> isWebApp = (r, e) -> r instanceof WebApp;
-        final BiConsumer<AzResourceBase, Object> openWebAppPropertyViewHandler = (c, e) -> AzureTaskManager
-                .getInstance().runLater(() -> {
-                    IWorkbench workbench = PlatformUI.getWorkbench();
-                    AppServicePropertyEditorInput input = new AppServicePropertyEditorInput(c.getId());
-                    IEditorDescriptor descriptor = workbench.getEditorRegistry().findEditor(WebAppPropertyEditor.ID);
-                    openEditor(EditorType.WEBAPP_EXPLORER, input, descriptor);
-                });
-        am.registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES, isWebApp, openWebAppPropertyViewHandler);
+	@Override
+	public void registerHandlers(AzureActionManager am) {
+		final BiPredicate<AzResourceBase, Object> isWebApp = (r, e) -> r instanceof WebApp;
+		final BiConsumer<AzResourceBase, Object> openWebAppPropertyViewHandler = (c, e) -> AzureTaskManager
+				.getInstance().runLater(() -> {
+					IWorkbench workbench = PlatformUI.getWorkbench();
+					AppServicePropertyEditorInput input = new AppServicePropertyEditorInput(c.getId());
+					IEditorDescriptor descriptor = workbench.getEditorRegistry().findEditor(WebAppPropertyEditor.ID);
+					openEditor(EditorType.WEBAPP_EXPLORER, input, descriptor);
+				});
+		am.registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES, isWebApp, openWebAppPropertyViewHandler);
 
-        final BiPredicate<AzResourceBase, Object> isWebAppSlot = (r, e) -> r instanceof WebAppDeploymentSlot;
-        final BiConsumer<AzResourceBase, Object> openWebAppSlotPropertyViewHandler = (c,
-                e) -> AzureTaskManager.getInstance().runLater(() -> {
-                    IWorkbench workbench = PlatformUI.getWorkbench();
-                    AppServicePropertyEditorInput input = new AppServicePropertyEditorInput(c.getId());
-                    IEditorDescriptor descriptor = workbench.getEditorRegistry().findEditor(DeploymentSlotEditor.ID);
-                    openEditor(EditorType.WEBAPP_EXPLORER, input, descriptor);
-                });
-        am.registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES, isWebAppSlot,
-                openWebAppSlotPropertyViewHandler);
+		final BiPredicate<AzResourceBase, Object> isWebAppSlot = (r, e) -> r instanceof WebAppDeploymentSlot;
+		final BiConsumer<AzResourceBase, Object> openWebAppSlotPropertyViewHandler = (c, e) -> AzureTaskManager
+				.getInstance().runLater(() -> {
+					IWorkbench workbench = PlatformUI.getWorkbench();
+					AppServicePropertyEditorInput input = new AppServicePropertyEditorInput(c.getId());
+					IEditorDescriptor descriptor = workbench.getEditorRegistry().findEditor(DeploymentSlotEditor.ID);
+					openEditor(EditorType.WEBAPP_EXPLORER, input, descriptor);
+				});
+		am.registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES, isWebAppSlot,
+				openWebAppSlotPropertyViewHandler);
 
-        final BiConsumer<AzResource, Object> deployWebAppHandler = (c, e) -> AzureTaskManager
-                .getInstance().runLater(() -> {
-                    try {
-                        Command deployCommand = ((ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class))
-                                .getCommand("com.microsoft.azuretools.appservice.commands.deployToAzure");
-                        deployCommand.execute(new ExecutionEvent(null, Collections.singletonMap("resourceId", c.id()), c, null));
-                    } catch (ExecutionException | NotHandledException exception) {
-                        AzureTaskManager.getInstance().runLater(() -> AzureMessager.getMessager()
-                                .error(AzureString.format("Failed to deploy web app, %s", exception.getMessage())));
-                    }
-                });
-        am.registerHandler(ResourceCommonActionsContributor.DEPLOY, (r, e) -> r instanceof WebApp, deployWebAppHandler);
+		final BiConsumer<AzResource, Object> deployWebAppHandler = (c, e) -> AzureTaskManager.getInstance()
+				.runLater(() -> {
+					try {
+						Command deployCommand = ((ICommandService) PlatformUI.getWorkbench()
+								.getService(ICommandService.class))
+										.getCommand("com.microsoft.azuretools.appservice.commands.deployToAzure");
+						deployCommand.execute(
+								new ExecutionEvent(null, Collections.singletonMap("resourceId", c.id()), c, null));
+					} catch (ExecutionException | NotHandledException exception) {
+						AzureTaskManager.getInstance().runLater(() -> AzureMessager.getMessager()
+								.error(AzureString.format("Failed to deploy web app, %s", exception.getMessage())));
+					}
+				});
+		am.registerHandler(ResourceCommonActionsContributor.DEPLOY, (r, e) -> r instanceof WebApp, deployWebAppHandler);
 
-        final BiPredicate<Object, Object> createCondition = (r, e) -> r instanceof AzureWebApp;
-        final BiConsumer<Object, Object> createHandler = (c, e) -> AzureTaskManager.getInstance().runLater(() -> {
-            try {
-                ((IHandlerService) PlatformUI.getWorkbench().getService(IHandlerService.class))
-                        .executeCommand("com.microsoft.azuretools.appservice.commands.createWebApp", null);
-            } catch (ExecutionException | NotDefinedException | NotEnabledException | NotHandledException exception) {
-                AzureTaskManager.getInstance().runLater(() -> AzureMessager.getMessager()
-                        .error(AzureString.format("Failed to create web app, %s", exception.getMessage())));
-            }
-        });
-        am.registerHandler(ResourceCommonActionsContributor.CREATE, createCondition, createHandler);
+		final BiPredicate<Object, Object> createCondition = (r, e) -> r instanceof AzureWebApp;
+		final BiConsumer<Object, Object> createHandler = (c, e) -> AzureTaskManager.getInstance().runLater(() -> {
+			try {
+				((IHandlerService) PlatformUI.getWorkbench().getService(IHandlerService.class))
+						.executeCommand("com.microsoft.azuretools.appservice.commands.createWebApp", null);
+			} catch (ExecutionException | NotDefinedException | NotEnabledException | NotHandledException exception) {
+				AzureTaskManager.getInstance().runLater(() -> AzureMessager.getMessager()
+						.error(AzureString.format("Failed to create web app, %s", exception.getMessage())));
+			}
+		});
+		am.registerHandler(ResourceCommonActionsContributor.CREATE, createCondition, createHandler);
 
-        final BiPredicate<AppServiceAppBase<?, ?, ?>, Object> logStreamingPredicate = (r, e) -> r instanceof WebAppBase<?, ?, ?>;
-        final BiConsumer<AppServiceAppBase<?, ?, ?>, Object> startLogStreamingHandler = (c, e) -> WebAppLogStreamingHandler
-                .startLogStreaming((WebAppBase<?, ?, ?>) c);
-        am.registerHandler(AppServiceActionsContributor.START_STREAM_LOG, logStreamingPredicate, startLogStreamingHandler);
+		final BiPredicate<AppServiceAppBase<?, ?, ?>, Object> logStreamingPredicate = (r,
+				e) -> r instanceof WebAppBase<?, ?, ?>;
+		final BiConsumer<AppServiceAppBase<?, ?, ?>, Object> startLogStreamingHandler = (c,
+				e) -> WebAppLogStreamingHandler.startLogStreaming((WebAppBase<?, ?, ?>) c);
+		am.registerHandler(AppServiceActionsContributor.START_STREAM_LOG, logStreamingPredicate,
+				startLogStreamingHandler);
 
-        final BiConsumer<AppServiceAppBase<?, ?, ?>, Object> stopLogStreamingHandler = (c, e) -> WebAppLogStreamingHandler
-                .stopLogStreaming((WebAppBase<?, ?, ?>) c);
-        am.registerHandler(AppServiceActionsContributor.STOP_STREAM_LOG, logStreamingPredicate, stopLogStreamingHandler);
-    }
+		final BiConsumer<AppServiceAppBase<?, ?, ?>, Object> stopLogStreamingHandler = (c,
+				e) -> WebAppLogStreamingHandler.stopLogStreaming((WebAppBase<?, ?, ?>) c);
+		am.registerHandler(AppServiceActionsContributor.STOP_STREAM_LOG, logStreamingPredicate,
+				stopLogStreamingHandler);
+	}
 
-    private void openEditor(EditorType type, IEditorInput input, IEditorDescriptor descriptor) {
-        try {
-            IWorkbench workbench = PlatformUI.getWorkbench();
-            IWorkbenchWindow activeWorkbenchWindow = workbench.getActiveWorkbenchWindow();
-            if (activeWorkbenchWindow == null) {
-                return;
-            }
-            IWorkbenchPage page = activeWorkbenchWindow.getActivePage();
-            if (page == null) {
-                return;
-            }
-            page.openEditor(input, descriptor.getId());
-        } catch (Exception e) {
-            AzureMessager.getMessager().error(UNABLE_TO_OPEN_EXPLORER);
-        }
-    }
+	private void openEditor(EditorType type, IEditorInput input, IEditorDescriptor descriptor) {
+		try {
+			IWorkbench workbench = PlatformUI.getWorkbench();
+			IWorkbenchWindow activeWorkbenchWindow = workbench.getActiveWorkbenchWindow();
+			if (activeWorkbenchWindow == null) {
+				return;
+			}
+			IWorkbenchPage page = activeWorkbenchWindow.getActivePage();
+			if (page == null) {
+				return;
+			}
+			page.openEditor(input, descriptor.getId());
+		} catch (Exception e) {
+			AzureMessager.getMessager().error(UNABLE_TO_OPEN_EXPLORER);
+		}
+	}
 
-    public int getOrder() {
-        return INITIALIZE_ORDER;
-    }
+	public int getOrder() {
+		return INITIALIZE_ORDER;
+	}
 }

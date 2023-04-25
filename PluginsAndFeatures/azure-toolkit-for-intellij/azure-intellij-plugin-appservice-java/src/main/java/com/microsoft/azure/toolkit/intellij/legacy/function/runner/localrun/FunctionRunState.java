@@ -19,10 +19,13 @@ import com.intellij.execution.remote.RemoteConfiguration;
 import com.intellij.execution.remote.RemoteConfigurationType;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.psi.PsiMethod;
+import com.microsoft.azure.toolkit.intellij.common.ReadStreamLineThread;
+import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandlerMessenger;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.function.FunctionSupported;
@@ -44,14 +47,10 @@ import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionCo
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
 import com.microsoft.azuretools.telemetrywrapper.TelemetryManager;
-import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
-import com.microsoft.azure.toolkit.intellij.common.ReadStreamLineThread;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
@@ -67,11 +66,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppActionsContributor.CONFIG_CORE_TOOLS;
 import static com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppActionsContributor.DOWNLOAD_CORE_TOOLS;
@@ -270,12 +271,12 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
     private ProcessBuilder getRunFunctionCliProcessBuilder(File stagingFolder, int debugPort) {
         final ProcessBuilder processBuilder = new ProcessBuilder();
         final String funcPath = functionRunConfiguration.getFuncPath();
-        String[] command = new String[]{funcPath};
-        command = ArrayUtils.addAll(command, functionRunConfiguration.getFunctionHostArguments().split(" "));
-        if (isDebugMode()) {
-            final String debugConfiguration = String.format(DEBUG_PARAMETERS, debugPort);
-            command = ArrayUtils.addAll(command, "--language-worker", "--", debugConfiguration);
-        }
+        final String funcArguments = Optional.ofNullable(functionRunConfiguration.getFunctionHostArguments())
+                .filter(StringUtils::isNoneBlank).orElseGet(FunctionUtils::getDefaultFuncArguments);
+        final String[] hostParameters = funcArguments.split(" ");
+        final String[] debugParameters = isDebugMode() ? new String[]{"--language-worker", "--", String.format(DEBUG_PARAMETERS, debugPort)} : null;
+        final String[] command = Stream.of(new String[]{funcPath}, hostParameters, debugParameters)
+                .filter(Objects::nonNull).flatMap(Stream::of).toArray(String[]::new);
         processBuilder.command(command);
         processBuilder.directory(stagingFolder);
         return processBuilder;
@@ -296,21 +297,25 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
                                       final @NotNull Operation operation) throws Exception {
         final RunProcessHandlerMessenger messenger = new RunProcessHandlerMessenger(processHandler);
         OperationContext.current().setMessager(messenger);
+        final Module module = functionRunConfiguration.getModule();
+        if (module == null) {
+            throw new AzureToolkitRuntimeException("Module was not valid in function run configuration.");
+        }
         final Path hostJsonPath = Optional.ofNullable(functionRunConfiguration.getHostJsonPath())
                 .filter(StringUtils::isNotEmpty).map(Paths::get)
-                .orElseGet(() -> Paths.get(FunctionUtils.getDefaultHostJsonPath(functionRunConfiguration.getModule())));
-        final PsiMethod[] methods = ReadAction.compute(() -> FunctionUtils.findFunctionsByAnnotation(functionRunConfiguration.getModule()));
+                .orElseGet(() -> Paths.get(FunctionUtils.getDefaultHostJsonPath(module)));
+        final PsiMethod[] methods = ReadAction.compute(() -> FunctionUtils.findFunctionsByAnnotation(module));
         final Path folder = stagingFolder.toPath();
         try {
             final Map<String, FunctionConfiguration> configMap =
-                    FunctionUtils.prepareStagingFolder(folder, hostJsonPath, project, functionRunConfiguration.getModule(), methods);
+                    FunctionUtils.prepareStagingFolder(folder, hostJsonPath, project, module, methods);
             operation.trackProperty(TelemetryConstants.TRIGGER_TYPE, StringUtils.join(FunctionUtils.getFunctionBindingList(configMap), ","));
             final Map<String, String> appSettings = FunctionUtils.loadAppSettingsFromSecurityStorage(functionRunConfiguration.getAppSettingsKey());
             // Do not copy local settings if user have already set it in configuration
             final boolean useLocalSettings = MapUtils.isEmpty(appSettings);
             final Path localSettingsJson = Optional.ofNullable(functionRunConfiguration.getLocalSettingsJsonPath())
                     .filter(StringUtils::isNotEmpty).map(Paths::get)
-                    .orElseGet(() -> Paths.get(FunctionUtils.getDefaultLocalSettingsJsonPath(functionRunConfiguration.getModule())));
+                    .orElseGet(() -> Paths.get(FunctionUtils.getDefaultLocalSettingsJsonPath(module)));
             applyResourceConnection(appSettings);
             FunctionUtils.copyLocalSettingsToStagingFolder(folder, localSettingsJson, appSettings, useLocalSettings);
 

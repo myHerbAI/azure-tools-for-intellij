@@ -60,7 +60,7 @@ public class FunctionAppLogStreamingHandler {
                 AzureTaskManager.getInstance().runLater(() -> AzureMessager.getMessager().warning(e.getMessage()));
             }
         } else {
-            final Flux<String> log = functionApp.streamAllLogsAsync();
+            final Flux<String> log = functionApp.streamingLogs(null, null);
             AzureTaskManager.getInstance().runLater(
                     () -> EclipseAzureLogStreamingManager.getInstance().showLogStreaming(functionApp.id(), log));
         }

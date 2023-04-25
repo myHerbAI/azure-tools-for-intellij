@@ -21,7 +21,6 @@
  */
 package com.microsoft.azure.hdinsight.common.classifiedexception
 
-import com.intellij.openapi.application.ApplicationManager
 import com.microsoft.azure.datalake.store.ADLException
 import com.microsoft.azure.hdinsight.sdk.common.livy.interactive.exceptions.SessionNotStartException
 import com.microsoft.azure.hdinsight.spark.common.SparkJobException
@@ -29,7 +28,7 @@ import com.microsoft.azure.hdinsight.spark.common.YarnDiagnosticsException
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 import com.microsoft.azuretools.adauth.AuthException
 import com.microsoft.azuretools.telemetrywrapper.ErrorType
-import com.microsoft.intellij.forms.ErrorMessageForm
+import com.microsoft.intellij.forms.HDInsightErrorMessageForm
 import org.apache.commons.lang.exception.ExceptionUtils
 import java.io.FileNotFoundException
 
@@ -41,7 +40,7 @@ class SparkToolException(exp: Throwable?) : ClassifiedException(exp) {
 
     override fun handleByUser(){
         AzureTaskManager.getInstance().runLater {
-            val toolErrorDialog = ErrorMessageForm(title)
+            val toolErrorDialog = HDInsightErrorMessageForm(title)
             toolErrorDialog.showErrorMessageForm(message, stackTrace)
             toolErrorDialog.show()
         }

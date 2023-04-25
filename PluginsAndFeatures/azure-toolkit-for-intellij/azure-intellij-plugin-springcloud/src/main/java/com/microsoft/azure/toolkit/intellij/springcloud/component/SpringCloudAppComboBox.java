@@ -7,6 +7,8 @@ package com.microsoft.azure.toolkit.intellij.springcloud.component;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.keymap.KeymapUtil;
+import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.fields.ExtendableTextComponent.Extension;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.springcloud.creation.SpringCloudAppCreationDialog;
@@ -15,7 +17,9 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
-import org.jetbrains.annotations.NotNull;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
+import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,11 +31,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
     private SpringCloudCluster cluster;
     private final List<SpringCloudApp> draftItems = new LinkedList<>();
+    @Setter
+    @Nullable
+    private Integer javaVersion;
+
+    public SpringCloudAppComboBox() {
+        super();
+        this.setRenderer(new AppItemRenderer());
+    }
 
     @Override
     protected String getItemText(final Object item) {
@@ -39,10 +50,10 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
             return EMPTY_ITEM;
         }
         final SpringCloudApp app = (SpringCloudApp) item;
-        if (!app.exists()) {
-            return "(New) " + app.name();
-        }
-        return app.name();
+        final String runtime = Optional.ofNullable(app.getCachedActiveDeployment()).map(SpringCloudDeployment::getRuntimeVersion)
+            .map(v -> v.replaceAll("_", " ")).orElse(null);
+        final String appName = app.exists() ? app.getName() : String.format("(New) %s", app.getName());
+        return StringUtils.isBlank(runtime) ? appName : String.format("%s (%s)", appName, runtime);
     }
 
     public void setCluster(SpringCloudCluster cluster) {
@@ -74,14 +85,14 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
             .peek(v -> Objects.isNull(cluster) || Objects.equals(cluster, v.getParent()));
     }
 
-    @NotNull
+    @Nonnull
     @Override
     @AzureOperation(name = "internal/springcloud.list_apps.cluster", params = {"this.cluster.name()"})
     protected List<? extends SpringCloudApp> loadItems() {
         final List<SpringCloudApp> apps = new ArrayList<>();
         if (Objects.nonNull(this.cluster)) {
             if (!this.draftItems.isEmpty()) {
-                apps.addAll(this.draftItems.stream().filter(a -> a.getParent().getName().equals(this.cluster.getName())).collect(Collectors.toList()));
+                apps.addAll(this.draftItems.stream().filter(a -> a.getParent().getName().equals(this.cluster.getName())).toList());
             }
             apps.addAll(cluster.apps().list());
         }
@@ -108,6 +119,7 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
 
     private void showAppCreationPopup() {
         final SpringCloudAppCreationDialog dialog = new SpringCloudAppCreationDialog(this.cluster);
+        Optional.ofNullable(this.javaVersion).ifPresent(a -> dialog.setDefaultRuntimeVersion(javaVersion));
         dialog.setOkActionListener((config) -> {
             final SpringCloudAppDraft app = cluster.apps().create(config.getAppName(), cluster.getResourceGroupName());
             app.setConfig(config);
@@ -115,5 +127,22 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
             this.setValue(app);
         });
         dialog.show();
+    }
+
+    public static class AppItemRenderer extends ColoredListCellRenderer<SpringCloudApp> {
+        @Override
+        protected void customizeCellRenderer(@Nonnull JList<? extends SpringCloudApp> list, SpringCloudApp app, int index, boolean selected, boolean hasFocus) {
+            if (app != null) {
+                append(app.exists() ? app.getName() : String.format("(New) %s", app.getName()));
+                if (app.getFormalStatus().isReading()) {
+                    append(" Loading runtime...", SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES);
+                } else {
+                    final String runtime = Optional.ofNullable(app.getCachedActiveDeployment())
+                        .map(SpringCloudDeployment::getRuntimeVersion)
+                        .map(v -> v.replaceAll("_", " ")).orElse("Unknown runtime");
+                    append(" " + runtime, SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES);
+                }
+            }
+        }
     }
 }

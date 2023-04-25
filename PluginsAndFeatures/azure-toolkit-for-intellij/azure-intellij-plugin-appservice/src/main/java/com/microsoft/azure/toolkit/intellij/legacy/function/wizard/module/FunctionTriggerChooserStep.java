@@ -12,26 +12,28 @@ import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.accessibility.AccessibleContextDelegate;
 import com.intellij.util.ui.components.BorderLayoutPanel;
 import com.microsoft.azure.toolkit.intellij.legacy.function.wizard.AzureFunctionsConstants;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionExtensionVersion;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.FunctionTemplate;
 import com.microsoft.azure.toolkit.lib.legacy.function.utils.FunctionUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.accessibility.AccessibleContext;
 import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FunctionTriggerChooserStep extends ModuleWizardStep {
     // only shown v3 bundle template as a workaround
     // todo: @hanli add bundle version options in trigger step
     public static final List<FunctionTemplate> FUNCTION_TEMPLATES = FunctionUtils.loadAllFunctionTemplates().stream()
-            .filter(t -> t.isBundleSupported(FunctionExtensionVersion.VERSION_3)).collect(Collectors.toList());
+            .filter(t -> t.isBundleSupported(FunctionExtensionVersion.VERSION_4)).collect(Collectors.toList());
     private final WizardContext wizardContext;
     private CheckBoxList<String> triggerList;
     private static final List<String> INITIAL_SELECTED_TRIGGERS = List.of("HttpTrigger");
@@ -46,7 +48,25 @@ public class FunctionTriggerChooserStep extends ModuleWizardStep {
         final FormBuilder builder = new FormBuilder();
         builder.addComponent(new JBLabel("Choose Functions Triggers:"));
 
-        triggerList = new CheckBoxList<>();
+        triggerList = new CheckBoxList<>() {
+            @Override
+            public AccessibleContext getAccessibleContext() {
+                final AccessibleContext context = super.getAccessibleContext();
+                return new AccessibleContextDelegate(context) {
+                    @Override
+                    public String getAccessibleDescription() {
+                        return Stream.of(super.getAccessibleDescription(), "Required")
+                                .filter(StringUtils::isNoneBlank)
+                                .collect(Collectors.joining(StringUtils.SPACE));
+                    }
+
+                    @Override
+                    protected Container getDelegateParent() {
+                        return triggerList.getParent();
+                    }
+                };
+            }
+        };
         setupFunctionTriggers();
 
         final BorderLayoutPanel customPanel = JBUI.Panels.simplePanel(10, 0);

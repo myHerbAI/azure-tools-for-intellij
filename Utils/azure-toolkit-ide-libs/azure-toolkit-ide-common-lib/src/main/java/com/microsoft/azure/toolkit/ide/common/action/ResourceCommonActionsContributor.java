@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.ide.common.action;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.favorite.Favorites;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
@@ -15,6 +16,8 @@ import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -26,6 +29,8 @@ import com.microsoft.azure.toolkit.lib.common.model.Refreshable;
 import com.microsoft.azure.toolkit.lib.common.model.Startable;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
+import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinker;
+import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.*;
@@ -61,7 +66,11 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
     public static final Action.Id<Object> RESTART_IDE = Action.Id.of("user/common.restart_ide");
     public static final Action.Id<File> REVEAL_FILE = Action.Id.of("user/common.reveal_file_in_explorer");
     public static final Action.Id<File> OPEN_FILE = Action.Id.of("user/common.open_file_in_editor");
+    public static final Action.Id<ServiceLinker> FOCUS_ON_CONNECTED_SERVICE = Action.Id.of("user/common.focus_on_connected_service");
+    public static final Action.Id<ServiceLinkerModule> CREATE_SERVICE_LINKER_IN_PORTAL = Action.Id.of("user/resource.create_service_linker_in_portal");
 
+    public static final String SERVICE_LINKER_ACTIONS = "actions.resource.service_linker";
+    public static final String SERVICE_LINKER_MODULE_ACTIONS = "actions.resource.service_linker_module";
     public static final String RESOURCE_GROUP_CREATE_ACTIONS = "actions.resource.create.group";
 
     @Override
@@ -253,6 +262,32 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withLabel("Restart IDE")
             .withAuthRequired(false)
             .register(am);
+
+        new Action<>(FOCUS_ON_CONNECTED_SERVICE)
+                .withLabel(s -> "Focus on Connected Resource")
+                .withIcon(s -> AzureIcons.Connector.FOCUS_ON_CONNECTED_SERVICE.getIconPath())
+                .visibleWhen(s -> s instanceof ServiceLinker)
+                .withHandler((r) -> {
+                    final AzResource resource = Azure.az().getById(r.getTargetServiceId());
+                    if (Objects.isNull(resource)) {
+                        final String serviceName = ResourceId.fromString(r.getTargetServiceId()).name();
+                        AzureMessager.getMessager().info(AzureString.format("Cannot find connected service(%s) in Azure Explorer.", serviceName));
+                        return;
+                    }
+                    AzureEventBus.emit("azure.explorer.focus_resource", resource);
+                })
+                .withAuthRequired(false)
+                .register(am);
+
+        new Action<>(CREATE_SERVICE_LINKER_IN_PORTAL)
+                .withLabel(s -> "Create In Azure Portal")
+                .withIcon(AzureIcons.Action.CREATE.getIconPath())
+                .visibleWhen(s -> s instanceof ServiceLinkerModule)
+                .withHandler((r) -> {
+                    final String parentUrl = r.getParent().getPortalUrl();
+                    am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(String.format("%s/serviceConnector", parentUrl));
+                })
+                .register(am);
     }
 
     @AzureOperation(name = "boundary/common.copy_string.string", params = {"s"})
@@ -265,6 +300,15 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
         final IView.Label.Static view = new IView.Label.Static("Create", "/icons/action/create.svg");
         final ActionGroup resourceGroupCreateActions = new ActionGroup(new ArrayList<>(), view);
         am.registerGroup(RESOURCE_GROUP_CREATE_ACTIONS, resourceGroupCreateActions);
+        am.registerGroup(SERVICE_LINKER_ACTIONS, new ActionGroup(
+                ResourceCommonActionsContributor.OPEN_PORTAL_URL,
+                ResourceCommonActionsContributor.FOCUS_ON_CONNECTED_SERVICE,
+                ResourceCommonActionsContributor.DELETE
+        ));
+        am.registerGroup(SERVICE_LINKER_MODULE_ACTIONS, new ActionGroup(
+                ResourceCommonActionsContributor.REFRESH,
+                ResourceCommonActionsContributor.CREATE_SERVICE_LINKER_IN_PORTAL
+        ));
     }
 
     public int getOrder() {

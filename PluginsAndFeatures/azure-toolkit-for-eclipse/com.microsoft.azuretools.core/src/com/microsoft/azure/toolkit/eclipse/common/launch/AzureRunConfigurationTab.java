@@ -69,7 +69,7 @@ public class AzureRunConfigurationTab<T extends BaseRunConfiguration> extends Ab
         T newConfig = panel.getValue();
         try {
 
-            Utils.mergeObjects(newConfig, origin);
+            Utils.copyProperties(newConfig, origin, true);
         } catch (IllegalAccessException e) {
             // ignore
         }

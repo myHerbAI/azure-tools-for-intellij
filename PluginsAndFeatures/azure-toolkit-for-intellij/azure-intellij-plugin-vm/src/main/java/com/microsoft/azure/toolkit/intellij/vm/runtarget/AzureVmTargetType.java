@@ -75,8 +75,8 @@ public class AzureVmTargetType extends TargetEnvironmentType<AzureVmTargetEnviro
         final boolean isCustomToolConfiguration = runtimeType instanceof CustomToolLanguageRuntimeType;
         final ConnectionData data = new ConnectionData(false, null, "", 22, "", "", true, "", "", true, ConnectionData.OpenSshAgentConnectionState.NOT_STARTED);
         final SshTargetWizardModel model = new SshTargetWizardModel(project, config, data);
-        model.setLanguageType$intellij_remoteRun(runtimeType);
-        model.setCustomToolConfiguration$intellij_remoteRun(isCustomToolConfiguration);
+        model.setLanguageType(runtimeType);
+        model.setCustomToolConfiguration(isCustomToolConfiguration);
         final ArrayList<AbstractWizardStepEx> steps = new ArrayList<>(4);
         steps.add(new AzureVmTargetConnectionStep(model, steps));
         steps.add(new SshTargetAuthStep(model));

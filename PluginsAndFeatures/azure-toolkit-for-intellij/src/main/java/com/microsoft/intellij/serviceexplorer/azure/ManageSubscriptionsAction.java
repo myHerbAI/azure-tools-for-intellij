@@ -9,13 +9,14 @@ import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azuretools.authmanage.IdeAzureAccount;
-import com.microsoft.intellij.AzurePlugin;
 import com.microsoft.azure.toolkit.intellij.common.subscription.SelectSubscriptionsAction;
 import com.microsoft.tooling.msservices.serviceexplorer.NodeAction;
 import com.microsoft.tooling.msservices.serviceexplorer.NodeActionEvent;
 import com.microsoft.tooling.msservices.serviceexplorer.NodeActionListener;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.AzureModule;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ManageSubscriptionsAction extends NodeAction {
     public ManageSubscriptionsAction(AzureModule azureModule) {
         super(azureModule, "Select Subscriptions");
@@ -36,7 +37,7 @@ public class ManageSubscriptionsAction extends NodeAction {
         try {
             return super.isEnabled() && IdeAzureAccount.getInstance().isLoggedIn();
         } catch (Exception e) {
-            AzurePlugin.log("Error signing in", e);
+            log.error("Error signing in", e);
             return false;
         }
     }

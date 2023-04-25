@@ -7,18 +7,21 @@ package com.microsoft.azure.toolkit.intellij.common.subscription;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.AnActionButton;
+import com.intellij.ui.BooleanTableCellRenderer;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.accessibility.AccessibleContextDelegate;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.TextDocumentListenerAdapter;
+import com.microsoft.azure.toolkit.intellij.common.component.AzureDialogWrapper;
+import com.microsoft.azure.toolkit.intellij.common.component.JTableUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
@@ -32,8 +35,6 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import com.microsoft.azuretools.telemetrywrapper.EventType;
 import com.microsoft.azuretools.telemetrywrapper.EventUtil;
-import com.microsoft.azure.toolkit.intellij.common.component.AzureDialogWrapper;
-import com.microsoft.azure.toolkit.intellij.common.component.JTableUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,18 +44,25 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.accessibility.AccessibleContext;
+import javax.accessibility.AccessibleValue;
 import javax.annotation.Nonnull;
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -64,7 +72,6 @@ import static com.microsoft.azuretools.telemetry.TelemetryConstants.SELECT_SUBSC
 public class SubscriptionsDialog extends AzureDialogWrapper implements TableModelListener {
     private static final int CHECKBOX_COLUMN = 0;
     private static final int SUBSCRIPTION_COLUMN = 2;
-    private static final Logger LOGGER = Logger.getInstance(SubscriptionsDialog.class);
     private final Project project;
     private final TailingDebouncer filter;
     private final TailingDebouncer updateSelectionInfo;
@@ -139,13 +146,14 @@ public class SubscriptionsDialog extends AzureDialogWrapper implements TableMode
         final List<SimpleSubscription> subs = this.candidates.stream()
             .filter(s -> StringUtils.isBlank(k) || StringUtils.containsIgnoreCase(s.getName(), k) || StringUtils.containsIgnoreCase(s.getId(), k))
             .sorted(Comparator.comparing(SimpleSubscription::isSelected).reversed())
-            .collect(Collectors.toList());
+            .toList();
         for (final SimpleSubscription sd : subs) {
             model.addRow(new Object[]{sd.isSelected(), sd.getName(), sd});
         }
         if (model.getRowCount() <= 0) {
             table.getEmptyText().setText("No subscriptions");
         }
+        this.updateSelectionInfoInner();
     }
 
     protected JPanel createSouthAdditionalPanel() {
@@ -162,6 +170,9 @@ public class SubscriptionsDialog extends AzureDialogWrapper implements TableMode
         final long count = ObjectUtils.firstNonNull(this.candidates, Collections.<SimpleSubscription>emptyList()).stream().filter(SimpleSubscription::isSelected).count();
         final String msg = count < 1 ? "No subscription is selected" : count == 1 ? "1 subscription is selected" : count + " subscriptions are selected";
         this.selectionInfo.setText(msg);
+        final int searchResultCount = Optional.ofNullable(table).map(JTable::getModel).map(TableModel::getRowCount).orElse(0);
+        final String accessibleDescription = searchResultCount < 1 ? "No search results found. " + msg : msg;
+        Optional.ofNullable(this.table.getAccessibleContext()).ifPresent(c -> c.setAccessibleDescription(accessibleDescription));
     }
 
     @Override
@@ -186,15 +197,16 @@ public class SubscriptionsDialog extends AzureDialogWrapper implements TableMode
         searchBox.addDocumentListener((TextDocumentListenerAdapter) this.filter::debounce);
         searchBox.setToolTipText("Subscription ID/name");
         final DefaultTableModel model = new SubscriptionTableModel();
-        model.addColumn("Selected"); // Set the text read by JAWS
+        model.addColumn("Subscription selected status"); // Set the text read by JAWS
         model.addColumn("Subscription name");
         model.addColumn("Subscription ID");
 
         table = new JBTable(model);
         final TableColumn column = table.getColumnModel().getColumn(CHECKBOX_COLUMN);
-        column.setHeaderValue(""); // Don't show title text
+        column.setHeaderValue("Selected"); // Don't show title text
         column.setMinWidth(23);
         column.setMaxWidth(23);
+        column.setCellRenderer(new SubscriptionSelectionRenderer(table));
         JTableUtils.enableBatchSelection(table, CHECKBOX_COLUMN);
         table.getTableHeader().setReorderingAllowed(false);
         model.addTableModelListener(this);
@@ -239,7 +251,7 @@ public class SubscriptionsDialog extends AzureDialogWrapper implements TableMode
         final long selected = this.candidates.stream().filter(SimpleSubscription::isSelected).count();
         if (this.candidates.size() > 0 && selected == 0) {
             Messages.showMessageDialog(contentPane,"Please select at least one subscription",
-                    "Subscription dialog info", Messages.getInformationIcon());
+                    "Subscription Dialog Info", Messages.getInformationIcon());
             return;
         }
 
@@ -302,5 +314,31 @@ public class SubscriptionsDialog extends AzureDialogWrapper implements TableMode
 
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES
     private void $$$setupUI$$$() {
+    }
+
+    @AllArgsConstructor
+    static class SubscriptionSelectionRenderer extends BooleanTableCellRenderer {
+        private JBTable table;
+
+        @Override
+        public AccessibleContext getAccessibleContext() {
+            final AccessibleContext context = super.getAccessibleContext();
+            return new AccessibleContextDelegate(context) {
+                @Override
+                protected Container getDelegateParent() {
+                    return table;
+                }
+
+                @Override
+                public AccessibleValue getAccessibleValue() {
+                    return null;
+                }
+
+                @Override
+                public String getAccessibleName() {
+                    return SubscriptionSelectionRenderer.this.isSelected() ? "Subscription selected" : "Subscription not selected";
+                }
+            };
+        }
     }
 }

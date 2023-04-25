@@ -15,7 +15,6 @@ import com.microsoft.azure.toolkit.intellij.springcloud.deplolyment.DeploySpring
 import com.microsoft.azure.toolkit.intellij.springcloud.remotedebug.AttachDebuggerAction;
 import com.microsoft.azure.toolkit.intellij.springcloud.remotedebug.EnableRemoteDebuggingAction;
 import com.microsoft.azure.toolkit.intellij.springcloud.streaminglog.SpringCloudStreamingLogAction;
-import com.microsoft.azure.toolkit.intellij.springcloud.streaminglog.SpringCloudStreamingLogManager;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
@@ -72,12 +71,13 @@ public class IntellijSpringCloudActionsContributor implements IActionsContributo
 
     private void registerStreamLogActionHandler(AzureActionManager am) {
         final BiPredicate<SpringCloudApp, AnActionEvent> condition = (r, e) -> true;
-        final BiConsumer<SpringCloudApp, AnActionEvent> handler = (c, e) -> SpringCloudStreamingLogAction.startLogStreaming(c, e.getProject());
+        final BiConsumer<SpringCloudApp, AnActionEvent> handler = (c, e) -> SpringCloudStreamingLogAction.startAppStreamingLogs(c, e.getProject());
         am.registerHandler(SpringCloudActionsContributor.STREAM_LOG_APP, condition, handler);
     }
 
     private void registerStreamLogInstanceActionHandler(AzureActionManager am) {
-        final BiConsumer<SpringCloudAppInstance, AnActionEvent> handler = (c, e) -> SpringCloudStreamingLogManager.getInstance().showStreamingLog(e.getProject(), c.getParent().getParent(), c.getName());
+        final BiConsumer<SpringCloudAppInstance, AnActionEvent> handler = (c, e) -> SpringCloudStreamingLogAction.startInstanceStreamingLogs(
+                e.getProject(), c.getParent().getParent(), c.getName());
         am.registerHandler(SpringCloudActionsContributor.STREAM_LOG, (r, e) -> true, handler);
     }
 

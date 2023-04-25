@@ -90,12 +90,6 @@ public class Favorites extends AbstractAzResourceModule<Favorite, AzResource.Non
     @Nonnull
     @Override
     protected Iterator<? extends Page<AbstractAzResource<?, ?, ?>>> loadResourcePagesFromAzure() {
-        return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
-    }
-
-    @Nonnull
-    @Override
-    protected Stream<AbstractAzResource<?, ?, ?>> loadResourcesFromAzure() {
         final Account account = Azure.az(AzureAccount.class).account();
         final String user = account.getUsername();
         final IMachineStore store = AzureStoreManager.getInstance().getMachineStore();
@@ -110,8 +104,9 @@ public class Favorites extends AbstractAzResourceModule<Favorite, AzResource.Non
                 this.favorites = new LinkedList<>();
             }
         }
-        return this.favorites.stream().map(id -> this.loadResourceFromAzure(id, FAVORITE_GROUP)).filter(Objects::nonNull)
+        final Stream<AbstractAzResource<?, ?, ?>> resources = this.favorites.stream().map(id -> this.loadResourceFromAzure(id, FAVORITE_GROUP)).filter(Objects::nonNull)
             .map(c -> ((AbstractAzResource<?, ?, ?>) c));
+        return Collections.singletonList(new ItemPage<>(resources)).iterator();
     }
 
     @Nullable

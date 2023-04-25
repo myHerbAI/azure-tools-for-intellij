@@ -48,9 +48,7 @@ public class OtherPublicRegistryImageForm implements AzureFormJPanel<ContainerAp
     @Override
     public ContainerAppDraft.ImageConfig getValue() {
         final String fullImageName = this.txtImage.getValue();
-        final ContainerAppDraft.ImageConfig config = new ContainerAppDraft.ImageConfig();
-        config.setFullImageName(fullImageName);
-        return config;
+        return new ContainerAppDraft.ImageConfig(fullImageName);
     }
 
     @Override

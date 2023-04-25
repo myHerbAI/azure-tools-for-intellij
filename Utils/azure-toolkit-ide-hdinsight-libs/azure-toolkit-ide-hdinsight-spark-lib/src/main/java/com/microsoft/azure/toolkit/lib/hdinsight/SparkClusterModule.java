@@ -1,5 +1,6 @@
 package com.microsoft.azure.toolkit.lib.hdinsight;
 
+import com.azure.core.util.paging.ContinuablePage;
 import com.azure.resourcemanager.hdinsight.HDInsightManager;
 import com.azure.resourcemanager.hdinsight.models.Cluster;
 import com.azure.resourcemanager.hdinsight.models.Clusters;
@@ -10,6 +11,7 @@ import com.microsoft.azure.hdinsight.sdk.cluster.*;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +36,11 @@ public class SparkClusterModule extends AbstractAzResourceModule<SparkClusterNod
 
     @Nonnull
     @Override
+    protected Iterator<? extends ContinuablePage<String, Cluster>> loadResourcePagesFromAzure() {
+        return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
+    }
+
+    @Nonnull
     @AzureOperation(name = "resource.load_resources_in_azure.type", params = {"this.getResourceTypeName()"})
     protected Stream<Cluster> loadResourcesFromAzure() {
         //log.debug("[{}]:loadResourcesFromAzure()", this.getName());

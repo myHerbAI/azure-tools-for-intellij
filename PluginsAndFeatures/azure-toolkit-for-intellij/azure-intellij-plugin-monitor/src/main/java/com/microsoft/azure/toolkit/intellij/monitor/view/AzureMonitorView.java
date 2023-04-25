@@ -6,19 +6,24 @@
 package com.microsoft.azure.toolkit.intellij.monitor.view;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.ActionLink;
 import com.intellij.ui.components.AnActionLink;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.intellij.monitor.AzureMonitorManager;
 import com.microsoft.azure.toolkit.intellij.monitor.view.left.MonitorTreePanel;
 import com.microsoft.azure.toolkit.intellij.monitor.view.left.WorkspaceSelectionDialog;
 import com.microsoft.azure.toolkit.intellij.monitor.view.right.MonitorTabbedPane;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.monitor.LogAnalyticsWorkspace;
 import lombok.Getter;
@@ -29,7 +34,7 @@ import javax.swing.*;
 import java.util.Objects;
 import java.util.Optional;
 
-public class AzureMonitorView {
+public class AzureMonitorView extends JPanel {
     private JPanel contentPanel;
     private JPanel leftPanel;
     private ActionLink changeWorkspace;
@@ -44,17 +49,14 @@ public class AzureMonitorView {
     private LogAnalyticsWorkspace selectedWorkspace;
 
     public AzureMonitorView(Project project, @Nullable LogAnalyticsWorkspace logAnalyticsWorkspace, boolean isTableTab, @Nullable String resourceId) {
+        super();
         this.selectedWorkspace = logAnalyticsWorkspace;
         $$$setupUI$$$(); // tell IntelliJ to call createUIComponents() here.
-        this.updateWorkspaceNameLabel();
-        this.workspaceName.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
-        this.monitorTreePanel.setTableTab(isTableTab);
-        this.tabbedPanePanel.setTableTab(isTableTab);
-        this.tabbedPanePanel.setParentView(this);
-        this.tabbedPanePanel.setInitResourceId(resourceId);
+        this.init(isTableTab, resourceId);
         AzureEventBus.on("azure.monitor.change_workspace", new AzureEventBus.EventListener(e -> {
             this.selectedWorkspace = (LogAnalyticsWorkspace) e.getSource();
             this.updateWorkspaceNameLabel();
+            Optional.ofNullable(this.selectedWorkspace).ifPresent(w -> PropertiesComponent.getInstance().setValue(AzureMonitorManager.AZURE_MONITOR_SELECTED_WORKSPACE, w.getId()));
         }));
         AzureTaskManager.getInstance().runInBackground(AzureString.fromString("Loading logs"), () -> this.monitorTreePanel.refresh());
     }
@@ -73,10 +75,6 @@ public class AzureMonitorView {
         tabbedPanePanel.selectTab("AppTraces");
     }
 
-    public JPanel getContentPanel() {
-        return contentPanel;
-    }
-
     private void updateWorkspaceNameLabel() {
         if (Objects.nonNull(selectedWorkspace)) {
             this.workspaceName.setText(selectedWorkspace.getName());
@@ -89,6 +87,18 @@ public class AzureMonitorView {
         }
     }
 
+    private void init(boolean isTableTab, @Nullable String resourceId) {
+        final GridLayoutManager layout = new GridLayoutManager(1, 1);
+        this.setLayout(layout);
+        this.add(this.contentPanel, new GridConstraints(0, 0, 1, 1, 0, GridConstraints.ALIGN_FILL, 3, 3, null, null, null, 0));
+        this.updateWorkspaceNameLabel();
+        this.workspaceName.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
+        this.monitorTreePanel.setTableTab(isTableTab);
+        this.tabbedPanePanel.setTableTab(isTableTab);
+        this.tabbedPanePanel.setParentView(this);
+        this.tabbedPanePanel.setInitResourceId(resourceId);
+    }
+
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES
     void $$$setupUI$$$() {
     }
@@ -96,6 +106,7 @@ public class AzureMonitorView {
     private void createUIComponents() {
         this.changeWorkspace = new AnActionLink("Select", new AnAction() {
             @Override
+            @AzureOperation(name = "user/monitor.select_workspace")
             public void actionPerformed(@NotNull AnActionEvent e) {
                 AzureTaskManager.getInstance().runLater(() -> {
                     final WorkspaceSelectionDialog dialog = new WorkspaceSelectionDialog(e.getProject(), selectedWorkspace);

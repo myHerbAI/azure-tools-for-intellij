@@ -10,6 +10,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.JBSplitter;
 import com.microsoft.azure.toolkit.intellij.monitor.view.AzureMonitorView;
 import com.microsoft.azure.toolkit.intellij.monitor.view.left.WorkspaceSelectionDialog;
+import com.microsoft.azure.toolkit.intellij.monitor.view.right.filter.SaveFiltersAsQueryDialog;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
@@ -73,6 +74,19 @@ public class MonitorSingleTab {
                 Optional.ofNullable(parentView.getSelectedWorkspace())
                         .ifPresentOrElse(t -> loadLogs(),
                         () -> AzureMessager.getMessager().info(message("azure.monitor.info.selectWorkspace"), null, selectWorkspaceAction()));
+            }
+        });
+        this.monitorLogTablePanel.addSaveActionListener(new ActionListener() {
+            @Override
+            @AzureOperation(name = "user/monitor.save_filters_as_query")
+            public void actionPerformed(ActionEvent e) {
+                final String queryContent = monitorLogTablePanel.getQueryStringFromFilters(tabName);
+                AzureTaskManager.getInstance().runLater(() -> {
+                    final SaveFiltersAsQueryDialog dialog = new SaveFiltersAsQueryDialog(ProjectManager.getInstance().getDefaultProject(), queryContent);
+                    if (dialog.showAndGet()) {
+                        AzureEventBus.emit("azure.monitor.add_query_node", dialog.getQueryDataToSave());
+                    }
+                });
             }
         });
     }

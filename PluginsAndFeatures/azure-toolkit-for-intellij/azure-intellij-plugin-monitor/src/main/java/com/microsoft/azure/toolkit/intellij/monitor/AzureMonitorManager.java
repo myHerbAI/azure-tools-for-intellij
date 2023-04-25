@@ -12,6 +12,8 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import com.intellij.ui.content.ContentManagerEvent;
+import com.intellij.ui.content.ContentManagerListener;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.monitor.view.AzureMonitorView;
@@ -28,14 +30,16 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import javax.swing.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class AzureMonitorManager {
     public static final String AZURE_MONITOR_WINDOW = "Azure Monitor";
     public static final String AZURE_MONITOR_TRIGGERED = "AzureMonitor.Triggered";
-    private static final Map<Project, ToolWindow> toolWindowMap = new HashMap<>();
-    private static final Map<Project, AzureMonitorView> monitorTableViewMap = new HashMap<>();
-    private static final Map<Project, AzureMonitorView> monitorQueryViewMap = new HashMap<>();
+    public static final String AZURE_MONITOR_SELECTED_WORKSPACE = "AzureMonitor.SelectedLogAnalyticsWorkspace";
+    public static final String AZURE_MONITOR_CUSTOM_QUERY_LIST = "AzureMonitor.CustomQueryList";
     private static final AzureMonitorManager instance = new AzureMonitorManager();
     public static AzureMonitorManager getInstance() {
         return instance;
@@ -55,16 +59,6 @@ public class AzureMonitorManager {
 
     @Nullable
     private ToolWindow getToolWindow(@Nonnull Project project, @Nullable LogAnalyticsWorkspace workspace, @Nullable String resourceId) {
-        if (toolWindowMap.containsKey(project)) {
-            Optional.ofNullable(monitorTableViewMap.get(project)).ifPresent(t ->
-                    Optional.ofNullable(workspace).ifPresent(w -> {
-                        t.setSelectedWorkspace(workspace);
-                        t.setInitResourceId(resourceId);
-                    }));
-            Optional.ofNullable(monitorQueryViewMap.get(project)).ifPresent(t ->
-                    Optional.ofNullable(workspace).ifPresent(t::setSelectedWorkspace));
-            return toolWindowMap.get(project);
-        }
         return initToolWindow(project, workspace, resourceId);
     }
 
@@ -74,22 +68,26 @@ public class AzureMonitorManager {
         if (Objects.isNull(azureMonitorWindow)) {
             return null;
         }
-        if (Objects.isNull(azureMonitorWindow.getContentManager().findContent("Tables"))) {
+        final Content tablesContent = azureMonitorWindow.getContentManager().findContent("Tables");
+        if (Objects.isNull(tablesContent)) {
             final AzureMonitorView monitorTableView = new AzureMonitorView(project, workspace, true, resourceId);
             this.addContent(azureMonitorWindow, "Tables", monitorTableView);
-            monitorTableViewMap.put(project, monitorTableView);
+        } else if (tablesContent.getComponent() instanceof AzureMonitorView) {
+            ((AzureMonitorView) tablesContent.getComponent()).setSelectedWorkspace(workspace);
+            ((AzureMonitorView) tablesContent.getComponent()).setInitResourceId(resourceId);
         }
-        if (Objects.isNull(azureMonitorWindow.getContentManager().findContent("Queries"))) {
+        final Content queriesContent = azureMonitorWindow.getContentManager().findContent("Queries");
+        if (Objects.isNull(queriesContent)) {
             final AzureMonitorView monitorQueryView = new AzureMonitorView(project, workspace, false, resourceId);
             this.addContent(azureMonitorWindow, "Queries", monitorQueryView);
-            monitorQueryViewMap.put(project, monitorQueryView);
+        } else if (tablesContent.getComponent() instanceof AzureMonitorView) {
+            ((AzureMonitorView) tablesContent.getComponent()).setSelectedWorkspace(workspace);
         }
-        toolWindowMap.put(project, azureMonitorWindow);
         return azureMonitorWindow;
     }
 
     private void addContent(@Nonnull ToolWindow toolWindow, String contentName, AzureMonitorView view) {
-        final Content tableContent = ContentFactory.getInstance().createContent(view.getContentPanel(), contentName, true);
+        final Content tableContent = ContentFactory.getInstance().createContent(view, contentName, true);
         tableContent.setCloseable(false);
         toolWindow.getContentManager().addContent(tableContent);
     }
@@ -102,9 +100,22 @@ public class AzureMonitorManager {
                 isTriggered = PropertiesComponent.getInstance().getBoolean(AzureMonitorManager.AZURE_MONITOR_TRIGGERED);
             }
             toolWindow.setIcon(isTriggered ? IntelliJAzureIcons.getIcon(AzureIcons.Common.AZURE_MONITOR) : IntelliJAzureIcons.getIcon(AzureIcons.Common.AZURE_MONITOR_NEW));
-            if (!toolWindowMap.containsKey(project)) {
+            try {
+                final String workspaceResourceId = PropertiesComponent.getInstance().getValue(AzureMonitorManager.AZURE_MONITOR_SELECTED_WORKSPACE, "");
+                final LogAnalyticsWorkspace workspace = Azure.az(AzureLogAnalyticsWorkspace.class).getById(workspaceResourceId);
+                instance.initToolWindow(project, workspace, null);
+            } catch (final Exception e) {
                 instance.initToolWindow(project, null, null);
             }
+            toolWindow.getContentManager().addContentManagerListener(new ContentManagerListener() {
+                @Override
+                public void contentRemoved(@NotNull ContentManagerEvent event) {
+                    final JComponent contentComponent = event.getContent().getComponent();
+                    if (contentComponent instanceof AzureMonitorView) {
+                        ((AzureMonitorView) contentComponent).getMonitorTreePanel().dispose();
+                    }
+                }
+            });
         }
 
         @Override

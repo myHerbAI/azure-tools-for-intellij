@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 import static com.microsoft.azure.toolkit.lib.Azure.az;
 
 public class PostgreSqlNodeProvider implements IExplorerNodeProvider {
-    private static final String NAME = "Azure Database for PostgreSQL";
+    private static final String NAME = "Azure Database for PostgreSQL (Flexible)";
     private static final String ICON = AzureIcons.Postgre.MODULE.getIconPath();
 
     @Nullable

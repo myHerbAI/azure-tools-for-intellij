@@ -11,9 +11,11 @@ import java.util.List;
 
 @Data
 public class StepConfig {
+    public static final Integer DEFAULT_TIMEOUT_IN_MINUTES = 10;
     private String name;
     private String title;
     private String description;
+    private Integer timeout = DEFAULT_TIMEOUT_IN_MINUTES;
     private TaskConfig task;
     private boolean continueOnError = false;
     private List<InputConfig> inputs;

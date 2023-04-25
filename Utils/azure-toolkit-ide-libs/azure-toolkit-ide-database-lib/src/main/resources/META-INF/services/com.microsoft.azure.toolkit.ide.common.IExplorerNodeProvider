@@ -1,4 +1,5 @@
 com.microsoft.azure.toolkit.ide.database.postgre.PostgreSqlNodeProvider
+com.microsoft.azure.toolkit.ide.database.postgre.single.PostgreSqlNodeProvider
 com.microsoft.azure.toolkit.ide.database.mysql.MySqlNodeProvider
 com.microsoft.azure.toolkit.ide.database.mysql.single.MySqlNodeProvider
 com.microsoft.azure.toolkit.ide.database.sqlserver.SqlServerNodeProvider

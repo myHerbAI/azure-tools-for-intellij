@@ -8,8 +8,8 @@ plugins {
 }
 
 ext {
-    azureToolkitVersion = "0.31.0-SNAPSHOT"
-    azureToolkitUtilsVersion = "3.75.0-SNAPSHOT"
+    azureToolkitVersion = "0.33.0-SNAPSHOT"
+    azureToolkitUtilsVersion = "3.77.0-SNAPSHOT"
     azureToolkitHDInsightVersion = "0.1.0"
 }
 
@@ -85,8 +85,8 @@ subprojects {
     apply plugin: 'io.freefair.aspectj.post-compile-weaving'
     apply plugin: 'io.spring.dependency-management'
     ext {
-        azureToolkitVersion = "0.31.0-SNAPSHOT"
-        azureToolkitUtilsVersion = "3.75.0-SNAPSHOT"
+        azureToolkitVersion = "0.33.0-SNAPSHOT"
+        azureToolkitUtilsVersion = "3.77.0-SNAPSHOT"
         azureToolkitHDInsightVersion = "0.1.0"
     }
 
@@ -155,11 +155,12 @@ repositories {
 
 allprojects {
     configurations {
-        implementation.exclude module: 'slf4j-api'
-        implementation.exclude module: 'log4j'
-        implementation.exclude module: 'stax-api'
-        implementation.exclude module: 'groovy-xml'
-        implementation.exclude module: 'groovy-templates'
+        implementation.exclude module:'slf4j-api'
+        implementation.exclude module:'log4j'
+        implementation.exclude module:'stax-api'
+        implementation.exclude module:'groovy-xml'
+        implementation.exclude module:'groovy-templates'
+        implementation.exclude module:'jna'
         cucumberRuntime {
             extendsFrom testImplementation
         }
@@ -202,6 +203,7 @@ dependencies {
     implementation project(':azure-intellij-plugin-monitor')
     implementation project(':azure-intellij-plugin-hdinsight')
     implementation project(':azure-intellij-plugin-eventhubs')
+    implementation project(':azure-intellij-plugin-servicebus')
     implementation 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-spark-lib'
     implementation 'com.microsoft.azure:azure-toolkit-ide-appservice-lib'
     implementation 'com.microsoft.azure:azure-toolkit-applicationinsights-lib'
@@ -222,17 +224,16 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    implementation 'com.microsoft.azuretools:azuretools-core:3.75.0-SNAPSHOT', {
+    implementation 'com.microsoft.azuretools:azuretools-core:3.77.0-SNAPSHOT', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
-    implementation 'com.microsoft.azuretools:azure-explorer-common:3.75.0-SNAPSHOT', {
+    implementation 'com.microsoft.azuretools:azure-explorer-common:3.77.0-SNAPSHOT', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
-    implementation 'com.microsoft.azuretools:hdinsight-node-common:3.75.0-SNAPSHOT', {
+    implementation 'com.microsoft.azuretools:hdinsight-node-common:3.77.0-SNAPSHOT', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
 
-    implementation 'com.spotify:docker-client:8.16.0'
     implementation group: 'org.dom4j', name: 'dom4j', {
         exclude group: "javax.xml.stream", module: "stax-api"
         exclude group: "xpp3", module: "xpp3"
@@ -241,8 +242,7 @@ dependencies {
     }
     implementation group: 'jaxen', name: 'jaxen', version: '1.2.0'
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21")
-    implementation 'net.java.dev.jna:jna:5.12.1'
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.22")
     testImplementation 'io.cucumber:cucumber-java:7.0.0'
     testImplementation 'io.cucumber:cucumber-junit:7.0.0'
     testImplementation 'org.assertj:assertj-core:3.19.0'
@@ -329,7 +329,7 @@ patchPluginXml {
 
 task prepareBicepBinariesForSandbox(type: Copy) {
     def bicepBinariesDir = file("$projectDir/build/idea-sandbox/plugins/azure-toolkit-for-intellij/bicep")
-    bicepBinariesDir.deleteDir();
+    bicepBinariesDir.deleteDir()
     from("$projectDir/azure-intellij-plugin-bicep/binaries") into("$projectDir/build/idea-sandbox/plugins/azure-toolkit-for-intellij/")
 }
 

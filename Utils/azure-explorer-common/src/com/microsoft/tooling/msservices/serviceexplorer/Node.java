@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 public class Node implements MvpView, BasicTelemetryProperty, Sortable {
     private static final String CLICK_ACTION = "click";
@@ -314,7 +315,7 @@ public class Node implements MvpView, BasicTelemetryProperty, Sortable {
     // NOTE: The Class<?> objects returned by this method MUST be
     // public inner classes of the sub-class. We assume that they are.
     protected Map<String, Class<? extends NodeActionListener>> initActions() {
-        final List<Class<? extends NodeActionListener>> actions = node2Actions.get(this.getClass());
+        final List<Class<? extends NodeActionListener>> actions = Optional.ofNullable(node2Actions).map(m -> m.get(this.getClass())).orElse(null);
         if (actions != null) {
             try {
                 for (final Class<? extends NodeActionListener> actionClazz : actions) {

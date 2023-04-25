@@ -75,7 +75,7 @@ public class SignInCommandHandler extends AzureAbstractHandler {
 		}
 	}
 
-	@AzureOperation(name = "account.sign_in", type = AzureOperation.Type.SERVICE)
+	@AzureOperation(name = "internal/account.sign_in")
 	private static void login(Shell shell, Runnable callback) {
 		final AzureTaskManager manager = AzureTaskManager.getInstance();
 		manager.runLater(() -> {

@@ -10,12 +10,11 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerAppDraft;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
 import com.microsoft.azure.toolkit.lib.containerregistry.Repository;
+import com.microsoft.azure.toolkit.lib.containerregistry.Tag;
 import lombok.Getter;
-import org.apache.commons.lang3.tuple.Pair;
 
 import javax.swing.*;
 import java.awt.event.ItemEvent;
-import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -38,20 +37,21 @@ public class ACRImageForm implements AzureFormJPanel<ContainerAppDraft.ImageConf
     public ContainerAppDraft.ImageConfig getValue() {
         final ContainerRegistry registry = Objects.requireNonNull(this.selectorRegistry.getValue(), "'registry' is required.");
         final Repository repository = Objects.requireNonNull(this.selectorRepository.getValue(), "'repository' is required.");
-        final Pair<String, OffsetDateTime> tagWithDate = Objects.requireNonNull(this.selectorTag.getValue(), "'tag' is required.");
-        final ContainerAppDraft.ImageConfig config = new ContainerAppDraft.ImageConfig();
-        final String fullImageName = String.format("%s/%s:%s", registry.getLoginServerUrl(), repository.getName(), tagWithDate.getLeft());
+        final Tag tag = Objects.requireNonNull(this.selectorTag.getValue(), "'tag' is required.");
+        final String fullImageName = tag.getFullName();
+        final ContainerAppDraft.ImageConfig config = new ContainerAppDraft.ImageConfig(fullImageName);
         config.setContainerRegistry(registry);
-        config.setFullImageName(fullImageName);
         return config;
     }
 
     @Override
     public void setValue(final ContainerAppDraft.ImageConfig config) {
         final ContainerRegistry registry = Objects.requireNonNull(config.getContainerRegistry(), "container registry is null.");
+        final String f = config.getFullImageName();
+        final String repositoryName = f.substring(f.indexOf("/") + 1, f.lastIndexOf(":"));
         this.selectorRegistry.setValue(registry);
-        this.selectorRepository.setValue(r -> r.getName().equalsIgnoreCase(config.getSimpleImageName()));
-        this.selectorTag.setValue(t -> t.getLeft().equalsIgnoreCase(config.getTag()));
+        this.selectorRepository.setValue(r -> r.getName().equalsIgnoreCase(repositoryName));
+        this.selectorTag.setValue(t -> t.getName().equalsIgnoreCase(config.getTag()));
     }
 
     @Override

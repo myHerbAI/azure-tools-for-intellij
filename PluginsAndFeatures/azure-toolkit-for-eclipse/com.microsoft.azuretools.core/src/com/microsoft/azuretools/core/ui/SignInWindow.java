@@ -5,16 +5,9 @@
 
 package com.microsoft.azuretools.core.ui;
 
-import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.auth.AuthConfiguration;
-import com.microsoft.azure.toolkit.lib.auth.AuthType;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azuretools.core.components.AzureTitleAreaDialogWrapper;
-import com.microsoft.azuretools.core.utils.AccessibilityUtils;
+import java.util.Objects;
+import java.util.Optional;
 
-import lombok.SneakyThrows;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -22,15 +15,18 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-import reactor.util.function.Tuple2;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.stream.Stream;
+import com.microsoft.azure.toolkit.lib.auth.AuthType;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.azuretools.core.components.AzureTitleAreaDialogWrapper;
+import com.microsoft.azuretools.core.utils.AccessibilityUtils;
 
 public class SignInWindow extends AzureTitleAreaDialogWrapper {
     private static final String DESC = "desc_label";
@@ -47,6 +43,7 @@ public class SignInWindow extends AzureTitleAreaDialogWrapper {
     private AuthType type = null;
 	private Button okButton;
 	private Group authTypeGroup;
+	private AuthType data;
 
     /**
      * Create the dialog.
@@ -143,38 +140,51 @@ public class SignInWindow extends AzureTitleAreaDialogWrapper {
         this.cliBtn.setEnabled(false);
         AzureTaskManager.getInstance().runOnPooledThread(() -> {
             final boolean available = AuthType.AZURE_CLI.checkAvailable();
-            cliBtn.setEnabled(available);
-            cliBtn.setText(available ? "Azure CLI" : "Azure CLI (Not logged in)");
-            if (cliBtn.getSelection() && !available) {
-                oauthBtn.setSelection(true);
-            }
-            updateSelection();
+            AzureTaskManager.getInstance().runLater(()->{
+                cliBtn.setEnabled(available);
+                cliBtn.setText(available ? "Azure CLI" : "Azure CLI (Not logged in)");
+                if (cliBtn.getSelection() && !available) {
+                    oauthBtn.setSelection(true);
+                }
+                updateSelection();
+            });
         });
     }
 
     private void updateSelection() {
         boolean selectionAvailable = false;
         for (final Control control : authTypeGroup.getChildren()) {
-        	final Button button = (Button) control;
-            ((Label) button.getData(DESC)).setEnabled(button.getSelection() && button.isEnabled());
-            selectionAvailable = selectionAvailable || (button.getSelection() && button.isEnabled());
+        	if(control instanceof Button) {
+            	final Button button = (Button) control;
+                final Label label = ((Label) button.getData(DESC));
+            	if(Objects.nonNull(label)) {
+                    label.setEnabled(button.getSelection() && button.isEnabled());
+            	}
+                selectionAvailable = selectionAvailable || (button.getSelection() && button.isEnabled());
+        	}
         }
-        this.okButton.setEnabled(selectionAvailable);
+    	if(Objects.nonNull(this.okButton)) {
+            this.okButton.setEnabled(selectionAvailable);
+    	}
     }
 
-    public AuthType getData() {
-    	if(this.cliBtn.getSelection()) {
-    		return AuthType.AZURE_CLI;
-    	}
-    	if(this.oauthBtn.getSelection()) {
-    		return AuthType.OAUTH2;
-    	}
-    	if(this.deviceBtn.getSelection()) {
-    		return AuthType.DEVICE_CODE;
-    	}
-    	if(this.spBtn.getSelection()) {
-    		return AuthType.SERVICE_PRINCIPAL;
-    	}
-        throw new AzureToolkitRuntimeException("No auth type is selected");
+    @Override
+	protected void okPressed() {
+		if (this.cliBtn.getSelection()) {
+			this.data = AuthType.AZURE_CLI;
+		} else if (this.oauthBtn.getSelection()) {
+			this.data = AuthType.OAUTH2;
+		} else if (this.deviceBtn.getSelection()) {
+			this.data = AuthType.DEVICE_CODE;
+		} else if (this.spBtn.getSelection()) {
+			this.data = AuthType.SERVICE_PRINCIPAL;
+		} else {
+			throw new AzureToolkitRuntimeException("No auth type is selected");
+		}
+		super.okPressed();
+	}
+
+	public AuthType getData() {
+		return this.data;
     }
 }

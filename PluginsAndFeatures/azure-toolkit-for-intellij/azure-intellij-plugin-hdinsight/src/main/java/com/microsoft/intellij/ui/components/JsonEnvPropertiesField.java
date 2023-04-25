@@ -131,7 +131,7 @@ public class JsonEnvPropertiesField extends TextFieldWithBrowseButton implements
 
     private class MyEnvironmentVariablesDialog extends DialogWrapper {
         private static final String TITLE = "Extended Properties";
-        private final EnvVariablesTable myUserTable;
+        private final com.intellij.execution.util.EnvVariablesTable myUserTable;
         private final JPanel myWholePanel;
 
         protected MyEnvironmentVariablesDialog() {
@@ -168,8 +168,8 @@ public class JsonEnvPropertiesField extends TextFieldWithBrowseButton implements
                 String value = variable.getValue();
                 if (StringUtil.isEmpty(name) && StringUtil.isEmpty(value)) continue;
 
-                if (!EnvironmentUtil.isValidName(name)) return new ValidationInfo("Illegal property name: " + name);
-                if (!EnvironmentUtil.isValidValue(value)) return new ValidationInfo("Illegal property value: " + value);
+                if (!com.intellij.util.EnvironmentUtil.isValidName(name)) return new ValidationInfo("Illegal property name: " + name);
+                if (!com.intellij.util.EnvironmentUtil.isValidValue(value)) return new ValidationInfo("Illegal property value: " + value);
             }
             return super.doValidate();
         }
@@ -187,7 +187,7 @@ public class JsonEnvPropertiesField extends TextFieldWithBrowseButton implements
         }
     }
 
-    private class MyEnvVariablesTable extends EnvVariablesTable {
+    private class MyEnvVariablesTable extends com.intellij.execution.util.EnvVariablesTable {
         private final boolean myUserList;
 
         private MyEnvVariablesTable(List<EnvironmentVariable> list, boolean userList) {

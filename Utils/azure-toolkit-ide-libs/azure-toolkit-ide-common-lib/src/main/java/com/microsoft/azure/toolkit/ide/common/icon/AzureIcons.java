@@ -47,16 +47,18 @@ public final class AzureIcons {
         public static final AzureIcon UPDATE = AzureIcon.builder().iconPath("/icons/action/update").build();
         public static final AzureIcon ADD = AzureIcon.builder().iconPath("/icons/action/add").build();
         public static final AzureIcon REMOVE = AzureIcon.builder().iconPath("/icons/action/remove").build();
-        public static final AzureIcon PORTAL = AzureIcon.builder().iconPath("/icons/action/portal").build();
-        public static final AzureIcon BROWSER = AzureIcon.builder().iconPath("/icons/action/browser").build();
+        public static final AzureIcon PORTAL = AzureIcon.builder().iconPath("icons/Common/OpenInPortal.svg").build();
+        public static final AzureIcon BROWSER = AzureIcon.builder().iconPath("icons/Common/OpenInPortal.svg").build();
         public static final AzureIcon PROPERTIES = AzureIcon.builder().iconPath("/icons/action/properties").build();
         public static final AzureIcon LOG = AzureIcon.builder().iconPath("/icons/action/log").build();
         public static final AzureIcon CONSOLE = AzureIcon.builder().iconPath("/icons/action/console").build();
+        public static final AzureIcon COPY = AzureIcon.builder().iconPath("/icons/action/copy").build();
         public static final AzureIcon SFTP = AzureIcon.builder().iconPath("/icons/action/sftp").build();
         public static final AzureIcon UPLOAD = AzureIcon.builder().iconPath("/icons/action/upload").build();
         public static final AzureIcon DOWNLOAD = AzureIcon.builder().iconPath("/icons/action/download").build();
         public static final AzureIcon ATTACH_DEBUGGER = AzureIcon.builder().iconPath("icons/action/attachDebugger").build();
         public static final AzureIcon REMOTE_DEBUG = AzureIcon.builder().iconPath("icons/action/remoteDebug").build();
+        public static final AzureIcon SEARCH = AzureIcon.builder().iconPath("icons/action/search").build();
     }
 
     public static final class MySQL {
@@ -124,6 +126,7 @@ public final class AzureIcons {
         public static final AzureIcon UNKNOWN = AzureIcon.builder().iconPath("/icons/SpringCloud/SpringCloudAppUnknown.svg").build();
         public static final AzureIcon DEPLOY = AzureIcon.builder().iconPath("/icons/SpringCloud/Deploy.svg").build();
         public static final AzureIcon ADD_DEPENDENCY = AzureIcon.builder().iconPath("/icons/SpringCloud/AddDependency.svg").build();
+        public static final AzureIcon INSTANCE_MODULE = AzureIcon.builder().iconPath("/icons/Microsoft.AppPlatform/Spring/apps/deployments/instances/default.svg").build();
     }
 
     public static final class ApacheSparkOnAzureSynapse {
@@ -136,6 +139,7 @@ public final class AzureIcons {
 
     public static final class ContainerApps {
         public static final AzureIcon MODULE = AzureIcon.builder().iconPath("/icons/Microsoft.App/default.svg").build();
+        public static final AzureIcon REVISION_MODULE = AzureIcon.builder().iconPath("/icons/Microsoft.App/containerApps/revisions/default.svg").build();
     }
 
     public static final class ContainerRegistry {
@@ -181,7 +185,8 @@ public final class AzureIcons {
     public static final class DockerSupport {
         public static final AzureIcon MODULE = AzureIcon.builder().iconPath("/icons/DockerSupport/DockerSupport.svg").build();
         public static final AzureIcon RUN = AzureIcon.builder().iconPath("/icons/DockerSupport/Run.svg").build();
-        public static final AzureIcon PUSH_IMAGE = AzureIcon.builder().iconPath("/icons/DockerSupport/PushImage.svg").build();
+        public static final AzureIcon PUSH_IMAGE = AzureIcon.builder().iconPath("/icons/Docker/PushImage.svg").build();
+        public static final AzureIcon PULL_IMAGE = AzureIcon.builder().iconPath("/icons/Docker/PullImage.svg").build();
         public static final AzureIcon RUN_ON_WEB_APP = AzureIcon.builder().iconPath("/icons/DockerSupport/RunOnWebApp.svg").build();
     }
 
@@ -207,6 +212,8 @@ public final class AzureIcons {
 
     public static final class Connector {
         public static final AzureIcon CONNECT = AzureIcon.builder().iconPath("/icons/connector/connect.svg").build();
+        public static final AzureIcon SERVICE_LINKER_MODULE = AzureIcon.builder().iconPath("/icons/connector/service_connector.svg").build();
+        public static final AzureIcon FOCUS_ON_CONNECTED_SERVICE = AzureIcon.builder().iconPath("/icons/connector/service_connector_jump.svg").build();
     }
 
     public static final class Files {
@@ -216,5 +223,9 @@ public final class AzureIcons {
 
     public static final class EventHubs {
         public static final AzureIcon MODULE = AzureIcon.builder().iconPath("/icons/Microsoft.EventHub/default.svg").build();
+    }
+
+    public static final class ServiceBus {
+        public static final AzureIcon MODULE = AzureIcon.builder().iconPath("/icons/Microsoft.ServiceBus/default.svg").build();
     }
 }

@@ -71,7 +71,7 @@ public class OpenCosmosDocumentAction {
     @SneakyThrows
     private static VirtualFile createVirtualFile(final ICosmosDocument document, FileEditorManager manager) {
         final File tempFile = FileUtil.createTempFile(document.getName(), ".json", true);
-        FileUtil.writeToFile(tempFile, Objects.requireNonNull(document.getDocument()).toPrettyString());
+        FileUtil.writeToFile(tempFile, Objects.requireNonNull(document.getDocument(), String.format("Failed to create temp file for document %s", document.getName())).toPrettyString());
         final String virtualFileName = String.format("%s.%s", document.getName(), FilenameUtils.getExtension(tempFile.getName()));
         return VirtualFileActions.createVirtualFile(document.getId(), virtualFileName, tempFile, manager);
     }

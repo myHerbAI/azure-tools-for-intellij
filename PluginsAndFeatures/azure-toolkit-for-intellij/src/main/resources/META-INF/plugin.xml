@@ -2,16 +2,16 @@
              xmlns:xi="http://www.w3.org/2001/XInclude">
   <id>com.microsoft.tooling.msservices.intellij.azure</id>
   <name>Azure Toolkit for IntelliJ</name>
-  <version>3.75.0-SNAPSHOT</version>
+  <version>3.77.0-SNAPSHOT</version>
   <vendor email="java@microsoft.com" url="http://www.microsoft.com">Microsoft</vendor>
 
   <description><![CDATA[
       <html>
         <p>The plugin allows Java developers to easily develop, configure, test, and deploy highly available and scalable Java applications to Azure. The plugin supports Azure App Service, Azure Functions, Azure Spring Apps, Azure Kubernetes, Azure Container Apps, Virtual Machines, Azure Database for MySQL, Azure Cosmos DB, SQL Server, Azure Storage, and Application Insights. It also supports Azure Synapse data engineers, Azure HDInsight developers and Apache Spark on SQL Server users to create, test and submit Apache Spark/Hadoop jobs to Azure from IntelliJ on all supported platforms.</p>
         <ul>
-          <li><a href="https://learn.microsoft.com/en-us/azure/developer/java/toolkit-for-intellij/create-hello-world-web-app">Azure Web App Workflow: Run your web applications on Azure Web App and view logs.</li>
-          <li><a href="https://learn.microsoft.com/en-us/azure/azure-functions/functions-create-maven-intellij?toc=%2Fazure%2Fdeveloper%2Fjava%2Ftoolkit-for-intellij%2Ftoc.json&bc=%2Fazure%2Fdeveloper%2Fjava%2Ftoolkit-for-intellij%2Fbreadcrumb%2Ftoc.json">Azure Functions Workflow: Scaffold, run, debug your Functions App locally and deploy it on Azure.</li>
-          <li><a href="https://learn.microsoft.com/en-us/azure/spring-apps/quickstart?tabs=IntelliJ">Azure Spring Apps Workflow: Run your Spring microservices applications on Azure Spring Apps and view logs.</li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/developer/java/toolkit-for-intellij/create-hello-world-web-app">Azure Web App Workflow:</a> Run your web applications on Azure Web App and view logs.</li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/azure-functions/functions-create-maven-intellij?toc=%2Fazure%2Fdeveloper%2Fjava%2Ftoolkit-for-intellij%2Ftoc.json&bc=%2Fazure%2Fdeveloper%2Fjava%2Ftoolkit-for-intellij%2Fbreadcrumb%2Ftoc.json">Azure Functions Workflow:</a> Scaffold, run, debug your Functions App locally and deploy it on Azure.</li>
+          <li><a href="https://learn.microsoft.com/en-us/azure/spring-apps/quickstart?tabs=IntelliJ">Azure Spring Apps Workflow:</a> Run your Spring microservices applications on Azure Spring Apps and view logs.</li>
           <li>Azure Container Apps Workflow: Dockerize and run applications on Azure Container Apps and view logs.</li>
           <li>Azure Kubernetes Support: Create and manage your Kubernetes Services directly in Azure Explorer.</li>
           <li>Getting Started Guide: Follow the steps in the getting started guide and deploy an application within several minutes.</li>
@@ -27,33 +27,32 @@
   <change-notes>
     <![CDATA[
     <html>
-      <h3 id="3-74-0">3.74.0</h3>
+      <h3 id="3-75-0">3.75.0</h3>
       <h4 id="added">Added</h4>
       <ul>
-          <li>Support IntelliJ 2023.1 EAP.</li>
-          <li>Add Azure Event Hub support in Azure Toolkits<ul>
-                  <li>Resource Management in Azure explorer</li>
-                  <li>Simple event hub client to send/receive events</li>
-              </ul>
-          </li>
+        <li>New course about <code>Azure Spring Apps</code> in <code>Getting Started with Azure</code> course list.</li>
+        <li>Resource Management of <code>Azure Database for PostgreSQL flexible servers</code>.</li>
+        <li>Add <code>Azure Service Bus</code> support in Azure Toolkits.
+          <ul>
+            <li>Resource Management in Azure explorer.</li>
+            <li>Simple Service Bus client to send/receive messages.</li>
+          </ul>
+        </li>
       </ul>
       <h4 id="changed">Changed</h4>
       <ul>
-          <li>Azure Function: New function class creation workflow with resource connection</li>
-          <li>Azure Function: Support customized function host parameters and path for <code>host.json</code> in function
-              run/deployment</li>
-          <li>App Service: New UX for runtime selection</li>
-          <li>Azure Spring Apps: Integrate with control plane logs, more diagnostic info will be shown during deployment</li>
+        <li>Warn user if bytecode version of deploying artifact is not compatible of the runtime of target Azure Spring app.</li>
+        <li>JDK version of current project is used as the default runtime of creating Spring App.</li>
+        <li>Remove HDInsight related node favorite function.</li>
       </ul>
       <h4 id="fixed">Fixed</h4>
       <ul>
-          <li>Fix: Toolkit will always select maven as build tool in function module creation wizard</li>
-          <li>Fix: Copy connection string did not work for Cosmos DB</li>
-          <li>Fix: Only <code>local.settings.json</code> in root module could be found when import app settings</li>
-          <li>Fix: Linked cluster cannot display under the HDInsight node.</li>
-          <li>Fix: Open the sign into Azure dialog after click on "Link a cluster/refresh" in the context menu.</li>
-          <li>Fix: Failed to open Azure Storage Explorer.</li>
-          <li>Fix: In config, only display linked cluster in cluster list, but in Azure explorer both linked cluster and signincluster exist.</li>
+        <li>&#39;Send Message&#39; action is missing if there is a long text to send</li>
+        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/7374">#7374</a>: Uncaught Exception com.microsoft.azure.toolkit.lib.common.operation.OperationException: initialize editor highlighter for Bicep files</li>
+        <li>When not sign in to azure, the linked cluster does not display the linked label.</li>
+        <li>Show the error " cannot find subscription with id '[LinkedCluster]' " in the lower right corner, and will display many in notification center.</li>
+        <li>Graphics in job view are obscured.</li>
+        <li>Under the theme of windows 10 light, the background color of debug verification information is inconsistent with the theme color.</li>
       </ul>
       <p>You may get the full change log <a href="https://github.com/Microsoft/azure-tools-for-java/blob/develop/CHANGELOG.md">here</a></p>
     </html>
@@ -93,6 +92,7 @@
   <xi:include href="/META-INF/azure-intellij-plugin-monitor.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-containerapps.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-eventhubs.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/azure-intellij-plugin-servicebus.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <!-- please see https://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
        on how to target different products -->
   <!-- uncomment to enable plugin in all products

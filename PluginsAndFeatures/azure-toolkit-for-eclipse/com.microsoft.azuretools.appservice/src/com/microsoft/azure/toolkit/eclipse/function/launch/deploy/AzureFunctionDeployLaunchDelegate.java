@@ -43,7 +43,7 @@ public class AzureFunctionDeployLaunchDelegate extends LaunchConfigurationDelega
     private static final String LOCAL_SETTINGS_VALUES = "Values";
 
     @Override
-    @AzureOperation(name = "function.deploy.configuration", type = AzureOperation.Type.ACTION)
+    @AzureOperation(name = "user/function.deploy.configuration")
     public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor)
             throws CoreException {
         final FunctionDeployConfiguration config = LaunchConfigurationUtils.getFromConfiguration(configuration,

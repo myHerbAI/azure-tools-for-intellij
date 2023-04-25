@@ -10,7 +10,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo.Type.SUCCESS;
 
-@Log
+@Slf4j
 public abstract class AzureDialog<T> extends DialogWrapper {
     protected OkActionListener<T> okActionListener;
 

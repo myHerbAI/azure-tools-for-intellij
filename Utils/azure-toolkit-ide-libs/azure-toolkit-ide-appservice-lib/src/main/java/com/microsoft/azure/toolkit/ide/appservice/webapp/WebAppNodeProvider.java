@@ -9,11 +9,7 @@ import com.microsoft.azure.toolkit.ide.appservice.AppServiceDeploymentSlotsNodeV
 import com.microsoft.azure.toolkit.ide.appservice.file.AppServiceFileNode;
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.component.AzureModuleLabelView;
-import com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider;
-import com.microsoft.azure.toolkit.ide.common.component.AzureResourceLabelView;
-import com.microsoft.azure.toolkit.ide.common.component.AzureServiceLabelView;
-import com.microsoft.azure.toolkit.ide.common.component.Node;
+import com.microsoft.azure.toolkit.ide.common.component.*;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIconProvider;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
@@ -27,6 +23,8 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlotModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinker;
+import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -70,7 +68,7 @@ public class WebAppNodeProvider implements IExplorerNodeProvider {
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .addInlineAction(ResourceCommonActionsContributor.DEPLOY)
                 .actions(WebAppActionsContributor.WEBAPP_ACTIONS)
-                .addChild(WebApp::getDeploymentModule, (module, webAppNode) -> createNode(module, webAppNode, manager))
+                .addChildren(WebApp::getSubModules, (module, webAppNode) -> createNode(module, webAppNode, manager))
                 .addChild(AppServiceFileNode::getRootFileNodeForAppService, (d, p) -> this.createNode(d, p, manager)) // Files
                 .addChild(AppServiceFileNode::getRootLogNodeForAppService, (d, p) -> this.createNode(d, p, manager));
         } else if (data instanceof WebAppDeploymentSlotModule) {
@@ -89,6 +87,15 @@ public class WebAppNodeProvider implements IExplorerNodeProvider {
         } else if (data instanceof AppServiceFile) {
             final AppServiceFile file = (AppServiceFile) data;
             return new AppServiceFileNode(file);
+        } else if (data instanceof ServiceLinkerModule) {
+            final ServiceLinkerModule module = (ServiceLinkerModule) data;
+            return new Node<>(module)
+                    .view(new AzureModuleLabelView<>(module, "Service Connectors", AzureIcons.Connector.SERVICE_LINKER_MODULE.getIconPath()))
+                    .actions(ResourceCommonActionsContributor.SERVICE_LINKER_MODULE_ACTIONS)
+                    .addChildren(ServiceLinkerModule::list, (d, p) -> this.createNode(d, p, manager));
+        } else if (data instanceof ServiceLinker) {
+            final ServiceLinker serviceLinker = (ServiceLinker) data;
+            return new ServiceLinkerNode(serviceLinker);
         }
         return null;
     }

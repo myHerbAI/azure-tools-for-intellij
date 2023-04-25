@@ -6,7 +6,6 @@ package com.microsoft.azure.toolkit.eclipse.function.wizard;
 
 import com.microsoft.azure.toolkit.eclipse.common.component.AzureComboBox;
 import com.microsoft.azure.toolkit.ide.appservice.function.AzureFunctionsUtils;
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.legacy.function.template.FunctionTemplate;
 import com.microsoft.azure.toolkit.lib.legacy.function.utils.FunctionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,9 +24,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.PlatformUI;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,14 +58,7 @@ public class NewFunctionClassWizardPage extends NewClassWizardPage {
 
     @Override
     protected void createTypeMembers(IType createdType, ImportsManager imports, IProgressMonitor monitor) throws CoreException {
-        final String body;
-        try {
-            body = AzureFunctionsUtils.generateFunctionClassByTrigger(cbTriggers.getValue(), getPackageText(), getTypeName());
-        } catch (IOException e) {
-            // ignore
-            return;
-        }
-
+        final String body = AzureFunctionsUtils.generateFunctionClassByTrigger(cbTriggers.getValue(), getPackageText(), getTypeName());
         ASTParser parser = ASTParser.newParser(AST.JLS11);
         parser.setSource(body.toCharArray());
         parser.setKind(ASTParser.K_COMPILATION_UNIT);
@@ -129,12 +119,8 @@ public class NewFunctionClassWizardPage extends NewClassWizardPage {
     }
 
     private List<String> listTriggerTypes() {
-        try {
-            final List<FunctionTemplate> functionTemplates = FunctionUtils.loadAllFunctionTemplates();
-            return functionTemplates.stream().map(t -> t.getMetadata().getName()).filter(temp -> !temp.contains("RabbitMQ")).collect(Collectors.toList());
-        } catch (AzureExecutionException e) {
-            return Collections.emptyList();
-        }
+        final List<FunctionTemplate> functionTemplates = FunctionUtils.loadAllFunctionTemplates();
+        return functionTemplates.stream().map(t -> t.getMetadata().getName()).filter(temp -> !temp.contains("RabbitMQ")).collect(Collectors.toList());
     }
 
     protected String getTypeComment(ICompilationUnit parentCU, String lineDelimiter) {

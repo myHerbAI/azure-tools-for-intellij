@@ -12,6 +12,7 @@ import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.jar.Manifest;
 import org.codehaus.plexus.archiver.jar.ManifestException;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -19,7 +20,7 @@ import java.nio.file.Paths;
 import java.util.jar.Attributes;
 
 public class JarUtils {
-    public static Path buildJarFileToStagingPath(String stagingFolder, Module module) throws IOException {
+    public static Path buildJarFileToStagingPath(@Nonnull final String stagingFolder, @Nonnull final Module module) throws IOException {
         final File stagingFolderFile = new File(stagingFolder);
         if (!stagingFolderFile.exists()) {
             stagingFolderFile.mkdirs();

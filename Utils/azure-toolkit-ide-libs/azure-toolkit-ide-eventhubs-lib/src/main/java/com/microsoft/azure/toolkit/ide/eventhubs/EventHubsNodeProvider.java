@@ -1,5 +1,6 @@
 package com.microsoft.azure.toolkit.ide.eventhubs;
 
+import com.azure.resourcemanager.eventhubs.models.EntityStatus;
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider;
@@ -63,7 +64,6 @@ public class EventHubsNodeProvider implements IExplorerNodeProvider {
                     .view(new AzureResourceLabelView<>(eventHubsInstance, EventHubsInstance::getStatus, EVENT_HUBS_ICON_PROVIDER))
                     .actions(EventHubsActionsContributor.INSTANCE_ACTIONS);
         }
-        //*huaidong0115
         return null;
     }
 
@@ -73,6 +73,6 @@ public class EventHubsNodeProvider implements IExplorerNodeProvider {
 
     @Nullable
     private static AzureIcon.Modifier getSendDisabledModifier(EventHubsInstance resource) {
-        return resource.isSendDisabled() ? AzureIcon.Modifier.SEND_DISABLED : null;
+        return resource.getEntityStatus() == EntityStatus.SEND_DISABLED ? AzureIcon.Modifier.SEND_DISABLED : null;
     }
 }

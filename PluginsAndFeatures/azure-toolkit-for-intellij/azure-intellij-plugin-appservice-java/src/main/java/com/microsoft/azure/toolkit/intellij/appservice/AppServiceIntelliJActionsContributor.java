@@ -22,10 +22,10 @@ import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContri
 import com.microsoft.azure.toolkit.ide.containerregistry.ContainerRegistryActionsContributor;
 import com.microsoft.azure.toolkit.intellij.appservice.actions.AppServiceFileAction;
 import com.microsoft.azure.toolkit.intellij.appservice.actions.OpenAppServicePropertyViewAction;
+import com.microsoft.azure.toolkit.intellij.containerregistry.pushimage.PushImageAction;
 import com.microsoft.azure.toolkit.intellij.function.remotedebug.FunctionEnableRemoteDebuggingAction;
 import com.microsoft.azure.toolkit.intellij.function.remotedebug.FunctionRemoteDebuggingAction;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.action.*;
-import com.microsoft.azure.toolkit.intellij.legacy.docker.action.PushToContainerRegistryAction;
 import com.microsoft.azure.toolkit.intellij.legacy.function.action.CreateFunctionAppAction;
 import com.microsoft.azure.toolkit.intellij.legacy.function.action.DeployFunctionAppAction;
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.action.CreateWebAppAction;
@@ -169,7 +169,7 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
         // keep push docker image in app service library as form is shared between appservice/container repository but could not split into different project
         final BiPredicate<ContainerRegistry, AnActionEvent> pushImageCondition = (r, e) -> r instanceof ContainerRegistry;
         final BiConsumer<ContainerRegistry, AnActionEvent> pushImageHandler =
-            (c, e) -> PushToContainerRegistryAction.execute(c, e.getProject());
+            (c, e) -> PushImageAction.push(c, Objects.requireNonNull(e.getProject()));
         am.registerHandler(ContainerRegistryActionsContributor.PUSH_IMAGE, pushImageCondition, pushImageHandler);
 
         final BiConsumer<ResourceGroup, AnActionEvent> groupCreateFunctionHandler =

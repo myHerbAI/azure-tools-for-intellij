@@ -190,9 +190,8 @@ public class AzureComboBox<T> extends Composite implements AzureFormInputControl
     }
 
     @AzureOperation(
-        name = "common.load_combobox_items.type",
-        params = {"this.getLabel()"},
-        type = AzureOperation.Type.ACTION
+        name = "internal/common.load_combobox_items.type",
+        params = {"this.getLabel()"}
     )
     private void doRefreshItems() {
         this.setLoading(true);

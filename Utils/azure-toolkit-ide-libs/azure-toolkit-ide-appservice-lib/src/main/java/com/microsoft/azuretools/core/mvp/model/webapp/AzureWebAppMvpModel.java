@@ -5,6 +5,7 @@
 
 package com.microsoft.azuretools.core.mvp.model.webapp;
 
+import com.microsoft.azure.toolkit.ide.appservice.AppServiceActionsContributor;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
@@ -24,13 +25,18 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlotDraft;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDraft;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azuretools.utils.IProgressIndicator;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -43,7 +49,7 @@ import java.util.Optional;
 
 // todo: Refactor to tasks in app service library
 @Deprecated
-@Log
+@Slf4j
 public class AzureWebAppMvpModel {
 
     public static final String DO_NOT_CLONE_SLOT_CONFIGURATION = "Don't clone configuration from an existing slot";
@@ -52,6 +58,10 @@ public class AzureWebAppMvpModel {
     private static final String STOP_DEPLOYMENT_SLOT = "Stopping deployment slot...";
     private static final String DEPLOY_SUCCESS_WEB_APP = "Deploy succeed, restarting web app...";
     private static final String DEPLOY_SUCCESS_DEPLOYMENT_SLOT = "Deploy succeed, restarting deployment slot...";
+    private static final int DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL = 10;
+    private static final int DEFAULT_DEPLOYMENT_STATUS_MAX_REFRESH_TIMES = 6;
+    private static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "The app is still starting, " +
+            "you could start streaming log to check if something wrong in server side.";
 
     private AzureWebAppMvpModel() {
     }
@@ -202,7 +212,18 @@ public class AzureWebAppMvpModel {
         final String path = isDeployToRoot || Objects.equals(Objects.requireNonNull(deployTarget.getRuntime()).getWebContainer(), WebContainer.JAVA_SE) ?
                 null : String.format("webapps/%s", FilenameUtils.getBaseName(file.getName()).replaceAll("#", StringUtils.EMPTY));
         final WebAppArtifact build = WebAppArtifact.builder().deployType(deployType).path(path).file(file).build();
-        new DeployWebAppTask(deployTarget, Collections.singletonList(build), true).doExecute();
+        final DeployWebAppTask deployWebAppTask = new DeployWebAppTask(deployTarget, Collections.singletonList(build), true, false, false);
+        deployWebAppTask.doExecute();
+        AzureTaskManager.getInstance().runInBackground("get deployment status", () -> {
+            OperationContext.current().setMessager(AzureMessager.getDefaultMessager());
+            if (!deployWebAppTask.waitUntilDeploymentReady(DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL, DEFAULT_DEPLOYMENT_STATUS_MAX_REFRESH_TIMES)) {
+                AzureMessager.getMessager().warning(GET_DEPLOYMENT_STATUS_TIMEOUT, null,
+                        AzureActionManager.getInstance().getAction(AppServiceActionsContributor.START_STREAM_LOG).bind(deployTarget));
+            } else {
+                AzureMessager.getMessager().success(AzureString.format("App({0}) started successfully.", deployTarget.getName()), null,
+                        AzureActionManager.getInstance().getAction(AppServiceActionsContributor.OPEN_IN_BROWSER).bind(deployTarget));
+            }
+        });
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.microsoft.azure.toolkit.intellij.eventhubs;
 
+import com.azure.resourcemanager.eventhubs.models.EntityStatus;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
@@ -27,31 +28,32 @@ public class IntellijEventHubsActionsContributor implements IActionsContributor 
         registerSendMessageActionHandler(am);
         registerStartListeningActionHandler(am);
         registerStopListeningActionHandler(am);
+        registerCopyConnectionStringActionHandler(am);
         registerGroupCreateNamespaceActionHandler(am);
     }
 
     private void registerActiveActionHandler(AzureActionManager am) {
         final BiPredicate<EventHubsInstance, AnActionEvent> condition = (r, e) -> true;
-        final BiConsumer<EventHubsInstance, AnActionEvent> handler = (c, e) -> c.activate();
+        final BiConsumer<EventHubsInstance, AnActionEvent> handler = (c, e) -> c.updateStatus(EntityStatus.ACTIVE);
         am.registerHandler(EventHubsActionsContributor.ACTIVE_INSTANCE, condition, handler);
     }
 
     private void registerDisabledActionHandler(AzureActionManager am) {
         final BiPredicate<EventHubsInstance, AnActionEvent> condition = (r, e) -> true;
-        final BiConsumer<EventHubsInstance, AnActionEvent> handler = (c, e) -> c.disable();
+        final BiConsumer<EventHubsInstance, AnActionEvent> handler = (c, e) -> c.updateStatus(EntityStatus.DISABLED);
         am.registerHandler(EventHubsActionsContributor.DISABLE_INSTANCE, condition, handler);
     }
 
     private void registerSendDisabledActionHandler(AzureActionManager am) {
         final BiPredicate<EventHubsInstance, AnActionEvent> condition = (r, e) -> true;
-        final BiConsumer<EventHubsInstance, AnActionEvent> handler = (c, e) -> c.disableSending();
+        final BiConsumer<EventHubsInstance, AnActionEvent> handler = (c, e) -> c.updateStatus(EntityStatus.SEND_DISABLED);
         am.registerHandler(EventHubsActionsContributor.SEND_DISABLE_INSTANCE, condition, handler);
     }
 
     private void registerSendMessageActionHandler(AzureActionManager am) {
         final BiPredicate<EventHubsInstance, AnActionEvent> condition = (r, e) -> true;
         final BiConsumer<EventHubsInstance, AnActionEvent> handler = (c, e) -> AzureTaskManager.getInstance()
-                        .runLater(() -> EventHubsToolWindowManager.getInstance().showEventHubsPanel(e.getProject(), c, false));
+                .runLater(() -> EventHubsToolWindowManager.getInstance().showEventHubsPanel(e.getProject(), c, false));
         am.registerHandler(EventHubsActionsContributor.SEND_MESSAGE_INSTANCE, condition, handler);
     }
 

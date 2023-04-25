@@ -79,9 +79,8 @@ public class EclipseFunctionProject extends FunctionProject {
     }
 
     @AzureOperation(
-            name = "function.list_function_methods",
-            params = {"project.getName()"},
-            type = AzureOperation.Type.TASK
+            name = "boundary/function.list_function_methods",
+            params = {"project.getName()"}
     )
     @Override
     public List<FunctionMethod> findAnnotatedMethods() {

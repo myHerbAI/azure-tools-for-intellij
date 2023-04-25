@@ -11,6 +11,7 @@ import com.intellij.execution.configurations.ConfigurationTypeUtil;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfigurationFactory;
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapponlinux.WebAppOnLinuxDeployConfigurationFactory;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -47,10 +48,14 @@ public class WebAppConfigurationType implements ConfigurationType {
 
     @Override
     public ConfigurationFactory[] getConfigurationFactories() {
-        return new ConfigurationFactory[]{new WebAppConfigurationFactory(this)};
+        return new ConfigurationFactory[]{new WebAppConfigurationFactory(this), new WebAppOnLinuxDeployConfigurationFactory(this)};
     }
 
     public WebAppConfigurationFactory getWebAppConfigurationFactory() {
         return new WebAppConfigurationFactory(this);
+    }
+
+    public WebAppOnLinuxDeployConfigurationFactory getWebAppOnLinuxConfigurationFactory() {
+        return new WebAppOnLinuxDeployConfigurationFactory(this);
     }
 }

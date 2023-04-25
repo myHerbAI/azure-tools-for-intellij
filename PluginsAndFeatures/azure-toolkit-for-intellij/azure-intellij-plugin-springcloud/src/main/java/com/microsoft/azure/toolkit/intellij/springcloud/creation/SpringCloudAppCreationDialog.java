@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.springcloud.creation;
 
+import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.ConfigDialog;
@@ -55,5 +56,14 @@ public class SpringCloudAppCreationDialog extends ConfigDialog<SpringCloudAppCon
     private void createUIComponents() {
         advancedForm = new SpringCloudAppInfoAdvancedPanel(this.cluster);
         basicForm = new SpringCloudAppInfoBasicPanel(this.cluster);
+    }
+
+    public void setDefaultRuntimeVersion(@Nullable Integer jdkVersion) {
+        if (jdkVersion != null) {
+            final RuntimeVersion runtime = jdkVersion <= 11 ? RuntimeVersion.JAVA_11 : RuntimeVersion.JAVA_17;
+            final SpringCloudAppConfig config = this.getData();
+            config.getDeployment().setRuntimeVersion(runtime.toString());
+            this.setData(config);
+        }
     }
 }

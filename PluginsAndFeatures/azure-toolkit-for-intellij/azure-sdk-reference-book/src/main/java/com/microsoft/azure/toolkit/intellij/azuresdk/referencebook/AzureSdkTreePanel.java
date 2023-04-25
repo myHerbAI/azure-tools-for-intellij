@@ -135,7 +135,7 @@ public class AzureSdkTreePanel implements TextDocumentListenerAdapter {
 
     private void filter(final String text) {
         final String[] filters = Arrays.stream(text.split("\\s+")).filter(StringUtils::isNoneBlank).map(String::toLowerCase).toArray(String[]::new);
-        this.loadData(this.categories, this.services, filters);
+        AzureTaskManager.getInstance().runLater(() -> this.loadData(this.categories, this.services, filters));
     }
 
     public synchronized void refresh(boolean... force) {
@@ -146,7 +146,7 @@ public class AzureSdkTreePanel implements TextDocumentListenerAdapter {
             this.services = AzureSdkLibraryService.loadAzureSdkServices();
             this.categories = AzureSdkCategoryService.loadAzureSDKCategories();
             this.fillDescriptionFromCategoryIfMissing(this.categories, this.services);
-            this.loadData(this.categories, this.services, this.searchBox.getText());
+            AzureTaskManager.getInstance().runAndWait(() -> this.loadData(this.categories, this.services, this.searchBox.getText()), AzureTask.Modality.ANY);
             Optional.ofNullable(this.lastNodePath).ifPresent(p -> AzureTaskManager.getInstance().runAndWait(() -> TreeUtil.selectPath(this.tree, p)));
             AzureEventBus.emit("reference.refresh");
         } catch (final IOException e) {

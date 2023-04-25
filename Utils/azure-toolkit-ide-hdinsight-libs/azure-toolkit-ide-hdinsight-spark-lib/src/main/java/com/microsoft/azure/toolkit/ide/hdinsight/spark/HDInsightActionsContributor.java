@@ -192,8 +192,6 @@ public class HDInsightActionsContributor implements IActionsContributor {
         am.registerGroup(SERVICE_ACTIONS, serviceActionGroup);
 
         final ActionGroup sparkActionGroup = new ActionGroup(
-                ResourceCommonActionsContributor.PIN,
-                "---",
                 this.REFRESH,
                 ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
                 ResourceCommonActionsContributor.OPEN_PORTAL_URL,
@@ -206,8 +204,6 @@ public class HDInsightActionsContributor implements IActionsContributor {
         am.registerGroup(SPARK_CLUSTER_ACTIONS, sparkActionGroup);
 
         final ActionGroup sparkAdditionalActionGroup = new ActionGroup(
-                ResourceCommonActionsContributor.PIN,
-                "---",
                 this.REFRESH,
                 ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
                 "---",

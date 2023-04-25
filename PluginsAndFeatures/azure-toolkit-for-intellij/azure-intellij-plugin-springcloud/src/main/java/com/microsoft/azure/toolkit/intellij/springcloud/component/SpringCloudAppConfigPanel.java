@@ -230,7 +230,7 @@ public class SpringCloudAppConfigPanel extends JPanel implements AzureFormPanel<
 
         Optional.ofNullable(deployment.getCpu()).ifPresent(c -> this.numCpu.setItem(c));
         Optional.ofNullable(deployment.getMemoryInGB()).ifPresent(c -> this.numMemory.setItem(c));
-        this.numInstance.setValue(deployment.getInstanceCount());
+        this.numInstance.setValue(Optional.ofNullable(deployment.getInstanceCount()).orElse(0));
     }
 
     @Nonnull

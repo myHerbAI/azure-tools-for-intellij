@@ -7,15 +7,15 @@ package com.microsoft.azure.toolkit.intellij.containerapps.component;
 
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.containerregistry.Repository;
-import org.apache.commons.lang3.tuple.Pair;
+import com.microsoft.azure.toolkit.lib.containerregistry.Tag;
 
 import javax.annotation.Nonnull;
-import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-public class ACRRepositoryTagComboBox extends AzureComboBox<Pair<String, OffsetDateTime>> {
+public class ACRRepositoryTagComboBox extends AzureComboBox<Tag> {
     private Repository repository;
 
     @Override
@@ -28,7 +28,7 @@ public class ACRRepositoryTagComboBox extends AzureComboBox<Pair<String, OffsetD
         if (Objects.isNull(item)) {
             return EMPTY_ITEM;
         }
-        return ((Pair<String, OffsetDateTime>) item).getLeft();
+        return ((Tag) item).getName();
     }
 
     public void setRepository(Repository repository) {
@@ -45,9 +45,10 @@ public class ACRRepositoryTagComboBox extends AzureComboBox<Pair<String, OffsetD
 
     @Nonnull
     @Override
-    protected List<? extends Pair<String, OffsetDateTime>> loadItems() {
+    protected List<Tag> loadItems() {
         if (Objects.nonNull(this.repository)) {
-            return this.repository.listTagsWithDates();
+            return this.repository.getArtifactModule().list().stream()
+                .flatMap(i -> i.getTagModule().list().stream()).collect(Collectors.toList());
         }
         return Collections.emptyList();
     }

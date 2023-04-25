@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.ide.guidance.input.GuidanceInput;
 import com.microsoft.azure.toolkit.ide.guidance.input.InputManager;
 import com.microsoft.azure.toolkit.ide.guidance.task.TaskManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -40,6 +41,8 @@ import java.util.stream.Collectors;
 @Setter
 @RequiredArgsConstructor
 public class Step implements Disposable {
+    public static final int TIME_OUT_MINUTES = 10;
+    public static final String TIME_OUT_WARNING = "Failed to execute step (%s) in (%d) minute, please continue after related task finished";
     @Nonnull
     private final String id;
     @Nonnull
@@ -57,7 +60,7 @@ public class Step implements Disposable {
     @Nonnull
     @ToString.Exclude
     private final Phase phase;
-
+    private final Integer timeout;
     private final boolean continueOnError;
     @Nonnull
     private Status status = Status.INITIAL;
@@ -68,6 +71,7 @@ public class Step implements Disposable {
         this.phase = phase;
         this.id = UUID.randomUUID().toString();
         this.title = config.getTitle();
+        this.timeout = Optional.ofNullable(config.getTimeout()).orElse(StepConfig.DEFAULT_TIMEOUT_IN_MINUTES);
         this.description = config.getDescription();
         this.continueOnError = config.isContinueOnError();
         this.task = TaskManager.createTask(config.getTask(), phase.getCourse().getContext());
@@ -87,13 +91,15 @@ public class Step implements Disposable {
             OperationContext.current().setMessager(output);
             try {
                 setStatus(Status.RUNNING);
-                if (this.phase.validateInputs()) {
-                    this.applyInputs();
-                    Mono.fromCallable(this::executeTask).subscribeOn(Schedulers.boundedElastic()).timeout(Duration.ofMinutes(10)).block();
-                    setStatus(Status.SUCCEED);
-                } else {
+                if (!this.phase.validateInputs()) {
                     setStatus(Status.FAILED);
+                    return;
                 }
+                this.applyInputs();
+                final Boolean result = Mono.fromCallable(this::executeTask)
+                        .subscribeOn(Schedulers.boundedElastic())
+                        .timeout(Duration.ofMinutes(timeout), Mono.error(new AzureToolkitException(String.format(TIME_OUT_WARNING, this.title, timeout)))).block();
+                setStatus(Status.SUCCEED);
             } catch (final Exception e) {
                 setStatus(continueOnError ? Status.PARTIAL_SUCCEED : Status.FAILED);
                 AzureMessager.getMessager().error(e);
@@ -107,10 +113,10 @@ public class Step implements Disposable {
 
     @Nullable
     @AzureOperation(name = "internal/guidance.execute_task.step", params = "this.title")
-    private Object executeTask() throws Exception {
+    private boolean executeTask() throws Exception {
         OperationContext.current().setMessager(output);
         this.task.execute();
-        return null;
+        return true;
     }
 
     public String getRenderedDescription() {

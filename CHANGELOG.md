@@ -3,6 +3,7 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.75.0](#3750)
   - [3.74.0](#3740)
   - [3.73.0](#3730)
   - [3.72.0](#3720)
@@ -93,6 +94,28 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.8](#308)
   - [3.0.7](#307)
   - [3.0.6](#306)
+
+
+## 3.75.0
+### Added
+- New course about `Azure Spring Apps` in `Getting Started with Azure` course list.
+- Resource Management of `Azure Database for PostgreSQL flexible servers`.
+- Add `Azure Service Bus` support in Azure Toolkits.
+  - Resource Management in Azure explorer.
+  - Simple Service Bus client to send/receive messages.
+
+### Changed
+- Warn user if bytecode version of deploying artifact is not compatible of the runtime of target Azure Spring app.
+- JDK version of current project is used as the default runtime of creating Spring App.
+- Remove HDInsight related node favorite function.
+
+### Fixed
+- 'Send Message' action is missing if there is a long text to send
+- [#7374](https://github.com/microsoft/azure-tools-for-java/issues/7374): Uncaught Exception com.microsoft.azure.toolkit.lib.common.operation.OperationException: initialize editor highlighter for Bicep files
+- Fix : When not sign in to azure, the linked cluster does not display the linked label.
+- Fix : Show the error " cannot find subscription with id '[LinkedCluster]' " in the lower right corner, and will display many in notification center.
+- Fix : Graphics in job view are obscured.
+- Fix : Under the theme of windows 10 light, the background color of debug verification information is inconsistent with the theme color.
 
 ## 3.74.0
 ### Added

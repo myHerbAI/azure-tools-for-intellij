@@ -28,7 +28,6 @@ public class WebAppActionsContributor implements IActionsContributor {
     public static final String WEBAPP_ACTIONS = "actions.webapp.management";
     public static final String DEPLOYMENT_SLOTS_ACTIONS = "actions.webapp.deployment_slots";
     public static final String DEPLOYMENT_SLOT_ACTIONS = "actions.webapp.deployment_slot";
-
     public static final Action.Id<WebAppDeploymentSlot> SWAP_DEPLOYMENT_SLOT = Action.Id.of("user/webapp.swap_deployment.deployment|app");
     public static final Action.Id<ResourceGroup> GROUP_CREATE_WEBAPP = Action.Id.of("user/webapp.create_app.group");
 

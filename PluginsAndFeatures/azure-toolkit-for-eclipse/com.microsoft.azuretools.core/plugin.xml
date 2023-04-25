@@ -57,7 +57,7 @@
     <extension point="org.eclipse.ui.handlers">
         <handler commandId="com.microsoft.azuretools.core.commands.SignIn" class="com.microsoft.azuretools.core.handlers.SignInCommandHandler"></handler>
         <handler commandId="com.microsoft.azuretools.core.commands.SignOut" class="com.microsoft.azuretools.core.handlers.SignOutCommandHandler"></handler>
-        <handler commandId="com.microsoft.azuretools.core.commands.SelectSubscriptions" class="com.microsoft.azuretools.core.handlers.SelectSubsriptionsCommandHandler">
+        <handler commandId="com.microsoft.azuretools.core.commands.SelectSubscriptions" class="com.microsoft.azuretools.core.handlers.SelectSubscriptionsCommandHandler">
             <enabledWhen>
                 <reference definitionId="when.is.signed.in" />
             </enabledWhen>

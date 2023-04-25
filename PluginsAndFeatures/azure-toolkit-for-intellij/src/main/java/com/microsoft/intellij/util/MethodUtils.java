@@ -9,13 +9,14 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleTypeId;
 import com.intellij.openapi.project.Project;
-import com.microsoft.intellij.AzurePlugin;
 import com.microsoft.intellij.ui.libraries.AILibraryHandler;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 
+@Slf4j
 public class MethodUtils {
 
     /**
@@ -47,7 +48,7 @@ public class MethodUtils {
                 }
             }
         } catch (Exception ex) {
-            AzurePlugin.log(ex.getMessage(), ex);
+            log.error(ex.getMessage(), ex);
         }
         return name;
     }

@@ -30,7 +30,7 @@ public class SelectSubscriptionsCommandHandler extends AzureAbstractHandler {
             if (!IdeAzureAccount.getInstance().isLoggedIn()) {
                 return;
             }
-            SubscriptionsDialog.go(parentShell);
+			AzureTaskManager.getInstance().runLater(() -> SubscriptionsDialog.go(parentShell));
         } catch (Exception ex) {
             ex.printStackTrace();
         }

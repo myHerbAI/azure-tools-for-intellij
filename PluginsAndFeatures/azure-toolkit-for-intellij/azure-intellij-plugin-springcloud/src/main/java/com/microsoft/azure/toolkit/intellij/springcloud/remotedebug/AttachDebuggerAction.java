@@ -32,8 +32,6 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppInstance;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
-import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -44,7 +42,6 @@ import java.util.Optional;
 
 public class AttachDebuggerAction {
     private static final int DEFAULT_PORT = 5005;
-    private static final String NO_AVAILABLE_INSTANCES = "No available instances in current app %s.";
 
     @AzureOperation(name = "user/springcloud.start_remote_debugging.instance", params = {"appInstance.getName()"})
     public static void startDebugging(@Nonnull SpringCloudAppInstance appInstance, Project project) {
@@ -59,14 +56,8 @@ public class AttachDebuggerAction {
 
     @AzureOperation(name = "user/springcloud.start_remote_debugging.app", params = {"app.getName()"})
     public static void startDebuggingApp(@Nonnull SpringCloudApp app, Project project) {
-        final SpringCloudDeployment deployment = app.getActiveDeployment();
-        final List<SpringCloudAppInstance> instances = deployment.getInstances();
-        if (CollectionUtils.isEmpty(instances)) {
-            AzureMessager.getMessager().error(String.format(NO_AVAILABLE_INSTANCES, app.getName()));
-            return;
-        }
         AzureTaskManager.getInstance().runLater(() -> {
-            final SpringCloudAppInstanceSelectionDialog dialog = new SpringCloudAppInstanceSelectionDialog(project, instances);
+            final SpringCloudAppInstanceSelectionDialog dialog = new SpringCloudAppInstanceSelectionDialog(project, app);
             if (dialog.showAndGet()) {
                 final SpringCloudAppInstance target = dialog.getInstance();
                 startDebugging(target, project);

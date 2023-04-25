@@ -2,11 +2,7 @@ package com.microsoft.azure.toolkit.intellij.hdinsight.actions;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
-import com.microsoft.azure.hdinsight.common.ClusterManagerEx;
-import com.microsoft.azure.hdinsight.common.HDInsightLoader;
-import com.microsoft.azure.hdinsight.sdk.cluster.HDInsightAdditionalClusterDetail;
 import com.microsoft.azure.hdinsight.serverexplore.hdinsightnode.ClusterNode;
-import com.microsoft.azure.hdinsight.serverexplore.hdinsightnode.StorageAccountFolderNode;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;

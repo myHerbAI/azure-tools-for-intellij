@@ -189,7 +189,7 @@ public class WebAppDeployConfigurationPanel extends JPanel implements AzureFormP
         }
         final String webContainer = Optional.ofNullable(selectedWebApp.getRuntime())
                 .map(Runtime::getWebContainer).map(WebContainer::getValue).orElse(StringUtils.EMPTY);
-        final String packaging = AzureArtifactManager.getInstance(project).getPackaging(azureArtifact);
+        final String packaging = azureArtifact.getPackaging();
         final boolean isDeployingWar = StringUtils.equalsAnyIgnoreCase(packaging, MavenConstants.TYPE_WAR, "ear");
         return isDeployingWar && StringUtils.containsAny(webContainer.toLowerCase(), "tomcat", "jboss");
     }
@@ -308,7 +308,7 @@ public class WebAppDeployConfigurationPanel extends JPanel implements AzureFormP
         final AzureArtifact artifact = comboBoxArtifact.getValue();
         final AzureArtifactConfig artifactConfig = artifact == null ? null :
                 AzureArtifactConfig.builder().artifactType(artifact.getType().name())
-                        .artifactIdentifier(AzureArtifactManager.getInstance(project).getArtifactIdentifier(artifact)).build();
+                        .artifactIdentifier(artifact.getIdentifier()).build();
         final DeploymentSlotConfig slotConfig = chkDeployToSlot.isSelected() ? rbtExistingSlot.isSelected() ?
                 DeploymentSlotConfig.builder().newCreate(false).name(Objects.toString(cbxSlotName.getSelectedItem(), null)).build() :
                 DeploymentSlotConfig.builder().newCreate(true).name(txtNewSlotName.getText())

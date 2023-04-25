@@ -98,7 +98,6 @@ fabric.properties
 
 # Build tmp folder
 .repository
-artifacts
 
 # Mac OSX
 .DS_Store

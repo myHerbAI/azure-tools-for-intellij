@@ -3,6 +3,8 @@
     <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
         <explorerNodeProvider implementation="com.microsoft.azure.toolkit.ide.database.postgre.PostgreSqlNodeProvider"/>
         <actions implementation="com.microsoft.azure.toolkit.ide.database.postgre.PostgreSqlActionsContributor"/>
+        <explorerNodeProvider implementation="com.microsoft.azure.toolkit.ide.database.postgre.single.PostgreSqlNodeProvider"/>
+        <actions implementation="com.microsoft.azure.toolkit.ide.database.postgre.single.PostgreSqlActionsContributor"/>
         <actions implementation="com.microsoft.azure.toolkit.intellij.database.postgre.IntellijPostgreSqlActionsContributor"/>
         <explorerNodeProvider implementation="com.microsoft.azure.toolkit.ide.database.mysql.MySqlNodeProvider"/>
         <actions implementation="com.microsoft.azure.toolkit.ide.database.mysql.MySqlActionsContributor"/>

@@ -12,7 +12,9 @@ import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Optional;
 
 public class WrappedAzureArtifact implements IArtifact {
     @Getter
@@ -24,9 +26,10 @@ public class WrappedAzureArtifact implements IArtifact {
         this.project = project;
     }
 
+    @Nullable
     @Override
     public File getFile() {
         final AzureArtifactManager manager = AzureArtifactManager.getInstance(this.project);
-        return new File(manager.getFileForDeployment(this.artifact));
+        return Optional.ofNullable(artifact.getFileForDeployment()).map(File::new).orElse(null);
     }
 }

@@ -10,7 +10,7 @@
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow anchor="bottom"
-                    factoryClass="com.microsoft.azure.toolkit.intellij.common.StreamingLogsToolWindowFactory"
+                    factoryClass="com.microsoft.azure.toolkit.intellij.common.streaminglog.StreamingLogsToolWindowFactory"
                     id="Azure Streaming Log" canCloseContents="true"/>
         <webHelpProvider implementation="com.microsoft.azure.toolkit.intellij.common.help.AzureWebHelpProvider"/>
         <applicationService serviceImplementation="com.microsoft.azure.toolkit.intellij.common.settings.IntellijStore"/>

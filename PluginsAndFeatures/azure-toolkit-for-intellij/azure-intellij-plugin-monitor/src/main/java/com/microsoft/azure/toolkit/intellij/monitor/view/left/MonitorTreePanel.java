@@ -6,15 +6,21 @@
 package com.microsoft.azure.toolkit.intellij.monitor.view.left;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.treeView.NodeRenderer;
 import com.intellij.ui.RelativeFont;
 import com.intellij.ui.render.RenderingUtil;
 import com.intellij.ui.treeStructure.SimpleTree;
-import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.tree.TreeUtil;
+import com.microsoft.azure.toolkit.intellij.monitor.AzureMonitorManager;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
@@ -38,10 +44,16 @@ public class MonitorTreePanel extends JPanel {
     private String currentNodeText;
     @Setter
     private boolean isTableTab;
+    @Getter
+    private final List<QueryData> customQueries = new ArrayList<>();
+    private final String CUSTOM_QUERIES_TAB = "Custom Queries";
+    private final AzureEventBus.EventListener eventListener;
 
     public MonitorTreePanel() {
         super();
         $$$setupUI$$$(); // tell IntelliJ to call createUIComponents() here.
+        this.eventListener = new AzureEventBus.EventListener(e -> this.addQueryNode((QueryData) e.getSource()));
+        AzureEventBus.on("azure.monitor.add_query_node", this.eventListener);
     }
 
     public synchronized void refresh() {
@@ -67,6 +79,33 @@ public class MonitorTreePanel extends JPanel {
         } else {
             return node.toString();
         }
+    }
+
+    public void dispose() {
+        AzureEventBus.off("azure.monitor.add_query_node", this.eventListener);
+    }
+
+    private void addQueryNode(QueryData data) {
+        if (isTableTab) {
+            return;
+        }
+        getOrCreateCustomQueriesTabNode().add(new DefaultMutableTreeNode(data));
+        this.customQueries.add(data);
+        AzureTaskManager.getInstance().runLater(() -> {
+            this.treeModel.reload();
+            TreeUtil.expandAll(this.tree);
+        });
+        AzureTaskManager.getInstance().runInBackground("save query", () -> {
+            final List<String> customQueryList = new ArrayList<>();
+            this.customQueries.forEach(q -> {
+                try {
+                    final ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+                    customQueryList.add(ow.writeValueAsString(q));
+                } catch (final JsonProcessingException ignored) {
+                }
+            });
+            PropertiesComponent.getInstance().setList(AzureMonitorManager.AZURE_MONITOR_CUSTOM_QUERY_LIST, customQueryList);
+        });
     }
 
     private void initListener() {
@@ -144,10 +183,36 @@ public class MonitorTreePanel extends JPanel {
             });
         } catch (final Exception ignored) {
         }
+        final List<String> customQueryList = PropertiesComponent.getInstance().getList(AzureMonitorManager.AZURE_MONITOR_CUSTOM_QUERY_LIST);
+        Optional.ofNullable(customQueryList).ifPresent(l -> l.forEach(s -> {
+            final ObjectMapper mapper = new ObjectMapper();
+            try {
+                customQueries.add(mapper.readValue(s, QueryData.class));
+            } catch (final JsonProcessingException ignored) {
+            }
+        }));
+        if (this.customQueries.size() > 0) {
+            final DefaultMutableTreeNode tabNode = new DefaultMutableTreeNode(CUSTOM_QUERIES_TAB);
+            this.customQueries.forEach(queryData -> {
+                final DefaultMutableTreeNode treeNode = new DefaultMutableTreeNode(queryData);
+                tabNode.add(treeNode);
+            });
+            root.add(tabNode);
+        }
         AzureTaskManager.getInstance().runLater(() -> {
             this.treeModel.reload();
             TreeUtil.expandAll(this.tree);
         }, AzureTask.Modality.ANY);
+    }
+
+    private DefaultMutableTreeNode getOrCreateCustomQueriesTabNode() {
+        final DefaultMutableTreeNode node = TreeUtil.findNode((DefaultMutableTreeNode) tree.getModel().getRoot(), n -> Objects.equals(n.toString(), CUSTOM_QUERIES_TAB));
+        if (Objects.nonNull(node)) {
+            return node;
+        }
+        final DefaultMutableTreeNode tabNode = new DefaultMutableTreeNode(CUSTOM_QUERIES_TAB);
+        ((DefaultMutableTreeNode) this.treeModel.getRoot()).add(tabNode);
+        return tabNode;
     }
 
     private Tree initTree(DefaultTreeModel treeModel) {

@@ -25,10 +25,7 @@ public class SubscriptionComboBox extends AzureComboBox<Subscription> {
 
     @Nonnull
     @Override
-    @AzureOperation(
-            name = "account.list_subscriptions",
-            type = AzureOperation.Type.SERVICE
-    )
+    @AzureOperation(name = "internal/account.list_subscriptions")
     protected List<Subscription> loadItems() {
         try {
             return az(AzureAccount.class).account().getSelectedSubscriptions();

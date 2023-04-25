@@ -24,6 +24,7 @@ import java.awt.event.ItemEvent;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class UpdateImageForm extends JPanel implements AzureFormJPanel<UpdateImageForm.UpdateImageConfig> {
@@ -63,9 +64,8 @@ public class UpdateImageForm extends JPanel implements AzureFormJPanel<UpdateIma
 
     @Override
     public void setValue(final UpdateImageConfig config) {
-        this.imageForm.setValue(config.getImage());
-        final ContainerApp app = config.getApp();
-        this.setApp(app);
+        Optional.ofNullable(config).map(UpdateImageConfig::getImage).ifPresent(i -> this.imageForm.setValue(i));
+        Optional.ofNullable(config).map(UpdateImageConfig::getApp).ifPresent(this::setApp);
     }
 
     public void setApp(ContainerApp app) {

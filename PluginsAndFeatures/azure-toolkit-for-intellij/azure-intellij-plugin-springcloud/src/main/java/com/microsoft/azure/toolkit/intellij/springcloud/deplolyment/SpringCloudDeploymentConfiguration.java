@@ -50,6 +50,7 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
     private static final String TARGET_CLUSTER_IS_NOT_AVAILABLE = "Target cluster cannot be found in current subscription";
 
     @Getter
+    @Setter
     private SpringCloudAppConfig appConfig;
     @Getter
     @Setter
@@ -87,7 +88,7 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
             .ifPresent(element::addContent);
         Optional.ofNullable(this.appConfig)
             .map(config -> (WrappedAzureArtifact) config.getDeployment().getArtifact())
-            .map((a) -> manager.getArtifactIdentifier(a.getArtifact()))
+            .map((a) -> a.getArtifact().getIdentifier())
             .map(id -> new Element("Artifact").setAttribute("identifier", id))
             .ifPresent(element::addContent);
     }

@@ -115,7 +115,7 @@ public class PostgreSqlCreationDialog extends AzureDialog<DatabaseServerConfig> 
         config.setResourceGroup(Optional.ofNullable(historyRg).orElse(rg));
         config.setAdminName(Optional.ofNullable(System.getProperty("user.name")).map(n -> n.replaceAll("[^A-Za-z0-9 ]", "")).orElse(null));
         config.setAdminPassword(StringUtils.EMPTY);
-        config.setVersion("11"); // default to 11
+        config.setVersion("14"); // default to 14
         return config;
     }
 }

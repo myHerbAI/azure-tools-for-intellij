@@ -20,7 +20,7 @@ import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
-import com.microsoft.azure.toolkit.intellij.common.IdeUtils;
+import com.microsoft.azure.toolkit.intellij.common.ProjectUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -79,7 +79,7 @@ public class ModuleFileComboBox extends AzureComboBox<VirtualFile> {
     protected List<? extends VirtualFile> loadItems() throws Exception {
         final GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
         final Collection<VirtualFile> localFiles = ReadAction.compute(() -> FilenameIndex.getVirtualFilesByName(fileName, scope)).stream()
-                .filter(file -> module == null || IdeUtils.isSameModule(ModuleUtil.findModuleForFile(file, project), module)).toList();
+                .filter(file -> module == null || ProjectUtils.isSameModule(ModuleUtil.findModuleForFile(file, project), module)).toList();
         return ListUtils.union(new ArrayList<>(localFiles), drafts);
     }
 

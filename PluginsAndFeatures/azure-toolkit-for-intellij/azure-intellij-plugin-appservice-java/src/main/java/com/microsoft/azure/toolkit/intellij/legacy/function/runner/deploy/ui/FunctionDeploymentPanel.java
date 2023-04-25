@@ -317,4 +317,9 @@ public class FunctionDeploymentPanel extends AzureSettingPanel<FunctionDeployCon
                     .orElse(null);
         }
     }
+
+    @Override
+    protected boolean shouldInitializeBeforeRunTasks() {
+        return false;
+    }
 }

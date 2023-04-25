@@ -14,6 +14,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.UIUtil;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureHtmlMessage;
@@ -27,6 +28,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.awt.*;
 import java.util.Optional;
 
 public class IntellijAzureMessage extends AzureHtmlMessage {
@@ -48,7 +50,8 @@ public class IntellijAzureMessage extends AzureHtmlMessage {
     }
 
     protected String getValueColor() {
-        return "#" + Integer.toHexString(JBColor.BLUE.getRGB()).substring(2);
+        final Color color = UIUtil.isUnderDarcula() ? JBColor.CYAN : JBColor.CYAN.darker();
+        return "#" + Integer.toHexString(color.getRGB()).substring(2);
     }
 }
 
