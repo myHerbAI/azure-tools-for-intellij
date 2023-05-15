@@ -51,7 +51,7 @@ public class SpringCloudActionsContributor implements IActionsContributor {
             .register(am);
 
         new Action<>(OPEN_TEST_URL)
-            .visibleWhen(s -> s instanceof SpringCloudApp)
+            .visibleWhen(s -> s instanceof SpringCloudApp && !((SpringCloudApp) s).getParent().isConsumptionTier())
             .enableWhen(s -> s.getFormalStatus(true).isRunning())
             .withLabel("Access Test Endpoint")
             .withIcon(AzureIcons.Action.BROWSER.getIconPath())

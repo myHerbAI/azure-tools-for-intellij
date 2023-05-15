@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.ide.guidance.Phase;
 import com.microsoft.azure.toolkit.ide.guidance.Task;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
@@ -41,6 +42,7 @@ public class CreateSpringAppTask implements Task {
     }
 
     @Override
+    @AzureOperation(name = "internal/guidance.create_spring_app")
     public void execute() {
         final SpringCloudCluster cluster = (SpringCloudCluster) Objects.requireNonNull(context.getParameter(SPRING_APP_CLUSTER), "`cluster` is required to create spring app");
         final String name = (String) Objects.requireNonNull(context.getParameter(SPRING_APP_NAME), "`name` is required to create spring app");

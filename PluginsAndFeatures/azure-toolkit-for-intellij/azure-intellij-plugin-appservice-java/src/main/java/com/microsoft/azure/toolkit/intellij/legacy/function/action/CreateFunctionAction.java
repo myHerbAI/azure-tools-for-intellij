@@ -47,8 +47,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 
@@ -67,33 +69,33 @@ public class CreateFunctionAction extends CreateElementActionBase {
         final Operation operation = TelemetryManager.createOperation(TelemetryConstants.FUNCTION, TelemetryConstants.CREATE_FUNCTION_TRIGGER);
         try {
             operation.start();
-            PsiPackage pkg = JavaDirectoryService.getInstance().getPackage(psiDirectory);
+            final PsiPackage pkg = JavaDirectoryService.getInstance().getPackage(psiDirectory);
             // get existing package from current directory
-            String hintPackageName = pkg == null ? "" : pkg.getQualifiedName();
+            final String hintPackageName = pkg == null ? "" : pkg.getQualifiedName();
             final Module module = ModuleUtil.findModuleForPsiElement(psiDirectory);
-            FunctionClassCreationDialog form = new FunctionClassCreationDialog(module);
+            final FunctionClassCreationDialog form = new FunctionClassCreationDialog(module);
             form.setPackage(hintPackageName);
 
-            List<PsiElement> psiElements = new ArrayList<>();
+            final List<PsiElement> psiElements = new ArrayList<>();
             form.setOkActionListener(result -> {
                 form.close();
                 final FunctionTemplate bindingTemplate = result.getTemplate();
-                Map<String, String> parameters = result.getParameters();
+                final Map<String, String> parameters = result.getParameters();
                 final String connectionName = parameters.get("connection");
-                String triggerType = result.getTemplate().getTriggerType();
-                String packageName = parameters.get("packageName");
-                String className = parameters.get("className");
-                PsiDirectory directory = ClassUtil.sourceRoot(psiDirectory);
-                String newName = packageName.replace('.', '/');
+                final String triggerType = result.getTemplate().getTriggerType();
+                final String packageName = parameters.get("packageName");
+                final String className = parameters.get("className");
+                final PsiDirectory directory = ClassUtil.sourceRoot(psiDirectory);
+                final String newName = packageName.replace('.', '/');
                 operation.trackProperty(TelemetryConstants.TRIGGER_TYPE, triggerType);
 
                 final String functionClassContent = bindingTemplate.generateContent(parameters);
                 if (StringUtils.isNotEmpty(functionClassContent)) {
                     AzureTaskManager.getInstance().write(() -> {
-                        CreateFileAction.MkDirs mkDirs = ApplicationManager.getApplication().runWriteAction(
+                        final CreateFileAction.MkDirs mkDirs = ApplicationManager.getApplication().runWriteAction(
                                 (Computable<CreateFileAction.MkDirs>) () ->
                                         new CreateFileAction.MkDirs(newName + '/' + className, directory));
-                        PsiFileFactory factory = PsiFileFactory.getInstance(project);
+                        final PsiFileFactory factory = PsiFileFactory.getInstance(project);
                         try {
                             mkDirs.directory.checkCreateFile(className + ".java");
                         } catch (final IncorrectOperationException e) {
@@ -102,7 +104,7 @@ public class CreateFunctionAction extends CreateElementActionBase {
                             throw new AzureToolkitRuntimeException(error, e);
                         }
                         CommandProcessor.getInstance().executeCommand(project, () -> {
-                            PsiFile psiFile = factory.createFileFromText(className + ".java", JavaFileType.INSTANCE, functionClassContent);
+                            final PsiFile psiFile = factory.createFileFromText(className + ".java", JavaFileType.INSTANCE, functionClassContent);
                             psiElements.add(mkDirs.directory.add(psiFile));
                         }, null, null);
                     });
@@ -131,9 +133,10 @@ public class CreateFunctionAction extends CreateElementActionBase {
             return false;
         }
         final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
-        ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
+        final ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
         if (view != null) {
-            for (PsiDirectory dir : view.getDirectories()) {
+            final List<PsiDirectory> dirs = Arrays.stream(view.getDirectories()).filter(Objects::nonNull).toList();
+            for (final PsiDirectory dir : dirs) {
                 if (projectFileIndex.isUnderSourceRootOfType(dir.getVirtualFile(), JavaModuleSourceRootTypes.SOURCES) && doCheckPackageExists(dir)) {
                     return true;
                 }
@@ -144,7 +147,7 @@ public class CreateFunctionAction extends CreateElementActionBase {
 
     @Override
     protected String getErrorTitle() {
-        return "Cannot create Function Class";
+        return "Cannot Create Function Class";
     }
 
     @Override
@@ -158,12 +161,12 @@ public class CreateFunctionAction extends CreateElementActionBase {
     }
 
     private static boolean doCheckPackageExists(PsiDirectory directory) {
-        PsiPackage pkg = JavaDirectoryService.getInstance().getPackage(directory);
+        final PsiPackage pkg = JavaDirectoryService.getInstance().getPackage(directory);
         if (pkg == null) {
             return false;
         }
 
-        String name = pkg.getQualifiedName();
+        final String name = pkg.getQualifiedName();
         return StringUtil.isEmpty(name) || PsiNameHelper.getInstance(directory.getProject()).isQualifiedName(name);
     }
 }

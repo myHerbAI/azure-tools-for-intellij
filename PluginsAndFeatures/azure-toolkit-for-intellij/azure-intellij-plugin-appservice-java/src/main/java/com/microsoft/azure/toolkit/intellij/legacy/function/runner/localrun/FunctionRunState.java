@@ -18,6 +18,7 @@ import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.remote.RemoteConfiguration;
 import com.intellij.execution.remote.RemoteConfigurationType;
 import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -29,6 +30,7 @@ import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandlerMessenger;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.function.FunctionSupported;
+import com.microsoft.azure.toolkit.intellij.function.components.connection.FunctionConnectionCreationDialog;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -50,25 +52,18 @@ import com.microsoft.azuretools.telemetrywrapper.TelemetryManager;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,6 +72,7 @@ import java.util.stream.Stream;
 import static com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppActionsContributor.CONFIG_CORE_TOOLS;
 import static com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppActionsContributor.DOWNLOAD_CORE_TOOLS;
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
+import static com.microsoft.azure.toolkit.intellij.legacy.function.runner.component.table.FunctionAppSettingsTable.AZURE_WEB_JOB_STORAGE_KEY;
 
 @Slf4j
 public class FunctionRunState extends AzureRunProfileState<Boolean> {
@@ -95,6 +91,10 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
     private static final ComparableVersion MINIMUM_JAVA_9_SUPPORTED_VERSION = new ComparableVersion("3.0.2630");
     private static final ComparableVersion MINIMUM_JAVA_9_SUPPORTED_VERSION_V2 = new ComparableVersion("2.7.2628");
     private static final BindingEnum[] FUNCTION_WITHOUT_FUNCTION_EXTENSION = {BindingEnum.HttpOutput, BindingEnum.HttpTrigger};
+    private static final List<String> AZURE_WEB_JOBS_STORAGE_NOT_REQUIRED_TRIGGERS = Arrays.asList("httptrigger", "kafkatrigger", "rabbitmqtrigger",
+            "orchestrationTrigger", "activityTrigger", "entityTrigger");
+    private static final String MISSING_AZURE_WEB_JOBS_STORAGE_WARNING = "Missing value for AzureWebJobsStorage in local.settings.json. " +
+            "This is required for all triggers other than httptrigger, kafkatrigger, rabbitmqtrigger, orchestrationTrigger, activityTrigger, entityTrigger.";
     private boolean isDebuggerLaunched;
     private File stagingFolder;
     private Process installProcess;
@@ -102,7 +102,7 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
     private final Executor executor;
     private final FunctionRunConfiguration functionRunConfiguration;
     @Getter
-    private List<Connection<?, ?>> connections = new ArrayList<>();
+    private final List<Connection<?, ?>> connections = new ArrayList<>();
 
     public FunctionRunState(@NotNull Project project, FunctionRunConfiguration functionRunConfiguration, Executor executor) {
         super(project);
@@ -122,7 +122,8 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
             remoteConfig.setName("azure functions");
             final RunnerAndConfigurationSettings configuration = new RunnerAndConfigurationSettingsImpl(manager, remoteConfig, false);
             manager.setTemporaryConfiguration(configuration);
-            ExecutionUtil.runConfiguration(configuration, ExecutorRegistry.getInstance().getExecutorById(ToolWindowId.DEBUG));
+            Optional.ofNullable(ExecutorRegistry.getInstance().getExecutorById(ToolWindowId.DEBUG))
+                            .ifPresent(executor -> ExecutionUtil.runConfiguration(configuration, executor));
         };
         AzureTaskManager.getInstance().runAndWait(runnable, AzureTask.Modality.ANY);
     }
@@ -142,14 +143,13 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
     }
 
     private void applyResourceConnection(Map<String, String> appSettings) {
-        if (CollectionUtils.isEmpty(functionRunConfiguration.getConnections())) {
-            return;
+        if (functionRunConfiguration.isConnectionEnabled()) {
+            functionRunConfiguration.getConnections().stream()
+                    .filter(connection -> connection.getResource().getDefinition() instanceof FunctionSupported)
+                    .forEach(connection -> ((FunctionSupported) connection.getResource().getDefinition())
+                            .getPropertiesForFunction(connection.getResource().getData(), connection)
+                            .forEach((key, value) -> appSettings.put(key.toString(), value.toString())));
         }
-        functionRunConfiguration.getConnections().stream()
-                .filter(connection -> connection.getResource().getDefinition() instanceof FunctionSupported)
-                .forEach(connection -> ((FunctionSupported) connection.getResource().getDefinition())
-                        .getPropertiesForFunction(connection.getResource().getData(), connection)
-                        .forEach((key, value) -> appSettings.put(key.toString(), value.toString())));
     }
 
     @AzureOperation(name = "internal/function.validate_runtime")
@@ -210,7 +210,7 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
             }
             final Matcher matcher = JAVA_VERSION_PATTERN.matcher(javaVersion);
             return matcher.find() ? new ComparableVersion(matcher.group(1)) : null;
-        } catch (Throwable e) {
+        } catch (final Throwable e) {
             // swallow exception to get java version
             log.info("Failed to get java version", e);
             return null;
@@ -309,7 +309,8 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
         try {
             final Map<String, FunctionConfiguration> configMap =
                     FunctionUtils.prepareStagingFolder(folder, hostJsonPath, project, module, methods);
-            operation.trackProperty(TelemetryConstants.TRIGGER_TYPE, StringUtils.join(FunctionUtils.getFunctionBindingList(configMap), ","));
+            final List<BindingEnum> functionBindingList = FunctionUtils.getFunctionBindingList(configMap);
+            operation.trackProperty(TelemetryConstants.TRIGGER_TYPE, StringUtils.join(functionBindingList, ","));
             final Map<String, String> appSettings = FunctionUtils.loadAppSettingsFromSecurityStorage(functionRunConfiguration.getAppSettingsKey());
             // Do not copy local settings if user have already set it in configuration
             final boolean useLocalSettings = MapUtils.isEmpty(appSettings);
@@ -317,6 +318,7 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
                     .filter(StringUtils::isNotEmpty).map(Paths::get)
                     .orElseGet(() -> Paths.get(FunctionUtils.getDefaultLocalSettingsJsonPath(module)));
             applyResourceConnection(appSettings);
+            validateAppSettings(appSettings, functionBindingList);
             FunctionUtils.copyLocalSettingsToStagingFolder(folder, localSettingsJson, appSettings, useLocalSettings);
 
             final Set<BindingEnum> bindingClasses = getFunctionBindingEnums(configMap);
@@ -343,6 +345,33 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
                 throw new AzureExecutionException(message("function.run.error.installFuncFailed"));
             }
         }
+    }
+
+    private void validateAppSettings(@Nonnull final Map<String, String> appSettings, @Nonnull final List<BindingEnum> functionBindingList) {
+        final String webJobStorage = appSettings.get(AZURE_WEB_JOB_STORAGE_KEY);
+        if (StringUtils.isEmpty(webJobStorage) && isWebJobStorageRequired(functionBindingList)) {
+            // show resource connection dialog for web job storage
+            AzureTaskManager.getInstance().runAndWait(() -> {
+                final FunctionConnectionCreationDialog dialog = new FunctionConnectionCreationDialog(project, functionRunConfiguration.getModule(), "Storage");
+                dialog.setFixedConnectionName(AZURE_WEB_JOB_STORAGE_KEY);
+                dialog.setDescription(MISSING_AZURE_WEB_JOBS_STORAGE_WARNING, AllIcons.General.Warning);
+                if (dialog.showAndGet()) {
+                    // update app settings
+                    final Connection<?, ?> connection = dialog.getConnection();
+                    if (Objects.nonNull(connection)) {
+                        functionRunConfiguration.addConnection(connection);
+                        applyResourceConnection(appSettings);
+                    }
+                }
+            });
+        }
+        // todo: @hanli, check whether there are connections refered in function binding list but not defined in app settings
+    }
+
+    private boolean isWebJobStorageRequired(@Nonnull List<BindingEnum> bindings) {
+        return bindings.stream().map(BindingEnum::getType)
+                .filter(type -> StringUtils.endsWithIgnoreCase(type, "Trigger"))
+                .anyMatch(type -> !AZURE_WEB_JOBS_STORAGE_NOT_REQUIRED_TRIGGERS.contains(type));
     }
 
     private boolean isDebugMode() {

@@ -57,6 +57,8 @@ public class PushImageSettingPanel extends AzureSettingPanel<PushImageRunConfigu
         result.setDockerImage(configuration.getDockerImageConfiguration());
         result.setDockerHost(configuration.getDockerHostConfiguration());
         result.setContainerRegistryId(configuration.getContainerRegistryId());
+        result.setFinalRepositoryName(configuration.getFinalRepositoryName());
+        result.setFinalTagName(configuration.getFinalTagName());
         pnlConfiguration.setValue(result);
     }
 
@@ -65,6 +67,8 @@ public class PushImageSettingPanel extends AzureSettingPanel<PushImageRunConfigu
         final DockerPushConfiguration value = pnlConfiguration.getValue();
         configuration.setDockerImage(value.getDockerImage());
         configuration.setHost(value.getDockerHost());
+        configuration.setFinalRepositoryName(value.getFinalRepositoryName());
+        configuration.setFinalTagName(value.getFinalTagName());
         configuration.getModel().setContainerRegistryId(value.getContainerRegistryId());
     }
 
@@ -92,7 +96,6 @@ public class PushImageSettingPanel extends AzureSettingPanel<PushImageRunConfigu
         // TODO: place custom component creation code here
         this.pnlConfiguration = new DockerImageConfigurationPanel(project);
         this.pnlConfiguration.enableContainerRegistryPanel();
-        this.pnlConfiguration.setHideImageNamePanelForExistingImage(false);
     }
 
     private void $$$setupUI$$$() {

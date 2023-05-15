@@ -11,6 +11,7 @@ import com.intellij.util.PathUtil;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifact;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifactManager;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
+import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.IJavaAgentSupported;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState;
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.Constants;
@@ -19,13 +20,7 @@ import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlotDraft;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDraft;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppModule;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.*;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -52,12 +47,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
@@ -92,19 +82,25 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
             throw new FileNotFoundException(message("webapp.deploy.error.noTargetFile", artifact.getAbsolutePath()));
         }
         final WebAppBase<?, ?, ?> deployTarget = getOrCreateDeployTargetFromAppSettingModel(processHandler);
-        applyResourceConnection(deployTarget, processHandler);
+        applyResourceConnections(deployTarget);
         updateApplicationSettings(deployTarget, processHandler);
         AzureWebAppMvpModel.getInstance().deployArtifactsToWebApp(deployTarget, artifact, webAppSettingModel.isDeployToRoot(), processHandler);
         return deployTarget;
     }
 
-    private void applyResourceConnection(@Nonnull WebAppBase<?, ?, ?> deployTarget, RunProcessHandler processHandler) {
-        Optional.ofNullable(webAppConfiguration.getConnections()).ifPresent(c -> c.stream().filter(Objects::nonNull).forEach(connection -> {
-            Optional.ofNullable(connection.getEnvironmentVariables(this.project)).ifPresent(appSettingsForResourceConnection::putAll);
-            if (connection.getResource().getDefinition() instanceof IJavaAgentSupported) {
-                uploadJavaAgent(deployTarget, ((IJavaAgentSupported) connection.getResource().getDefinition()).getJavaAgent());
-            }
-        }));
+    private void applyResourceConnections(@Nonnull WebAppBase<?, ?, ?> deployTarget) {
+        if (webAppConfiguration.isConnectionEnabled()) {
+            webAppConfiguration.getConnections().stream()
+                    .filter(Objects::nonNull)
+                    .forEach(connection -> applyResourceConnection(deployTarget, connection));
+        }
+    }
+
+    private void applyResourceConnection(@Nonnull WebAppBase<?, ?, ?> deployTarget, @Nonnull Connection<?, ?> connection) {
+        Optional.ofNullable(connection.getEnvironmentVariables(this.project)).ifPresent(appSettingsForResourceConnection::putAll);
+        if (connection.getResource().getDefinition() instanceof IJavaAgentSupported) {
+            uploadJavaAgent(deployTarget, ((IJavaAgentSupported) connection.getResource().getDefinition()).getJavaAgent());
+        }
     }
 
     private void uploadJavaAgent(@Nonnull WebAppBase<?, ?, ?> deployTarget, @Nullable File javaAgent) {

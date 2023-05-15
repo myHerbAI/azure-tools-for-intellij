@@ -1,19 +1,10 @@
-plugins {
-    id 'java'
-}
-
 intellij {
     plugins = ['org.jetbrains.plugins.textmate']
 }
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-
 dependencies {
-    implementation project(':azure-intellij-plugin-lib')
-    implementation project(':azure-intellij-plugin-lib-java')
+    implementation project(path: ':azure-intellij-plugin-lib', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-lib-java', configuration: 'instrumentedJar')
     implementation 'com.microsoft.azure:azure-toolkit-ide-common-lib'
     implementation group: 'org.eclipse.lsp4j', name: 'org.eclipse.lsp4j', version: '0.15.0'
     implementation group: 'com.vladsch.flexmark', name: 'flexmark', version: '0.64.0'

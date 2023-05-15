@@ -13,11 +13,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -34,21 +38,16 @@ public class DockerImage {
     private String tagName;
     @EqualsAndHashCode.Include
     private File dockerFile;
-    @EqualsAndHashCode.Include
     private String imageId;
     private File baseDirectory;
     // todo: check whether we need to add artifact as a field of image
     private AzureArtifact azureArtifact;
 
-    public DockerImage(@Nonnull final Image image) {
+    public DockerImage(@Nonnull final String imageAndTag) {
         this.isDraft = false;
-        this.imageId = image.getId();
-        final String[] repoTags = image.getRepoTags();
-        if (!ArrayUtils.isEmpty(repoTags)) {
-            final String[] split = StringUtils.split(repoTags[0], ":");
-            this.repositoryName = ArrayUtils.isEmpty(split) ? null : split[0];
-            this.tagName = ArrayUtils.getLength(split) < 2 ? null : split[1];
-        }
+        final String[] split = StringUtils.split(imageAndTag, ":");
+        this.repositoryName = ArrayUtils.isEmpty(split) ? null : split[0];
+        this.tagName = ArrayUtils.getLength(split) < 2 ? null : split[1];
     }
 
     public DockerImage(@Nonnull final VirtualFile virtualFile) {
@@ -57,6 +56,21 @@ public class DockerImage {
         this.baseDirectory = this.dockerFile.getParentFile();
         this.repositoryName = "image";
         this.tagName = "latest";
+    }
+
+    public DockerImage(@Nonnull final  DockerImage value) {
+        this.isDraft = value.isDraft;
+        this.dockerFile = value.dockerFile;
+        this.repositoryName = value.repositoryName;
+        this.tagName = value.tagName;
+        this.imageId = value.imageId;
+    }
+
+    public static List<DockerImage> fromImage(@Nonnull final Image image) {
+        if (ArrayUtils.isEmpty(image.getRepoTags())) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(image.getRepoTags()).map(DockerImage::new).collect(Collectors.toList());
     }
 
     public String getImageName() {

@@ -18,9 +18,4 @@ public interface IDockerConfiguration {
 
     @Nullable
     DockerHost getDockerHostConfiguration();
-
-    @Nullable
-    default String getRegistryUrl() {
-        return null;
-    }
 }

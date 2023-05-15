@@ -22,8 +22,8 @@ import com.intellij.util.ui.accessibility.AccessibleContextDelegate;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.cache.LRUStack;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import lombok.Getter;
@@ -285,6 +285,8 @@ public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputCompo
     protected String getItemText(Object item) {
         if (item == null) {
             return StringUtils.EMPTY;
+        } else if (item instanceof AzResource) {
+            return ((AzResource) item).getName();
         }
         return item.toString();
     }

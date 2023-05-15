@@ -5,5 +5,8 @@
   "App Service": [
     "AppServiceAppLogs", "AppServiceConsoleLogs", "AppServiceHTTPLogs", "AppServicePlatformLogs", "FunctionAppLogs"
   ],
-  "Azure Spring Apps": ["AppPlatformBuildLogs", "AppPlatformContainerEventLogs", "AppPlatformLogsforSpring", "AppPlatformSystemLogs"]
+  "Azure Spring Apps": ["AppPlatformBuildLogs", "AppPlatformContainerEventLogs", "AppPlatformLogsforSpring", "AppPlatformSystemLogs"],
+  "Azure Container Apps": ["ContainerAppConsoleLogs", "ContainerAppSystemLogs", "ContainerImageInventory", "ContainerInventory",
+  "ContainerLog", "ContainerLogV2", "ContainerNodeInventory", "ContainerRegistryLoginEvents", "ContainerRegistryRepositoryEvents",
+  "ContainerServiceLog"]
 }

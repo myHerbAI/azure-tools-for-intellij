@@ -3,7 +3,7 @@ intellij {
 }
 
 dependencies {
-    implementation project(':azure-intellij-plugin-lib')
-    implementation project(':azure-intellij-plugin-lib-java')
+    implementation project(path: ':azure-intellij-plugin-lib', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-lib-java', configuration: 'instrumentedJar')
     implementation 'com.microsoft.azure:azure-toolkit-ide-common-lib'
 }

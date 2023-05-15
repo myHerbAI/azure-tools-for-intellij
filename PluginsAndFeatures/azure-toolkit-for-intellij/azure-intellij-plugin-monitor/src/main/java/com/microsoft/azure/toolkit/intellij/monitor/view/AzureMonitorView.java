@@ -21,16 +21,21 @@ import com.microsoft.azure.toolkit.intellij.monitor.view.left.MonitorTreePanel;
 import com.microsoft.azure.toolkit.intellij.monitor.view.left.WorkspaceSelectionDialog;
 import com.microsoft.azure.toolkit.intellij.monitor.view.right.MonitorTabbedPane;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.auth.Account;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.azure.toolkit.lib.monitor.AzureLogAnalyticsWorkspace;
 import com.microsoft.azure.toolkit.lib.monitor.LogAnalyticsWorkspace;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -47,17 +52,38 @@ public class AzureMonitorView extends JPanel {
     @Getter
     @Nullable
     private LogAnalyticsWorkspace selectedWorkspace;
+    private final AzureEventBus.EventListener workspaceChangeListener;
+    private final AzureEventBus.EventListener subscriptionChangeListener;
+    @Getter
+    private final Project project;
 
     public AzureMonitorView(Project project, @Nullable LogAnalyticsWorkspace logAnalyticsWorkspace, boolean isTableTab, @Nullable String resourceId) {
         super();
         this.selectedWorkspace = logAnalyticsWorkspace;
+        this.project = project;
         $$$setupUI$$$(); // tell IntelliJ to call createUIComponents() here.
         this.init(isTableTab, resourceId);
-        AzureEventBus.on("azure.monitor.change_workspace", new AzureEventBus.EventListener(e -> {
+        this.workspaceChangeListener =  new AzureEventBus.EventListener(e -> {
             this.selectedWorkspace = (LogAnalyticsWorkspace) e.getSource();
             this.updateWorkspaceNameLabel();
             Optional.ofNullable(this.selectedWorkspace).ifPresent(w -> PropertiesComponent.getInstance().setValue(AzureMonitorManager.AZURE_MONITOR_SELECTED_WORKSPACE, w.getId()));
-        }));
+        });
+        this.subscriptionChangeListener = new AzureEventBus.EventListener(e -> {
+            LogAnalyticsWorkspace defaultWorkspace = null;
+            final Account account = Azure.az(AzureAccount.class).account();
+            if (Objects.nonNull(account) && account.getSelectedSubscriptions().size() > 0) {
+                final Subscription subscription = account.getSelectedSubscriptions().get(0);
+                final List<LogAnalyticsWorkspace> workspaceList = Azure.az(AzureLogAnalyticsWorkspace.class)
+                        .logAnalyticsWorkspaces(subscription.getId()).list().stream().toList();
+                if (workspaceList.size() > 0) {
+                    defaultWorkspace = workspaceList.get(0);
+                }
+            }
+            this.selectedWorkspace = defaultWorkspace;
+            this.updateWorkspaceNameLabel();
+        });
+        AzureEventBus.on("azure.monitor.change_workspace", workspaceChangeListener);
+        AzureEventBus.on("account.subscription_changed.account", subscriptionChangeListener);
         AzureTaskManager.getInstance().runInBackground(AzureString.fromString("Loading logs"), () -> this.monitorTreePanel.refresh());
     }
 
@@ -73,6 +99,11 @@ public class AzureMonitorView extends JPanel {
     public void setInitResourceId(String resourceId) {
         this.tabbedPanePanel.setInitResourceId(resourceId);
         tabbedPanePanel.selectTab("AppTraces");
+    }
+
+    public void dispose() {
+        AzureEventBus.off("azure.monitor.change_workspace", workspaceChangeListener);
+        AzureEventBus.off("account.subscription_changed.account", subscriptionChangeListener);
     }
 
     private void updateWorkspaceNameLabel() {
@@ -116,7 +147,7 @@ public class AzureMonitorView extends JPanel {
                 });
             }
         });
-        this.monitorTreePanel = new MonitorTreePanel();
+        this.monitorTreePanel = new MonitorTreePanel(project);
         this.tabbedPanePanel = new MonitorTabbedPane();
         this.rightPanel = tabbedPanePanel.getContentPanel();
     }

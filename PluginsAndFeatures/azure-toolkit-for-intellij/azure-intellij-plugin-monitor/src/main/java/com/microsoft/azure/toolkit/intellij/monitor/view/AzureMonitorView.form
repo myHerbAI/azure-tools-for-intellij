@@ -22,11 +22,6 @@
         <properties/>
         <border type="none"/>
         <children>
-          <nested-form id="e4f89" form-file="com/microsoft/azure/toolkit/intellij/monitor/view/left/MonitorTreePanel.form" binding="monitorTreePanel" custom-create="true">
-            <constraints>
-              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-            </constraints>
-          </nested-form>
           <grid id="b039b" binding="workspaceHeader" layout-manager="BorderLayout" hgap="0" vgap="0">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
@@ -35,7 +30,7 @@
             <border type="none"/>
             <children>
               <component id="6d21e" class="javax.swing.JLabel" binding="workspaceName">
-                <constraints border-constraint="West"/>
+                <constraints border-constraint="Center"/>
                 <properties>
                   <font size="13"/>
                   <horizontalAlignment value="2"/>
@@ -58,6 +53,11 @@
               </component>
             </children>
           </grid>
+          <nested-form id="e4f89" form-file="com/microsoft/azure/toolkit/intellij/monitor/view/left/MonitorTreePanel.form" binding="monitorTreePanel" custom-create="true">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </nested-form>
         </children>
       </grid>
       <grid id="43e81" binding="rightPanel" custom-create="true" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">

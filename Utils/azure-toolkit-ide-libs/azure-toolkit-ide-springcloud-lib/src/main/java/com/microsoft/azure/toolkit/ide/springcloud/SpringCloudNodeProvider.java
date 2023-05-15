@@ -86,7 +86,7 @@ public class SpringCloudNodeProvider implements IExplorerNodeProvider {
         } else if (data instanceof ServiceLinkerModule) {
             final ServiceLinkerModule module = (ServiceLinkerModule) data;
             return new Node<>(module)
-                    .view(new AzureModuleLabelView<>(module, "Service Connectors", AzureIcons.Connector.SERVICE_LINKER_MODULE.getIconPath()))
+                    .view(new AzureModuleLabelView<>(module, "Service Connector", AzureIcons.Connector.SERVICE_LINKER_MODULE.getIconPath()))
                     .actions(ResourceCommonActionsContributor.SERVICE_LINKER_MODULE_ACTIONS)
                     .addChildren(ServiceLinkerModule::list, (d, p) -> this.createNode(d, p, manager));
         } else if (data instanceof ServiceLinker) {

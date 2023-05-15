@@ -15,13 +15,10 @@ import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.EmptyAction;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
@@ -43,8 +40,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
+import java.util.Arrays;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -74,7 +71,7 @@ public class DockerBuildTaskProvider extends BeforeRunTaskProvider<DockerBuildTa
             try {
                 return task.buildImage((IDockerConfiguration) configuration);
             } catch (final Throwable t) {
-                AzureMessager.getMessager().error(t.getMessage());
+                AzureMessager.getMessager().error(t);
             }
         }
         return false;
@@ -138,11 +135,21 @@ public class DockerBuildTaskProvider extends BeforeRunTaskProvider<DockerBuildTa
             final AnActionEvent event = AnActionEvent.createFromAnAction(new EmptyAction(), null, "azure.guidance.summary", context);
             ActionManager.getInstance().getAction("ActivateRunToolWindow").actionPerformed(event);
             final ConsoleView console = TextConsoleBuilderFactory.getInstance().createBuilder(project).getConsole();
-            final Content result = ContentFactory.getInstance().createContent(console.getComponent(), "Build docker image: " + imageName, false);
-            result.setDisposer(console);
             ((ConsoleViewImpl) console).setVisible(true);
-            Optional.ofNullable(ToolWindowManager.getInstance(project).getToolWindow("Run")).ifPresent(toolWindow ->
-                    toolWindow.getContentManager().addContent(result));
+            final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Run");
+            if (toolWindow == null) {
+                return console;
+            }
+            final String displayName = "Build docker image: " + imageName;
+            final Content result = Arrays.stream(toolWindow.getContentManager().getContents())
+                    .filter(content -> StringUtils.equalsIgnoreCase(content.getDisplayName(), displayName))
+                    .findFirst().orElseGet(() -> {
+                        final Content content = ContentFactory.getInstance().createContent(console.getComponent(), displayName, false);
+                        toolWindow.getContentManager().addContent(content);
+                        return content;
+                    });
+            result.setDisposer(console);
+            result.setComponent(console.getComponent());
             return console;
         }
 

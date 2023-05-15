@@ -47,7 +47,6 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
@@ -128,19 +127,19 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
         final BiConsumer<Object, AnActionEvent> createFunctionHandler = (c, e) -> CreateFunctionAppAction.openDialog(e.getProject(), null);
         am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof AzureFunctions, createFunctionHandler);
 
-        final BiConsumer<AzResourceBase, AnActionEvent> showFunctionPropertyViewHandler = (c, e) -> tm
+        final BiConsumer<AzResource, AnActionEvent> showFunctionPropertyViewHandler = (c, e) -> tm
             .runLater(() -> new OpenAppServicePropertyViewAction().openFunctionAppPropertyView((FunctionApp) c, e.getProject()));
         am.registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES, (r, e) -> r instanceof FunctionApp, showFunctionPropertyViewHandler);
 
-        final BiConsumer<AzResourceBase, AnActionEvent> showFunctionSlotPropertyViewHandler = (c, e) -> tm
+        final BiConsumer<AzResource, AnActionEvent> showFunctionSlotPropertyViewHandler = (c, e) -> tm
             .runLater(() -> new OpenAppServicePropertyViewAction().openFunctionAppDeploymentSlotPropertyView((FunctionAppDeploymentSlot) c, e.getProject()));
         am.registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES, (r, e) -> r instanceof FunctionAppDeploymentSlot, showFunctionSlotPropertyViewHandler);
 
-        final BiConsumer<AzResourceBase, AnActionEvent> showWebAppPropertyViewHandler = (c, e) -> tm
+        final BiConsumer<AzResource, AnActionEvent> showWebAppPropertyViewHandler = (c, e) -> tm
             .runLater(() -> new OpenAppServicePropertyViewAction().openWebAppPropertyView((WebApp) c, e.getProject()));
         am.registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES, (r, e) -> r instanceof WebApp, showWebAppPropertyViewHandler);
 
-        final BiConsumer<AzResourceBase, AnActionEvent> showWebAppSlotPropertyViewHandler = (c, e) -> tm
+        final BiConsumer<AzResource, AnActionEvent> showWebAppSlotPropertyViewHandler = (c, e) -> tm
             .runLater(() -> new OpenAppServicePropertyViewAction().openDeploymentSlotPropertyView((WebAppDeploymentSlot) c, e.getProject()));
         am.registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES, (r, e) -> r instanceof WebAppDeploymentSlot, showWebAppSlotPropertyViewHandler);
 

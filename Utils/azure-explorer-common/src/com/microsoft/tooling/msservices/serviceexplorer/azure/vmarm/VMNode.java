@@ -5,19 +5,14 @@
 
 package com.microsoft.tooling.msservices.serviceexplorer.azure.vmarm;
 
-import com.microsoft.azure.CloudException;
-import com.microsoft.azure.management.compute.InstanceViewStatus;
-import com.microsoft.azure.management.compute.VirtualMachine;
-import com.microsoft.azure.management.compute.implementation.ComputeManager;
-import com.microsoft.azure.management.resources.fluentcore.arm.ResourceId;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azuretools.authmanage.IdeAzureAccount;
+import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VirtualMachine;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
 import com.microsoft.azuretools.telemetry.AppInsightsConstants;
 import com.microsoft.azuretools.telemetry.TelemetryProperties;
-import com.microsoft.tooling.msservices.components.DefaultLoader;
 import com.microsoft.tooling.msservices.serviceexplorer.AzureActionEnum;
 import com.microsoft.tooling.msservices.serviceexplorer.BasicActionBuilder;
 import com.microsoft.tooling.msservices.serviceexplorer.Node;
@@ -36,7 +31,6 @@ public class VMNode extends RefreshableNode implements TelemetryProperties {
     public Map<String, String> toProperties() {
         final Map<String, String> properties = new HashMap<>();
         properties.put(AppInsightsConstants.SubscriptionId, ResourceId.fromString(this.virtualMachine.id()).subscriptionId());
-        properties.put(AppInsightsConstants.Region, this.virtualMachine.regionName());
         return properties;
     }
 
@@ -48,13 +42,7 @@ public class VMNode extends RefreshableNode implements TelemetryProperties {
 
     @AzureOperation(name = "user/vm.delete_vm.vm", params = {"this.virtualMachine.name()"})
     private void delete() {
-        final ComputeManager.Configurable configurable = ComputeManager.configure();
-        final ComputeManager azure = IdeAzureAccount.getInstance().authenticateForTrack1(subscriptionId, configurable, (t, c) -> c.authenticate(t, subscriptionId));
-        azure.virtualMachines().deleteByResourceGroup(virtualMachine.resourceGroupName(), virtualMachine.name());
-        DefaultLoader.getIdeHelper().invokeLater(() -> {
-            // instruct parent node to remove this node
-            getParent().removeDirectChildNode(VMNode.this);
-        });
+        virtualMachine.delete();
     }
 
     @AzureOperation(name = "user/vm.start_vm.vm", params = {"this.virtualMachine.name()"})
@@ -71,7 +59,7 @@ public class VMNode extends RefreshableNode implements TelemetryProperties {
 
     @AzureOperation(name = "user/vm.stop_vm.vm", params = {"this.virtualMachine.name()"})
     private void stop() {
-        virtualMachine.powerOff();
+        virtualMachine.stop();
         refreshItems();
     }
 
@@ -98,19 +86,7 @@ public class VMNode extends RefreshableNode implements TelemetryProperties {
     }
 
     private String getVMIconPath() {
-        try {
-            for (final InstanceViewStatus status : virtualMachine.instanceView().statuses()) {
-                if (RUNNING_STATUS.equalsIgnoreCase(status.code())) {
-                    return RUN_ICON_PATH;
-                }
-                if (status.code().toLowerCase().contains(STOPPED)) {
-                    return STOP_ICON_PATH;
-                }
-            }
-        } catch (final CloudException e) {
-            DefaultLoader.getUIHelper().logError(e.getMessage(), e);
-        }
-        return WAIT_ICON_PATH;
+        return RUN_ICON_PATH;
     }
 
     @Override
@@ -153,18 +129,6 @@ public class VMNode extends RefreshableNode implements TelemetryProperties {
     }
 
     private boolean isRunning() {
-        try {
-            for (final InstanceViewStatus status : virtualMachine.instanceView().statuses()) {
-                if (RUNNING_STATUS.equalsIgnoreCase(status.code())) {
-                    return true;
-                }
-                if (status.code().toLowerCase().contains(STOPPED)) {
-                    return false;
-                }
-            }
-        } catch (final CloudException e) {
-            DefaultLoader.getUIHelper().logError(e.getMessage(), e);
-        }
-        return false;
+        return virtualMachine.getFormalStatus().isRunning();
     }
 }

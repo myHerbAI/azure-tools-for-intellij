@@ -10,6 +10,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiMethod;
 import com.microsoft.azure.toolkit.ide.appservice.AppServiceActionsContributor;
+import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandlerMessenger;
 import com.microsoft.azure.toolkit.intellij.connector.function.FunctionSupported;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState;
@@ -28,8 +29,6 @@ import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionCo
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
 import com.microsoft.azuretools.telemetrywrapper.TelemetryManager;
-import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -97,14 +96,13 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
     }
 
     private void applyResourceConnection() {
-        if (CollectionUtils.isEmpty(functionDeployConfiguration.getConnections())) {
-            return;
+        if (functionDeployConfiguration.isConnectionEnabled()) {
+            functionDeployConfiguration.getConnections().stream()
+                    .filter(connection -> connection.getResource().getDefinition() instanceof FunctionSupported)
+                    .forEach(connection -> ((FunctionSupported) connection.getResource().getDefinition())
+                            .getPropertiesForFunction(connection.getResource().getData(), connection)
+                            .forEach((key, value) -> functionDeployConfiguration.getConfig().getAppSettings().put(key.toString(), value.toString())));
         }
-        functionDeployConfiguration.getConnections().stream()
-                .filter(connection -> connection.getResource().getDefinition() instanceof FunctionSupported)
-                .forEach(connection -> ((FunctionSupported) connection.getResource().getDefinition())
-                        .getPropertiesForFunction(connection.getResource().getData(), connection)
-                        .forEach((key, value) -> functionDeployConfiguration.getConfig().getAppSettings().put(key.toString(), value.toString())));
     }
 
     @AzureOperation(name = "boundary/function.prepare_staging_folder.folder|app", params = {"stagingFolder.getName()", "this.deployModel.getFunctionAppConfig().getName()"})

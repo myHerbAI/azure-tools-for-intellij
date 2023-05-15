@@ -98,8 +98,7 @@ public class ConnectionRunnerForRunConfiguration extends BeforeRunTaskProvider<C
         }
 
         public List<Connection<?, ?>> getConnections() {
-            final List<Connection<?, ?>> connections = this.config.getProject().getService(ConnectionManager.class).getConnections();
-            return connections.stream().filter(c -> c.isApplicableFor(config)).collect(Collectors.toList());
+           return ConnectionManager.getConnectionForRunConfiguration(this.config);
         }
     }
 }

@@ -17,9 +17,8 @@ import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class StreamingLogsToolWindowManager {
 
@@ -53,6 +52,15 @@ public class StreamingLogsToolWindowManager {
         return (StreamingLogsConsoleView) Optional.ofNullable(toolWindow.getContentManager().findContent(consoleName))
                 .map(Content::getDisposer)
                 .orElse(null);
+    }
+
+    public List<StreamingLogsConsoleView> getToolWindowContents(Project project, String resourceIdPrefix) {
+        final ToolWindow toolWindow = getToolWindow(project);
+        final List<String> consoleNames = resourceIdToNameMap.keySet().stream().filter(k -> k.contains(resourceIdPrefix)).map(resourceIdToNameMap::get).toList();
+        return consoleNames.stream().filter(Objects::nonNull)
+                .map(n -> toolWindow.getContentManager().findContent(n).getDisposer())
+                .filter(d -> d instanceof StreamingLogsConsoleView)
+                .map(d -> (StreamingLogsConsoleView)d).collect(Collectors.toList());
     }
 
     public void removeConsoleViewName(String value) {

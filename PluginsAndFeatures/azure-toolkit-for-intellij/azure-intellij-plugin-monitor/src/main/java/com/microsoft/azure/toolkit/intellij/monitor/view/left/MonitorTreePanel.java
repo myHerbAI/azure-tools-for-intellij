@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.treeView.NodeRenderer;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.RelativeFont;
 import com.intellij.ui.render.RenderingUtil;
 import com.intellij.ui.treeStructure.SimpleTree;
@@ -48,9 +49,11 @@ public class MonitorTreePanel extends JPanel {
     private final List<QueryData> customQueries = new ArrayList<>();
     private final String CUSTOM_QUERIES_TAB = "Custom Queries";
     private final AzureEventBus.EventListener eventListener;
+    private final Project project;
 
-    public MonitorTreePanel() {
+    public MonitorTreePanel(Project project) {
         super();
+        this.project = project;
         $$$setupUI$$$(); // tell IntelliJ to call createUIComponents() here.
         this.eventListener = new AzureEventBus.EventListener(e -> this.addQueryNode((QueryData) e.getSource()));
         AzureEventBus.on("azure.monitor.add_query_node", this.eventListener);
@@ -89,11 +92,23 @@ public class MonitorTreePanel extends JPanel {
         if (isTableTab) {
             return;
         }
-        getOrCreateCustomQueriesTabNode().add(new DefaultMutableTreeNode(data));
-        this.customQueries.add(data);
+        final DefaultMutableTreeNode customQueryRootNode = getOrCreateCustomQueriesTabNode();
+        final DefaultMutableTreeNode overrideNode = TreeUtil.findNode(customQueryRootNode, n ->
+                n.getUserObject() instanceof QueryData && Objects.equals(((QueryData) n.getUserObject()).displayName, data.displayName));
+        customQueries.stream().filter(q -> Objects.equals(q.displayName, data.displayName)).findAny()
+                .ifPresentOrElse(q -> q.setQueryString(data.queryString), () -> customQueries.add(data));
         AzureTaskManager.getInstance().runLater(() -> {
-            this.treeModel.reload();
-            TreeUtil.expandAll(this.tree);
+            AzureMonitorManager.getInstance().changeContentView(project, AzureMonitorManager.QUERIES_TAB_NAME);
+            final DefaultMutableTreeNode selectedNode;
+            if (Objects.nonNull(overrideNode)) {
+                this.treeModel.valueForPathChanged(TreeUtil.getPathFromRoot(overrideNode), data);
+                selectedNode = overrideNode;
+            } else {
+                final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(data);
+                this.treeModel.insertNodeInto(newNode, customQueryRootNode, 0);
+                selectedNode = newNode;
+            }
+            TreeUtil.selectNode(this.tree, selectedNode);
         });
         AzureTaskManager.getInstance().runInBackground("save query", () -> {
             final List<String> customQueryList = new ArrayList<>();

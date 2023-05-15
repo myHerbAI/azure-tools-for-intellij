@@ -26,8 +26,10 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import org.jetbrains.annotations.Nullable;
+import lombok.Getter;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.List;
 import java.util.Objects;
@@ -47,11 +49,16 @@ public class FunctionConnectionCreationDialog extends AzureDialog<FunctionConnec
     private JRadioButton rdoSelectResource;
     private JRadioButton rdoConnectionString;
     private JPanel pnlMode;
+    private JPanel descriptionContainer;
+    private JTextPane descriptionPane;
+    private JLabel descriptionIcon;
     private Subscription subscription;
 
     private final Project project;
     private final Module module;
     private final FunctionSupported<?> definition;
+    @Getter
+    private Connection<?,?> connection;
     private AzureFormJPanel<? extends Resource<?>> resourcePanel;
 
     public FunctionConnectionCreationDialog(final Project project, final Module module, final String resourceType) {
@@ -131,7 +138,7 @@ public class FunctionConnectionCreationDialog extends AzureDialog<FunctionConnec
     protected void doOKAction() {
         final Resource resource = getResource();
         final Resource consumer = ModuleResource.Definition.IJ_MODULE.define(module.getName());
-        final Connection<?, ?> connection = ConnectionManager.getDefinitionOrDefault(resource.getDefinition(),
+        this.connection = ConnectionManager.getDefinitionOrDefault(resource.getDefinition(),
                 consumer.getDefinition()).define(resource, consumer);
         connection.setEnvPrefix(txtConnectionName.getValue());
         final ConnectionManager connectionManager = this.project.getService(ConnectionManager.class);
@@ -161,5 +168,17 @@ public class FunctionConnectionCreationDialog extends AzureDialog<FunctionConnec
 
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES
     private void $$$setupUI$$$() {
+    }
+
+    public void setFixedConnectionName(String azureWebJobStorageKey) {
+        txtConnectionName.setValue(azureWebJobStorageKey);
+        txtConnectionName.setEnabled(false);
+        txtConnectionName.setEditable(false);
+    }
+
+    public void setDescription(@Nonnull final String description, @Nullable Icon icon) {
+        descriptionContainer.setVisible(true);
+        descriptionPane.setText(description);
+        descriptionIcon.setIcon(icon);
     }
 }

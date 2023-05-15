@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.connector;
 
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
@@ -42,6 +43,12 @@ public interface ConnectionManager extends PersistentStateComponent<Element> {
             final ResourceDefinition<?> cd = ResourceManager.getDefinition(split[1]);
             return new ConnectionDefinition<>(rd, cd);
         });
+    }
+
+    @Nonnull
+    static List<Connection<?, ?>> getConnectionForRunConfiguration(final RunConfiguration config) {
+        final List<Connection<?, ?>> connections = config.getProject().getService(ConnectionManager.class).getConnections();
+        return connections.stream().filter(c -> c.isApplicableFor(config)).collect(Collectors.toList());
     }
 
     @Nonnull

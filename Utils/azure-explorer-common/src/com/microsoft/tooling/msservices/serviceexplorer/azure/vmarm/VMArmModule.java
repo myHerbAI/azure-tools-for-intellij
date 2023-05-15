@@ -5,14 +5,14 @@
 
 package com.microsoft.tooling.msservices.serviceexplorer.azure.vmarm;
 
-import com.microsoft.azure.management.compute.VirtualMachine;
-import com.microsoft.azure.management.compute.implementation.ComputeManager;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azuretools.authmanage.IdeAzureAccount;
+import com.microsoft.azure.toolkit.lib.compute.AzureCompute;
+import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VirtualMachine;
 import com.microsoft.azuretools.azurecommons.helpers.AzureCmdException;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
 import com.microsoft.tooling.msservices.components.DefaultLoader;
@@ -51,9 +51,7 @@ public class VMArmModule extends AzureRefreshableNode {
                 .collect(Collectors.toSet());
             for (final String sid : sidList) {
                 try {
-                    final ComputeManager.Configurable configurable = ComputeManager.configure();
-                    final ComputeManager azure = IdeAzureAccount.getInstance().authenticateForTrack1(sid, configurable, (t, c) -> c.authenticate(t, sid));
-                    final List<VirtualMachine> virtualMachines = azure.virtualMachines().list();
+                    final List<VirtualMachine> virtualMachines = Azure.az(AzureCompute.class).virtualMachines();
 
                     for (final VirtualMachine vm : virtualMachines) {
                         addChildNode(new VMNode(this, sid, vm));

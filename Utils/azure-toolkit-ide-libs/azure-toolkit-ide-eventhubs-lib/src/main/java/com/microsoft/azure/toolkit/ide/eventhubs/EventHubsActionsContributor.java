@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import com.microsoft.azure.toolkit.lib.eventhubs.EventHubsInstance;
+import com.microsoft.azure.toolkit.lib.eventhubs.EventHubsNamespace;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ public class EventHubsActionsContributor implements IActionsContributor {
     public static final String NAMESPACE_ACTIONS = "actions.eventhubs.namaspace";
     public static final String INSTANCE_ACTIONS = "actions.eventhubs.instance";
     public static final String SET_STATUS_ACTIONS = "actions.eventhubs.set_status.group";
+    public static final Action.Id<EventHubsNamespace> COPY_CONNECTION_STRING_NAMESPACE = Action.Id.of("user/eventhubs.copy_connection_string.namespace");
     public static final Action.Id<EventHubsInstance> ACTIVE_INSTANCE = Action.Id.of("user/eventhubs.active_instance.instance");
     public static final Action.Id<EventHubsInstance> DISABLE_INSTANCE = Action.Id.of("user/eventhubs.disable_instance.instance");
     public static final Action.Id<EventHubsInstance> SEND_DISABLE_INSTANCE = Action.Id.of("user/eventhubs.send_disable_instance.instance");
@@ -31,6 +33,11 @@ public class EventHubsActionsContributor implements IActionsContributor {
     public static final Action.Id<ResourceGroup> GROUP_CREATE_EVENT_HUBS = Action.Id.of("user/eventhubs.create_eventhubs.group");
     @Override
     public void registerActions(AzureActionManager am) {
+        new Action<>(COPY_CONNECTION_STRING_NAMESPACE)
+                .visibleWhen(s -> s instanceof EventHubsNamespace)
+                .withLabel("Copy Connection String")
+                .withIdParam(AbstractAzResource::getName)
+                .register(am);
         new Action<>(ACTIVE_INSTANCE)
                 .visibleWhen(s -> s instanceof EventHubsInstance)
                 .enableWhen(s -> s.getEntityStatus() != EntityStatus.ACTIVE)
@@ -102,6 +109,7 @@ public class EventHubsActionsContributor implements IActionsContributor {
                 "---",
                 ResourceCommonActionsContributor.REFRESH,
                 ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+                EventHubsActionsContributor.COPY_CONNECTION_STRING_NAMESPACE,
                 ResourceCommonActionsContributor.OPEN_PORTAL_URL,
                 "---",
                 ResourceCommonActionsContributor.DELETE);

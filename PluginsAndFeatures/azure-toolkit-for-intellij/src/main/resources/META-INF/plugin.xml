@@ -27,32 +27,39 @@
   <change-notes>
     <![CDATA[
     <html>
-      <h3 id="3-75-0">3.75.0</h3>
+      <h3 id="3-76-0">3.76.0</h3>
       <h4 id="added">Added</h4>
       <ul>
-        <li>New course about <code>Azure Spring Apps</code> in <code>Getting Started with Azure</code> course list.</li>
-        <li>Resource Management of <code>Azure Database for PostgreSQL flexible servers</code>.</li>
-        <li>Add <code>Azure Service Bus</code> support in Azure Toolkits.
-          <ul>
-            <li>Resource Management in Azure explorer.</li>
-            <li>Simple Service Bus client to send/receive messages.</li>
-          </ul>
-        </li>
+        <li>Basic resource management support for service connections</li>
+        <li>New one click action to deploy Dockerfile (build image first) to Azure Container App</li>
+        <li>Finer granular resource management(registry/repository/images/...) for Azure Container Registry</li>
+        <li>Monitoring support for Azure Container Apps (azure monitor integration &amp; log streaming)</li>
       </ul>
       <h4 id="changed">Changed</h4>
       <ul>
-        <li>Warn user if bytecode version of deploying artifact is not compatible of the runtime of target Azure Spring app.</li>
-        <li>JDK version of current project is used as the default runtime of creating Spring App.</li>
-        <li>Remove HDInsight related node favorite function.</li>
+          <li>Docker development experience enhancement<ul>
+                  <li>Migrate docker client to docker java to unblock docker experience in MacOS </li>
+                  <li>UX enhancement for docker host run/deploy experience</li>
+              </ul>
+          </li>
+          <li>UX enhancement for Azure Monitor<ul>
+                  <li>Finer time control (hour, minute, seconds...) for montior queries</li>
+                  <li>Add customer filters persistence support</li>
+              </ul>
+          </li>
       </ul>
       <h4 id="fixed">Fixed</h4>
       <ul>
-        <li>&#39;Send Message&#39; action is missing if there is a long text to send</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/7374">#7374</a>: Uncaught Exception com.microsoft.azure.toolkit.lib.common.operation.OperationException: initialize editor highlighter for Bicep files</li>
-        <li>When not sign in to azure, the linked cluster does not display the linked label.</li>
-        <li>Show the error " cannot find subscription with id '[LinkedCluster]' " in the lower right corner, and will display many in notification center.</li>
-        <li>Graphics in job view are obscured.</li>
-        <li>Under the theme of windows 10 light, the background color of debug verification information is inconsistent with the theme color.</li>
+          <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/7387">#7387</a>: Cannot invoke
+              &quot;com.intellij.openapi.editor.Editor.getDocument()&quot; because &quot;editor&quot; is null</li>
+          <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/7020">#7020</a>: Uncaught Exception
+              java.util.ConcurrentModificationException</li>
+          <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/7444">#7444</a>: Uncaught Exception
+              com.microsoft.azure.toolkit.lib.common.operation.OperationException: initialize Azure explorer</li>
+          <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/7432">#7432</a>: Cannot invoke
+              &quot;com.intellij.psi.PsiDirectory.getVirtualFile()&quot; because &quot;dir&quot; is null</li>
+          <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/7479">#7479</a>: Uncaught Exception
+              java.lang.Throwable: Assertion failed</li>
       </ul>
       <p>You may get the full change log <a href="https://github.com/Microsoft/azure-tools-for-java/blob/develop/CHANGELOG.md">here</a></p>
     </html>

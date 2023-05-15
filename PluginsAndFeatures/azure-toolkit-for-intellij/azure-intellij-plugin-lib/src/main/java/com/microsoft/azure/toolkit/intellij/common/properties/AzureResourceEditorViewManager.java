@@ -12,7 +12,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.LightVirtualFile;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
@@ -29,11 +29,11 @@ import java.util.function.Function;
 public class AzureResourceEditorViewManager {
     public static final String UNABLE_TO_OPEN_EDITOR_WINDOW = "Unable to open new editor window";
     public static final String CANNOT_GET_FILE_EDITOR_MANAGER = "Cannot get FileEditorManager";
-    public static final Key<AzResourceBase> AZURE_RESOURCE_KEY = new Key<>("AzureResource");
+    public static final Key<AzResource> AZURE_RESOURCE_KEY = new Key<>("AzureResource");
     public static final Key<AzureResourceEditorViewManager> AZURE_RESOURCE_EDITOR_MANAGER_KEY = new Key<>("AzureResourceEditorManager");
-    private final Function<AzResourceBase, FileType> getFileType;
+    private final Function<AzResource, FileType> getFileType;
 
-    public void showEditor(@Nonnull AzResourceBase resource, @Nonnull Project project) {
+    public void showEditor(@Nonnull AzResource resource, @Nonnull Project project) {
         final FileEditorManager manager = FileEditorManager.getInstance(project);
         if (manager == null) {
             AzureMessager.getMessager().error(UNABLE_TO_OPEN_EDITOR_WINDOW);
@@ -49,7 +49,7 @@ public class AzureResourceEditorViewManager {
         AzureTaskManager.getInstance().runLater(() -> openFile(manager, itemVirtualFile));
     }
 
-    public void closeEditor(@Nonnull AzResourceBase resource, @Nonnull Project project) {
+    public void closeEditor(@Nonnull AzResource resource, @Nonnull Project project) {
         final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
         final LightVirtualFile file = searchOpenedFile(fileEditorManager, resource);
         if (file != null) {
@@ -68,10 +68,10 @@ public class AzureResourceEditorViewManager {
     }
 
     @Nullable
-    private LightVirtualFile searchOpenedFile(FileEditorManager manager, AzResourceBase resource) {
+    private LightVirtualFile searchOpenedFile(FileEditorManager manager, AzResource resource) {
         final FileType fileType = getFileType.apply(resource);
         for (final VirtualFile openedFile : manager.getOpenFiles()) {
-            final AzResourceBase opened = openedFile.getUserData(AZURE_RESOURCE_KEY);
+            final AzResource opened = openedFile.getUserData(AZURE_RESOURCE_KEY);
             if (openedFile.getFileType().getName().equals(fileType.getName()) && opened != null && opened.getId().equals(resource.getId())) {
                 return (LightVirtualFile) openedFile;
             }
@@ -79,7 +79,7 @@ public class AzureResourceEditorViewManager {
         return null;
     }
 
-    private LightVirtualFile createVirtualFile(AzResourceBase resource) {
+    private LightVirtualFile createVirtualFile(AzResource resource) {
         final LightVirtualFile itemVirtualFile = new LightVirtualFile(resource.getName());
         itemVirtualFile.putUserData(AZURE_RESOURCE_KEY, resource);
         return itemVirtualFile;

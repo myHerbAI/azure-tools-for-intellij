@@ -18,6 +18,7 @@ import org.wso2.lsp4intellij.editor.EditorEventManager;
 import org.wso2.lsp4intellij.editor.EditorEventManagerBase;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Action overriding QuickDoc (CTRL+Q)
@@ -28,7 +29,8 @@ class LSPGotoDeclarationAction extends GotoDeclarationAction implements DumbAwar
     @Override
     public void actionPerformed(AnActionEvent e) {
         final Editor editor = e.getData(CommonDataKeys.EDITOR);
-        final VirtualFile file = FileDocumentManager.getInstance().getFile(editor.getDocument());
+        final VirtualFile file = Optional.ofNullable(editor)
+            .map(ed -> FileDocumentManager.getInstance().getFile(ed.getDocument())).orElse(null);
         if (Objects.nonNull(file) && file.getFileType() instanceof BicepFileType) {
             final EditorEventManager manager = EditorEventManagerBase.forEditor(editor);
             if (manager != null) {

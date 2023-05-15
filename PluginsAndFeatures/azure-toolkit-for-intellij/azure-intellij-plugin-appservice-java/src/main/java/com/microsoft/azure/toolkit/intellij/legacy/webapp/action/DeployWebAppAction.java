@@ -67,11 +67,9 @@ public class DeployWebAppAction extends AnAction {
     private static void runConfiguration(@Nonnull Project project, RunnerAndConfigurationSettings settings) {
         final RunManagerEx manager = RunManagerEx.getInstanceEx(project);
         AzureTaskManager.getInstance().runLater(() -> {
-            if (RunDialog.editConfiguration(project, settings, message("webapp.deploy.configuration.title"),
-                DefaultRunExecutor.getRunExecutorInstance())) {
+            if (RunDialog.editConfiguration(project, settings, message("webapp.deploy.configuration.title"), DefaultRunExecutor.getRunExecutorInstance())) {
                 settings.storeInLocalWorkspace();
                 manager.addConfiguration(settings);
-                manager.setBeforeRunTasks(settings.getConfiguration(), new ArrayList<>(manager.getBeforeRunTasks(settings.getConfiguration())));
                 manager.setSelectedConfiguration(settings);
                 ProgramRunnerUtil.executeConfiguration(settings, DefaultRunExecutor.getRunExecutorInstance());
             }

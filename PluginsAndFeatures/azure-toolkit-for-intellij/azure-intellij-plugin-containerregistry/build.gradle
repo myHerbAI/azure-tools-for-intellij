@@ -7,9 +7,9 @@ repositories {
 }
 
 dependencies {
-    implementation project(':azure-intellij-plugin-lib')
-    implementation project(':azure-intellij-plugin-lib-java')
-    implementation project(':azure-intellij-resource-connector-lib')
+    implementation project(path: ':azure-intellij-plugin-lib', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-lib-java', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-resource-connector-lib', configuration: 'instrumentedJar')
     implementation 'com.github.docker-java:docker-java:3.3.0'
     implementation 'com.github.docker-java:docker-java-transport-zerodep:3.3.0'
     implementation 'com.microsoft.azure:azure-toolkit-storage-lib'

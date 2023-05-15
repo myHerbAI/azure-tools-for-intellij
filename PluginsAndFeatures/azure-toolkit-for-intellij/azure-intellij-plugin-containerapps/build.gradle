@@ -2,16 +2,12 @@ intellij {
     plugins = ['java', 'maven', 'maven-model', 'gradle', 'gradle-java']
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    implementation project(':azure-intellij-plugin-lib')
-    implementation project(':azure-intellij-plugin-lib-java')
-    implementation project(':azure-intellij-plugin-applicationinsights')
-    implementation project(':azure-intellij-plugin-monitor')
-    implementation project(':azure-intellij-plugin-containerregistry')
+    implementation project(path: ':azure-intellij-plugin-lib', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-lib-java', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-applicationinsights', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-monitor', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-containerregistry', configuration: 'instrumentedJar')
     implementation 'com.github.docker-java:docker-java:3.3.0'
     implementation 'com.microsoft.azure:azure-toolkit-containerapps-lib'
     implementation 'com.microsoft.azure:azure-toolkit-ide-containerregistry-lib'

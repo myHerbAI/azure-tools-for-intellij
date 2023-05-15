@@ -18,7 +18,6 @@ import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerApps;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
@@ -95,7 +94,7 @@ public class ContainerAppsActionsContributor implements IActionsContributor {
             .enableWhen(s -> s.getFormalStatus(true).isConnected())
             .withHandler((s, e) -> {
                 if (!s.isIngressEnabled() || StringUtils.isBlank(s.getIngressFqdn())) {
-                    final Action<AzResourceBase> action = new Action<>(SHOW_PROPERTIES)
+                    final Action<AzResource> action = new Action<>(SHOW_PROPERTIES)
                         .withLabel("Open Properties Editor")
                         .withHandler(r -> am.getAction(ResourceCommonActionsContributor.SHOW_PROPERTIES).handle(s, e));
                     AzureMessager.getMessager().warning("Ingress is not enabled for this container app.", null, action);

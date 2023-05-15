@@ -15,4 +15,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode
 public class DockerPushConfiguration extends DockerConfiguration {
     private String containerRegistryId;
+
+    private String finalRepositoryName;
+    private String finalTagName;
 }

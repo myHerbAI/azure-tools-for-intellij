@@ -18,10 +18,7 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.monitor.view.AzureMonitorView;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.auth.Account;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
-import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.monitor.AzureLogAnalyticsWorkspace;
@@ -31,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -40,6 +36,7 @@ public class AzureMonitorManager {
     public static final String AZURE_MONITOR_TRIGGERED = "AzureMonitor.Triggered";
     public static final String AZURE_MONITOR_SELECTED_WORKSPACE = "AzureMonitor.SelectedLogAnalyticsWorkspace";
     public static final String AZURE_MONITOR_CUSTOM_QUERY_LIST = "AzureMonitor.CustomQueryList";
+    public static final String QUERIES_TAB_NAME = "Queries";
     private static final AzureMonitorManager instance = new AzureMonitorManager();
     public static AzureMonitorManager getInstance() {
         return instance;
@@ -55,6 +52,23 @@ public class AzureMonitorManager {
                     it.show();
                 }))
         );
+    }
+
+    @Nullable
+    public AzureMonitorView getContentViewByTabName(@Nonnull Project project, String tabName) {
+        return Optional.ofNullable(ToolWindowManager.getInstance(project).getToolWindow(AZURE_MONITOR_WINDOW))
+                .map(toolWindow -> toolWindow.getContentManager().findContent(tabName))
+                .filter(content -> content.getComponent() instanceof AzureMonitorView)
+                .map(content -> (AzureMonitorView) content.getComponent())
+                .orElse(null);
+    }
+
+    public void changeContentView(@Nonnull Project project, String tabName) {
+        Optional.ofNullable(ToolWindowManager.getInstance(project).getToolWindow(AZURE_MONITOR_WINDOW))
+            .map(ToolWindow::getContentManager)
+            .map(m -> m.findContent(tabName))
+            .filter(c -> Objects.nonNull(c.getManager()))
+            .ifPresent(c -> c.getManager().setSelectedContent(c));
     }
 
     @Nullable
@@ -113,33 +127,10 @@ public class AzureMonitorManager {
                     final JComponent contentComponent = event.getContent().getComponent();
                     if (contentComponent instanceof AzureMonitorView) {
                         ((AzureMonitorView) contentComponent).getMonitorTreePanel().dispose();
+                        ((AzureMonitorView) contentComponent).dispose();
                     }
                 }
             });
         }
-
-        @Override
-        public boolean shouldBeAvailable(@NotNull Project project) {
-            return true;
-        }
-
-        @Nullable
-        private LogAnalyticsWorkspace getDefaultWorkspace() {
-            if (!Azure.az(AzureAccount.class).isLoggedIn()) {
-                return null;
-            }
-            LogAnalyticsWorkspace defaultWorkspace = null;
-            final Account account = Azure.az(AzureAccount.class).account();
-            if (Objects.nonNull(account) && account.getSelectedSubscriptions().size() > 0) {
-                final Subscription subscription = account.getSelectedSubscriptions().get(0);
-                final List<LogAnalyticsWorkspace> workspaceList = Azure.az(AzureLogAnalyticsWorkspace.class)
-                        .logAnalyticsWorkspaces(subscription.getId()).list().stream().toList();
-                if (workspaceList.size() > 0) {
-                    defaultWorkspace = workspaceList.get(0);
-                }
-            }
-            return defaultWorkspace;
-        }
     }
-
 }

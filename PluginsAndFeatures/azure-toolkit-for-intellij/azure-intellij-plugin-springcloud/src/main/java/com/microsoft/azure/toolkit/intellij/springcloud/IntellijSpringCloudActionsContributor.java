@@ -77,7 +77,7 @@ public class IntellijSpringCloudActionsContributor implements IActionsContributo
 
     private void registerStreamLogInstanceActionHandler(AzureActionManager am) {
         final BiConsumer<SpringCloudAppInstance, AnActionEvent> handler = (c, e) -> SpringCloudStreamingLogAction.startInstanceStreamingLogs(
-                e.getProject(), c.getParent().getParent(), c.getName());
+                e.getProject(), c);
         am.registerHandler(SpringCloudActionsContributor.STREAM_LOG, (r, e) -> true, handler);
     }
 

@@ -3,6 +3,7 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.76.0](#3760)
   - [3.75.0](#3750)
   - [3.74.0](#3740)
   - [3.73.0](#3730)
@@ -95,6 +96,27 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.7](#307)
   - [3.0.6](#306)
 
+## 3.76.0
+### Added
+- Basic resource management support for service connections
+- New one click action to deploy Dockerfile (build image first) to Azure Container App
+- Finer granular resource management(registry/repository/images/...) for Azure Container Registry
+- Monitoring support for Azure Container Apps (azure monitor integration & log streaming)
+
+### Changed
+- Docker development/container based Azure services experience enhancement
+  - UX enhancement for docker host run/deploy experience
+  - Migrate docker client to docker java to unblock docker experience in MacOS
+- UX enhancement for Azure Monitor
+  - Finer time control (hour, minute, seconds...) for montior queries
+  - Add customer filters persistence support
+
+### Fixed
+- [#7387](https://github.com/microsoft/azure-tools-for-java/issues/7387): Cannot invoke "com.intellij.openapi.editor.Editor.getDocument()" because "editor" is null
+- [#7020](https://github.com/microsoft/azure-tools-for-java/issues/7020): Uncaught Exception java.util.ConcurrentModificationException
+- [#7444](https://github.com/microsoft/azure-tools-for-java/issues/7444): Uncaught Exception com.microsoft.azure.toolkit.lib.common.operation.OperationException: initialize Azure explorer
+- [#7432](https://github.com/microsoft/azure-tools-for-java/issues/7432): Cannot invoke "com.intellij.psi.PsiDirectory.getVirtualFile()" because "dir" is null
+- [#7479](https://github.com/microsoft/azure-tools-for-java/issues/7479): Uncaught Exception java.lang.Throwable: Assertion failed
 
 ## 3.75.0
 ### Added

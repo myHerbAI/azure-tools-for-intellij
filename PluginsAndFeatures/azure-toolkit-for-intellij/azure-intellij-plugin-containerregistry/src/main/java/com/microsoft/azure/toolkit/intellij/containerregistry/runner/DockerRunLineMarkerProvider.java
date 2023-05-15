@@ -70,7 +70,7 @@ public class DockerRunLineMarkerProvider implements LineMarkerProvider {
                 return file == null ? new AnAction[0] : getDockerfileActions(file);
             }
         };
-        final Icon icon = IntelliJAzureIcons.getIcon(AzureIcons.ContainerRegistry.MODULE);
+        final Icon icon = IntelliJAzureIcons.getIcon("/icons/AzureRunGutter.svg");
         return new LineMarkerInfo(psi, psi.getTextRange(), icon, ignore -> "Azure Docker Actions", null, GutterIconRenderer.Alignment.CENTER) {
             @Override
             public GutterIconRenderer createGutterRenderer() {

@@ -13,7 +13,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -32,7 +32,7 @@ import java.util.Optional;
  * it's usually An Azure resource or an intellij module
  */
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class AzureServiceResource<T extends AzResourceBase> implements Resource<T> {
+public class AzureServiceResource<T extends AzResource> implements Resource<T> {
     @Nonnull
     private final ResourceId id;
     @Getter
@@ -101,7 +101,7 @@ public class AzureServiceResource<T extends AzResourceBase> implements Resource<
     @Getter
     @RequiredArgsConstructor
     @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-    public abstract static class Definition<T extends AzResourceBase> implements ResourceDefinition<T> {
+    public abstract static class Definition<T extends AzResource> implements ResourceDefinition<T> {
         @EqualsAndHashCode.Include
         private final String name;
         private final String title;

@@ -8,7 +8,7 @@ import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabase;
@@ -79,8 +79,8 @@ public class CosmosDatabaseResourcePanel<T extends ICosmosDatabase, E extends Co
         Optional.ofNullable(data).map(Resource::getData).ifPresent(database -> {
             final ResourceId resourceId = ResourceId.fromString(database.getId());
             cbSubscription.setValue(database.getSubscription());
-            cbAccount.setValue(new AzureComboBox.ItemReference<>(resourceId.parent().name(), AzResourceBase::getName));
-            cbDatabase.setValue(new AzureComboBox.ItemReference<>(database.getName(), AzResourceBase::getName));
+            cbAccount.setValue(new AzureComboBox.ItemReference<>(resourceId.parent().name(), AzResource::getName));
+            cbDatabase.setValue(new AzureComboBox.ItemReference<>(database.getName(), AzResource::getName));
         });
     }
 

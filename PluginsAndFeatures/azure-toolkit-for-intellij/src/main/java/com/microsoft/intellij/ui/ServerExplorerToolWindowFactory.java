@@ -26,8 +26,13 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.hover.TreeHoverListener;
 import com.intellij.ui.treeStructure.Tree;
 import com.microsoft.azure.arcadia.serverexplore.ArcadiaSparkClusterRootModuleImpl;
+import com.microsoft.azure.arcadia.serverexplore.ArcadiaSparkComputeNode;
+import com.microsoft.azure.arcadia.serverexplore.ArcadiaSparkWorkspaceNode;
+import com.microsoft.azure.cosmosspark.serverexplore.cosmossparknode.CosmosSparkADLAccountNode;
+import com.microsoft.azure.cosmosspark.serverexplore.cosmossparknode.CosmosSparkClusterNode;
 import com.microsoft.azure.cosmosspark.serverexplore.cosmossparknode.CosmosSparkClusterRootModuleImpl;
 import com.microsoft.azure.sqlbigdata.serverexplore.SqlBigDataClusterModule;
+import com.microsoft.azure.sqlbigdata.serverexplore.SqlBigDataClusterNode;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.component.TreeUtils;
@@ -477,7 +482,18 @@ public class ServerExplorerToolWindowFactory implements ToolWindowFactory, Prope
     }
 
     private boolean isOutdatedModule(Node node) {
-        return !(node instanceof AzureModule || node instanceof ArcadiaSparkClusterRootModuleImpl || node instanceof CosmosSparkClusterRootModuleImpl);
+        // TODO: After SOC, Synapse and Big data SQL Server build nodes in a new way, replace the code with the commented part
+        //return !(node instanceof AzureModule || node instanceof ArcadiaSparkClusterRootModuleImpl || node instanceof CosmosSparkClusterRootModuleImpl);
+        return !(node instanceof AzureModule
+                || node instanceof ArcadiaSparkClusterRootModuleImpl
+                || node instanceof ArcadiaSparkComputeNode
+                || node instanceof ArcadiaSparkWorkspaceNode
+                || node instanceof CosmosSparkClusterRootModuleImpl
+                || node instanceof CosmosSparkADLAccountNode
+                || node instanceof CosmosSparkClusterNode
+                || node instanceof SqlBigDataClusterModule
+                || node instanceof SqlBigDataClusterNode
+        );
     }
 
     private static class RefreshAllAction extends AnAction implements DumbAware {

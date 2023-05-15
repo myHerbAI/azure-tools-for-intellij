@@ -182,7 +182,7 @@ public class BuildArtifactBeforeRunTaskUtils {
         @Nonnull ConfigurationSettingsEditorWrapper editor,
         List<? extends T> tasks, T task, RunConfiguration config
     ) {
-        if (tasks.isEmpty()) {
+        if (CollectionUtils.isEmpty(tasks)) {
             task.setEnabled(true);
             final RunManagerEx manager = RunManagerEx.getInstanceEx(config.getProject());
             final List<BeforeRunTask> tasksFromConfig = new ArrayList<>(manager.getBeforeRunTasks(config));

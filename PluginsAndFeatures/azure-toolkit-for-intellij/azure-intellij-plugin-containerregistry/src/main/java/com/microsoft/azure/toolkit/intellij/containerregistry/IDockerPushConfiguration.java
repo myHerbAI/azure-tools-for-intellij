@@ -7,4 +7,12 @@ package com.microsoft.azure.toolkit.intellij.containerregistry;
 
 public interface IDockerPushConfiguration extends IDockerConfiguration {
     String getContainerRegistryId();
+
+    String getFinalRepositoryName();
+
+    String getFinalTagName();
+
+    default String getFinalImageName() {
+        return getFinalRepositoryName() + ":" + getFinalTagName();
+    }
 }

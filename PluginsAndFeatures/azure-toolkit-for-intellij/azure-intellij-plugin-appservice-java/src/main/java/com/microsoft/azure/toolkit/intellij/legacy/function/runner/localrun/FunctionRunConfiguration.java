@@ -9,12 +9,7 @@ import com.google.gson.JsonObject;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.configurations.JavaRunConfigurationModule;
-import com.intellij.execution.configurations.LocatableConfiguration;
-import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.configurations.RunProfileState;
-import com.intellij.execution.configurations.RunProfileWithCompileBeforeLaunchOption;
+import com.intellij.execution.configurations.*;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
@@ -29,7 +24,6 @@ import com.microsoft.azure.toolkit.intellij.connector.ConnectionRunnerForRunConf
 import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunConfigurationBase;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
-import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -39,13 +33,7 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
@@ -54,8 +42,6 @@ public class FunctionRunConfiguration extends AzureRunConfigurationBase<Function
         implements LocatableConfiguration, RunProfileWithCompileBeforeLaunchOption, IConnectionAware {
     private JsonObject appSettingsJsonObject;
     private FunctionRunModel functionRunModel;
-    @Getter
-    private final Set<Connection<?, ?>> connections = new HashSet<>();
 
     protected FunctionRunConfiguration(@NotNull Project project, @NotNull ConfigurationFactory factory, String name) {
         super(project, factory, name);
@@ -81,11 +67,6 @@ public class FunctionRunConfiguration extends AzureRunConfigurationBase<Function
             this.myModule.setModule(module);
         }
         return module;
-    }
-
-    @Override
-    public void addConnection(@Nonnull Connection<?, ?> connection) {
-        connections.add(connection);
     }
 
     @Override
@@ -210,7 +191,7 @@ public class FunctionRunConfiguration extends AzureRunConfigurationBase<Function
         if (StringUtils.isEmpty(this.getFuncPath())) {
             try {
                 this.setFuncPath(FunctionUtils.getFuncPath());
-            } catch (IOException | InterruptedException ex) {
+            } catch (final IOException | InterruptedException ex) {
                 // ignore;
             }
         }
@@ -235,7 +216,7 @@ public class FunctionRunConfiguration extends AzureRunConfigurationBase<Function
                 .map(t -> (ConnectionRunnerForRunConfiguration.MyBeforeRunTask)t)
                 .collect(Collectors.toList());
         final List<ConnectionRunnerForRunConfiguration.MyBeforeRunTask> invalidTasks =
-                rcTasks.stream().filter(t -> !Objects.equals(this, t.getConfig())).collect(Collectors.toList());
+                rcTasks.stream().filter(t -> !Objects.equals(this, t.getConfig())).toList();
         tasks.removeAll(invalidTasks);
         rcTasks.removeAll(invalidTasks);
         if (CollectionUtils.isEmpty(rcTasks) && connections.stream().anyMatch(c -> c.isApplicableFor(this))) {

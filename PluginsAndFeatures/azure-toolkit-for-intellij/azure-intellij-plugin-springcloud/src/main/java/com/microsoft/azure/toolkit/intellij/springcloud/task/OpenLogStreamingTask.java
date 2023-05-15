@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.springcloud.task;
 
-import com.google.common.collect.ImmutableMap;
 import com.microsoft.azure.toolkit.ide.guidance.ComponentContext;
 import com.microsoft.azure.toolkit.ide.guidance.Task;
 import com.microsoft.azure.toolkit.intellij.common.streaminglog.StreamingLogsManager;
@@ -14,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppInstance;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import org.apache.commons.collections4.CollectionUtils;
 import reactor.core.publisher.Flux;
@@ -34,20 +34,17 @@ public class OpenLogStreamingTask implements Task {
 
     @Override
     public void execute() {
-        final SpringCloudApp app = Objects.requireNonNull((SpringCloudApp) context.getParameter(SPRING_APP),
-                "`springApp` is required to open log streaming");
+        final SpringCloudApp app = Objects.requireNonNull((SpringCloudApp) context.getParameter(SPRING_APP), "`springApp` is required.");
+        final SpringCloudCluster service = app.getParent();
         final List<SpringCloudAppInstance> instances = Optional.ofNullable(app.getActiveDeployment()).map(SpringCloudDeployment::getInstances).orElse(null);
         if (CollectionUtils.isEmpty(instances)) {
             AzureMessager.getMessager().warning(AzureString.format("App `%s` is still starting up, please try again later.", app.getName()));
         } else {
-            final Flux<String> logs = Optional.ofNullable(app.getActiveDeployment()).map(d ->
-                    d.streamingLogs(app.getLogStreamingEndpoint(instances.get(0).getName()),
-                            ImmutableMap.of("follow", String.valueOf(true),
-                                    "sinceSeconds", String.valueOf(300),
-                                    "tailLines", String.valueOf(500),
-                                    "limitBytes", String.valueOf(1024 * 1024)))).orElse(Flux.empty());
+            final Flux<String> logs = Optional.ofNullable(app.getActiveDeployment())
+                .map(SpringCloudDeployment::getLatestInstance)
+                .map(d -> d.streamingLogs(true, service.isConsumptionTier() ? 300 : 500)).orElse(Flux.empty());
             AzureTaskManager.getInstance().runLater(() ->
-                    StreamingLogsManager.getInstance().showStreamingLog(context.getProject(), app.getId(), app.getName(), logs));
+                StreamingLogsManager.getInstance().showStreamingLog(context.getProject(), app.getId(), app.getName(), logs));
         }
     }
 

@@ -22,7 +22,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
@@ -224,7 +224,7 @@ public abstract class SqlDatabaseResourcePanel<T extends IDatabase> implements A
         if (database != null) {
             final ResourceId serverId = ResourceId.fromString(database.getId()).parent();
             this.subscriptionComboBox.setValue(Azure.az(AzureAccount.class).account().getSubscription(serverId.subscriptionId()));
-            this.serverComboBox.setValue(new AzureComboBox.ItemReference<>(serverId.name(), AzResourceBase::getName));
+            this.serverComboBox.setValue(new AzureComboBox.ItemReference<>(serverId.name(), AzResource::getName));
         }
         Optional.ofNullable(db.getPassword())
             .flatMap(p -> Optional.ofNullable(p.password()))
@@ -236,7 +236,7 @@ public abstract class SqlDatabaseResourcePanel<T extends IDatabase> implements A
                 .filter(e -> StringUtils.equals(e.name(), Azure.az().config().getDatabasePasswordSaveType())).findAny()
                 .orElse(Password.SaveType.UNTIL_RESTART));
         }
-        Optional.ofNullable(database).map(AzResourceBase::getName).ifPresent(dbName ->
+        Optional.ofNullable(database).map(AzResource::getName).ifPresent(dbName ->
             this.databaseComboBox.setValue(new AzureComboBox.ItemReference<>(dbName, IDatabase::getName)));
         Optional.ofNullable(db.getUsername())
             .ifPresent((username -> this.usernameComboBox.setValue(username)));

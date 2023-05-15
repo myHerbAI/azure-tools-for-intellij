@@ -216,7 +216,7 @@ public class AzureWebAppMvpModel {
         deployWebAppTask.doExecute();
         AzureTaskManager.getInstance().runInBackground("get deployment status", () -> {
             OperationContext.current().setMessager(AzureMessager.getDefaultMessager());
-            if (!deployWebAppTask.waitUntilDeploymentReady(DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL, DEFAULT_DEPLOYMENT_STATUS_MAX_REFRESH_TIMES)) {
+            if (!deployWebAppTask.waitUntilDeploymentReady(false, DEFAULT_DEPLOYMENT_STATUS_REFRESH_INTERVAL, DEFAULT_DEPLOYMENT_STATUS_MAX_REFRESH_TIMES)) {
                 AzureMessager.getMessager().warning(GET_DEPLOYMENT_STATUS_TIMEOUT, null,
                         AzureActionManager.getInstance().getAction(AppServiceActionsContributor.START_STREAM_LOG).bind(deployTarget));
             } else {

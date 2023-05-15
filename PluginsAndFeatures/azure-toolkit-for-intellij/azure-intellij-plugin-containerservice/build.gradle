@@ -7,9 +7,9 @@ repositories {
 }
 
 dependencies {
-    implementation project(':azure-intellij-plugin-lib')
-    implementation project(':azure-intellij-plugin-lib-java')
-    implementation project(':azure-intellij-resource-connector-lib')
+    implementation project(path: ':azure-intellij-plugin-lib', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-lib-java', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-resource-connector-lib', configuration: 'instrumentedJar')
     implementation 'io.kubernetes:client-java:16.0.0'
     implementation 'com.microsoft.azure:azure-toolkit-storage-lib'
     implementation 'com.microsoft.azure:azure-toolkit-ide-common-lib'

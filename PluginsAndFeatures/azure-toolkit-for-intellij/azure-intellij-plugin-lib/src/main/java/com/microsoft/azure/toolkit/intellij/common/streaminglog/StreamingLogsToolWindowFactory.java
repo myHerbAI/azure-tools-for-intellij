@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.common.streaminglog;
 
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
@@ -30,7 +29,6 @@ public class StreamingLogsToolWindowFactory implements ToolWindowFactory {
 
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-        toolWindow.setIcon(AllIcons.Nodes.LogFolder);
         toolWindow.getContentManager().addContentManagerListener(new ContentManagerListener() {
             @Override
             public void contentRemoved(ContentManagerEvent contentManagerEvent) {

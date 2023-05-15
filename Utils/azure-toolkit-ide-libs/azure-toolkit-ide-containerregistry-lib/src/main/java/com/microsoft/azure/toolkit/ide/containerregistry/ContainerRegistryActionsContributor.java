@@ -119,8 +119,10 @@ public class ContainerRegistryActionsContributor implements IActionsContributor 
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ContainerRegistry)
             .withHandler(s -> {
+                final Action<ContainerRegistry> login = am.getAction(LOGIN).bind(s);
+                final Action<ContainerRegistry> copyPassword = am.getAction(COPY_PASSWORD).bind(s);
                 am.getAction(ResourceCommonActionsContributor.COPY_STRING).handle(s.getLoginServerUrl());
-                AzureMessager.getMessager().success(AzureString.format("Registry URL %s is copied into clipboard.", s.getLoginServerUrl()));
+                AzureMessager.getMessager().success(AzureString.format("Registry URL %s is copied into clipboard.", s.getLoginServerUrl()), login, copyPassword);
             })
             .register(am);
 
@@ -134,8 +136,10 @@ public class ContainerRegistryActionsContributor implements IActionsContributor 
                     final Action<ContainerRegistry> enableAdminUser = am.getAction(ContainerRegistryActionsContributor.ENABLE_ADMIN_USER).bind(s);
                     throw new AzureToolkitRuntimeException("Admin user is not enabled.", enableAdminUser);
                 }
+                final Action<ContainerRegistry> login = am.getAction(LOGIN).bind(s);
+                final Action<ContainerRegistry> copyPassword = am.getAction(COPY_PASSWORD).bind(s);
                 am.getAction(ResourceCommonActionsContributor.COPY_STRING).handle(s.getUserName());
-                AzureMessager.getMessager().success(AzureString.format("Username %s is copied into clipboard.", s.getUserName()));
+                AzureMessager.getMessager().success(AzureString.format("Username %s is copied into clipboard.", s.getUserName()), login, copyPassword);
             })
             .register(am);
 
@@ -149,8 +153,10 @@ public class ContainerRegistryActionsContributor implements IActionsContributor 
                     final Action<ContainerRegistry> enableAdminUser = am.getAction(ContainerRegistryActionsContributor.ENABLE_ADMIN_USER).bind(s);
                     throw new AzureToolkitRuntimeException("Admin user is not enabled.", enableAdminUser);
                 }
+                final Action<ContainerRegistry> login = am.getAction(LOGIN).bind(s);
+                final Action<ContainerRegistry> copyRegistryUrl = am.getAction(COPY_REGISTRY_URL).bind(s);
                 am.getAction(ResourceCommonActionsContributor.COPY_STRING).handle(s.getPrimaryCredential());
-                AzureMessager.getMessager().success("Primary password is copied into clipboard.");
+                AzureMessager.getMessager().success("Primary password is copied into clipboard.", login, copyRegistryUrl);
             })
             .register(am);
 
@@ -258,12 +264,9 @@ public class ContainerRegistryActionsContributor implements IActionsContributor 
             ResourceCommonActionsContributor.REFRESH,
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
             ResourceCommonActionsContributor.OPEN_PORTAL_URL,
-            ResourceCommonActionsContributor.SHOW_PROPERTIES,
             "---",
             ContainerRegistryActionsContributor.ENABLE_ADMIN_USER,
             ContainerRegistryActionsContributor.DISABLE_ADMIN_USER,
-            "---",
-            ContainerRegistryActionsContributor.LOGIN,
             "---",
             ContainerRegistryActionsContributor.COPY_REGISTRY_URL,
             ContainerRegistryActionsContributor.COPY_USERNAME,

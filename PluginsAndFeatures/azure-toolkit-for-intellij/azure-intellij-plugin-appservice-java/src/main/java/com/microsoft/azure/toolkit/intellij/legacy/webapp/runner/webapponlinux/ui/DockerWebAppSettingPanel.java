@@ -9,24 +9,24 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.ui.JBIntSpinner;
-import com.intellij.ui.PortField;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig;
+import com.microsoft.azure.toolkit.intellij.container.AzureDockerClient;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerPushConfiguration;
 import com.microsoft.azure.toolkit.intellij.containerregistry.buildimage.DockerBuildTaskUtils;
 import com.microsoft.azure.toolkit.intellij.containerregistry.component.DockerImageConfigurationPanel;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureSettingPanel;
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapponlinux.WebAppOnLinuxDeployConfiguration;
-import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azuretools.core.mvp.model.webapp.WebAppOnLinuxDeployModel;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.idea.maven.project.MavenProject;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
+import java.util.Collections;
+import java.util.Objects;
 import java.util.Optional;
 
 public class DockerWebAppSettingPanel extends AzureSettingPanel<WebAppOnLinuxDeployConfiguration> {
@@ -51,10 +51,19 @@ public class DockerWebAppSettingPanel extends AzureSettingPanel<WebAppOnLinuxDep
         this.pnlDockerConfiguration = new DockerImageConfigurationPanel(project);
         this.pnlDockerConfigurationHolder.add(pnlDockerConfiguration.getPnlRoot(), new GridConstraints(0, 0, 1, 1, 0, GridConstraints.FILL_BOTH, 3, 3, null, null, null, 0));
         this.pnlDockerConfiguration.enableContainerRegistryPanel();
-        final AzureFormInput.AzureValueChangeListener<DockerImage> runnable = image -> AzureTaskManager.getInstance().runLater(() ->
-                DockerBuildTaskUtils.updateDockerBuildBeforeRunTasks(DataManager.getInstance().getDataContext(pnlRoot), this.configuration, image), AzureTask.Modality.ANY);
-        this.pnlDockerConfiguration.addImageListener(runnable);
+        this.pnlDockerConfiguration.addImageListener(this::onSelectImage);
         this.cbWebApp.reloadItems();
+    }
+
+    private void onSelectImage(DockerImage image) {
+        final DockerPushConfiguration value = pnlDockerConfiguration.getValue();
+        AzureTaskManager.getInstance().runLater(() ->
+                DockerBuildTaskUtils.updateDockerBuildBeforeRunTasks(DataManager.getInstance().getDataContext(getMainPanel()), this.configuration, image), AzureTask.Modality.ANY);
+        Optional.ofNullable(image).ifPresent(i -> AzureTaskManager.getInstance().runInBackgroundAsObservable(new AzureTask<>("Inspecting image", () -> AzureDockerClient.getExposedPorts(value.getDockerHost(), image)))
+                .subscribe(ports -> {
+                    final Integer port = ports.stream().findFirst().orElse(null);
+                    Optional.ofNullable(port).ifPresent(p -> AzureTaskManager.getInstance().runLater(() -> txtTargetPort.setNumber(p), AzureTask.Modality.ANY));
+                }));
     }
 
     @Override
@@ -83,7 +92,7 @@ public class DockerWebAppSettingPanel extends AzureSettingPanel<WebAppOnLinuxDep
         final WebAppConfig webappConfig = cbWebApp.getValue();
         Optional.ofNullable(webappConfig).ifPresent(configuration::setWebAppConfig);
         Optional.ofNullable(value).ifPresent(configuration::setDockerPushConfiguration);
-        Optional.ofNullable(txtTargetPort.getNumber()).ifPresent(configuration::setPort);
+        Optional.of(txtTargetPort.getNumber()).ifPresent(configuration::setPort);
     }
 
     @Override

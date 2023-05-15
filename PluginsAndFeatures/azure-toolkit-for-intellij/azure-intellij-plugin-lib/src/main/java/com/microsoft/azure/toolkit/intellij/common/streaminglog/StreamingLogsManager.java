@@ -8,6 +8,7 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import reactor.core.publisher.Flux;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -44,7 +45,7 @@ public class StreamingLogsManager {
     }
 
     public boolean isStreamingLogStarted(Project project, String resourceId) {
-        final StreamingLogsConsoleView consoleView = StreamingLogsToolWindowManager.getInstance().getToolWindowContent(project, resourceId);
-        return Optional.ofNullable(consoleView).map(StreamingLogsConsoleView::isActive).orElse(false);
+        final List<StreamingLogsConsoleView> consoleViews = StreamingLogsToolWindowManager.getInstance().getToolWindowContents(project, resourceId);
+        return consoleViews.stream().anyMatch(StreamingLogsConsoleView::isActive);
     }
 }

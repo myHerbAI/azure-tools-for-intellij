@@ -10,6 +10,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.TextComponentAccessor;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.AnimatedIcon;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
@@ -18,6 +19,7 @@ import com.microsoft.azure.toolkit.intellij.container.AzureDockerClient;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerHost;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang.StringUtils;
@@ -28,6 +30,7 @@ import reactor.core.scheduler.Schedulers;
 
 import javax.swing.*;
 import java.awt.event.ItemEvent;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
@@ -56,10 +59,36 @@ public class DockerHostCreationDialog extends AzureDialog<DockerHost>
     protected void init() {
         super.init();
         chkEnableTLS.addItemListener(this::onSelectTLS);
+        lblDockerHost.setLabelFor(txtDockerHost);
+        txtDockerHost.setRequired(true);
+        txtDockerHost.addValidator(this::validateDockerHost);
         txtDockerHost.addValueChangedListener(ignore -> resetValidationMessage());
+        lblCertPath.setLabelFor(txtCertPath);
         txtCertPath.addValueChangedListener(ignore -> resetValidationMessage());
+        txtCertPath.addValidator(this::validateCertPath);
         txtCertPath.addActionListener(new ComponentWithBrowseButton.BrowseFolderActionListener<>("Select Cert for Docker Host", null, txtCertPath,
                 project, FileChooserDescriptorFactory.createSingleFolderDescriptor(), TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT));
+    }
+
+    private AzureValidationInfo validateCertPath() {
+        final String value = txtCertPath.getValue();
+        if (StringUtils.isNotEmpty(value) && !FileUtil.exists(value)) {
+            return AzureValidationInfo.error(String.format("File %s does not exists", value), txtCertPath);
+        }
+        return AzureValidationInfo.success(txtCertPath);
+    }
+
+    private AzureValidationInfo validateDockerHost() {
+        final String value = txtDockerHost.getValue();
+        try {
+            final URI uri = URI.create(value);
+            if (StringUtils.isBlank(uri.getScheme())) {
+                return AzureValidationInfo.error("Invalid Docker host URI, schema of uri could not be empty", txtDockerHost);
+            }
+        } catch (final Exception e) {
+            return AzureValidationInfo.error(String.format("Invalid Docker host URI, %s", e.getMessage()), txtDockerHost);
+        }
+        return AzureValidationInfo.success(txtDockerHost);
     }
 
     private void resetValidationMessage() {
@@ -71,6 +100,8 @@ public class DockerHostCreationDialog extends AzureDialog<DockerHost>
     private void onSelectTLS(ItemEvent itemEvent) {
         lblCertPath.setVisible(chkEnableTLS.isSelected());
         txtCertPath.setVisible(chkEnableTLS.isSelected());
+        txtCertPath.setRequired(chkEnableTLS.isSelected());
+        txtCertPath.validateValueAsync();
     }
 
     @Override

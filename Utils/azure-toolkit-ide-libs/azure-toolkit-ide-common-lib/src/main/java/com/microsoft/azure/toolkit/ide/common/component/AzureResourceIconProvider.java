@@ -8,7 +8,6 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIconProvider;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,7 +34,7 @@ public class AzureResourceIconProvider<T extends AzResource> implements AzureIco
 
     @Override
     public AzureIcon getIcon(T resource) {
-        final AzResourceBase.FormalStatus formalStatus = resource.getFormalStatus();
+        final AzResource.FormalStatus formalStatus = resource.getFormalStatus();
         if (formalStatus.isWaiting()) {
             return AzureIcons.Common.REFRESH_ICON;
         }
@@ -58,7 +57,7 @@ public class AzureResourceIconProvider<T extends AzResource> implements AzureIco
 
     @Nullable
     public static <T extends AzResource> AzureIcon.Modifier getStatusModifier(T resource) {
-        final AzResourceBase.FormalStatus formalStatus = resource.getFormalStatus();
+        final AzResource.FormalStatus formalStatus = resource.getFormalStatus();
         if (formalStatus.isWaiting()) {
             return null;
         } else if (formalStatus.isRunning()) {

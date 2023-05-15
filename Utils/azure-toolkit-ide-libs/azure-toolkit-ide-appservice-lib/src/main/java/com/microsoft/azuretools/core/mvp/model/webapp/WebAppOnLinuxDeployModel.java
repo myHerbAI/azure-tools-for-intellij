@@ -45,6 +45,8 @@ public class WebAppOnLinuxDeployModel {
     // docker related properties
     private DockerHostRunSetting dockerHostRunSetting = new DockerHostRunSetting();
     private String containerRegistryId;
+    private String finalRepositoryName;
+    private String finalTagName;
 
     public WebAppOnLinuxDeployModel() {
         privateRegistryImageSetting = new PrivateRegistryImageSetting();

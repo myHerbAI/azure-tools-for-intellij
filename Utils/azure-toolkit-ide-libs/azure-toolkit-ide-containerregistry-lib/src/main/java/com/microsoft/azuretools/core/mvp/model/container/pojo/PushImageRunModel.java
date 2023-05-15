@@ -20,4 +20,7 @@ public class PushImageRunModel {
     private String targetPath;
     private String targetName;
     private String dockerFilePath;
+
+    private String finalRepositoryName;
+    private String finalTagName;
 }

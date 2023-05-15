@@ -25,6 +25,7 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessage;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -127,6 +128,8 @@ public class PhasePanel extends JPanel {
 
     @AzureOperation(name = "user/guidance.execute_phase.phase", params = {"this.phase.getTitle()"})
     private void execute() {
+        OperationContext.current().setTelemetryProperty("phase", this.phase.getTitle());
+        OperationContext.current().setTelemetryProperty("course", this.phase.getCourse().getTitle());
         this.phase.execute(true);
     }
 

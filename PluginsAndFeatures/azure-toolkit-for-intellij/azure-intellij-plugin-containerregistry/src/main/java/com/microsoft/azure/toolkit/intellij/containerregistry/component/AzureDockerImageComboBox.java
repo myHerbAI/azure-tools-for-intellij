@@ -12,11 +12,13 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.popup.ListItemDescriptorAdapter;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
+import com.intellij.ui.popup.list.GroupedItemsListRenderer;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.ProjectUtils;
@@ -47,6 +49,12 @@ public class AzureDockerImageComboBox extends AzureComboBox<DockerImage> {
     public AzureDockerImageComboBox(Project project) {
         super(false);
         this.project = project;
+        this.setRenderer(new GroupedItemsListRenderer<>(new DockerImageDescriptor()) {
+            @Override
+            protected boolean hasSeparator(DockerImage value, int index) {
+                return index >= 0 && super.hasSeparator(value, index);
+            }
+        });
         this.setUsePreferredSizeAsMinimum(false);
     }
 
@@ -65,7 +73,7 @@ public class AzureDockerImageComboBox extends AzureComboBox<DockerImage> {
     @Override
     public void setValue(DockerImage value) {
         final Boolean isDraftImage = Optional.ofNullable(value).map(DockerImage::isDraft).orElse(false);
-        if (!draftImages.contains(value) && isDraftImage) {
+        if (!(getItems().contains(value) || draftImages.contains(value)) && isDraftImage) {
             this.draftImages.removeIf(image -> Objects.equals(image.getDockerFile(), value.getDockerFile()));
             this.draftImages.add(0, value);
             this.reloadItems();
@@ -94,13 +102,10 @@ public class AzureDockerImageComboBox extends AzureComboBox<DockerImage> {
     @Override
     protected List<? extends DockerImage> loadItems() throws Exception {
         final List<DockerImage> localImages = getLocalDockerImages();
-        final List<DockerImage> draftImages = this.draftImages.stream()
-                .filter(draft -> ListUtils.indexOf(localImages, image -> StringUtils.equals(image.getImageName(), draft.getImageName())) < 0)
-                .collect(Collectors.toList());
         final List<DockerImage> dockerImages = this.loadDockerFiles().stream()
                 .filter(draft -> ListUtils.indexOf(localImages, image -> Objects.equals(image.getDockerFile(), draft.getDockerFile())) < 0)
                 .collect(Collectors.toList());
-        return Stream.of(localImages, draftImages, dockerImages).flatMap(List::stream).collect(Collectors.toList());
+        return Stream.of(localImages, draftImages, dockerImages).flatMap(List::stream).distinct().collect(Collectors.toList());
     }
 
     private List<DockerImage> getLocalDockerImages() {
@@ -108,7 +113,8 @@ public class AzureDockerImageComboBox extends AzureComboBox<DockerImage> {
             return Optional.ofNullable(this.dockerHost)
                 .map(AzureDockerClient::from)
                 .map(AzureDockerClient::listLocalImages)
-                .map(l -> l.stream().map(DockerImage::new).collect(Collectors.toList()))
+                .map(l -> l.stream().flatMap(image -> DockerImage.fromImage(image).stream())
+                        .sorted(Comparator.comparing(DockerImage::getImageName)).collect(Collectors.toList()))
                 .orElse(Collections.emptyList());
         } catch (final RuntimeException e) {
             return Collections.emptyList();
@@ -150,6 +156,35 @@ public class AzureDockerImageComboBox extends AzureComboBox<DockerImage> {
             this.draftImages.add(image);
             this.reloadItems();
             this.setValue(image);
+        }
+    }
+
+    class DockerImageDescriptor extends ListItemDescriptorAdapter<DockerImage> {
+        @Override
+        public String getTextFor(DockerImage image) {
+            return image.isDraft() ? Optional.ofNullable(image.getDockerFile()).map(File::getAbsolutePath).orElse("Unknown Docker File") : image.getImageName();
+        }
+
+        @Override
+        public Icon getIconFor(DockerImage value) {
+            return IntelliJAzureIcons.getIcon(value.isDraft() ? "/icons/DockerFile.svg" : "/icons/Docker.svg");
+        }
+
+        @Override
+        public String getCaptionAboveOf(DockerImage image) {
+            return image.isDraft() ? "Dockerfile" : "Docker Image";
+        }
+
+        @Override
+        public boolean hasSeparatorAboveOf(DockerImage image) {
+            final List<DockerImage> items = getItems();
+            final int index = items.indexOf(image);
+            if (index <= 0) {
+                return index == 0;
+            }
+            final String currentCaption = getCaptionAboveOf(image);
+            final String lastCaption = getCaptionAboveOf(items.get(index - 1));
+            return !Objects.equals(currentCaption, lastCaption);
         }
     }
 }

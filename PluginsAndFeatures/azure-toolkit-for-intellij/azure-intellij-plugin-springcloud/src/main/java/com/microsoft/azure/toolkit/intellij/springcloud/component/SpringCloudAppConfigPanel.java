@@ -20,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
@@ -62,6 +63,7 @@ public class SpringCloudAppConfigPanel extends JPanel implements AzureFormPanel<
     private JLabel lblRuntime;
     private JLabel lblDisk;
     private JPanel pnlDisk;
+    private JLabel lblInstance;
 
     private Consumer<? super SpringCloudAppConfig> listener = (config) -> {
     };
@@ -105,21 +107,16 @@ public class SpringCloudAppConfigPanel extends JPanel implements AzureFormPanel<
         final DefaultComboBoxModel<Double> numMemoryModel = new DefaultComboBoxModel<>(new Double[]{0.5, 1.0, 2.0});
         numCpuModel.setSelectedItem(1.0);
         numMemoryModel.setSelectedItem(1.0);
-        this.numCpu.setRenderer(new SimpleListCellRenderer<>() {
-            @Override
-            public void customize(@NotNull JList<? extends Double> list, Double value, int index, boolean selected, boolean hasFocus) {
-                setText(value < 1 ? value + "" : value.intValue() + "");
-            }
-        });
         this.numMemory.setRenderer(new SimpleListCellRenderer<>() {
             @Override
             public void customize(@NotNull JList<? extends Double> list, Double value, int index, boolean selected, boolean hasFocus) {
-                setText(value < 1 ? Double.valueOf(value * 1024).intValue() + "Mi" : value.intValue() + "Gi");
+                Optional.ofNullable(value)
+                    .map(v -> v < 1 ? Double.valueOf(v * 1024).intValue() + "Mi" : v + "Gi")
+                    .ifPresentOrElse(this::setText, () -> setText(""));
             }
         });
         this.numCpu.setModel(numCpuModel);
         this.numMemory.setModel(numMemoryModel);
-
     }
 
     public void reset() {
@@ -138,7 +135,7 @@ public class SpringCloudAppConfigPanel extends JPanel implements AzureFormPanel<
     }
 
     public synchronized void updateForm(@Nonnull SpringCloudApp app) {
-        AzureTaskManager.getInstance().runInBackground(AzureString.format("load properties of app(%s)", app.name()), () -> {
+        AzureTaskManager.getInstance().runInBackground(AzureString.format("load properties of app(%s)", app.getName()), () -> {
             final String testUrl = app.getTestUrl();
             final SpringCloudPersistentDisk disk = app.getPersistentDisk();
             final String url = app.getApplicationUrl();
@@ -164,28 +161,36 @@ public class SpringCloudAppConfigPanel extends JPanel implements AzureFormPanel<
                 }
             }, AzureTask.Modality.ANY);
         });
-        final String sku = app.getParent().getSku();
-        final boolean enterprise = sku.toLowerCase().startsWith("e");
+        final SpringCloudCluster service = app.getParent();
+        final String sku = service.getSku();
+        final boolean enterprise = service.isEnterpriseTier();
+        final boolean consumption = service.isConsumptionTier();
+        final boolean basic = !enterprise && !consumption;
         this.useJava8.setVisible(!enterprise);
         this.useJava11.setVisible(!enterprise);
         this.useJava17.setVisible(!enterprise);
         this.lblRuntime.setVisible(!enterprise);
         this.lblDisk.setVisible(!enterprise);
         this.pnlDisk.setVisible(!enterprise);
-        final boolean basic = sku.toLowerCase().startsWith("b");
+        this.lblInstance.setText("Instances:");
         final Double cpu = this.numCpu.getItem();
         final Double mem = this.numMemory.getItem();
-        final Double[] cpus = basic ? new Double[]{0.5, 1.0} : new Double[]{0.5, 1.0, 2.0, 3.0, 4.0};
-        final Double[] mems = basic ? new Double[]{0.5, 1.0, 2.0} : new Double[]{0.5, 1.0, 2.0, 3.0, 4.0, 5., 6.0, 7.0, 8.0};
+        final Double[] cpus = basic ? new Double[]{0.5, 1.0} : consumption ? new Double[]{0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0} : new Double[]{0.5, 1.0, 2.0, 3.0, 4.0};
+        final Double[] mems = basic ? new Double[]{0.5, 1.0, 2.0} : consumption ? new Double[]{0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0} : new Double[]{0.5, 1.0, 2.0, 3.0, 4.0, 5., 6.0, 7.0, 8.0};
         final DefaultComboBoxModel<Double> numCpuModel = new DefaultComboBoxModel<>(cpus);
         final DefaultComboBoxModel<Double> numMemoryModel = new DefaultComboBoxModel<>(mems);
-        numCpuModel.setSelectedItem(Objects.isNull(cpu) ? 1.0 : (cpu > (basic ? 1 : 4)) ? null : cpu);
-        numMemoryModel.setSelectedItem(Objects.isNull(mem) ? 1.0 : mem > (basic ? 2 : 8) ? null : mem);
+        numCpuModel.setSelectedItem(Objects.isNull(cpu) ? Double.valueOf(1.0) : (cpu > cpus[cpus.length - 1]) ? null : cpu);
+        numMemoryModel.setSelectedItem(Objects.isNull(mem) ? Double.valueOf(2.0) : mem > mems[mems.length - 1] ? null : mem);
+        if (consumption) {
+            this.numMemory.addActionListener(e -> Optional.ofNullable((Double) numMemoryModel.getSelectedItem()).ifPresent(m -> numCpuModel.setSelectedItem(m / 2)));
+            this.numCpu.addActionListener(e -> Optional.ofNullable((Double) numCpuModel.getSelectedItem()).ifPresent(c -> numMemoryModel.setSelectedItem(c * 2)));
+            this.lblInstance.setText("Max replicas:");
+        }
         this.numCpu.setModel(numCpuModel);
         this.numMemory.setModel(numMemoryModel);
-        this.numInstance.setMaximum(basic ? 25 : 500);
-        this.numInstance.setMajorTickSpacing(basic ? 5 : 50);
-        this.numInstance.setMinorTickSpacing(basic ? 1 : 10);
+        this.numInstance.setMaximum(basic ? 25 : consumption ? 30 : 500);
+        this.numInstance.setMajorTickSpacing(basic || consumption ? 5 : 50);
+        this.numInstance.setMinorTickSpacing(basic || consumption ? 1 : 10);
         this.numInstance.setMinimum(0);
         this.numInstance.updateLabels();
     }

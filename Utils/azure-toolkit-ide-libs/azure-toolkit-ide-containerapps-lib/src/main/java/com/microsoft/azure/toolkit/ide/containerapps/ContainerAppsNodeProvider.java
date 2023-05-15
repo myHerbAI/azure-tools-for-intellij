@@ -10,7 +10,7 @@ import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContri
 import com.microsoft.azure.toolkit.ide.common.component.*;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerApps;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerAppsServiceSubscription;
@@ -91,7 +91,7 @@ public class ContainerAppsNodeProvider implements IExplorerNodeProvider {
         } else if (data instanceof ServiceLinkerModule) {
             final ServiceLinkerModule module = (ServiceLinkerModule) data;
             return new Node<>(module)
-                    .view(new AzureModuleLabelView<>(module, "Service Connectors", AzureIcons.Connector.SERVICE_LINKER_MODULE.getIconPath()))
+                    .view(new AzureModuleLabelView<>(module, "Service Connector", AzureIcons.Connector.SERVICE_LINKER_MODULE.getIconPath()))
                     .actions(ResourceCommonActionsContributor.SERVICE_LINKER_MODULE_ACTIONS)
                     .addChildren(ServiceLinkerModule::list, (d, p) -> this.createNode(d, p, manager));
         } else if (data instanceof ServiceLinker) {
@@ -102,7 +102,7 @@ public class ContainerAppsNodeProvider implements IExplorerNodeProvider {
     }
 
     private String getRevisionDescription(@Nonnull final Revision revision) {
-        final AzResourceBase.FormalStatus formalStatus = revision.getFormalStatus();
+        final AzResource.FormalStatus formalStatus = revision.getFormalStatus();
         if (!formalStatus.isRunning() && !formalStatus.isStopped()) {
             return revision.getStatus();
         }

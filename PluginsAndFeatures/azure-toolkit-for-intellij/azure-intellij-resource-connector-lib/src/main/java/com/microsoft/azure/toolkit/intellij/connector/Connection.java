@@ -83,9 +83,6 @@ public class Connection<R, C> {
     public boolean prepareBeforeRun(@Nonnull RunConfiguration configuration, DataContext dataContext) {
         try {
             this.env = getEnvironmentVariables(configuration.getProject());
-            if (configuration instanceof IConnectionAware) { // set envs for remote deploy
-                ((IConnectionAware) configuration).addConnection(this);
-            }
             return true;
         } catch (final Throwable e) {
             AzureMessager.getMessager().error(e);

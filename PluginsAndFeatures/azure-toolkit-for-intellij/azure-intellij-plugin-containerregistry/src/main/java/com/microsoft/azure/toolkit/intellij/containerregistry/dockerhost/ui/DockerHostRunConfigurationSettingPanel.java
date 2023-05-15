@@ -9,33 +9,34 @@ import com.intellij.ide.DataManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.packaging.artifacts.Artifact;
+import com.intellij.ui.JBIntSpinner;
+import com.microsoft.azure.toolkit.intellij.container.AzureDockerClient;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerConfiguration;
-import com.microsoft.azure.toolkit.intellij.container.model.DockerHost;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerPushConfiguration;
 import com.microsoft.azure.toolkit.intellij.containerregistry.buildimage.DockerBuildTaskUtils;
 import com.microsoft.azure.toolkit.intellij.containerregistry.component.DockerImageConfigurationPanel;
 import com.microsoft.azure.toolkit.intellij.containerregistry.dockerhost.DockerHostRunConfiguration;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureSettingPanel;
-import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.idea.maven.project.MavenProject;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
-import java.io.File;
+import java.util.Collections;
+import java.util.Objects;
 import java.util.Optional;
 
 public class DockerHostRunConfigurationSettingPanel extends AzureSettingPanel<DockerHostRunConfiguration> {
     private JPanel pnlRoot;
     private DockerImageConfigurationPanel pnlConfiguration;
+    private JBIntSpinner txtTargetPort;
     private final Project project;
     private final DockerHostRunConfiguration runConfiguration;
 
     public DockerHostRunConfigurationSettingPanel(@Nonnull Project project, DockerHostRunConfiguration runConfiguration) {
-        super(project);
+        super(project, false);
         this.project = project;
         this.runConfiguration = runConfiguration;
         $$$setupUI$$$();
@@ -43,9 +44,18 @@ public class DockerHostRunConfigurationSettingPanel extends AzureSettingPanel<Do
     }
 
     private void init() {
-        final AzureFormInput.AzureValueChangeListener<DockerImage> runnable = image -> AzureTaskManager.getInstance().runLater(() ->
+        this.pnlConfiguration.addImageListener(this::onSelectImage);
+    }
+
+    private void onSelectImage(DockerImage image) {
+        final DockerPushConfiguration value = pnlConfiguration.getValue();
+        AzureTaskManager.getInstance().runLater(() ->
                 DockerBuildTaskUtils.updateDockerBuildBeforeRunTasks(DataManager.getInstance().getDataContext(getMainPanel()), this.runConfiguration, image), AzureTask.Modality.ANY);
-        this.pnlConfiguration.addImageListener(runnable);
+        Optional.ofNullable(image).ifPresent(i -> AzureTaskManager.getInstance().runInBackgroundAsObservable(new AzureTask<>("Inspecting image", () -> AzureDockerClient.getExposedPorts(value.getDockerHost(), image)))
+                .subscribe(ports -> {
+                    final Integer port = ports.stream().findFirst().orElse(null);
+                    Optional.ofNullable(port).ifPresent(p -> AzureTaskManager.getInstance().runLater(() -> txtTargetPort.setNumber(p), AzureTask.Modality.ANY));
+                }));
     }
 
     @Override
@@ -61,17 +71,10 @@ public class DockerHostRunConfigurationSettingPanel extends AzureSettingPanel<Do
     @Override
     protected void resetFromConfig(@Nonnull DockerHostRunConfiguration data) {
         final DockerPushConfiguration dockerConfiguration = new DockerPushConfiguration();
-        if (StringUtils.isNoneBlank(data.getDockerHost())) {
-            dockerConfiguration.setDockerHost(new DockerHost(data.getDockerHost(), data.getDockerCertPath()));
-        }
-        if (StringUtils.isNotEmpty(data.getImageName()) || StringUtils.isNotEmpty(data.getDockerFilePath())) {
-            final DockerImage image = new DockerImage();
-            image.setRepositoryName(data.getImageName());
-            image.setTagName(data.getTagName());
-            image.setDockerFile(Optional.ofNullable(data.getDockerFilePath()).map(File::new).orElse(null));
-            dockerConfiguration.setDockerImage(image);
-        }
+        dockerConfiguration.setDockerHost(data.getDockerHostConfiguration());
+        dockerConfiguration.setDockerImage(data.getDockerImageConfiguration());
         pnlConfiguration.setValue(dockerConfiguration);
+        Optional.ofNullable(data.getPort()).ifPresent(txtTargetPort::setNumber);
     }
 
     @Override
@@ -79,6 +82,7 @@ public class DockerHostRunConfigurationSettingPanel extends AzureSettingPanel<Do
         final DockerConfiguration dockerConfiguration = pnlConfiguration.getValue();
         configuration.setHost(dockerConfiguration.getDockerHost());
         configuration.setDockerImage(dockerConfiguration.getDockerImage());
+        configuration.setPort(txtTargetPort.getNumber());
     }
 
     @Override
@@ -103,8 +107,9 @@ public class DockerHostRunConfigurationSettingPanel extends AzureSettingPanel<Do
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
+        this.txtTargetPort = new JBIntSpinner(80, 1, 65535);
         this.pnlConfiguration = new DockerImageConfigurationPanel(this.project);
-        this.pnlConfiguration.setHideImageNamePanelForExistingImage(true);
+        this.pnlConfiguration.setEnableCustomizedImageName(false);
     }
 
     private void $$$setupUI$$$() {

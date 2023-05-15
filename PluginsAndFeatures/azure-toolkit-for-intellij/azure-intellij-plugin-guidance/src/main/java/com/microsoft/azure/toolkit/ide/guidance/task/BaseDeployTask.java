@@ -16,6 +16,8 @@ import com.microsoft.azure.toolkit.ide.guidance.Task;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 
 import javax.annotation.Nonnull;
@@ -36,8 +38,10 @@ public abstract class BaseDeployTask implements Task {
     }
 
     @Override
+    @AzureOperation(name = "internal/guidance.deploy")
     public void execute() throws Exception {
         AzureMessager.getMessager().info("Setting up run configuration for deployment...");
+        OperationContext.current().setTelemetryProperty("service", this.getName());
         final RunManagerEx manager = RunManagerEx.getInstanceEx(project);
         final RunnerAndConfigurationSettings settings = getRunConfigurationSettings(context, manager);
         manager.addConfiguration(settings);

@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig;
 
-import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -20,7 +19,6 @@ import com.microsoft.azure.toolkit.intellij.common.AzureArtifact;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifactManager;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifactType;
 import com.microsoft.azure.toolkit.intellij.common.runconfig.IWebAppRunConfiguration;
-import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunConfigurationBase;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
@@ -30,14 +28,12 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
-import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -55,8 +51,6 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
     private static final String JBOSS = "jboss";
     public static final String JAVA_VERSION = "javaVersion";
     private final IntelliJWebAppSettingModel webAppSettingModel;
-    @Getter
-    private final Set<Connection<?, ?>> connections = new HashSet<>();
 
     public WebAppConfiguration(@NotNull Project project, @NotNull ConfigurationFactory factory, String name) {
         super(project, factory, name);
@@ -85,11 +79,6 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
         return webAppSettingModel.getAppSettings();
     }
 
-    @Override
-    public void addConnection(@Nonnull Connection<?, ?> connection) {
-        connections.add(connection);
-    }
-
     public String getAppSettingsKey() {
         return webAppSettingModel.getAppSettingsKey();
     }
@@ -107,8 +96,7 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
 
     @Nullable
     @Override
-    public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment executionEnvironment)
-            throws ExecutionException {
+    public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment executionEnvironment) {
         return new WebAppRunState(getProject(), this);
     }
 

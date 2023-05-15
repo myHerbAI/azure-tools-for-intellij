@@ -8,6 +8,8 @@ package com.microsoft.azure.toolkit.intellij.servicebus;
 import com.azure.resourcemanager.servicebus.models.EntityStatus;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.servicebus.ServiceBusActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.AzureBundle;
@@ -17,7 +19,9 @@ import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.azure.toolkit.lib.servicebus.ServiceBusNamespace;
 import com.microsoft.azure.toolkit.lib.servicebus.model.ServiceBusInstance;
 
 import java.util.function.BiConsumer;
@@ -35,6 +39,7 @@ public class IntelliJServiceBusActionsContributor implements IActionsContributor
         registerStartReceivingActionHandler(am);
         registerStopReceivingActionHandler(am);
         registerGroupCreateActionHandler(am);
+        registerCopyNamespaceConnectionStringActionHandler(am);
     }
 
     private void registerActiveActionHandler(AzureActionManager am) {
@@ -66,7 +71,7 @@ public class IntelliJServiceBusActionsContributor implements IActionsContributor
         final BiConsumer<ServiceBusInstance<?, ?, ?>, AnActionEvent> handler = (c, e) -> {
             final String connectionString = c.getOrCreateListenConnectionString();
             am.getAction(ResourceCommonActionsContributor.COPY_STRING).handle(connectionString);
-            AzureMessager.getMessager().info(AzureBundle.message("azure.eventhubs.info.copyConnectionString"));
+            AzureMessager.getMessager().info(AzureBundle.message("azure.servicebus.info.copyConnectionString"), null, generateConfigAction(c));
         };
         am.registerHandler(ServiceBusActionsContributor.COPY_CONNECTION_STRING, condition, handler);
     }
@@ -98,6 +103,23 @@ public class IntelliJServiceBusActionsContributor implements IActionsContributor
             am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(url, null);
         };
         am.registerHandler(ServiceBusActionsContributor.GROUP_CREATE_SERVICE_BUS, (r, e) -> true, (r, e) -> handler.accept(r, (AnActionEvent) e));
+    }
+
+    private void registerCopyNamespaceConnectionStringActionHandler(AzureActionManager am) {
+        final BiPredicate<ServiceBusNamespace, AnActionEvent> condition = (r, e) -> true;
+        final BiConsumer<ServiceBusNamespace, AnActionEvent> handler = (c, e) -> {
+            final String connectionString = c.getOrCreateConnectionString();
+            am.getAction(ResourceCommonActionsContributor.COPY_STRING).handle(connectionString);
+            AzureMessager.getMessager().info(AzureBundle.message("azure.servicebus.info.copyConnectionString"), null, generateConfigAction(c));
+        };
+        am.registerHandler(ServiceBusActionsContributor.COPY_NAMESPACE_CONNECTION_STRING, condition, handler);
+    }
+
+    private static Action<?> generateConfigAction(AzResource resource) {
+        final String sasKeyUrl = String.format("%s/saskey", resource.getPortalUrl());
+        return new Action<>(Action.Id.of("user/servicebus.config_shared_access_key"))
+                .withLabel("Configure in Azure Portal")
+                .withHandler(s -> AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(sasKeyUrl));
     }
 
     @Override

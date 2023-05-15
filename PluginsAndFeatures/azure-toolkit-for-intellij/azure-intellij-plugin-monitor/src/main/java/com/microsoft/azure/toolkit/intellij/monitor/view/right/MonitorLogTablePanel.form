@@ -173,7 +173,6 @@
                 </constraints>
                 <properties>
                   <text value="Save as query"/>
-                  <toolTipText value="Save  Save the current settings filters "/>
                 </properties>
               </component>
             </children>

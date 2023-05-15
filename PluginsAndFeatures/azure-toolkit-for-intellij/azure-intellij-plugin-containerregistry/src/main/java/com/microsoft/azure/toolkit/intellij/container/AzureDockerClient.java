@@ -8,21 +8,9 @@ package com.microsoft.azure.toolkit.intellij.container;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
-import com.github.dockerjava.api.command.BuildImageResultCallback;
-import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.command.InspectImageResponse;
-import com.github.dockerjava.api.command.PullImageCmd;
-import com.github.dockerjava.api.command.PushImageCmd;
+import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.exception.DockerException;
-import com.github.dockerjava.api.model.AuthConfig;
-import com.github.dockerjava.api.model.Container;
-import com.github.dockerjava.api.model.ContainerConfig;
-import com.github.dockerjava.api.model.ExposedPort;
-import com.github.dockerjava.api.model.Image;
-import com.github.dockerjava.api.model.PortBinding;
-import com.github.dockerjava.api.model.Ports;
-import com.github.dockerjava.api.model.PullResponseItem;
-import com.github.dockerjava.api.model.PushResponseItem;
+import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
@@ -32,11 +20,11 @@ import com.github.dockerjava.zerodep.ZerodepDockerHttpClient;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerHost;
+import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.containerregistry.Tag;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -47,17 +35,16 @@ import java.net.ServerSocket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.microsoft.azure.toolkit.intellij.container.model.DockerHost.DEFAULT_WINDOWS_HOST;
 
 public class AzureDockerClient {
+    public static final Pattern PORT_PATTERN = Pattern.compile("EXPOSE\\s+(\\d+).*");
     public static final Duration CONNECTION_TIMEOUT = Duration.ofSeconds(5);
     private final DefaultDockerClientConfig config;
     private final DockerClient client;
@@ -104,17 +91,16 @@ public class AzureDockerClient {
     }
 
     @AzureOperation(name = "boundary/docker.create_container.image", params = {"imageNameWithTag"})
-    public String createContainer(@Nonnull String imageNameWithTag, String port) {
+    public String createContainer(@Nonnull String imageNameWithTag, @Nullable Integer... ports) {
         this.ping();
-        final InspectImageResponse image = this.client.inspectImageCmd(imageNameWithTag).exec();
-        final ContainerConfig config = Objects.requireNonNull(image.getConfig());
-        final List<PortBinding> portBindings = Arrays.stream(ObjectUtils.firstNonNull(config.getExposedPorts(), new ExposedPort[0]))
-            .map(p -> new PortBinding(Ports.Binding.bindPort(findFreePort()), p)).collect(Collectors.toList());
-        if (StringUtils.isNotEmpty(port)) {
-            portBindings.add(new PortBinding(Ports.Binding.bindPort(findFreePort()), ExposedPort.parse(port)));
-        }
+        final List<Integer> exposedPortsOfImage = getExposedPortsOfImage(this, imageNameWithTag);
+        final List<PortBinding> portBindings = Stream.concat(exposedPortsOfImage.stream(), ports == null ? Stream.empty() : Arrays.stream(ports)).distinct()
+                .map(p -> new PortBinding(Ports.Binding.bindPort(findFreePort()), new ExposedPort(p))).collect(Collectors.toList());
+        final List<ExposedPort> exposedPorts = ports == null ? Collections.emptyList() : Arrays.stream(ports).map(ExposedPort::new).collect(Collectors.toList());
         //noinspection deprecation
-        final CreateContainerResponse container = this.client.createContainerCmd(imageNameWithTag).withPortBindings(portBindings).exec();
+        final CreateContainerResponse container = this.client.createContainerCmd(imageNameWithTag)
+                .withExposedPorts(exposedPorts)
+                .withPortBindings(portBindings).exec();
         return container.getId();
     }
 
@@ -134,7 +120,7 @@ public class AzureDockerClient {
         this.client.removeContainerCmd(containerId).exec();
     }
 
-    @AzureOperation(name = "boundary/docker.build_image.image|dir", params = {"imageNameWithTag", "baseDir"})
+    @AzureOperation(name = "boundary/docker.build_image.image|file", params = {"imageNameWithTag", "dockerFile"})
     public void buildImage(String imageNameWithTag, @Nonnull File dockerFile, File baseDir, @Nullable BuildImageResultCallback callback) {
         this.ping();
         baseDir = Optional.ofNullable(baseDir).orElseGet(dockerFile::getParentFile);
@@ -239,6 +225,31 @@ public class AzureDockerClient {
             result.add(0, DEFAULT_WINDOWS_HOST);
         }
         return result;
+    }
+
+    @Nonnull
+    public static List<Integer> getExposedPorts(@Nullable DockerHost dockerHost, @Nonnull DockerImage image) throws IOException {
+        final AzureDockerClient client = Optional.ofNullable(dockerHost).map(AzureDockerClient::from).orElseGet(AzureDockerClient::getDefault);
+        return image.isDraft() ? getExposedPortsOfDockerfile(image) : getExposedPortsOfImage(client, image.getImageName());
+    }
+
+    @Nonnull
+    public static List<Integer> getExposedPortsOfImage(@Nonnull AzureDockerClient client, @Nonnull final String imageAndTag) {
+        final ContainerConfig config = client.inspectImage(imageAndTag).getConfig();
+        final ExposedPort[] exposedPorts = Optional.ofNullable(config).map(ContainerConfig::getExposedPorts).orElseGet(() -> new ExposedPort[0]);
+        return ArrayUtils.isEmpty(exposedPorts) ? Collections.emptyList() :
+                Arrays.stream(exposedPorts).map(ExposedPort::getPort).collect(Collectors.toList());
+    }
+
+    @Nonnull
+    public static List<Integer> getExposedPortsOfDockerfile(@Nonnull DockerImage image) throws IOException {
+        final String dockerFileContent = FileUtil.loadFile(image.getDockerFile());
+        return Arrays.stream(dockerFileContent.split("\\R+"))
+                .map(PORT_PATTERN::matcher)
+                .filter(Matcher::matches)
+                .map(matcher -> matcher.group(1))
+                .map(Integer::valueOf)
+                .collect(Collectors.toList());
     }
 
     // todo: move to socket utils

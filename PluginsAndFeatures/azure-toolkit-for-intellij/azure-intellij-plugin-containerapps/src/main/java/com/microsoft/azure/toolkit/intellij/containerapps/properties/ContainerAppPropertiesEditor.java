@@ -19,8 +19,8 @@ import com.microsoft.azure.toolkit.intellij.common.properties.AzResourceProperti
 import com.microsoft.azure.toolkit.intellij.containerapps.component.EnableComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
@@ -32,7 +32,6 @@ import com.microsoft.azure.toolkit.lib.containerapps.model.IngressConfig;
 import com.microsoft.azure.toolkit.lib.containerapps.model.RevisionMode;
 import com.microsoft.azure.toolkit.lib.containerapps.model.TransportMethod;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import rx.schedulers.Schedulers;
 
 import javax.annotation.Nonnull;
@@ -40,14 +39,12 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.TimeZone;
 
 public class ContainerAppPropertiesEditor extends AzResourcePropertiesEditor<ContainerApp> {
     public static final String N_A = "N/A";
@@ -148,7 +145,7 @@ public class ContainerAppPropertiesEditor extends AzResourcePropertiesEditor<Con
         this.resetButton.addActionListener(e -> this.reset());
         this.btnRefresh.addActionListener(e -> this.refresh());
         final AzureTaskManager tm = AzureTaskManager.getInstance();
-        final String saveTitle = String.format("Saving updates of app(%s)", this.draft.getName());
+        final AzureString saveTitle = AzureString.format("Saving updates of app(%s)", this.draft.getName());
         this.saveButton.addActionListener(e -> tm.runInBackground(saveTitle, this::save));
         final Runnable runnable = () -> AzureTaskManager.getInstance().runOnPooledThread(ContainerAppPropertiesEditor.this::refreshToolbar);
         this.txtTargetPort.addChangeListener(e -> runnable.run());
@@ -181,7 +178,7 @@ public class ContainerAppPropertiesEditor extends AzResourcePropertiesEditor<Con
 
     private void refreshToolbar() {
         // get status from app instead of draft since status of draft is not correct
-        final AzResourceBase.FormalStatus formalStatus = this.containerApp.getFormalStatus();
+        final AzResource.FormalStatus formalStatus = this.containerApp.getFormalStatus();
         final AzureTaskManager manager = AzureTaskManager.getInstance();
         manager.runLater(() -> {
             final boolean normal = formalStatus.isRunning() || formalStatus.isStopped();
@@ -305,7 +302,7 @@ public class ContainerAppPropertiesEditor extends AzResourcePropertiesEditor<Con
     }
 
     @Override
-    public @NotNull JComponent getComponent() {
+    public @Nonnull JComponent getComponent() {
         return pnlRoot;
     }
 

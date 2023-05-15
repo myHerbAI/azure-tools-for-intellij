@@ -9,6 +9,7 @@ import com.microsoft.azure.toolkit.ide.guidance.Step;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessage;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -51,6 +52,9 @@ public class StepPanel extends JPanel {
 
     @AzureOperation(name = "user/guidance.execute_step.step", params = {"this.step.getTitle()"})
     private void execute() {
+        OperationContext.current().setTelemetryProperty("step", this.step.getTitle());
+        OperationContext.current().setTelemetryProperty("phase", this.step.getPhase().getTitle());
+        OperationContext.current().setTelemetryProperty("course", this.step.getPhase().getCourse().getTitle());
         this.step.execute();
     }
 

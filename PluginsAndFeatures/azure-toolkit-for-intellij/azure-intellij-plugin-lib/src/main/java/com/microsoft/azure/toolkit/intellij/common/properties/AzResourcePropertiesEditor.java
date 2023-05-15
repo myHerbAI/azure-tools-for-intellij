@@ -11,13 +11,13 @@ import com.microsoft.azure.toolkit.intellij.common.BaseEditor;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 
-public abstract class AzResourcePropertiesEditor<T extends AzResourceBase> extends BaseEditor {
+public abstract class AzResourcePropertiesEditor<T extends AzResource> extends BaseEditor {
 
     private final AzureEventBus.EventListener listener;
     private final T resource;
@@ -45,8 +45,8 @@ public abstract class AzResourcePropertiesEditor<T extends AzResourceBase> exten
     private void onEvent(AzureEvent event) {
         final String type = event.getType();
         final Object source = event.getSource();
-        if (source instanceof AzResourceBase && ((AzResourceBase) source).getId().equals(this.resource.getId())) {
-            if (((AzResourceBase) source).getFormalStatus().isDeleted()) {
+        if (source instanceof AzResource && ((AzResource) source).getId().equals(this.resource.getId())) {
+            if (((AzResource) source).getFormalStatus().isDeleted()) {
                 onResourceDeleted();
             } else {
                 this.debouncer.debounce();

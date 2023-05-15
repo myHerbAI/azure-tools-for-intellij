@@ -35,7 +35,6 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
@@ -276,7 +275,7 @@ public class DatabaseServerParamEditor extends ParamEditorBase<DatabaseServerPar
 
         @Override
         protected String getItemText(Object item) {
-            return Optional.ofNullable(item).map(i -> ((IDatabaseServer<?>) i)).map(AzResourceBase::getName).orElse("");
+            return Optional.ofNullable(item).map(i -> ((IDatabaseServer<?>) i)).map(AzResource::getName).orElse("");
         }
     }
 }

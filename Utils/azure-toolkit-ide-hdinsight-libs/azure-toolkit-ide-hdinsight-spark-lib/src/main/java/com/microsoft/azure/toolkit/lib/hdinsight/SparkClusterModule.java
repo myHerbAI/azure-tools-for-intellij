@@ -57,7 +57,7 @@ public class SparkClusterModule extends AbstractAzResourceModule<SparkClusterNod
                         JobViewManager.REGISTERED_JOBVIEW_MAP = 1;
                     }
 
-            List<Cluster> sourceList = c.list().stream().collect(Collectors.toList());
+            List<Cluster> sourceList = c.list().iterableByPage().iterator().next().getValue();
             List<Cluster> resultList = new ArrayList<Cluster>();
 
             // Remove duplicate clusters that share the same cluster name

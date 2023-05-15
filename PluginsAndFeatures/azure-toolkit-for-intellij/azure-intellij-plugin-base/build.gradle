@@ -1,5 +1,5 @@
 plugins {
-    id "org.jetbrains.intellij" version "1.12.0"
+    id "org.jetbrains.intellij" version "1.13.3"
     id "org.jetbrains.kotlin.jvm" version "1.7.20"
     id "de.undercouch.download" version "4.1.1"
     id "com.github.ben-manes.versions" version "0.39.0"
@@ -135,8 +135,8 @@ dependencies {
     implementation 'com.microsoft.azure:azure-toolkit-auth-lib:' + azureToolkitVersion
     implementation 'com.microsoft.azure:azure-toolkit-ide-common-lib:' + azureToolkitVersion
 
-    implementation project(':azure-intellij-plugin-lib')
-    implementation project(':azure-intellij-plugin-service-explorer')
+    implementation project(path: ':azure-intellij-plugin-lib', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-service-explorer', configuration: 'instrumentedJar')
 
     def modules = IntellijPluginModules.split(",")
     modules.each { m ->

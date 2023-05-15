@@ -40,9 +40,7 @@ public class TunnelProxy {
         String host = appService.getHostName().toLowerCase().replace("http://", "").replace("https://", "");
         String[] parts = host.split("\\.", 2);
         host = Joiner.on('.').join(parts[0], "scm", parts[1]);
-        PublishingProfile publishingProfile = appService.getPublishingProfile();
-        wssProxy = new WebSocketSSLProxy(String.format("wss://%s/AppServiceTunnel/Tunnel.ashx", host),
-                                         publishingProfile.getGitUsername(), publishingProfile.getGitPassword());
+        wssProxy = new WebSocketSSLProxy(String.format("wss://%s/AppServiceTunnel/Tunnel.ashx", host), appService);
     }
 
     public void close() {

@@ -38,7 +38,7 @@
         <properties>
           <text value="Container Apps Environment "/>
           <titleFont style="1"/>
-          <toolTipText value="The environment is a secure boundary around one or more container apps that can communicate with each other and share a virtual network, logging, and Dapr. Container Apps Pricing"/>
+          <toolTipText value="The environment is a secure boundary around one or more container apps that can communicate with each other and share a virtual network, logging, and Dapr."/>
         </properties>
       </component>
       <component id="590bf" class="com.microsoft.azure.toolkit.intellij.common.AzureHideableTitledSeparator" binding="titleProjectDetails">

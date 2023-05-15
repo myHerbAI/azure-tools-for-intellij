@@ -42,8 +42,8 @@ public class IntelliJReferenceBookActionContributor implements IActionsContribut
             put("Microsoft.DBforPostgreSQL/flexibleServers", "Database for PostgreSQL");
             put("Microsoft.Cache", "Redis");
             put("Microsoft.Cache/Redis", "Redis");
-            put("Microsoft.AppPlatform", "Spring Cloud");
-            put("Microsoft.AppPlatform/Spring", "Spring Cloud");
+            put("Microsoft.AppPlatform", "App Platform");
+            put("Microsoft.AppPlatform/Spring", "App Platform");
             put("Microsoft.Sql", "SQL");
             put("Microsoft.Sql/servers", "SQL");
             put("Microsoft.Storage", "Storage - Blobs");

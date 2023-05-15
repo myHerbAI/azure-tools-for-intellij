@@ -77,4 +77,22 @@ public class DeployImageRunConfiguration extends LocatableConfigurationBase<Elem
     public String getContainerRegistryId() {
         return getDataModel().getContainerRegistryId();
     }
+
+    @Override
+    public String getFinalRepositoryName() {
+        return getDataModel().getFinalRepositoryName();
+    }
+
+    @Override
+    public String getFinalTagName() {
+        return getDataModel().getFinalTagName();
+    }
+
+    public void setFinalRepositoryName(final String value) {
+        getDataModel().setFinalRepositoryName(value);
+    }
+
+    public void setFinalTagName(final String value) {
+        getDataModel().setFinalTagName(value);
+    }
 }

@@ -9,10 +9,12 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.favorite.Favorites;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
+import com.microsoft.azure.toolkit.ide.common.store.AzureConfigInitializer;
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
@@ -22,7 +24,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Deletable;
 import com.microsoft.azure.toolkit.lib.common.model.Refreshable;
@@ -31,6 +32,8 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinker;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.*;
@@ -50,7 +53,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
     public static final Action.Id<Refreshable> REFRESH = Action.Id.of("user/resource.refresh_resource.resource");
     public static final Action.Id<AzResource> DELETE = Action.Id.of("user/resource.delete_resource.resource");
     public static final Action.Id<AzResource> OPEN_PORTAL_URL = Action.Id.of("user/resource.open_portal_url.resource");
-    public static final Action.Id<AzResourceBase> SHOW_PROPERTIES = Action.Id.of("user/resource.show_properties.resource");
+    public static final Action.Id<AzResource> SHOW_PROPERTIES = Action.Id.of("user/resource.show_properties.resource");
     public static final Action.Id<AzResource> DEPLOY = Action.Id.of("user/resource.deploy_resource.resource");
     public static final Action.Id<AzResource> CONNECT = Action.Id.of("user/resource.connect_resource.resource");
     public static final Action.Id<Object> CREATE = Action.Id.of("user/resource.create_resource.type");
@@ -58,7 +61,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
     public static final Action.Id<AbstractAzResource<?, ?, ?>> PIN = Action.Id.of("user/resource.pin");
     public static final Action.Id<String> OPEN_URL = Action.Id.of("user/common.open_url.url");
     public static final Action.Id<String> COPY_STRING = Action.Id.of("user/common.copy_string");
-    public static final Action.Id<Object> OPEN_AZURE_SETTINGS = Action.Id.of("user/common.open_azure_settings");
+    public static final Action.Id<Object> OPEN_AZURE_SETTINGS = Action.OPEN_AZURE_SETTINGS;
     public static final Action.Id<Object> OPEN_AZURE_EXPLORER = Action.Id.of("user/common.open_azure_explorer");
     public static final Action.Id<Object> OPEN_AZURE_REFERENCE_BOOK = Action.Id.of("user/common.open_azure_reference_book");
     public static final Action.Id<Object> HIGHLIGHT_RESOURCE_IN_EXPLORER = Action.Id.of("internal/common.highlight_resource_in_explorer");
@@ -81,7 +84,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.START.getIconPath())
             .withIdParam(AzResource::getName)
             .withShortcut(shortcuts.start())
-            .visibleWhen(s -> s instanceof AzResource && s instanceof Startable && ((Startable) s).isStartable())
+            .visibleWhen(s -> s instanceof Startable && ((Startable) s).isStartable())
             .withHandler(s -> ((Startable) s).start())
             .register(am);
 
@@ -90,7 +93,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.STOP.getIconPath())
             .withIdParam(AzResource::getName)
             .withShortcut(shortcuts.stop())
-            .visibleWhen(s -> s instanceof AzResource && s instanceof Startable && ((Startable) s).isStoppable())
+            .visibleWhen(s -> s instanceof Startable && ((Startable) s).isStoppable())
             .withHandler(s -> ((Startable) s).stop())
             .register(am);
 
@@ -99,7 +102,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.RESTART.getIconPath())
             .withIdParam(AzResource::getName)
             .withShortcut(shortcuts.restart())
-            .visibleWhen(s -> s instanceof AzResource && s instanceof Startable && ((Startable) s).isRestartable())
+            .visibleWhen(s -> s instanceof Startable && ((Startable) s).isRestartable())
             .withHandler(s -> ((Startable) s).restart())
             .register(am);
 
@@ -164,15 +167,15 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withLabel("Connect to Project")
             .withIcon(AzureIcons.Connector.CONNECT.getIconPath())
             .withIdParam(AzResource::getName)
-            .visibleWhen(s -> s instanceof AzResourceBase)
+            .visibleWhen(s -> s instanceof AzResource)
             .enableWhen(s -> s.getFormalStatus(true).isRunning())
             .register(am);
 
         new Action<>(SHOW_PROPERTIES)
             .withLabel("Show Properties")
             .withIcon(AzureIcons.Action.PROPERTIES.getIconPath())
-            .withIdParam(AzResourceBase::getName)
-            .visibleWhen(s -> s instanceof AzResourceBase)
+            .withIdParam(AzResource::getName)
+            .visibleWhen(s -> s instanceof AzResource)
             .enableWhen(s -> s.getFormalStatus(true).isConnected())
             .withShortcut(shortcuts.edit())
             .register(am);
@@ -182,7 +185,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.DEPLOY.getIconPath())
             .withIdParam(AzResource::getName)
             .withShortcut("control alt O")
-            .visibleWhen(s -> s instanceof AzResourceBase)
+            .visibleWhen(s -> s instanceof AzResource)
             .enableWhen(s -> s.getFormalStatus(true).isRunning())
             .withShortcut(shortcuts.deploy())
             .register(am);
@@ -222,7 +225,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             })
             .withShortcut(shortcuts.add())
             .visibleWhen(s -> s instanceof AzService || s instanceof AzResourceModule || s instanceof AzResource)
-            .enableWhen(s -> !(s instanceof AzResource) || !StringUtils.equalsIgnoreCase(((AzResourceBase) s).getStatus(), AzResource.Status.CREATING))
+            .enableWhen(s -> !(s instanceof AzResource) || !StringUtils.equalsIgnoreCase(((AzResource) s).getStatus(), AzResource.Status.CREATING))
             .register(am);
 
         new Action<>(CREATE_IN_PORTAL)
@@ -284,9 +287,32 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
                 .withIcon(AzureIcons.Action.CREATE.getIconPath())
                 .visibleWhen(s -> s instanceof ServiceLinkerModule)
                 .withHandler((r) -> {
+                    if (r.getParent() instanceof SpringCloudDeployment) {
+                        final SpringCloudApp app = ((SpringCloudDeployment) r.getParent()).getParent();
+                        final String appUrl = app.getParent().getPortalUrl();
+                        final String message = String.format("Please create Service Connector from {0} in <a href=\"%s\">Azure portal</a>.", appUrl);
+                        AzureMessager.getMessager().info(AzureString.format(message, String.format("apps/%s/settings/Service Connector", app.getName())));
+                        return;
+                    }
                     final String parentUrl = r.getParent().getPortalUrl();
                     am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(String.format("%s/serviceConnector", parentUrl));
                 })
+                .register(am);
+
+        new Action<>(Action.DISABLE_AUTH_CACHE)
+                .withLabel("Disable Auth Cache")
+                .visibleWhen(s -> Azure.az().config().isAuthPersistenceEnabled())
+                .withHandler((s) -> {
+                    Azure.az().config().setAuthPersistenceEnabled(false);
+                    AzureConfigInitializer.saveAzConfig();
+                    final AzureAccount az = Azure.az(AzureAccount.class);
+                    if (az.isLoggedIn()) {
+                        az.logout();
+                    }
+                    final Action<Object> signIn = am.getAction(Action.AUTHENTICATE);
+                    AzureMessager.getMessager().info("Auth cache disabled, please re-signin to take effect.", signIn);
+                })
+                .withAuthRequired(false)
                 .register(am);
     }
 

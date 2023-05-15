@@ -12,7 +12,6 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <configurationType implementation="com.microsoft.azure.toolkit.intellij.containerregistry.AzureDockerSupportConfigurationType"/>
-        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.containerregistry.properties.ContainerRegistryPropertiesEditorProvider"/>
         <stepsBeforeRunProvider implementation="com.microsoft.azure.toolkit.intellij.containerregistry.buildimage.DockerBuildTaskProvider" id="DockerBuildBeforeRunTaskProviderId"/>
         <codeInsight.lineMarkerProvider language=""
                                         implementationClass="com.microsoft.azure.toolkit.intellij.containerregistry.runner.DockerRunLineMarkerProvider"/>

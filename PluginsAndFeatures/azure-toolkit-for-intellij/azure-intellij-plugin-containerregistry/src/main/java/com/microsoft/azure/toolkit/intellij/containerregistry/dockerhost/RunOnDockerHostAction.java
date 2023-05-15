@@ -42,7 +42,7 @@ public class RunOnDockerHostAction extends AnAction {
     }
 
     @Override
-    @AzureOperation(name = "user/springcloud.deploy_app")
+    @AzureOperation(name = "user/docker.run_image")
     public void actionPerformed(@Nonnull AnActionEvent e) {
         Optional.ofNullable(e.getProject()).ifPresent(p -> runConfiguration(p, this.dockerImage));
     }

@@ -18,9 +18,11 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class SpringCloudAppInstanceSelectionDialog extends DialogWrapper {
 
@@ -28,6 +30,7 @@ public class SpringCloudAppInstanceSelectionDialog extends DialogWrapper {
     private AzureComboBox<SpringCloudAppInstance> cbInstances;
     private JLabel tipsLabel;
 
+    @Nullable
     private SpringCloudAppInstance instance;
     private static final String NO_AVAILABLE_INSTANCES = "No available instances in current app %s.";
     private static final String NO_ACTIVE_DEPLOYMENT = "No active deployment in current app.";
@@ -63,8 +66,9 @@ public class SpringCloudAppInstanceSelectionDialog extends DialogWrapper {
         });
     }
 
+    @Nonnull
     public SpringCloudAppInstance getInstance() {
-        return instance;
+        return Objects.requireNonNull(instance, "Instance is required.");
     }
 
     @Override

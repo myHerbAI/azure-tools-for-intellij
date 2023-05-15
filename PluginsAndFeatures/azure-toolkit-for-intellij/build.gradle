@@ -1,5 +1,5 @@
 plugins {
-    id "org.jetbrains.intellij" version "1.12.0"
+    id "org.jetbrains.intellij" version "1.13.3"
     id "org.jetbrains.kotlin.jvm" version "1.7.20"
     id "de.undercouch.download" version "4.1.1"
     id "com.github.ben-manes.versions" version "0.39.0"
@@ -32,9 +32,6 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 processResources {
     duplicatesStrategy(DuplicatesStrategy.INCLUDE)
-    filesMatching('**/ApplicationInsights.xml') {
-        filter(ReplaceTokens, tokens: ["applicationinsights.key": project.property("applicationinsights.key")])
-    }
 }
 
 group 'com.microsoft.azuretools'
@@ -63,32 +60,11 @@ intellij {
     downloadSources = Boolean.valueOf(sources)
 }
 
-
-// disable runIde tasks in subprojects to prevent starting-up multiple ide.
-gradle.taskGraph.whenReady { graph ->
-    def hasRootRunTask = graph.hasTask(':runIde')
-
-    if (hasRootRunTask) {
-        graph.getAllTasks().each { task ->
-            // look for *:runIde
-            def subRunTask = (task.path =~ /:.+:runIde/)
-            if (subRunTask) {
-                println "TRACER skipping ${task.path} because ':runIde' was specified"
-                task.enabled = false
-            }
-        }
-    }
-}
-
 subprojects {
     apply plugin: 'java'
     apply plugin: 'io.freefair.aspectj.post-compile-weaving'
     apply plugin: 'io.spring.dependency-management'
-    ext {
-        azureToolkitVersion = "0.33.0-SNAPSHOT"
-        azureToolkitUtilsVersion = "3.77.0-SNAPSHOT"
-        azureToolkitHDInsightVersion = "0.1.0"
-    }
+    apply plugin: 'org.jetbrains.intellij'
 
     sourceCompatibility = javaVersion
     targetCompatibility = javaVersion
@@ -100,12 +76,18 @@ subprojects {
         mavenCentral()
     }
 
-    apply plugin: 'org.jetbrains.intellij'
     intellij {
         version = intellij_version
-        updateSinceUntilBuild = false
-        downloadSources = Boolean.valueOf(sources)
     }
+
+    buildPlugin { enabled = false }
+    runIde { enabled = false }
+    prepareSandbox { enabled = false }
+    prepareTestingSandbox { enabled = false }
+    buildSearchableOptions { enabled = false }
+    patchPluginXml { enabled = false }
+    publishPlugin { enabled = false }
+    verifyPlugin { enabled = false }
 
     dependencyManagement {
         imports {
@@ -177,33 +159,33 @@ dependencyManagement {
 }
 
 dependencies {
-    implementation project(':azure-intellij-plugin-lib')
-    implementation project(':azure-intellij-plugin-lib-java')
-    implementation project(':azure-sdk-reference-book')
-    implementation project(':azure-intellij-resource-connector-lib')
-    implementation project(':azure-intellij-resource-connector-lib-java')
-    implementation project(':azure-intellij-resource-connector-aad')
-    implementation project(':azure-intellij-plugin-vm')
-    implementation project(':azure-intellij-plugin-springcloud')
-    implementation project(':azure-intellij-plugin-storage')
-    implementation project(':azure-intellij-plugin-redis')
-    implementation project(':azure-intellij-plugin-service-explorer')
-    implementation project(':azure-intellij-plugin-database')
-    implementation project(':azure-intellij-plugin-database-java')
-    implementation project(':azure-intellij-plugin-appservice')
-    implementation project(':azure-intellij-plugin-appservice-java')
-    implementation project(':azure-intellij-plugin-arm')
-    implementation project(':azure-intellij-plugin-containerregistry')
-    implementation project(':azure-intellij-plugin-containerservice')
-    implementation project(':azure-intellij-plugin-applicationinsights')
-    implementation project(':azure-intellij-plugin-guidance')
-    implementation project(':azure-intellij-plugin-cosmos')
-    implementation project(':azure-intellij-plugin-bicep')
-    implementation project(':azure-intellij-plugin-containerapps')
-    implementation project(':azure-intellij-plugin-monitor')
-    implementation project(':azure-intellij-plugin-hdinsight')
-    implementation project(':azure-intellij-plugin-eventhubs')
-    implementation project(':azure-intellij-plugin-servicebus')
+    implementation project(path: ':azure-intellij-plugin-lib', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-lib-java', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-sdk-reference-book', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-resource-connector-lib', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-resource-connector-lib-java', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-resource-connector-aad', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-vm', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-springcloud', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-storage', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-redis', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-service-explorer', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-database', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-database-java', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-appservice', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-appservice-java', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-arm', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-containerregistry', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-containerservice', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-applicationinsights', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-guidance', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-cosmos', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-bicep', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-containerapps', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-monitor', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-hdinsight', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-eventhubs', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-servicebus', configuration: 'instrumentedJar')
     implementation 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-spark-lib'
     implementation 'com.microsoft.azure:azure-toolkit-ide-appservice-lib'
     implementation 'com.microsoft.azure:azure-toolkit-applicationinsights-lib'
@@ -355,4 +337,9 @@ buildPlugin {
 prepareSandbox {
     dependsOn(downloadBicepLanguageServer)
     finalizedBy(prepareBicepBinariesForSandbox)
+}
+
+runIde{
+    dependsOn(prepareBicepBinariesForSandbox)
+    jvmArgs("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005")
 }

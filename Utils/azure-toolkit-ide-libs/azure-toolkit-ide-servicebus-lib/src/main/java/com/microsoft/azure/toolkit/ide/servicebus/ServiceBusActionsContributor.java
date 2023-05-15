@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
+import com.microsoft.azure.toolkit.lib.servicebus.ServiceBusNamespace;
 import com.microsoft.azure.toolkit.lib.servicebus.model.ServiceBusInstance;
 import com.microsoft.azure.toolkit.lib.servicebus.queue.ServiceBusQueue;
 
@@ -29,6 +30,7 @@ public class ServiceBusActionsContributor implements IActionsContributor {
     public static final String TOPIC_ACTIONS = "actions.servicebus.topic";
     public static final String MODULE_ACTIONS = "actions.servicebus.module";
     public static final String SET_STATUS_ACTIONS = "actions.servicebus.set_status.group";
+    public static final Action.Id<ServiceBusNamespace> COPY_NAMESPACE_CONNECTION_STRING = Action.Id.of("user/servicebus.copy_connection_string.namespace");
     public static final Action.Id<ServiceBusInstance<?, ?, ?>> ACTIVE_INSTANCE = Action.Id.of("user/servicebus.active_instance.instance");
     public static final Action.Id<ServiceBusInstance<?, ?, ?>> DISABLE_INSTANCE = Action.Id.of("user/servicebus.disable_instance.instance");
     public static final Action.Id<ServiceBusInstance<?, ?, ?>> SEND_DISABLE_INSTANCE = Action.Id.of("user/servicebus.send_disable_instance.instance");
@@ -41,6 +43,11 @@ public class ServiceBusActionsContributor implements IActionsContributor {
 
     @Override
     public void registerActions(AzureActionManager am) {
+        new Action<>(COPY_NAMESPACE_CONNECTION_STRING)
+                .visibleWhen(s -> s instanceof ServiceBusNamespace)
+                .withLabel("Copy Connection String")
+                .withIdParam(AzResource::getName)
+                .register(am);
         new Action<>(ACTIVE_INSTANCE)
                 .visibleWhen(s -> s instanceof ServiceBusInstance)
                 .enableWhen(s -> EntityStatus.ACTIVE != s.getEntityStatus())
@@ -119,6 +126,7 @@ public class ServiceBusActionsContributor implements IActionsContributor {
                 "---",
                 ResourceCommonActionsContributor.REFRESH,
                 ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+                COPY_NAMESPACE_CONNECTION_STRING,
                 ResourceCommonActionsContributor.OPEN_PORTAL_URL,
                 "---",
                 ResourceCommonActionsContributor.DELETE);

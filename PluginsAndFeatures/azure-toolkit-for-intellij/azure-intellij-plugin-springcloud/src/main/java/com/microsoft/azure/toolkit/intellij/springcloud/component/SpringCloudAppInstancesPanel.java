@@ -37,7 +37,7 @@ public class SpringCloudAppInstancesPanel extends JPanel {
         };
         model.addColumn("App Instances Name");
         model.addColumn("Status");
-        model.addColumn("Discover Status");
+        model.addColumn("Discovery Status");
         this.tableInstances.setModel(model);
         this.tableInstances.setRowSelectionAllowed(true);
         this.tableInstances.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

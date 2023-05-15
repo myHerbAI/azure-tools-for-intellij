@@ -23,6 +23,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.microsoft.azure.toolkit.ide.common.component.NodeView;
+import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.action.IntellijAzureActionManager;
 import com.microsoft.azure.toolkit.lib.AzService;
@@ -194,6 +195,9 @@ public class TreeUtils {
 
     private static int getHoverInlineActionIndex(@Nonnull JTree tree, MouseEvent e, int actionCount) {
         final JBScrollPane scrollPane = (JBScrollPane) tree.getClientProperty(KEY_SCROLL_PANE);
+        if (Objects.isNull(scrollPane)) {
+            return -1;
+        }
         final Rectangle viewRect = scrollPane.getViewport().getViewRect();
         // `viewRect.x` is the scrolled width, `viewRect.width` is the width of the visible view port.
         final int rightX = viewRect.x + viewRect.width - NODE_PADDING; // the `right` edge of the right action icon.
@@ -226,9 +230,10 @@ public class TreeUtils {
         if (BooleanUtils.isFalse(node.loaded)) {
             renderer.setIcon(AnimatedIcon.Default.INSTANCE);
         } else {
-            renderer.setIcon(Optional.ofNullable(view.getIcon()).map(IntelliJAzureIcons::getIcon).orElse(null));
+            renderer.setIcon(Optional.ofNullable(view.getIcon()).map(IntelliJAzureIcons::getIcon).orElse(IntelliJAzureIcons.getIcon(AzureIcons.Resources.GENERIC_RESOURCE)));
         }
         final Object highlighted = tree.getClientProperty(HIGHLIGHTED_RESOURCE_KEY);
+        //noinspection unchecked
         final boolean toHighlightThisNode = Optional.ofNullable(highlighted).map(h -> ((Pair<Object, Long>) h))
             .filter(h -> Objects.equals(node.getUserObject(), h.getLeft())).isPresent();
         SimpleTextAttributes attributes = view.isEnabled() ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAY_ATTRIBUTES;
@@ -298,6 +303,7 @@ public class TreeUtils {
     private static List<AbstractAzResource<?, ?, ?>> getResourcesToFocus(@Nonnull final JTree tree) {
         final Object clientProperty = tree.getClientProperty(RESOURCES_TO_FOCUS_KEY);
         if (clientProperty instanceof List) {
+            //noinspection unchecked
             return (List<AbstractAzResource<?, ?, ?>>) clientProperty;
         } else {
             final List<AbstractAzResource<?, ?, ?>> result = new ArrayList<>();

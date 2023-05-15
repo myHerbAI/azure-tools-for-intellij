@@ -21,13 +21,11 @@ import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.ui.UIUtil;
-import com.microsoft.azure.management.storage.StorageAccount;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azuretools.azurecommons.helpers.AzureCmdException;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
 import com.microsoft.azuretools.azurecommons.util.Utils;
-import com.microsoft.intellij.AzurePlugin;
 import com.microsoft.intellij.forms.ErrorMessageForm;
 import com.microsoft.azure.toolkit.intellij.common.component.UIUtils;
 import com.microsoft.intellij.util.PluginUtil;
@@ -57,7 +55,6 @@ import static com.microsoft.azure.toolkit.intellij.springcloud.properties.Spring
 
 @Slf4j
 public class UIHelperImpl implements UIHelper {
-    public static final Key<StorageAccount> STORAGE_KEY = new Key<>("storageAccount");
     public static final Key<ClientStorageAccount> CLIENT_STORAGE_KEY = new Key<>("clientStorageAccount");
     public static final Key<String> SUBSCRIPTION_ID = new Key<>("subscriptionId");
     public static final Key<String> RESOURCE_ID = new Key<>("resourceId");

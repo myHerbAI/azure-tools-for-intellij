@@ -2,9 +2,13 @@ package com.microsoft.azure.toolkit.intellij.containerregistry;
 
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.model.PushResponseItem;
+import com.microsoft.azure.toolkit.ide.containerregistry.ContainerRegistryActionsContributor;
 import com.microsoft.azure.toolkit.intellij.container.AzureDockerClient;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.containerregistry.AzureContainerRegistry;
@@ -27,20 +31,24 @@ public class ContainerService {
     public String pushDockerImage(@Nonnull final IDockerPushConfiguration configuration) throws InterruptedException {
         final IAzureMessager messager = AzureMessager.getMessager();
         final DockerImage image = configuration.getDockerImageConfiguration();
-        final AzureDockerClient dockerClient = AzureDockerClient.from(Objects.requireNonNull(configuration.getDockerHostConfiguration()));
         final ContainerRegistry registry = Azure.az(AzureContainerRegistry.class).getById(configuration.getContainerRegistryId());
+        if (Objects.nonNull(registry) && !registry.isAdminUserEnabled()) {
+            final Action<ContainerRegistry> enableAdminUser = AzureActionManager.getInstance().getAction(ContainerRegistryActionsContributor.ENABLE_ADMIN_USER).bind(registry);
+            throw new AzureToolkitRuntimeException(String.format("Admin user is not enabled for (%s), but it is required to push image to Azure Container Registry.", registry.getName()), enableAdminUser);
+        }
+        final AzureDockerClient dockerClient = AzureDockerClient.from(Objects.requireNonNull(configuration.getDockerHostConfiguration()));
         final String loginServerUrl = Objects.requireNonNull(registry).getLoginServerUrl();
-        final String fullRepositoryName = StringUtils.startsWith(Objects.requireNonNull(image).getRepositoryName(), loginServerUrl) ? image.getRepositoryName() : loginServerUrl + "/" + image.getRepositoryName();
-        final String imageAndTag = fullRepositoryName + ":" + ObjectUtils.defaultIfNull(image.getTagName(), "latest");
+        final String imageAndTag = configuration.getFinalImageName();
         // tag image with ACR url
-        if (!StringUtils.startsWith(image.getImageName(), loginServerUrl)) {
-            dockerClient.tagImage(image.getImageName(), fullRepositoryName, image.getTagName());
+        if (!StringUtils.equals(image.getImageName(), imageAndTag)) {
+            dockerClient.tagImage(image.getImageName(), configuration.getFinalRepositoryName(), configuration.getFinalTagName());
         }
         // push to ACR
         messager.info(String.format("Pushing to ACR ... [%s] ", loginServerUrl));
         final ResultCallback.Adapter<PushResponseItem> callBack = new ResultCallback.Adapter<>() {
             @Override
             public void onNext(PushResponseItem item) {
+                //noinspection deprecation
                 final String message = Stream.of(item.getStatus(), item.getId(), item.getProgress()).filter(StringUtils::isNoneBlank).collect(Collectors.joining(" "));
                 messager.info(message);
                 super.onNext(item);

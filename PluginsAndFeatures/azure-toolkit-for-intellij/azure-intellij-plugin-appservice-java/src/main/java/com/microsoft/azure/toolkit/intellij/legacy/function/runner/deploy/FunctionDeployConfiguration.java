@@ -6,11 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy;
 
 import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.configurations.JavaRunConfigurationModule;
-import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.configurations.RunProfileState;
-import com.intellij.execution.configurations.RunProfileWithCompileBeforeLaunchOption;
+import com.intellij.execution.configurations.*;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
@@ -22,7 +18,6 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.util.xmlb.XmlSerializer;
 import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig;
-import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunConfigurationBase;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
@@ -31,21 +26,13 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
-import lombok.Getter;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 
@@ -54,17 +41,10 @@ public class FunctionDeployConfiguration extends AzureRunConfigurationBase<Funct
 
     private FunctionDeployModel functionDeployModel;
     private Module module;
-    @Getter
-    private final List<Connection<?, ?>> connections = new ArrayList<>();
 
     public FunctionDeployConfiguration(@NotNull Project project, @NotNull ConfigurationFactory factory, String name) {
         super(project, factory, name);
         functionDeployModel = new FunctionDeployModel();
-    }
-
-    @Override
-    public void addConnection(@Nonnull Connection<?, ?> connection) {
-        connections.add(connection);
     }
 
     @NotNull

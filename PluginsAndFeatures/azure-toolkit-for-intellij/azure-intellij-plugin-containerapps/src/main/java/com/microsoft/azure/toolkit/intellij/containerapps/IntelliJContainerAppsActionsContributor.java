@@ -10,7 +10,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.ide.containerapps.ContainerAppsActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.streaminglog.StreamingLogsManager;
 import com.microsoft.azure.toolkit.ide.containerregistry.ContainerRegistryActionsContributor;
@@ -79,9 +78,7 @@ public class IntelliJContainerAppsActionsContributor implements IActionsContribu
                     AzureMonitorManager.getInstance().openMonitorWindow(e.getProject(), workspace, app.getId())));
         });
         am.registerHandler(ContainerAppsActionsContributor.START_SYSTEM_LOG_STREAMS, (ContainerApp app, AnActionEvent e) -> {
-            final Flux<String> logs = app.streamingLogs(app.getLogStreamingEndpoint(ContainerApp.LOG_TYPE_SYSTEM, null, null, null),
-                    ImmutableMap.of("follow", String.valueOf(true),
-                            "tailLines", String.valueOf(20)));
+            final Flux<String> logs = app.streamingLogs(true, 20);
             AzureTaskManager.getInstance().runLater(() ->
                     StreamingLogsManager.getInstance().showStreamingLog(e.getProject(), app.getId(), app.getName(), logs));
         });
@@ -91,9 +88,7 @@ public class IntelliJContainerAppsActionsContributor implements IActionsContribu
                 (ContainerAppsEnvironment appsEnvironment, AnActionEvent e) ->
                         !StreamingLogsManager.getInstance().isStreamingLogStarted(e.getProject(), appsEnvironment.getId()),
                 (ContainerAppsEnvironment appsEnvironment, AnActionEvent e) -> {
-                    final Flux<String> logs = appsEnvironment.streamingLogs(appsEnvironment.getLogStreamingEndpoint(),
-                            ImmutableMap.of("follow", String.valueOf(true),
-                                    "tailLines", String.valueOf(20)));
+                    final Flux<String> logs = appsEnvironment.streamingLogs(true, 20);
                     AzureTaskManager.getInstance().runLater(() ->
                             StreamingLogsManager.getInstance().showStreamingLog(e.getProject(), appsEnvironment.getId(), appsEnvironment.getName(), logs));
                 });
@@ -115,7 +110,7 @@ public class IntelliJContainerAppsActionsContributor implements IActionsContribu
     public void registerActions(AzureActionManager am) {
         new Action<>(DEPLOY_IMAGE_TO_ACA)
                 .withLabel("Deploy Image to Container App")
-                .withIcon(AzureIcons.ContainerApps.MODULE.getIconPath())
+                .withIcon("/icons/ContainerAppDeploy.svg")
                 .visibleWhen(s -> s instanceof VirtualFile)
                 .withHandler(DeployImageToAzureContainerAppAction::deployImageToAzureContainerApps)
                 .register(am);

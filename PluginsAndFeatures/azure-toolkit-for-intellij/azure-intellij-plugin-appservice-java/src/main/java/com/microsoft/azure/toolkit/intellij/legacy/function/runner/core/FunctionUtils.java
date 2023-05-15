@@ -234,6 +234,7 @@ public class FunctionUtils {
         }
     }
 
+    @Nonnull
     @AzureOperation(name = "boundary/function.prepare_staging_folder")
     public static Map<String, FunctionConfiguration> prepareStagingFolder(@Nonnull final Path stagingFolder, @Nullable final Path hostJson,
                                                                           @Nonnull final Project project, @Nonnull final Module module, PsiMethod[] methods)
@@ -365,9 +366,10 @@ public class FunctionUtils {
         return config.getFunctionCoreToolsPath();
     }
 
-    public static List<String> getFunctionBindingList(Map<String, FunctionConfiguration> configMap) {
+    @Nonnull
+    public static List<BindingEnum> getFunctionBindingList(@Nonnull final Map<String, FunctionConfiguration> configMap) {
         return configMap.values().stream().flatMap(configuration -> configuration.getBindings().stream())
-                        .map(Binding::getType)
+                        .map(Binding::getBindingEnum)
                         .sorted()
                         .distinct()
                         .collect(Collectors.toList());

@@ -170,14 +170,23 @@ public class IntellijAzureActionManager extends AzureActionManager {
             super();
             this.group = group;
             this.setPopup(true);
-            final IView.Label view = this.group.getView();
-            final Presentation template = this.getTemplatePresentation();
-            if (Objects.nonNull(view)) {
-                template.setText(view.getLabel());
-            } else {
-                template.setText("Action Group");
-            }
             this.addActions(group.getActions());
+        }
+
+        @Override
+        public void update(@Nonnull AnActionEvent e) {
+            super.update(e);
+            final IView.Label view = this.group.getView();
+            final Presentation presentation = e.getPresentation();
+            Optional.ofNullable(view).ifPresent(v -> {
+                presentation.setText(v.getLabel());
+                Optional.ofNullable(v.getIconPath()).filter(StringUtils::isNotBlank).ifPresent(IntelliJAzureIcons::getIcon);
+            });
+        }
+
+        @Override
+        public @Nonnull ActionUpdateThread getActionUpdateThread() {
+            return ActionUpdateThread.BGT;
         }
 
         private void addActions(List<Object> actions) {
