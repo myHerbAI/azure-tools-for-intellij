@@ -7,11 +7,11 @@ plugins {
     id "io.spring.dependency-management" version "1.0.11.RELEASE"
 }
 
-//processResources {
-//    filesMatching('ApplicationInsights.xml') {
-//        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: ["applicationinsights.key": project.property("applicationinsights.key")])
-//    }
-//}
+processResources {
+    filesMatching('ApplicationInsights.xml') {
+        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: ["applicationinsights.key": project.property("applicationinsights.key")])
+    }
+}
 
 allprojects {
     apply plugin: 'java'
