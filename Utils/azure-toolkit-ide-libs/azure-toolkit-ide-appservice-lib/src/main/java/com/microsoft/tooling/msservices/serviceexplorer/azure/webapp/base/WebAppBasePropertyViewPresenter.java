@@ -58,8 +58,10 @@ public abstract class WebAppBasePropertyViewPresenter<V extends WebAppBaseProper
     public static final String KEY_JAVA_CONTAINER_VERSION = "javaContainerVersion";
 
     public void onLoadWebAppProperty(AppServiceAppBase<?, ?, ?> app) {
-        final WebAppProperty property = Objects.isNull(app) || app.isDraftForCreating() ? new WebAppProperty(new HashMap<>()) :
-                generateProperty(app, Objects.requireNonNull(app.getAppServicePlan()));
+        if (Objects.isNull(app) || app.isDraftForCreating() || Objects.isNull(app.getAppServicePlan())) {
+            return;
+        }
+        final WebAppProperty property = generateProperty(app, app.getAppServicePlan());
         AzureTaskManager.getInstance().runLater(() -> Optional.ofNullable(getMvpView()).ifPresent(v -> v.showProperty(property)));
     }
 
