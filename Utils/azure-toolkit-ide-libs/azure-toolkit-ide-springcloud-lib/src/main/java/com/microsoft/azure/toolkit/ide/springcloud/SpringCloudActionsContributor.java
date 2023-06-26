@@ -42,7 +42,7 @@ public class SpringCloudActionsContributor implements IActionsContributor {
     public void registerActions(AzureActionManager am) {
         new Action<>(OPEN_PUBLIC_URL)
             .visibleWhen(s -> s instanceof SpringCloudApp)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning() && s.isPublicEndpointEnabled())
+            .enableWhen(s -> s.getFormalStatus().isRunning() && s.isPublicEndpointEnabled())
             .withLabel("Access Public Endpoint")
             .withIcon(AzureIcons.Action.BROWSER.getIconPath())
             .withIdParam(AbstractAzResource::getName)
@@ -52,7 +52,7 @@ public class SpringCloudActionsContributor implements IActionsContributor {
 
         new Action<>(OPEN_TEST_URL)
             .visibleWhen(s -> s instanceof SpringCloudApp && !((SpringCloudApp) s).getParent().isConsumptionTier())
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .withLabel("Access Test Endpoint")
             .withIcon(AzureIcons.Action.BROWSER.getIconPath())
             .withIdParam(AbstractAzResource::getName)
@@ -75,7 +75,7 @@ public class SpringCloudActionsContributor implements IActionsContributor {
 
         new Action<>(GROUP_CREATE_CLUSTER)
             .visibleWhen(s -> s instanceof ResourceGroup)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .withLabel("Spring Apps")
             .withIdParam(AbstractAzResource::getName)
             .register(am);
@@ -83,7 +83,7 @@ public class SpringCloudActionsContributor implements IActionsContributor {
         new Action<>(ENABLE_REMOTE_DEBUGGING)
             .visibleWhen(s -> s instanceof SpringCloudApp &&
                 !((SpringCloudApp) s).getParent().isConsumptionTier() &&
-                ((SpringCloudApp) s).getFormalStatus(true).isRunning() &&
+                ((SpringCloudApp) s).getFormalStatus().isRunning() &&
                 Optional.ofNullable(((SpringCloudApp) s).getActiveDeployment()).map(deployment -> !deployment.isRemoteDebuggingEnabled()).orElse(false))
             .withLabel("Enable Remote Debugging")
             .withIdParam(AbstractAzResource::getName)
@@ -92,7 +92,7 @@ public class SpringCloudActionsContributor implements IActionsContributor {
         new Action<>(DISABLE_REMOTE_DEBUGGING)
             .visibleWhen(s -> s instanceof SpringCloudApp &&
                 !((SpringCloudApp) s).getParent().isConsumptionTier() &&
-                ((SpringCloudApp) s).getFormalStatus(true).isRunning() &&
+                ((SpringCloudApp) s).getFormalStatus().isRunning() &&
                 Optional.ofNullable(((SpringCloudApp) s).getActiveDeployment()).map(SpringCloudDeployment::isRemoteDebuggingEnabled).orElse(false))
             .withLabel("Disable Remote Debugging")
             .withIdParam(AbstractAzResource::getName)
@@ -100,7 +100,7 @@ public class SpringCloudActionsContributor implements IActionsContributor {
 
         new Action<>(ATTACH_DEBUGGER_APP)
             .visibleWhen(s -> s instanceof SpringCloudApp && !((SpringCloudApp) s).getParent().isConsumptionTier())
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .withLabel("Attach Debugger")
             .withIcon(AzureIcons.Action.ATTACH_DEBUGGER.getIconPath())
             .withIdParam(AbstractAzResource::getName)
@@ -108,7 +108,7 @@ public class SpringCloudActionsContributor implements IActionsContributor {
 
         new Action<>(ATTACH_DEBUGGER)
             .visibleWhen(s -> s instanceof SpringCloudAppInstance && !((SpringCloudAppInstance) s).getParent().getParent().getParent().isConsumptionTier())
-            .enableWhen(s -> s.getParent().getParent().getFormalStatus(true).isRunning())
+            .enableWhen(s -> s.getParent().getParent().getFormalStatus().isRunning())
             .withLabel("Attach Debugger")
             .withIcon(AzureIcons.Action.ATTACH_DEBUGGER.getIconPath())
             .withIdParam(AbstractAzResource::getName)

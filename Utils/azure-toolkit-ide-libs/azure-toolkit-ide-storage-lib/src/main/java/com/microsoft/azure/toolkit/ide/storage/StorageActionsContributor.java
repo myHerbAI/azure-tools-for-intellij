@@ -68,7 +68,7 @@ public class StorageActionsContributor implements IActionsContributor {
             .withLabel("Open Azure Storage Explorer")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof AzResource)
-            .enableWhen(s -> !(s instanceof StorageAccount) || s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> !(s instanceof StorageAccount) || s.getFormalStatus().isConnected())
             .withHandler(resource -> {
                 if (resource instanceof StorageAccount) {
                     new OpenAzureStorageExplorerAction().openResource((StorageAccount) resource);
@@ -87,7 +87,7 @@ public class StorageActionsContributor implements IActionsContributor {
             .withLabel("Copy Connection String")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof StorageAccount)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .withHandler(r -> {
                 copyContentToClipboard(r.getConnectionString());
                 AzureMessager.getMessager().info("Connection string copied");
@@ -98,7 +98,7 @@ public class StorageActionsContributor implements IActionsContributor {
                 .withLabel("Copy Connection String")
                 .withIdParam(AzResource::getName)
                 .visibleWhen(s -> s instanceof AzuriteStorageAccount)
-                .enableWhen(s -> s.getFormalStatus(true).isConnected())
+                .enableWhen(s -> s.getFormalStatus().isConnected())
                 .withHandler(r -> {
                     copyContentToClipboard(r.getConnectionString());
                     AzureMessager.getMessager().info("Connection string copied");
@@ -109,14 +109,14 @@ public class StorageActionsContributor implements IActionsContributor {
         new Action<>(START_AZURITE)
                 .withLabel("Start Azurite")
                 .visibleWhen(s -> s instanceof AzuriteStorageAccount)
-                .enableWhen(s -> !s.getFormalStatus(true).isRunning())
+                .enableWhen(s -> !s.getFormalStatus().isRunning())
                 .withAuthRequired(false)
                 .register(am);
 
         new Action<>(STOP_AZURITE)
                 .withLabel("Stop Azurite")
                 .visibleWhen(s -> s instanceof AzuriteStorageAccount)
-                .enableWhen(s -> s.getFormalStatus(true).isRunning())
+                .enableWhen(s -> s.getFormalStatus().isRunning())
                 .withAuthRequired(false)
                 .register(am);
 
@@ -124,7 +124,7 @@ public class StorageActionsContributor implements IActionsContributor {
             .withLabel("Copy Primary Key")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof StorageAccount)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .withHandler(resource -> {
                 copyContentToClipboard(resource.getKey());
                 AzureMessager.getMessager().info("Primary key copied");
@@ -134,7 +134,7 @@ public class StorageActionsContributor implements IActionsContributor {
         new Action<>(COPY_PRIMARY_KEY_AZURITE)
                 .withLabel("Copy Primary Key")
                 .visibleWhen(s -> s instanceof AzuriteStorageAccount)
-                .enableWhen(s -> s.getFormalStatus(true).isConnected())
+                .enableWhen(s -> s.getFormalStatus().isConnected())
                 .withHandler(resource -> {
                     copyContentToClipboard(resource.getKey());
                     AzureMessager.getMessager().info("Primary key copied");
@@ -233,7 +233,7 @@ public class StorageActionsContributor implements IActionsContributor {
             .withLabel("Storage Account")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ResourceGroup)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .register(am);
     }
 

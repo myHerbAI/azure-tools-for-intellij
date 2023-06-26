@@ -5,7 +5,8 @@
 
 package com.microsoft.azure.toolkit.ide.arm;
 
-import com.microsoft.azure.toolkit.ide.common.component.AzureServiceLabelView;
+import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
+import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
@@ -17,49 +18,55 @@ import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public class AppCentricRootLabelView extends AzureServiceLabelView<AzureResources> {
+public class AppCentricRootNode extends AzServiceNode<AzureResources> {
     private static final String NAME = "Resource Groups";
     private final AzureEventBus.EventListener subscriptionListener;
     private final AzureEventBus.EventListener logoutListener;
 
-    public AppCentricRootLabelView(@Nonnull AzureResources service, String iconPath) {
-        super(service, NAME, iconPath);
+    public AppCentricRootNode(@Nonnull AzureResources service) {
+        super(service);
+        this.withLabel(NAME);
+        this.withIcon(AzureIcons.Resources.MODULE);
+
         this.subscriptionListener = new AzureEventBus.EventListener(this::onLogin);
         this.logoutListener = new AzureEventBus.EventListener(this::onLogout);
         AzureEventBus.on("account.logged_in.account", subscriptionListener);
         AzureEventBus.on("account.restore_sign_in", subscriptionListener);
         AzureEventBus.on("account.subscription_changed.account", subscriptionListener);
         AzureEventBus.on("account.logged_out.account", logoutListener);
+
         this.onLogin(null);
     }
 
     private void onLogin(AzureEvent azureEvent) {
         final AzureAccount az = Azure.az(AzureAccount.class);
-        if (!az.isLoggedIn()) {
-            this.label = NAME;
-        } else {
+        String label = NAME;
+        if (az.isLoggedIn()) {
             final Account account = az.account();
             final List<Subscription> subs = account.getSelectedSubscriptions();
             final int size = subs.size();
             if (size > 1) {
-                this.label = String.format("%s (%d Subscriptions)", NAME, size);
+                label = String.format("%s (%d Subscriptions)", NAME, size);
             } else if (size == 1) {
-                this.label = String.format("%s (%s)", NAME, subs.get(0).getName());
+                label = String.format("%s (%s)", NAME, subs.get(0).getName());
             } else {
-                this.label = NAME + " (No Subscriptions Selected)";
+                label = NAME + " (No Subscriptions Selected)";
             }
         }
-        this.refreshView();
+        this.withLabel(label);
+        this.refreshViewLater();
     }
 
     private void onLogout(AzureEvent azureEvent) {
-        this.label = NAME;
-        this.refreshView();
+        this.withLabel(NAME);
+        this.refreshViewLater();
     }
 
     public void dispose() {
         super.dispose();
-        AzureEventBus.on("account.subscription_changed.account", subscriptionListener);
+        AzureEventBus.off("account.logged_in.account", subscriptionListener);
+        AzureEventBus.off("account.restore_sign_in", subscriptionListener);
+        AzureEventBus.off("account.subscription_changed.account", subscriptionListener);
         AzureEventBus.off("account.logged_out.account", logoutListener);
     }
 }

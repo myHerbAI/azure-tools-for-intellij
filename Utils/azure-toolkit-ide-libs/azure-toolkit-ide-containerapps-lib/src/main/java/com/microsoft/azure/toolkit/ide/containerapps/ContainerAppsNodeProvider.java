@@ -7,11 +7,14 @@ package com.microsoft.azure.toolkit.ide.containerapps;
 
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.component.*;
+import com.microsoft.azure.toolkit.ide.common.component.AzModuleNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
+import com.microsoft.azure.toolkit.ide.common.component.Node;
+import com.microsoft.azure.toolkit.ide.common.component.ServiceLinkerNode;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerApps;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerAppsServiceSubscription;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
@@ -53,50 +56,45 @@ public class ContainerAppsNodeProvider implements IExplorerNodeProvider {
     @Override
     public Node<?> createNode(@Nonnull Object data, @Nullable Node<?> parent, @Nonnull IExplorerNodeProvider.Manager manager) {
         if (data instanceof AzureContainerApps) {
-            final AzureContainerApps service = ((AzureContainerApps) data);
             final Function<AzureContainerApps, List<ContainerAppsEnvironment>> registries = asc -> asc.list().stream()
                 .flatMap(m -> m.environments().list().stream())
                 .collect(Collectors.toList());
-            return new Node<>(service).view(new AzureServiceLabelView<>(service, NAME, ICON))
-                .actions(ContainerAppsActionsContributor.SERVICE_ACTIONS)
+            return new AzServiceNode<>((AzureContainerApps) data)
+                .withIcon(ICON)
+                .withLabel(NAME)
+                .withActions(ContainerAppsActionsContributor.SERVICE_ACTIONS)
                 .addChildren(registries, (server, serviceNode) -> this.createNode(server, serviceNode, manager));
         } else if (data instanceof ContainerAppsEnvironment) {
-            final ContainerAppsEnvironment environment = (ContainerAppsEnvironment) data;
-            return new Node<>(environment)
-                .view(new ContainerAppsEnvironmentLabelView(environment))
+            return new ContainerAppsEnvironmentNode((ContainerAppsEnvironment) data)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .addChildren(ContainerAppsEnvironment::listContainerApps, (app, envNode) -> this.createNode(app, envNode, manager))
-                .actions(ContainerAppsActionsContributor.ENVIRONMENT_ACTIONS);
+                .withActions(ContainerAppsActionsContributor.ENVIRONMENT_ACTIONS);
         } else if (data instanceof ContainerApp) {
-            final ContainerApp app = (ContainerApp) data;
-            return new Node<>(app)
-                .view(new AzureResourceLabelView<>(app))
+            return new AzResourceNode<>((ContainerApp) data)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .addChildren(ContainerApp::getSubModules, (revision, appNode) -> this.createNode(revision, appNode, manager))
-                .hasMoreChildren(a -> a.revisions().hasMoreResources())
-                .loadMoreChildren(a -> a.revisions().loadMoreResources())
-                .actions(ContainerAppsActionsContributor.CONTAINER_APP_ACTIONS);
+                .withActions(ContainerAppsActionsContributor.CONTAINER_APP_ACTIONS)
+                .withMoreChildren(a -> a.revisions().hasMoreResources(), a -> a.revisions().loadMoreResources());
         } else if (data instanceof RevisionModule) {
-            final RevisionModule module = (RevisionModule) data;
-            return new Node<>(module)
-                    .view(new AzureModuleLabelView<>(module, "Revisions", AzureIcons.ContainerApps.REVISION_MODULE.getIconPath()))
-                    .actions(ContainerAppsActionsContributor.REVISION_MODULE_ACTIONS)
-                    .addChildren(RevisionModule::list, (d, p) -> this.createNode(d, p, manager));
+            return new AzModuleNode<>((RevisionModule) data)
+                .withIcon(AzureIcons.ContainerApps.REVISION_MODULE)
+                .withLabel("Revisions")
+                .withActions(ContainerAppsActionsContributor.REVISION_MODULE_ACTIONS)
+                .addChildren(RevisionModule::list, (d, p) -> this.createNode(d, p, manager));
         } else if (data instanceof Revision) {
-            final Revision revision = (Revision) data;
-            return new Node<>(revision)
-                .view(new AzureResourceLabelView<>(revision, this::getRevisionDescription, DEFAULT_AZURE_RESOURCE_ICON_PROVIDER))
+            return new AzResourceNode<>((Revision) data)
+                .withIcon(DEFAULT_AZURE_RESOURCE_ICON_PROVIDER::getIcon)
+                .withDescription(this::getRevisionDescription)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .actions(ContainerAppsActionsContributor.REVISION_ACTIONS);
+                .withActions(ContainerAppsActionsContributor.REVISION_ACTIONS);
         } else if (data instanceof ServiceLinkerModule) {
-            final ServiceLinkerModule module = (ServiceLinkerModule) data;
-            return new Node<>(module)
-                    .view(new AzureModuleLabelView<>(module, "Service Connector", AzureIcons.Connector.SERVICE_LINKER_MODULE.getIconPath()))
-                    .actions(ResourceCommonActionsContributor.SERVICE_LINKER_MODULE_ACTIONS)
-                    .addChildren(ServiceLinkerModule::list, (d, p) -> this.createNode(d, p, manager));
+            return new AzModuleNode<>((ServiceLinkerModule) data)
+                .withIcon(AzureIcons.Connector.SERVICE_LINKER_MODULE)
+                .withLabel("Service Connectors")
+                .withActions(ResourceCommonActionsContributor.SERVICE_LINKER_MODULE_ACTIONS)
+                .addChildren(ServiceLinkerModule::list, (d, p) -> this.createNode(d, p, manager));
         } else if (data instanceof ServiceLinker) {
-            final ServiceLinker serviceLinker = (ServiceLinker) data;
-            return new ServiceLinkerNode(serviceLinker);
+            return new ServiceLinkerNode((ServiceLinker) data);
         }
         return null;
     }
@@ -111,8 +109,8 @@ public class ContainerAppsNodeProvider implements IExplorerNodeProvider {
         return String.format(latest ? "%s (Latest)" : "%s", revision.isActive() ? "Active" : "Inactive");
     }
 
-    static class ContainerAppsEnvironmentLabelView extends AzureResourceLabelView<ContainerAppsEnvironment> {
-        public ContainerAppsEnvironmentLabelView(@NotNull ContainerAppsEnvironment resource) {
+    static class ContainerAppsEnvironmentNode extends AzResourceNode<ContainerAppsEnvironment> {
+        public ContainerAppsEnvironmentNode(@NotNull ContainerAppsEnvironment resource) {
             super(resource);
         }
 
@@ -121,9 +119,9 @@ public class ContainerAppsNodeProvider implements IExplorerNodeProvider {
             final String type = event.getType();
             final Object source = event.getSource();
             if (source instanceof AzureContainerAppsServiceSubscription
-                    && StringUtils.equals(((AzureContainerAppsServiceSubscription) source).getSubscriptionId(), resource.getSubscriptionId())
-                    && StringUtils.equals(type, "resource.children_changed.resource")) {
-                AzureTaskManager.getInstance().runLater(() -> this.refreshChildren(true));
+                && StringUtils.equals(((AzureContainerAppsServiceSubscription) source).getSubscriptionId(), this.getValue().getSubscriptionId())
+                && StringUtils.equals(type, "resource.children_changed.resource")) {
+                this.refreshChildrenLater(true);
             }
             super.onEvent(event);
         }

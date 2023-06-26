@@ -26,8 +26,10 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.Functi
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.FunctionDeploymentConfigurationFactory;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.legacy.function.FunctionAppService;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -37,6 +39,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.EMPTY_PLACE;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
 
 public class DeployFunctionAppAction extends AnAction {
 
@@ -45,6 +49,7 @@ public class DeployFunctionAppAction extends AnAction {
     @Override
     @AzureOperation(name = "user/function.deploy_app")
     public void actionPerformed(@Nonnull AnActionEvent event) {
+        OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(event.getPlace(), EMPTY_PLACE));
         final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
         final Project project = Objects.requireNonNull(event.getProject());
         if (Objects.nonNull(module)) {

@@ -22,6 +22,7 @@
             <option value="$PROJECT_DIR$/azure-intellij-plugin-database" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-database-java" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-eventhubs" />
+            <option value="$PROJECT_DIR$/azure-intellij-plugin-facet" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-guidance" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-hdinsight" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-lib" />
@@ -38,24 +39,6 @@
             <option value="$PROJECT_DIR$/azure-intellij-resource-connector-lib-java" />
             <option value="$PROJECT_DIR$/azure-sdk-reference-book" />
             <option value="$PROJECT_DIR$/buildSrc" />
-          </set>
-        </option>
-      </GradleProjectSettings>
-      <GradleProjectSettings>
-        <option name="externalProjectPath" value="$PROJECT_DIR$/azure-intellij-plugin-base" />
-        <option name="gradleHome" value="$PROJECT_DIR$/../../../../../../Program Files/Gradle/gradle-6.5.1" />
-        <option name="modules">
-          <set>
-            <option value="$PROJECT_DIR$/azure-intellij-plugin-base" />
-            <option value="$PROJECT_DIR$/azure-intellij-plugin-database" />
-            <option value="$PROJECT_DIR$/azure-intellij-plugin-database-java" />
-            <option value="$PROJECT_DIR$/azure-intellij-plugin-lib" />
-            <option value="$PROJECT_DIR$/azure-intellij-plugin-lib-java" />
-            <option value="$PROJECT_DIR$/azure-intellij-plugin-redis" />
-            <option value="$PROJECT_DIR$/azure-intellij-plugin-service-explorer" />
-            <option value="$PROJECT_DIR$/azure-intellij-plugin-storage" />
-            <option value="$PROJECT_DIR$/azure-intellij-resource-connector-lib" />
-            <option value="$PROJECT_DIR$/azure-intellij-resource-connector-lib-java" />
           </set>
         </option>
       </GradleProjectSettings>

@@ -33,12 +33,12 @@ public class PostgreSqlActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.OPEN_DATABASE_TOOL.getIconPath())
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof PostgreSqlServer)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .register(am);
 
         new Action<>(GROUP_CREATE_POSTGRE)
             .visibleWhen(s -> s instanceof ResourceGroup)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .withLabel("PostgreSQL Server")
             .withIdParam(AzResource::getName)
             .register(am);

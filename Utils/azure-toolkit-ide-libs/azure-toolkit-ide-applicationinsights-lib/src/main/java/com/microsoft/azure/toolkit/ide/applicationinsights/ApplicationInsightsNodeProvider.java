@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.ide.applicationinsights;
 
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.component.AzureResourceLabelView;
-import com.microsoft.azure.toolkit.ide.common.component.AzureServiceLabelView;
+import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -39,16 +39,16 @@ public class ApplicationInsightsNodeProvider implements IExplorerNodeProvider {
     @Override
     public Node<?> createNode(@Nonnull Object data, @javax.annotation.Nullable Node<?> parent, @Nonnull Manager manager) {
         if (data instanceof AzureApplicationInsights) {
-            final AzureApplicationInsights service = (AzureApplicationInsights) data;
-            return new Node<>(service).view(new AzureServiceLabelView<>(service, NAME, ICON))
-                    .actions(ApplicationInsightsActionsContributor.SERVICE_ACTIONS)
-                    .addChildren(this::listApplicationInsights, (insight, insightModule) -> this.createNode(insight, insightModule, manager));
+            return new AzServiceNode<>((AzureApplicationInsights) data)
+                .withIcon(ICON)
+                .withLabel(NAME)
+                .withActions(ApplicationInsightsActionsContributor.SERVICE_ACTIONS)
+                .addChildren(this::listApplicationInsights, (insight, insightModule) -> this.createNode(insight, insightModule, manager));
         } else if (data instanceof ApplicationInsight) {
-            final ApplicationInsight insight = (ApplicationInsight) data;
-            return new Node<>(insight).view(new AzureResourceLabelView<>(insight))
-                    .addInlineAction(ResourceCommonActionsContributor.PIN)
-                    .doubleClickAction(ResourceCommonActionsContributor.OPEN_PORTAL_URL)
-                    .actions(ApplicationInsightsActionsContributor.INSIGHT_ACTIONS);
+            return new AzResourceNode<>((ApplicationInsight) data)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
+                .onDoubleClicked(ResourceCommonActionsContributor.OPEN_PORTAL_URL)
+                .withActions(ApplicationInsightsActionsContributor.INSIGHT_ACTIONS);
         }
         return null;
     }

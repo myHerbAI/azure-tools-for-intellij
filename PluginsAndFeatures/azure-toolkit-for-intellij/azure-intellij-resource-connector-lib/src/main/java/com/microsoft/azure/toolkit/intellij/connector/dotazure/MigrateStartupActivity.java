@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.intellij.connector.dotazure;
 
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupActivity;
+import com.intellij.openapi.startup.ProjectActivity;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.ConnectionManager;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -16,21 +16,27 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class MigrateStartupActivity implements StartupActivity {
+public class MigrateStartupActivity implements ProjectActivity {
+
+    @Nullable
     @Override
-    public void runActivity(@Nonnull Project project) {
+    public Object execute(@Nonnull Project project, @Nonnull Continuation<? super Unit> continuation) {
         if (!Azure.az(AzureAccount.class).isLoggedIn()) {
             AzureEventBus.once("account.logged_in.account", (a, b) -> migrate(project));
         } else {
             migrate(project);
         }
+        return null;
     }
 
     @AzureOperation(name = "platform/connector.migrate_from_deprecated")

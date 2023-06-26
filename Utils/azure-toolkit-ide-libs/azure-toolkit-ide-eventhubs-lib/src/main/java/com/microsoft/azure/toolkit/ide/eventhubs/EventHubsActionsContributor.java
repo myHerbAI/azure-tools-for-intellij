@@ -83,7 +83,7 @@ public class EventHubsActionsContributor implements IActionsContributor {
                 .withLabel("Event Hubs")
                 .withIdParam(AzResource::getName)
                 .visibleWhen(s -> s instanceof ResourceGroup)
-                .enableWhen(s -> s.getFormalStatus(true).isConnected())
+                .enableWhen(s -> s.getFormalStatus().isConnected())
                 .register(am);
     }
 

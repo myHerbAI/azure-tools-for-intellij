@@ -1,16 +1,13 @@
 package com.microsoft.azure.toolkit.ide.hdinsight.spark;
 
 import com.microsoft.azure.hdinsight.common.JobViewManager;
-import com.microsoft.azure.hdinsight.sdk.cluster.SDKAdditionalCluster;
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
-import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.component.AzureServiceLabelView;
+import com.microsoft.azure.toolkit.ide.common.component.AzModuleNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
+import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
-import com.microsoft.azure.toolkit.ide.hdinsight.spark.component.SparkClusterNodeView;
-import com.microsoft.azure.toolkit.ide.hdinsight.spark.component.SparkJobNodeView;
-import com.microsoft.azure.toolkit.ide.hdinsight.spark.component.StorageAccountModuleNodeView;
-import com.microsoft.azure.toolkit.ide.hdinsight.spark.component.StorageAccountNodeView;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.hdinsight.AzureHDInsightService;
 import com.microsoft.azure.toolkit.lib.hdinsight.SparkClusterNode;
@@ -18,7 +15,6 @@ import com.microsoft.azure.toolkit.lib.hdinsight.StorageAccountNode;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -48,44 +44,48 @@ public class HDInsightNodeProvider implements IExplorerNodeProvider {
     @Override
     public Node<?> createNode(@Nonnull Object data,@Nullable Node<?> parent,@Nonnull Manager manager) {
         if (data instanceof AzureHDInsightService) {
-            AzureHDInsightService service = (AzureHDInsightService)data;
-            Function<AzureHDInsightService, List<SparkClusterNode>> clusters = s -> s.list().stream()
-                    .flatMap(m -> m.clusters().list().stream()).collect(Collectors.toList());
-            Function<AzureHDInsightService, List<SparkClusterNode>> additionalClusters = s -> s.listAdditionalCluster();
-                return new Node<>(service).view(new AzureServiceLabelView(service, "HDInsight", ICON))
-                        .actions(HDInsightActionsContributor.SERVICE_ACTIONS)
-                        .addChildren(additionalClusters, (cluster, serviceNode) -> this.createNode(cluster, serviceNode, manager))
-                        .addChildren(clusters, (cluster, serviceNode) -> this.createNode(cluster, serviceNode, manager));
+            final Function<AzureHDInsightService, List<SparkClusterNode>> clusters = s -> s.list().stream()
+                .flatMap(m -> m.clusters().list().stream()).collect(Collectors.toList());
+            final Function<AzureHDInsightService, List<SparkClusterNode>> additionalClusters = AzureHDInsightService::listAdditionalCluster;
+            return new AzServiceNode<>((AzureHDInsightService) data)
+                .withIcon(ICON)
+                .withLabel("HDInsight")
+                .withActions(HDInsightActionsContributor.SERVICE_ACTIONS)
+                .addChildren(additionalClusters, (cluster, serviceNode) -> this.createNode(cluster, serviceNode, manager))
+                .addChildren(clusters, (cluster, serviceNode) -> this.createNode(cluster, serviceNode, manager));
         } else if (data instanceof SparkClusterNode) {
             final SparkClusterNode sparkClusterNode = (SparkClusterNode) data;
             Optional.ofNullable(JobViewManager.getCluster(sparkClusterNode.getName()))
-                    .ifPresent(c->{sparkClusterNode.setClusterDetail(c);});
-            Node<SparkClusterNode> jobsNode = new Node<>(sparkClusterNode)
-                    .view(new SparkJobNodeView(sparkClusterNode))
-                    .clickAction(HDInsightActionsContributor.OPEN_HDINSIGHT_JOB_VIEW);
-            if (sparkClusterNode.getClusterDetail().getSubscription().getId().equals("[LinkedCluster]")) {
-                return new Node<>(sparkClusterNode)
-                        .view(new SparkClusterNodeView(sparkClusterNode))
-                        .actions(HDInsightActionsContributor.SPARK_ADDITIONAL_CLUSTER_ACTIONS)
-                        .addChild(jobsNode)
-                        .addChildren(SparkClusterNode::getSubModules, (module, p) -> new Node<>(module)
-                                .view(new StorageAccountModuleNodeView(module))
-                                .addChildren(AbstractAzResourceModule::list, (d, mn) -> this.createNode(d, mn, manager))
-                                .clickAction(HDInsightActionsContributor.OPEN_AZURE_STORAGE_EXPLORER_ON_MODULE));
+                .ifPresent(sparkClusterNode::setClusterDetail);
+            final Node<SparkClusterNode> jobsNode = new AzResourceNode<>(sparkClusterNode)
+                .withIcon(AzureIcon.builder().iconPath("/icons/StorageAccountFolder.png").build())
+                .withDescription("")
+                .onClicked(HDInsightActionsContributor.OPEN_HDINSIGHT_JOB_VIEW);
+            if ("[LinkedCluster]".equals(sparkClusterNode.getClusterDetail().getSubscription().getId())) {
+                return new AzResourceNode<>(sparkClusterNode)
+                    .withIcon(AzureIcon.builder().iconPath("/icons/Cluster.png").build())
+                    .withActions(HDInsightActionsContributor.SPARK_ADDITIONAL_CLUSTER_ACTIONS)
+                    .addChild(jobsNode)
+                    .addChildren(SparkClusterNode::getSubModules, (module, p) -> new AzModuleNode<>(module)
+                        .withIcon(AzureIcon.builder().iconPath("/icons/StorageAccountFolder.png").build())
+                        .withLabel("Stroage Accounts")
+                        .addChildren(AbstractAzResourceModule::list, (d, mn) -> this.createNode(d, mn, manager))
+                        .onClicked(HDInsightActionsContributor.OPEN_AZURE_STORAGE_EXPLORER_ON_MODULE));
             } else {
-                return new Node<>(sparkClusterNode)
-                        .view(new SparkClusterNodeView(sparkClusterNode))
-                        .actions(HDInsightActionsContributor.SPARK_CLUSTER_ACTIONS)
-                        .addChild(jobsNode)
-                        .addChildren(SparkClusterNode::getSubModules, (module, p) -> new Node<>(module)
-                                .view(new StorageAccountModuleNodeView(module))
-                                .addChildren(AbstractAzResourceModule::list, (d, mn) -> this.createNode(d, mn, manager)));
+                return new AzResourceNode<>(sparkClusterNode)
+                    .withIcon(AzureIcon.builder().iconPath("/icons/Cluster.png").build())
+                    .withActions(HDInsightActionsContributor.SPARK_CLUSTER_ACTIONS)
+                    .addChild(jobsNode)
+                    .addChildren(SparkClusterNode::getSubModules, (module, p) -> new AzModuleNode<>(module)
+                        .withIcon(AzureIcon.builder().iconPath("/icons/StorageAccountFolder.png").build())
+                        .withLabel("Stroage Accounts")
+                        .addChildren(AbstractAzResourceModule::list, (d, mn) -> this.createNode(d, mn, manager)));
             }
         } else if (data instanceof StorageAccountNode) {
-            final StorageAccountNode storageAccountNode = (StorageAccountNode) data;
-            return new Node<>(storageAccountNode)
-                    .view(new StorageAccountNodeView(storageAccountNode))
-                    .actions(HDInsightActionsContributor.HDINSIGHT_STORAGE_ACTIONS);
+            return new AzResourceNode<>((StorageAccountNode) data)
+                .withIcon(AzureIcon.builder().iconPath("/icons/StorageAccount_16.png").build())
+                .withLabel(r -> r.getRemote().name().split("\\.")[0])
+                .withActions(HDInsightActionsContributor.HDINSIGHT_STORAGE_ACTIONS);
         } else {
             return null;
         }

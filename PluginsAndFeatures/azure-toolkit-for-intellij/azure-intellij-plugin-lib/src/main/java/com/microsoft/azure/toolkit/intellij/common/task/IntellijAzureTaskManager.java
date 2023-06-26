@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.swing.*;
 import java.util.Objects;
 
 public class IntellijAzureTaskManager extends AzureTaskManager {
@@ -105,14 +106,16 @@ public class IntellijAzureTaskManager extends AzureTaskManager {
 
     private ModalityState toIntellijModality(final AzureTask<?> task) {
         final AzureTask.Modality modality = task.getModality();
-        switch (modality) {
-            case NONE:
-                return ModalityState.NON_MODAL;
-            case DEFAULT:
-                return ModalityState.defaultModalityState();
-            default:
-                return ModalityState.any();
-        }
+        return switch (modality) {
+            case NONE -> ModalityState.NON_MODAL;
+            case DEFAULT -> ModalityState.defaultModalityState();
+            default -> ModalityState.any();
+        };
+    }
+
+    @Override
+    public boolean isUIThread() {
+        return ApplicationManager.getApplication().isDispatchThread() || SwingUtilities.isEventDispatchThread();
     }
 
     @RequiredArgsConstructor

@@ -40,6 +40,8 @@ import java.util.Optional;
 public class ResourceCommonActionsContributor implements IActionsContributor {
 
     public static final int INITIALIZE_ORDER = 0;
+    public static final String AZURE_EXPLORER = "azure.explorer";
+    public static final String PROJECT_VIEW = "project.view";
 
     public static final Action.Id<AzResource> START = Action.Id.of("user/resource.start_resource.resource");
     public static final Action.Id<AzResource> STOP = Action.Id.of("user/resource.stop_resource.resource");
@@ -105,11 +107,11 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.DELETE.getIconPath())
             .withIdParam(AzResource::getName)
             .withShortcut(shortcuts.delete())
-            .visibleWhen(s -> (s instanceof AzResource && s instanceof Deletable))
+            .visibleWhen((s, place) -> (StringUtils.startsWithIgnoreCase(place, AZURE_EXPLORER) && s instanceof AzResource && s instanceof Deletable))
             .enableWhen(s -> {
                 if (s instanceof AbstractAzResource) {
                     final AbstractAzResource<?, ?, ?> r = (AbstractAzResource<?, ?, ?>) s;
-                    return !r.getFormalStatus(true).isDeleted() && !r.isDraftForCreating();
+                    return !r.getFormalStatus().isDeleted() && !r.isDraftForCreating();
                 }
                 return true;
             })
@@ -161,8 +163,8 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withLabel("Connect to Project")
             .withIcon(AzureIcons.Connector.CONNECT.getIconPath())
             .withIdParam(AzResource::getName)
-            .visibleWhen(s -> s instanceof AzResource)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
+            .visibleWhen((s, place) -> StringUtils.startsWithIgnoreCase(place, AZURE_EXPLORER) && s instanceof AzResource)
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .withAuthRequired(false)
             .register(am);
 
@@ -171,7 +173,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.PROPERTIES.getIconPath())
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof AzResource)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .withShortcut(shortcuts.edit())
             .register(am);
 
@@ -181,7 +183,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withIdParam(AzResource::getName)
             .withShortcut("control alt O")
             .visibleWhen(s -> s instanceof AzResource)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .withShortcut(shortcuts.deploy())
             .register(am);
 
@@ -240,7 +242,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withLabel(s -> Objects.nonNull(s) && favorites.exists(s.getId()) ? "Unmark As Favorite" : "Mark As Favorite")
             .withIcon(s -> Objects.nonNull(s) && favorites.exists(s.getId()) ? AzureIcons.Action.PIN.getIconPath() : AzureIcons.Action.UNPIN.getIconPath())
             .withShortcut("F11")
-            .visibleWhen(s -> s instanceof AbstractAzResource)
+            .visibleWhen((s, place) -> StringUtils.startsWithIgnoreCase(place, AZURE_EXPLORER) && s instanceof AbstractAzResource)
             .withHandler((r) -> {
                 if (favorites.exists(r.getId())) {
                     favorites.unpin(r.getId());

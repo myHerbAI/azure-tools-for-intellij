@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.storage.connection;
 
-import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
@@ -69,11 +68,7 @@ public class StorageAccountResourceDefinition extends AzureServiceResource.Defin
         if (StringUtils.equalsIgnoreCase(dataId, AzuriteStorageAccount.AZURITE_RESOURCE_ID)) {
             return AzuriteStorageAccount.AZURITE_STORAGE_ACCOUNT;
         }
-        final ResourceId resourceId = ResourceId.fromString(dataId);
-        final String subscriptionId = resourceId.subscriptionId();
-        final String rg = resourceId.resourceGroupName();
-        final String name = resourceId.name();
-        return Azure.az(AzureStorageAccount.class).forSubscription(subscriptionId).storageAccounts().get(name, rg);
+        return Azure.az(AzureStorageAccount.class).getById(dataId);
     }
 
     @Override

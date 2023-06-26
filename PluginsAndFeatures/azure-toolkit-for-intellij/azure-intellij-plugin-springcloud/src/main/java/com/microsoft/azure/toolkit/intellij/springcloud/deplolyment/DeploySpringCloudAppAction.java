@@ -19,13 +19,18 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Objects;
+
+import static com.microsoft.azure.toolkit.lib.common.action.Action.EMPTY_PLACE;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
 
 public class DeploySpringCloudAppAction extends AnAction {
     private static final String DEPLOY_SPRING_CLOUD_APP_TITLE = "Deploy to Azure";
@@ -34,6 +39,7 @@ public class DeploySpringCloudAppAction extends AnAction {
     @ExceptionNotification
     @AzureOperation(name = "user/springcloud.deploy_app")
     public void actionPerformed(@Nonnull AnActionEvent anActionEvent) {
+        OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(anActionEvent.getPlace(), EMPTY_PLACE));
         final Project project = anActionEvent.getProject();
         if (project != null) {
             AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle(() -> deploy((SpringCloudApp) null, project));

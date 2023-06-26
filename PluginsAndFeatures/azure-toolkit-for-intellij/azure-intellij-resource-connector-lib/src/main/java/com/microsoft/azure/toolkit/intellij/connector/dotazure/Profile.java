@@ -5,14 +5,18 @@
 
 package com.microsoft.azure.toolkit.intellij.connector.dotazure;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.ConnectionTopics;
+import com.microsoft.azure.toolkit.intellij.connector.DeploymentTargetTopics;
+import com.microsoft.azure.toolkit.intellij.facet.AzureFacet;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -23,6 +27,8 @@ import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import rx.Observable;
+import rx.schedulers.Schedulers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -39,38 +45,33 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.intellij.connector.ConnectionTopics.CONNECTION_CHANGED;
-import static com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule.*;
+import static com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule.DOT_ENV;
 
+@Getter
 public class Profile {
-    @Getter
     @Nonnull
     private final String name;
-    @Getter
     @Nonnull
     private final VirtualFile profileDir;
     @Nonnull
     private final AzureModule module;
-    @Getter
+    @Nonnull
+    private final ConnectionManager connectionManager;
+    @Nonnull
+    private final ResourceManager resourceManager;
+    @Nonnull
+    private final DeploymentTargetManager deploymentTargetManager;
     @Nullable
     private VirtualFile dotEnvFile;
-    @Nullable
-    private ConnectionManager connectionManager;
-    @Nullable
-    private ResourceManager resourceManager;
 
     public Profile(@Nonnull String name, @Nonnull VirtualFile profileDir, @Nonnull AzureModule module) {
         this.name = name;
         this.module = module;
         this.profileDir = profileDir;
+        this.resourceManager = new ResourceManager(this);
+        this.connectionManager = new ConnectionManager(this);
+        this.deploymentTargetManager = new DeploymentTargetManager(this);
         this.dotEnvFile = this.profileDir.findChild(DOT_ENV);
-        final VirtualFile connectionsFile = this.profileDir.findChild(CONNECTIONS_FILE);
-        final VirtualFile resourcesFile = this.profileDir.findChild(RESOURCES_FILE);
-        if (Objects.nonNull(resourcesFile)) {
-            this.resourceManager = new ResourceManager(this);
-        }
-        if (Objects.nonNull(connectionsFile)) {
-            this.connectionManager = new ConnectionManager(this);
-        }
     }
 
     public List<Pair<String, String>> load() {
@@ -83,39 +84,53 @@ public class Profile {
         return parser.parse().stream().map(e -> Pair.of(e.getKey(), e.getValue())).toList();
     }
 
-    public synchronized Profile addConnection(@Nonnull Connection<?, ?> connection) {
-        this.addConnectionToDotEnv(connection);
-        this.getResourceManager().addResource(connection.getResource());
-        this.getConnectionManager().addConnection(connection);
-        final String message = String.format("The connection between %s and %s has been successfully created/updated.", connection.getResource().getName(), connection.getConsumer().getName());
-        AzureMessager.getMessager().success(message);
+    public synchronized Profile addApp(@Nonnull final AbstractAzResource<?, ?, ?> app) {
+        this.getDeploymentTargetManager().addTarget(app.getId());
         final Project project = this.module.getProject();
-        project.getMessageBus().syncPublisher(CONNECTION_CHANGED).connectionChanged(project, connection, ConnectionTopics.Action.ADD);
+        project.getMessageBus().syncPublisher(DeploymentTargetTopics.TARGET_APP_CHANGED).appChanged(this.module, app, DeploymentTargetTopics.Action.ADD);
         return this;
+    }
+
+    public synchronized Profile removeApp(@Nonnull final AbstractAzResource<?, ?, ?> app) {
+        this.getDeploymentTargetManager().removeTarget(app.getId());
+        final Project project = this.module.getProject();
+        project.getMessageBus().syncPublisher(DeploymentTargetTopics.TARGET_APP_CHANGED).appChanged(this.module, app, DeploymentTargetTopics.Action.REMOVE);
+        return this;
+    }
+
+    public synchronized Observable<?> addConnection(@Nonnull Connection<?, ?> connection) {
+        AzureFacet.addTo(this.module.getModule());
+        this.resourceManager.addResource(connection.getResource());
+        this.connectionManager.addConnection(connection);
+        final Observable<?> observable = this.addConnectionToDotEnv(connection);
+        observable.subscribeOn(Schedulers.io()).subscribe(v -> {
+            final String message = String.format("The connection between %s and %s has been successfully created/updated.", connection.getResource().getName(), connection.getConsumer().getName());
+            AzureMessager.getMessager().success(message);
+            final Project project = this.module.getProject();
+            project.getMessageBus().syncPublisher(CONNECTION_CHANGED).connectionChanged(project, connection, ConnectionTopics.Action.ADD);
+        });
+        return observable;
     }
 
     public synchronized Profile removeConnection(@Nonnull Connection<?, ?> connection) {
         this.removeConnectionFromDotEnv(connection);
-        this.getConnectionManager().removeConnection(connection);
+        this.connectionManager.removeConnection(connection);
         final Project project = this.module.getProject();
         project.getMessageBus().syncPublisher(CONNECTION_CHANGED).connectionChanged(project, connection, ConnectionTopics.Action.REMOVE);
         return this;
     }
 
-    public synchronized Profile createOrUpdateConnection(@Nonnull Connection<?, ?> connection) {
+    public synchronized Observable<?> createOrUpdateConnection(@Nonnull Connection<?, ?> connection) {
         // Remove old connection
         this.getConnections().stream().filter(c -> c.getId().equals(connection.getId())).findFirst().ifPresent(this::removeConnection);
-        this.addConnection(connection);
-        return this;
+        return this.addConnection(connection);
     }
 
     public void save() {
-        if (Objects.isNull(this.connectionManager) || Objects.isNull(this.resourceManager)) {
-            return;
-        }
         try {
             this.connectionManager.save();
             this.resourceManager.save();
+            this.deploymentTargetManager.save();
             this.profileDir.refresh(true, true);
         } catch (final IOException e) {
             throw new AzureToolkitRuntimeException(e);
@@ -136,7 +151,8 @@ public class Profile {
     @AzureOperation(value = "boundary/connector.remove_connection_from_dotenv.resource", params = "connection.getResource().getName()")
     private void removeConnectionFromDotEnv(@Nonnull Connection<?, ?> connection) {
         if (Objects.isNull(this.dotEnvFile) || !this.dotEnvFile.isValid()) {
-            throw new AzureToolkitRuntimeException(String.format("'.azure/%s/.env' doesn't exist.", this.name));
+            // users may not have env file when they clone project from repo, so just return here
+            return;
         }
         final List<String> lines = Files.readAllLines(this.dotEnvFile.toNioPath());
         final String startMark = "# connection.id=" + connection.getId();
@@ -158,14 +174,14 @@ public class Profile {
 
     @SneakyThrows(IOException.class)
     @AzureOperation(value = "boundary/connector.add_connection_to_dotenv.resource", params = "connection.getResource().getName()")
-    private void addConnectionToDotEnv(@Nonnull Connection<?, ?> connection) {
+    private Observable<?> addConnectionToDotEnv(@Nonnull Connection<?, ?> connection) {
         if (!this.profileDir.isValid()) {
             throw new AzureToolkitRuntimeException(String.format("'.azure/%s' doesn't exist.", this.name));
         }
         WriteAction.run(() -> this.dotEnvFile = this.profileDir.findOrCreateChildData(this, DOT_ENV));
         Objects.requireNonNull(this.dotEnvFile, String.format("'.azure/%s/.env' can not be created.", this.name));
         final AzureString description = OperationBundle.description("boundary/connector.load_env.resource", connection.getResource().getDataId());
-        AzureTaskManager.getInstance().runInBackground(description, () -> {
+        return Observable.fromCallable(() -> ApplicationManager.getApplication().executeOnPooledThread(() -> {
             final String envVariables = generateEnvLines(module.getProject(), connection).stream().collect(Collectors.joining(System.lineSeparator()));
             try {
                 Files.writeString(this.dotEnvFile.toNioPath(), envVariables + System.lineSeparator() + System.lineSeparator(), StandardOpenOption.APPEND);
@@ -173,26 +189,38 @@ public class Profile {
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
-        });
+        }));
+    }
+
+    @Nonnull
+    @SneakyThrows(IOException.class)
+    @AzureOperation(value = "boundary/connector.get_generated_env_from_dotenv.resource", params = "connection.getResource().getName()")
+    public List<Pair<String, String>> getGeneratedEnvironmentVariables(@Nonnull Connection<?, ?> connection) {
+        if (Objects.isNull(this.dotEnvFile) || !this.dotEnvFile.isValid()) {
+            throw new AzureToolkitRuntimeException(String.format("'.azure/%s/.env' doesn't exist.", this.name));
+        }
+        final List<String> lines = Files.readAllLines(this.dotEnvFile.toNioPath());
+        final String startMark = "# connection.id=" + connection.getId();
+        boolean started = false;
+        final List<String> generated = new ArrayList<>();
+        for (final String line : lines) {
+            started = started || line.equalsIgnoreCase(startMark);
+            final boolean ended = started && !line.equalsIgnoreCase(startMark) && (StringUtils.isBlank(line.trim()) || line.trim().startsWith("# connection.id="));
+            if (started && !ended && !line.equalsIgnoreCase(startMark) && StringUtils.isNotBlank(line)) {
+                generated.add(line);
+            }
+            if (ended) {
+                break;
+            }
+        }
+        return generated.stream().map(g -> g.split("=", 2)).map(a -> Pair.of(a[0], a[1])).toList();
     }
 
     public List<Connection<?, ?>> getConnections() {
-        return this.getConnectionManager().getConnections();
+        return this.connectionManager.getConnections();
     }
 
-    @Nonnull
-    public synchronized ConnectionManager getConnectionManager() {
-        if (Objects.isNull(this.connectionManager)) {
-            this.connectionManager = new ConnectionManager(this);
-        }
-        return this.connectionManager;
-    }
-
-    @Nonnull
-    public synchronized ResourceManager getResourceManager() {
-        if (Objects.isNull(this.resourceManager)) {
-            this.resourceManager = new ResourceManager(this);
-        }
-        return this.resourceManager;
+    public List<String> getTargetAppIds() {
+        return this.deploymentTargetManager.getTargets();
     }
 }

@@ -7,16 +7,15 @@ package com.microsoft.azure.toolkit.ide.cosmos;
 
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
 import com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider;
-import com.microsoft.azure.toolkit.ide.common.component.AzureResourceLabelView;
-import com.microsoft.azure.toolkit.ide.common.component.AzureServiceLabelView;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.AzService;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.cosmos.AzureCosmosService;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.cassandra.CassandraCosmosDBAccount;
@@ -63,158 +62,115 @@ public class CosmosNodeProvider implements IExplorerNodeProvider {
     @Override
     public Node<?> createNode(@Nonnull Object data, @Nullable Node<?> parent, @Nonnull IExplorerNodeProvider.Manager manager) {
         if (data instanceof AzureCosmosService) {
-            final AzureCosmosService service = ((AzureCosmosService) data);
             final Function<AzureCosmosService, List<CosmosDBAccount>> listFunction = acs -> acs.list().stream().flatMap(m -> m.databaseAccounts().list().stream())
                 .collect(Collectors.toList());
-            return new Node<>(service).view(new AzureCosmosServiceLabelView(service, NAME, ICON))
-                .actions(CosmosActionsContributor.SERVICE_ACTIONS)
+            return new AzureCosmosServiceNode((AzureCosmosService) data)
+                .withIcon(ICON)
+                .withLabel(NAME)
+                .withActions(CosmosActionsContributor.SERVICE_ACTIONS)
                 .addChildren(listFunction, (account, serviceNode) -> this.createNode(account, serviceNode, manager));
         } else if (data instanceof SqlCosmosDBAccount) {
-            final SqlCosmosDBAccount sqlCosmosDBAccount = (SqlCosmosDBAccount) data;
-            return new Node<>(sqlCosmosDBAccount)
-                .view(new CosmosDBAccountLabelView<>(sqlCosmosDBAccount))
+            return new CosmosDBAccountNode<>((SqlCosmosDBAccount) data)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .actions(CosmosActionsContributor.SQL_ACCOUNT_ACTIONS)
+                .withActions(CosmosActionsContributor.SQL_ACCOUNT_ACTIONS)
                 .addChildren(account -> account.sqlDatabases().list(), (database, accountNode) -> this.createNode(database, accountNode, manager))
-                .hasMoreChildren(account -> account.sqlDatabases().hasMoreResources())
-                .loadMoreChildren(account -> account.sqlDatabases().loadMoreResources());
+                .withMoreChildren(account -> account.sqlDatabases().hasMoreResources(), account -> account.sqlDatabases().loadMoreResources());
         } else if (data instanceof MongoCosmosDBAccount) {
-            final MongoCosmosDBAccount mongoCosmosDBAccount = (MongoCosmosDBAccount) data;
-            return new Node<>(mongoCosmosDBAccount)
-                .view(new CosmosDBAccountLabelView<>(mongoCosmosDBAccount))
+            return new CosmosDBAccountNode<>((MongoCosmosDBAccount) data)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .actions(CosmosActionsContributor.MONGO_ACCOUNT_ACTIONS)
+                .withActions(CosmosActionsContributor.MONGO_ACCOUNT_ACTIONS)
                 .addChildren(account -> account.mongoDatabases().list(), (database, accountNode) -> this.createNode(database, accountNode, manager))
-                .hasMoreChildren(account -> account.mongoDatabases().hasMoreResources())
-                .loadMoreChildren(account -> account.mongoDatabases().loadMoreResources());
+                .withMoreChildren(account -> account.mongoDatabases().hasMoreResources(), account -> account.mongoDatabases().loadMoreResources());
         } else if (data instanceof CassandraCosmosDBAccount) {
-            final CassandraCosmosDBAccount cassandraCosmosDBAccount = (CassandraCosmosDBAccount) data;
-            return new Node<>(cassandraCosmosDBAccount)
-                .view(new CosmosDBAccountLabelView<>(cassandraCosmosDBAccount))
+            return new CosmosDBAccountNode<>((CassandraCosmosDBAccount) data)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .actions(CosmosActionsContributor.CASSANDRA_ACCOUNT_ACTIONS)
+                .withActions(CosmosActionsContributor.CASSANDRA_ACCOUNT_ACTIONS)
                 .addChildren(account -> account.keySpaces().list(), (keyspace, accountNode) -> this.createNode(keyspace, accountNode, manager))
-                .hasMoreChildren(account -> account.keySpaces().hasMoreResources())
-                .loadMoreChildren(account -> account.keySpaces().loadMoreResources());
+                .withMoreChildren(account -> account.keySpaces().hasMoreResources(), account -> account.keySpaces().loadMoreResources());
         } else if (data instanceof CosmosDBAccount) {
             // for other cosmos db account (table/graph...)
-            final CosmosDBAccount account = (CosmosDBAccount) data;
-            return new Node<>(account)
-                .view(new CosmosDBAccountLabelView<>(account))
+            return new CosmosDBAccountNode<>((CosmosDBAccount) data)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .actions(CosmosActionsContributor.ACCOUNT_ACTIONS)
-                .doubleClickAction(ResourceCommonActionsContributor.OPEN_PORTAL_URL);
+                .withActions(CosmosActionsContributor.ACCOUNT_ACTIONS)
+                .onDoubleClicked(ResourceCommonActionsContributor.OPEN_PORTAL_URL);
         } else if (data instanceof MongoDatabase) {
-            final MongoDatabase mongoDatabase = (MongoDatabase) data;
-            return new Node<>(mongoDatabase)
-                .view(new AzureResourceLabelView<>(mongoDatabase))
+            return new AzResourceNode<>((MongoDatabase) data)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .actions(CosmosActionsContributor.MONGO_DATABASE_ACTIONS)
+                .withActions(CosmosActionsContributor.MONGO_DATABASE_ACTIONS)
                 .addChildren(database -> database.collections().list(), (collection, databaseNode) -> this.createNode(collection, databaseNode, manager))
-                .hasMoreChildren(database -> database.collections().hasMoreResources())
-                .loadMoreChildren(database -> database.collections().loadMoreResources());
+                .withMoreChildren(database -> database.collections().hasMoreResources(), database -> database.collections().loadMoreResources());
         } else if (data instanceof MongoCollection) {
-            final MongoCollection table = (MongoCollection) data;
-            return new Node<>(table)
-                .view(new AzureResourceLabelView<>(table))
+            return new AzResourceNode<>((MongoCollection) data)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .actions(CosmosActionsContributor.MONGO_COLLECTION_ACTIONS)
+                .withActions(CosmosActionsContributor.MONGO_COLLECTION_ACTIONS)
                 .addChildren(collection -> collection.getDocumentModule().list(), (document, collectionNode) -> this.createNode(document, collectionNode, manager))
-                .hasMoreChildren(collection -> collection.getDocumentModule().hasMoreResources())
-                .loadMoreChildren(collection -> collection.getDocumentModule().loadMoreResources())
-                .newItemsOrder(Node.Order.INSERT_ORDER);
-//                .loadMoreAction(CosmosActionsContributor.LOAD_MODE_DOCUMENT)
-//                .hasMoreChildren(container -> container.getDocumentModule().hasMoreDocuments());
-//                    .addChildren(module -> module.getDocumentModule().hasMoreDocuments() ? Arrays.asList(module.getDocumentModule()) : Collections.emptyList(),
-//                            (module, containerNode)-> this.createLoadMore(module, containerNode, manager));
+                .withMoreChildren(collection -> collection.getDocumentModule().hasMoreResources(), collection -> collection.getDocumentModule().loadMoreResources());
         } else if (data instanceof SqlDatabase) {
-            final SqlDatabase sqlDatabase = (SqlDatabase) data;
-            return new Node<>(sqlDatabase)
-                .view(new AzureResourceLabelView<>(sqlDatabase))
+            return new AzResourceNode<>((SqlDatabase) data)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .actions(CosmosActionsContributor.SQL_DATABASE_ACTIONS)
+                .withActions(CosmosActionsContributor.SQL_DATABASE_ACTIONS)
                 .addChildren(database -> database.containers().list(), (container, databaseNode) -> this.createNode(container, databaseNode, manager))
-                .hasMoreChildren(database -> database.containers().hasMoreResources())
-                .loadMoreChildren(database -> database.containers().loadMoreResources());
+                .withMoreChildren(database -> database.containers().hasMoreResources(), database -> database.containers().loadMoreResources());
         } else if (data instanceof SqlContainer) {
-            final SqlContainer table = (SqlContainer) data;
-            return new Node<>(table)
-                .view(new AzureResourceLabelView<>(table))
+            return new AzResourceNode<>((SqlContainer) data)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .actions(CosmosActionsContributor.SQL_CONTAINER_ACTIONS)
+                .withActions(CosmosActionsContributor.SQL_CONTAINER_ACTIONS)
                 .addChildren(container -> container.getDocumentModule().list(), (document, containerNode) -> this.createNode(document, containerNode, manager))
-                .hasMoreChildren(container -> container.getDocumentModule().hasMoreResources())
-                .loadMoreChildren(container -> container.getDocumentModule().loadMoreResources())
-                .newItemsOrder(Node.Order.INSERT_ORDER);
-//                .loadMoreAction(CosmosActionsContributor.LOAD_MODE_DOCUMENT);
-//                .hasMoreChildren(container -> container.getDocumentModule().hasMoreDocuments());
-//                    .addChildren(module -> module.getDocumentModule().hasMoreDocuments() ? Arrays.asList(module.getDocumentModule()) : Collections.emptyList(),
-//                            (module, containerNode)-> this.createLoadMore(module, containerNode, manager));
+                .withMoreChildren(container -> container.getDocumentModule().hasMoreResources(), container -> container.getDocumentModule().loadMoreResources());
         } else if (data instanceof CassandraKeyspace) {
-            final CassandraKeyspace cassandraKeyspace = (CassandraKeyspace) data;
-            return new Node<>(cassandraKeyspace)
-                .view(new AzureResourceLabelView<>(cassandraKeyspace))
+            return new AzResourceNode<>((CassandraKeyspace) data)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .actions(CosmosActionsContributor.CASSANDRA_KEYSPACE_ACTIONS)
+                .withActions(CosmosActionsContributor.CASSANDRA_KEYSPACE_ACTIONS)
                 .addChildren(keyspace -> keyspace.tables().list(), (table, keyspaceNode) -> this.createNode(table, keyspaceNode, manager))
-                .hasMoreChildren(keyspace -> keyspace.tables().hasMoreResources())
-                .loadMoreChildren(keyspace -> keyspace.tables().loadMoreResources());
+                .withMoreChildren(keyspace -> keyspace.tables().hasMoreResources(), keyspace -> keyspace.tables().loadMoreResources());
         } else if (data instanceof CassandraTable) {
-            final CassandraTable table = (CassandraTable) data;
-            return new Node<>(table)
-                .view(new AzureResourceLabelView<>(table))
+            return new AzResourceNode<>((CassandraTable) data)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .actions(CosmosActionsContributor.CASSANDRA_TABLE_ACTIONS)
-                .doubleClickAction(ResourceCommonActionsContributor.OPEN_PORTAL_URL);
+                .withActions(CosmosActionsContributor.CASSANDRA_TABLE_ACTIONS)
+                .onDoubleClicked(ResourceCommonActionsContributor.OPEN_PORTAL_URL);
         } else if (data instanceof MongoDocument) {
-            final MongoDocument document = (MongoDocument) data;
-            return new Node<>(document)
-                .view(new AzureResourceLabelView<>(document, MongoDocument::getDocumentDisplayName,
-                    doc -> StringUtils.isEmpty(doc.getSharedKey()) ? StringUtils.EMPTY : doc.getSharedKey(), ignore -> AzureIcons.Cosmos.DOCUMENT))
-                .actions(CosmosActionsContributor.COSMOS_DOCUMENT_ACTIONS)
-                .doubleClickAction(CosmosActionsContributor.OPEN_DOCUMENT);
+            return new AzResourceNode<>((MongoDocument) data)
+                .withIcon(AzureIcons.Cosmos.DOCUMENT)
+                .withLabel(MongoDocument::getDocumentDisplayName)
+                .withDescription(doc -> StringUtils.isEmpty(doc.getSharedKey()) ? StringUtils.EMPTY : doc.getSharedKey())
+                .withActions(CosmosActionsContributor.COSMOS_DOCUMENT_ACTIONS)
+                .onDoubleClicked(CosmosActionsContributor.OPEN_DOCUMENT);
         } else if (data instanceof SqlDocument) {
-            final SqlDocument document = (SqlDocument) data;
-            return new Node<>(document)
-                .view(new AzureResourceLabelView<>(document, SqlDocument::getDocumentDisplayName,
-                    doc -> StringUtils.isEmpty(doc.getDocumentPartitionKey()) ? StringUtils.EMPTY : doc.getDocumentPartitionKey(), ignore -> AzureIcons.Cosmos.DOCUMENT))
-                .actions(CosmosActionsContributor.COSMOS_DOCUMENT_ACTIONS)
-                .doubleClickAction(CosmosActionsContributor.OPEN_DOCUMENT);
+            return new AzResourceNode<>((SqlDocument) data)
+                .withIcon(AzureIcons.Cosmos.DOCUMENT)
+                .withLabel(SqlDocument::getDocumentDisplayName)
+                .withDescription(doc -> StringUtils.isEmpty(doc.getDocumentPartitionKey()) ? StringUtils.EMPTY : doc.getDocumentPartitionKey())
+                .withActions(CosmosActionsContributor.COSMOS_DOCUMENT_ACTIONS)
+                .onDoubleClicked(CosmosActionsContributor.OPEN_DOCUMENT);
         }
         return null;
     }
 
-//    private <T extends ICosmosDocument> Node<?> createLoadMore(ICosmosDocumentModule<? extends T> module, Node<? extends ICosmosDocumentContainer<T>> containerNode, Manager manager) {
-//        return new Node<>(module)
-//                .view(new NodeView.Static("Load More", AzureIcons.Action.REFRESH.getIconPath()))
-//                .clickAction(CosmosActionsContributor.LOAD_MODE_DOCUMENT)
-//                .doubleClickAction(CosmosActionsContributor.LOAD_MODE_DOCUMENT);
-//    }
+    static class AzureCosmosServiceNode extends AzServiceNode<AzureCosmosService> {
 
-    static class AzureCosmosServiceLabelView extends AzureServiceLabelView<AzureCosmosService> {
-
-        public AzureCosmosServiceLabelView(@Nonnull AzureCosmosService service, String label, String iconPath) {
-            super(service, label, iconPath);
+        public AzureCosmosServiceNode(@Nonnull AzureCosmosService service) {
+            super(service);
         }
 
         @Override
-        public void onEvent(AzureEvent event) {
+        protected void onEvent(AzureEvent event) {
             final Object source = event.getSource();
-            final AzureTaskManager tm = AzureTaskManager.getInstance();
-            if (source instanceof AzService && source.equals(this.getService())) {
-                tm.runLater(this::refreshChildren);
+            if (source instanceof AzService && source.equals(this.getValue())) {
+                this.refreshChildrenLater();
             }
         }
     }
 
-    static class CosmosDBAccountLabelView<T extends CosmosDBAccount> extends AzureResourceLabelView<T> {
+    static class CosmosDBAccountNode<T extends CosmosDBAccount> extends AzResourceNode<T> {
 
         private static final AzureResourceIconProvider<CosmosDBAccount> COSMOS_ICON_PROVIDER = new AzureResourceIconProvider<CosmosDBAccount>()
-            .withModifier(CosmosDBAccountLabelView::getAPIModifier);
+            .withModifier(CosmosDBAccountNode::getAPIModifier);
 
-        public CosmosDBAccountLabelView(@Nonnull T resource) {
-            super(resource, account -> account.getFormalStatus().isRunning() ?
-                Optional.ofNullable(account.getKind()).map(DatabaseAccountKind::getValue).orElse("Unknown") : account.getStatus(), COSMOS_ICON_PROVIDER);
+        public CosmosDBAccountNode(@Nonnull T resource) {
+            super(resource);
+            this.withDescription(account -> account.getFormalStatus().isRunning() ?
+                Optional.ofNullable(account.getKind()).map(DatabaseAccountKind::getValue).orElse("Unknown") : account.getStatus());
+            this.withIcon(COSMOS_ICON_PROVIDER::getIcon);
         }
 
         @Nullable

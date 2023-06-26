@@ -13,11 +13,15 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+
+import static com.microsoft.azure.toolkit.lib.common.action.Action.EMPTY_PLACE;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
 
 public class OpenReferenceBookAction extends AnAction implements DumbAware {
     public static final String ID = "user/AzureToolkit.OpenSdkReferenceBook";
@@ -26,6 +30,7 @@ public class OpenReferenceBookAction extends AnAction implements DumbAware {
     @ExceptionNotification
     @AzureOperation(name = "user/sdk.open_reference_book")
     public void actionPerformed(@Nonnull final AnActionEvent event) {
+        OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(event.getPlace(), EMPTY_PLACE));
         final Module module = event.getData(LangDataKeys.MODULE);
         openSdkReferenceBook(event.getProject(), null);
     }

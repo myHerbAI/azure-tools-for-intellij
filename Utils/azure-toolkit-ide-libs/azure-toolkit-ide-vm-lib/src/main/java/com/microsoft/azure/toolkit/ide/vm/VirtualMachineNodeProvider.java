@@ -7,9 +7,9 @@ package com.microsoft.azure.toolkit.ide.vm;
 
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
 import com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider;
-import com.microsoft.azure.toolkit.ide.common.component.AzureResourceLabelView;
-import com.microsoft.azure.toolkit.ide.common.component.AzureServiceLabelView;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIconProvider;
@@ -45,17 +45,16 @@ public class VirtualMachineNodeProvider implements IExplorerNodeProvider {
     @Override
     public Node<?> createNode(@Nonnull Object data, @Nullable Node<?> parent, @Nonnull Manager manager) {
         if (data instanceof AzureCompute) {
-            final AzureCompute service = (AzureCompute) data;
-            return new Node<>(service).view(new AzureServiceLabelView<>(service, NAME, ICON))
-                .actions(VirtualMachineActionsContributor.SERVICE_ACTIONS)
+            return new AzServiceNode<>((AzureCompute) data)
+                .withIcon(ICON).withLabel(NAME)
+                .withActions(VirtualMachineActionsContributor.SERVICE_ACTIONS)
                 .addChildren(AzureCompute::virtualMachines, (vm, vmNode) -> this.createNode(vm, vmNode, manager));
         } else if (data instanceof VirtualMachine) {
-            final VirtualMachine vm = (VirtualMachine) data;
-            return new Node<>(vm)
-                .view(new AzureResourceLabelView<>(vm, VirtualMachine::getStatus, VIRTUAL_MACHINE_ICON_PROVIDER))
+            return new AzResourceNode<>((VirtualMachine) data)
+                .withIcon(VIRTUAL_MACHINE_ICON_PROVIDER::getIcon)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .doubleClickAction(ResourceCommonActionsContributor.OPEN_PORTAL_URL)
-                .actions(VirtualMachineActionsContributor.VM_ACTIONS);
+                .onDoubleClicked(ResourceCommonActionsContributor.OPEN_PORTAL_URL)
+                .withActions(VirtualMachineActionsContributor.VM_ACTIONS);
         }
         return null;
     }

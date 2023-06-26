@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.ide.redis;
 
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.component.AzureResourceLabelView;
-import com.microsoft.azure.toolkit.ide.common.component.AzureServiceLabelView;
+import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.redis.AzureRedis;
@@ -42,19 +42,18 @@ public class RedisNodeProvider implements IExplorerNodeProvider {
     @Override
     public Node<?> createNode(@Nonnull Object data, @Nullable Node<?> parent, @Nonnull Manager manager) {
         if (data instanceof AzureRedis) {
-            final AzureRedis service = az(AzureRedis.class);
             final Function<AzureRedis, List<RedisCache>> caches = asc -> asc.list().stream().flatMap(m -> m.caches().list().stream())
                 .collect(Collectors.toList());
-            return new Node<>(service).view(new AzureServiceLabelView<>(service, NAME, ICON))
-                .actions(RedisActionsContributor.SERVICE_ACTIONS)
+            return new AzServiceNode<>(az(AzureRedis.class))
+                .withIcon(ICON)
+                .withLabel(NAME)
+                .withActions(RedisActionsContributor.SERVICE_ACTIONS)
                 .addChildren(caches, (d, p) -> this.createNode(d, p, manager));
         } else if (data instanceof RedisCache) {
-            final RedisCache redis = (RedisCache) data;
-            return new Node<>(redis)
-                .view(new AzureResourceLabelView<>(redis))
+            return new AzResourceNode<>((RedisCache) data)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .doubleClickAction(ResourceCommonActionsContributor.SHOW_PROPERTIES)
-                .actions(RedisActionsContributor.REDIS_ACTIONS);
+                .onDoubleClicked(ResourceCommonActionsContributor.SHOW_PROPERTIES)
+                .withActions(RedisActionsContributor.REDIS_ACTIONS);
         }
         return null;
     }

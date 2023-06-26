@@ -8,12 +8,7 @@ package com.microsoft.intellij.ui;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.util.treeView.NodeRenderer;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionUpdateThread;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Separator;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -34,6 +29,7 @@ import com.microsoft.azure.cosmosspark.serverexplore.cosmossparknode.CosmosSpark
 import com.microsoft.azure.cosmosspark.serverexplore.cosmossparknode.CosmosSparkClusterRootModuleImpl;
 import com.microsoft.azure.sqlbigdata.serverexplore.SqlBigDataClusterModule;
 import com.microsoft.azure.sqlbigdata.serverexplore.SqlBigDataClusterNode;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.component.TreeUtils;
@@ -58,26 +54,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
+import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.intellij.ui.AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED;
@@ -104,6 +88,7 @@ public class ServerExplorerToolWindowFactory implements ToolWindowFactory, Prope
         final SortableTreeNode hiddenRoot = new SortableTreeNode();
         final DefaultTreeModel treeModel = new DefaultTreeModel(hiddenRoot);
         final JTree tree = new Tree(treeModel);
+        tree.putClientProperty(Action.PLACE, ResourceCommonActionsContributor.AZURE_EXPLORER);
 
         final var favorRootNode = new com.microsoft.azure.toolkit.intellij.common.component.Tree.TreeNode<>(AzureExplorer.buildFavoriteRoot(), tree);
         final var acvRootNode = new com.microsoft.azure.toolkit.intellij.common.component.Tree.TreeNode<>(AzureExplorer.buildAppCentricViewRoot(), tree);

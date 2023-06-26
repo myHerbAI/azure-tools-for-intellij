@@ -35,7 +35,7 @@ public class DeploymentActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.EDIT.getIconPath())
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ResourceDeployment)
-            .enableWhen(s -> s.getFormalStatus(true).isWritable())
+            .enableWhen(s -> s.getFormalStatus().isWritable())
             .withShortcut(am.getIDEDefaultShortcuts().view())
             .register(am);
 
@@ -44,7 +44,7 @@ public class DeploymentActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.EDIT.getIconPath())
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ResourceDeployment)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .register(am);
 
         new Action<>(EXPORT_PARAMETER)
@@ -52,7 +52,7 @@ public class DeploymentActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.EDIT.getIconPath())
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ResourceDeployment)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .register(am);
 
         new Action<>(UPDATE)
@@ -60,14 +60,14 @@ public class DeploymentActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.EDIT.getIconPath())
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ResourceDeployment)
-            .enableWhen(s -> s.getFormalStatus(true).isWritable())
+            .enableWhen(s -> s.getFormalStatus().isWritable())
             .register(am);
 
         new Action<>(GROUP_CREATE_DEPLOYMENT)
             .withLabel("Deployment")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ResourceGroup)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .register(am);
     }
 

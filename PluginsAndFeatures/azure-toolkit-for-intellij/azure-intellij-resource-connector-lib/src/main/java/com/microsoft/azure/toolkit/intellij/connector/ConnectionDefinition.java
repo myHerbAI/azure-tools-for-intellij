@@ -33,6 +33,7 @@ import static com.microsoft.azure.toolkit.intellij.connector.dotazure.Connection
 public class ConnectionDefinition<R, C> {
     private static final ExtensionPointName<ConnectionProvider> exPoints =
             ExtensionPointName.create("com.microsoft.tooling.msservices.intellij.azure.connectionProvider");
+    public static final String ENV_PREFIX = "envPrefix";
     @Nonnull
     @EqualsAndHashCode.Include
     private final ResourceDefinition<R> resourceDefinition;
@@ -70,23 +71,31 @@ public class ConnectionDefinition<R, C> {
     /**
      * read/deserialize a instance of {@link Connection} from {@code element}
      */
-    @Nullable
+    @Nonnull
     @SuppressWarnings("unchecked")
     public Connection<R, C> read(@Nonnull final com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager manager, Element connectionEle) {
         final String id = connectionEle.getAttributeValue(FIELD_ID);
-        final Element consumerEle = connectionEle.getChild("consumer");
+        final String envPrefix = connectionEle.getAttributeValue(ENV_PREFIX);
+        final Resource<R> resource = Optional.ofNullable(readResourceFromElement(connectionEle, manager))
+                .orElseGet(() -> new InvalidResource<>(this.getResourceDefinition()));
+        final Resource<C> consumer = Optional.ofNullable(readConsumerFromElement(connectionEle, manager))
+                .orElseGet(() -> new InvalidResource<>(this.getConsumerDefinition()));
+        final Connection<R, C> connection = this.define(id, resource, consumer);
+        connection.setEnvPrefix(envPrefix);
+        return connection;
+    }
+
+    private Resource<R> readResourceFromElement(Element connectionEle, @Nonnull final com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager manager) {
         final Element resourceEle = connectionEle.getChild("resource");
+        return (Resource<R>) manager.getResourceById(resourceEle.getTextTrim());
+    }
+
+    private Resource<C> readConsumerFromElement(Element connectionEle, @Nonnull final com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager manager) {
+        final Element consumerEle = connectionEle.getChild("consumer");
         final String consumerDefName = consumerEle.getAttributeValue("type");
-        final Resource<R> resource = (Resource<R>) manager.getResourceById(resourceEle.getTextTrim());
-        final Resource<C> consumer = ModuleResource.Definition.IJ_MODULE.getName().equals(consumerDefName) ?
+        return ModuleResource.Definition.IJ_MODULE.getName().equals(consumerDefName) ?
                 (Resource<C>) new ModuleResource(consumerEle.getTextTrim()) :
                 (Resource<C>) manager.getResourceById(consumerEle.getTextTrim());
-        if (Objects.nonNull(resource) && Objects.nonNull(consumer)) {
-            final Connection<R, C> connection = this.define(id, resource, consumer);
-            connection.setEnvPrefix(connectionEle.getAttributeValue("envPrefix"));
-            return connection;
-        }
-        return null;
     }
 
     public Connection<R, C> readDeprecatedConnection(Element connectionEle) {
@@ -146,8 +155,8 @@ public class ConnectionDefinition<R, C> {
         }
         final Resource<R> existedResource = (Resource<R>) profile.getResourceManager().getResourceById(resource.getId());
         if (Objects.nonNull(existedResource)) { // not new
-            final R current = resource.getData();
-            final R origin = existedResource.getData();
+            final String current = resource.getDataId();
+            final String origin = existedResource.getDataId();
             if (Objects.equals(origin, current) && existedResource.isModified(resource)) { // modified
                 final String template = "%s \"%s\" with different configuration is found on your PC. \nDo you want to override it?";
                 final String msg = String.format(template, resource.getDefinition().getTitle(), resource.getName());

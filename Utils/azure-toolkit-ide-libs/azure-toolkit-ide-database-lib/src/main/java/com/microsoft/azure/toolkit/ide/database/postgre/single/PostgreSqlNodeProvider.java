@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.ide.database.postgre.single;
 
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.component.AzureResourceLabelView;
-import com.microsoft.azure.toolkit.ide.common.component.AzureServiceLabelView;
+import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.postgre.single.AzurePostgreSql;
@@ -41,18 +41,16 @@ public class PostgreSqlNodeProvider implements IExplorerNodeProvider {
     @Override
     public Node<?> createNode(@Nonnull Object data, @Nullable Node<?> parent, @Nonnull Manager manager) {
         if (data instanceof AzurePostgreSql) {
-            final AzurePostgreSql service = ((AzurePostgreSql) data);
             final Function<AzurePostgreSql, List<PostgreSqlServer>> servers = s -> s.list().stream()
                 .flatMap(m -> m.servers().list().stream()).collect(Collectors.toList());
-            return new Node<>(service).view(new AzureServiceLabelView<>(service, NAME, ICON))
-                .actions(PostgreSqlActionsContributor.SERVICE_ACTIONS)
+            return new AzServiceNode<>((AzurePostgreSql) data)
+                .withIcon(ICON).withLabel(NAME)
+                .withActions(PostgreSqlActionsContributor.SERVICE_ACTIONS)
                 .addChildren(servers, (server, serviceNode) -> this.createNode(server, serviceNode, manager));
         } else if (data instanceof PostgreSqlServer) {
-            final PostgreSqlServer server = (PostgreSqlServer) data;
-            return new Node<>(server)
-                .view(new AzureResourceLabelView<>(server))
-                .doubleClickAction(ResourceCommonActionsContributor.SHOW_PROPERTIES)
-                .actions(PostgreSqlActionsContributor.SERVER_ACTIONS);
+            return new AzResourceNode<>((PostgreSqlServer) data)
+                .onDoubleClicked(ResourceCommonActionsContributor.SHOW_PROPERTIES)
+                .withActions(PostgreSqlActionsContributor.SERVER_ACTIONS);
         }
         return null;
     }

@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetry.TelemetryProperties;
 import com.microsoft.azuretools.telemetrywrapper.*;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,18 +21,21 @@ import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.microsoft.azure.toolkit.lib.common.action.Action.EMPTY_PLACE;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
+
 public abstract class AzureAnAction extends AnAction {
 
     public AzureAnAction() {
-        super((String) null, (String) null, (Icon) null);
+        super(null, (String) null, null);
     }
 
     public AzureAnAction(Icon icon) {
-        super((String) null, (String) null, icon);
+        super(null, (String) null, icon);
     }
 
     public AzureAnAction(@Nullable String text) {
-        super(text, (String) null, (Icon) null);
+        super(text, null, null);
     }
 
     public AzureAnAction(@Nullable String text, @Nullable String description, @Nullable Icon icon) {
@@ -72,6 +76,7 @@ public abstract class AzureAnAction extends AnAction {
         final Map<String, String> props = buildProp(anActionEvent, extraInfo);
         props.put("eventType", "Action");
         props.put("objectName", anActionEvent.getPresentation().getText());
+        props.put(PLACE, StringUtils.firstNonBlank(anActionEvent.getPlace(), EMPTY_PLACE));
         AzureTelemeter.log(AzureTelemetry.Type.INFO, props);
     }
 
@@ -97,7 +102,7 @@ public abstract class AzureAnAction extends AnAction {
     protected String getOperationName(AnActionEvent event) {
         try {
             return event.getPresentation().getText().toLowerCase().trim().replace(" ", "-");
-        } catch (Exception ignore) {
+        } catch (final Exception ignore) {
             return "";
         }
     }
@@ -111,17 +116,17 @@ public abstract class AzureAnAction extends AnAction {
     private String transformHDInsight(String serviceName, AnActionEvent event) {
         try {
             if (serviceName.equals(TelemetryConstants.ACTION)) {
-                String text = event.getPresentation().getText().toLowerCase();
+                final String text = event.getPresentation().getText().toLowerCase();
                 if (text.contains("spark") || text.contains("hdinsight")) {
                     return TelemetryConstants.HDINSIGHT;
                 }
-                String place = event.getPlace().toLowerCase();
+                final String place = event.getPlace().toLowerCase();
                 if (place.contains("spark") || place.contains("hdinsight")) {
                     return TelemetryConstants.HDINSIGHT;
                 }
             }
             return serviceName;
-        } catch (Exception ignore) {
+        } catch (final Exception ignore) {
         }
         return serviceName;
     }
@@ -131,7 +136,7 @@ public abstract class AzureAnAction extends AnAction {
     }
 
     public void sendTelemetryOnException(AnActionEvent anActionEvent, Throwable e) {
-        Map<String, String> extraInfo = new HashMap<>();
+        final Map<String, String> extraInfo = new HashMap<>();
         extraInfo.put("ErrorMessage", e.getMessage());
         this.sendTelemetryOnAction(anActionEvent, "Exception", extraInfo);
     }

@@ -99,7 +99,7 @@ public class ServiceBusActionsContributor implements IActionsContributor {
                 .withLabel("Service Bus")
                 .withIdParam(AzResource::getName)
                 .visibleWhen(s -> s instanceof ResourceGroup)
-                .enableWhen(s -> s.getFormalStatus(true).isConnected())
+                .enableWhen(s -> s.getFormalStatus().isConnected())
                 .register(am);
     }
 

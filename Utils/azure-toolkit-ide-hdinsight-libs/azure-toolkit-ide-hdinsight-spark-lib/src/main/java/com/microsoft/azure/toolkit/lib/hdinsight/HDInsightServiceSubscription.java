@@ -5,10 +5,8 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -19,7 +17,7 @@ public class HDInsightServiceSubscription extends AbstractAzServiceSubscription<
     @Nonnull
     private final SparkClusterModule sparkClusterModule;
 
-    protected HDInsightServiceSubscription(@NotNull String subscriptionId, @NotNull AzureHDInsightService service) {
+    protected HDInsightServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzureHDInsightService service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
         this.sparkClusterModule = new SparkClusterModule(this);
@@ -35,15 +33,6 @@ public class HDInsightServiceSubscription extends AbstractAzServiceSubscription<
     }
 
     @Override
-    public void reloadStatus() {
-        if (Azure.az(AzureAccount.class).isLoggedIn()) {
-            super.reloadStatus();
-        } else {
-            this.setStatus("Linked");
-        }
-    }
-
-    @Override
     @Nonnull
     public String getStatus() {
         if (Azure.az(AzureAccount.class).isLoggedIn()) {
@@ -55,25 +44,15 @@ public class HDInsightServiceSubscription extends AbstractAzServiceSubscription<
 
     @Override
     @Nonnull
-    protected Optional<HDInsightManager> remoteOptional(boolean... sync) {
+    protected Optional<HDInsightManager> remoteOptional() {
         if (Azure.az(AzureAccount.class).isLoggedIn()) {
-            return Optional.ofNullable(this.getRemote(sync));
+            return Optional.ofNullable(this.getRemote());
         } else {
-            return null;
+            return Optional.empty();
         }
     }
 
-    @Override
-    @Nullable
-    protected HDInsightManager refreshRemoteFromAzure(@Nonnull HDInsightManager remote) {
-        if (Azure.az(AzureAccount.class).isLoggedIn()) {
-            return super.refreshRemoteFromAzure(remote);
-        } else {
-            return null;
-        }
-    }
-
-    @NotNull
+    @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         return Collections.singletonList(sparkClusterModule);

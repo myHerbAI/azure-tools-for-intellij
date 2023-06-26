@@ -73,6 +73,10 @@ public class CommonConnectionResource implements Resource<ConnectionTarget> {
         return this.data.getName();
     }
 
+    public String getEnvPrefix() {
+        return this.data.getName();
+    }
+
     @Getter
     @EqualsAndHashCode(onlyExplicitlyIncluded = true)
     @RequiredArgsConstructor
@@ -142,6 +146,11 @@ public class CommonConnectionResource implements Resource<ConnectionTarget> {
         @Override
         public String getResourceConnectionString(@Nonnull ConnectionTarget resource) {
             return resource.getConnectionString();
+        }
+
+        @Override
+        public boolean isEnvPrefixSupported() {
+            return false;
         }
     }
 }

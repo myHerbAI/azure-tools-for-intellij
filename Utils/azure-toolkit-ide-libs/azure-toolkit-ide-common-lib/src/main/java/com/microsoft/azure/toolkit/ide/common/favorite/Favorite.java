@@ -59,7 +59,7 @@ public class Favorite extends AbstractAzResource<Favorite, AzResource.None, Abst
 
     @Nonnull
     @Override
-    public String loadStatus(AbstractAzResource<?, ?, ?> remote) {
+    protected String loadStatus(AbstractAzResource<?, ?, ?> remote) {
         return Optional.of(remote).filter(AbstractAzResource::exists).map(r -> Status.RUNNING).orElse(Status.DELETED);
     }
 

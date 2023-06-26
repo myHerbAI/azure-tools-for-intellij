@@ -8,7 +8,11 @@ package com.microsoft.azure.toolkit.ide.servicebus;
 import com.azure.resourcemanager.servicebus.models.EntityStatus;
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.component.*;
+import com.microsoft.azure.toolkit.ide.common.component.AzModuleNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider;
+import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIconProvider;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
@@ -49,30 +53,28 @@ public class ServiceBusNodeProvider implements IExplorerNodeProvider {
     @Override
     public Node<?> createNode(@Nonnull Object data, @Nullable Node<?> parent, @Nonnull Manager manager) {
         if (data instanceof AzureServiceBusNamespace) {
-            final AzureServiceBusNamespace service = (AzureServiceBusNamespace) data;
-            return new Node<>(service).view(new AzureServiceLabelView<>(service, NAME, ICON))
-                    .actions(ServiceBusActionsContributor.SERVICE_ACTIONS)
-                    .addChildren(this::listServiceBusNamespaces, ((serviceBusNamespace, azureServiceBusNamespaceNode) ->
-                            this.createNode(serviceBusNamespace, azureServiceBusNamespaceNode, manager)));
+            return new AzServiceNode<>((AzureServiceBusNamespace) data)
+                .withIcon(ICON)
+                .withLabel(NAME)
+                .withActions(ServiceBusActionsContributor.SERVICE_ACTIONS)
+                .addChildren(this::listServiceBusNamespaces, ((serviceBusNamespace, azureServiceBusNamespaceNode) ->
+                    this.createNode(serviceBusNamespace, azureServiceBusNamespaceNode, manager)));
         } else if (data instanceof ServiceBusNamespace) {
-            final ServiceBusNamespace serviceBusNamespace = (ServiceBusNamespace) data;
-            return new Node<>(serviceBusNamespace).view(new AzureResourceLabelView<>(serviceBusNamespace))
-                    .addInlineAction(ResourceCommonActionsContributor.PIN)
-                    .actions(ServiceBusActionsContributor.NAMESPACE_ACTIONS)
-                    .addChildren(ServiceBusNamespace::getSubModules, (module, parentNode) -> new Node<>(module)
-                            .actions(ServiceBusActionsContributor.MODULE_ACTIONS)
-                            .view(new AzureModuleLabelView<>(module, module.getResourceTypeName().replace("Service Bus ", "") + "s"))
-                            .addChildren(AbstractAzResourceModule::list, (d, pn) -> this.createNode(d, pn, manager)));
+            return new AzResourceNode<>((ServiceBusNamespace) data)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
+                .withActions(ServiceBusActionsContributor.NAMESPACE_ACTIONS)
+                .addChildren(ServiceBusNamespace::getSubModules, (module, parentNode) -> new AzModuleNode<>(module)
+                    .withLabel(module.getResourceTypeName().replace("Service Bus ", "") + "s")
+                    .withActions(ServiceBusActionsContributor.MODULE_ACTIONS)
+                    .addChildren(AbstractAzResourceModule::list, (d, pn) -> this.createNode(d, pn, manager)));
         } else if (data instanceof ServiceBusQueue) {
-            final ServiceBusQueue queue = (ServiceBusQueue) data;
-            return new Node<>(queue)
-                    .view(new AzureResourceLabelView<>(queue, ServiceBusQueue::getStatus, SERVICE_BUS_ICON_PROVIDER))
-                    .actions(ServiceBusActionsContributor.QUEUE_ACTIONS);
+            return new AzResourceNode<>((ServiceBusQueue) data)
+                .withIcon(SERVICE_BUS_ICON_PROVIDER::getIcon)
+                .withActions(ServiceBusActionsContributor.QUEUE_ACTIONS);
         } else if (data instanceof ServiceBusTopic) {
-            final ServiceBusTopic topic = (ServiceBusTopic) data;
-            return new Node<>(topic)
-                    .view(new AzureResourceLabelView<>(topic, ServiceBusTopic::getStatus, SERVICE_BUS_ICON_PROVIDER))
-                    .actions(ServiceBusActionsContributor.TOPIC_ACTIONS);
+            return new AzResourceNode<>((ServiceBusTopic) data)
+                .withIcon(SERVICE_BUS_ICON_PROVIDER::getIcon)
+                .withActions(ServiceBusActionsContributor.TOPIC_ACTIONS);
         }
         return null;
     }
@@ -87,11 +89,11 @@ public class ServiceBusNodeProvider implements IExplorerNodeProvider {
         if (Objects.isNull(entityStatus)) {
             return null;
         }
-        switch (entityStatus) {
-            case SEND_DISABLED: return AzureIcon.Modifier.SEND_DISABLED;
-            case RECEIVE_DISABLED: return AzureIcon.Modifier.RECEIVED_DISABLED;
-            default: return null;
-        }
+        return switch (entityStatus) {
+            case SEND_DISABLED -> AzureIcon.Modifier.SEND_DISABLED;
+            case RECEIVE_DISABLED -> AzureIcon.Modifier.RECEIVED_DISABLED;
+            default -> null;
+        };
     }
 
 }

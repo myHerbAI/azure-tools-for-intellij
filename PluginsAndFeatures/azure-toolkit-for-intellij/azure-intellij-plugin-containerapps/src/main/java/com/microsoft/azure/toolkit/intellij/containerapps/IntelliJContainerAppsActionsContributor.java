@@ -64,7 +64,7 @@ public class IntelliJContainerAppsActionsContributor implements IActionsContribu
         am.<Tag, AnActionEvent>registerHandler(ContainerRegistryActionsContributor.DEPLOY_IMAGE_ACA, UpdateContainerImageAction::openUpdateDialog);
 
         am.registerHandler(ContainerAppsActionsContributor.CREATE_CONTAINER_APP,
-                (ContainerAppsEnvironment r, AnActionEvent e) -> r.getFormalStatus(true).isConnected(),
+                (ContainerAppsEnvironment r, AnActionEvent e) -> r.getFormalStatus().isConnected(),
                 (ContainerAppsEnvironment r, AnActionEvent e) -> CreateContainerAppAction.create(e.getProject(), getContainerAppDefaultConfig(r, null)));
         am.registerHandler(ContainerAppsActionsContributor.GROUP_CREATE_CONTAINER_APP,
                 (ResourceGroup r, AnActionEvent e) -> CreateContainerAppAction.create(e.getProject(), getContainerAppDefaultConfig(null, r)));

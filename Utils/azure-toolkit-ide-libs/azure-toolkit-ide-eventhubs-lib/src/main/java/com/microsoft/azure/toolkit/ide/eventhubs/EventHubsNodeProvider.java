@@ -3,9 +3,9 @@ package com.microsoft.azure.toolkit.ide.eventhubs;
 import com.azure.resourcemanager.eventhubs.models.EntityStatus;
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
 import com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider;
-import com.microsoft.azure.toolkit.ide.common.component.AzureResourceLabelView;
-import com.microsoft.azure.toolkit.ide.common.component.AzureServiceLabelView;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIconProvider;
@@ -45,24 +45,23 @@ public class EventHubsNodeProvider implements IExplorerNodeProvider {
     @Override
     public Node<?> createNode(@Nonnull Object data, @Nullable Node<?> parent, @Nonnull Manager manager) {
         if (data instanceof AzureEventHubsNamespace) {
-            final AzureEventHubsNamespace service = (AzureEventHubsNamespace) data;
-            return new Node<>(service).view(new AzureServiceLabelView<>(service, NAME, ICON))
-                    .actions(EventHubsActionsContributor.SERVICE_ACTIONS)
-                    .addChildren(this::listEventHubNamespaces, (eventHubsNamespace, eventHubsNamespaceModule) ->
-                            this.createNode(eventHubsNamespace, eventHubsNamespaceModule, manager));
+            return new AzServiceNode<>((AzureEventHubsNamespace) data)
+                .withIcon(ICON)
+                .withLabel(NAME)
+                .withActions(EventHubsActionsContributor.SERVICE_ACTIONS)
+                .addChildren(this::listEventHubNamespaces, (eventHubsNamespace, eventHubsNamespaceModule) ->
+                    this.createNode(eventHubsNamespace, eventHubsNamespaceModule, manager));
         } else if (data instanceof EventHubsNamespace) {
-            final EventHubsNamespace eventHubsNamespace = (EventHubsNamespace) data;
-            return new Node<>(eventHubsNamespace).view(new AzureResourceLabelView<>(eventHubsNamespace))
-                    .addInlineAction(ResourceCommonActionsContributor.PIN)
-                    .doubleClickAction(ResourceCommonActionsContributor.OPEN_PORTAL_URL)
-                    .actions(EventHubsActionsContributor.NAMESPACE_ACTIONS)
-                    .addChildren(c -> Optional.ofNullable(c).map(EventHubsNamespace::getInstances).orElse(Collections.emptyList()),
-                            (eventHubsInstance, eventHubNode) -> this.createNode(eventHubsInstance, eventHubNode, manager));
+            return new AzResourceNode<>((EventHubsNamespace) data)
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
+                .onDoubleClicked(ResourceCommonActionsContributor.OPEN_PORTAL_URL)
+                .withActions(EventHubsActionsContributor.NAMESPACE_ACTIONS)
+                .addChildren(c -> Optional.ofNullable(c).map(EventHubsNamespace::getInstances).orElse(Collections.emptyList()),
+                    (eventHubsInstance, eventHubNode) -> this.createNode(eventHubsInstance, eventHubNode, manager));
         } else if (data instanceof EventHubsInstance) {
-            final EventHubsInstance eventHubsInstance = (EventHubsInstance) data;
-            return new Node<>(eventHubsInstance)
-                    .view(new AzureResourceLabelView<>(eventHubsInstance, EventHubsInstance::getStatus, EVENT_HUBS_ICON_PROVIDER))
-                    .actions(EventHubsActionsContributor.INSTANCE_ACTIONS);
+            return new AzResourceNode<>((EventHubsInstance) data)
+                .withIcon(EVENT_HUBS_ICON_PROVIDER::getIcon)
+                .withActions(EventHubsActionsContributor.INSTANCE_ACTIONS);
         }
         return null;
     }

@@ -7,13 +7,17 @@ package com.microsoft.azure.toolkit.intellij.containerapps.deployimage;
 
 import com.azure.resourcemanager.appcontainers.models.EnvironmentVar;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
 import com.microsoft.azure.toolkit.intellij.containerregistry.ContainerService;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerApps;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerAppDraft;
@@ -24,7 +28,11 @@ import com.microsoft.azuretools.telemetrywrapper.Operation;
 import com.microsoft.azuretools.telemetrywrapper.TelemetryManager;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class DeployImageRunState extends AzureRunProfileState<ContainerApp> {
@@ -50,14 +58,25 @@ public class DeployImageRunState extends AzureRunProfileState<ContainerApp> {
         final ContainerAppDraft draft = (ContainerAppDraft) containerApp.update();
         final ContainerAppDraft.Config config = new ContainerAppDraft.Config();
         final List<EnvironmentVar> vars = dataModel.getEnvironmentVariables().entrySet().stream()
-                .map(e -> new EnvironmentVar().withName(e.getKey()).withValue(e.getValue()))
-                .collect(Collectors.toList());
+            .map(e -> new EnvironmentVar().withName(e.getKey()).withValue(e.getValue()))
+            .collect(Collectors.toList());
         final ContainerAppDraft.ImageConfig imageConfig = new ContainerAppDraft.ImageConfig(configuration.getFinalImageName());
         imageConfig.setContainerRegistry(registry);
         imageConfig.setEnvironmentVariables(vars);
         config.setImageConfig(imageConfig);
         config.setIngressConfig(dataModel.getIngressConfig());
         draft.setConfig(config);
+        final AzureTaskManager tm = AzureTaskManager.getInstance();
+        Optional.ofNullable(image)
+            .map(DockerImage::getDockerFile)
+            .map(f -> VfsUtil.findFileByIoFile(f, true))
+            .map(f -> AzureModule.from(f, this.project))
+            .ifPresent(module -> tm.runLater(() -> tm.write(() -> {
+                final Profile p = module.initializeWithDefaultProfileIfNot();
+                Optional.ofNullable(registry).ifPresent(p::addApp);
+                Optional.of(containerApp).ifPresent(p::addApp);
+                p.save();
+            })));
         draft.updateIfExist();
         return containerApp;
     }

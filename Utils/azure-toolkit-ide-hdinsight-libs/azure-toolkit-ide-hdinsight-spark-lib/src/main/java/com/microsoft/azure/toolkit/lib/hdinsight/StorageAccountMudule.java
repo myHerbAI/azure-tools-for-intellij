@@ -36,7 +36,7 @@ public class StorageAccountMudule extends AbstractAzResourceModule <StorageAccou
     @Nonnull
     @Override
     protected Iterator<? extends ContinuablePage<String, com.azure.resourcemanager.hdinsight.models.StorageAccount>> loadResourcePagesFromAzure() {
-        final Stream<StorageAccount> resources = Optional.ofNullable(sparkClusterNode.getRemote(true))
+        final Stream<StorageAccount> resources = Optional.ofNullable(sparkClusterNode.getRemote())
             .map(r -> r.properties().storageProfile().storageaccounts().stream()).orElse(Stream.empty());
         return Collections.singletonList(new ItemPage<>(resources)).iterator();
     }

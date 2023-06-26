@@ -11,8 +11,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.component.AzureModuleLabelView;
-import com.microsoft.azure.toolkit.ide.common.component.AzureResourceLabelView;
+import com.microsoft.azure.toolkit.ide.common.component.AzModuleNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
@@ -29,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Emulatable;
+import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -43,7 +44,15 @@ import javax.annotation.Nullable;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -229,31 +238,51 @@ public class Favorites extends AbstractAzResourceModule<Favorite, AzResource.Non
         }
     }
 
-    public static Node<Favorites> buildFavoriteRoot(IExplorerNodeProvider.Manager manager) {
+    public static <T extends AzResource> Node<Favorites> buildFavoriteRoot(IExplorerNodeProvider.Manager manager) {
         final AzureActionManager am = AzureActionManager.getInstance();
         final AzureActionManager.Shortcuts shortcuts = am.getIDEDefaultShortcuts();
 
         final Action<Favorites> unpinAllAction = new Action<>(Action.Id.<Favorites>of("user/resource.unpin_all"))
-                .withLabel("Unmark All As Favorite")
-                .withIcon(AzureIcons.Action.UNPIN.getIconPath())
-                .visibleWhen(s -> s instanceof Favorites)
-                .enableWhen(s -> !Favorites.getInstance().favorites.isEmpty())
-                .withHandler(Favorites::unpinAll)
-                .withShortcut("control F11");
+            .withLabel("Unmark All As Favorite")
+            .withIcon(AzureIcons.Action.UNPIN.getIconPath())
+            .visibleWhen(s -> s instanceof Favorites)
+            .enableWhen(s -> !Favorites.getInstance().favorites.isEmpty())
+            .withHandler(Favorites::unpinAll)
+            .withShortcut("control F11");
 
-        final AzureModuleLabelView<Favorites> rootView = new AzureModuleLabelView<>(Favorites.getInstance(), "Favorites", FAVORITE_ICON);
-        return new Node<>(Favorites.getInstance(), rootView).lazy(false)
-                .actions(new ActionGroup(unpinAllAction, "---", ResourceCommonActionsContributor.REFRESH))
-                .addChildren(Favorites::list, (o, parent) -> {
-                    final Node<?> node = manager.createNode(o.getResource(), parent, IExplorerNodeProvider.ViewType.APP_CENTRIC);
-                    if (node.view() instanceof AzureResourceLabelView) {
-                        node.view(new FavoriteNodeView((AzureResourceLabelView<?>) node.view()));
-                    }
-                    return node;
-                });
+        return new AzModuleNode<>(Favorites.getInstance())
+            .withIcon(FAVORITE_ICON)
+            .withLabel("Favorites")
+            .withChildrenLoadLazily(false)
+            .withActions(new ActionGroup(unpinAllAction, "---", ResourceCommonActionsContributor.REFRESH))
+            .addChildren(Favorites::list, (o, parent) -> {
+                final Node<?> node = manager.createNode(o.getResource(), parent, IExplorerNodeProvider.ViewType.APP_CENTRIC);
+                if (node instanceof AzResourceNode) {
+                    @SuppressWarnings("unchecked")
+                    final Function<Object, String> descProvider = (Function<Object, String>) node.getDescBuilder();
+                    ((AzResourceNode<?>) node).withTips(r -> {
+                            if (!Azure.az(AzureAccount.class).isLoggedIn()) {
+                                return "";
+                            }
+                            final ResourceId id = ResourceId.fromString(r.getId());
+                            final Subscription subs = r.getSubscription();
+                            final String rg = id.resourceGroupName();
+                            final String typeName = r.getModule().getResourceTypeName();
+                            return String.format("Type:%s | Subscription: %s | Resource Group:%s", typeName, subs.getName(), rg) +
+                                Optional.ofNullable(id.parent()).map(p -> " | Parent:" + p.name()).orElse("");
+                        })
+                        .withDescription(r -> {
+                            if (!r.getSubscription().isSelected()) {
+                                return String.format("(%s)", r.getSubscription().getName());
+                            }
+                            return Optional.ofNullable(descProvider).map(p -> p.apply(node.getValue())).orElse(null);
+                        });
+                }
+                return node;
+            });
     }
 
-    protected boolean isAuthRequired() {
+    protected boolean isAuthRequiredForListing() {
         return false;
     }
 }

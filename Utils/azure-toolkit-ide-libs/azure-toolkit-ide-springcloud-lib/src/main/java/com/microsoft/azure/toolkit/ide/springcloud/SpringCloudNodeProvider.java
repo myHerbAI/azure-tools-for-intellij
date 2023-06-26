@@ -7,11 +7,20 @@ package com.microsoft.azure.toolkit.ide.springcloud;
 
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.component.*;
+import com.microsoft.azure.toolkit.ide.common.component.AzModuleNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
+import com.microsoft.azure.toolkit.ide.common.component.Node;
+import com.microsoft.azure.toolkit.ide.common.component.ServiceLinkerNode;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinker;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
-import com.microsoft.azure.toolkit.lib.springcloud.*;
+import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppInstance;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppInstanceModule;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -49,46 +58,45 @@ public class SpringCloudNodeProvider implements IExplorerNodeProvider {
             final AzureSpringCloud service = (AzureSpringCloud) data;
             final Function<AzureSpringCloud, List<SpringCloudCluster>> clusters = asc -> asc.list().stream().flatMap(m -> m.clusters().list().stream())
                 .collect(Collectors.toList());
-            return new Node<>(service).view(new AzureServiceLabelView<>(service, "Spring Apps", ICON))
-                .actions(SpringCloudActionsContributor.SERVICE_ACTIONS)
+            return new AzServiceNode<>((AzureSpringCloud) data)
+                .withIcon(ICON).withLabel("Spring Apps")
+                .withActions(SpringCloudActionsContributor.SERVICE_ACTIONS)
                 .addChildren(clusters, (cluster, ascNode) -> this.createNode(cluster, ascNode, manager));
         } else if (data instanceof SpringCloudCluster) {
             final SpringCloudCluster cluster = (SpringCloudCluster) data;
-            return new Node<>(cluster)
-                .view(new AzureResourceLabelView<>(cluster))
+            return new AzResourceNode<>(cluster)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .actions(SpringCloudActionsContributor.CLUSTER_ACTIONS)
+                .withActions(SpringCloudActionsContributor.CLUSTER_ACTIONS)
                 .addChildren(c -> c.apps().list(), (app, clusterNode) -> this.createNode(app, clusterNode, manager))
-                .hasMoreChildren(c -> c.apps().hasMoreResources())
-                .loadMoreChildren(c -> c.apps().loadMoreResources());
+                .withMoreChildren(c -> c.apps().hasMoreResources(), c -> c.apps().loadMoreResources());
         } else if (data instanceof SpringCloudApp) {
             final SpringCloudApp app = (SpringCloudApp) data;
-            return new Node<>(app)
-                .view(new AzureResourceLabelView<>(app))
+            return new AzResourceNode<>(app)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .addInlineAction(ResourceCommonActionsContributor.DEPLOY)
-                .doubleClickAction(ResourceCommonActionsContributor.SHOW_PROPERTIES)
-                .actions(SpringCloudActionsContributor.APP_ACTIONS)
+                .onDoubleClicked(ResourceCommonActionsContributor.SHOW_PROPERTIES)
+                .withActions(SpringCloudActionsContributor.APP_ACTIONS)
                 .addChildren(c -> Optional.ofNullable(c.getActiveDeployment()).map(SpringCloudDeployment::getSubModules).orElse(Collections.emptyList()),
                     (instanceModule, moduleNode) -> this.createNode(instanceModule, moduleNode, manager));
         } else if (data instanceof SpringCloudAppInstanceModule) {
             final SpringCloudAppInstanceModule module = (SpringCloudAppInstanceModule) data;
-            return new Node<>(module)
-                    .view(new AzureModuleLabelView<>(module, "Instances", AzureIcons.SpringCloud.INSTANCE_MODULE.getIconPath()))
-                    .actions(SpringCloudActionsContributor.APP_INSTANCE_MODULE_ACTIONS)
-                    .addChildren(SpringCloudAppInstanceModule::list, (d, p) -> this.createNode(d, p, manager));
+            return new AzModuleNode<>(module)
+                .withIcon(AzureIcons.SpringCloud.INSTANCE_MODULE)
+                .withLabel("Instances")
+                .withActions(SpringCloudActionsContributor.APP_INSTANCE_MODULE_ACTIONS)
+                .addChildren(SpringCloudAppInstanceModule::list, (d, p) -> this.createNode(d, p, manager));
         }
         else if (data instanceof SpringCloudAppInstance) {
             final SpringCloudAppInstance appInstance = (SpringCloudAppInstance) data;
-            return new Node<>(appInstance)
-                .view(new AzureResourceLabelView<>(appInstance))
-                .actions(SpringCloudActionsContributor.APP_INSTANCE_ACTIONS);
+            return new AzResourceNode<>(appInstance)
+                .withActions(SpringCloudActionsContributor.APP_INSTANCE_ACTIONS);
         } else if (data instanceof ServiceLinkerModule) {
             final ServiceLinkerModule module = (ServiceLinkerModule) data;
-            return new Node<>(module)
-                    .view(new AzureModuleLabelView<>(module, "Service Connector", AzureIcons.Connector.SERVICE_LINKER_MODULE.getIconPath()))
-                    .actions(ResourceCommonActionsContributor.SERVICE_LINKER_MODULE_ACTIONS)
-                    .addChildren(ServiceLinkerModule::list, (d, p) -> this.createNode(d, p, manager));
+            return new AzModuleNode<>(module)
+                .withIcon(AzureIcons.Connector.SERVICE_LINKER_MODULE)
+                .withLabel("Service Connector")
+                .withActions(ResourceCommonActionsContributor.SERVICE_LINKER_MODULE_ACTIONS)
+                .addChildren(ServiceLinkerModule::list, (d, p) -> this.createNode(d, p, manager));
         } else if (data instanceof ServiceLinker) {
             final ServiceLinker serviceLinker = (ServiceLinker) data;
             return new ServiceLinkerNode(serviceLinker);

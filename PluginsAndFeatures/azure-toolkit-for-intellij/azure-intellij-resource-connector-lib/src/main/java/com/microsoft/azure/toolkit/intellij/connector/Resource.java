@@ -52,4 +52,8 @@ public interface Resource<T> {
     default boolean isModified(Resource<T> resource) {
         return !this.equals(resource);
     }
+
+    default boolean isValidResource() {
+        return true;
+    }
 }

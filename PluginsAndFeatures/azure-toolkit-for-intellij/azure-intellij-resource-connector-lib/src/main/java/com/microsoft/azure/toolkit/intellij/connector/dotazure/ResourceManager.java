@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.connector.dotazure;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.intellij.connector.Resource;
@@ -17,6 +18,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jdom.Element;
 
 import javax.annotation.Nonnull;
@@ -42,18 +44,18 @@ public class ResourceManager {
     private static final String ELEMENT_NAME_RESOURCES = "resources";
     private static final String ELEMENT_NAME_RESOURCE = "resource";
     private final Set<Resource<?>> resources = new LinkedHashSet<>();
-    @Nullable
-    private final VirtualFile resourcesFile;
     @Getter
     private final Profile profile;
 
     public ResourceManager(@Nonnull final Profile profile) {
         this.profile = profile;
-        this.resourcesFile = this.profile.getProfileDir().findChild(RESOURCES_FILE);
         try {
             this.load();
         } catch (final Exception e) {
-            throw new AzureToolkitRuntimeException(e);
+            final Throwable root = ExceptionUtils.getRootCause(e);
+            if (!(root instanceof ProcessCanceledException)) {
+                throw new AzureToolkitRuntimeException(e);
+            }
         }
     }
 
@@ -72,6 +74,7 @@ public class ResourceManager {
     public static List<ResourceDefinition<?>> getDefinitions() {
         return getDefinitionsMap().values().stream()
             .sorted(Comparator.comparing(ResourceDefinition::getTitle))
+            .sorted(Comparator.comparing((ResourceDefinition<?> d) -> !d.isEnvPrefixSupported()))
             .collect(Collectors.toList());
     }
 
@@ -99,7 +102,8 @@ public class ResourceManager {
     @AzureOperation("boundary/connector.save_resources")
     void save() throws IOException {
         final Element resourcesEle = new Element(ELEMENT_NAME_RESOURCES);
-        this.resources.forEach(resource -> {
+        // todo: whether to save invalid resources?
+        this.resources.stream().filter(Resource::isValidResource).forEach(resource -> {
             final Element resourceEle = new Element(ELEMENT_NAME_RESOURCE);
             try {
                 if (resource.writeTo(resourceEle)) {
@@ -117,11 +121,12 @@ public class ResourceManager {
     @ExceptionNotification
     @AzureOperation(name = "boundary/connector.load_resources")
     void load() throws Exception {
-        if (Objects.isNull(this.resourcesFile) || this.resourcesFile.contentsToByteArray().length < 1) {
+        final VirtualFile resourcesFile = this.profile.getProfileDir().findChild(RESOURCES_FILE);
+        if (Objects.isNull(resourcesFile) || resourcesFile.contentsToByteArray().length < 1) {
             return;
         }
         this.resources.clear();
-        final Element resourcesEle = JDOMUtil.load(this.resourcesFile.toNioPath());
+        final Element resourcesEle = JDOMUtil.load(resourcesFile.toNioPath());
         for (final Element resourceEle : resourcesEle.getChildren()) {
             final String resDef = resourceEle.getAttributeValue(ATTR_DEFINITION);
             final ResourceDefinition<?> definition = ResourceManager.getDefinition(resDef);

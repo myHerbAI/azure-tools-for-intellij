@@ -7,12 +7,15 @@ package com.microsoft.azure.toolkit.intellij.common.action;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.CommonShortcuts;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.actionSystem.DataKey;
+import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.EmptyAction;
 import com.intellij.openapi.actionSystem.IdeActions;
@@ -21,6 +24,7 @@ import com.intellij.openapi.actionSystem.ShortcutSet;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.DumbAware;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
@@ -39,6 +43,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.microsoft.azure.toolkit.lib.common.action.Action.EMPTY_PLACE;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
 
 public class IntellijAzureActionManager extends AzureActionManager {
     private static final ExtensionPointName<IActionsContributor> actionsExtensionPoint =
@@ -65,7 +72,8 @@ public class IntellijAzureActionManager extends AzureActionManager {
     public <D> void registerAction(Action<D> action) {
         final ActionManager manager = ActionManager.getInstance();
         if (Objects.isNull(manager.getAction(action.getId()))) {
-            manager.registerAction(action.getId(), new AnActionWrapper<>(action));
+            final AnActionWrapper<D> wrapper = new AnActionWrapper<>(action);
+            manager.registerAction(action.getId(), wrapper);
         }
     }
 
@@ -96,6 +104,11 @@ public class IntellijAzureActionManager extends AzureActionManager {
     @Override
     public IActionGroup getGroup(String id) {
         return (ActionGroupWrapper) ActionManager.getInstance().getAction(id);
+    }
+
+    public static String convertToAzureActionPlace(@Nonnull final String place) {
+        return StringUtils.equalsAnyIgnoreCase(place, ActionPlaces.PROJECT_VIEW_POPUP, ActionPlaces.PROJECT_VIEW_TOOLBAR)
+            ? ResourceCommonActionsContributor.PROJECT_VIEW : place;
     }
 
     @Getter
@@ -129,18 +142,30 @@ public class IntellijAzureActionManager extends AzureActionManager {
             }
         }
 
+        @Nullable
+        @SuppressWarnings("unchecked")
+        private T getSource(@Nonnull AnActionEvent e) {
+            return Optional.ofNullable((T) e.getDataContext().getData(Action.SOURCE))
+                .or(() -> Optional.ofNullable(e.getData(CommonDataKeys.NAVIGATABLE_ARRAY))
+                    .filter(d -> d.length == 1 && d[0] instanceof DataProvider)
+                    .map(d -> (DataProvider) d[0])
+                    .map(d -> (T) d.getData(Action.SOURCE)))
+                .orElse(null);
+        }
+
         @Override
         public void actionPerformed(@Nonnull AnActionEvent e) {
-            final T source = (T) e.getDataContext().getData(Action.SOURCE);
+            final T source = getSource(e);
+            this.action.getContext().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(e.getPlace(), EMPTY_PLACE));
             this.action.handle(source, e);
         }
 
         @Override
         public void update(@Nonnull AnActionEvent e) {
-            final T source = (T) e.getDataContext().getData(Action.SOURCE);
+            final T source = getSource(e);
+            final String place = convertToAzureActionPlace(e.getPlace());
             final Presentation presentation = e.getPresentation();
-            final IView.Label view = this.action.getView(source);
-
+            final IView.Label view = this.action.getView(source, place);
             final boolean visible;
             final boolean isAbstractAzResource = source instanceof AbstractAzResource;
 
@@ -303,6 +328,16 @@ public class IntellijAzureActionManager extends AzureActionManager {
             @Override
             public Object deploy() {
                 return Action.Id.of(IdeActions.ACTION_DEFAULT_RUNNER);
+            }
+
+            @Override
+            public Object copy() {
+                return CommonShortcuts.getCopy();
+            }
+
+            @Override
+            public Object paste() {
+                return CommonShortcuts.getPaste();
             }
         };
     }

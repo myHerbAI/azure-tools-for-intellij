@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.connector.dotazure;
 
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
@@ -20,6 +21,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jdom.Element;
 
 import javax.annotation.Nonnull;
@@ -47,18 +49,20 @@ public class ConnectionManager {
     public static final String FIELD_ID = "id";
     private static Map<String, ConnectionDefinition<?, ?>> definitions = null;
     private final Set<Connection<?, ?>> connections = new LinkedHashSet<>();
-    @Nullable
-    private final VirtualFile connectionsFile;
     @Getter
     private final Profile profile;
+    @Getter
+    private VirtualFile connectionsFile;
 
     public ConnectionManager(@Nonnull final Profile profile) {
         this.profile = profile;
-        this.connectionsFile = this.profile.getProfileDir().findChild(CONNECTIONS_FILE);
         try {
             this.load();
         } catch (final Exception e) {
-            throw new AzureToolkitRuntimeException(e);
+            final Throwable root = ExceptionUtils.getRootCause(e);
+            if (!(root instanceof ProcessCanceledException)) {
+                throw new AzureToolkitRuntimeException(e);
+            }
         }
     }
 
@@ -110,6 +114,7 @@ public class ConnectionManager {
 
     @AzureOperation(name = "internal/connector.add_connection")
     public synchronized void addConnection(Connection<?, ?> connection) {
+        connection.setProfile(this.profile);
         connections.add(connection);
     }
 
@@ -130,6 +135,11 @@ public class ConnectionManager {
         return connections.stream().filter(e -> StringUtils.equals(id, e.getConsumer().getId())).collect(Collectors.toList());
     }
 
+    @Nullable
+    public VirtualFile getConnectionsFile() {
+        return this.profile.getProfileDir().findChild(CONNECTIONS_FILE);
+    }
+
     @ExceptionNotification
     @AzureOperation(name = "boundary/connector.save_connections")
     void save() throws IOException {
@@ -141,17 +151,20 @@ public class ConnectionManager {
             connection.write(connectionEle);
             connectionsEle.addContent(connectionEle);
         }
-        final VirtualFile connectionFiles = this.profile.getProfileDir().findOrCreateChildData(this, CONNECTIONS_FILE);
-        JDOMUtil.write(connectionsEle, connectionFiles.toNioPath());
+        if (Objects.isNull(connectionsFile)) {
+            this.connectionsFile = this.profile.getProfileDir().findOrCreateChildData(this, CONNECTIONS_FILE);
+        }
+        JDOMUtil.write(connectionsEle, connectionsFile.toNioPath());
     }
 
     @ExceptionNotification
     @AzureOperation(name = "boundary/connector.load_connections")
     void load() throws Exception {
-        if (Objects.isNull(this.connectionsFile) || this.connectionsFile.contentsToByteArray().length < 1) {
+        this.connectionsFile = getConnectionsFile();
+        if (Objects.isNull(connectionsFile) || connectionsFile.contentsToByteArray().length < 1) {
             return;
         }
-        final Element connectionsEle = JDOMUtil.load(this.connectionsFile.toNioPath());
+        final Element connectionsEle = JDOMUtil.load(connectionsFile.toNioPath());
         final Profile profile = this.getProfile();
         final ResourceManager resourceManager = profile.getResourceManager();
         this.connections.clear();

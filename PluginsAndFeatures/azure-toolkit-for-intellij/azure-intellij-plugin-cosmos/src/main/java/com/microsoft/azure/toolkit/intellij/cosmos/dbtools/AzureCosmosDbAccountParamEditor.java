@@ -24,8 +24,6 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.ComponentUtil;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBCheckBox;
-import com.intellij.util.Consumer;
-import com.intellij.util.ui.UIUtil;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.cosmos.creation.CreateCosmosDBAccountAction;
@@ -59,6 +57,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class AzureCosmosDbAccountParamEditor extends ParamEditorBase<AzureCosmosDbAccountParamEditor.CosmosDbAccountComboBox> {
@@ -121,7 +120,6 @@ public class AzureCosmosDbAccountParamEditor extends ParamEditorBase<AzureCosmos
     @Nonnull
     private HyperlinkLabel initNotSignInTipsLabel(CosmosDbAccountComboBox combox) {
         final HyperlinkLabel label = new HyperlinkLabel();
-        label.setForeground(UIUtil.getContextHelpForeground());
         label.setHtmlText(NOT_SIGNIN_TIPS);
         label.setIcon(AllIcons.General.Information);
         label.addHyperlinkListener(e -> signInAndReloadItems(combox, label));
@@ -131,7 +129,6 @@ public class AzureCosmosDbAccountParamEditor extends ParamEditorBase<AzureCosmos
 
     private HyperlinkLabel initNoAccountTipsLabel(CosmosDbAccountComboBox combox) {
         final HyperlinkLabel label = new HyperlinkLabel();
-        label.setForeground(UIUtil.getContextHelpForeground());
         label.setHtmlText(String.format(NO_ACCOUNT_TIPS_TEMPLATE, combox.getKind().getValue()));
         label.setIcon(AllIcons.General.Information);
         label.addHyperlinkListener(e -> createAccountInIde(e.getInputEvent()));
@@ -250,13 +247,13 @@ public class AzureCosmosDbAccountParamEditor extends ParamEditorBase<AzureCosmos
             final List<CosmosDBAccount> accounts = Azure.az(AzureCosmosService.class).getDatabaseAccounts(kind).stream()
                 .filter(m -> !m.isDraftForCreating()).collect(Collectors.toList());
             this.noAccounts = accounts.size() == 0;
-            Optional.ofNullable(this.accountsListener).ifPresent(l -> l.consume(this.noAccounts));
+            Optional.ofNullable(this.accountsListener).ifPresent(l -> l.accept(this.noAccounts));
             return accounts;
         }
 
         public void setAccountsListener(@Nonnull Consumer<Boolean> accountsListener) {
             this.accountsListener = accountsListener;
-            accountsListener.consume(this.noAccounts);
+            accountsListener.accept(this.noAccounts);
         }
 
         @Override

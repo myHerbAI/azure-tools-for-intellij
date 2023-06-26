@@ -116,7 +116,7 @@ public class FunctionAppActionsContributor implements IActionsContributor {
     public void registerActions(AzureActionManager am) {
         new Action<>(SWAP_DEPLOYMENT_SLOT)
             .visibleWhen(s -> s instanceof FunctionAppDeploymentSlot)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .withLabel("Swap with Production")
             .withIdParam(AbstractAzResource::getName)
             .register(am);
@@ -166,19 +166,19 @@ public class FunctionAppActionsContributor implements IActionsContributor {
             .withLabel("Function App")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ResourceGroup)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .register(am);
 
         new Action<>(ENABLE_REMOTE_DEBUGGING)
             .withLabel("Enable Remote Debugging")
             .withIdParam(AzResource::getName)
-            .visibleWhen(s -> s instanceof FunctionAppBase<?, ?, ?> && ((FunctionAppBase<?, ?, ?>) s).getFormalStatus(true).isRunning() && !((FunctionAppBase<?, ?, ?>) s).isRemoteDebugEnabled())
+            .visibleWhen(s -> s instanceof FunctionAppBase<?, ?, ?> && ((FunctionAppBase<?, ?, ?>) s).getFormalStatus().isRunning() && !((FunctionAppBase<?, ?, ?>) s).isRemoteDebugEnabled())
             .register(am);
 
         new Action<>(DISABLE_REMOTE_DEBUGGING)
             .withLabel("Disable Remote Debugging")
             .withIdParam(AzResource::getName)
-            .visibleWhen(s -> s instanceof FunctionAppBase<?, ?, ?> && ((FunctionAppBase<?, ?, ?>) s).getFormalStatus(true).isRunning() && ((FunctionAppBase<?, ?, ?>) s).isRemoteDebugEnabled())
+            .visibleWhen(s -> s instanceof FunctionAppBase<?, ?, ?> && ((FunctionAppBase<?, ?, ?>) s).getFormalStatus().isRunning() && ((FunctionAppBase<?, ?, ?>) s).isRemoteDebugEnabled())
             .register(am);
 
         new Action<>(REMOTE_DEBUGGING)
@@ -186,7 +186,7 @@ public class FunctionAppActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.ATTACH_DEBUGGER.getIconPath())
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof FunctionAppBase<?, ?, ?>)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .register(am);
     }
 

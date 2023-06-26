@@ -4,13 +4,16 @@ import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.intellij.common.runconfig.IWebAppRunConfiguration;
 import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware;
+import com.microsoft.azure.toolkit.intellij.facet.AzureFacet;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
@@ -23,26 +26,33 @@ import org.jdom.JDOMException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 public class AzureModule {
-    static final String DOT_AZURE = ".azure";
-    static final String PROFILES_XML = "profiles.xml";
+    private static final Pattern PATTERN = Pattern.compile("(Gradle|Maven): (.+):(.+):(.+)");
+
+    public static final String DOT_AZURE = ".azure";
+    public static final String PROFILES_XML = "profiles.xml";
     static final String DOT_GITIGNORE = ".gitignore";
     static final String DEFAULT_PROFILE_NAME = "default";
     static final String DOT_ENV = ".env";
+    static final String TARGETS_FILE = "deployment.targets.xml";
     static final String RESOURCES_FILE = "connections.resources.xml";
     static final String CONNECTIONS_FILE = "connections.xml";
 
     private static final Map<Module, AzureModule> modules = new ConcurrentHashMap<>();
     public static final String ATTR_DEFAULT_PROFILE = "defaultProfile";
     private final Map<String, Profile> profiles = new ConcurrentHashMap<>();
+    @Getter
     @Nonnull
     private final Module module;
     @Getter
@@ -55,12 +65,18 @@ public class AzureModule {
     private Profile defaultProfile;
 
     public AzureModule(@Nonnull final Module module) {
+        this(module, null);
+    }
+
+    public AzureModule(@Nonnull final Module module, @Nullable VirtualFile dotAzure) {
         this.module = module;
-        this.getModuleDir().map(d -> d.findChild(DOT_AZURE)).ifPresent(dotAzure -> {
-            this.dotAzure = dotAzure;
-            this.profilesXmlFile = this.dotAzure.findChild(PROFILES_XML);
-            Optional.ofNullable(this.profilesXmlFile).ifPresent(this::loadProfiles);
-        });
+        Optional.ofNullable(dotAzure)
+            .or(() -> Optional.ofNullable(AzureFacet.getInstance(module)).map(AzureFacet::getDotAzurePath).map(p -> VfsUtil.findFile(p, true)))
+            .or(() -> this.getModuleDir().map(d -> d.findChild(DOT_AZURE))).ifPresent(d -> {
+                this.dotAzure = d;
+                this.profilesXmlFile = this.dotAzure.findChild(PROFILES_XML);
+                Optional.ofNullable(this.profilesXmlFile).ifPresent(this::loadProfiles);
+            });
     }
 
     @SneakyThrows(value = {IOException.class, JDOMException.class})
@@ -86,7 +102,7 @@ public class AzureModule {
             try {
                 this.dotAzure = VfsUtil.createDirectoryIfMissing(moduleDir, DOT_AZURE);
                 final VirtualFile dotGitIgnore = dotAzure.findOrCreateChildData(this, DOT_GITIGNORE);
-                dotGitIgnore.setBinaryContent((DOT_ENV + "\n" + RESOURCES_FILE).getBytes());
+                dotGitIgnore.setBinaryContent((DOT_ENV + "\n" + RESOURCES_FILE + "\n" + TARGETS_FILE).getBytes());
                 this.profilesXmlFile = dotAzure.findOrCreateChildData(this, PROFILES_XML);
                 Optional.of(this.profilesXmlFile).ifPresent(this::loadProfiles);
                 this.dotAzure.refresh(true, false);
@@ -203,8 +219,36 @@ public class AzureModule {
         return Objects.nonNull(this.profilesXmlFile);
     }
 
+    public boolean hasAzureFacet() {
+        return Objects.nonNull(AzureFacet.getInstance(this.module));
+    }
+
+    public boolean neverHasAzureFacet() {
+        return !AzureFacet.wasEverAddedTo(this.module);
+    }
+
+    public boolean hasAzureDependencies() {
+        final List<String> libs = new ArrayList<>();
+        OrderEnumerator.orderEntries(this.module).librariesOnly().forEachLibrary(l -> libs.add(l.getName()));
+        return libs.stream().filter(StringUtils::isNotBlank)
+            .map(PATTERN::matcher).filter(Matcher::matches)
+            .anyMatch(m -> {
+                final String artifactId = m.group(2).trim() + ":" + m.group(3).trim();
+                return StringUtils.equals(artifactId, "com.azure:azure-core") ||
+                    StringUtils.equals(artifactId, "com.microsoft.azure:azure-client-runtime") ||
+                    StringUtils.equals(artifactId, "com.microsoft.azure.functions:azure-functions-java-library");
+            });
+    }
+
+    @Nonnull
     public static AzureModule from(@Nonnull Module module) {
         return modules.computeIfAbsent(module, t -> new AzureModule(module));
+    }
+
+    @Nullable
+    public static AzureModule from(@Nonnull VirtualFile file, @Nonnull Project project) {
+        final Module module = ModuleUtil.findModuleForFile(file, project);
+        return Objects.isNull(module) ? null : AzureModule.from(module);
     }
 
     public static List<AzureModule> list(@Nonnull Project project) {

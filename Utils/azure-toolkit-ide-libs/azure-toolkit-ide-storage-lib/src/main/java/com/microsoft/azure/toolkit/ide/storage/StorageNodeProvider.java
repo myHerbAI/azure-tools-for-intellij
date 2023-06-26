@@ -7,11 +7,14 @@ package com.microsoft.azure.toolkit.ide.storage;
 
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.component.*;
+import com.microsoft.azure.toolkit.ide.common.component.AzModuleNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider;
+import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.AzuriteStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
@@ -31,7 +34,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider.DEFAULT_AZURE_RESOURCE_ICON_PROVIDER;
 import static com.microsoft.azure.toolkit.lib.Azure.az;
 
 public class StorageNodeProvider implements IExplorerNodeProvider {
@@ -55,82 +57,60 @@ public class StorageNodeProvider implements IExplorerNodeProvider {
     @Override
     public Node<?> createNode(@Nonnull Object data, @Nullable Node<?> parent, @Nonnull Manager manager) {
         if (data instanceof AzureStorageAccount) {
-            final AzureStorageAccount service = ((AzureStorageAccount) data);
-            return new Node<>(service).view(new AzureServiceLabelView<>(service, NAME, ICON))
-                .actions(StorageActionsContributor.SERVICE_ACTIONS)
-                .addChildren(ignore -> service.accounts(true), (account, storageNode) -> this.createNode(account, storageNode, manager));
+            return new AzServiceNode<>((AzureStorageAccount) data)
+                .withIcon(ICON).withLabel(NAME)
+                .withActions(StorageActionsContributor.SERVICE_ACTIONS)
+                .addChildren(s -> s.accounts(true), (account, storageNode) -> this.createNode(account, storageNode, manager));
         } else if (data instanceof AzuriteStorageAccount) {
-            final AzuriteStorageAccount account = (AzuriteStorageAccount) data;
-            return new Node<>(account).view(new AzureResourceLabelView<AzuriteStorageAccount>(account, AzuriteStorageAccount::getStatus, StorageNodeProvider::getAzuriteIcon))
+            return new AzResourceNode<>((AzuriteStorageAccount) data)
+                .withDescription(AzuriteStorageAccount::getStatus)
+                .withIcon(StorageNodeProvider::getAzuriteIcon)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .actions(StorageActionsContributor.AZURITE_ACTIONS)
-                .addChildren(s -> s.getSubModules().stream().filter(Objects::nonNull).collect(Collectors.toList()), (module, p) -> new Node<>(module)
-                    .view(new AzureModuleLabelView<>(module, module.getResourceTypeName() + "s"))
-                    .actions(StorageActionsContributor.STORAGE_MODULE_ACTIONS)
-                    .addChildren(AbstractAzResourceModule::list, (d, mn) -> this.createNode(d, mn, manager))
-                    .hasMoreChildren(AbstractAzResourceModule::hasMoreResources)
-                    .loadMoreChildren(AbstractAzResourceModule::loadMoreResources));
+                .withActions(StorageActionsContributor.AZURITE_ACTIONS)
+                .addChildren(s -> s.getSubModules().stream().filter(Objects::nonNull).collect(Collectors.toList()), (module, p) -> new AzModuleNode<>(module)
+                    .withActions(StorageActionsContributor.STORAGE_MODULE_ACTIONS)
+                    .addChildren(AbstractAzResourceModule::list, (d, mn) -> this.createNode(d, mn, manager)));
         } else if (data instanceof StorageAccount) {
-            final StorageAccount account = (StorageAccount) data;
-            return new Node<>(account).view(new AzureResourceLabelView<>(account))
+            return new AzResourceNode<>((StorageAccount) data)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .actions(StorageActionsContributor.ACCOUNT_ACTIONS)
-                .addChildren(StorageAccount::getSubModules, (module, p) -> new Node<>(module)
-                    .view(new AzureModuleLabelView<>(module, module.getResourceTypeName() + "s"))
-                    .actions(StorageActionsContributor.STORAGE_MODULE_ACTIONS)
-                    .addChildren(AbstractAzResourceModule::list, (d, mn) -> this.createNode(d, mn, manager))
-                    .hasMoreChildren(AbstractAzResourceModule::hasMoreResources)
-                    .loadMoreChildren(AbstractAzResourceModule::loadMoreResources));
+                .withActions(StorageActionsContributor.ACCOUNT_ACTIONS)
+                .addChildren(StorageAccount::getSubModules, (module, p) -> new AzModuleNode<>(module)
+                    .withActions(StorageActionsContributor.STORAGE_MODULE_ACTIONS)
+                    .addChildren(AbstractAzResourceModule::list, (d, mn) -> this.createNode(d, mn, manager)));
         } else if (data instanceof BlobContainer) {
-            final BlobContainer container = (BlobContainer) data;
-            final AzureResourceLabelView<BlobContainer> view = new AzureResourceLabelView<>(container);
-            final StringBuilder tips = new StringBuilder();
-            Optional.ofNullable(container.getLastModified()).map(lm -> String.format("Date modified: %s", lm.format(DATE_TIME_FORMATTER))).ifPresent(tips::append);
-            view.setTips(tips.toString());
-            return new Node<>(container).view(view)
-                .actions(StorageActionsContributor.CONTAINER_ACTIONS)
+            return new AzResourceNode<>((BlobContainer) data)
+                .withTips(c -> Optional.ofNullable(c.getLastModified()).map(lm -> String.format("Date modified: %s", lm.format(DATE_TIME_FORMATTER))).orElse(""))
+                .withActions(StorageActionsContributor.CONTAINER_ACTIONS)
                 .addChildren(c -> c.getSubFileModule().list(), (blob, p) -> this.createNode(blob, p, manager))
-                .hasMoreChildren(c -> c.getSubFileModule().hasMoreResources())
-                .loadMoreChildren(c -> c.getSubFileModule().loadMoreResources());
+                .withMoreChildren(c -> c.getSubFileModule().hasMoreResources(), c -> c.getSubFileModule().loadMoreResources());
         } else if (data instanceof Share) {
-            final Share share = (Share) data;
-            final AzureResourceLabelView<Share> view = new AzureResourceLabelView<>(share);
-            final StringBuilder tips = new StringBuilder();
-            Optional.ofNullable(share.getLastModified()).map(lm -> String.format("Date modified: %s", lm.format(DATE_TIME_FORMATTER))).ifPresent(tips::append);
-            view.setTips(tips.toString());
-            return new Node<>(share).view(view)
-                .actions(StorageActionsContributor.SHARE_ACTIONS)
+            return new AzResourceNode<>((Share) data)
+                .withTips(s -> Optional.ofNullable(s.getLastModified()).map(lm -> String.format("Date modified: %s", lm.format(DATE_TIME_FORMATTER))).orElse(""))
+                .withActions(StorageActionsContributor.SHARE_ACTIONS)
                 .addChildren(s -> s.getSubFileModule().list(), (file, p) -> this.createNode(file, p, manager))
-                .hasMoreChildren(c -> c.getSubFileModule().hasMoreResources())
-                .loadMoreChildren(c -> c.getSubFileModule().loadMoreResources());
+                .withMoreChildren(c -> c.getSubFileModule().hasMoreResources(), c -> c.getSubFileModule().loadMoreResources());
         } else if (data instanceof Queue) {
-            final Queue queue = (Queue) data;
-            return new Node<>(queue)
-                .actions(StorageActionsContributor.QUEUE_ACTIONS)
-                .view(new AzureResourceLabelView<>(queue));
+            return new AzResourceNode<>((Queue) data)
+                .withActions(StorageActionsContributor.QUEUE_ACTIONS);
         } else if (data instanceof Table) {
-            final Table table = (Table) data;
-            return new Node<>(table)
-                .actions(StorageActionsContributor.TABLE_ACTIONS)
-                .view(new AzureResourceLabelView<>(table));
+            return new AzResourceNode<>((Table) data)
+                .withActions(StorageActionsContributor.TABLE_ACTIONS);
         } else if (data instanceof StorageFile) {
             final StorageFile file = (StorageFile) data;
-            final AzureResourceLabelView<StorageFile> view = new AzureResourceLabelView<>(file, d -> "", StorageNodeProvider::getFileIcon);
-            final Node<StorageFile> node = new Node<>(file).view(view);
+            final Node<StorageFile> node = new AzResourceNode<>(file)
+                .withIcon(StorageNodeProvider::getFileIcon)
+                .withDescription(d -> "");
             if (file.isDirectory()) {
-                final StringBuilder tips = new StringBuilder();
-                Optional.ofNullable(file.getCreationTime()).map(ct -> String.format("Date created: %s", ct.format(DATE_TIME_FORMATTER))).ifPresent(tips::append);
-                view.setTips(tips.toString());
-                node.actions(StorageActionsContributor.DIRECTORY_ACTIONS)
+                node.withTips(f -> Optional.ofNullable(f.getCreationTime()).map(ct -> String.format("Date created: %s", ct.format(DATE_TIME_FORMATTER))).orElse(null))
+                    .withActions(StorageActionsContributor.DIRECTORY_ACTIONS)
                     .addChildren(f -> f.getSubFileModule().list(), (f, p) -> this.createNode(f, p, manager))
-                    .hasMoreChildren(c -> c.getSubFileModule().hasMoreResources())
-                    .loadMoreChildren(c -> c.getSubFileModule().loadMoreResources());
+                    .withMoreChildren(c -> c.getSubFileModule().hasMoreResources(), c -> c.getSubFileModule().loadMoreResources());
             } else {
                 final StringBuilder tips = new StringBuilder().append(String.format("Size: %s", FileUtils.byteCountToDisplaySize(file.getSize())));
                 Optional.ofNullable(file.getLastModified()).map(lm -> String.format("Date modified: %s", lm.format(DATE_TIME_FORMATTER))).ifPresent(d -> tips.append(String.format(", %s", d)));
-                view.setTips(tips.toString());
-                node.actions(StorageActionsContributor.FILE_ACTIONS)
-                    .doubleClickAction(StorageActionsContributor.OPEN_FILE);
+                node.withTips(tips.toString())
+                    .withActions(StorageActionsContributor.FILE_ACTIONS)
+                    .onDoubleClicked(StorageActionsContributor.OPEN_FILE);
             }
             return node;
         }

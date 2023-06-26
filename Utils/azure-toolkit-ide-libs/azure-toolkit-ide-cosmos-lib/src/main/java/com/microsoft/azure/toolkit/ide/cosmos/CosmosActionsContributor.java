@@ -49,14 +49,14 @@ public class CosmosActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.OPEN_DATABASE_TOOL.getIconPath())
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof CosmosDBAccount)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .register(am);
 
         new Action<>(COPY_CONNECTION_STRING)
             .withLabel("Copy Connection String")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof CosmosDBAccount)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .withHandler(resource -> {
                 final String connectionString = resource.listConnectionStrings().getPrimaryConnectionString();
                 am.getAction(ResourceCommonActionsContributor.COPY_STRING).handle(connectionString);
@@ -68,7 +68,7 @@ public class CosmosActionsContributor implements IActionsContributor {
             .withLabel("Open Data Explorer")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof CosmosDBAccount)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .withHandler(resource -> am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(resource.getPortalUrl() + "/dataExplorer"))
             .register(am);
 
@@ -76,21 +76,21 @@ public class CosmosActionsContributor implements IActionsContributor {
             .withLabel("Azure Cosmos DB")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ResourceGroup)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .register(am);
 
         new Action<>(OPEN_DOCUMENT)
             .withLabel("Open Document")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ICosmosDocument)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .register(am);
 
         new Action<>(IMPORT_DOCUMENT)
             .withLabel("Import Document")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ICosmosDocumentContainer<?>)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .register(am);
     }
 

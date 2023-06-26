@@ -21,12 +21,17 @@ import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapponlinux.W
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerregistry.Tag;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
+
+import static com.microsoft.azure.toolkit.lib.common.action.Action.EMPTY_PLACE;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
 
 public class WebAppOnLinuxAction extends AnAction {
     private static final String DIALOG_TITLE = "Deploy Image to Web App";
@@ -46,6 +51,7 @@ public class WebAppOnLinuxAction extends AnAction {
     @Override
     @AzureOperation(name = "user/docker.start_app")
     public void actionPerformed(@Nonnull AnActionEvent e) {
+        OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(e.getPlace(), EMPTY_PLACE));
         final Project project = e.getProject();
         if (project != null) {
             AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH)

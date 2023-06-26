@@ -13,10 +13,11 @@ import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
-import com.microsoft.azure.toolkit.ide.common.component.NodeView;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
+import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -26,16 +27,8 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import javax.swing.tree.*;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -50,8 +43,13 @@ public class Tree extends SimpleTree implements DataProvider {
     }
 
     public Tree(Node<?> root) {
+        this(root, null);
+    }
+
+    public Tree(Node<?> root, @Nullable String place) {
         super();
         this.root = root;
+        this.putClientProperty(Action.PLACE, place);
         init(root);
     }
 
@@ -82,25 +80,32 @@ public class Tree extends SimpleTree implements DataProvider {
     }
 
     @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-    public static class TreeNode<T> extends DefaultMutableTreeNode implements NodeView.Refresher {
+    public static class TreeNode<T> extends DefaultMutableTreeNode implements Node.ViewRenderer, Node.ChildrenRenderer {
         @Nonnull
         @EqualsAndHashCode.Include
         protected final Node<T> inner;
         protected final JTree tree;
         Boolean loaded = null; //null:not loading/loaded, false: loading: true: loaded
 
+        private final Debouncer updateChildrenLater = new TailingDebouncer(this::doUpdateChildren, 300);
+
         public TreeNode(@Nonnull Node<T> n, JTree tree) {
-            super(n.data(), n.hasChildren());
+            super(n.getValue(), n.hasChildren());
             this.inner = n;
             this.tree = tree;
             if (this.getAllowsChildren()) {
                 this.add(new LoadingNode());
             }
-            if (!this.inner.lazy()) {
+            if (!this.inner.isLazy()) {
                 this.loadChildren();
             }
-            final NodeView view = this.inner.view();
-            view.setRefresher(this);
+            this.inner.setViewRenderer(this);
+            this.inner.setChildrenRenderer(this);
+        }
+
+        @Nullable
+        public String getPlace() {
+            return TreeUtils.getPlace(this.tree);
         }
 
         @Override
@@ -110,42 +115,53 @@ public class Tree extends SimpleTree implements DataProvider {
             return super.getParent();
         }
 
-        public T getData() {
-            return this.inner.data();
-        }
-
         public String getLabel() {
-            return this.inner.view().getLabel();
+            return this.inner.getLabel();
         }
 
         public List<IView.Label> getInlineActionViews() {
-            return this.inner.inlineActionList().stream().map(action -> action.getView(this.inner.data()))
-                    .filter(IView.Label::isEnabled)
-                    .collect(Collectors.toList());
+            return this.inner.getInlineActions().stream()
+                .map(action -> action.getView(this.inner.getValue(), this.getPlace()))
+                .filter(IView.Label::isEnabled)
+                .collect(Collectors.toList());
         }
 
-        @Override
-        public void refreshView() {
-            synchronized (this.tree) {
-                final DefaultTreeModel model = (DefaultTreeModel) this.tree.getModel();
-                if (Objects.nonNull(model) && (Objects.nonNull(this.getParent()) || Objects.equals(model.getRoot(), this))) {
-                    AzureTaskManager.getInstance().runLater(() -> model.nodeChanged(this));
-                }
+        private void doUpdateChildren() {
+            final DefaultTreeModel model = (DefaultTreeModel) this.tree.getModel();
+            if (Objects.nonNull(model) && (Objects.nonNull(this.getParent()) || Objects.equals(model.getRoot(), this))) {
+                AzureTaskManager.getInstance().runLater(() -> {
+                    synchronized (this.tree) {
+                        if (Objects.nonNull(this.getParent()) || Objects.equals(model.getRoot(), this)) {
+                            try {
+                                model.nodeStructureChanged(this);
+                            } catch (final NullPointerException ignored) {
+                            }
+                        }
+                    }
+                });
             }
         }
 
-        private void refreshChildrenView() {
-            synchronized (this.tree) {
-                final DefaultTreeModel model = (DefaultTreeModel) this.tree.getModel();
-                if (Objects.nonNull(model) && (Objects.nonNull(this.getParent()) || Objects.equals(model.getRoot(), this))) {
-                    AzureTaskManager.getInstance().runLater(() -> model.nodeStructureChanged(this));
-                }
+        @Override
+        public void updateView() {
+            final DefaultTreeModel model = (DefaultTreeModel) this.tree.getModel();
+            if (Objects.nonNull(model) && (Objects.nonNull(this.getParent()) || Objects.equals(model.getRoot(), this))) {
+                AzureTaskManager.getInstance().runLater(() -> {
+                    synchronized (this.tree) {
+                        if (Objects.nonNull(this.getParent()) || Objects.equals(model.getRoot(), this)) {
+                            try {
+                                model.nodeChanged(this);
+                            } catch (final NullPointerException ignored) {
+                            }
+                        }
+                    }
+                });
             }
         }
 
         @Override
         @AzureOperation(name = "user/common.load_children.node", params = "this.getLabel()")
-        public synchronized void refreshChildren(boolean... incremental) {
+        public synchronized void updateChildren(boolean... incremental) {
             AzureTaskManager.getInstance().runLater(() -> { // queue up/wait until pending UI update finishes.
                 if (this.getAllowsChildren() && BooleanUtils.isNotFalse(this.loaded)) {
                     final DefaultTreeModel model = (DefaultTreeModel) this.tree.getModel();
@@ -155,7 +171,7 @@ public class Tree extends SimpleTree implements DataProvider {
                         this.removeAllChildren();
                     }
                     this.add(new LoadingNode());
-                    this.refreshChildrenView();
+                    this.updateChildrenLater.debounce();
                     this.loaded = null;
                     this.loadChildren(incremental);
                 }
@@ -183,42 +199,31 @@ public class Tree extends SimpleTree implements DataProvider {
             children.stream().map(c -> new TreeNode<>(c, this.tree)).forEach(this::add);
             this.addLoadMoreNode();
             this.loaded = true;
-            this.refreshChildrenView();
+            this.updateChildrenLater.debounce();
         }
 
         private synchronized void updateChildren(List<Node<?>> children) {
-            final Map<Object, DefaultMutableTreeNode> oldChildren = IntStream.range(0, this.getChildCount() - 1).mapToObj(this::getChildAt)
-                .filter(n -> n instanceof DefaultMutableTreeNode).map(n -> ((DefaultMutableTreeNode) n))
-                .collect(Collectors.toMap(DefaultMutableTreeNode::getUserObject, n -> n));
+            final Map<Node<?>, TreeNode<?>> oldChildren = IntStream.range(0, this.getChildCount() - 1).mapToObj(this::getChildAt)
+                .filter(n -> n instanceof TreeNode<?>).map(n -> ((TreeNode<?>) n))
+                .collect(Collectors.toMap(n -> n.inner, n -> n));
 
-            final Set<Object> newChildrenData = children.stream().map(Node::data).collect(Collectors.toSet());
-            final Set<Object> oldChildrenData = oldChildren.keySet();
-            Sets.difference(oldChildrenData, newChildrenData).forEach(o -> oldChildren.get(o).removeFromParent());
+            final Set<Node<?>> newChildrenNodes = new HashSet<>(children);
+            final Set<Node<?>> oldChildrenNodes = oldChildren.keySet();
+            Sets.difference(oldChildrenNodes, newChildrenNodes).forEach(o -> oldChildren.get(o).removeFromParent());
 
-            TreePath toSelect = null;
-            if (this.inner.newItemOrder() == Node.Order.LIST_ORDER) {
-                for (int i = 0; i < children.size(); i++) {
-                    final Node<?> node = children.get(i);
-                    if (!oldChildrenData.contains(node.data())) {
-                        final TreeNode<?> treeNode = new TreeNode<>(node, this.tree);
-                        this.insert(treeNode, i);
-                        toSelect = new TreePath(treeNode.getPath());
-                    } else { // discarded nodes should be disposed manually to unregister listeners.
-                        node.dispose();
-                    }
+            for (int i = 0; i < children.size(); i++) {
+                final Node<?> node = children.get(i);
+                if (!oldChildrenNodes.contains(node)) {
+                    final TreeNode<?> treeNode = new TreeNode<>(node, this.tree);
+                    this.insert(treeNode, i);
+                } else { // discarded nodes should be disposed manually to unregister listeners.
+                    node.dispose();
                 }
-            } else {
-                final List<Node<?>> newChildren = children.stream()
-                    .filter(c -> !oldChildrenData.contains(c.data())).toList();
-                newChildren.forEach(node -> this.insert(new TreeNode<>(node, this.tree), getChildCount()));
             }
 
             this.removeLoadingNode();
             this.addLoadMoreNode();
-            this.refreshChildrenView();
-//            Optional.ofNullable(toSelect)
-//                .filter(s -> ((DefaultMutableTreeNode) s.getPathComponent(1)).getUserObject() instanceof AzureResources) //  is node in app-centric view.
-//                .ifPresent(p -> TreeUtil.selectPath(this.tree, p, false));
+            this.updateChildrenLater.debounce();
             this.loaded = true;
         }
 
@@ -230,7 +235,7 @@ public class Tree extends SimpleTree implements DataProvider {
                     this.add(new LoadingNode());
                     AzureTaskManager.getInstance().runLater(() -> this.tree.collapsePath(new TreePath(this.getPath())));
                 }
-                this.refreshChildrenView();
+                this.updateChildrenLater.debounce();
             }
         }
 

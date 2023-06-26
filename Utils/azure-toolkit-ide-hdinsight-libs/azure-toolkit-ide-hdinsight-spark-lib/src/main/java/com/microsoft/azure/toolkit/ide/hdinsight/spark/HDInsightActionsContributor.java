@@ -172,7 +172,7 @@ public class HDInsightActionsContributor implements IActionsContributor {
                     final Account account = Azure.az(AzureAccount.class).account();
                     final String portalUrl = account.getPortalUrl();
                     StorageAccountNode storageAccountNode = (StorageAccountNode)resource;
-                    StorageAccount remote = storageAccountNode.getRemote(true);
+                    StorageAccount remote = storageAccountNode.getRemote();
                     String resourceId = remote.resourceId();
                     String tenantId = storageAccountNode.getSubscription().getTenantId();
                     String url = portalUrl + "/#@" + tenantId + "/resource" + resourceId;

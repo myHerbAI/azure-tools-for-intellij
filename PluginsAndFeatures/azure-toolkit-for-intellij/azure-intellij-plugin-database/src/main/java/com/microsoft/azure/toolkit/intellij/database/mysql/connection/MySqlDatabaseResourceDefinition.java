@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.database.mysql.connection;
 
-import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
@@ -17,12 +16,10 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabaseServer;
 import com.microsoft.azure.toolkit.lib.mysql.AzureMySql;
 import com.microsoft.azure.toolkit.lib.mysql.MySqlDatabase;
-import com.microsoft.azure.toolkit.lib.mysql.MySqlServer;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 public class MySqlDatabaseResourceDefinition extends SqlDatabaseResourceDefinition<MySqlDatabase> {
@@ -34,12 +31,7 @@ public class MySqlDatabaseResourceDefinition extends SqlDatabaseResourceDefiniti
 
     @Override
     public MySqlDatabase getResource(String dataId) {
-        final ResourceId dbId = ResourceId.fromString(dataId);
-        final ResourceId serverId = dbId.parent();
-        final String databaseName = dbId.name();
-        final String resourceGroup = dbId.resourceGroupName();
-        final MySqlServer server = Azure.az(AzureMySql.class).servers(dbId.subscriptionId()).get(serverId.name(), resourceGroup);
-        return Objects.requireNonNull(server).databases().get(databaseName, resourceGroup);
+        return Azure.az(AzureMySql.class).getById(dataId);
     }
 
     @Override

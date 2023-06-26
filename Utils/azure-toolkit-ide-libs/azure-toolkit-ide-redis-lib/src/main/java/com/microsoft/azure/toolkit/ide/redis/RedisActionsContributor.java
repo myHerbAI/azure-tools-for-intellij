@@ -30,14 +30,14 @@ public class RedisActionsContributor implements IActionsContributor {
             .withIdParam(AzResource::getName)
             .withShortcut(am.getIDEDefaultShortcuts().view())
             .visibleWhen(s -> s instanceof RedisCache)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .register(am);
 
         new Action<>(GROUP_CREATE_REDIS)
             .withLabel("Redis Cache")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ResourceGroup)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .register(am);
     }
 
