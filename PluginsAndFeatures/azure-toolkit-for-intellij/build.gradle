@@ -7,11 +7,11 @@ plugins {
     id "io.spring.dependency-management" version "1.0.11.RELEASE"
 }
 
-//processResources {
-//    filesMatching('ApplicationInsights.xml') {
-//        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: ["applicationinsights.key": project.property("applicationinsights.key")])
-//    }
-//}
+processResources {
+    filesMatching('ApplicationInsights.xml') {
+        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: ["applicationinsights.key": project.property("applicationinsights.key")])
+    }
+}
 
 allprojects {
     apply plugin: 'java'
@@ -64,9 +64,9 @@ allprojects {
     }
 
     ext {
-        azureToolkitLibsVersion = "0.34.0"
-        azureToolkitIdeLibsVersion = "0.34.0"
-        azureToolkitUtilsVersion = "3.78.0"
+        azureToolkitLibsVersion = "0.35.0-SNAPSHOT"
+        azureToolkitIdeLibsVersion = "0.35.0-SNAPSHOT"
+        azureToolkitUtilsVersion = "3.79.0-SNAPSHOT"
         azureToolkitHDInsightVersion = "0.1.0"
     }
 
