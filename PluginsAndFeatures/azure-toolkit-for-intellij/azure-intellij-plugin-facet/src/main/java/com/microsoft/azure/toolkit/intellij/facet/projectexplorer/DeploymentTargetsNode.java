@@ -79,7 +79,7 @@ public class DeploymentTargetsNode extends AbstractTreeNode<AzureModule> impleme
     @Override
     @Nullable
     public Object getData(@Nonnull String dataId) {
-        return StringUtils.equalsIgnoreCase(dataId, "ACTION_SOURCE") ? this.getValue() : null;
+        return StringUtils.equalsIgnoreCase(dataId, Action.SOURCE) ? this.getValue() : null;
     }
 
     @Override
