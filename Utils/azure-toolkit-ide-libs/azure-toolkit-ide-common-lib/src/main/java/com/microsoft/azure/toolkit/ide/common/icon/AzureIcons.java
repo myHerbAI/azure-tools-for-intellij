@@ -28,6 +28,7 @@ public final class AzureIcons {
         public static final AzureIcon FAVORITE = AzureIcon.builder().iconPath("/icons/Common/favorite.svg").build();
         public static final AzureIcon AZURE_MONITOR = AzureIcon.builder().iconPath("icons/Common/log_analytics_workspace.svg").build();
         public static final AzureIcon AZURE_MONITOR_NEW = AzureIcon.builder().iconPath("icons/Common/log_analytics_workspace_bluedot.svg").build();
+        public static final AzureIcon VARIABLE = AzureIcon.builder().iconPath("icons/Common/variable.svg").build();
     }
 
     public static final class Action {

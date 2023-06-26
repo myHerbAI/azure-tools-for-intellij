@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 
 import com.intellij.codeInsight.navigation.NavigationUtil;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
@@ -16,6 +15,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.ui.SimpleTextAttributes;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
+import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
@@ -48,10 +48,10 @@ public class EnvironmentVariableNode extends AbstractTreeNode<Pair<String, Strin
                 .withIcon(AzureIcons.Action.EDIT.getIconPath())
                 .withHandler(ignore -> AzureTaskManager.getInstance().runLater(() -> this.navigate(true)))
                 .withAuthRequired(false);
-        this.toggleVisibilityAction = new Action<>(Action.Id.of("user/connector.show_env"))
-                .withLabel(ignore -> this.visible ? "Hide Value" : "Show Value")
-                .withHandler(ignore -> AzureTaskManager.getInstance().runLater(() -> this.toggleVisibility()))
-                .withAuthRequired(false);
+        this.toggleVisibilityAction = new Action<>(Action.Id.of("user/connector.toggle_env_visibility"))
+            .withLabel(ignore -> this.visible ? "Hide Value" : "Show Value")
+            .withHandler(ignore -> AzureTaskManager.getInstance().runLater(this::toggleVisibility))
+            .withAuthRequired(false);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class EnvironmentVariableNode extends AbstractTreeNode<Pair<String, Strin
     @Override
     protected void update(@Nonnull final PresentationData presentation) {
         final Pair<String, String> pair = this.getValue();
-        presentation.setIcon(AllIcons.Nodes.Variable);
+        presentation.setIcon(IntelliJAzureIcons.getIcon(AzureIcons.Common.VARIABLE));
         presentation.addText(pair.getKey(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
         presentation.setTooltip("Click to toggle visibility");
         if (visible) {

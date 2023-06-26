@@ -22,13 +22,13 @@ import java.util.Optional;
 public class AppSettingsNode extends AzResourceNode<AppServiceAppBase<?, ?, ?>> {
     public AppSettingsNode(@Nonnull AppServiceAppBase<?, ?, ?> app) {
         super(app);
-        this.withIcon(AzureIcons.AppService.APP_SETTINGS)
+        this.withIcon(AzureIcons.Common.VARIABLE)
             .withLabel("App Settings")
             .withDescription("")
             .withTips("Variables passed as environment variables to the application code")
             .withActions(AppServiceActionsContributor.APP_SETTINGS_ACTIONS)
             .addChildren(
-                a -> Optional.ofNullable(a.getAppSettings()).map(Map::entrySet).map(s -> s.stream().toList()).orElse(Collections.emptyList()),
+                a -> Optional.ofNullable(a.getAppSettings()).map(Map::entrySet).map(s -> s.stream().sorted(Map.Entry.comparingByKey()).toList()).orElse(Collections.emptyList()),
                 (e, p) -> new AppSettingNode(e));
     }
 
@@ -37,7 +37,7 @@ public class AppSettingsNode extends AzResourceNode<AppServiceAppBase<?, ?, ?>> 
 
         public AppSettingNode(@Nonnull Map.Entry<String, String> data) {
             super(data);
-            this.withIcon(AzureIcons.AppService.APP_SETTING)
+            this.withIcon(AzureIcons.Common.VARIABLE)
                 .withLabel(data.getKey())
                 .withActions(createActionGroup())
                 .withDescription(value -> visible ? " = " + data.getValue() : " = ***");
