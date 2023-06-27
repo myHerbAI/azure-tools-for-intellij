@@ -65,7 +65,6 @@ public class EnvironmentVariableNode extends AbstractTreeNode<Pair<String, Strin
         final Pair<String, String> pair = this.getValue();
         presentation.setIcon(IntelliJAzureIcons.getIcon(AzureIcons.Common.VARIABLE));
         presentation.addText(pair.getKey(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
-        presentation.setTooltip("Click to toggle visibility");
         if (visible) {
             presentation.addText(" = " + pair.getValue(), SimpleTextAttributes.GRAYED_ATTRIBUTES);
         } else {
