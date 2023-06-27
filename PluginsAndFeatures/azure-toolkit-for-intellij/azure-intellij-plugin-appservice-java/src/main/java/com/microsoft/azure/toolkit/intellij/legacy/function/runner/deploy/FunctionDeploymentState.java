@@ -108,8 +108,8 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
             final DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask loadDotEnvBeforeRunTask = functionDeployConfiguration.getLoadDotEnvBeforeRunTask();
             final Map<String, String> appSettings = functionDeployConfiguration.getConfig().getAppSettings();
             loadDotEnvBeforeRunTask.loadEnv().stream()
-                    .filter(pair -> StringUtils.equalsIgnoreCase(pair.getKey(), "AzureWebJobsStorage") &&
-                            StringUtils.equalsIgnoreCase(pair.getValue(), LOCAL_STORAGE_CONNECTION_STRING)) // remove connection string for azurite
+                    .filter(pair -> !(StringUtils.equalsIgnoreCase(pair.getKey(), "AzureWebJobsStorage") &&
+                            StringUtils.equalsIgnoreCase(pair.getValue(), LOCAL_STORAGE_CONNECTION_STRING))) // workaround to remove local connections
                     .forEach(env -> appSettings.put(env.getKey(), env.getValue()));
         }
     }
