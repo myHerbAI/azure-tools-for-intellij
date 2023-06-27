@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.connector;
 
+import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -20,15 +21,14 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang3.tuple.Pair;
-import rx.Observable;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -156,8 +156,8 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
             .register(am);
     }
 
-    public static Observable<Void> fixResourceConnection(Connection<?, ?> c, Project project) {
-        final Observable[] result = new Observable[1];
+    public static Future<?> fixResourceConnection(Connection<?, ?> c, Project project) {
+        final Future<?>[] result = new Future<?>[1];
         AzureTaskManager.getInstance().runAndWait(() -> {
             final String invalidResourceName = c.getResource().isValidResource() ? null : c.getResource().getDefinition().getTitle();
             final String invalidConsumerName = c.getConsumer().isValidResource() ? null : c.getConsumer().getDefinition().getTitle();
@@ -171,9 +171,9 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
             dialog.setFixedConnectionDefinition(c.getDefinition());
             dialog.setValue(c);
             dialog.show();
-            result[0] = dialog.getObservable();
+            result[0] = dialog.getFuture();
         });
-        return Optional.ofNullable(result[0]).orElse(Observable.empty());
+        return Optional.ofNullable(result[0]).orElse(Futures.immediateFuture(null));
     }
 
     private void refreshModuleConnections(AzureModule module) {

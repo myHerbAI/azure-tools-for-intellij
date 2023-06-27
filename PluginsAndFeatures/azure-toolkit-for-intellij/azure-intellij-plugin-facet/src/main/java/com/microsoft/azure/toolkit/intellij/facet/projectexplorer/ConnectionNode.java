@@ -67,7 +67,8 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
         if (connection.getResource() instanceof AzureServiceResource) {
             children.add(getResourceNode(connection));
         }
-        if (Objects.nonNull(profile)) {
+        final Boolean envFileExists = Optional.ofNullable(profile).map(Profile::getDotEnvFile).map(VirtualFile::exists).orElse(false);
+        if (envFileExists) {
             children.add(new EnvironmentVariablesNode(this.getProject(), profile, connection));
         }
         return children;

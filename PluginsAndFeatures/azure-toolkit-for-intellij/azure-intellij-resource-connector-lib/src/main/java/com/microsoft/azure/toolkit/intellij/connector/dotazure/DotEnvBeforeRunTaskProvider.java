@@ -141,7 +141,7 @@ public class DotEnvBeforeRunTaskProvider extends BeforeRunTaskProvider<DotEnvBef
                     .filter(c -> !c.validate(project))
                     .map(c -> ResourceConnectionActionsContributor.fixResourceConnection(c, project))
                     .filter(Objects::nonNull)
-                    .map(Observable::toCompletable)
+                    .map(Completable::fromFuture)
                     .collect(Collectors.toList());
             // wait for all connection has been saved to .env)
             Completable.merge(completables).await();
