@@ -59,17 +59,17 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
     @Nonnull
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
         final Connection<?, ?> connection = this.getValue();
-        if (!connection.validate(getProject())) {
-            return Collections.singletonList(new ActionNode<>(this.myProject, ResourceConnectionActionsContributor.FIX_CONNECTION, connection));
-        }
         final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>();
-        if (connection.getResource() instanceof AzureServiceResource) {
-            final AbstractTreeNode<?> resourceNode = getResourceNode(connection);
-            children.add(resourceNode);
+        final Profile profile = module.getDefaultProfile();
+        if (!connection.validate(getProject())) {
+            children.add(new ActionNode<>(this.myProject, ResourceConnectionActionsContributor.FIX_CONNECTION, connection));
         }
-        final Profile profile = Objects.requireNonNull(module.getDefaultProfile());
-        final EnvironmentVariablesNode environmentVariablesNode = new EnvironmentVariablesNode(this.getProject(), profile, connection);
-        children.add(environmentVariablesNode);
+        if (connection.getResource() instanceof AzureServiceResource) {
+            children.add(getResourceNode(connection));
+        }
+        if (Objects.nonNull(profile)) {
+            children.add(new EnvironmentVariablesNode(this.getProject(), profile, connection));
+        }
         return children;
     }
 
