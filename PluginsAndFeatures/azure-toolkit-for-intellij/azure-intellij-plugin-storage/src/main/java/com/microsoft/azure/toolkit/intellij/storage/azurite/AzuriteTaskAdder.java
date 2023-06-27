@@ -37,7 +37,8 @@ public class AzuriteTaskAdder implements RunManagerListener, ConnectionTopics.Co
     @ExceptionNotification
     public void runConfigurationAdded(@Nonnull RunnerAndConfigurationSettings settings) {
         final RunConfiguration config = settings.getConfiguration();
-        if (isConfigurationConnectedToAzurite(config) && !isConfigurationContainsAzuriteTask(config)) {
+        if (isConfigurationConnectedToAzurite(config) && !isConfigurationContainsAzuriteTask(config)
+                && !isDeploymentTask(config)) {
             config.getBeforeRunTasks().add(new AzuriteTaskProvider.AzuriteBeforeRunTask());
         }
     }
@@ -48,19 +49,24 @@ public class AzuriteTaskAdder implements RunManagerListener, ConnectionTopics.Co
         final List<RunConfiguration> configurations = rm.getAllConfigurationsList();
         if (action == ConnectionTopics.Action.ADD && isAzuriteResourceConnection(connection)) {
             configurations.stream()
-                    .filter(config -> connection.isApplicableFor(config) && !isConfigurationContainsAzuriteTask(config))
+                    .filter(config -> connection.isApplicableFor(config) && !isConfigurationContainsAzuriteTask(config)
+                            && isDeploymentTask(config))
                     .forEach(config -> config.getBeforeRunTasks().add(new AzuriteTaskProvider.AzuriteBeforeRunTask()));
         } else if (action == ConnectionTopics.Action.REMOVE) {
             // if user update connection from azurite to existing storage account, connection in remove event will not be azurite
             // so could not check isAzuriteResourceConnection here, but need to check all configurations
             configurations.stream()
-                    .filter(config -> isConfigurationContainsAzuriteTask(config) && !isConfigurationConnectedToAzurite(config))
+                    .filter(config -> isConfigurationContainsAzuriteTask(config) && !isConfigurationConnectedToAzurite(config)
+                            && isDeploymentTask(config))
                     .forEach(config -> config.getBeforeRunTasks().removeIf(t -> t instanceof AzuriteTaskProvider.AzuriteBeforeRunTask));
         }
     }
 
     @Override
     public void artifactMayChanged(@Nonnull RunConfiguration config, @Nullable ConfigurationSettingsEditorWrapper editor) {
+        if (isDeploymentTask(config)) {
+            return;
+        }
         final List<Connection<?, ?>> connections = AzureModule.createIfSupport(config).map(AzureModule::getDefaultProfile)
                 .map(Profile::getConnectionManager)
                 .map(ConnectionManager::getConnections)
@@ -75,6 +81,12 @@ public class AzuriteTaskAdder implements RunManagerListener, ConnectionTopics.Co
             RunManagerEx.getInstanceEx(config.getProject()).setBeforeRunTasks(config, newTasks);
             Optional.ofNullable(editor).ifPresent(e -> e.addBeforeLaunchStep(task));
         }
+    }
+
+    // workaround to filter out deployment tasks
+    private static boolean isDeploymentTask(@Nonnull final RunConfiguration config) {
+        final String configuration = config.getClass().getSimpleName();
+        return StringUtils.equalsAnyIgnoreCase(configuration, "WebAppConfiguration", "FunctionDeployConfiguration");
     }
 
     private static boolean isConfigurationContainsAzuriteTask(@Nonnull final RunConfiguration config) {
