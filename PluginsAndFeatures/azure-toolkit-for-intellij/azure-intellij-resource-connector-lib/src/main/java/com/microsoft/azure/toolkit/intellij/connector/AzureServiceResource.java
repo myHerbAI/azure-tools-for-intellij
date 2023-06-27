@@ -142,7 +142,7 @@ public class AzureServiceResource<T extends AzResource> implements Resource<T> {
 
         @Override
         public Resource<T> read(@Nonnull Element ele) {
-            final String id = Optional.ofNullable(ele.getChildTextTrim("resourceId")).orElse(ele.getChildTextTrim("dataId"));
+            final String id = Optional.ofNullable(ele.getChildTextTrim("resourceId")).orElseGet(() -> ele.getChildTextTrim("dataId"));
             return Optional.ofNullable(id).map(this::define).orElse(null);
         }
 

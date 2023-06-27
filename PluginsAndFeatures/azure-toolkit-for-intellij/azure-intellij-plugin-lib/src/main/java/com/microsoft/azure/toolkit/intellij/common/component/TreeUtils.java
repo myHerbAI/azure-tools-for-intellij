@@ -218,7 +218,7 @@ public class TreeUtils {
 
     public static void renderMyTreeNode(JTree tree, @Nonnull Tree.TreeNode<?> node, boolean selected, @Nonnull SimpleColoredComponent renderer) {
         final Node.View view = node.inner.getView();
-        renderer.setIcon(Optional.ofNullable(view.getIcon()).map(IntelliJAzureIcons::getIcon).orElse(IntelliJAzureIcons.getIcon(AzureIcons.Resources.GENERIC_RESOURCE)));
+        renderer.setIcon(Optional.ofNullable(view.getIcon()).map(IntelliJAzureIcons::getIcon).orElseGet(() -> IntelliJAzureIcons.getIcon(AzureIcons.Resources.GENERIC_RESOURCE)));
         final Object highlighted = tree.getClientProperty(HIGHLIGHTED_RESOURCE_KEY);
         //noinspection unchecked
         final boolean toHighlightThisNode = Optional.ofNullable(highlighted).map(h -> ((Pair<Object, Long>) h))
@@ -231,7 +231,7 @@ public class TreeUtils {
         }
         renderer.append(view.getLabel(), attributes);
         renderer.append(Optional.ofNullable(view.getDescription()).filter(StringUtils::isNotBlank).map(d -> " " + d).orElse(""), SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES, true);
-        renderer.setToolTipText(Optional.ofNullable(view.getTips()).filter(StringUtils::isNotBlank).orElse(view.getLabel()));
+        renderer.setToolTipText(Optional.ofNullable(view.getTips()).filter(StringUtils::isNotBlank).orElseGet(view::getLabel));
     }
 
     public static boolean isInAppCentricView(@Nonnull DefaultMutableTreeNode node) {

@@ -111,7 +111,7 @@ public class CommonConnectionResource implements Resource<ConnectionTarget> {
 
         @Override
         public Resource<ConnectionTarget> read(@Nonnull Element element) {
-            final String id = Optional.ofNullable(element.getChildTextTrim("resourceId")).orElse(element.getChildTextTrim("dataId"));
+            final String id = Optional.ofNullable(element.getChildTextTrim("resourceId")).orElseGet(() -> element.getChildTextTrim("dataId"));
             final String name = element.getChildTextTrim("name");
             final String triggerType = element.getChildTextTrim("triggerType");
             final String connectionString = IntelliJSecureStore.getInstance().loadPassword(Definition.class.getName(), id, null);

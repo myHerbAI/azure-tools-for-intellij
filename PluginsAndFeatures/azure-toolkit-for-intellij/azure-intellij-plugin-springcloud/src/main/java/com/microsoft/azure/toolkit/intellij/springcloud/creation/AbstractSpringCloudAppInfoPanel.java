@@ -111,7 +111,7 @@ public abstract class AbstractSpringCloudAppInfoPanel extends JPanel implements 
     @Override
     public SpringCloudAppConfig getValue() {
         final SpringCloudAppConfig config = Optional.ofNullable(this.originalConfig)
-                .orElse(SpringCloudAppConfig.builder().deployment(SpringCloudDeploymentConfig.builder().build()).build());
+            .orElseGet(() -> SpringCloudAppConfig.builder().deployment(SpringCloudDeploymentConfig.builder().build()).build());
         return getValue(config);
     }
 
