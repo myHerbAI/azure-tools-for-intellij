@@ -168,7 +168,7 @@ public class ConnectionDefinition<R, C> {
         final List<Connection<?, ?>> existedConnections = profile.getConnections();
         if (CollectionUtils.isNotEmpty(existedConnections)) {
             final Connection<?, ?> existedConnection = existedConnections.stream()
-                    .filter(e -> StringUtils.equals(e.getEnvPrefix(), connection.getEnvPrefix()))
+                    .filter(e -> resource.getDefinition().isEnvPrefixSupported() && StringUtils.equals(e.getEnvPrefix(), connection.getEnvPrefix()))
                     .filter(e -> !StringUtils.equals(e.getId(), connection.getId()))
                     .findFirst().orElse(null);
             if (Objects.nonNull(existedConnection)) { // modified
