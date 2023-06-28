@@ -100,7 +100,7 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
         presentation.setIcon(IntelliJAzureIcons.getIcon(icon));
         presentation.addText(resource.getDefinition().getTitle(), AzureFacetRootNode.getTextAttributes(isValid));
         if (isValid) {
-            presentation.addText(resource.getName(), SimpleTextAttributes.GRAYED_ATTRIBUTES);
+            presentation.addText(StringUtils.SPACE + resource.getName(), SimpleTextAttributes.GRAYED_ATTRIBUTES);
         } else {
             presentation.setTooltip("Resource is missing, please edit the connection.");
         }
