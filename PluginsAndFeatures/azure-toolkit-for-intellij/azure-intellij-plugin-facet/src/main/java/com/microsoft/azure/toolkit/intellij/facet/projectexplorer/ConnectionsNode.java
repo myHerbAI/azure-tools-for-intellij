@@ -65,7 +65,7 @@ public class ConnectionsNode extends AbstractTreeNode<AzureModule> implements IA
         final List<Connection<?, ?>> connections = Optional.ofNullable(getValue().getDefaultProfile())
                 .map(Profile::getConnections).orElse(Collections.emptyList());
         final boolean isConnectionValid = connections.stream().allMatch(c -> c.validate(getProject()));
-        presentation.addText("Resource Connections", AzureFacetRootNode.getTextAttributes(isConnectionValid));
+        presentation.addText("Resource connections", AzureFacetRootNode.getTextAttributes(isConnectionValid));
         presentation.setIcon(AllIcons.Nodes.HomeFolder);
         presentation.setTooltip("The dependent/connected resources.");
     }
@@ -73,7 +73,7 @@ public class ConnectionsNode extends AbstractTreeNode<AzureModule> implements IA
     @Override
     @Nullable
     public Object getData(@Nonnull String dataId) {
-        return StringUtils.equalsIgnoreCase(dataId, "ACTION_SOURCE") ? this.getValue() : null;
+        return StringUtils.equalsIgnoreCase(dataId, Action.SOURCE) ? this.getValue() : null;
     }
 
     @Nullable

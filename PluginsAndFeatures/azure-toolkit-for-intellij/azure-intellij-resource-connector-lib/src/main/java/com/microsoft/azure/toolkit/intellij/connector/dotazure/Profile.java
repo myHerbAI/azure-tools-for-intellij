@@ -19,7 +19,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import io.github.cdimascio.dotenv.internal.DotenvParser;
 import io.github.cdimascio.dotenv.internal.DotenvReader;
 import lombok.Getter;
@@ -27,8 +26,6 @@ import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import rx.Observable;
-import rx.schedulers.Schedulers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,6 +39,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.intellij.connector.ConnectionTopics.CONNECTION_CHANGED;
@@ -98,18 +96,11 @@ public class Profile {
         return this;
     }
 
-    public synchronized Observable<?> addConnection(@Nonnull Connection<?, ?> connection) {
+    public synchronized Future<?> addConnection(@Nonnull Connection<?, ?> connection) {
         AzureFacet.addTo(this.module.getModule());
         this.resourceManager.addResource(connection.getResource());
         this.connectionManager.addConnection(connection);
-        final Observable<?> observable = this.addConnectionToDotEnv(connection);
-        observable.subscribeOn(Schedulers.io()).subscribe(v -> {
-            final String message = String.format("The connection between %s and %s has been successfully created/updated.", connection.getResource().getName(), connection.getConsumer().getName());
-            AzureMessager.getMessager().success(message);
-            final Project project = this.module.getProject();
-            project.getMessageBus().syncPublisher(CONNECTION_CHANGED).connectionChanged(project, connection, ConnectionTopics.Action.ADD);
-        });
-        return observable;
+        return this.addConnectionToDotEnv(connection);
     }
 
     public synchronized Profile removeConnection(@Nonnull Connection<?, ?> connection) {
@@ -120,7 +111,7 @@ public class Profile {
         return this;
     }
 
-    public synchronized Observable<?> createOrUpdateConnection(@Nonnull Connection<?, ?> connection) {
+    public synchronized Future<?> createOrUpdateConnection(@Nonnull Connection<?, ?> connection) {
         // Remove old connection
         this.getConnections().stream().filter(c -> c.getId().equals(connection.getId())).findFirst().ifPresent(this::removeConnection);
         return this.addConnection(connection);
@@ -174,22 +165,26 @@ public class Profile {
 
     @SneakyThrows(IOException.class)
     @AzureOperation(value = "boundary/connector.add_connection_to_dotenv.resource", params = "connection.getResource().getName()")
-    private Observable<?> addConnectionToDotEnv(@Nonnull Connection<?, ?> connection) {
+    private Future<?> addConnectionToDotEnv(@Nonnull Connection<?, ?> connection) {
         if (!this.profileDir.isValid()) {
             throw new AzureToolkitRuntimeException(String.format("'.azure/%s' doesn't exist.", this.name));
         }
         WriteAction.run(() -> this.dotEnvFile = this.profileDir.findOrCreateChildData(this, DOT_ENV));
         Objects.requireNonNull(this.dotEnvFile, String.format("'.azure/%s/.env' can not be created.", this.name));
         final AzureString description = OperationBundle.description("boundary/connector.load_env.resource", connection.getResource().getDataId());
-        return Observable.fromCallable(() -> ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        return ApplicationManager.getApplication().executeOnPooledThread(() -> {
             final String envVariables = generateEnvLines(module.getProject(), connection).stream().collect(Collectors.joining(System.lineSeparator()));
             try {
                 Files.writeString(this.dotEnvFile.toNioPath(), envVariables + System.lineSeparator() + System.lineSeparator(), StandardOpenOption.APPEND);
                 this.profileDir.refresh(true, true);
+                final String message = String.format("The connection between %s and %s has been successfully created/updated.", connection.getResource().getName(), connection.getConsumer().getName());
+                AzureMessager.getMessager().success(message);
+                final Project project = this.module.getProject();
+                project.getMessageBus().syncPublisher(CONNECTION_CHANGED).connectionChanged(project, connection, ConnectionTopics.Action.ADD);
             } catch (final IOException e) {
                 throw new RuntimeException(e);
             }
-        }));
+        });
     }
 
     @Nonnull

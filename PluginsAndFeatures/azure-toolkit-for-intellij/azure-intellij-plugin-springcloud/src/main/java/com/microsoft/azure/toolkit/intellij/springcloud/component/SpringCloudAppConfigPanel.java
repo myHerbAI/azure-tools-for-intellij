@@ -199,7 +199,7 @@ public class SpringCloudAppConfigPanel extends JPanel implements AzureFormPanel<
     @Contract("_->_")
     public SpringCloudAppConfig getValue(@Nonnull SpringCloudAppConfig appConfig) { // get config from form
         final SpringCloudDeploymentConfig deploymentConfig = Optional.ofNullable(appConfig.getDeployment())
-            .orElse(SpringCloudDeploymentConfig.builder().build());
+            .orElseGet(() -> SpringCloudDeploymentConfig.builder().build());
         final boolean isEnterpriseTier = this.useJava17.isVisible();
         if (isEnterpriseTier) {
             final String javaVersion = this.useJava17.isSelected() ? RuntimeVersion.JAVA_17.toString() :

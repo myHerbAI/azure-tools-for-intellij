@@ -480,8 +480,8 @@ public class IDEHelperImpl implements IDEHelper {
     private synchronized VirtualFile getOrCreateVirtualFile(final AppServiceFile file, FileEditorManager manager) {
         synchronized (file) {
             return Arrays.stream(manager.getOpenFiles())
-                    .filter(f -> StringUtils.equals(f.getUserData(APP_SERVICE_FILE_ID), file.getId()))
-                    .findFirst().orElse(createVirtualFile(file.getId(), file.getFullName(), manager));
+                .filter(f -> StringUtils.equals(f.getUserData(APP_SERVICE_FILE_ID), file.getId()))
+                .findFirst().orElseGet(() -> createVirtualFile(file.getId(), file.getFullName(), manager));
         }
     }
 

@@ -31,7 +31,6 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
-import rx.Observable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,6 +39,7 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.Future;
 
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition.CONSUMER;
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition.RESOURCE;
@@ -72,7 +72,7 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     private Connection<?,?> connection;
     @Getter
 
-    private Observable<?> observable;
+    private Future<?> future;
 
     @Getter
     private final String dialogTitle = "Azure Resource Connector";
@@ -163,8 +163,8 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
                 final AzureTaskManager taskManager = AzureTaskManager.getInstance();
                 taskManager.write(() -> {
                     final Profile profile = module.initializeWithDefaultProfileIfNot();
-                    this.observable = profile.createOrUpdateConnection(connection);
-                    this.observable.subscribe(ignore -> profile.save());
+                    this.future = profile.createOrUpdateConnection(connection);
+                    profile.save();
                 });
             }
         }
