@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -30,13 +30,19 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor.EDIT_CONNECTION;
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor.REMOVE_CONNECTION;
@@ -44,15 +50,31 @@ import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionA
 public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implements IAzureFacetNode {
     private final AzureModule module;
     private final Action<?> editAction;
+    private final AzureEventBus.EventListener eventListener;
 
-    public ConnectionNode(@Nonnull Project project, @Nonnull AzureModule module, @Nonnull final Connection<?, ?> connection) {
-        super(project, connection);
-        this.module = module;
+    public ConnectionNode(@Nonnull final ConnectionsNode parent, @Nonnull Connection<?, ?> connection) {
+        super(parent.getProject(), connection);
+        this.module = parent.getValue();
         this.editAction = new Action<>(Action.Id.of("user/connector.edit_connection_in_editor"))
                 .withLabel("Open In Editor")
                 .withIcon(AzureIcons.Action.EDIT.getIconPath())
                 .withHandler(ignore -> AzureTaskManager.getInstance().runLater(() -> this.navigate(true)))
                 .withAuthRequired(false);
+        this.eventListener = new AzureEventBus.EventListener(this::onEvent);
+        AzureEventBus.on("account.logged_in.account", eventListener);
+        Disposer.register(parent, this);
+    }
+
+    private void onEvent(@Nonnull final AzureEvent azureEvent) {
+        final String type = azureEvent.getType();
+        final Object source = azureEvent.getSource();
+        final Resource<?> resource = this.getValue().getResource();
+        if (StringUtils.equalsIgnoreCase(type, "resource.status_changed.resource")) {
+            if (resource instanceof AzureServiceResource &&
+                    source instanceof AzResource && StringUtils.equals(((AzResource) source).getId(), resource.getDataId())) {
+                this.rerender(true);
+            }
+        }
     }
 
     @Override
@@ -171,5 +193,10 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
                 .map(Profile::getConnectionManager)
                 .map(ConnectionManager::getConnectionsFile)
                 .orElse(null);
+    }
+
+    @Override
+    public void dispose() {
+        AzureEventBus.off("account.logged_in.account", eventListener);
     }
 }

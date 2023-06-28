@@ -9,6 +9,7 @@ import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
@@ -34,13 +35,14 @@ public class ConnectionsNode extends AbstractTreeNode<AzureModule> implements IA
 
     private final Action<?> editAction;
 
-    public ConnectionsNode(@Nonnull final AzureModule module) {
-        super(module.getProject(), module);
+    public ConnectionsNode(@Nonnull final AzureFacetRootNode parent) {
+        super(parent.getProject(), parent.getValue());
         this.editAction = new Action<>(Action.Id.of("user/connector.edit_connections_in_editor"))
                 .withLabel("Open In Editor")
                 .withIcon(AzureIcons.Action.EDIT.getIconPath())
                 .withHandler(ignore -> AzureTaskManager.getInstance().runLater(() -> this.navigate(true)))
                 .withAuthRequired(false);
+        Disposer.register(parent, this);
     }
 
     @Override
@@ -50,7 +52,7 @@ public class ConnectionsNode extends AbstractTreeNode<AzureModule> implements IA
         final List<ConnectionNode> children = Optional.of(module).stream()
             .map(AzureModule::getDefaultProfile).filter(Objects::nonNull)
             .flatMap(p -> p.getConnections().stream())
-            .map(r -> new ConnectionNode(module.getProject(), module, r))
+            .map(r -> new ConnectionNode(this, r))
             .toList();
         if (CollectionUtils.isNotEmpty(children)) {
             return children;
