@@ -34,7 +34,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.concurrency.AsyncPromise;
 import org.jetbrains.concurrency.Promise;
 import rx.Completable;
-import rx.Observable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -138,7 +137,7 @@ public class DotEnvBeforeRunTaskProvider extends BeforeRunTaskProvider<DotEnvBef
             final List<Completable> completables = Optional.ofNullable(azureModule).map(AzureModule::getDefaultProfile)
                     .map(Profile::getConnections)
                     .stream().flatMap(List::stream)
-                    .filter(c -> !c.validate(project))
+                    .filter(c -> !c.isValidConnection())
                     .map(c -> ResourceConnectionActionsContributor.fixResourceConnection(c, project))
                     .filter(Objects::nonNull)
                     .map(Completable::fromFuture)
