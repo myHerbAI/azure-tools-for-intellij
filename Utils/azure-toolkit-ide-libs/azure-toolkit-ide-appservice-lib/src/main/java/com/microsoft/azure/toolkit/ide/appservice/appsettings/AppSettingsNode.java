@@ -13,6 +13,9 @@ import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -30,6 +33,19 @@ public class AppSettingsNode extends AzResourceNode<AppServiceAppBase<?, ?, ?>> 
             .addChildren(
                 a -> Optional.ofNullable(a.getAppSettings()).map(Map::entrySet).map(s -> s.stream().toList()).orElse(Collections.emptyList()),
                 (e, p) -> new AppSettingNode(e));
+    }
+
+    @Override
+    public void onEvent(AzureEvent event) {
+        super.onEvent(event);
+        final String type = event.getType();
+        final Object source = event.getSource();
+        // workaround to update app settings when app service properties is updated
+        // todo: add new event for azure resource created/updated
+        if (source instanceof AzResource && StringUtils.equals(type, "resource.status_changed.resource") &&
+                StringUtils.equals(((AzResource) source).getId(), getValue().getId())) {
+            this.refreshChildrenLater();
+        }
     }
 
     private static class AppSettingNode extends Node<Map.Entry<String, String>> {

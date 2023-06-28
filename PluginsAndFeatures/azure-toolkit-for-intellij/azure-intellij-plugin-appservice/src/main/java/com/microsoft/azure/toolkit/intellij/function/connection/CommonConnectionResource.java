@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.function.connection;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
+import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.auth.IntelliJSecureStore;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.Resource;
@@ -123,7 +124,7 @@ public class CommonConnectionResource implements Resource<ConnectionTarget> {
         @Nullable
         @Override
         public String getIcon() {
-            return AzureIcons.Common.AZURE.getIconPath();
+            return AzureIcons.Connector.CONNECT.getIconPath();
         }
 
         @Override
