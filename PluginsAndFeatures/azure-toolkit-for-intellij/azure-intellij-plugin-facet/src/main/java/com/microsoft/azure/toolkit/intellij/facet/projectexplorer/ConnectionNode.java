@@ -100,7 +100,7 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
         presentation.setIcon(IntelliJAzureIcons.getIcon(icon));
         presentation.addText(resource.getDefinition().getTitle(), AzureFacetRootNode.getTextAttributes(isValid));
         if (isValid) {
-            presentation.addText(" :" + resource.getName(), SimpleTextAttributes.GRAYED_ATTRIBUTES);
+            presentation.addText(resource.getName(), SimpleTextAttributes.GRAYED_ATTRIBUTES);
         } else {
             presentation.setTooltip("Resource is missing, please edit the connection.");
         }
@@ -123,7 +123,7 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
     @Override
     @Nullable
     public Object getData(@Nonnull String dataId) {
-        return StringUtils.equalsIgnoreCase(dataId, "ACTION_SOURCE") ? this.getValue() : null;
+        return StringUtils.equalsIgnoreCase(dataId, Action.SOURCE) ? this.getValue() : null;
     }
 
     @Nullable

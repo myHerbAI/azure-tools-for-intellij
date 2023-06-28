@@ -59,7 +59,6 @@ public class StorageAccountResourcePanel implements AzureFormJPanel<Resource<Sto
         btnAzure.setSelected(true);
         this.onSelectEnvironment();
 
-        this.accountComboBox.trackValidation();
         this.subscriptionComboBox.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 this.accountComboBox.reloadItems();

@@ -42,7 +42,6 @@ public class RedisResourcePanel implements AzureFormJPanel<Resource<RedisCache>>
 
     private void init() {
         this.redisComboBox.setRequired(true);
-        this.redisComboBox.trackValidation();
         this.subscriptionComboBox.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 this.redisComboBox.reloadItems();

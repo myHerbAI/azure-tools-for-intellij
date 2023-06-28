@@ -101,6 +101,9 @@ public class SpringPropertiesCompletionContributor extends CompletionContributor
 
         private void insert(Connection<?, ?> c, @Nonnull InsertionContext context) {
             final List<Pair<String, String>> properties = SpringSupported.getProperties(c);
+            if (properties.size() < 1) {
+                return;
+            }
             final StringBuilder result = new StringBuilder("=").append(properties.get(0).getValue()).append(StringUtils.LF);
             for (int i = 1; i < properties.size(); i++) {
                 result.append(properties.get(i).getKey()).append("=").append(properties.get(i).getValue()).append(StringUtils.LF);

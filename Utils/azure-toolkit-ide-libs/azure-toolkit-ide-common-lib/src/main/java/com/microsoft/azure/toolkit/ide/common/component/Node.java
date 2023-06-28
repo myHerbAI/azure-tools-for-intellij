@@ -344,7 +344,7 @@ public class Node<D> {
 
     @Nonnull
     public String buildLabel() {
-        return Optional.ofNullable(this.labelBuilder).map(p -> p.apply(this.value)).orElse(this.value.toString());
+        return Optional.ofNullable(this.labelBuilder).map(p -> p.apply(this.value)).orElseGet(this.value::toString);
     }
 
     public String buildDescription() {

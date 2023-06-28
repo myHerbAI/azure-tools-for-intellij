@@ -61,11 +61,11 @@ public class CreateKubernetesServiceAction {
             .peek(r -> Objects.isNull(historySub) ? subs.stream().anyMatch(s -> s.getId().equals(r.getSubscriptionId())) : r.getSubscriptionId().equals(historySub.getId()));
         final ResourceGroup group = Optional.ofNullable(resourceGroup)
             .or(() -> Optional.ofNullable(historyRg))
-            .orElse(az(AzureResources.class).groups(subs.get(0).getId())
+            .orElseGet(() -> az(AzureResources.class).groups(subs.get(0).getId())
                 .create(defaultResourceGroupName, defaultResourceGroupName));
         final Subscription subscription = Optional.of(group).map(AzResource::getSubscription)
             .or(() -> Optional.ofNullable(historySub))
-            .orElse(subs.get(0));
+            .orElseGet(() -> subs.get(0));
 
         final KubernetesClusterDraft.Config config = new KubernetesClusterDraft.Config();
         config.setName(name);
