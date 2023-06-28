@@ -80,6 +80,8 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
     @Override
     @Nonnull
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
+        // dispose older children
+        Disposer.disposeChildren(this, ignore -> true);
         final Connection<?, ?> connection = this.getValue();
         final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>();
         final Profile profile = module.getDefaultProfile();

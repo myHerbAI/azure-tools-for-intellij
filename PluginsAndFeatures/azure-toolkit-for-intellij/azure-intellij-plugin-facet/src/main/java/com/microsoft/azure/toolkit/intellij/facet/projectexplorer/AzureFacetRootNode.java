@@ -74,6 +74,8 @@ public class AzureFacetRootNode extends ProjectViewNode<AzureModule> implements 
 
     @Override
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
+        // dispose older children
+        Disposer.disposeChildren(this, ignore -> true);
         final AzureModule module = this.getValue();
 //        final ArrayList<AbstractTreeNode<?>> result = new ArrayList<>();
 //        final List<Connection<?, ?>> connections = Optional.ofNullable(module.getDefaultProfile()).map(Profile::getConnections).orElse(Collections.emptyList());

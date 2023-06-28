@@ -12,11 +12,13 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ClientProperty;
 import com.intellij.util.ui.tree.TreeUtil;
@@ -29,6 +31,7 @@ import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -70,11 +73,15 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
         }
         if (Objects.nonNull(azureModule) && hasAzureFacet || neverHasAzureFacet) {
             addListener(parent.getProject());
+            final AbstractProjectViewPane viewPane = ProjectView.getInstance(parent.getProject()).getCurrentProjectViewPane();
             final AbstractTreeNode<?> dotAzureDir = children.stream()
                 .filter(n -> n instanceof PsiDirectoryNode)
                 .map(n -> ((PsiDirectoryNode) n))
                 .filter(d -> Objects.nonNull(d.getVirtualFile()) && ".azure".equalsIgnoreCase(d.getVirtualFile().getName()))
                 .findAny().orElse(null);
+            // dispose old azure facet root node
+            Disposer.disposeChildren(viewPane, child -> child instanceof AzureFacetRootNode &&
+                    Objects.equals(((AzureFacetRootNode) child).getValue(), azureModule));
             final List<AbstractTreeNode<?>> nodes = new LinkedList<>();
             nodes.add(new AzureFacetRootNode(azureModule, settings));
             nodes.addAll(children);
