@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiFile;
@@ -23,6 +23,8 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -35,12 +37,15 @@ import java.util.Optional;
 
 public class EnvironmentVariableNode extends AbstractTreeNode<Pair<String, String>> implements IAzureFacetNode, Navigatable {
     private boolean visible;
+    @Getter
+    @Setter
+    private boolean disposed;
     private final Connection<?,?> connection;
     private final Action<?> editAction;
     private final Action<?> toggleVisibilityAction;
 
-    public EnvironmentVariableNode(Project project, Pair<String, String> generated, Connection<?,?> connection) {
-        super(project, generated);
+    public EnvironmentVariableNode(@Nonnull final EnvironmentVariablesNode parent, Pair<String, String> generated, Connection<?,?> connection) {
+        super(parent.getProject(), generated);
         this.visible = false;
         this.connection = connection;
         this.editAction = new Action<>(Action.Id.of("user/connector.edit_env_in_editor"))
@@ -52,6 +57,9 @@ public class EnvironmentVariableNode extends AbstractTreeNode<Pair<String, Strin
             .withLabel(ignore -> this.visible ? "Hide Value" : "Show Value")
             .withHandler(ignore -> AzureTaskManager.getInstance().runLater(this::toggleVisibility))
             .withAuthRequired(false);
+        if (!parent.isDisposed()) {
+            Disposer.register(parent, this);
+        }
     }
 
     @Override

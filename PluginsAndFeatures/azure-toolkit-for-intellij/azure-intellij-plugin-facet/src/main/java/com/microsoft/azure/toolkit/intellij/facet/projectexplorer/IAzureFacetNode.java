@@ -51,6 +51,10 @@ public interface IAzureFacetNode extends DataProvider, Disposable {
     Project getProject();
 
     default void dispose() {
-
+        setDisposed(true);
     }
+
+    boolean isDisposed();
+
+    void setDisposed(boolean isDisposed);
 }

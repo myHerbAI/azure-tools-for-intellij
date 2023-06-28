@@ -21,6 +21,8 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -34,6 +36,9 @@ import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionA
 public class ConnectionsNode extends AbstractTreeNode<AzureModule> implements IAzureFacetNode {
 
     private final Action<?> editAction;
+    @Getter
+    @Setter
+    private boolean disposed;
 
     public ConnectionsNode(@Nonnull final AzureFacetRootNode parent) {
         super(parent.getProject(), parent.getValue());
@@ -42,7 +47,9 @@ public class ConnectionsNode extends AbstractTreeNode<AzureModule> implements IA
                 .withIcon(AzureIcons.Action.EDIT.getIconPath())
                 .withHandler(ignore -> AzureTaskManager.getInstance().runLater(() -> this.navigate(true)))
                 .withAuthRequired(false);
-        Disposer.register(parent, this);
+        if (!parent.isDisposed()) {
+            Disposer.register(parent, this);
+        }
     }
 
     @Override
@@ -60,7 +67,7 @@ public class ConnectionsNode extends AbstractTreeNode<AzureModule> implements IA
             return children;
         }
         final ArrayList<AbstractTreeNode<?>> nodes = new ArrayList<>();
-        nodes.add(new ActionNode<>(module.getProject(), CONNECT_TO_MODULE, module));
+        nodes.add(new ActionNode<>(this, CONNECT_TO_MODULE, module));
         return nodes;
     }
 
@@ -68,7 +75,7 @@ public class ConnectionsNode extends AbstractTreeNode<AzureModule> implements IA
     protected void update(@Nonnull final PresentationData presentation) {
         final List<Connection<?, ?>> connections = Optional.ofNullable(getValue().getDefaultProfile())
                 .map(Profile::getConnections).orElse(Collections.emptyList());
-        final boolean isConnectionValid = connections.stream().allMatch(c -> c.validate(getProject()));
+        final boolean isConnectionValid = connections.stream().allMatch(Connection::isValidConnection);
         presentation.addText("Resource connections", AzureFacetRootNode.getTextAttributes(isConnectionValid));
         presentation.setIcon(AllIcons.Nodes.HomeFolder);
         presentation.setTooltip("The dependent/connected resources.");

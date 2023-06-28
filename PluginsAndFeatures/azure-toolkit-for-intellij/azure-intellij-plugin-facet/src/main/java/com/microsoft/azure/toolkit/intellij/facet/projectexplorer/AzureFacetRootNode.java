@@ -26,6 +26,8 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -37,7 +39,9 @@ import static com.microsoft.azure.toolkit.intellij.connector.ConnectionTopics.CO
 import static com.microsoft.azure.toolkit.intellij.connector.DeploymentTargetTopics.TARGET_APP_CHANGED;
 
 public class AzureFacetRootNode extends ProjectViewNode<AzureModule> implements IAzureFacetNode {
-
+    @Getter
+    @Setter
+    private boolean disposed;
     private final AzureEventBus.EventListener eventListener;
 
     public AzureFacetRootNode(final AzureModule module, ViewSettings settings) {
@@ -99,7 +103,7 @@ public class AzureFacetRootNode extends ProjectViewNode<AzureModule> implements 
         final List<Connection<?, ?>> connections = Optional.ofNullable(value.getDefaultProfile())
                 .map(Profile::getConnections).orElse(Collections.emptyList());
         final boolean connected = CollectionUtils.isNotEmpty(connections);
-        final boolean isConnectionValid = connections.stream().allMatch(c -> c.validate(getProject()));
+        final boolean isConnectionValid = connections.stream().allMatch(Connection::isValidConnection);
         presentation.addText("Azure", getTextAttributes(isConnectionValid));
         presentation.setTooltip(isConnectionValid ? "Manage connected Azure resources here." : "Invalid connections found.");
         presentation.setIcon(connected ? IntelliJAzureIcons.getIcon("/icons/Common/AzureResourceConnector.svg") : IntelliJAzureIcons.getIcon(AzureIcons.Common.AZURE));
@@ -147,6 +151,7 @@ public class AzureFacetRootNode extends ProjectViewNode<AzureModule> implements 
 
     @Override
     public void dispose() {
+        IAzureFacetNode.super.dispose();
         AzureEventBus.off("account.logged_in.account", eventListener);
         AzureEventBus.off("connector.refreshed.module_root", eventListener);
     }
