@@ -173,16 +173,16 @@ public class Profile {
         Objects.requireNonNull(this.dotEnvFile, String.format("'.azure/%s/.env' can not be created.", this.name));
         final AzureString description = OperationBundle.description("boundary/connector.load_env.resource", connection.getResource().getDataId());
         return ApplicationManager.getApplication().executeOnPooledThread(() -> {
-            final String envVariables = generateEnvLines(module.getProject(), connection).stream().collect(Collectors.joining(System.lineSeparator()));
             try {
+                final String envVariables = generateEnvLines(module.getProject(), connection).stream().collect(Collectors.joining(System.lineSeparator()));
                 Files.writeString(this.dotEnvFile.toNioPath(), envVariables + System.lineSeparator() + System.lineSeparator(), StandardOpenOption.APPEND);
                 this.profileDir.refresh(true, true);
                 final String message = String.format("The connection between %s and %s has been successfully created/updated.", connection.getResource().getName(), connection.getConsumer().getName());
                 AzureMessager.getMessager().success(message);
                 final Project project = this.module.getProject();
                 project.getMessageBus().syncPublisher(CONNECTION_CHANGED).connectionChanged(project, connection, ConnectionTopics.Action.ADD);
-            } catch (final IOException e) {
-                throw new RuntimeException(e);
+            } catch (final Throwable e) {
+                AzureMessager.getMessager().error(e);
             }
         });
     }
