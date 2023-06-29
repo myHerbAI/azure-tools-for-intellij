@@ -57,6 +57,9 @@ public class ConnectionsNode extends AbstractTreeNode<AzureModule> implements IA
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
         // dispose older children
         Disposer.disposeChildren(this, ignore -> true);
+        if (this.isDisposed()) {
+            return Collections.emptyList();
+        }
         final AzureModule module = Objects.requireNonNull(this.getValue());
         final List<ConnectionNode> children = Optional.of(module).stream()
             .map(AzureModule::getDefaultProfile).filter(Objects::nonNull)

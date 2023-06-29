@@ -21,6 +21,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 public class ResourceNode extends AbstractTreeNode<Node<?>> implements IAzureFacetNode, Node.ChildrenRenderer, Node.ViewRenderer {
@@ -41,6 +42,9 @@ public class ResourceNode extends AbstractTreeNode<Node<?>> implements IAzureFac
     @Nonnull
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
         Disposer.disposeChildren(this, ignore -> true);
+        if (this.isDisposed()) {
+            return Collections.emptyList();
+        }
         final Node<?> node = this.getValue();
         final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>(node.getChildren().stream().map(n -> new ResourceNode(this, n)).toList());
         if (node.hasMoreChildren()) {
@@ -101,5 +105,11 @@ public class ResourceNode extends AbstractTreeNode<Node<?>> implements IAzureFac
     @Override
     public String toString() {
         return this.getValue().buildLabel();
+    }
+
+    @Override
+    public void dispose() {
+        IAzureFacetNode.super.dispose();
+        Optional.ofNullable(getValue()).ifPresent(Node::dispose);
     }
 }

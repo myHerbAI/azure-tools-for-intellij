@@ -41,10 +41,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor.EDIT_CONNECTION;
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor.REMOVE_CONNECTION;
@@ -89,6 +86,9 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
         // dispose older children
         Disposer.disposeChildren(this, ignore -> true);
+        if (this.isDisposed()) {
+            return Collections.emptyList();
+        }
         final Connection<?, ?> connection = this.getValue();
         final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>();
         final Profile profile = module.getDefaultProfile();

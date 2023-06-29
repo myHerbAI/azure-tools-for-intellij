@@ -25,10 +25,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public class DeploymentTargetsNode extends AbstractTreeNode<AzureModule> implements IAzureFacetNode {
     @Getter
@@ -46,6 +43,9 @@ public class DeploymentTargetsNode extends AbstractTreeNode<AzureModule> impleme
     @Nonnull
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
         Disposer.disposeChildren(this, ignore -> true);
+        if (this.isDisposed()) {
+            return Collections.emptyList();
+        }
         final AzureModule module = Objects.requireNonNull(this.getValue());
         try {
             return Optional.of(module).stream()

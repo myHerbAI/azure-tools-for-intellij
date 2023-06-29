@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 public class ExceptionNode extends AbstractTreeNode<Throwable> implements IAzureFacetNode {
@@ -39,6 +40,9 @@ public class ExceptionNode extends AbstractTreeNode<Throwable> implements IAzure
     @SuppressWarnings("unchecked")
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
         Disposer.disposeChildren(this, ignore -> true);
+        if (this.isDisposed()) {
+            return Collections.emptyList();
+        }
         final ArrayList<AbstractTreeNode<?>> actionNodes = new ArrayList<>();
         final Throwable e = this.getValue();
         if (e instanceof AzureToolkitRuntimeException) {

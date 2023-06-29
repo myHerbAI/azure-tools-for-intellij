@@ -28,11 +28,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public class EnvironmentVariablesNode extends AbstractTreeNode<Connection<?, ?>> implements IAzureFacetNode {
     @Nonnull
@@ -59,6 +55,9 @@ public class EnvironmentVariablesNode extends AbstractTreeNode<Connection<?, ?>>
     @Nonnull
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
         Disposer.disposeChildren(this, ignore -> true);
+        if (this.isDisposed()) {
+            return Collections.emptyList();
+        }
         final Connection<?, ?> connection = this.getValue();
         final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>();
         final List<Pair<String, String>> generated = this.profile.getGeneratedEnvironmentVariables(connection);
