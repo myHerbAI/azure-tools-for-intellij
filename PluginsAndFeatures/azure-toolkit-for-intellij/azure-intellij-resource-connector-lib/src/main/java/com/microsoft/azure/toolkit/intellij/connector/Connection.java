@@ -123,10 +123,13 @@ public class Connection<R, C> {
     }
 
     public boolean validate(Project project) {
+        return this.getDefinition().validate(this, project);
+    }
+
+    public boolean isValidConnection() {
         final boolean isResourceValid = this.getResource().isValidResource();
         final boolean isConsumerValid = this.getConsumer().isValidResource();
-        final boolean isConnectionValid = this.getDefinition().validate(this, project);
-        return isResourceValid && isConsumerValid && isConnectionValid;
+        return isResourceValid && isConsumerValid;
     }
 
     public void setProfile(Profile profile) {

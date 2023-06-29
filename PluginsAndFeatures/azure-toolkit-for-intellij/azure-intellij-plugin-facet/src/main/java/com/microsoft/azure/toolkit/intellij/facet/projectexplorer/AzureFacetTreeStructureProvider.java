@@ -17,10 +17,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ClientProperty;
 import com.intellij.util.ui.tree.TreeUtil;
-import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.action.IntellijAzureActionManager;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.facet.AzureFacet;
@@ -28,6 +28,7 @@ import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
 import javax.annotation.Nonnull;
@@ -42,6 +43,7 @@ import java.util.stream.Collectors;
 
 import static com.intellij.ui.AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED;
 
+@Slf4j
 public final class AzureFacetTreeStructureProvider implements TreeStructureProvider {
     private final Project myProject;
 
@@ -58,28 +60,37 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
         if (!(parent instanceof PsiDirectoryNode)) {
             return children;
         }
-        final AzureModule azureModule = Optional.ofNullable(toModule(parent))
-            .map(AzureModule::from)
-            .filter(m -> m.isInitialized() || m.hasAzureDependencies())
-            .orElse(null);
-        final boolean neverHasAzureFacet = Objects.nonNull(azureModule) && azureModule.neverHasAzureFacet();
-        final boolean hasAzureFacet = Objects.nonNull(azureModule) && azureModule.hasAzureFacet();
-        if (Objects.nonNull(azureModule) && !hasAzureFacet && neverHasAzureFacet) {
-            final AzureTaskManager tm = AzureTaskManager.getInstance();
-            tm.runLater(() -> tm.write(() -> AzureFacet.addTo(azureModule.getModule())));
-        }
-        if (Objects.nonNull(azureModule) && hasAzureFacet || neverHasAzureFacet) {
-            addListener(parent.getProject());
-            final AbstractTreeNode<?> dotAzureDir = children.stream()
-                .filter(n -> n instanceof PsiDirectoryNode)
-                .map(n -> ((PsiDirectoryNode) n))
-                .filter(d -> Objects.nonNull(d.getVirtualFile()) && ".azure".equalsIgnoreCase(d.getVirtualFile().getName()))
-                .findAny().orElse(null);
-            final List<AbstractTreeNode<?>> nodes = new LinkedList<>();
-            nodes.add(new AzureFacetRootNode(azureModule, settings));
-            nodes.addAll(children);
-            nodes.removeIf(n -> Objects.equals(n, dotAzureDir));
-            return nodes;
+        try {
+            final AzureModule azureModule = Optional.ofNullable(toModule(parent))
+                .map(AzureModule::from)
+                .filter(m -> m.isInitialized() || m.hasAzureDependencies())
+                .orElse(null);
+            final boolean neverHasAzureFacet = Objects.nonNull(azureModule) && azureModule.neverHasAzureFacet();
+            final boolean hasAzureFacet = Objects.nonNull(azureModule) && azureModule.hasAzureFacet();
+            if (Objects.nonNull(azureModule) && !hasAzureFacet && neverHasAzureFacet) {
+                final AzureTaskManager tm = AzureTaskManager.getInstance();
+                tm.runLater(() -> tm.write(() -> AzureFacet.addTo(azureModule.getModule())));
+            }
+            if (Objects.nonNull(azureModule) && hasAzureFacet || neverHasAzureFacet) {
+                addListener(parent.getProject());
+                final AbstractProjectViewPane viewPane = ProjectView.getInstance(parent.getProject()).getCurrentProjectViewPane();
+                final AbstractTreeNode<?> dotAzureDir = children.stream()
+                    .filter(n -> n instanceof PsiDirectoryNode)
+                    .map(n -> ((PsiDirectoryNode) n))
+                    .filter(d -> Objects.nonNull(d.getVirtualFile()) && ".azure".equalsIgnoreCase(d.getVirtualFile().getName()))
+                    .findAny().orElse(null);
+                // dispose old azure facet root node
+                // noinspection UnstableApiUsage
+                Disposer.disposeChildren(viewPane, child -> child instanceof AzureFacetRootNode &&
+                    Objects.equals(((AzureFacetRootNode) child).getValue(), azureModule));
+                final List<AbstractTreeNode<?>> nodes = new LinkedList<>();
+                nodes.add(new AzureFacetRootNode(azureModule, settings));
+                nodes.addAll(children);
+                nodes.removeIf(n -> Objects.equals(n, dotAzureDir));
+                return nodes;
+            }
+        } catch (final Exception e) {
+            log.warn(e.getMessage(), e);
         }
         return children;
     }

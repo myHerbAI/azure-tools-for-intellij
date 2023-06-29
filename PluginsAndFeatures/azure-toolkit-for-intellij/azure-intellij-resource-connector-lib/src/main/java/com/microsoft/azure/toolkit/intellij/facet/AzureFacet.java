@@ -55,13 +55,16 @@ public class AzureFacet extends Facet<AzureFacetConfiguration> {
 
     @Nullable
     public static AzureFacet getInstance(@Nonnull final Module module) {
+        if (module.isDisposed()) {
+            return null;
+        }
         return FacetManager.getInstance(module).getFacetByType(AzureFacetType.ID);
     }
 
     @Nullable
     public static AzureFacet getInstance(@Nonnull VirtualFile file, @Nonnull Project project) {
         final Module module = ModuleUtil.findModuleForFile(file, project);
-        return Objects.isNull(module) ? null : getInstance(module);
+        return Objects.isNull(module) || module.isDisposed() ? null : getInstance(module);
     }
 
     @Nullable

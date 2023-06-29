@@ -18,7 +18,3 @@ dependencies {
     implementation 'com.microsoft.azure:azure-toolkit-ide-common-lib'
     implementation 'com.microsoft.azure:azure-toolkit-ide-vm-lib'
 }
-
-processResources {
-    duplicatesStrategy(DuplicatesStrategy.INCLUDE)
-}

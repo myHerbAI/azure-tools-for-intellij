@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.intellij.common.TextDocumentListenerAdapter;
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox;
+import com.microsoft.azure.toolkit.intellij.connector.InvalidResource;
 import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.intellij.database.component.DatabaseComboBox;
 import com.microsoft.azure.toolkit.intellij.database.component.ServerComboBox;
@@ -34,11 +35,7 @@ import javax.swing.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public abstract class SqlDatabaseResourcePanel<T extends IDatabase> implements AzureFormJPanel<Resource<T>> {
     private final SqlDatabaseResourceDefinition<T> definition;
@@ -191,6 +188,9 @@ public abstract class SqlDatabaseResourcePanel<T extends IDatabase> implements A
     }
 
     public void setValue(Resource<T> data) {
+        if (data instanceof InvalidResource<T>) {
+            return;
+        }
         final SqlDatabaseResource<T> db = (SqlDatabaseResource<T>) data;
         final T database = data.getData();
         if (database != null) {

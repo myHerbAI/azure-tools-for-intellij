@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.tree.AsyncTreeModel;
@@ -19,7 +20,7 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.util.Objects;
 
-public interface IAzureFacetNode extends DataProvider {
+public interface IAzureFacetNode extends DataProvider, Disposable {
     @Nullable
     default IActionGroup getActionGroup() {
         return null;
@@ -48,4 +49,12 @@ public interface IAzureFacetNode extends DataProvider {
     }
 
     Project getProject();
+
+    default void dispose() {
+        setDisposed(true);
+    }
+
+    boolean isDisposed();
+
+    void setDisposed(boolean isDisposed);
 }
