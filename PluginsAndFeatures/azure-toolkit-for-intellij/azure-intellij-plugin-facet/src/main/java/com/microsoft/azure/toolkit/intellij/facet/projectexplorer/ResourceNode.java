@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -26,13 +27,17 @@ import java.util.Collections;
 import java.util.Optional;
 
 @Slf4j
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ResourceNode extends AbstractTreeNode<Node<?>> implements IAzureFacetNode, Node.ChildrenRenderer, Node.ViewRenderer {
+    @EqualsAndHashCode.Include
+    private final IAzureFacetNode parent;
     @Getter
     @Setter
     private boolean disposed;
 
     public ResourceNode(@Nonnull IAzureFacetNode parent, final Node<?> node) {
         super(parent.getProject(), node);
+        this.parent = parent;
         node.setViewRenderer(this);
         node.setChildrenRenderer(this);
         if (!parent.isDisposed()) {
@@ -123,5 +128,10 @@ public class ResourceNode extends AbstractTreeNode<Node<?>> implements IAzureFac
     public void dispose() {
         IAzureFacetNode.super.dispose();
         Optional.ofNullable(getValue()).ifPresent(Node::dispose);
+    }
+
+    @EqualsAndHashCode.Include
+    private Node<?> getNode() {
+        return this.getValue();
     }
 }
