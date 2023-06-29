@@ -25,7 +25,3 @@ dependencies {
         exclude group: "net.java.dev.msv", module: "xsdlib"
     }
 }
-
-processResources {
-    duplicatesStrategy(DuplicatesStrategy.INCLUDE)
-}

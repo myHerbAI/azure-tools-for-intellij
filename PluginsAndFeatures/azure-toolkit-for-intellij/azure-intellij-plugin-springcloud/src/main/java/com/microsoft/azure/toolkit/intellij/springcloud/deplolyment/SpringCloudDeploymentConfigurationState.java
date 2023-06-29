@@ -16,13 +16,11 @@ import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.microsoft.azure.toolkit.ide.springcloud.SpringCloudActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.common.messager.IntellijAzureMessager;
 import com.microsoft.azure.toolkit.intellij.common.runconfig.RunConfigurationUtils;
 import com.microsoft.azure.toolkit.intellij.common.utils.JdkUtils;
-import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
@@ -35,12 +33,7 @@ import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppInstance;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
-import com.microsoft.azure.toolkit.lib.springcloud.Utils;
+import com.microsoft.azure.toolkit.lib.springcloud.*;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.task.DeploySpringCloudAppTask;
 import lombok.RequiredArgsConstructor;
@@ -52,10 +45,7 @@ import reactor.core.scheduler.Schedulers;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static com.microsoft.azure.toolkit.lib.common.messager.AzureMessageBundle.message;
 
@@ -137,22 +127,16 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
             final Integer artifactVersion = JdkUtils.getBytecodeLanguageLevel(opFile.get());
             if (Objects.nonNull(artifactVersion) && artifactVersion > appVersion) {
                 final AzureString message = AzureString.format(
-                    "The bytecode version of artifact (%s) is \"%s (%s)\", " +
-                        "which is incompatible with the runtime \"%s\" of the target app (%s). " +
-                        "This will cause the App to fail to start normally after deploying. Please consider rebuilding the artifact or selecting another app.",
-                    opFile.get().getName(), artifactVersion + 44, "Java " + artifactVersion, "Java " + appVersion, appConfig.getAppName());
+                        "The bytecode version of artifact (%s) is \"%s (%s)\", " +
+                                "which is incompatible with the runtime \"%s\" of the target app (%s). " +
+                                "This will cause the App to fail to start normally after deploying. Please consider rebuilding the artifact or selecting another app.",
+                        opFile.get().getName(), artifactVersion + 44, "Java " + artifactVersion, "Java " + appVersion, appConfig.getAppName());
                 throw new AzureToolkitRuntimeException(message.toString(), reopen.withLabel("Reopen Deploy Dialog"));
             }
         }
         final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig);
         final SpringCloudDeployment deployment = task.execute();
         final SpringCloudApp app = deployment.getParent();
-        final AzureTaskManager tm = AzureTaskManager.getInstance();
-        opFile.map(f -> VfsUtil.findFileByIoFile(f, true))
-            .map(f -> AzureModule.from(f, this.project))
-            .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
-                .initializeWithDefaultProfileIfNot()
-                .addApp(app).save())));
         app.refresh();
         printPublicUrl(app);
         return deployment;
