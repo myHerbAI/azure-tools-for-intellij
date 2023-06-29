@@ -23,6 +23,7 @@ import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -30,6 +31,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
+@Slf4j
 public class EnvironmentVariablesNode extends AbstractTreeNode<Connection<?, ?>> implements IAzureFacetNode {
     @Nonnull
     private final Profile profile;
@@ -42,10 +44,10 @@ public class EnvironmentVariablesNode extends AbstractTreeNode<Connection<?, ?>>
         super(parent.getProject(), connection);
         this.profile = profile;
         this.editAction = new Action<>(Action.Id.of("user/connector.edit_envs_in_editor"))
-                .withLabel("Open In Editor")
-                .withIcon(AzureIcons.Action.EDIT.getIconPath())
-                .withHandler(ignore -> AzureTaskManager.getInstance().runLater(() -> this.navigate(true)))
-                .withAuthRequired(false);
+            .withLabel("Open In Editor")
+            .withIcon(AzureIcons.Action.EDIT.getIconPath())
+            .withHandler(ignore -> AzureTaskManager.getInstance().runLater(() -> this.navigate(true)))
+            .withAuthRequired(false);
         if (!parent.isDisposed()) {
             Disposer.register(parent, this);
         }
@@ -54,14 +56,20 @@ public class EnvironmentVariablesNode extends AbstractTreeNode<Connection<?, ?>>
     @Override
     @Nonnull
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
+        final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>();
+        //noinspection UnstableApiUsage
         Disposer.disposeChildren(this, ignore -> true);
         if (this.isDisposed()) {
-            return Collections.emptyList();
+            return children;
         }
-        final Connection<?, ?> connection = this.getValue();
-        final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>();
-        final List<Pair<String, String>> generated = this.profile.getGeneratedEnvironmentVariables(connection);
-        return generated.stream().map(g -> new EnvironmentVariableNode(this, g, getValue())).toList();
+        try {
+            final Connection<?, ?> connection = this.getValue();
+            final List<Pair<String, String>> generated = this.profile.getGeneratedEnvironmentVariables(connection);
+            return generated.stream().map(g -> new EnvironmentVariableNode(this, g, getValue())).toList();
+        } catch (final Exception e) {
+            log.warn(e.getMessage(), e);
+        }
+        return children;
     }
 
     @Override
@@ -90,9 +98,9 @@ public class EnvironmentVariablesNode extends AbstractTreeNode<Connection<?, ?>>
     @Override
     public IActionGroup getActionGroup() {
         return new ActionGroup(
-                editAction,
-                "---",
-                ResourceConnectionActionsContributor.COPY_ENV_VARS
+            editAction,
+            "---",
+            ResourceConnectionActionsContributor.COPY_ENV_VARS
         );
     }
 
@@ -104,8 +112,8 @@ public class EnvironmentVariablesNode extends AbstractTreeNode<Connection<?, ?>>
     @Override
     public void navigate(boolean requestFocus) {
         Optional.ofNullable(getDovEnvFile())
-                .map(f -> PsiManager.getInstance(getProject()).findFile(f))
-                .map(f -> NavigationUtil.openFileWithPsiElement(f, requestFocus, requestFocus));
+            .map(f -> PsiManager.getInstance(getProject()).findFile(f))
+            .map(f -> NavigationUtil.openFileWithPsiElement(f, requestFocus, requestFocus));
     }
 
     @Override

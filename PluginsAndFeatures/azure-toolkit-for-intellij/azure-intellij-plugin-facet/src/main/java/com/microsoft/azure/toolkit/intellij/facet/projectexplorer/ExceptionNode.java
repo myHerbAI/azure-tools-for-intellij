@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +25,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
+@Slf4j
 public class ExceptionNode extends AbstractTreeNode<Throwable> implements IAzureFacetNode {
     @Getter
     @Setter
@@ -39,23 +41,28 @@ public class ExceptionNode extends AbstractTreeNode<Throwable> implements IAzure
     @Override
     @SuppressWarnings("unchecked")
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
+        final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>();
+        //noinspection UnstableApiUsage
         Disposer.disposeChildren(this, ignore -> true);
         if (this.isDisposed()) {
             return Collections.emptyList();
         }
-        final ArrayList<AbstractTreeNode<?>> actionNodes = new ArrayList<>();
-        final Throwable e = this.getValue();
-        if (e instanceof AzureToolkitRuntimeException) {
-            final Object[] actions = Optional.ofNullable(((AzureToolkitRuntimeException) e).getActions()).orElseGet(() -> new Object[0]);
-            for (final Object action : actions) {
-                if (action instanceof Action.Id) {
-                    actionNodes.add(new ActionNode<>(this, (Action.Id<Object>) action));
-                } else if (action instanceof Action<?>) {
-                    actionNodes.add(new ActionNode<>(this, (Action<Object>) action));
+        try {
+            final Throwable e = this.getValue();
+            if (e instanceof AzureToolkitRuntimeException) {
+                final Object[] actions = Optional.ofNullable(((AzureToolkitRuntimeException) e).getActions()).orElseGet(() -> new Object[0]);
+                for (final Object action : actions) {
+                    if (action instanceof Action.Id) {
+                        children.add(new ActionNode<>(this, (Action.Id<Object>) action));
+                    } else if (action instanceof Action<?>) {
+                        children.add(new ActionNode<>(this, (Action<Object>) action));
+                    }
                 }
             }
+        } catch (final Exception e) {
+            log.warn(e.getMessage(), e);
         }
-        return actionNodes;
+        return children;
     }
 
     @Override

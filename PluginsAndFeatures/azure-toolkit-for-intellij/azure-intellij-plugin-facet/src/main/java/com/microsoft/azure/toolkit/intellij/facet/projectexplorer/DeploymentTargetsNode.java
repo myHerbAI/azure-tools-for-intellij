@@ -42,13 +42,13 @@ public class DeploymentTargetsNode extends AbstractTreeNode<AzureModule> impleme
     @Override
     @Nonnull
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
+        //noinspection UnstableApiUsage
         Disposer.disposeChildren(this, ignore -> true);
         if (this.isDisposed()) {
             return Collections.emptyList();
         }
-        final AzureModule module = Objects.requireNonNull(this.getValue());
         try {
-            return Optional.of(module).stream()
+            return Optional.ofNullable(this.getValue()).stream()
                 .map(AzureModule::getDefaultProfile).filter(Objects::nonNull)
                 .flatMap(p -> p.getTargetAppIds().stream())
                 .map(id -> Azure.az().getById(id))

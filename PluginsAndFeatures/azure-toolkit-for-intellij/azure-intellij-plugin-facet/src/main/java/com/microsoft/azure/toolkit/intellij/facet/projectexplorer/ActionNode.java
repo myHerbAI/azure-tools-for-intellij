@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -23,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 public class ActionNode<T> extends AbstractTreeNode<Action<T>> implements IAzureFacetNode {
     @Nullable
     private final T source;
@@ -63,9 +65,13 @@ public class ActionNode<T> extends AbstractTreeNode<Action<T>> implements IAzure
 
     @Override
     protected void update(@Nonnull PresentationData presentation) {
-        final IView.Label view = this.getValue().getView(this.source);
-        presentation.addText(StringUtils.capitalize(view.getLabel()), SimpleTextAttributes.LINK_ATTRIBUTES);
-        presentation.setTooltip(view.getDescription());
+        try {
+            final IView.Label view = this.getValue().getView(this.source);
+            presentation.addText(StringUtils.capitalize(view.getLabel()), SimpleTextAttributes.LINK_ATTRIBUTES);
+            presentation.setTooltip(view.getDescription());
+        } catch (final Exception e) {
+            log.warn(e.getMessage(), e);
+        }
     }
 
     @Override

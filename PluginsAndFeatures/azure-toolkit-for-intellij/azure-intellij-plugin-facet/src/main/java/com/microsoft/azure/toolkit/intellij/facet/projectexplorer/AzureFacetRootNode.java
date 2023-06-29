@@ -28,6 +28,7 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -38,6 +39,7 @@ import java.util.*;
 import static com.microsoft.azure.toolkit.intellij.connector.ConnectionTopics.CONNECTION_CHANGED;
 import static com.microsoft.azure.toolkit.intellij.connector.DeploymentTargetTopics.TARGET_APP_CHANGED;
 
+@Slf4j
 public class AzureFacetRootNode extends ProjectViewNode<AzureModule> implements IAzureFacetNode {
     @Getter
     @Setter
@@ -79,6 +81,7 @@ public class AzureFacetRootNode extends ProjectViewNode<AzureModule> implements 
     @Override
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
         // dispose older children
+        //noinspection UnstableApiUsage
         Disposer.disposeChildren(this, ignore -> true);
         if (this.isDisposed()) {
             return Collections.emptyList();
@@ -102,14 +105,18 @@ public class AzureFacetRootNode extends ProjectViewNode<AzureModule> implements 
 
     @Override
     protected void update(@Nonnull final PresentationData presentation) {
-        final AzureModule value = getValue();
-        final List<Connection<?, ?>> connections = Optional.ofNullable(value.getDefaultProfile())
+        try {
+            final AzureModule value = getValue();
+            final List<Connection<?, ?>> connections = Optional.ofNullable(value.getDefaultProfile())
                 .map(Profile::getConnections).orElse(Collections.emptyList());
-        final boolean connected = CollectionUtils.isNotEmpty(connections);
-        final boolean isConnectionValid = connections.stream().allMatch(Connection::isValidConnection);
-        presentation.addText("Azure", getTextAttributes(isConnectionValid));
-        presentation.setTooltip(isConnectionValid ? "Manage connected Azure resources here." : "Invalid connections found.");
-        presentation.setIcon(connected ? IntelliJAzureIcons.getIcon("/icons/Common/AzureResourceConnector.svg") : IntelliJAzureIcons.getIcon(AzureIcons.Common.AZURE));
+            final boolean connected = CollectionUtils.isNotEmpty(connections);
+            final boolean isConnectionValid = connections.stream().allMatch(Connection::isValidConnection);
+            presentation.addText("Azure", getTextAttributes(isConnectionValid));
+            presentation.setTooltip(isConnectionValid ? "Manage connected Azure resources here." : "Invalid connections found.");
+            presentation.setIcon(connected ? IntelliJAzureIcons.getIcon("/icons/Common/AzureResourceConnector.svg") : IntelliJAzureIcons.getIcon(AzureIcons.Common.AZURE));
+        } catch (final Exception e) {
+            log.warn(e.getMessage(), e);
+        }
     }
 
     public static SimpleTextAttributes getTextAttributes(boolean isValid) {
