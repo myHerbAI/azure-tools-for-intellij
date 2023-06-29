@@ -80,7 +80,7 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
                     .filter(d -> Objects.nonNull(d.getVirtualFile()) && ".azure".equalsIgnoreCase(d.getVirtualFile().getName()))
                     .findAny().orElse(null);
                 // dispose old azure facet root node
-                //noinspection UnstableApiUsage
+                // noinspection UnstableApiUsage
                 Disposer.disposeChildren(viewPane, child -> child instanceof AzureFacetRootNode &&
                     Objects.equals(((AzureFacetRootNode) child).getValue(), azureModule));
                 final List<AbstractTreeNode<?>> nodes = new LinkedList<>();

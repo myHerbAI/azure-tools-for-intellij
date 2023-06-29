@@ -42,11 +42,11 @@ public class DeploymentTargetsNode extends AbstractTreeNode<AzureModule> impleme
     @Override
     @Nonnull
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
-        //noinspection UnstableApiUsage
-        Disposer.disposeChildren(this, ignore -> true);
         if (this.isDisposed()) {
             return Collections.emptyList();
         }
+        // noinspection UnstableApiUsage
+        Disposer.disposeChildren(this, ignore -> true);
         try {
             return Optional.ofNullable(this.getValue()).stream()
                 .map(AzureModule::getDefaultProfile).filter(Objects::nonNull)

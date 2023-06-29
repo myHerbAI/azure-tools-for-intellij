@@ -57,11 +57,11 @@ public class EnvironmentVariablesNode extends AbstractTreeNode<Connection<?, ?>>
     @Nonnull
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
         final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>();
-        //noinspection UnstableApiUsage
-        Disposer.disposeChildren(this, ignore -> true);
         if (this.isDisposed()) {
             return children;
         }
+        // noinspection UnstableApiUsage
+        Disposer.disposeChildren(this, ignore -> true);
         try {
             final Connection<?, ?> connection = this.getValue();
             final List<Pair<String, String>> generated = this.profile.getGeneratedEnvironmentVariables(connection);

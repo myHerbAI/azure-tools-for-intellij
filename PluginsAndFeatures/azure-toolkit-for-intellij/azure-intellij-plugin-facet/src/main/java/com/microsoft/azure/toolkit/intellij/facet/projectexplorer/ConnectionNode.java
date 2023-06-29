@@ -87,12 +87,12 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
     @Nonnull
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
         final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>();
-        // dispose older children
-        //noinspection UnstableApiUsage
-        Disposer.disposeChildren(this, ignore -> true);
         if (this.isDisposed()) {
             return children;
         }
+        // dispose older children
+        // noinspection UnstableApiUsage
+        Disposer.disposeChildren(this, ignore -> true);
         try {
             final Connection<?, ?> connection = this.getValue();
             final Profile profile = module.getDefaultProfile();

@@ -44,11 +44,11 @@ public class ResourceNode extends AbstractTreeNode<Node<?>> implements IAzureFac
     @Nonnull
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
         final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>();
-        //noinspection UnstableApiUsage
-        Disposer.disposeChildren(this, ignore -> true);
         if (this.isDisposed()) {
             return Collections.emptyList();
         }
+        // noinspection UnstableApiUsage
+        Disposer.disposeChildren(this, ignore -> true);
         try {
             final Node<?> node = this.getValue();
             children.addAll(node.getChildren().stream().map(n -> new ResourceNode(this, n)).toList());
