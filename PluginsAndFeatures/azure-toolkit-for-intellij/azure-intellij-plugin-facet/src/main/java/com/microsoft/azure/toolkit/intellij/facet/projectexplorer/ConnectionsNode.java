@@ -9,6 +9,7 @@ import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
@@ -20,6 +21,8 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -33,30 +36,41 @@ import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionA
 public class ConnectionsNode extends AbstractTreeNode<AzureModule> implements IAzureFacetNode {
 
     private final Action<?> editAction;
+    @Getter
+    @Setter
+    private boolean disposed;
 
-    public ConnectionsNode(@Nonnull final AzureModule module) {
-        super(module.getProject(), module);
+    public ConnectionsNode(@Nonnull final AzureFacetRootNode parent) {
+        super(parent.getProject(), parent.getValue());
         this.editAction = new Action<>(Action.Id.of("user/connector.edit_connections_in_editor"))
                 .withLabel("Open In Editor")
                 .withIcon(AzureIcons.Action.EDIT.getIconPath())
                 .withHandler(ignore -> AzureTaskManager.getInstance().runLater(() -> this.navigate(true)))
                 .withAuthRequired(false);
+        if (!parent.isDisposed()) {
+            Disposer.register(parent, this);
+        }
     }
 
     @Override
     @Nonnull
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
+        // dispose older children
+        Disposer.disposeChildren(this, ignore -> true);
+        if (this.isDisposed()) {
+            return Collections.emptyList();
+        }
         final AzureModule module = Objects.requireNonNull(this.getValue());
         final List<ConnectionNode> children = Optional.of(module).stream()
             .map(AzureModule::getDefaultProfile).filter(Objects::nonNull)
             .flatMap(p -> p.getConnections().stream())
-            .map(r -> new ConnectionNode(module.getProject(), module, r))
+            .map(r -> new ConnectionNode(this, r))
             .toList();
         if (CollectionUtils.isNotEmpty(children)) {
             return children;
         }
         final ArrayList<AbstractTreeNode<?>> nodes = new ArrayList<>();
-        nodes.add(new ActionNode<>(module.getProject(), CONNECT_TO_MODULE, module));
+        nodes.add(new ActionNode<>(this, CONNECT_TO_MODULE, module));
         return nodes;
     }
 
@@ -64,7 +78,7 @@ public class ConnectionsNode extends AbstractTreeNode<AzureModule> implements IA
     protected void update(@Nonnull final PresentationData presentation) {
         final List<Connection<?, ?>> connections = Optional.ofNullable(getValue().getDefaultProfile())
                 .map(Profile::getConnections).orElse(Collections.emptyList());
-        final boolean isConnectionValid = connections.stream().allMatch(c -> c.validate(getProject()));
+        final boolean isConnectionValid = connections.stream().allMatch(Connection::isValidConnection);
         presentation.addText("Resource connections", AzureFacetRootNode.getTextAttributes(isConnectionValid));
         presentation.setIcon(AllIcons.Nodes.HomeFolder);
         presentation.setTooltip("The dependent/connected resources.");

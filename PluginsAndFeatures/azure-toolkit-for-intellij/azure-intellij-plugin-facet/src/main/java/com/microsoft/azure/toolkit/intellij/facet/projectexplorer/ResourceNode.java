@@ -7,38 +7,52 @@ package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 public class ResourceNode extends AbstractTreeNode<Node<?>> implements IAzureFacetNode, Node.ChildrenRenderer, Node.ViewRenderer {
-    public ResourceNode(@Nonnull Project project, final Node<?> node) {
-        super(project, node);
+    @Getter
+    @Setter
+    private boolean disposed;
+
+    public ResourceNode(@Nonnull IAzureFacetNode parent, final Node<?> node) {
+        super(parent.getProject(), node);
         node.setViewRenderer(this);
         node.setChildrenRenderer(this);
+        if (!parent.isDisposed()) {
+            Disposer.register(parent, this);
+        }
     }
 
     @Override
     @Nonnull
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
+        Disposer.disposeChildren(this, ignore -> true);
+        if (this.isDisposed()) {
+            return Collections.emptyList();
+        }
         final Node<?> node = this.getValue();
-        final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>(node.getChildren().stream().map(n -> new ResourceNode(this.getProject(), n)).toList());
+        final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>(node.getChildren().stream().map(n -> new ResourceNode(this, n)).toList());
         if (node.hasMoreChildren()) {
             final Action<Object> loadMoreAction = new Action<>(Action.Id.of("user/common.load_more"))
                 .withHandler(i -> node.loadMoreChildren())
                 .withLabel("load more")
                 .withAuthRequired(true);
-            children.add(new ActionNode<>(this.myProject, loadMoreAction));
+            children.add(new ActionNode<>(this, loadMoreAction));
         }
         return children;
     }
@@ -91,5 +105,11 @@ public class ResourceNode extends AbstractTreeNode<Node<?>> implements IAzureFac
     @Override
     public String toString() {
         return this.getValue().buildLabel();
+    }
+
+    @Override
+    public void dispose() {
+        IAzureFacetNode.super.dispose();
+        Optional.ofNullable(getValue()).ifPresent(Node::dispose);
     }
 }

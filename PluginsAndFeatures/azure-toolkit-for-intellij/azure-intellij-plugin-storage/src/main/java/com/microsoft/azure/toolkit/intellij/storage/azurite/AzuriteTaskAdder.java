@@ -50,14 +50,14 @@ public class AzuriteTaskAdder implements RunManagerListener, ConnectionTopics.Co
         if (action == ConnectionTopics.Action.ADD && isAzuriteResourceConnection(connection)) {
             configurations.stream()
                     .filter(config -> connection.isApplicableFor(config) && !isConfigurationContainsAzuriteTask(config)
-                            && isDeploymentTask(config))
+                            && !isDeploymentTask(config))
                     .forEach(config -> config.getBeforeRunTasks().add(new AzuriteTaskProvider.AzuriteBeforeRunTask()));
         } else if (action == ConnectionTopics.Action.REMOVE) {
             // if user update connection from azurite to existing storage account, connection in remove event will not be azurite
             // so could not check isAzuriteResourceConnection here, but need to check all configurations
             configurations.stream()
                     .filter(config -> isConfigurationContainsAzuriteTask(config) && !isConfigurationConnectedToAzurite(config)
-                            && isDeploymentTask(config))
+                            && !isDeploymentTask(config))
                     .forEach(config -> config.getBeforeRunTasks().removeIf(t -> t instanceof AzuriteTaskProvider.AzuriteBeforeRunTask));
         }
     }

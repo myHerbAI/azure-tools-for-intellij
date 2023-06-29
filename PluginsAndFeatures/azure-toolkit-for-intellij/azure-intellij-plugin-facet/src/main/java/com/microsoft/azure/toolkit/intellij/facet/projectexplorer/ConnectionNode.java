@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -30,7 +30,12 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -44,32 +49,58 @@ import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionA
 public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implements IAzureFacetNode {
     private final AzureModule module;
     private final Action<?> editAction;
+    private final AzureEventBus.EventListener eventListener;
+    @Getter
+    @Setter
+    private boolean disposed;
 
-    public ConnectionNode(@Nonnull Project project, @Nonnull AzureModule module, @Nonnull final Connection<?, ?> connection) {
-        super(project, connection);
-        this.module = module;
+    public ConnectionNode(@Nonnull final ConnectionsNode parent, @Nonnull Connection<?, ?> connection) {
+        super(parent.getProject(), connection);
+        this.module = parent.getValue();
         this.editAction = new Action<>(Action.Id.of("user/connector.edit_connection_in_editor"))
                 .withLabel("Open In Editor")
                 .withIcon(AzureIcons.Action.EDIT.getIconPath())
                 .withHandler(ignore -> AzureTaskManager.getInstance().runLater(() -> this.navigate(true)))
                 .withAuthRequired(false);
+        this.eventListener = new AzureEventBus.EventListener(this::onEvent);
+        AzureEventBus.on("account.logged_in.account", eventListener);
+        if (!parent.isDisposed()) {
+            Disposer.register(parent, this);
+        }
+    }
+
+    private void onEvent(@Nonnull final AzureEvent azureEvent) {
+        final String type = azureEvent.getType();
+        final Object source = azureEvent.getSource();
+        final Resource<?> resource = this.getValue().getResource();
+        if (StringUtils.equalsIgnoreCase(type, "resource.status_changed.resource")) {
+            if (resource instanceof AzureServiceResource &&
+                    source instanceof AzResource && StringUtils.equals(((AzResource) source).getId(), resource.getDataId())) {
+                this.rerender(true);
+            }
+        }
     }
 
     @Override
     @Nonnull
     public Collection<? extends AbstractTreeNode<?>> getChildren() {
+        // dispose older children
+        Disposer.disposeChildren(this, ignore -> true);
+        if (this.isDisposed()) {
+            return Collections.emptyList();
+        }
         final Connection<?, ?> connection = this.getValue();
         final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>();
         final Profile profile = module.getDefaultProfile();
-        if (!connection.validate(getProject())) {
-            children.add(new ActionNode<>(this.myProject, ResourceConnectionActionsContributor.FIX_CONNECTION, connection));
+        if (!connection.isValidConnection()) {
+            children.add(new ActionNode<>(this, ResourceConnectionActionsContributor.FIX_CONNECTION, connection));
         }
         if (connection.getResource() instanceof AzureServiceResource) {
             children.add(getResourceNode(connection));
         }
         final Boolean envFileExists = Optional.ofNullable(profile).map(Profile::getDotEnvFile).map(VirtualFile::exists).orElse(false);
         if (envFileExists) {
-            children.add(new EnvironmentVariablesNode(this.getProject(), profile, connection));
+            children.add(new EnvironmentVariablesNode(this, profile, connection));
         }
         return children;
     }
@@ -78,15 +109,15 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
         try {
             final Object resource = connection.getResource().getData();
             final Node<?> node = AzureExplorer.manager.createNode(resource, null, IExplorerNodeProvider.ViewType.APP_CENTRIC);
-            return new ResourceNode(this.getProject(), node);
+            return new ResourceNode(this, node);
         } catch (Throwable e) {
             e.printStackTrace();
             e = ExceptionUtils.getRootCause(e);
             if (e instanceof AzureToolkitAuthenticationException) {
                 final Action<Object> signin = AzureActionManager.getInstance().getAction(Action.AUTHENTICATE).bind(connection).withLabel("Sign in to manage connected resource");
-                return new ActionNode<>(this.myProject, signin);
+                return new ActionNode<>(this, signin);
             } else {
-                return new ExceptionNode(this.myProject, e);
+                return new ExceptionNode(this, e);
             }
         }
     }
@@ -95,7 +126,7 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
     protected void update(@Nonnull final PresentationData presentation) {
         final Connection<?, ?> connection = this.getValue();
         final Resource<?> resource = connection.getResource();
-        final boolean isValid = connection.validate(getProject());
+        final boolean isValid = connection.isValidConnection();
         final String icon = StringUtils.firstNonBlank(resource.getDefinition().getIcon(), AzureIcons.Common.AZURE.getIconPath());
         presentation.setIcon(IntelliJAzureIcons.getIcon(icon));
         presentation.addText(resource.getDefinition().getTitle(), AzureFacetRootNode.getTextAttributes(isValid));
@@ -171,5 +202,11 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
                 .map(Profile::getConnectionManager)
                 .map(ConnectionManager::getConnectionsFile)
                 .orElse(null);
+    }
+
+    @Override
+    public void dispose() {
+        IAzureFacetNode.super.dispose();
+        AzureEventBus.off("account.logged_in.account", eventListener);
     }
 }
