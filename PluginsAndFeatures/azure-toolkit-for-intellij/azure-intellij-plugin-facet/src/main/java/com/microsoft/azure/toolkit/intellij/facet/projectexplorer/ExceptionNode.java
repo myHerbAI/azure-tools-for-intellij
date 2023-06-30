@@ -15,7 +15,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,8 +67,8 @@ public class ExceptionNode extends AbstractTreeNode<Throwable> implements IAzure
 
     @Override
     protected void update(@Nonnull final PresentationData presentation) {
-        final String message = this.getValue().getMessage();
-        presentation.addText(StringUtils.firstNonBlank(message, "<no message>"), SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES);
+        final String message = StringUtils.capitalize(StringUtils.firstNonBlank(this.getValue().getMessage(), "<no message>"));
+        presentation.addText(message, SimpleTextAttributes.ERROR_ATTRIBUTES);
     }
 
     @Override

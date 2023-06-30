@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -117,6 +118,10 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
     private AbstractTreeNode<?> getResourceNode(Connection<?, ?> connection) {
         try {
             final Object resource = connection.getResource().getData();
+            if (Objects.isNull(resource)) {
+                final ResourceId resourceId = ResourceId.fromString(connection.getResource().getDataId());
+                return new GenericResourceNode(this.getProject(), resourceId, "Deleted");
+            }
             final Node<?> node = AzureExplorer.manager.createNode(resource, null, IExplorerNodeProvider.ViewType.APP_CENTRIC);
             return new ResourceNode(this, node);
         } catch (final Throwable e) {
