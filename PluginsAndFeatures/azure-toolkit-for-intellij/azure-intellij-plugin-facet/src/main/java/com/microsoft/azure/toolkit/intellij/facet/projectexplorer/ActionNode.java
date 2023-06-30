@@ -111,6 +111,11 @@ public class ActionNode<T> extends AbstractTreeNode<Action<T>> implements IAzure
     }
 
     @Override
+    public boolean isAlwaysLeaf() {
+        return true;
+    }
+
+    @Override
     public String toString() {
         return this.getValue().toString();
     }

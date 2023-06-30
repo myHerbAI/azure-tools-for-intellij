@@ -68,6 +68,7 @@ public class EnvironmentVariablesNode extends AbstractTreeNode<Connection<?, ?>>
             return generated.stream().map(g -> new EnvironmentVariableNode(this, g, getValue())).toList();
         } catch (final Exception e) {
             log.warn(e.getMessage(), e);
+            children.add(toExceptionNode(e));
         }
         return children;
     }

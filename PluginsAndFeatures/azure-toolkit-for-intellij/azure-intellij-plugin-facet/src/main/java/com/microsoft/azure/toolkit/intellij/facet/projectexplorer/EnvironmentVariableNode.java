@@ -129,4 +129,9 @@ public class EnvironmentVariableNode extends AbstractTreeNode<Pair<String, Strin
     private VirtualFile getDovEnvFile() {
         return Optional.ofNullable(connection).map(Connection::getProfile).map(Profile::getDotEnvFile).orElse(null);
     }
+
+    @Override
+    public boolean isAlwaysLeaf() {
+        return true;
+    }
 }

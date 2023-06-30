@@ -77,6 +77,7 @@ public class ConnectionsNode extends AbstractTreeNode<AzureModule> implements IA
             nodes.add(new ActionNode<>(this, CONNECT_TO_MODULE, module));
         } catch (final Exception e) {
             log.warn(e.getMessage(), e);
+            nodes.add(toExceptionNode(e));
         }
         return nodes;
     }

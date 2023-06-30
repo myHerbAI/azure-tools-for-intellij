@@ -16,13 +16,10 @@ import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azure.toolkit.lib.common.utils.Debouncer;
-import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -88,8 +85,6 @@ public class Tree extends SimpleTree implements DataProvider {
         protected final JTree tree;
         Boolean loaded = null; //null:not loading/loaded, false: loading: true: loaded
 
-        private final Debouncer updateChildrenLater = new TailingDebouncer(this::doUpdateChildren, 300);
-
         public TreeNode(@Nonnull Node<T> n, JTree tree) {
             super(n.getValue(), n.hasChildren());
             this.inner = n;
@@ -131,12 +126,10 @@ public class Tree extends SimpleTree implements DataProvider {
             final DefaultTreeModel model = (DefaultTreeModel) this.tree.getModel();
             if (Objects.nonNull(model) && (Objects.nonNull(this.getParent()) || Objects.equals(model.getRoot(), this))) {
                 AzureTaskManager.getInstance().runLater(() -> {
-                    synchronized (this) {
-                        if (Objects.nonNull(this.getParent()) || Objects.equals(model.getRoot(), this)) {
-                            try {
-                                model.nodeStructureChanged(this);
-                            } catch (final NullPointerException ignored) {
-                            }
+                    if (Objects.nonNull(this.getParent()) || Objects.equals(model.getRoot(), this)) {
+                        try {
+                            model.nodeStructureChanged(this);
+                        } catch (final NullPointerException ignored) {
                         }
                     }
                 });
@@ -149,11 +142,9 @@ public class Tree extends SimpleTree implements DataProvider {
                 AzureTaskManager.getInstance().runLater(() -> {
                     final javax.swing.tree.TreeNode parent = this.getParent();
                     if (Objects.nonNull(model) && (Objects.nonNull(parent) || Objects.equals(model.getRoot(), this))) {
-                        synchronized (ObjectUtils.firstNonNull(parent, model)) {
-                            try {
-                                model.nodeChanged(this);
-                            } catch (final NullPointerException ignored) {
-                            }
+                        try {
+                            model.nodeChanged(this);
+                        } catch (final NullPointerException ignored) {
                         }
                     }
                 });
@@ -162,8 +153,8 @@ public class Tree extends SimpleTree implements DataProvider {
         @Override
         @AzureOperation(name = "user/common.load_children.node", params = "this.getLabel()")
         public void updateChildren(boolean... incremental) {
-            if (this.getAllowsChildren() && BooleanUtils.isNotFalse(this.loaded)) {
-                synchronized (this) {
+            AzureTaskManager.getInstance().runLater(() -> {
+                if (this.getAllowsChildren() && BooleanUtils.isNotFalse(this.loaded)) {
                     final DefaultTreeModel model = (DefaultTreeModel) this.tree.getModel();
                     if (incremental.length > 0 && incremental[0] && Objects.nonNull(model)) {
                         this.removeLoadMoreNode();
@@ -171,11 +162,11 @@ public class Tree extends SimpleTree implements DataProvider {
                         this.removeAllChildren();
                     }
                     this.add(new LoadingNode());
-                    this.updateChildrenLater.debounce();
+                    this.doUpdateChildren();
                     this.loaded = null;
                     this.loadChildren(incremental);
                 }
-            }
+            });
         }
 
         protected void loadChildren(boolean... incremental) {
@@ -183,8 +174,7 @@ public class Tree extends SimpleTree implements DataProvider {
                 return; // return if loading/loaded
             }
             this.loaded = false;
-            final AzureTaskManager tm = AzureTaskManager.getInstance();
-            tm.runOnPooledThread(() -> {
+            AzureTaskManager.getInstance().runOnPooledThread(() -> {
                 final List<Node<?>> children = this.inner.getChildren();
                 if (incremental.length > 0 && incremental[0]) {
                     updateChildren(children);
@@ -194,46 +184,52 @@ public class Tree extends SimpleTree implements DataProvider {
             });
         }
 
-        private synchronized void setChildren(List<Node<?>> children) {
-            this.removeAllChildren();
-            children.stream().map(c -> new TreeNode<>(c, this.tree)).forEach(this::add);
-            this.addLoadMoreNode();
-            this.loaded = true;
-            this.updateChildrenLater.debounce();
+        private void setChildren(List<Node<?>> children) {
+            AzureTaskManager.getInstance().runLater(() -> {
+                this.removeAllChildren();
+                children.stream().map(c -> new TreeNode<>(c, this.tree)).forEach(this::add);
+                this.addLoadMoreNode();
+                this.loaded = true;
+                this.doUpdateChildren();
+            });
         }
 
-        private synchronized void updateChildren(List<Node<?>> children) {
-            final Map<Node<?>, TreeNode<?>> oldChildren = IntStream.range(0, this.getChildCount() - 1).mapToObj(this::getChildAt)
-                .filter(n -> n instanceof TreeNode<?>).map(n -> ((TreeNode<?>) n))
-                .collect(Collectors.toMap(n -> n.inner, n -> n));
+        private void updateChildren(List<Node<?>> children) {
+            AzureTaskManager.getInstance().runLater(() -> {
+                final Map<Node<?>, TreeNode<?>> oldChildren = IntStream.range(0, this.getChildCount() - 1).mapToObj(this::getChildAt)
+                    .filter(n -> n instanceof TreeNode<?>).map(n -> ((TreeNode<?>) n))
+                    .collect(Collectors.toMap(n -> n.inner, n -> n));
 
-            final Set<Node<?>> newChildrenNodes = new HashSet<>(children);
-            final Set<Node<?>> oldChildrenNodes = oldChildren.keySet();
-            Sets.difference(oldChildrenNodes, newChildrenNodes).forEach(o -> oldChildren.get(o).removeFromParent());
+                final Set<Node<?>> newChildrenNodes = new HashSet<>(children);
+                final Set<Node<?>> oldChildrenNodes = oldChildren.keySet();
+                Sets.difference(oldChildrenNodes, newChildrenNodes).forEach(o -> oldChildren.get(o).removeFromParent());
 
-            for (int i = 0; i < children.size(); i++) {
-                final Node<?> node = children.get(i);
-                if (!oldChildrenNodes.contains(node)) {
-                    this.insert(new TreeNode<>(node, this.tree), i);
-                } else { // discarded nodes should be disposed manually to unregister listeners.
-                    node.dispose();
+                for (int i = 0; i < children.size(); i++) {
+                    final Node<?> node = children.get(i);
+                    if (!oldChildrenNodes.contains(node)) {
+                        this.insert(new TreeNode<>(node, this.tree), i);
+                    } else { // discarded nodes should be disposed manually to unregister listeners.
+                        node.dispose();
+                    }
                 }
-            }
 
-            this.removeLoadingNode();
-            this.addLoadMoreNode();
-            this.updateChildrenLater.debounce();
-            this.loaded = true;
+                this.removeLoadingNode();
+                this.addLoadMoreNode();
+                this.doUpdateChildren();
+                this.loaded = true;
+            });
         }
 
-        public synchronized void clearChildren() {
-            this.removeAllChildren();
-            this.loaded = null;
-            if (this.getAllowsChildren()) {
-                this.add(new LoadingNode());
-                AzureTaskManager.getInstance().runLater(() -> this.tree.collapsePath(new TreePath(this.getPath())));
-            }
-            this.updateChildrenLater.debounce();
+        public void clearChildren() {
+            AzureTaskManager.getInstance().runLater(() -> {
+                this.removeAllChildren();
+                this.loaded = null;
+                if (this.getAllowsChildren()) {
+                    this.add(new LoadingNode());
+                    this.tree.collapsePath(new TreePath(this.getPath()));
+                }
+                this.doUpdateChildren();
+            });
         }
 
         @Override
@@ -244,7 +240,7 @@ public class Tree extends SimpleTree implements DataProvider {
             }
         }
 
-        private synchronized void removeLoadingNode() {
+        private void removeLoadingNode() {
             this.children().asIterator().forEachRemaining(c -> {
                 if (c instanceof LoadingNode) {
                     ((LoadingNode) c).removeFromParent();
@@ -252,13 +248,13 @@ public class Tree extends SimpleTree implements DataProvider {
             });
         }
 
-        private synchronized void addLoadMoreNode() {
+        private void addLoadMoreNode() {
             if (this.inner.hasMoreChildren()) {
                 this.add(new LoadMoreNode());
             }
         }
 
-        private synchronized void removeLoadMoreNode() {
+        private void removeLoadMoreNode() {
             this.children().asIterator().forEachRemaining(c -> {
                 if (c instanceof LoadMoreNode) {
                     ((LoadMoreNode) c).removeFromParent();
