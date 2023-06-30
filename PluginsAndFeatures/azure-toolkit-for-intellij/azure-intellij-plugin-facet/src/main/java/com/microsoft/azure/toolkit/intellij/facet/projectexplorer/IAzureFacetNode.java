@@ -57,6 +57,7 @@ public interface IAzureFacetNode extends DataProvider, Disposable {
 
     default void dispose() {
         setDisposed(true);
+        rerender(true);
     }
 
     boolean isDisposed();

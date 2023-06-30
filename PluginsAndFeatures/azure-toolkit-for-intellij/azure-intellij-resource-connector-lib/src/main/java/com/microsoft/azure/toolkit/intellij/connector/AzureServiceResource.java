@@ -40,14 +40,12 @@ public class AzureServiceResource<T extends AzResource> implements Resource<T> {
     @Getter
     @Nonnull
     private final AzureServiceResource.Definition<T> definition;
-    private T data;
     @Getter
     @Setter
     private String connectionId;
 
     public AzureServiceResource(@Nonnull T data, @Nonnull AzureServiceResource.Definition<T> definition) {
         this(data.getId(), definition);
-        this.data = data;
     }
 
     @Deprecated
@@ -56,11 +54,8 @@ public class AzureServiceResource<T extends AzResource> implements Resource<T> {
         this.definition = definition;
     }
 
-    public synchronized T getData() {
-        if (Objects.isNull(this.data)) {
-            this.data = this.definition.getResource(this.id.id());
-        }
-        return this.data;
+    public T getData() {
+        return this.definition.getResource(this.id.id());
     }
 
     @Override
@@ -109,7 +104,11 @@ public class AzureServiceResource<T extends AzResource> implements Resource<T> {
         if (!Azure.az(AzureAccount.class).isLoggedIn()) {
             return true;
         }
-        return Optional.ofNullable(getData()).map(AzResource::getFormalStatus).map(AzResource.FormalStatus::isConnected).orElse(false);
+        try {
+            return Optional.ofNullable(getData()).map(AzResource::getFormalStatus).map(AzResource.FormalStatus::isConnected).orElse(false);
+        } catch (final Throwable e) {
+            return false;
+        }
     }
 
     @Getter

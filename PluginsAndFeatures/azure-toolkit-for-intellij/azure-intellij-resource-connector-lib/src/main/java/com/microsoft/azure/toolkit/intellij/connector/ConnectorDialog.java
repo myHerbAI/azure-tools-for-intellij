@@ -229,8 +229,10 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     public void setResource(@Nullable final Resource<?> resource) {
         if (Objects.nonNull(resource)) {
             this.setResourceDefinition(resource.getDefinition());
-            //noinspection unchecked
-            this.resourcePanel.setValue(resource);
+            if (resource.isValidResource()) {
+                //noinspection unchecked
+                this.resourcePanel.setValue(resource);
+            }
         } else {
             ResourceManager.getDefinitions(RESOURCE).stream().findFirst().ifPresent(this::setResourceDefinition);
         }

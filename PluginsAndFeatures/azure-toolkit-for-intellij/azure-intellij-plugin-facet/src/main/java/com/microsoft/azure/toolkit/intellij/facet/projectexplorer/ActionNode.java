@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.microsoft.azure.toolkit.intellij.common.action.IntellijAzureActionManager;
@@ -76,6 +77,10 @@ public class ActionNode<T> extends AbstractTreeNode<Action<T>> implements IAzure
 
     @Override
     public void onClicked(Object event) {
+        final Action<T> value = getValue();
+        if (event instanceof AnActionEvent) {
+            value.getContext().setTelemetryProperty(Action.PLACE, ((AnActionEvent) event).getPlace());
+        }
         this.getValue().handle(this.source, event);
     }
 
