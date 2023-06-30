@@ -68,7 +68,7 @@ public class ExceptionNode extends AbstractTreeNode<Throwable> implements IAzure
 
     @Override
     protected void update(@Nonnull final PresentationData presentation) {
-        final String message = ExceptionUtils.getRootCauseMessage(this.getValue());
+        final String message = this.getValue().getMessage();
         presentation.addText(StringUtils.firstNonBlank(message, "<no message>"), SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES);
     }
 
