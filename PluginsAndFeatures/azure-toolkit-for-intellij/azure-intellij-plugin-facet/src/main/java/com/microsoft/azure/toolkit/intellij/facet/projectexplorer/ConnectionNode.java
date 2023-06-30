@@ -65,7 +65,7 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
             .withHandler(ignore -> AzureTaskManager.getInstance().runLater(() -> this.navigate(true)))
             .withAuthRequired(false);
         this.eventListener = new AzureEventBus.EventListener(this::onEvent);
-        AzureEventBus.on("account.logged_in.account", eventListener);
+        AzureEventBus.on("resource.status_changed.resource", eventListener);
         if (!parent.isDisposed()) {
             Disposer.register(parent, this);
         }
@@ -216,6 +216,6 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
     @Override
     public void dispose() {
         IAzureFacetNode.super.dispose();
-        AzureEventBus.off("account.logged_in.account", eventListener);
+        AzureEventBus.off("resource.status_changed.resource", eventListener);
     }
 }
