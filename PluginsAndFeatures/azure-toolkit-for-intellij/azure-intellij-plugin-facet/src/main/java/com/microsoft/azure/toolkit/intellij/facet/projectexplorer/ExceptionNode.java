@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -68,7 +69,7 @@ public class ExceptionNode extends AbstractTreeNode<Throwable> implements IAzure
     @Override
     protected void update(@Nonnull final PresentationData presentation) {
         final String message = ExceptionUtils.getRootCauseMessage(this.getValue());
-        presentation.addText(message, SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES);
+        presentation.addText(StringUtils.firstNonBlank(message, "<no message>"), SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES);
     }
 
     @Override

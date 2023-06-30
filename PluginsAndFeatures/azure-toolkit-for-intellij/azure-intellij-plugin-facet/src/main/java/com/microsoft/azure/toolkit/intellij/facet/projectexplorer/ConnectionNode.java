@@ -25,7 +25,6 @@ import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.explorer.AzureExplorer;
-import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
@@ -38,11 +37,13 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor.EDIT_CONNECTION;
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor.REMOVE_CONNECTION;
@@ -108,6 +109,7 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
             }
         } catch (final Exception e) {
             log.warn(e.getMessage(), e);
+            children.add(toExceptionNode(e));
         }
         return children;
     }
@@ -117,15 +119,9 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
             final Object resource = connection.getResource().getData();
             final Node<?> node = AzureExplorer.manager.createNode(resource, null, IExplorerNodeProvider.ViewType.APP_CENTRIC);
             return new ResourceNode(this, node);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            e = ExceptionUtils.getRootCause(e);
-            if (e instanceof AzureToolkitAuthenticationException) {
-                final Action<Object> signin = AzureActionManager.getInstance().getAction(Action.AUTHENTICATE).bind(connection).withLabel("Sign in to manage connected resource");
-                return new ActionNode<>(this, signin);
-            } else {
-                return new ExceptionNode(this, e);
-            }
+        } catch (final Throwable e) {
+            log.warn(e.getMessage(), e);
+            return toExceptionNode(e);
         }
     }
 
