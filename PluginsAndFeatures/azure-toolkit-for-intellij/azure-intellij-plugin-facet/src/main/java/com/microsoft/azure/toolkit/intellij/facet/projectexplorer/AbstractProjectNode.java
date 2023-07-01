@@ -8,22 +8,22 @@ package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 import com.google.common.collect.Sets;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectView;
+import com.intellij.ide.projectView.ProjectViewNode;
+import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.tree.AsyncTreeModel;
 import com.intellij.util.ui.tree.TreeUtil;
-import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
-import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -31,20 +31,19 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> implements IAzureFacetNode {
+public abstract class AbstractProjectNode<T> extends ProjectViewNode<T> implements IAzureFacetNode {
     @Getter
     @Setter
     private boolean disposed;
     private final AtomicReference<Collection<? extends AbstractAzureFacetNode<?>>> children = new AtomicReference<>();
 
-    protected AbstractAzureFacetNode(Project project, @Nonnull T value) {
-        super(project, value);
+    protected AbstractProjectNode(Project project, @NotNull T t, ViewSettings viewSettings) {
+        super(project, t, viewSettings);
     }
 
     public Collection<? extends AbstractAzureFacetNode<?>> getChildren() {
@@ -56,7 +55,7 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
 
     @Nonnull
     private Collection<? extends AbstractAzureFacetNode<?>> rebuildChildren() {
-        final Collection<? extends AbstractAzureFacetNode<?>> newChildren = handleException(this::buildChildren, this.getProject());
+        final Collection<? extends AbstractAzureFacetNode<?>> newChildren = IAzureFacetNode.handleException(this::buildChildren, this.getProject());
         final HashSet<? extends AbstractAzureFacetNode<?>> newChildrenSet = new HashSet<>(newChildren);
         final HashSet<? extends AbstractAzureFacetNode<?>> oldChildrenSet = Optional.ofNullable(this.children.get()).map(HashSet::new).orElse(new HashSet<>());
         final Sets.SetView<? extends AbstractAzureFacetNode<?>> toRemove = Sets.difference(oldChildrenSet, newChildrenSet);
@@ -98,17 +97,20 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
         }
     }
 
-    @Nonnull
     private PresentationData buildView() {
         final PresentationData presentation = new PresentationData();
         this.buildView(presentation);
         return presentation;
     }
 
-    @Nonnull
     protected abstract Collection<? extends AbstractAzureFacetNode<?>> buildChildren();
 
     protected abstract void buildView(PresentationData presentation);
+
+    @Override
+    public boolean contains(VirtualFile file) {
+        return false;
+    }
 
     @Override
     public @Nullable Object getData(@Nonnull String dataId) {
@@ -123,25 +125,5 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
     @EqualsAndHashCode.Include
     public T getMyValue() {
         return this.getValue();
-    }
-
-    public AbstractAzureFacetNode<?> toExceptionNode(Throwable e, @Nonnull Project project) { // `static` to make it available for AzureFacetRootNode
-        e = ExceptionUtils.getRootCause(e);
-        if (e instanceof AzureToolkitAuthenticationException) {
-            final Action<Object> signin = AzureActionManager.getInstance().getAction(Action.AUTHENTICATE).bind(project).withLabel("Sign in to manage connected resource");
-            return new ActionNode<>(project, signin);
-        } else {
-            return new ExceptionNode(project, e);
-        }
-    }
-
-    private Collection<? extends AbstractAzureFacetNode<?>> handleException(Callable<Collection<? extends AbstractAzureFacetNode<?>>> t, Project project) { // `static` to make it available for AzureFacetRootNode
-        try {
-            return t.call();
-        } catch (final Throwable e) {
-            final ArrayList<AbstractAzureFacetNode<?>> children = new ArrayList<>();
-            children.add(toExceptionNode(e, project));
-            return children;
-        }
     }
 }

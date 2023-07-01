@@ -17,6 +17,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ClientProperty;
 import com.intellij.util.ui.tree.TreeUtil;
@@ -45,6 +46,7 @@ import static com.intellij.ui.AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED;
 @Slf4j
 public final class AzureFacetTreeStructureProvider implements TreeStructureProvider {
     private final Project myProject;
+    private AzureFacetRootNode azureNode;
 
     public AzureFacetTreeStructureProvider(Project project) {
         myProject = project;
@@ -78,11 +80,14 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
                     .map(n -> ((PsiDirectoryNode) n))
                     .filter(d -> Objects.nonNull(d.getVirtualFile()) && ".azure".equalsIgnoreCase(d.getVirtualFile().getName()))
                     .findAny().orElse(null);
-                final List<AbstractTreeNode<?>> nodes = new LinkedList<>();
-                nodes.add(new AzureFacetRootNode(azureModule, settings));
-                nodes.addAll(children);
+                final List<AbstractTreeNode<?>> nodes = new LinkedList<>(children);
                 nodes.removeIf(n -> Objects.equals(n, dotAzureDir));
+                this.azureNode = Optional.ofNullable(this.azureNode).orElseGet(() -> new AzureFacetRootNode(azureModule, settings));
+                Disposer.register(ProjectView.getInstance(this.myProject).getCurrentProjectViewPane(), this.azureNode);
+                nodes.add(this.azureNode);
                 return nodes;
+            } else {
+                children.removeIf(c -> c instanceof AzureFacetRootNode);
             }
         } catch (final Exception e) {
             log.warn(e.getMessage(), e);

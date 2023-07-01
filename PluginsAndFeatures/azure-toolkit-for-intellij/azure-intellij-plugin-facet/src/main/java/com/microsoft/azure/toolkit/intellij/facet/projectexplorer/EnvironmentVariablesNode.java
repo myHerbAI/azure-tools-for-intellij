@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 
 import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -28,17 +27,17 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 public class EnvironmentVariablesNode extends AbstractAzureFacetNode<Connection<?, ?>> {
-    @Nonnull
-    private final Profile profile;
     private final Action<?> editAction;
 
-    public EnvironmentVariablesNode(@Nonnull Project project, @Nonnull Profile profile, @Nonnull Connection<?, ?> connection) {
+    public EnvironmentVariablesNode(@Nonnull Project project, @Nonnull Connection<?, ?> connection) {
         super(project, connection);
-        this.profile = profile;
         this.editAction = new Action<>(Action.Id.of("user/connector.edit_envs_in_editor"))
             .withLabel("Open In Editor")
             .withIcon(AzureIcons.Action.EDIT.getIconPath())
@@ -48,24 +47,14 @@ public class EnvironmentVariablesNode extends AbstractAzureFacetNode<Connection<
 
     @Override
     @Nonnull
-    public Collection<? extends AbstractTreeNode<?>> getChildren() {
-        final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>();
-        if (this.isDisposed()) {
-            return children;
-        }
-        try {
-            final Connection<?, ?> connection = this.getValue();
-            final List<Pair<String, String>> generated = this.profile.getGeneratedEnvironmentVariables(connection);
-            return generated.stream().map(g -> new EnvironmentVariableNode(this.getProject(), g, getValue())).toList();
-        } catch (final Exception e) {
-            log.warn(e.getMessage(), e);
-            children.add(toExceptionNode(e));
-        }
-        return children;
+    public Collection<? extends AbstractAzureFacetNode<?>> buildChildren() {
+        final Connection<?, ?> connection = this.getValue();
+        final List<Pair<String, String>> generated = connection.getProfile().getGeneratedEnvironmentVariables(connection);
+        return generated.stream().map(g -> new EnvironmentVariableNode(this.getProject(), g, getValue())).toList();
     }
 
     @Override
-    protected void update(@Nonnull final PresentationData presentation) {
+    protected void buildView(@Nonnull final PresentationData presentation) {
         presentation.setIcon(IntelliJAzureIcons.getIcon(AzureIcons.Common.VARIABLE));
         presentation.setPresentableText("Environment Variables");
         presentation.setTooltip("Generated environment variables by connected resource.");

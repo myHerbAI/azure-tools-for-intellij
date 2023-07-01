@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
@@ -49,20 +48,17 @@ public class ActionNode<T> extends AbstractAzureFacetNode<Action<T>> {
         this.source = source;
     }
 
+    @Nonnull
     @Override
-    public @Nonnull Collection<? extends AbstractTreeNode<?>> getChildren() {
+    protected Collection<? extends AbstractAzureFacetNode<?>> buildChildren() {
         return Collections.emptyList();
     }
 
     @Override
-    protected void update(@Nonnull PresentationData presentation) {
-        try {
-            final IView.Label view = this.getValue().getView(this.source);
-            presentation.addText(StringUtils.capitalize(view.getLabel()), SimpleTextAttributes.LINK_ATTRIBUTES);
-            presentation.setTooltip(view.getDescription());
-        } catch (final Exception e) {
-            log.warn(e.getMessage(), e);
-        }
+    protected void buildView(@Nonnull PresentationData presentation) {
+        final IView.Label view = this.getValue().getView(this.source);
+        presentation.addText(StringUtils.capitalize(view.getLabel()), SimpleTextAttributes.LINK_ATTRIBUTES);
+        presentation.setTooltip(view.getDescription());
     }
 
     @Override

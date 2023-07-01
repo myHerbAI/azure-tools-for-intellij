@@ -22,7 +22,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
 
 @Slf4j
@@ -37,49 +36,32 @@ public class ResourceNode extends AbstractAzureFacetNode<Node<?>> implements Nod
 
     @Override
     @Nonnull
-    public Collection<? extends AbstractTreeNode<?>> getChildren() {
-        final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>();
-        if (this.isDisposed()) {
-            return Collections.emptyList();
-        }
-        try {
-            final Node<?> node = this.getValue();
-            children.addAll(node.getChildren().stream().map(n -> new ResourceNode(this.getProject(), n)).toList());
-            if (node.hasMoreChildren()) {
-                final Action<Object> loadMoreAction = new Action<>(Action.Id.of("user/common.load_more"))
-                    .withHandler(i -> node.loadMoreChildren())
-                    .withLabel("load more")
-                    .withAuthRequired(true);
-                children.add(new ActionNode<>(this.getProject(), loadMoreAction));
-            }
-        } catch (final Exception e) {
-            log.warn(e.getMessage(), e);
+    public Collection<? extends AbstractAzureFacetNode<?>> buildChildren() {
+        final Node<?> node = this.getValue();
+        final ArrayList<AbstractAzureFacetNode<?>> children = new ArrayList<>(node.getChildren().stream().map(n -> new ResourceNode(this.getProject(), n)).toList());
+        if (node.hasMoreChildren()) {
+            final Action<Object> loadMoreAction = new Action<>(Action.Id.of("user/common.load_more"))
+                .withHandler(i -> node.loadMoreChildren())
+                .withLabel("load more")
+                .withAuthRequired(true);
+            children.add(new ActionNode<>(this.getProject(), loadMoreAction));
         }
         return children;
     }
 
     @Override
-    protected void update(@Nonnull final PresentationData presentation) {
-        try {
-            final Node<?> node = this.getValue();
-            final Node.View view = node.getView();
-            presentation.setIcon(IntelliJAzureIcons.getIcon(view.getIcon()));
-            presentation.addText(view.getLabel(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
-            presentation.setTooltip(view.getTips());
-            Optional.ofNullable(view.getDescription()).ifPresent(d -> presentation.addText(" " + d, SimpleTextAttributes.GRAYED_ATTRIBUTES));
-        } catch (final Exception e) {
-            log.warn(e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void updateView() {
-        rerender(false);
+    public void buildView(final PresentationData presentation) {
+        final Node<?> node = this.getValue();
+        final Node.View view = node.getView();
+        presentation.setIcon(IntelliJAzureIcons.getIcon(view.getIcon()));
+        presentation.addText(view.getLabel(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+        presentation.setTooltip(view.getTips());
+        Optional.ofNullable(view.getDescription()).ifPresent(d -> presentation.addText(" " + d, SimpleTextAttributes.GRAYED_ATTRIBUTES));
     }
 
     @Override
     public void updateChildren(boolean... incremental) {
-        rerender(true);
+        updateChildren();
     }
 
     @Override

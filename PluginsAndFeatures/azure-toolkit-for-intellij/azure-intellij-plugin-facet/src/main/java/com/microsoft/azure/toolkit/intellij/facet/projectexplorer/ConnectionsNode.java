@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
@@ -46,39 +45,27 @@ public class ConnectionsNode extends AbstractAzureFacetNode<ConnectionManager> {
 
     @Override
     @Nonnull
-    public Collection<? extends AbstractTreeNode<?>> getChildren() {
-        final ArrayList<AbstractTreeNode<?>> nodes = new ArrayList<>();
-        if (this.isDisposed()) {
-            return nodes;
+    public Collection<? extends AbstractAzureFacetNode<?>> buildChildren() {
+        final ArrayList<AbstractAzureFacetNode<?>> nodes = new ArrayList<>();
+        final List<ConnectionNode> children = Optional.ofNullable(this.getValue()).stream()
+            .flatMap(p -> p.getConnections().stream())
+            .map(r -> new ConnectionNode(this.getProject(), r))
+            .toList();
+        if (CollectionUtils.isNotEmpty(children)) {
+            return children;
         }
-        try {
-            final List<ConnectionNode> children = Optional.ofNullable(this.getValue()).stream()
-                .flatMap(p -> p.getConnections().stream())
-                .map(r -> new ConnectionNode(this.getProject(), r))
-                .toList();
-            if (CollectionUtils.isNotEmpty(children)) {
-                return children;
-            }
-            nodes.add(new ActionNode<>(this.getProject(), CONNECT_TO_MODULE, this.getValue().getProfile().getModule()));
-        } catch (final Exception e) {
-            log.warn(e.getMessage(), e);
-            nodes.add(toExceptionNode(e));
-        }
+        nodes.add(new ActionNode<>(this.getProject(), CONNECT_TO_MODULE, this.getValue().getProfile().getModule()));
         return nodes;
     }
 
     @Override
-    protected void update(@Nonnull final PresentationData presentation) {
-        try {
-            final List<Connection<?, ?>> connections = Optional.ofNullable(getValue())
-                .map(ConnectionManager::getConnections).orElse(Collections.emptyList());
-            final boolean isConnectionValid = connections.stream().allMatch(Connection::isValidConnection);
-            presentation.addText("Resource connections", AzureFacetRootNode.getTextAttributes(isConnectionValid));
-            presentation.setIcon(AllIcons.Nodes.HomeFolder);
-            presentation.setTooltip("The dependent/connected resources.");
-        } catch (final Exception e) {
-            log.warn(e.getMessage(), e);
-        }
+    protected void buildView(@Nonnull final PresentationData presentation) {
+        final List<Connection<?, ?>> connections = Optional.ofNullable(getValue())
+            .map(ConnectionManager::getConnections).orElse(Collections.emptyList());
+        final boolean isConnectionValid = connections.stream().allMatch(Connection::isValidConnection);
+        presentation.addText("Resource connections", AzureFacetRootNode.getTextAttributes(isConnectionValid));
+        presentation.setIcon(AllIcons.Nodes.HomeFolder);
+        presentation.setTooltip("The dependent/connected resources.");
     }
 
     @Nullable

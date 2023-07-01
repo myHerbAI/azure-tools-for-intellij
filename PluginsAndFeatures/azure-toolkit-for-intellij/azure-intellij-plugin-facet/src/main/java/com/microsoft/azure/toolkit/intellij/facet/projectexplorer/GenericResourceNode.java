@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.tree.LeafState;
@@ -30,13 +29,14 @@ public class GenericResourceNode extends AbstractAzureFacetNode<ResourceId> impl
         this.status = status;
     }
 
+    @Nonnull
     @Override
-    public @Nonnull Collection<? extends AbstractTreeNode<?>> getChildren() {
+    protected Collection<? extends AbstractAzureFacetNode<?>> buildChildren() {
         return Collections.emptyList();
     }
 
     @Override
-    protected void update(@Nonnull PresentationData presentation) {
+    protected void buildView(@Nonnull PresentationData presentation) {
         presentation.setIcon(IntelliJAzureIcons.getIcon(AzureIcons.Resources.GENERIC_RESOURCE));
         presentation.addText(this.getValue().name(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
         presentation.addText(StringUtils.SPACE + Optional.ofNullable(this.status).orElse(""), SimpleTextAttributes.GRAYED_ATTRIBUTES);

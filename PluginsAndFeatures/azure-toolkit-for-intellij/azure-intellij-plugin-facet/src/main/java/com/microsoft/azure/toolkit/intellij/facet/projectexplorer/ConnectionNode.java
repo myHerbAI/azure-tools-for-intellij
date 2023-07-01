@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -61,46 +60,38 @@ public class ConnectionNode extends AbstractAzureFacetNode<Connection<?, ?>> {
             .withAuthRequired(false);
         this.eventListener = new AzureEventBus.EventListener(this::onEvent);
         AzureEventBus.on("resource.status_changed.resource", eventListener);
+        AzureEventBus.on("account.logged_in.account", eventListener);
     }
 
     private void onEvent(@Nonnull final AzureEvent azureEvent) {
-        final String type = azureEvent.getType();
         final Object source = azureEvent.getSource();
         final Resource<?> resource = this.getValue().getResource();
         if (resource instanceof AzureServiceResource &&
             source instanceof AzResource && StringUtils.equals(((AzResource) source).getId(), resource.getDataId())) {
-            this.rerender(true);
+            this.updateChildren();
         }
     }
 
     @Override
     @Nonnull
-    public Collection<? extends AbstractTreeNode<?>> getChildren() {
-        final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>();
-        if (this.isDisposed()) {
-            return children;
+    public Collection<? extends AbstractAzureFacetNode<?>> buildChildren() {
+        final ArrayList<AbstractAzureFacetNode<?>> children = new ArrayList<>();
+        final Connection<?, ?> connection = this.getValue();
+        if (!connection.isValidConnection()) {
+            children.add(new ActionNode<>(this.getProject(), ResourceConnectionActionsContributor.FIX_CONNECTION, connection));
         }
-        try {
-            final Connection<?, ?> connection = this.getValue();
-            if (!connection.isValidConnection()) {
-                children.add(new ActionNode<>(this.getProject(), ResourceConnectionActionsContributor.FIX_CONNECTION, connection));
-            }
-            if (connection.getResource() instanceof AzureServiceResource) {
-                children.add(getResourceNode(connection));
-            }
-            final Profile profile = connection.getProfile();
-            final Boolean envFileExists = Optional.ofNullable(profile).map(Profile::getDotEnvFile).map(VirtualFile::exists).orElse(false);
-            if (envFileExists) {
-                children.add(new EnvironmentVariablesNode(this.getProject(), profile, connection));
-            }
-        } catch (final Exception e) {
-            log.warn(e.getMessage(), e);
-            children.add(toExceptionNode(e));
+        if (connection.getResource() instanceof AzureServiceResource) {
+            children.add(createResourceNode(connection));
+        }
+        final Profile profile = connection.getProfile();
+        final Boolean envFileExists = Optional.ofNullable(profile).map(Profile::getDotEnvFile).map(VirtualFile::exists).orElse(false);
+        if (envFileExists) {
+            children.add(new EnvironmentVariablesNode(this.getProject(), connection));
         }
         return children;
     }
 
-    private AbstractTreeNode<?> getResourceNode(Connection<?, ?> connection) {
+    private AbstractAzureFacetNode<?> createResourceNode(Connection<?, ?> connection) {
         try {
             final Object resource = connection.getResource().getData();
             if (Objects.isNull(resource)) {
@@ -111,29 +102,25 @@ public class ConnectionNode extends AbstractAzureFacetNode<Connection<?, ?>> {
             return new ResourceNode(this.getProject(), node);
         } catch (final Throwable e) {
             log.warn(e.getMessage(), e);
-            return toExceptionNode(e);
+            return toExceptionNode(e, this.getProject());
         }
     }
 
     @Override
-    protected void update(@Nonnull final PresentationData presentation) {
-        try {
-            final Connection<?, ?> connection = this.getValue();
-            final Resource<?> resource = connection.getResource();
-            final boolean isValid = connection.isValidConnection();
-            final String icon = StringUtils.firstNonBlank(resource.getDefinition().getIcon(), AzureIcons.Common.AZURE.getIconPath());
-            presentation.setIcon(IntelliJAzureIcons.getIcon(icon));
-            presentation.addText(resource.getDefinition().getTitle(), AzureFacetRootNode.getTextAttributes(isValid));
-            if (isValid) {
-                presentation.addText(StringUtils.SPACE + resource.getName(), SimpleTextAttributes.GRAYED_ATTRIBUTES);
-            } else {
-                presentation.setTooltip("Resource is missing, please edit the connection.");
-            }
-            if (resource.getDefinition().isEnvPrefixSupported()) {
-                presentation.addText(" (" + connection.getEnvPrefix() + "_*)", SimpleTextAttributes.GRAYED_ATTRIBUTES);
-            }
-        } catch (final Exception e) {
-            log.warn(e.getMessage(), e);
+    protected void buildView(@Nonnull final PresentationData presentation) {
+        final Connection<?, ?> connection = this.getValue();
+        final Resource<?> resource = connection.getResource();
+        final boolean isValid = connection.isValidConnection();
+        final String icon = StringUtils.firstNonBlank(resource.getDefinition().getIcon(), AzureIcons.Common.AZURE.getIconPath());
+        presentation.setIcon(IntelliJAzureIcons.getIcon(icon));
+        presentation.addText(resource.getDefinition().getTitle(), AzureFacetRootNode.getTextAttributes(isValid));
+        if (isValid) {
+            presentation.addText(StringUtils.SPACE + resource.getName(), SimpleTextAttributes.GRAYED_ATTRIBUTES);
+        } else {
+            presentation.setTooltip("Resource is missing, please edit the connection.");
+        }
+        if (resource.getDefinition().isEnvPrefixSupported()) {
+            presentation.addText(" (" + connection.getEnvPrefix() + "_*)", SimpleTextAttributes.GRAYED_ATTRIBUTES);
         }
     }
 
@@ -187,6 +174,7 @@ public class ConnectionNode extends AbstractAzureFacetNode<Connection<?, ?>> {
     public void dispose() {
         super.dispose();
         AzureEventBus.off("resource.status_changed.resource", eventListener);
+        AzureEventBus.off("account.logged_in.account", eventListener);
     }
 
     public String toString() {

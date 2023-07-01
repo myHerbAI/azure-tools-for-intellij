@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 
 import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
@@ -55,13 +54,7 @@ public class EnvironmentVariableNode extends AbstractAzureFacetNode<Pair<String,
     }
 
     @Override
-    @Nonnull
-    public Collection<? extends AbstractTreeNode<?>> getChildren() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    protected void update(@Nonnull final PresentationData presentation) {
+    protected void buildView(@Nonnull final PresentationData presentation) {
         final Pair<String, String> pair = this.getValue();
         presentation.setIcon(IntelliJAzureIcons.getIcon(AzureIcons.Common.VARIABLE));
         presentation.addText(pair.getKey(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
@@ -70,6 +63,12 @@ public class EnvironmentVariableNode extends AbstractAzureFacetNode<Pair<String,
         } else {
             presentation.addText(" = ***", SimpleTextAttributes.GRAYED_ATTRIBUTES);
         }
+    }
+
+    @Nonnull
+    @Override
+    protected Collection<? extends AbstractAzureFacetNode<?>> buildChildren() {
+        return Collections.emptyList();
     }
 
     @Nullable
@@ -86,7 +85,7 @@ public class EnvironmentVariableNode extends AbstractAzureFacetNode<Pair<String,
 
     private void toggleVisibility() {
         this.visible = !this.visible;
-        this.rerender(false);
+        this.updateView();
     }
 
     @Override
