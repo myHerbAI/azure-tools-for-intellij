@@ -79,7 +79,7 @@ public class ConnectionManager {
     }
 
     @Nullable
-    public static ConnectionDefinition<?, ?> getDefinitionOrDefault(@Nonnull String name) {
+    public static synchronized ConnectionDefinition<?, ?> getDefinitionOrDefault(@Nonnull String name) {
         return getDefinitionsMap().computeIfAbsent(name, def -> {
             final String[] split = def.split(":");
             final ResourceDefinition<?> rd = ResourceManager.getDefinition(split[0]);
