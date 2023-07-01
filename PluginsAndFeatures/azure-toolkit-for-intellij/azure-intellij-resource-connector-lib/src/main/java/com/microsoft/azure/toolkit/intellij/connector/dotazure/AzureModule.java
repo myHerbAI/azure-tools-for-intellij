@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware;
 import com.microsoft.azure.toolkit.intellij.facet.AzureFacet;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +76,7 @@ public class AzureModule {
             .or(() -> this.getModuleDir().map(d -> d.findChild(DOT_AZURE))).ifPresent(d -> {
                 this.dotAzure = d;
                 this.profilesXmlFile = this.dotAzure.findChild(PROFILES_XML);
-                Optional.ofNullable(this.profilesXmlFile).ifPresent(this::loadProfiles);
+                AzureTaskManager.getInstance().runOnPooledThread(() -> Optional.ofNullable(this.profilesXmlFile).ifPresent(this::loadProfiles));
             });
     }
 
