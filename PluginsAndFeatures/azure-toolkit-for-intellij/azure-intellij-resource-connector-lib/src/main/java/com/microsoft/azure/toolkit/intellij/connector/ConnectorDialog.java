@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.connector;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -29,6 +30,7 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
 
@@ -155,6 +157,10 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     )
     private void saveConnectionToDotAzure(Connection<?, ?> connection) {
         final Resource<?> consumer = connection.getConsumer();
+        final Resource<?> resource = connection.getResource();
+        if (resource instanceof AzureServiceResource<?>) {
+            OperationContext.action().setTelemetryProperty("subscriptionId", ResourceId.fromString(resource.getDataId()).subscriptionId());
+        }
         if (consumer instanceof ModuleResource) {
             final ModuleManager moduleManager = ModuleManager.getInstance(project);
             final Module m = moduleManager.findModuleByName(consumer.getName());
