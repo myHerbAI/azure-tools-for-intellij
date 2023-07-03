@@ -7,6 +7,8 @@
   - Support list/add/remove Azure resource connections in project explorer
   - Support edit environment variables for Azure resource connections
   - Support manage connected Azure resources in project explorer
+
+  <img alt="app-centric" src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202306/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib/src/main/resources/whatsnew.assets/202306.app-centric.gif" width="1000"/>
 - Support IntelliJ 2023.2 EAP
 
 ### Fixed
