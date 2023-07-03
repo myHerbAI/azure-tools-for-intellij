@@ -58,7 +58,7 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
     @Override
     @Nonnull
     public Collection<AbstractTreeNode<?>> modify(@Nonnull AbstractTreeNode<?> parent, @Nonnull Collection<AbstractTreeNode<?>> children, ViewSettings settings) {
-        if (!(parent instanceof PsiDirectoryNode)) {
+        if (!(parent instanceof PsiDirectoryNode) || this.myProject.isDisposed()) {
             return children;
         }
         try {
@@ -192,6 +192,9 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
     }
 
     private void addListener(@Nonnull final Project project) {
+        if (project.isDisposed()) {
+            return;
+        }
         final AbstractProjectViewPane currentProjectViewPane = ProjectView.getInstance(project).getCurrentProjectViewPane();
         final JTree tree = currentProjectViewPane.getTree();
         final boolean exists = Arrays.stream(tree.getMouseListeners()).anyMatch(listener -> listener instanceof AzureProjectExplorerMouseListener);

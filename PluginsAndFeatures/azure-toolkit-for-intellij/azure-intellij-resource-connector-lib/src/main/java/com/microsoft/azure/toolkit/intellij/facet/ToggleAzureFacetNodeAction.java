@@ -31,7 +31,7 @@ public class ToggleAzureFacetNodeAction extends AnAction {
     public void actionPerformed(@Nonnull AnActionEvent event) {
         OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(event.getPlace(), EMPTY_PLACE));
         final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
-        if (Objects.nonNull(module)) {
+        if (Objects.nonNull(module) && !module.getProject().isDisposed()) {
             final Project project = Objects.requireNonNull(event.getProject());
             final PropertiesComponent properties = PropertiesComponent.getInstance(project);
             properties.setValue(module.getName() + ".azure", "show");

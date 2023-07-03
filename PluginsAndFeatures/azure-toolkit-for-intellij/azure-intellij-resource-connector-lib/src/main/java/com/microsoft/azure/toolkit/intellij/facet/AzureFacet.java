@@ -38,6 +38,9 @@ public class AzureFacet extends Facet<AzureFacetConfiguration> {
     }
 
     public static void addTo(@Nonnull final Module module) {
+        if (module.isDisposed() || module.getProject().isDisposed()) {
+            return;
+        }
         final AzureFacet facet = getInstance(module);
         final PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
         final String key = getFacetFlag(module);

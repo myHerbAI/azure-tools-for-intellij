@@ -100,6 +100,10 @@ public abstract class AbstractProjectNode<T> extends ProjectViewNode<T> implemen
     }
 
     private void rerender(boolean updateStructure) { // `static` to make it available for AzureFacetRootNode
+        if (this.getProject().isDisposed()) {
+            Disposer.dispose(this);
+            return;
+        }
         final AbstractProjectViewPane pane = ProjectView.getInstance(this.getProject()).getCurrentProjectViewPane();
         final AsyncTreeModel model = (AsyncTreeModel) pane.getTree().getModel();
         final DefaultMutableTreeNode node = TreeUtil.findNodeWithObject((DefaultMutableTreeNode) model.getRoot(), this);
