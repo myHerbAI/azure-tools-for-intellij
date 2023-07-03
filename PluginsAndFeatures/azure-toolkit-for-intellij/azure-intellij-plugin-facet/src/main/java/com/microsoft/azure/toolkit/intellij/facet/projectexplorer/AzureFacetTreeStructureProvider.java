@@ -23,10 +23,8 @@ import com.intellij.ui.ClientProperty;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.microsoft.azure.toolkit.intellij.common.action.IntellijAzureActionManager;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
-import com.microsoft.azure.toolkit.intellij.facet.AzureFacet;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -64,15 +62,10 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
         try {
             final AzureModule azureModule = Optional.ofNullable(toModule(parent))
                 .map(AzureModule::from)
-                .filter(m -> m.isInitialized() || m.hasAzureDependencies())
                 .orElse(null);
             final boolean neverHasAzureFacet = Objects.nonNull(azureModule) && azureModule.neverHasAzureFacet();
             final boolean hasAzureFacet = Objects.nonNull(azureModule) && azureModule.hasAzureFacet();
-            if (Objects.nonNull(azureModule) && !hasAzureFacet && neverHasAzureFacet) {
-                final AzureTaskManager tm = AzureTaskManager.getInstance();
-                tm.runLater(() -> tm.write(() -> AzureFacet.addTo(azureModule.getModule())));
-            }
-            if (Objects.nonNull(azureModule) && hasAzureFacet || neverHasAzureFacet) {
+            if (hasAzureFacet || (neverHasAzureFacet && (azureModule.isInitialized() || azureModule.hasAzureDependencies()))) {
                 addListener(parent.getProject());
                 final AbstractProjectViewPane viewPane = ProjectView.getInstance(parent.getProject()).getCurrentProjectViewPane();
                 final AbstractTreeNode<?> dotAzureDir = children.stream()
