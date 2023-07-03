@@ -27,33 +27,28 @@
   <change-notes>
     <![CDATA[
     <html>
-      <h3 id="3-77-0">3.77.0</h3>
-      <h4 id="added">Added</h4>
-      <ul>
-        <li>Azure Spring Apps: basic Standard Consumption plan(preview) support.</li>
-        <li>Azure Storage Account: local Storage Account Emulator (Azurite) support.</li>
-      </ul>
-      <h4 id="changed">Changed</h4>
-      <ul>
-        <li>Azure Spring Apps: performance of creating/updating resources is improved.</li>
-        <li>Azure Functions: users are asked to select an Cloud/Emulated Storage Account in case of missing <code>AzureWebJobsStorage</code> at local run instead of fail directly.</li>
-        <li>Resource Connection: data related to resource connections are moved from project dir to module dir and the schema is also changed.</li>
-      </ul>
-      <h4 id="fixed">Fixed</h4>
-      <ul>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/7564">#7564</a>: Uncaught Exception java.lang.NullPointerException: Cannot invoke &quot;com.microsoft.azure.toolkit.ide.common.store.IIdeStore.getProperty(String, String)&quot; because &quot;store&quot; is null.</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/7561">#7561</a>: Uncaught Exception com.intellij.diagnostic.PluginException: 644 ms to call on EDT DeployFunctionAppAction#update@MainMenu (com.microsoft.azure.toolkit.intellij.legacy.function.action.DeployFunctionAppAction).</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/7421">#7421</a>: Uncaught Exception com.intellij.diagnostic.PluginException: 303 ms to call on EDT ServerExplorerToolWindowFactory$RefreshAllAction#update@ToolwindowTitle (com.microsoft.intellij.ui.ServerExplorerToolWindowFactory$RefreshAllAction).</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/7411">#7411</a>: Uncaught Exception com.intellij.diagnostic.PluginException: 338 ms to call on EDT RunFunctionAction#update@GoToAction (com.microsoft.azure.toolkit.intellij.legacy.function.action.RunFunctionAction).</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/7185">#7185</a>: Uncaught Exception com.intellij.diagnostic.PluginException: 446 ms to call on EDT AzureSignInAction#update@ToolwindowTitle (com.microsoft.intellij.actions.AzureSignInAction).</li>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/7143">#7143</a>: Uncaught Exception com.intellij.diagnostic.PluginException: 403 ms to call on EDT ShowGettingStartAction#update@GoToAction (com.microsoft.azure.toolkit.ide.guidance.action.ShowGettingStartAction).</li>
-        <li>Fix : Toolkit could not authenticate with Azure CLI when it was run from the dock in Mac OS.</li>
-        <li>Fix : Failed to upload Spark application artifacts in IntelliJ 2023.1.</li>
-        <li>Fix : Local run and remote run failed, only repro in IntelliJ 2022.3.</li>
-        <li>Fix : Show Failed to proceed after clicking on storage account node.</li>
-        <li>Fix : Apache Spark on Azure Synapse\Apache Spark on Cosmos\SQL Server Big Data Cluster cannot be listed.</li>
-        <li>Fix : Load cluster show errors.</li>
-      </ul>
+      <h3>3.78.0</h3>
+        <h4>Added</h4>
+        <ul>
+            <li>New UX for Azure resource connections in IntelliJ project view<ul>
+                    <li>Support list/add/remove Azure resource connections in project explorer</li>
+                    <li>Support edit environment variables for Azure resource connections</li>
+                    <li>Support manage connected Azure resources in project explorer</li>
+                </ul>
+            </li>
+            <li>Support IntelliJ 2023.2 EAP</li>
+        </ul>
+        <h4>Fixed</h4>
+        <ul>
+            <li>Fix: System environment variables may be missed during function run/deployment</li>
+            <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/7651">#7651</a>: Uncaught Exception
+                DeployFunctionAppAction#update, check if project is a valid function project.</li>
+            <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/7653">#7653</a>: Uncaught Exception
+                com.intellij.diagnostic.PluginException: No display name is specified for configurable
+                com.microsoft.intellij.AzureConfigurable in xml file.</li>
+            <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/7619">#7619</a>: Uncaught Exception Uncaught
+                Exception java.lang.IllegalArgumentException: invalid arguments id/nameId.</li>
+        </ul>
       <p>You may get the full change log <a href="https://github.com/Microsoft/azure-tools-for-java/blob/develop/CHANGELOG.md">here</a></p>
     </html>
     ]]>

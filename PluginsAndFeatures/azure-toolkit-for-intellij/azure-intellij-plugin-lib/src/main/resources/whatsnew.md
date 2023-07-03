@@ -1,5 +1,19 @@
-<!-- Version: 3.77.0 -->
+<!-- Version: 3.78.0 -->
 # What's new in Azure Toolkit for IntelliJ
+
+## 3.78.0
+### Added
+- New UX for Azure resource connections in IntelliJ project view
+  - Support list/add/remove Azure resource connections in project explorer
+  - Support edit environment variables for Azure resource connections
+  - Support manage connected Azure resources in project explorer
+- Support IntelliJ 2023.2 EAP
+
+### Fixed
+- Fix: System environment variables may be missed during function run/deployment
+- [#7651](https://github.com/microsoft/azure-tools-for-java/issues/7651): Uncaught Exception DeployFunctionAppAction#update, check if project is a valid function project.
+- [#7653](https://github.com/microsoft/azure-tools-for-java/issues/7653): Uncaught Exception com.intellij.diagnostic.PluginException: No display name is specified for configurable com.microsoft.intellij.AzureConfigurable in xml file.
+- [#7619](https://github.com/microsoft/azure-tools-for-java/issues/7619): Uncaught Exception Uncaught Exception java.lang.IllegalArgumentException: invalid arguments id/nameId.
 
 ## 3.77.0
 ### Added
@@ -205,102 +219,6 @@
 
 ### Changed
 - Remove menu `Submit Apache Spark Application`
-
-## 3.68.1
-### Fixed
-- Fixed the data modification failure issue of `Azure Cosmos DB API for MongoDB` Data Sources.
-
-### Changed
-- Added feature toggle for creating Data Source of `Azure Cosmos DB API for Cassandra`, the toggle is **off** by default.
-  - Support for opening `Azure Cosmos DB API for Cassandra` with `Database and SQL tools` plugin from `Azure Explorer` is disabled by default.
-  - Support for creating Data Source of the `Azure Cosmos DB API for Cassandra` from `Database and SQL tools` plugin is disabled by default.
-
-## 3.68.0
-### Added
-- Added support for resource management of `Azure Cosmos DB accounts` in Azure Explorer.
-- Added support for resource connection to `Azure Cosmos DB accounts`.
-- Added support for creating data source of the Mongo and Cassandra API for `Azure Cosmos DB` from both Azure Explorer and `Database` tool window (`IntelliJ IDEA Ultimate Edition` only).     
-  <img src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202208/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib/src/main/resources/whatsnew.assets/202208.datasource.gif" alt="screenshot of 'cosmos datasource'" width="1200"/>
-- Added support for connecting an `Azure Virtual Machine` using SSH directly from an `Azure Virtual Machine` resource node in Azure Explorer.
-- Added support for browsing files of an `Azure Virtual Machine` from an `Azure Virtual Machine` resource node in Azure Explorer (`IntelliJ IDEA Ultimate Edition` only).      
-  <img src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202208/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib/src/main/resources/whatsnew.assets/202208.vm.gif" alt="screenshot of 'virtual machine'" width="1200"/>
-- Added support for adding dependencies to current local project from `Azure SDK reference book`.
-- Added support for jumping to corresponding Azure SDK page in `Azure SDK reference book` from Azure Explorer nodes.      
-  <img src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202208/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib/src/main/resources/whatsnew.assets/202208.sdk.gif" alt="screenshot of 'sdk reference book'" width="1200"/>
-- Added support for configuring environment variables when deploy artifacts to an `Azure Web App`.
-- Added support for Java 17 for `Azure Functions`.
-- Added support for refreshing items (when needed) of combobox components at place.
-
-### Changed
-- Default values of most input components in Azure resource creation/deployment dialogs are now learnt from history usage records.
-- Local meta-data files of Azure SDK reference book is updated to latest.
-
-### Fixed
-- Loading spring apps take more time than normal.
-- Creating resources shows repeatedly in ComboBox components sometimes.
-- Stopped Azure Function app won't be the default app in deploy dialog.
-- App settings of a newly deployed Azure Function app won't be updated in Properties view until sign-out and sign-in again.
-- Validation error message doesn't popup when hovering on the input components.
-- [#6790](https://github.com/microsoft/azure-tools-for-java/issues/6790): Uncaught Exception com.intellij.serviceContainer.AlreadyDisposedException: Already disposed: Project(*) (disposed)
-- [#6784](https://github.com/microsoft/azure-tools-for-java/issues/6784): Uncaught Exception com.intellij.openapi.util.TraceableDisposable$DisposalException: Library LibraryId(*) already disposed
-- [#6813](https://github.com/microsoft/azure-tools-for-java/issues/6813): Uncaught Exception com.microsoft.azure.toolkit.lib.common.operation.OperationException: setup run configuration for Azure Functions
-
-## 3.67.0
-### Added
-- New Azure service support: Azure Kubernetes service.
-  - direct resource management in Azure Explorer.
-  - connection to other K8s plugins.    
-  <img src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202207/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib/src/main/resources/whatsnew.assets/202207.k8s.gif" alt="screenshot of 'k8s'" width="1000"/>
-- Support for running or debugging local projects directly on Azure Virtual Machine by leveraging [`Run Targets`](https://www.jetbrains.com/help/idea/run-targets.html).     
-  <img src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202207/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib/src/main/resources/whatsnew.assets/202207.runtarget.png" alt="screenshot of 'run target'" width="1000"/>
-
-### Changed
-- Most Tool Windows will hide by default and show only when they are triggered by related actions.
-- An explicit search box is added on subscription dialog to filter subscriptions more conveniently.
-  - support for toggling selection of subscriptions by `space` key even checkbox is not focused.
-- A loading spinner would show first when the feedback page is loading.
-- Entries of some common actions in `<Toolbar>/Tools/Azure` are also added into the gear actions group of Azure Explorer.
-
-### Fixed
-- Error occurs if expand or download files/logs of a stopped function app.
-- Known CVE issues.
-
-## 3.66.0
-### Added
-- New "Getting Started with Azure" experience.    
-  <img src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202206/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib/src/main/resources/whatsnew.assets/202206.gettingstarted.gif" alt="screenshot of 'getting started'" width="1000"/>
-- Support for IntelliJ IDEA 2022.2(EAP).
-- SNAPSHOT and BETA versions of this plugin are available in [`Dev` channel](https://plugins.jetbrains.com/plugin/8053-azure-toolkit-for-intellij/versions/dev).    
-  <img src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202206/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib/src/main/resources/whatsnew.assets/202206.devchannel.png" alt="screenshot of 'dev channel'" width="1000"/>
-
-### Fixed
-- Error "java.lang.IllegalStateException" occurs if there are resources having same name but different resource groups.
-- Configurations go back to default after deploying an artifact to a newly created Azure Spring App.
-- [#6730](https://github.com/microsoft/azure-tools-for-java/issues/6730): Uncaught Exception java.lang.NullPointerException when creating/updating spring cloud app.
-- [#6725](https://github.com/microsoft/azure-tools-for-java/issues/6725): Uncaught Exception com.microsoft.azure.toolkit.lib.auth.exception.AzureToolkitAuthenticationException: you are not signed-in. when deploying to Azure Web App.
-- [#6696](https://github.com/microsoft/azure-tools-for-java/issues/6696): Unable to run debug on azure java function on intellij (2022.1) with azure toolkit (3.65.1).
-- [#6671](https://github.com/microsoft/azure-tools-for-java/issues/6671): Uncaught Exception java.lang.Throwable: Executor with context action id: "RunClass" was already registered!
-
-## 3.65.0
-### Added
-- New "Provide feedback" experience.    
-  <img src="https://user-images.githubusercontent.com/69189193/171312904-f52d6991-af50-4b81-a4d9-b4186a510e14.png" alt="screenshot of 'provide feedback'" width="1000"/>    
-- New Azure service support: Azure Application Insights
-  - direct resource management in Azure Explorer.
-  - resource connection from both local projects and Azure computing services.
-- Enhanced Azure Spring Apps support:
-  - 0.5Gi memory and 0.5vCPU for all pricing tiers.
-  - Enterprise tier.
-- Double clicking on leaf resource nodes in Azure Explorer will open the resource's properties editor or its portal page if it has no properties editor.
-
-### Changed
-- The default titles (i.e. "Azure") of error notifications are removed to make notification more compact.
-
-### Fixed
-- Log/notification contains message related to deployment even if user is only creating a spring app.
-- Display of Azure Explorer get messed up sometimes after restarting IDE.
-- [#6634](https://github.com/microsoft/azure-tools-for-java/issues/6634): ArrayIndexOutOfBoundsException when initializing Azure Explorer.
-- [#6550](https://github.com/microsoft/azure-tools-for-java/issues/6550): Uncaught Exception com.intellij.diagnostic.PluginException: User data is not supported.
 
 ## Summary
 
