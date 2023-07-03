@@ -61,6 +61,7 @@ public class ConnectionNode extends AbstractAzureFacetNode<Connection<?, ?>> {
         this.eventListener = new AzureEventBus.EventListener(this::onEvent);
         AzureEventBus.on("resource.status_changed.resource", eventListener);
         AzureEventBus.on("account.logged_in.account", eventListener);
+        AzureEventBus.on("account.logged_out.account", eventListener);
     }
 
     private void onEvent(@Nonnull final AzureEvent azureEvent) {
@@ -175,6 +176,7 @@ public class ConnectionNode extends AbstractAzureFacetNode<Connection<?, ?>> {
         super.dispose();
         AzureEventBus.off("resource.status_changed.resource", eventListener);
         AzureEventBus.off("account.logged_in.account", eventListener);
+        AzureEventBus.off("account.logged_out.account", eventListener);
     }
 
     public String toString() {

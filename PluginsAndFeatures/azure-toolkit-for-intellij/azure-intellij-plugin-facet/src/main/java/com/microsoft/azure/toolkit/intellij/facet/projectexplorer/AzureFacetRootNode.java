@@ -44,6 +44,7 @@ public class AzureFacetRootNode extends AbstractProjectNode<AzureModule> impleme
         super(module.getProject(), module, settings);
         this.eventListener = new AzureEventBus.EventListener(this::onEvent);
         AzureEventBus.on("account.logged_in.account", eventListener);
+        AzureEventBus.on("account.logged_out.account", eventListener);
         AzureEventBus.on("connector.refreshed.module_root", eventListener);
         final MessageBusConnection connection = module.getProject().getMessageBus().connect();
         connection.subscribe(CONNECTION_CHANGED, (ConnectionTopics.ConnectionChanged) (p, conn, action) -> {
@@ -55,7 +56,7 @@ public class AzureFacetRootNode extends AbstractProjectNode<AzureModule> impleme
 
     private void onEvent(@Nonnull final AzureEvent azureEvent) {
         switch (azureEvent.getType()) {
-            case "account.logged_in.account" -> this.updateChildren();
+            case "account.logged_in.account", "account.logged_out.account" -> this.updateChildren();
             case "connector.refreshed.module_root" -> {
                 if (Objects.equals(azureEvent.getSource(), this.getValue())) {
                     this.updateChildren();
@@ -130,6 +131,7 @@ public class AzureFacetRootNode extends AbstractProjectNode<AzureModule> impleme
     public void dispose() {
         super.dispose();
         AzureEventBus.off("account.logged_in.account", eventListener);
+        AzureEventBus.off("account.logged_out.account", eventListener);
         AzureEventBus.off("connector.refreshed.module_root", eventListener);
     }
 
