@@ -35,6 +35,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 import static com.microsoft.azure.toolkit.intellij.connector.ConnectionTopics.CONNECTION_CHANGED;
+import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor.CONNECT_TO_MODULE;
 
 @Slf4j
 public class AzureFacetRootNode extends AbstractProjectNode<AzureModule> implements IAzureFacetNode {
@@ -68,10 +69,12 @@ public class AzureFacetRootNode extends AbstractProjectNode<AzureModule> impleme
     }
 
     public Collection<? extends AbstractAzureFacetNode<?>> buildChildren() {
+        final ArrayList<AbstractAzureFacetNode<?>> nodes = new ArrayList<>();
         final AzureModule module = this.getValue();
         final Profile profile = module.getDefaultProfile();
-        if (this.isDisposed() || Objects.isNull(profile)) {
-            return Collections.emptyList();
+        if (Objects.isNull(profile)) {
+            nodes.add(new ActionNode<>(this.getProject(), CONNECT_TO_MODULE, module));
+            return nodes;
         }
         return new ConnectionsNode(this.getProject(), profile.getConnectionManager()).buildChildren();
     }
