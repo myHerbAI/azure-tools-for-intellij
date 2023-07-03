@@ -46,6 +46,7 @@ public class AzureFacet extends Facet<AzureFacetConfiguration> {
             properties.setValue(key, true);
             ProjectView.getInstance(module.getProject()).getCurrentProjectViewPane().updateFromRoot(true);
         }
+        ProjectView.getInstance(module.getProject()).getCurrentProjectViewPane().updateFromRoot(true);
     }
 
     public static boolean wasEverAddedTo(@Nonnull final Module module) {
