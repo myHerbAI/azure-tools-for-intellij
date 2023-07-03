@@ -180,13 +180,17 @@ public class FunctionUtils {
             return false;
         }
         final List<Library> libraries = new ArrayList<>();
-        OrderEnumerator.orderEntries(project).productionOnly().forEachLibrary(library -> {
-            if (StringUtils.containsAnyIgnoreCase(library.getName(), AZURE_FUNCTIONS_JAVA_LIBRARY, AZURE_FUNCTIONS_JAVA_CORE_LIBRARY)) {
-                libraries.add(library);
-            }
-            return true;
-        });
-        return libraries.size() > 0;
+        try {
+            OrderEnumerator.orderEntries(project).productionOnly().forEachLibrary(library -> {
+                if (StringUtils.containsAnyIgnoreCase(library.getName(), AZURE_FUNCTIONS_JAVA_LIBRARY, AZURE_FUNCTIONS_JAVA_CORE_LIBRARY)) {
+                    libraries.add(library);
+                }
+                return true;
+            });
+            return libraries.size() > 0;
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
     @AzureOperation(name = "boundary/function.list_function_methods.module", params = {"module.getName()"})
