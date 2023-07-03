@@ -29,6 +29,12 @@
     </projectListeners>
     <actions>
         <action
+            id="Connector.ShowAzureNode"
+            class="com.microsoft.azure.toolkit.intellij.facet.ToggleAzureFacetNodeAction"
+            text="Show 'Azure' Node"
+            icon="AllIcons.General.InspectionsEye"
+            description="Show 'Azure' Node for resource connections management"/>
+        <action
             id="AzureToolkit.ConnectToAzureResource"
             class="com.microsoft.azure.toolkit.intellij.connector.ModuleConnectorAction"
             text="Connect to Azure Resource"

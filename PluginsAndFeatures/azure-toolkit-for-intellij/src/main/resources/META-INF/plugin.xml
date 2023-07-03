@@ -201,13 +201,12 @@
     <action class="com.microsoft.intellij.actions.NewFeatureRequestFeedbackAction" id="AzureToolkit.FeatureRequest" text="Request a Feature" />
 
     <group id="AzurePopupGroup" text="Azure" description="Azure" icon="/icons/Common/Azure.svg" popup="true" class="com.microsoft.intellij.actions.AzurePopupGroup">
+      <reference ref="Connector.ShowAzureNode"/>
       <reference ref="AzureToolkit.ConnectToAzureResource"/>
       <separator/>
       <reference ref="Actions.RunFunction"/>
       <reference ref="Actions.DeployFunction"/>
-      <separator/>
       <reference ref="Actions.DeploySpringCloud"/>
-      <separator/>
       <reference ref="Actions.WebDeployAction"/>
       <separator/>
       <reference ref="Actions.AddDockerSupport"/>
