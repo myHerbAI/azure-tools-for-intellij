@@ -79,6 +79,9 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
             .withLabel("Hide 'Azure' Node")
             .withIcon(AzureIcons.Common.HIDE.getIconPath())
             .withHandler((module, e) -> {
+                if(module.getProject().isDisposed()){
+                    return;
+                }
                 final PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
                 properties.setValue(module.getModule().getName() + ".azure", "hide");
                 ProjectView.getInstance(module.getProject()).getCurrentProjectViewPane().updateFromRoot(true);
