@@ -11,6 +11,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.tree.LeafState;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.JBUI;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
@@ -164,5 +165,10 @@ public class AzureFacetRootNode extends ProjectViewNode<AzureModule> implements 
         IAzureFacetNode.super.dispose();
         AzureEventBus.off("account.logged_in.account", eventListener);
         AzureEventBus.off("connector.refreshed.module_root", eventListener);
+    }
+
+    @Override
+    public @Nonnull LeafState getLeafState() {
+        return LeafState.NEVER;
     }
 }

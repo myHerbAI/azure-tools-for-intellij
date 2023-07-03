@@ -10,6 +10,7 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.tree.LeafState;
 import com.microsoft.azure.toolkit.intellij.common.action.IntellijAzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
@@ -116,12 +117,12 @@ public class ActionNode<T> extends AbstractTreeNode<Action<T>> implements IAzure
     }
 
     @Override
-    public boolean isAlwaysLeaf() {
-        return true;
+    public String toString() {
+        return this.getValue().toString();
     }
 
     @Override
-    public String toString() {
-        return this.getValue().toString();
+    public @Nonnull LeafState getLeafState() {
+        return LeafState.ALWAYS;
     }
 }

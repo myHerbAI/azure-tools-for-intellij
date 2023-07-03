@@ -14,6 +14,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.tree.LeafState;
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
@@ -179,11 +180,6 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
     }
 
     @Override
-    public boolean isAlwaysExpand() {
-        return true;
-    }
-
-    @Override
     public String toString() {
         return "->" + this.getValue().getResource().getName();
     }
@@ -218,5 +214,10 @@ public class ConnectionNode extends AbstractTreeNode<Connection<?, ?>> implement
     public void dispose() {
         IAzureFacetNode.super.dispose();
         AzureEventBus.off("resource.status_changed.resource", eventListener);
+    }
+
+    @Override
+    public @Nonnull LeafState getLeafState() {
+        return LeafState.NEVER;
     }
 }

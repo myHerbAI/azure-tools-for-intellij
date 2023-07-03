@@ -9,6 +9,7 @@ import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.tree.LeafState;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
@@ -133,5 +134,10 @@ public class ResourceNode extends AbstractTreeNode<Node<?>> implements IAzureFac
     @EqualsAndHashCode.Include
     private Node<?> getNode() {
         return this.getValue();
+    }
+
+    @Override
+    public @Nonnull LeafState getLeafState() {
+        return LeafState.ASYNC;
     }
 }

@@ -9,6 +9,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.tree.LeafState;
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
@@ -95,5 +96,10 @@ public class DeploymentTargetsNode extends AbstractTreeNode<AzureModule> impleme
     @Override
     public String toString() {
         return "Deployment Targets";
+    }
+
+    @Override
+    public @Nonnull LeafState getLeafState() {
+        return LeafState.NEVER;
     }
 }

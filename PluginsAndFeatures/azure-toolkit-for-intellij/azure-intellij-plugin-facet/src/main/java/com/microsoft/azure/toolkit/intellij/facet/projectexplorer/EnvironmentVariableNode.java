@@ -14,6 +14,7 @@ import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.tree.LeafState;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
@@ -131,7 +132,7 @@ public class EnvironmentVariableNode extends AbstractTreeNode<Pair<String, Strin
     }
 
     @Override
-    public boolean isAlwaysLeaf() {
-        return true;
+    public @Nonnull LeafState getLeafState() {
+        return LeafState.ALWAYS;
     }
 }

@@ -12,6 +12,7 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.ui.tree.LeafState;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
@@ -137,5 +138,10 @@ public class ConnectionsNode extends AbstractTreeNode<AzureModule> implements IA
             .map(Profile::getConnectionManager)
             .map(ConnectionManager::getConnectionsFile)
             .orElse(null);
+    }
+
+    @Override
+    public @Nonnull LeafState getLeafState() {
+        return LeafState.NEVER;
     }
 }

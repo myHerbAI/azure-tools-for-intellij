@@ -10,6 +10,7 @@ import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.tree.LeafState;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
@@ -58,7 +59,7 @@ public class GenericResourceNode extends AbstractTreeNode<ResourceId> implements
     }
 
     @Override
-    public boolean isAlwaysLeaf() {
-        return true;
+    public @Nonnull LeafState getLeafState() {
+        return LeafState.ALWAYS;
     }
 }
