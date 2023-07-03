@@ -9,6 +9,7 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetType;
+import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
@@ -44,6 +45,7 @@ public class AzureFacet extends Facet<AzureFacetConfiguration> {
             FacetManager.getInstance(module).addFacet(AzureFacetType.INSTANCE, "Azure", null);
             properties.setValue(key, true);
         }
+        ProjectView.getInstance(module.getProject()).getCurrentProjectViewPane().updateFromRoot(true);
     }
 
     public static boolean wasEverAddedTo(@Nonnull final Module module) {
