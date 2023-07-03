@@ -47,7 +47,7 @@ public class DeploymentTargetsNode extends AbstractAzureFacetNode<DeploymentTarg
 
     private AbstractAzureFacetNode<?> createResourceNode(@Nonnull final AbstractAzResource<?, ?, ?> app) {
         final Node<?> node = AzureExplorer.manager.createNode(app, null, IExplorerNodeProvider.ViewType.APP_CENTRIC);
-        return new ResourceNode(this.getProject(), node);
+        return new ResourceNode(this.getProject(), node, this);
     }
 
     @Override

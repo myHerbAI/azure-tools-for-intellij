@@ -99,7 +99,7 @@ public class ConnectionNode extends AbstractAzureFacetNode<Connection<?, ?>> {
                 return new GenericResourceNode(this.getProject(), resourceId, "Deleted");
             }
             final Node<?> node = AzureExplorer.manager.createNode(resource, null, IExplorerNodeProvider.ViewType.APP_CENTRIC);
-            return new ResourceNode(this.getProject(), node);
+            return new ResourceNode(this.getProject(), node, this);
         } catch (final Throwable e) {
             log.warn(e.getMessage(), e);
             return toExceptionNode(e, this.getProject());

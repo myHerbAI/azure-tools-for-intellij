@@ -27,9 +27,11 @@ import java.util.Optional;
 @Slf4j
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 public class ResourceNode extends AbstractAzureFacetNode<Node<?>> implements Node.ChildrenRenderer, Node.ViewRenderer {
+    private final AbstractAzureFacetNode<?> parent;
 
-    public ResourceNode(@Nonnull Project project, final Node<?> node) {
+    public ResourceNode(@Nonnull Project project, final Node<?> node, AbstractAzureFacetNode<?> parent) {
         super(project, node);
+        this.parent = parent;
         node.setViewRenderer(this);
         node.setChildrenRenderer(this);
     }
@@ -38,7 +40,7 @@ public class ResourceNode extends AbstractAzureFacetNode<Node<?>> implements Nod
     @Nonnull
     public Collection<? extends AbstractAzureFacetNode<?>> buildChildren() {
         final Node<?> node = this.getValue();
-        final ArrayList<AbstractAzureFacetNode<?>> children = new ArrayList<>(node.getChildren().stream().map(n -> new ResourceNode(this.getProject(), n)).toList());
+        final ArrayList<AbstractAzureFacetNode<?>> children = new ArrayList<>(node.getChildren().stream().map(n -> new ResourceNode(this.getProject(), n, this)).toList());
         if (node.hasMoreChildren()) {
             final Action<Object> loadMoreAction = new Action<>(Action.Id.of("user/common.load_more"))
                 .withHandler(i -> node.loadMoreChildren())
@@ -97,7 +99,7 @@ public class ResourceNode extends AbstractAzureFacetNode<Node<?>> implements Nod
 
     @EqualsAndHashCode.Include
     public AbstractTreeNode<?> getMyParent() {
-        return this.getParent();
+        return this.parent;
     }
 
     @Override
