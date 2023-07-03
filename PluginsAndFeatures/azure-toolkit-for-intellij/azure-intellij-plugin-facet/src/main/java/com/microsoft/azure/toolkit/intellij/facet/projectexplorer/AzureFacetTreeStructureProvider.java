@@ -38,6 +38,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static com.intellij.ui.AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED;
@@ -45,7 +46,7 @@ import static com.intellij.ui.AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED;
 @Slf4j
 public final class AzureFacetTreeStructureProvider implements TreeStructureProvider {
     private final Project myProject;
-    private AzureFacetRootNode azureNode;
+    private final Map<Module, AzureFacetRootNode> azureNodes = new ConcurrentHashMap<>();
 
     public AzureFacetTreeStructureProvider(Project project) {
         myProject = project;
@@ -76,9 +77,12 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
                     .findAny().orElse(null);
                 final List<AbstractTreeNode<?>> nodes = new LinkedList<>(children);
                 nodes.removeIf(n -> Objects.equals(n, dotAzureDir));
-                this.azureNode = Optional.ofNullable(this.azureNode).orElseGet(() -> new AzureFacetRootNode(azureModule, settings));
-                Disposer.register(ProjectView.getInstance(this.myProject).getCurrentProjectViewPane(), this.azureNode);
-                nodes.add(this.azureNode);
+                final AzureFacetRootNode azureNode = this.azureNodes.computeIfAbsent(azureModule.getModule(), m -> {
+                    final AzureFacetRootNode node = new AzureFacetRootNode(azureModule, settings);
+                    Disposer.register(ProjectView.getInstance(this.myProject).getCurrentProjectViewPane(), node);
+                    return node;
+                });
+                nodes.add(azureNode);
                 return nodes;
             } else {
                 children.removeIf(c -> c instanceof AzureFacetRootNode);
