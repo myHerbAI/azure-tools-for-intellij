@@ -12,6 +12,7 @@
         <facetType implementation="com.microsoft.azure.toolkit.intellij.facet.AzureFacetType"/>
 <!--        <framework.detector implementation="com.microsoft.azure.toolkit.intellij.facet.AzureFacetType$AzureFacetDetector"/>-->
         <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.connector.dotazure.MigrateStartupActivity"/>
+        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.facet.AddFacetStartupActivity"/>
         <toolWindow id="Resource Connections" anchor="right" icon="/icons/Common/AzureResourceConnector.svg" canCloseContents="false"
                     factoryClass="com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionExplorer$ToolWindowFactory"/>
         <projectService
@@ -27,6 +28,12 @@
                   topic="com.microsoft.azure.toolkit.intellij.connector.ConnectionTopics$ConnectionChanged" />
     </projectListeners>
     <actions>
+        <action
+            id="Connector.ShowAzureNode"
+            class="com.microsoft.azure.toolkit.intellij.facet.ToggleAzureFacetNodeAction"
+            text="Show 'Azure' Node"
+            icon="AllIcons.General.InspectionsEye"
+            description="Show 'Azure' Node for resource connections management"/>
         <action
             id="AzureToolkit.ConnectToAzureResource"
             class="com.microsoft.azure.toolkit.intellij.connector.ModuleConnectorAction"

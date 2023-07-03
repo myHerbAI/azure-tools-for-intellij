@@ -7,11 +7,11 @@ package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 
 import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.ide.util.treeView.NodeDescriptor;
-import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.ui.tree.LeafState;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
@@ -21,60 +21,40 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
-public class EnvironmentVariablesNode extends AbstractTreeNode<Connection<?, ?>> implements IAzureFacetNode {
-    @Nonnull
-    private final Profile profile;
+public class EnvironmentVariablesNode extends AbstractAzureFacetNode<Connection<?, ?>> {
     private final Action<?> editAction;
-    @Getter
-    @Setter
-    private boolean disposed;
 
-    public EnvironmentVariablesNode(@Nonnull ConnectionNode parent, @Nonnull Profile profile, @Nonnull Connection<?, ?> connection) {
-        super(parent.getProject(), connection);
-        this.profile = profile;
+    public EnvironmentVariablesNode(@Nonnull Project project, @Nonnull Connection<?, ?> connection) {
+        super(project, connection);
         this.editAction = new Action<>(Action.Id.of("user/connector.edit_envs_in_editor"))
             .withLabel("Open In Editor")
             .withIcon(AzureIcons.Action.EDIT.getIconPath())
             .withHandler(ignore -> AzureTaskManager.getInstance().runLater(() -> this.navigate(true)))
             .withAuthRequired(false);
-        if (!parent.isDisposed()) {
-            Disposer.register(parent, this);
-        }
     }
 
     @Override
     @Nonnull
-    public Collection<? extends AbstractTreeNode<?>> getChildren() {
-        final ArrayList<AbstractTreeNode<?>> children = new ArrayList<>();
-        if (this.isDisposed()) {
-            return children;
-        }
-        // noinspection UnstableApiUsage
-        Disposer.disposeChildren(this, ignore -> true);
-        try {
-            final Connection<?, ?> connection = this.getValue();
-            final List<Pair<String, String>> generated = this.profile.getGeneratedEnvironmentVariables(connection);
-            return generated.stream().map(g -> new EnvironmentVariableNode(this, g, getValue())).toList();
-        } catch (final Exception e) {
-            log.warn(e.getMessage(), e);
-            children.add(toExceptionNode(e));
-        }
-        return children;
+    public Collection<? extends AbstractAzureFacetNode<?>> buildChildren() {
+        final Connection<?, ?> connection = this.getValue();
+        final List<Pair<String, String>> generated = connection.getProfile().getGeneratedEnvironmentVariables(connection);
+        return generated.stream().map(g -> new EnvironmentVariableNode(this.getProject(), g, getValue())).toList();
     }
 
     @Override
-    protected void update(@Nonnull final PresentationData presentation) {
+    protected void buildView(@Nonnull final PresentationData presentation) {
         presentation.setIcon(IntelliJAzureIcons.getIcon(AzureIcons.Common.VARIABLE));
         presentation.setPresentableText("Environment Variables");
         presentation.setTooltip("Generated environment variables by connected resource.");
@@ -130,5 +110,10 @@ public class EnvironmentVariablesNode extends AbstractTreeNode<Connection<?, ?>>
     @Nullable
     private VirtualFile getDovEnvFile() {
         return Optional.ofNullable(getValue()).map(Connection::getProfile).map(Profile::getDotEnvFile).orElse(null);
+    }
+
+    @Override
+    public @Nonnull LeafState getLeafState() {
+        return LeafState.NEVER;
     }
 }

@@ -68,6 +68,9 @@ public class BicepStartupActivity implements ProjectActivity, PluginStateListene
     }
 
     public static void registerLanguageServerDefinition(@Nonnull Project project) {
+        if(project.isDisposed()){
+            return;
+        }
         EditorNotifications.getInstance(project).updateAllNotifications();
         final File bicep = FileUtils.getFile(CommonConst.PLUGIN_PATH, "bicep", BICEP_LANGSERVER, BICEP_LANG_SERVER_DLL);
         final String dotnet = Azure.az().config().getDotnetRuntimePath();
