@@ -28,6 +28,7 @@ import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -60,12 +61,12 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
             return children;
         }
         try {
-            final AzureModule azureModule = Optional.ofNullable(toModule(parent))
-                .map(AzureModule::from)
-                .orElse(null);
-            final boolean neverHasAzureFacet = Objects.nonNull(azureModule) && azureModule.neverHasAzureFacet();
-            final boolean hasAzureFacet = Objects.nonNull(azureModule) && azureModule.hasAzureFacet();
-            if (hasAzureFacet || (neverHasAzureFacet && (azureModule.isInitialized() || azureModule.hasAzureDependencies()))) {
+            final AzureModule azureModule = Optional.ofNullable(toModule(parent)).map(AzureModule::from).orElse(null);
+            final Boolean state = Optional.ofNullable(azureModule).map(AzureModule::getAzureFacetState).orElse(null);
+            final boolean forceShow = BooleanUtils.isTrue(state);
+            final boolean forceHide = BooleanUtils.isFalse(state);
+            final boolean defaultShow = state == null && Objects.nonNull(azureModule) && (azureModule.hasAzureFacet() || azureModule.isInitialized() || azureModule.hasAzureDependencies());
+            if (!forceHide && (forceShow || defaultShow)) {
                 addListener(parent.getProject());
                 final AbstractProjectViewPane viewPane = ProjectView.getInstance(parent.getProject()).getCurrentProjectViewPane();
                 final AbstractTreeNode<?> dotAzureDir = children.stream()
