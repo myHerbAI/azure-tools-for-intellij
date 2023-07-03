@@ -12,6 +12,8 @@ import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.registry.Registry;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.tree.AsyncTreeModel;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
@@ -38,6 +40,8 @@ import java.util.concurrent.atomic.AtomicReference;
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> implements IAzureFacetNode {
+    private final long createdTime;
+    private long disposedTime;
     @Getter
     @Setter
     private boolean disposed;
@@ -45,6 +49,7 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
 
     protected AbstractAzureFacetNode(Project project, @Nonnull T value) {
         super(project, value);
+        this.createdTime = System.currentTimeMillis();
     }
 
     public Collection<? extends AbstractAzureFacetNode<?>> getChildren() {
@@ -73,6 +78,13 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
     protected void update(@Nonnull final PresentationData presentation) {
         try {
             this.buildView(presentation);
+            if (Registry.is("ide.debugMode")) {
+                presentation.addText(System.identityHashCode(this) + ":" + this.createdTime + ":" + this.disposedTime, SimpleTextAttributes.ERROR_ATTRIBUTES);
+                presentation.addText("/", SimpleTextAttributes.REGULAR_ATTRIBUTES);
+                if (this.getParent() instanceof IAzureFacetNode parent) {
+                    presentation.addText(System.identityHashCode(parent) + ":" + parent.isDisposed(), SimpleTextAttributes.ERROR_ATTRIBUTES);
+                }
+            }
         } catch (final Exception e) {
             log.warn(e.getMessage(), e);
         }
@@ -117,6 +129,7 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
 
     public void dispose() {
         setDisposed(true);
+        this.disposedTime = System.currentTimeMillis();
     }
 
     @ToString.Include

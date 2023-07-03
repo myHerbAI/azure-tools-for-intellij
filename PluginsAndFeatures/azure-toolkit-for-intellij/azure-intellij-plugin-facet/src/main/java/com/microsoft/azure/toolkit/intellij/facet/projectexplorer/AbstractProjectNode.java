@@ -13,7 +13,9 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.tree.AsyncTreeModel;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
@@ -37,6 +39,8 @@ import java.util.concurrent.atomic.AtomicReference;
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public abstract class AbstractProjectNode<T> extends ProjectViewNode<T> implements IAzureFacetNode {
+    private final long createdTime;
+    private long disposedTime;
     @Getter
     @Setter
     private boolean disposed;
@@ -44,6 +48,7 @@ public abstract class AbstractProjectNode<T> extends ProjectViewNode<T> implemen
 
     protected AbstractProjectNode(Project project, @NotNull T t, ViewSettings viewSettings) {
         super(project, t, viewSettings);
+        this.createdTime = System.currentTimeMillis();
     }
 
     public Collection<? extends AbstractAzureFacetNode<?>> getChildren() {
@@ -72,6 +77,13 @@ public abstract class AbstractProjectNode<T> extends ProjectViewNode<T> implemen
     protected void update(@Nonnull final PresentationData presentation) {
         try {
             this.buildView(presentation);
+            if (Registry.is("ide.debugMode")) {
+                presentation.addText(System.identityHashCode(this) + ":" + this.createdTime + ":" + this.disposedTime, SimpleTextAttributes.ERROR_ATTRIBUTES);
+                presentation.addText("/", SimpleTextAttributes.REGULAR_ATTRIBUTES);
+                if (this.getParent() instanceof IAzureFacetNode parent) {
+                    presentation.addText(System.identityHashCode(parent) + ":" + parent.isDisposed(), SimpleTextAttributes.ERROR_ATTRIBUTES);
+                }
+            }
         } catch (final Exception e) {
             log.warn(e.getMessage(), e);
         }
@@ -119,6 +131,7 @@ public abstract class AbstractProjectNode<T> extends ProjectViewNode<T> implemen
 
     public void dispose() {
         setDisposed(true);
+        this.disposedTime = System.currentTimeMillis();
     }
 
     @ToString.Include
