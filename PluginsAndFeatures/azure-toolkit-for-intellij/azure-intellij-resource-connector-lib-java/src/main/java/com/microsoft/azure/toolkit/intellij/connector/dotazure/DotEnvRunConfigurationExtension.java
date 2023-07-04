@@ -6,6 +6,7 @@ import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.execution.configurations.RunnerSettings;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 
 import javax.annotation.Nonnull;
 
@@ -15,11 +16,11 @@ public class DotEnvRunConfigurationExtension extends RunConfigurationExtension {
     @ExceptionNotification
     @AzureOperation(name = "platform/connector.inject_env.config", params = {"config.getName()"})
     public <T extends RunConfigurationBase<?>> void updateJavaParameters(@Nonnull T config, @Nonnull JavaParameters params, RunnerSettings s) {
-        config.getBeforeRunTasks().stream()
-            .filter(t -> t instanceof DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask)
-            .map(t -> (DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask) t)
+        AzureTaskManager.getInstance().runLater(() -> config.getBeforeRunTasks().stream()
+                .filter(t -> t instanceof DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask)
+                .map(t -> (DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask) t)
                 .flatMap(t -> t.loadEnv().stream())
-                .forEach(p -> params.addEnv(p.getKey(), p.getValue()));
+                .forEach(p -> params.addEnv(p.getKey(), p.getValue())));
     }
 
     @Override
