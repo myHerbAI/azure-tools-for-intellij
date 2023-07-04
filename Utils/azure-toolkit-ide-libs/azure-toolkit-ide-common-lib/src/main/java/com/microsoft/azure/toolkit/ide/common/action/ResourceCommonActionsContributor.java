@@ -107,7 +107,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.DELETE.getIconPath())
             .withIdParam(AzResource::getName)
             .withShortcut(shortcuts.delete())
-            .visibleWhen((s, place) -> (StringUtils.startsWithIgnoreCase(place, AZURE_EXPLORER) && s instanceof AzResource && s instanceof Deletable))
+            .visibleWhen((s, place) -> s instanceof AzResource && s instanceof Deletable)
             .enableWhen(s -> {
                 if (s instanceof AbstractAzResource) {
                     final AbstractAzResource<?, ?, ?> r = (AbstractAzResource<?, ?, ?>) s;
