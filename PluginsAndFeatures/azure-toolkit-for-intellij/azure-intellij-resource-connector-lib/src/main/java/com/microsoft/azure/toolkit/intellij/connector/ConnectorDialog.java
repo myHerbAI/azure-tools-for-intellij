@@ -7,6 +7,10 @@ package com.microsoft.azure.toolkit.intellij.connector;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -316,7 +320,12 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
         this.lblSignIn.setHtmlText(NOT_SIGNIN_TIPS);
         this.lblSignIn.setIcon(AllIcons.General.Information);
         this.lblSignIn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        this.lblSignIn.addHyperlinkListener(e -> AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle(() -> this.lblSignIn.setVisible(!Azure.az(AzureAccount.class).isLoggedIn())));
+        this.lblSignIn.addHyperlinkListener(e -> {
+            final DataContext context = DataManager.getInstance().getDataContext(this.lblSignIn);
+            final AnActionEvent event = AnActionEvent.createFromInputEvent(e.getInputEvent(), "ConnectorDialog", new Presentation(), context);
+            AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH)
+                .handle(() -> this.lblSignIn.setVisible(!Azure.az(AzureAccount.class).isLoggedIn()), event);
+        });
     }
 
     public void setDescription(@Nonnull final String description) {

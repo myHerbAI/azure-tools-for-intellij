@@ -42,14 +42,12 @@ public class AzureFacet extends Facet<AzureFacetConfiguration> {
             return;
         }
         final AzureFacet facet = getInstance(module);
-        final PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
-        final String key = getFacetFlag(module);
         if (Objects.isNull(facet)) {
+            final PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
             FacetManager.getInstance(module).addFacet(AzureFacetType.INSTANCE, "Azure", null);
-            properties.setValue(key, true);
-            ProjectView.getInstance(module.getProject()).getCurrentProjectViewPane().updateFromRoot(true);
+            properties.setValue(getFacetFlag(module), true);
+            Optional.ofNullable(ProjectView.getInstance(module.getProject())).ifPresent(v -> v.getCurrentProjectViewPane().updateFromRoot(true));
         }
-        ProjectView.getInstance(module.getProject()).getCurrentProjectViewPane().updateFromRoot(true);
     }
 
     public static boolean wasEverAddedTo(@Nonnull final Module module) {

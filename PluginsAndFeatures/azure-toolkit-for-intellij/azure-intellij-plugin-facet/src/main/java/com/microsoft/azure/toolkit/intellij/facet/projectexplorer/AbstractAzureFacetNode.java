@@ -106,6 +106,10 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
             return;
         }
         final AbstractProjectViewPane pane = ProjectView.getInstance(this.getProject()).getCurrentProjectViewPane();
+        if (Objects.isNull(pane) || Objects.isNull(pane.getTree())) {
+            Disposer.dispose(this);
+            return;
+        }
         final AsyncTreeModel model = (AsyncTreeModel) pane.getTree().getModel();
         final DefaultMutableTreeNode node = TreeUtil.findNodeWithObject((DefaultMutableTreeNode) model.getRoot(), this);
         if (Objects.nonNull(node)) {
