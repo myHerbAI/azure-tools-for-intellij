@@ -74,12 +74,12 @@ public class SpringPropertiesCompletionContributor extends CompletionContributor
         public void handleInsert(@Nonnull InsertionContext context, @Nonnull LookupElement lookupElement) {
             final Project project = context.getProject();
             final Module module = ModuleUtil.findModuleForFile(context.getFile().getVirtualFile(), project);
-            Optional.ofNullable(module).map(AzureModule::from)
-                    .map(AzureModule::getDefaultProfile).map(Profile::getConnectionManager)
-                    .ifPresent(connectionManager -> connectionManager
-                            .getConnectionsByConsumerId(module.getName()).stream()
-                            .filter(c -> Objects.equals(definition, c.getResource().getDefinition())).findAny()
-                            .ifPresentOrElse(c -> this.insert(c, context), () -> this.createAndInsert(module, context)));
+            AzureTaskManager.getInstance().write(() -> Optional.ofNullable(module).map(AzureModule::from)
+                .map(AzureModule::initializeWithDefaultProfileIfNot).map(Profile::getConnectionManager)
+                .ifPresent(connectionManager -> connectionManager
+                    .getConnectionsByConsumerId(module.getName()).stream()
+                    .filter(c -> Objects.equals(definition, c.getResource().getDefinition())).findAny()
+                    .ifPresentOrElse(c -> this.insert(c, context), () -> this.createAndInsert(module, context))));
         }
 
         private void createAndInsert(Module module, @Nonnull InsertionContext context) {
