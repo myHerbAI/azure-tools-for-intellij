@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.intellij.connector;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.util.PropertiesComponent;
+import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -21,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -30,6 +32,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -173,9 +176,9 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
             .register(am);
     }
 
-    public static Future<?> fixResourceConnection(Connection<?, ?> c, Project project) {
-        final Future<?>[] result = new Future<?>[1];
-        AzureTaskManager.getInstance().runAndWait(() -> {
+    public static Connection<?, ?> fixResourceConnection(Connection<?, ?> c, Project project) {
+        final SettableFuture<Connection<?, ?>> result = SettableFuture.create();
+        AzureTaskManager.getInstance().runLater(() -> {
             final String invalidResourceName = c.getResource().isValidResource() ? null : c.getResource().getDefinition().getTitle();
             final String invalidConsumerName = c.getConsumer().isValidResource() ? null : c.getConsumer().getDefinition().getTitle();
             final String invalidProperties = Stream.of(invalidResourceName, invalidConsumerName)
@@ -187,10 +190,17 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
             dialog.setFixedEnvPrefix(c.getEnvPrefix());
             dialog.setFixedConnectionDefinition(c.getDefinition());
             dialog.setValue(c);
-            dialog.show();
-            result[0] = dialog.getFuture();
+            if (dialog.showAndGet()) {
+                result.set(dialog.getValue());
+            } else {
+                result.set(null);
+            }
         });
-        return Optional.ofNullable(result[0]).orElse(Futures.immediateFuture(null));
+        try {
+            return result.get();
+        } catch (InterruptedException | ExecutionException | RuntimeException e) {
+            throw new AzureToolkitRuntimeException(e);
+        }
     }
 
     private void refreshModuleConnections(AzureModule module) {
