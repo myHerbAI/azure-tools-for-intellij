@@ -12,7 +12,6 @@ import com.intellij.psi.PsiMethod;
 import com.microsoft.azure.toolkit.ide.appservice.AppServiceActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandlerMessenger;
-import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.DotEnvBeforeRunTaskProvider;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
@@ -81,11 +80,6 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
         final FunctionAppBase<?, ?, ?> target = FunctionAppService.getInstance().createOrUpdateFunctionApp(deployModel.getFunctionAppConfig());
         stagingFolder = FunctionUtils.getTempStagingFolder();
         prepareStagingFolder(stagingFolder, operation);
-        final AzureTaskManager tm = AzureTaskManager.getInstance();
-        Optional.ofNullable(this.functionDeployConfiguration.getModule()).map(AzureModule::from)
-            .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
-                .initializeWithDefaultProfileIfNot()
-                .addApp(target).save())));
         // deploy function to Azure
         FunctionAppService.getInstance().deployFunctionApp(target, stagingFolder);
         AzureTaskManager.getInstance().runInBackground("list HTTPTrigger url", () -> {
@@ -108,8 +102,8 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
             final DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask loadDotEnvBeforeRunTask = functionDeployConfiguration.getLoadDotEnvBeforeRunTask();
             final Map<String, String> appSettings = functionDeployConfiguration.getConfig().getAppSettings();
             loadDotEnvBeforeRunTask.loadEnv().stream()
-                    .filter(pair -> StringUtils.equalsIgnoreCase(pair.getKey(), "AzureWebJobsStorage") &&
-                            StringUtils.equalsIgnoreCase(pair.getValue(), LOCAL_STORAGE_CONNECTION_STRING)) // remove connection string for azurite
+                    .filter(pair -> !(StringUtils.equalsIgnoreCase(pair.getKey(), "AzureWebJobsStorage") &&
+                            StringUtils.equalsIgnoreCase(pair.getValue(), LOCAL_STORAGE_CONNECTION_STRING))) // workaround to remove local connections
                     .forEach(env -> appSettings.put(env.getKey(), env.getValue()));
         }
     }

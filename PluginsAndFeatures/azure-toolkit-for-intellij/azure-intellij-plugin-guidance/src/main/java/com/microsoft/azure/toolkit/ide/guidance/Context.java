@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 @Getter
@@ -31,8 +33,8 @@ public class Context {
     private final Project project;
     private final Map<String, Object> parameters = new HashMap<>();
 
-    private final Map<String, List<Consumer<Object>>> propertyChangeListenerMap = new HashMap<>();
-    private final List<Consumer<Context>> contextListenerList = new ArrayList<>();
+    private final Map<String, List<Consumer<Object>>> propertyChangeListenerMap = new ConcurrentHashMap<>();
+    private final List<Consumer<Context>> contextListenerList = new CopyOnWriteArrayList<>();
 
     public Context(@Nonnull final Course course, @Nullable Map<String, Object> context) {
         this.course = course;

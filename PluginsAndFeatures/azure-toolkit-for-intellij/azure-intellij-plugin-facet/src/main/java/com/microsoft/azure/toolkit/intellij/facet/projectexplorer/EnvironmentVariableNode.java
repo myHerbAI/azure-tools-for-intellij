@@ -6,16 +6,16 @@
 package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 
 import com.intellij.codeInsight.navigation.NavigationUtil;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.tree.LeafState;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
+import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
@@ -23,7 +23,6 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
@@ -33,39 +32,32 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
-public class EnvironmentVariableNode extends AbstractTreeNode<Pair<String, String>> implements IAzureFacetNode, Navigatable {
+public class EnvironmentVariableNode extends AbstractAzureFacetNode<Pair<String, String>> implements Navigatable {
     private boolean visible;
-    private final Connection<?,?> connection;
+    private final Connection<?, ?> connection;
     private final Action<?> editAction;
     private final Action<?> toggleVisibilityAction;
 
-    public EnvironmentVariableNode(Project project, Pair<String, String> generated, Connection<?,?> connection) {
+    public EnvironmentVariableNode(@Nonnull final Project project, Pair<String, String> generated, Connection<?, ?> connection) {
         super(project, generated);
         this.visible = false;
         this.connection = connection;
         this.editAction = new Action<>(Action.Id.of("user/connector.edit_env_in_editor"))
-                .withLabel("Open In Editor")
-                .withIcon(AzureIcons.Action.EDIT.getIconPath())
-                .withHandler(ignore -> AzureTaskManager.getInstance().runLater(() -> this.navigate(true)))
-                .withAuthRequired(false);
-        this.toggleVisibilityAction = new Action<>(Action.Id.of("user/connector.show_env"))
-                .withLabel(ignore -> this.visible ? "Hide Value" : "Show Value")
-                .withHandler(ignore -> AzureTaskManager.getInstance().runLater(() -> this.toggleVisibility()))
-                .withAuthRequired(false);
+            .withLabel("Open In Editor")
+            .withIcon(AzureIcons.Action.EDIT.getIconPath())
+            .withHandler(ignore -> AzureTaskManager.getInstance().runLater(() -> this.navigate(true)))
+            .withAuthRequired(false);
+        this.toggleVisibilityAction = new Action<>(Action.Id.of("user/connector.toggle_env_visibility"))
+            .withLabel(ignore -> this.visible ? "Hide Value" : "Show Value")
+            .withHandler(ignore -> AzureTaskManager.getInstance().runLater(this::toggleVisibility))
+            .withAuthRequired(false);
     }
 
     @Override
-    @Nonnull
-    public Collection<? extends AbstractTreeNode<?>> getChildren() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    protected void update(@Nonnull final PresentationData presentation) {
+    protected void buildView(@Nonnull final PresentationData presentation) {
         final Pair<String, String> pair = this.getValue();
-        presentation.setIcon(AllIcons.Nodes.Variable);
+        presentation.setIcon(IntelliJAzureIcons.getIcon(AzureIcons.Common.VARIABLE));
         presentation.addText(pair.getKey(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
-        presentation.setTooltip("Click to toggle visibility");
         if (visible) {
             presentation.addText(" = " + pair.getValue(), SimpleTextAttributes.GRAYED_ATTRIBUTES);
         } else {
@@ -73,10 +65,10 @@ public class EnvironmentVariableNode extends AbstractTreeNode<Pair<String, Strin
         }
     }
 
+    @Nonnull
     @Override
-    @Nullable
-    public Object getData(@Nonnull String dataId) {
-        return StringUtils.equalsIgnoreCase(dataId, "ACTION_SOURCE") ? this.getValue() : null;
+    protected Collection<? extends AbstractAzureFacetNode<?>> buildChildren() {
+        return Collections.emptyList();
     }
 
     @Nullable
@@ -93,12 +85,7 @@ public class EnvironmentVariableNode extends AbstractTreeNode<Pair<String, Strin
 
     private void toggleVisibility() {
         this.visible = !this.visible;
-        this.rerender(false);
-    }
-
-    @Override
-    public String toString() {
-        return this.getValue().getKey();
+        this.updateView();
     }
 
     @Override
@@ -121,5 +108,10 @@ public class EnvironmentVariableNode extends AbstractTreeNode<Pair<String, Strin
     @Nullable
     private VirtualFile getDovEnvFile() {
         return Optional.ofNullable(connection).map(Connection::getProfile).map(Profile::getDotEnvFile).orElse(null);
+    }
+
+    @Override
+    public @Nonnull LeafState getLeafState() {
+        return LeafState.ALWAYS;
     }
 }

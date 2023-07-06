@@ -69,7 +69,7 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
         final AzureArtifactManager manager = AzureArtifactManager.getInstance(this.getProject());
         this.appConfig = Optional.ofNullable(element.getChild("SpringCloudAppConfig"))
             .map(e -> XmlSerializer.deserialize(e, SpringCloudAppConfig.class))
-            .orElse(SpringCloudAppConfig.builder().deployment(SpringCloudDeploymentConfig.builder().build()).build());
+            .orElseGet(() -> SpringCloudAppConfig.builder().deployment(SpringCloudDeploymentConfig.builder().build()).build());
         Optional.ofNullable(element.getChild("Artifact"))
             .map(e -> e.getAttributeValue("identifier"))
             .map(manager::getAzureArtifactById)

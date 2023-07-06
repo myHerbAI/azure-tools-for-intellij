@@ -40,7 +40,6 @@ public class ApplicationInsightsResourcePanel implements AzureFormJPanel<Resourc
 
     private void init() {
         this.insightComboBox.setRequired(true);
-        this.insightComboBox.trackValidation();
         this.subscriptionComboBox.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 this.insightComboBox.reloadItems();

@@ -50,5 +50,6 @@ public class ModulePanel implements AzureFormJPanel<Resource<String>> {
 
     private void createUIComponents() {
         moduleComboBox = new ModuleComboBox(project);
+        moduleComboBox.setRequired(true);
     }
 }

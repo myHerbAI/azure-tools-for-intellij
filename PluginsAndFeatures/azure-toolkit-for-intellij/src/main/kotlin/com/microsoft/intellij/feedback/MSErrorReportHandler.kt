@@ -26,6 +26,7 @@ import com.intellij.openapi.diagnostic.ErrorReportSubmitter
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent
 import com.intellij.openapi.diagnostic.SubmittedReportInfo
 import com.intellij.util.Consumer
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetryClient
 import com.microsoft.azuretools.telemetry.TelemetryConstants
 import com.microsoft.azuretools.telemetrywrapper.ErrorType
 import com.microsoft.azuretools.telemetrywrapper.EventUtil
@@ -128,5 +129,6 @@ fun filterMSCallStacks(callStacks: String): String {
 
                 false
             }
+            .map { line -> AzureTelemetryClient.anonymizePiiData(line) }
             .joinToString("\n")
 }

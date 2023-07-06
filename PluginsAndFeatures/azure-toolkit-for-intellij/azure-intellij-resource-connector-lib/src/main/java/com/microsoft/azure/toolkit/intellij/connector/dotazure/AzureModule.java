@@ -2,6 +2,7 @@ package com.microsoft.azure.toolkit.intellij.connector.dotazure;
 
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtil;
@@ -16,6 +17,7 @@ import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware;
 import com.microsoft.azure.toolkit.intellij.facet.AzureFacet;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -26,12 +28,7 @@ import org.jdom.JDOMException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -75,7 +72,7 @@ public class AzureModule {
             .or(() -> this.getModuleDir().map(d -> d.findChild(DOT_AZURE))).ifPresent(d -> {
                 this.dotAzure = d;
                 this.profilesXmlFile = this.dotAzure.findChild(PROFILES_XML);
-                Optional.ofNullable(this.profilesXmlFile).ifPresent(this::loadProfiles);
+                AzureTaskManager.getInstance().runOnPooledThread(() -> Optional.ofNullable(this.profilesXmlFile).ifPresent(this::loadProfiles));
             });
     }
 
@@ -225,6 +222,19 @@ public class AzureModule {
 
     public boolean neverHasAzureFacet() {
         return !AzureFacet.wasEverAddedTo(this.module);
+    }
+
+    @Nullable
+    public Boolean getAzureFacetState() {
+        final PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
+        final String value = properties.getValue(module.getName() + ".azure");
+        if (StringUtils.equalsIgnoreCase(value, "show")) {
+            return true;
+        } else if (StringUtils.equalsIgnoreCase(value, "hide")) {
+            return false;
+        } else {
+            return null;
+        }
     }
 
     public boolean hasAzureDependencies() {

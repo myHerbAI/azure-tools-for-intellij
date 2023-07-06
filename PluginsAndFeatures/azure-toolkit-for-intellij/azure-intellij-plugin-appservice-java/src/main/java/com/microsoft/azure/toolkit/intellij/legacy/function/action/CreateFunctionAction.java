@@ -132,15 +132,19 @@ public class CreateFunctionAction extends CreateElementActionBase {
         if (project == null || project.isDisposed()) {
             return false;
         }
-        final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
-        final ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
-        if (view != null) {
-            final List<PsiDirectory> dirs = Arrays.stream(view.getDirectories()).filter(Objects::nonNull).toList();
-            for (final PsiDirectory dir : dirs) {
-                if (projectFileIndex.isUnderSourceRootOfType(dir.getVirtualFile(), JavaModuleSourceRootTypes.SOURCES) && doCheckPackageExists(dir)) {
-                    return true;
+        try {
+            final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
+            final ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
+            if (view != null) {
+                final List<PsiDirectory> dirs = Arrays.stream(view.getDirectories()).filter(Objects::nonNull).toList();
+                for (final PsiDirectory dir : dirs) {
+                    if (projectFileIndex.isUnderSourceRootOfType(dir.getVirtualFile(), JavaModuleSourceRootTypes.SOURCES) && doCheckPackageExists(dir)) {
+                        return true;
+                    }
                 }
             }
+        } catch (final RuntimeException e) {
+            // swallow exception when check action availability
         }
         return false;
     }

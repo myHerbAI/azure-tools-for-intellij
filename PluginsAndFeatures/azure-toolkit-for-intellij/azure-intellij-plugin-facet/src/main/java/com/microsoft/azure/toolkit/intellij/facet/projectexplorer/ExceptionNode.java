@@ -6,19 +6,23 @@
 package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 
-public class ExceptionNode extends AbstractTreeNode<Throwable> {
+@Slf4j
+public class ExceptionNode extends AbstractAzureFacetNode<Throwable> {
 
     public ExceptionNode(@Nonnull Project project, final Throwable e) {
         super(project, e);
@@ -26,26 +30,26 @@ public class ExceptionNode extends AbstractTreeNode<Throwable> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public Collection<? extends AbstractTreeNode<?>> getChildren() {
-        final ArrayList<AbstractTreeNode<?>> actionNodes = new ArrayList<>();
+    public Collection<? extends AbstractAzureFacetNode<?>> buildChildren() {
+        final ArrayList<AbstractAzureFacetNode<?>> children = new ArrayList<>();
         final Throwable e = this.getValue();
         if (e instanceof AzureToolkitRuntimeException) {
             final Object[] actions = Optional.ofNullable(((AzureToolkitRuntimeException) e).getActions()).orElseGet(() -> new Object[0]);
             for (final Object action : actions) {
                 if (action instanceof Action.Id) {
-                    actionNodes.add(new ActionNode<>(this.getProject(), (Action.Id<Object>) action));
+                    children.add(new ActionNode<>(this.getProject(), (Action.Id<Object>) action));
                 } else if (action instanceof Action<?>) {
-                    actionNodes.add(new ActionNode<>(this.getProject(), (Action<Object>) action));
+                    children.add(new ActionNode<>(this.getProject(), (Action<Object>) action));
                 }
             }
         }
-        return actionNodes;
+        return children;
     }
 
     @Override
-    protected void update(@Nonnull final PresentationData presentation) {
-        final String message = ExceptionUtils.getRootCauseMessage(this.getValue());
-        presentation.addText(message, SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES);
+    protected void buildView(@Nonnull final PresentationData presentation) {
+        final String message = StringUtils.capitalize(StringUtils.firstNonBlank(this.getValue().getMessage(), "<no message>"));
+        presentation.addText(message, SimpleTextAttributes.ERROR_ATTRIBUTES);
     }
 
     @Override

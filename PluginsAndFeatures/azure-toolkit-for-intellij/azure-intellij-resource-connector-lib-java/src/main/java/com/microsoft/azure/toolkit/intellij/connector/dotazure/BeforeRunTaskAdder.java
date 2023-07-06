@@ -29,7 +29,8 @@ public class BeforeRunTaskAdder implements RunManagerListener, ConnectionTopics.
         }
         final List<Connection<?, ?>> connections = profile.getConnections();
         final List<BeforeRunTask<?>> tasks = config.getBeforeRunTasks();
-        if (connections.stream().anyMatch(c -> c.isApplicableFor(config)) && tasks.stream().noneMatch(t -> t instanceof DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask)) {
+        tasks.removeIf(t -> t instanceof DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask);
+        if (connections.stream().anyMatch(c -> c.isApplicableFor(config))) {
             config.getBeforeRunTasks().add(new DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask(config));
         }
     }

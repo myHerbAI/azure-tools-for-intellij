@@ -6,23 +6,25 @@
 package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.tree.LeafState;
 import com.microsoft.azure.toolkit.intellij.common.action.IntellijAzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class ActionNode<T> extends AbstractTreeNode<Action<T>> implements IAzureFacetNode {
+@Slf4j
+public class ActionNode<T> extends AbstractAzureFacetNode<Action<T>> {
     @Nullable
     private final T source;
 
@@ -46,13 +48,14 @@ public class ActionNode<T> extends AbstractTreeNode<Action<T>> implements IAzure
         this.source = source;
     }
 
+    @Nonnull
     @Override
-    public @Nonnull Collection<? extends AbstractTreeNode<?>> getChildren() {
+    protected Collection<? extends AbstractAzureFacetNode<?>> buildChildren() {
         return Collections.emptyList();
     }
 
     @Override
-    protected void update(@Nonnull PresentationData presentation) {
+    protected void buildView(@Nonnull PresentationData presentation) {
         final IView.Label view = this.getValue().getView(this.source);
         presentation.addText(StringUtils.capitalize(view.getLabel()), SimpleTextAttributes.LINK_ATTRIBUTES);
         presentation.setTooltip(view.getDescription());
@@ -60,6 +63,10 @@ public class ActionNode<T> extends AbstractTreeNode<Action<T>> implements IAzure
 
     @Override
     public void onClicked(Object event) {
+        final Action<T> value = getValue();
+        if (event instanceof AnActionEvent) {
+            value.getContext().setTelemetryProperty(Action.PLACE, ((AnActionEvent) event).getPlace());
+        }
         this.getValue().handle(this.source, event);
     }
 
@@ -67,6 +74,7 @@ public class ActionNode<T> extends AbstractTreeNode<Action<T>> implements IAzure
     @Override
     public IActionGroup getActionGroup() {
         return new IActionGroup() {
+            @Nullable
             @Override
             public IView.Label getView() {
                 return null;
@@ -74,7 +82,7 @@ public class ActionNode<T> extends AbstractTreeNode<Action<T>> implements IAzure
 
             @Override
             public List<Object> getActions() {
-                return Arrays.asList(ActionNode.this.getValue());
+                return Collections.singletonList(ActionNode.this.getValue());
             }
 
             @Override
@@ -86,16 +94,21 @@ public class ActionNode<T> extends AbstractTreeNode<Action<T>> implements IAzure
 
     @Override
     public @Nullable Object getData(@Nonnull String dataId) {
-        return StringUtils.equalsIgnoreCase(dataId, "ACTION_SOURCE") ? this.source : null;
+        return StringUtils.equalsIgnoreCase(dataId, Action.SOURCE) ? this.source : null;
     }
 
     @Override
     public int getWeight() {
-        return Integer.MAX_VALUE;
+        return 0;
     }
 
     @Override
     public String toString() {
         return this.getValue().toString();
+    }
+
+    @Override
+    public @Nonnull LeafState getLeafState() {
+        return LeafState.ALWAYS;
     }
 }

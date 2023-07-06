@@ -5,7 +5,12 @@
 
 package com.microsoft.azure.toolkit.intellij.connector;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -29,9 +34,9 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
-import rx.Observable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,6 +45,7 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.Future;
 
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition.CONSUMER;
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition.RESOURCE;
@@ -72,7 +78,7 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     private Connection<?,?> connection;
     @Getter
 
-    private Observable<?> observable;
+    private Future<?> future;
 
     @Getter
     private final String dialogTitle = "Azure Resource Connector";
@@ -155,17 +161,21 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     )
     private void saveConnectionToDotAzure(Connection<?, ?> connection) {
         final Resource<?> consumer = connection.getConsumer();
+        final Resource<?> resource = connection.getResource();
+        if (resource instanceof AzureServiceResource<?>) {
+            OperationContext.action().setTelemetryProperty("subscriptionId", ResourceId.fromString(resource.getDataId()).subscriptionId());
+        }
         if (consumer instanceof ModuleResource) {
             final ModuleManager moduleManager = ModuleManager.getInstance(project);
             final Module m = moduleManager.findModuleByName(consumer.getName());
             if (Objects.nonNull(m)) {
                 final AzureModule module = AzureModule.from(m);
                 final AzureTaskManager taskManager = AzureTaskManager.getInstance();
-                taskManager.write(() -> {
+                taskManager.runLater(() -> taskManager.write(() -> {
                     final Profile profile = module.initializeWithDefaultProfileIfNot();
-                    this.observable = profile.createOrUpdateConnection(connection);
-                    this.observable.subscribe(ignore -> profile.save());
-                });
+                    this.future = profile.createOrUpdateConnection(connection);
+                    profile.save();
+                }));
             }
         }
     }
@@ -229,8 +239,10 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     public void setResource(@Nullable final Resource<?> resource) {
         if (Objects.nonNull(resource)) {
             this.setResourceDefinition(resource.getDefinition());
-            //noinspection unchecked
-            this.resourcePanel.setValue(resource);
+            if (resource.isValidResource()) {
+                //noinspection unchecked
+                this.resourcePanel.setValue(resource);
+            }
         } else {
             ResourceManager.getDefinitions(RESOURCE).stream().findFirst().ifPresent(this::setResourceDefinition);
         }
@@ -308,7 +320,12 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
         this.lblSignIn.setHtmlText(NOT_SIGNIN_TIPS);
         this.lblSignIn.setIcon(AllIcons.General.Information);
         this.lblSignIn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        this.lblSignIn.addHyperlinkListener(e -> AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle(() -> this.lblSignIn.setVisible(!Azure.az(AzureAccount.class).isLoggedIn())));
+        this.lblSignIn.addHyperlinkListener(e -> {
+            final DataContext context = DataManager.getInstance().getDataContext(this.lblSignIn);
+            final AnActionEvent event = AnActionEvent.createFromInputEvent(e.getInputEvent(), "ConnectorDialog", new Presentation(), context);
+            AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH)
+                .handle(() -> this.lblSignIn.setVisible(!Azure.az(AzureAccount.class).isLoggedIn()), event);
+        });
     }
 
     public void setDescription(@Nonnull final String description) {

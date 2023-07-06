@@ -34,16 +34,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.concurrency.AsyncPromise;
 import org.jetbrains.concurrency.Promise;
 import rx.Completable;
-import rx.Observable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -135,20 +131,20 @@ public class DotEnvBeforeRunTaskProvider extends BeforeRunTaskProvider<DotEnvBef
         public List<Pair<String, String>> loadEnv() {
             final AzureModule azureModule = AzureModule.createIfSupport(this.config).orElse(null);
             final Project project = Optional.ofNullable(azureModule).map(AzureModule::getProject).orElse(null);
-            final List<Completable> completables = Optional.ofNullable(azureModule).map(AzureModule::getDefaultProfile)
-                    .map(Profile::getConnections)
-                    .stream().flatMap(List::stream)
-                    .filter(c -> !c.validate(project))
-                    .map(c -> ResourceConnectionActionsContributor.fixResourceConnection(c, project))
-                    .filter(Objects::nonNull)
-                    .map(Observable::toCompletable)
-                    .collect(Collectors.toList());
-            // wait for all connection has been saved to .env)
-            Completable.merge(completables).await();
-            return Optional.ofNullable(this.file)
+            final List<Pair<String, String>> exists = Optional.ofNullable(this.file)
                     .or(() -> AzureModule.createIfSupport(this.config).map(AzureModule::getDefaultProfile).map(Profile::getDotEnvFile))
                     .map(Profile::load)
                     .orElse(Collections.emptyList());
+            final List<Pair<String, String>> result = new ArrayList<>(exists);
+            Optional.ofNullable(azureModule).map(AzureModule::getDefaultProfile)
+                    .map(Profile::getConnections)
+                    .stream().flatMap(List::stream)
+                    .filter(c -> !c.isValidConnection())
+                    .map(c -> ResourceConnectionActionsContributor.fixResourceConnection(c, project))
+                    .filter(Objects::nonNull)
+                    .forEach(connection -> connection.getEnvironmentVariables(project)
+                            .forEach((key, value) -> result.add(Pair.of(key, value))));
+            return result;
         }
 
         @Override

@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.connector;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -12,6 +13,7 @@ import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
@@ -101,6 +103,10 @@ public interface ConnectionManager extends PersistentStateComponent<Element> {
         @Override
         @AzureOperation(name = "user/connector.add_connection")
         public synchronized void addConnection(Connection<?, ?> connection) {
+            final Resource<?> resource = connection.getResource();
+            if (resource instanceof AzureServiceResource<?>) {
+                OperationContext.action().setTelemetryProperty("subscriptionId", ResourceId.fromString(resource.getDataId()).subscriptionId());
+            }
             connections.removeIf(c -> Objects.equals(c, connection)); // always replace the old with the new one.
             connections.add(connection);
         }
@@ -108,6 +114,9 @@ public interface ConnectionManager extends PersistentStateComponent<Element> {
         @Override
         @AzureOperation(name = "user/connector.remove_connection")
         public synchronized void removeConnection(String resourceId, String consumerId) {
+            if (StringUtils.isNotBlank(resourceId)) {
+                OperationContext.action().setTelemetryProperty("subscriptionId", ResourceId.fromString(resourceId).subscriptionId());
+            }
             connections.removeIf(c -> StringUtils.equals(resourceId, c.getResource().getId()) && StringUtils.equals(consumerId, c.getConsumer().getId()));
         }
 

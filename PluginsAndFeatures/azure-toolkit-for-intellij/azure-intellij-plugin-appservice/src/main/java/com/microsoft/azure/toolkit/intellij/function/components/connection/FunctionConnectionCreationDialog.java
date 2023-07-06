@@ -181,7 +181,8 @@ public class FunctionConnectionCreationDialog extends AzureDialog<FunctionConnec
     private void saveConnection(final Connection<?, ?> connection) {
         AzureTaskManager.getInstance().write(() -> {
             final Profile profile = AzureModule.from(module).initializeWithDefaultProfileIfNot();
-            profile.addConnection(connection).subscribe(ignore -> profile.save());
+            profile.addConnection(connection);
+            profile.save();
         });
     }
 
