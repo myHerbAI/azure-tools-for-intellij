@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.springcloud.component;
 
 import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
+import com.azure.resourcemanager.appplatform.models.Sku;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.HyperlinkLabel;
@@ -162,7 +163,6 @@ public class SpringCloudAppConfigPanel extends JPanel implements AzureFormPanel<
             }, AzureTask.Modality.ANY);
         });
         final SpringCloudCluster service = app.getParent();
-        final String sku = service.getSku();
         final boolean enterprise = service.isEnterpriseTier();
         final boolean consumption = service.isConsumptionTier();
         final boolean standard = service.isStandardTier();

@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.springcloud.SpringCloudActionsContributor;
 import com.microsoft.azure.toolkit.intellij.springcloud.creation.CreateSpringCloudAppAction;
+import com.microsoft.azure.toolkit.intellij.springcloud.creation.CreateSpringCloudClusterAction;
 import com.microsoft.azure.toolkit.intellij.springcloud.deplolyment.DeploySpringCloudAppAction;
 import com.microsoft.azure.toolkit.intellij.springcloud.remotedebug.AttachDebuggerAction;
 import com.microsoft.azure.toolkit.intellij.springcloud.remotedebug.EnableRemoteDebuggingAction;
@@ -46,9 +47,7 @@ public class IntellijSpringCloudActionsContributor implements IActionsContributo
     private void registerCreateServiceActionHandler(AzureActionManager am) {
         final BiPredicate<Object, AnActionEvent> condition = (r, e) -> r instanceof AzureSpringCloud;
         final BiConsumer<Object, AnActionEvent> handler = (c, e) -> {
-            final IAccount account = Azure.az(IAzureAccount.class).account();
-            final String url = String.format("%s/#create/Microsoft.AppPlatform", account.getPortalUrl());
-            am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(url, null);
+            CreateSpringCloudClusterAction.createCluster(e.getProject());
         };
         am.registerHandler(ResourceCommonActionsContributor.CREATE, condition, handler);
         am.registerHandler(SpringCloudActionsContributor.GROUP_CREATE_CLUSTER, (r, e) -> true, (r, e) -> handler.accept(r, (AnActionEvent) e));
