@@ -54,7 +54,7 @@ public class IntellijAzureActionManager extends AzureActionManager {
     /**
      * register {@code ACTION_SOURCE} as data key, so that PreCachedDataContext can pre cache it.
      */
-    private static final DataKey<Object> ACTION_SOURCE = DataKey.create("ACTION_SOURCE");
+    private static final DataKey<Object> ACTION_SOURCE = DataKey.create(Action.SOURCE);
 
     private IntellijAzureActionManager() {
         super();

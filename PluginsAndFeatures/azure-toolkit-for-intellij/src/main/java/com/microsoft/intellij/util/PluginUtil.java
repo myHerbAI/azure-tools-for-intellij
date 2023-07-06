@@ -33,6 +33,7 @@ import com.microsoft.azure.toolkit.intellij.common.CommonConst;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 
+import javax.annotation.Nullable;
 import javax.swing.Icon;
 
 import java.io.File;
@@ -87,10 +88,15 @@ public class PluginUtil {
         return DataKeys.MODULE.getData(dataContext);
     }
 
+    @Nullable
     public static String getModulePath(Module module) {
-        return Optional.of(ModuleRootManager.getInstance(module).getContentRoots())
-                .filter(ArrayUtils::isNotEmpty)
-                .map(array -> array[0].getPath()).orElse(null);
+        try {
+            return Optional.of(ModuleRootManager.getInstance(module).getContentRoots())
+                    .filter(ArrayUtils::isNotEmpty)
+                    .map(array -> array[0].getPath()).orElse(null);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**

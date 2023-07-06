@@ -5,10 +5,11 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localrun;
 
-import com.google.common.base.Supplier;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.execution.impl.RunnerAndConfigurationSettingsImpl;
@@ -19,13 +20,13 @@ import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.remote.RemoteConfiguration;
 import com.intellij.execution.remote.RemoteConfigurationType;
 import com.intellij.execution.runners.ExecutionUtil;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.psi.PsiMethod;
+import com.intellij.util.EnvironmentUtil;
 import com.microsoft.azure.toolkit.intellij.common.ReadStreamLineThread;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandlerMessenger;
@@ -62,9 +63,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.jetbrains.annotations.NotNull;
-import rx.Observable;
-import rx.Scheduler;
-import rx.schedulers.Schedulers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -78,6 +76,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppActionsContributor.CONFIG_CORE_TOOLS;
@@ -91,7 +90,7 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
     private static final int DEFAULT_FUNC_PORT = 7071;
     private static final int DEFAULT_DEBUG_PORT = 5005;
     private static final String DEBUG_PARAMETERS =
-            "\"-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=%s\"";
+            "--language-worker -- \"-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=%s\"";
     private static final String HOST_JSON = "host.json";
     private static final String EXTENSION_BUNDLE = "extensionBundle";
     private static final String EXTENSION_BUNDLE_ID = "Microsoft.Azure.Functions.ExtensionBundle";
@@ -227,10 +226,10 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
 
     @AzureOperation(name = "boundary/function.run_cli.folder", params = {"stagingFolder.getName()"})
     private int runFunctionCli(RunProcessHandler processHandler, File stagingFolder)
-            throws IOException, InterruptedException {
+            throws InterruptedException, ExecutionException {
         isDebuggerLaunched = false;
         final int debugPort = FunctionUtils.findFreePort(DEFAULT_DEBUG_PORT);
-        process = getRunFunctionCliProcessBuilder(stagingFolder, debugPort).start();
+        process = getFunctionCliProcess(stagingFolder, debugPort);
         // Redirect function cli output to console
         readInputStreamByLines(process.getInputStream(), inputLine -> {
             if (isDebugMode() && isFuncInitialized(inputLine) && !isDebuggerLaunched) {
@@ -276,27 +275,31 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
         });
     }
 
-    private ProcessBuilder getRunFunctionCliProcessBuilder(File stagingFolder, int debugPort) {
-        final ProcessBuilder processBuilder = new ProcessBuilder();
+    private Process getFunctionCliProcess(File stagingFolder, int debugPort) throws ExecutionException {
         final String funcPath = functionRunConfiguration.getFuncPath();
         final String funcArguments = Optional.ofNullable(functionRunConfiguration.getFunctionHostArguments())
                 .filter(StringUtils::isNoneBlank).orElseGet(FunctionUtils::getDefaultFuncArguments);
-        final String[] hostParameters = funcArguments.split(" ");
-        final String[] debugParameters = isDebugMode() ? new String[]{"--language-worker", "--", String.format(DEBUG_PARAMETERS, debugPort)} : null;
-        final String[] command = Stream.of(new String[]{funcPath}, hostParameters, debugParameters)
-                .filter(Objects::nonNull).flatMap(Stream::of).toArray(String[]::new);
-        processBuilder.command(command);
-        processBuilder.directory(stagingFolder);
-        return processBuilder;
+        final String debugParameters = isDebugMode() ? String.format(DEBUG_PARAMETERS, debugPort) : null;
+        final String[] command = Stream.of(funcArguments, debugParameters)
+                .filter(StringUtils::isNoneBlank)
+                .collect(Collectors.joining(StringUtils.SPACE))
+                .split(StringUtils.SPACE);
+        final GeneralCommandLine result = new GeneralCommandLine();
+        result.withEnvironment(EnvironmentUtil.getEnvironmentMap());
+        result.withExePath(funcPath);
+        result.withParameters(command);
+        result.withWorkDirectory(stagingFolder);
+        return result.createProcess();
     }
 
-    private ProcessBuilder getRunFunctionCliExtensionInstallProcessBuilder(File stagingFolder) {
-        final ProcessBuilder processBuilder = new ProcessBuilder();
+    private Process getExtensionInstallProcess(File stagingFolder) throws ExecutionException {
         final String funcPath = functionRunConfiguration.getFuncPath();
-        final String[] command = new String[]{funcPath, "extensions", "install", "--java"};
-        processBuilder.command(command);
-        processBuilder.directory(stagingFolder);
-        return processBuilder;
+        final GeneralCommandLine result = new GeneralCommandLine();
+        result.withEnvironment(EnvironmentUtil.getEnvironmentMap());
+        result.withExePath(funcPath);
+        result.withParameters("extensions", "install", "--java");
+        result.withWorkDirectory(stagingFolder);
+        return result.createProcess();
     }
 
     @AzureOperation(name = "boundary/function.prepare_staging_folder.folder|app", params = {"stagingFolder.getName()", "this.functionRunConfiguration.getFuncPath()"})
@@ -333,7 +336,7 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
 
             final Set<BindingEnum> bindingClasses = getFunctionBindingEnums(configMap);
             if (isInstallingExtensionNeeded(bindingClasses, processHandler)) {
-                installProcess = getRunFunctionCliExtensionInstallProcessBuilder(stagingFolder).start();
+                installProcess = getExtensionInstallProcess(stagingFolder);
             }
         } catch (final AzureExecutionException | IOException e) {
             final String error = String.format("failed prepare staging folder[%s]", folder);
@@ -405,7 +408,8 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
     private boolean isWebJobStorageRequired(@Nonnull List<BindingEnum> bindings) {
         return bindings.stream().map(BindingEnum::getType)
                 .filter(type -> StringUtils.endsWithIgnoreCase(type, "Trigger"))
-                .anyMatch(type -> !AZURE_WEB_JOBS_STORAGE_NOT_REQUIRED_TRIGGERS.stream().anyMatch(trigger -> StringUtils.equalsIgnoreCase(type, trigger)));
+                .anyMatch(type -> AZURE_WEB_JOBS_STORAGE_NOT_REQUIRED_TRIGGERS.stream()
+                        .noneMatch(trigger -> StringUtils.equalsIgnoreCase(type, trigger)));
     }
 
     private boolean isDebugMode() {

@@ -103,7 +103,7 @@ public class ResourceManager {
     void save() throws IOException {
         final Element resourcesEle = new Element(ELEMENT_NAME_RESOURCES);
         // todo: whether to save invalid resources?
-        this.resources.stream().filter(Resource::isValidResource).forEach(resource -> {
+        this.resources.stream().forEach(resource -> {
             final Element resourceEle = new Element(ELEMENT_NAME_RESOURCE);
             try {
                 if (resource.writeTo(resourceEle)) {

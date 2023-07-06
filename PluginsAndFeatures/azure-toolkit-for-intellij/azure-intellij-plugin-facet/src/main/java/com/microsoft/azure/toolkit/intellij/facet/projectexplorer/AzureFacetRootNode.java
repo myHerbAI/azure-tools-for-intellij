@@ -8,87 +8,91 @@ package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
 import com.intellij.ide.projectView.NodeSortOrder;
 import com.intellij.ide.projectView.NodeSortSettings;
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.tree.LeafState;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.NamedColorUtil;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.ConnectionTopics;
-import com.microsoft.azure.toolkit.intellij.connector.DeploymentTargetTopics;
 import com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.microsoft.azure.toolkit.intellij.connector.ConnectionTopics.CONNECTION_CHANGED;
-import static com.microsoft.azure.toolkit.intellij.connector.DeploymentTargetTopics.TARGET_APP_CHANGED;
+import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor.CONNECT_TO_MODULE;
 
-public class AzureFacetRootNode extends ProjectViewNode<AzureModule> implements IAzureFacetNode {
+@Slf4j
+public class AzureFacetRootNode extends AbstractProjectNode<AzureModule> implements IAzureFacetNode {
+    private final AzureEventBus.EventListener eventListener;
 
     public AzureFacetRootNode(final AzureModule module, ViewSettings settings) {
         super(module.getProject(), module, settings);
-        AzureEventBus.once("account.logged_in.account", (a, b) -> this.rerender(true));
+        this.eventListener = new AzureEventBus.EventListener(this::onEvent);
+        AzureEventBus.on("account.logged_in.account", eventListener);
+        AzureEventBus.on("account.logged_out.account", eventListener);
+        AzureEventBus.on("connector.refreshed.module_root", eventListener);
         final MessageBusConnection connection = module.getProject().getMessageBus().connect();
         connection.subscribe(CONNECTION_CHANGED, (ConnectionTopics.ConnectionChanged) (p, conn, action) -> {
             if (conn.getConsumer().getId().equalsIgnoreCase(module.getName())) {
-                rerender(true);
-            }
-        });
-        connection.subscribe(TARGET_APP_CHANGED, (DeploymentTargetTopics.TargetAppChanged) (m, app, action) -> {
-            if (m.getName().equalsIgnoreCase(module.getName())) {
-                rerender(true);
+                updateChildren();
             }
         });
     }
 
-    @Override
-    public Collection<? extends AbstractTreeNode<?>> getChildren() {
+    private void onEvent(@Nonnull final AzureEvent azureEvent) {
+        switch (azureEvent.getType()) {
+            case "account.logged_in.account", "account.logged_out.account" -> this.updateChildren();
+            case "connector.refreshed.module_root" -> {
+                if (Objects.equals(azureEvent.getSource(), this.getValue())) {
+                    this.updateChildren();
+                }
+            }
+            default -> {
+            }
+        }
+    }
+
+    public Collection<? extends AbstractAzureFacetNode<?>> buildChildren() {
+        final ArrayList<AbstractAzureFacetNode<?>> nodes = new ArrayList<>();
         final AzureModule module = this.getValue();
-//        final ArrayList<AbstractTreeNode<?>> result = new ArrayList<>();
-//        final List<Connection<?, ?>> connections = Optional.ofNullable(module.getDefaultProfile()).map(Profile::getConnections).orElse(Collections.emptyList());
-//        final List<String> appIds = Optional.ofNullable(module.getDefaultProfile()).map(Profile::getTargetAppIds).orElse(Collections.emptyList());
-//        if (CollectionUtils.isNotEmpty(connections)) { // add back .azure file node
-//            final VirtualFile virtualFile = Optional.ofNullable(getValue()).map(AzureModule::getDotAzureDir).flatMap(op -> op).orElse(null);
-//            Optional.ofNullable(virtualFile)
-//                .map(dir -> PsiManagerEx.getInstanceEx(getProject()).findDirectory(dir))
-//                .map(dir -> new PsiDirectoryNode(getProject(), dir, viewSettings)).ifPresent(result::add);
-//        }
-//        if (!appIds.isEmpty()) {
-//            result.add(new DeploymentTargetsNode(module));
-//        }
-//        result.add(new ConnectionsNode(module));
-        return new ConnectionsNode(module).getChildren();
+        final Profile profile = module.getDefaultProfile();
+        if (Objects.isNull(profile)) {
+            nodes.add(new ActionNode<>(this.getProject(), CONNECT_TO_MODULE, module));
+            return nodes;
+        }
+        return new ConnectionsNode(this.getProject(), profile.getConnectionManager()).buildChildren();
     }
 
     @Override
-    protected void update(@Nonnull final PresentationData presentation) {
-        final AzureModule value = getValue();
-        final List<Connection<?, ?>> connections = Optional.ofNullable(value.getDefaultProfile())
+    protected void buildView(@Nonnull final PresentationData presentation) {
+        try {
+            final AzureModule module = getValue();
+            final List<Connection<?, ?>> connections = Optional.ofNullable(module.getDefaultProfile())
                 .map(Profile::getConnections).orElse(Collections.emptyList());
-        final boolean connected = CollectionUtils.isNotEmpty(connections);
-        final boolean isConnectionValid = connections.stream().allMatch(c -> c.validate(getProject()));
-        presentation.addText("Azure", getTextAttributes(isConnectionValid));
-        presentation.setTooltip(isConnectionValid ? "Manage connected Azure resources here." : "Invalid connections found.");
-        presentation.setIcon(connected ? IntelliJAzureIcons.getIcon("/icons/Common/AzureResourceConnector.svg") : IntelliJAzureIcons.getIcon(AzureIcons.Common.AZURE));
+            final boolean connected = CollectionUtils.isNotEmpty(connections);
+            final boolean isConnectionValid = connections.stream().allMatch(Connection::isValidConnection);
+            presentation.addText("Azure", getTextAttributes(isConnectionValid));
+            presentation.setTooltip(isConnectionValid ? "Manage connected Azure resources here." : "Invalid connections found.");
+            presentation.setIcon(connected ? IntelliJAzureIcons.getIcon("/icons/Common/AzureResourceConnector.svg") : IntelliJAzureIcons.getIcon(AzureIcons.Common.AZURE));
+        } catch (final Exception e) {
+            log.warn(e.getMessage(), e);
+        }
     }
 
     public static SimpleTextAttributes getTextAttributes(boolean isValid) {
@@ -122,12 +126,20 @@ public class AzureFacetRootNode extends ProjectViewNode<AzureModule> implements 
     }
 
     @Override
-    public boolean contains(VirtualFile file) {
-        return false;
+    public String toString() {
+        return "Azure";
     }
 
     @Override
-    public String toString() {
-        return "Azure";
+    public void dispose() {
+        super.dispose();
+        AzureEventBus.off("account.logged_in.account", eventListener);
+        AzureEventBus.off("account.logged_out.account", eventListener);
+        AzureEventBus.off("connector.refreshed.module_root", eventListener);
+    }
+
+    @Override
+    public @Nonnull LeafState getLeafState() {
+        return LeafState.NEVER;
     }
 }

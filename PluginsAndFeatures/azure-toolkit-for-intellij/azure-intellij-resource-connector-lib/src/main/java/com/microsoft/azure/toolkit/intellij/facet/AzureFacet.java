@@ -9,6 +9,7 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetType;
+import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
@@ -37,12 +38,15 @@ public class AzureFacet extends Facet<AzureFacetConfiguration> {
     }
 
     public static void addTo(@Nonnull final Module module) {
+        if (module.isDisposed() || module.getProject().isDisposed()) {
+            return;
+        }
         final AzureFacet facet = getInstance(module);
-        final PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
-        final String key = getFacetFlag(module);
         if (Objects.isNull(facet)) {
+            final PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
             FacetManager.getInstance(module).addFacet(AzureFacetType.INSTANCE, "Azure", null);
-            properties.setValue(key, true);
+            properties.setValue(getFacetFlag(module), true);
+            Optional.ofNullable(ProjectView.getInstance(module.getProject())).ifPresent(v -> v.getCurrentProjectViewPane().updateFromRoot(true));
         }
     }
 
@@ -55,13 +59,16 @@ public class AzureFacet extends Facet<AzureFacetConfiguration> {
 
     @Nullable
     public static AzureFacet getInstance(@Nonnull final Module module) {
+        if (module.isDisposed()) {
+            return null;
+        }
         return FacetManager.getInstance(module).getFacetByType(AzureFacetType.ID);
     }
 
     @Nullable
     public static AzureFacet getInstance(@Nonnull VirtualFile file, @Nonnull Project project) {
         final Module module = ModuleUtil.findModuleForFile(file, project);
-        return Objects.isNull(module) ? null : getInstance(module);
+        return Objects.isNull(module) || module.isDisposed() ? null : getInstance(module);
     }
 
     @Nullable

@@ -16,6 +16,8 @@ import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 import static com.microsoft.azure.toolkit.lib.common.action.Action.EMPTY_PLACE;
 import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
 
@@ -36,5 +38,11 @@ public class ModuleConnectorAction extends AnAction {
         final ConnectorDialog dialog = new ConnectorDialog(project);
         dialog.setConsumer(new ModuleResource(module.getName()));
         dialog.show();
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+        final boolean onModule = Objects.nonNull(LangDataKeys.MODULE.getData(e.getDataContext()));
+        e.getPresentation().setEnabledAndVisible(onModule);
     }
 }

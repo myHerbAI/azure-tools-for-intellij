@@ -22,7 +22,6 @@ import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.task.DeploySpringCloudAppTask;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
@@ -90,11 +89,11 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
             }
         });
         final AzureString startTitle = OperationBundle.description("user/resource.start_resource.resource", this.draft.getName());
-        this.startButton.addActionListener(e -> tm.runInBackground(startTitle, this.draft::start));
+        this.startButton.addActionListener(e -> tm.runInBackground(startTitle, this.app::start));
         final AzureString stopTitle = OperationBundle.description("user/resource.stop_resource.resource", this.draft.getName());
-        this.stopButton.addActionListener(e -> tm.runInBackground(stopTitle, this.draft::stop));
+        this.stopButton.addActionListener(e -> tm.runInBackground(stopTitle, this.app::stop));
         final AzureString restartTitle = OperationBundle.description("user/resource.restart_resource.resource", this.draft.getName());
-        this.restartButton.addActionListener(e -> tm.runInBackground(restartTitle, this.draft::restart));
+        this.restartButton.addActionListener(e -> tm.runInBackground(restartTitle, this.app::restart));
         final AzureString saveTitle = AzureString.format("Saving updates of app(%s)", this.draft.getName());
         this.saveButton.addActionListener(e -> tm.runInBackground(saveTitle, this::save));
         this.formConfig.setDataChangedListener((data) -> AzureTaskManager.getInstance().runOnPooledThread(this::refreshToolbar));
@@ -152,11 +151,7 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
 
     private void refreshToolbar() {
         // get status from app instead of draft since status of draft is not correct
-        final String status = this.app.getStatus();
         final AzResource.FormalStatus formalStatus = this.app.getFormalStatus();
-        if (StringUtils.equalsIgnoreCase(status, AzResource.Status.INACTIVE)) {
-            AzureMessager.getMessager().warning(String.format("App(%s) has no active deployment", this.app.getName()), null);
-        }
         final AzureTaskManager manager = AzureTaskManager.getInstance();
         manager.runLater(() -> {
             final boolean normal = formalStatus.isRunning() || formalStatus.isStopped();

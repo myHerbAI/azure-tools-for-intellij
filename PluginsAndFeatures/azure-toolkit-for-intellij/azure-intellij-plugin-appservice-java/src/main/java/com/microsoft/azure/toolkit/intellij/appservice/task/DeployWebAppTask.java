@@ -45,7 +45,7 @@ public class DeployWebAppTask extends BaseDeployTask {
             final AzureArtifact azureArtifact = allSupportedAzureArtifacts.get(0);
             ((WebAppConfiguration) runConfiguration).saveArtifact(azureArtifact);
             final List<BeforeRunTask> beforeRunTasks = new ArrayList<>();
-            beforeRunTasks.add(BuildArtifactBeforeRunTaskUtils.createBuildTask(azureArtifact, runConfiguration));
+            beforeRunTasks.add(BuildArtifactBeforeRunTaskUtils.createBuildTask(azureArtifact, runConfiguration, true));
             beforeRunTasks.addAll(runConfiguration.getBeforeRunTasks());
             manager.setBeforeRunTasks(runConfiguration, beforeRunTasks);
             ((WebAppConfiguration) runConfiguration).setOpenBrowserAfterDeployment(false);

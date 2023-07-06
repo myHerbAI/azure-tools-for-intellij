@@ -7,7 +7,9 @@ package com.microsoft.azure.toolkit.intellij.database.connection;
 
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
-import com.microsoft.azure.toolkit.intellij.connector.*;
+import com.microsoft.azure.toolkit.intellij.connector.AzureServiceResource;
+import com.microsoft.azure.toolkit.intellij.connector.Connection;
+import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabase;
@@ -49,7 +51,7 @@ public abstract class SqlDatabaseResourceDefinition<T extends IDatabase> extends
 
     @Override
     public Resource<T> read(@Nonnull Element resourceEle) {
-        final String dataId = Optional.ofNullable(resourceEle.getChildTextTrim("resourceId")).orElse(resourceEle.getChildTextTrim("dataId"));
+        final String dataId = Optional.ofNullable(resourceEle.getChildTextTrim("resourceId")).orElseGet(() -> resourceEle.getChildTextTrim("dataId"));
         final String url = resourceEle.getChildTextTrim("url");
         final String username = resourceEle.getChildTextTrim("username");
         if (StringUtils.isBlank(dataId)) {
@@ -63,11 +65,6 @@ public abstract class SqlDatabaseResourceDefinition<T extends IDatabase> extends
     @Override
     public Resource<T> define(@Nonnull T resource) {
         return new SqlDatabaseResource<>(resource, null, this);
-    }
-
-    @Override
-    public Resource<T> define(@Nonnull String dataId) {
-        return new AzureServiceResource<>(getResource(dataId), this);
     }
 
     @Override

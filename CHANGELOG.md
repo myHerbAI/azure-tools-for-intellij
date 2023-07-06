@@ -3,6 +3,7 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.78.0](#3780)
   - [3.77.0](#3770)
   - [3.76.0](#3760)
   - [3.75.0](#3750)
@@ -96,6 +97,20 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.8](#308)
   - [3.0.7](#307)
   - [3.0.6](#306)
+
+## 3.78.0
+### Added
+- New UX for Azure resource connections in IntelliJ project view
+  - Support list/add/remove Azure resource connections in project explorer
+  - Support edit environment variables for Azure resource connections
+  - Support manage connected Azure resources in project explorer
+- Support IntelliJ 2023.2 EAP
+
+### Fixed
+- Fix: System environment variables may be missed during function run/deployment
+- [#7651](https://github.com/microsoft/azure-tools-for-java/issues/7651): Uncaught Exception DeployFunctionAppAction#update, check if project is a valid function project.
+- [#7653](https://github.com/microsoft/azure-tools-for-java/issues/7653): Uncaught Exception com.intellij.diagnostic.PluginException: No display name is specified for configurable com.microsoft.intellij.AzureConfigurable in xml file.
+- [#7619](https://github.com/microsoft/azure-tools-for-java/issues/7619): Uncaught Exception Uncaught Exception java.lang.IllegalArgumentException: invalid arguments id/nameId.
 
 ## 3.77.0
 ### Added

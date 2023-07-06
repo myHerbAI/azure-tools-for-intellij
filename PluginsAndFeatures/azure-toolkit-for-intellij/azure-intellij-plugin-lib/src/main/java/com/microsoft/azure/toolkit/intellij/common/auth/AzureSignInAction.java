@@ -59,8 +59,10 @@ public class AzureSignInAction extends AzureAnAction implements DumbAware {
     }
 
     public boolean onActionPerformed(@NotNull AnActionEvent e, @Nullable Operation operation) {
-        final Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
-        authActionPerformed(project);
+        final Project project = e.getProject();
+        if (Objects.nonNull(project)) {
+            authActionPerformed(project);
+        }
         return true;
     }
 

@@ -84,7 +84,7 @@ public class BrowseRemoteHostSftpAction {
                     final Pair<WebServerGroupingWrap, WebServerConfig> finalServer = GroupedServersConfigManager.getInstance(project).findByName(serverName);
                     if (!Objects.isNull(finalServer)) {
                         MethodUtils.invokeMethod(webServerCombo.get(panel), true, "selectServer", finalServer.getSecond());
-                        AzureTaskManager.getInstance().runInBackground("select server", () -> {
+                        AzureTaskManager.getInstance().runLater("select server", () -> {
                             try {
                                 MethodUtils.invokeMethod(webServerCombo.get(panel), true, "fireChanged");
                             } catch (final NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {

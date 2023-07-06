@@ -74,12 +74,12 @@ public class SpringPropertiesCompletionContributor extends CompletionContributor
         public void handleInsert(@Nonnull InsertionContext context, @Nonnull LookupElement lookupElement) {
             final Project project = context.getProject();
             final Module module = ModuleUtil.findModuleForFile(context.getFile().getVirtualFile(), project);
-            Optional.ofNullable(module).map(AzureModule::from)
-                    .map(AzureModule::getDefaultProfile).map(Profile::getConnectionManager)
-                    .ifPresent(connectionManager -> connectionManager
-                            .getConnectionsByConsumerId(module.getName()).stream()
-                            .filter(c -> Objects.equals(definition, c.getResource().getDefinition())).findAny()
-                            .ifPresentOrElse(c -> this.insert(c, context), () -> this.createAndInsert(module, context)));
+            AzureTaskManager.getInstance().write(() -> Optional.ofNullable(module).map(AzureModule::from)
+                .map(AzureModule::initializeWithDefaultProfileIfNot).map(Profile::getConnectionManager)
+                .ifPresent(connectionManager -> connectionManager
+                    .getConnectionsByConsumerId(module.getName()).stream()
+                    .filter(c -> Objects.equals(definition, c.getResource().getDefinition())).findAny()
+                    .ifPresentOrElse(c -> this.insert(c, context), () -> this.createAndInsert(module, context))));
         }
 
         private void createAndInsert(Module module, @Nonnull InsertionContext context) {
@@ -101,6 +101,9 @@ public class SpringPropertiesCompletionContributor extends CompletionContributor
 
         private void insert(Connection<?, ?> c, @Nonnull InsertionContext context) {
             final List<Pair<String, String>> properties = SpringSupported.getProperties(c);
+            if (properties.size() < 1) {
+                return;
+            }
             final StringBuilder result = new StringBuilder("=").append(properties.get(0).getValue()).append(StringUtils.LF);
             for (int i = 1; i < properties.size(); i++) {
                 result.append(properties.get(i).getKey()).append("=").append(properties.get(i).getValue()).append(StringUtils.LF);

@@ -69,9 +69,7 @@ public class CosmosDatabaseResourcePanel<T extends ICosmosDatabase, E extends Co
 
     @Override
     public Resource<T> getValue() {
-        final List<AzureValidationInfo> allValidationInfos = this.getAllValidationInfos(true);
-        final boolean invalid = allValidationInfos.stream().anyMatch(info -> !info.isValid());
-        return invalid ? null : Optional.ofNullable(cbDatabase.getValue()).map(resourceDefinition::define).orElse(null);
+        return Optional.ofNullable(cbDatabase.getValue()).map(resourceDefinition::define).orElse(null);
     }
 
     @Override
