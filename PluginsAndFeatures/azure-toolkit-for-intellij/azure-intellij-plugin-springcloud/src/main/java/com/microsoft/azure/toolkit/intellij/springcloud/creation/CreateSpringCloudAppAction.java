@@ -17,14 +17,13 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
-import com.microsoft.azure.toolkit.lib.springcloud.task.DeploySpringCloudAppTask;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 
 public class CreateSpringCloudAppAction {
@@ -38,23 +37,24 @@ public class CreateSpringCloudAppAction {
         AzureTaskManager.getInstance().runLater(() -> {
             final SpringCloudAppCreationDialog dialog = new SpringCloudAppCreationDialog(cluster, project);
             dialog.setDefaultRuntimeVersion(JdkUtils.getJdkLanguageLevel(Optional.ofNullable(project).orElseGet(ProjectUtils::getProject)));
-            dialog.setOkActionListener((config) -> {
+            dialog.setOkActionListener((draft) -> {
                 dialog.close();
-                createApp(config);
+                createApp(draft);
             });
             dialog.show();
         });
     }
 
-    @AzureOperation(name = "user/springcloud.create_app.app", params = "config.getAppName()")
-    private static void createApp(SpringCloudAppConfig config) {
-        AzureTaskManager.getInstance().runInBackground(OperationBundle.description("user/springcloud.create_app.app", config.getAppName()), () -> {
-            final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(config);
-            final SpringCloudDeployment deployment = task.execute();
-            CacheManager.getUsageHistory(SpringCloudCluster.class).push(deployment.getParent().getParent());
-            CacheManager.getUsageHistory(SpringCloudApp.class).push(deployment.getParent());
-            final boolean hasArtifact = Optional.ofNullable(config.getDeployment())
-                .map(SpringCloudDeploymentConfig::getArtifact)
+    @AzureOperation(name = "user/springcloud.create_app.app", params = "app.getName()")
+    private static void createApp(SpringCloudAppDraft app) {
+        AzureTaskManager.getInstance().runInBackground(OperationBundle.description("user/springcloud.create_app.app", app.getName()), () -> {
+            final SpringCloudDeploymentDraft deployment = (SpringCloudDeploymentDraft) app.getActiveDeployment();
+            Objects.requireNonNull(deployment).commit();
+            app.reset();
+            CacheManager.getUsageHistory(SpringCloudCluster.class).push(app.getParent());
+            CacheManager.getUsageHistory(SpringCloudApp.class).push(app);
+            final boolean hasArtifact = Optional.of(deployment)
+                .map(SpringCloudDeploymentDraft::getArtifact)
                 .map(IArtifact::getFile).isPresent();
             if (hasArtifact && !deployment.waitUntilReady(GET_STATUS_TIMEOUT)) {
                 AzureMessager.getMessager().warning(GET_DEPLOYMENT_STATUS_TIMEOUT, NOTIFICATION_TITLE);

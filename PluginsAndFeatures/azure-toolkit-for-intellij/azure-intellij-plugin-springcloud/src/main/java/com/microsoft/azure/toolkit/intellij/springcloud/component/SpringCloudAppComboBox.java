@@ -15,7 +15,6 @@ import com.microsoft.azure.toolkit.intellij.springcloud.creation.SpringCloudAppC
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import lombok.Setter;
@@ -26,7 +25,11 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
     private SpringCloudCluster cluster;
@@ -116,11 +119,9 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
     private void showAppCreationPopup() {
         final SpringCloudAppCreationDialog dialog = new SpringCloudAppCreationDialog(this.cluster);
         Optional.ofNullable(this.javaVersion).ifPresent(a -> dialog.setDefaultRuntimeVersion(javaVersion));
-        dialog.setOkActionListener((config) -> {
-            final SpringCloudAppDraft app = cluster.apps().create(config.getAppName(), cluster.getResourceGroupName());
-            app.setConfig(config);
+        dialog.setOkActionListener((draft) -> {
             dialog.close();
-            this.setValue(app);
+            this.setValue(draft);
         });
         dialog.show();
     }

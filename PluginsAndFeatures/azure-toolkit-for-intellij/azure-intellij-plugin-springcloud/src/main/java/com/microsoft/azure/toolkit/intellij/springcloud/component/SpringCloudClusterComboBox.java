@@ -14,6 +14,8 @@ import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
+import com.microsoft.azure.toolkit.intellij.springcloud.creation.SpringCloudAppCreationDialog;
+import com.microsoft.azure.toolkit.intellij.springcloud.creation.SpringCloudClusterCreationDialog;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
@@ -100,15 +102,18 @@ public class SpringCloudClusterComboBox extends AzureComboBox<SpringCloudCluster
         final List<ExtendableTextComponent.Extension> extensions = super.getExtensions();
         final KeyStroke keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, InputEvent.ALT_DOWN_MASK);
         final String tooltip = String.format("Create Azure Spring Apps (%s)", KeymapUtil.getKeystrokeText(keyStroke));
-        final ExtendableTextComponent.Extension addEx = ExtendableTextComponent.Extension.create(AllIcons.General.Add, tooltip, () -> {
-            final AzureSpringCloud az = Azure.az(AzureSpringCloud.class);
-            final DataContext context = DataManager.getInstance().getDataContext(this);
-            final String place = "azure." + this.getClass().getSimpleName();
-            final AnActionEvent event = AnActionEvent.createFromAnAction(new EmptyAction(), null, place, context);
-            AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.CREATE).handle(az, event);
-        });
+        final ExtendableTextComponent.Extension addEx = ExtendableTextComponent.Extension.create(AllIcons.General.Add, tooltip, this::showClusterCreationPopup);
         this.registerShortcut(keyStroke, addEx);
         extensions.add(addEx);
         return extensions;
+    }
+
+    private void showClusterCreationPopup() {
+        final SpringCloudClusterCreationDialog dialog = new SpringCloudClusterCreationDialog(null);
+        dialog.setOkActionListener((draft) -> {
+            dialog.close();
+            this.setValue(draft);
+        });
+        dialog.show();
     }
 }

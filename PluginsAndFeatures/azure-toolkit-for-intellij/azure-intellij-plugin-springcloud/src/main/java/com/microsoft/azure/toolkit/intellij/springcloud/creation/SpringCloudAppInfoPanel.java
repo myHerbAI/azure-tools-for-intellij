@@ -18,9 +18,8 @@ import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -34,15 +33,15 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Getter(AccessLevel.PROTECTED)
-public abstract class AbstractSpringCloudAppInfoPanel extends JPanel implements AzureFormPanel<SpringCloudAppConfig> {
+public abstract class SpringCloudAppInfoPanel extends JPanel implements AzureFormPanel<SpringCloudAppDraft> {
     private static final String SPRING_CLOUD_APP_NAME_PATTERN = "^[a-z][a-z0-9-]{2,30}[a-z0-9]$";
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
     @Nullable
     private final SpringCloudCluster cluster;
     private final String defaultAppName;
-    private SpringCloudAppConfig originalConfig;
+    private SpringCloudAppDraft draft;
 
-    public AbstractSpringCloudAppInfoPanel(@Nullable final SpringCloudCluster cluster) {
+    public SpringCloudAppInfoPanel(@Nullable final SpringCloudCluster cluster) {
         super();
         this.cluster = cluster;
         this.defaultAppName = String.format("spring-app-%s", DATE_FORMAT.format(new Date()));
@@ -92,41 +91,26 @@ public abstract class AbstractSpringCloudAppInfoPanel extends JPanel implements 
     }
 
     protected void onAppChanged(SpringCloudApp app) {
-        if (Objects.isNull(this.originalConfig)) {
-            AzureTaskManager.getInstance().runOnPooledThread(() -> {
-                this.originalConfig = SpringCloudAppConfig.fromApp(app);
-                AzureTaskManager.getInstance().runLater(() -> this.setValue(this.originalConfig), AzureTask.Modality.ANY);
-            });
+        if (Objects.isNull(this.draft)) {
+            this.draft = (SpringCloudAppDraft) (app.isDraft() ? app : app.update());
+            AzureTaskManager.getInstance().runLater(() -> this.setValue(this.draft), AzureTask.Modality.ANY);
         }
-    }
-
-    protected SpringCloudAppConfig getValue(SpringCloudAppConfig config) {
-        config.setSubscriptionId(Optional.ofNullable(this.getSelectorSubscription().getValue()).map(Subscription::getId).orElse(null));
-        config.setResourceGroup(Optional.ofNullable(this.getSelectorCluster().getValue()).map(AzResource::getResourceGroupName).orElse(null));
-        config.setClusterName(Optional.ofNullable(this.getSelectorCluster().getValue()).map(AzResource::getName).orElse(null));
-        config.setAppName(this.getTextName().getValue());
-        return config;
     }
 
     @Override
-    public SpringCloudAppConfig getValue() {
-        final SpringCloudAppConfig config = Optional.ofNullable(this.originalConfig)
-            .orElseGet(() -> SpringCloudAppConfig.builder().deployment(SpringCloudDeploymentConfig.builder().build()).build());
-        return getValue(config);
+    public SpringCloudAppDraft getValue() {
+        final SpringCloudCluster cluster = Optional.ofNullable(this.getSelectorCluster().getValue()).orElse(this.cluster);
+        final String appName = this.getTextName().getValue();
+        return Optional.ofNullable(this.draft)
+            .orElseGet(() -> cluster.apps().create(appName, cluster.getResourceGroupName()));
     }
 
     @Override
-    public synchronized void setValue(final SpringCloudAppConfig config) {
-        final Integer count = config.getDeployment().getCapacity();
-        config.getDeployment().setCapacity(Objects.isNull(count) || count == 0 ? 1 : count);
-        this.originalConfig = config;
-        this.getTextName().setValue(config.getAppName());
-        if (Objects.nonNull(config.getClusterName())) {
-            this.getSelectorCluster().setValue(new ItemReference<>(config.getClusterName(), AzResource::getName));
-        }
-        if (Objects.nonNull(config.getSubscriptionId())) {
-            this.getSelectorSubscription().setValue(new ItemReference<>(config.getSubscriptionId(), Subscription::getId));
-        }
+    public synchronized void setValue(final SpringCloudAppDraft app) {
+        this.draft = app;
+        this.getTextName().setValue(app.getName());
+        this.getSelectorCluster().setValue(app.getParent());
+        this.getSelectorSubscription().setValue(new ItemReference<>(app.getSubscriptionId(), Subscription::getId));
     }
 
     @Override

@@ -6,12 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.springcloud.deplolyment;
 
 import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.configurations.ConfigurationType;
-import com.intellij.execution.configurations.LocatableConfiguration;
-import com.intellij.execution.configurations.LocatableConfigurationBase;
-import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.configurations.*;
 import com.intellij.execution.impl.CheckableRunConfigurationEditor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.options.ConfigurationException;
@@ -26,9 +21,7 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo.Type;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 import lombok.Getter;
 import lombok.Setter;
 import org.jdom.Element;
@@ -51,46 +44,40 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
 
     @Getter
     @Setter
-    private SpringCloudAppConfig appConfig;
-    @Getter
-    @Setter
-    private SpringCloudApp app;
+    private SpringCloudDeploymentDraft deployment;
 
     public SpringCloudDeploymentConfiguration(@NotNull Project project, @NotNull ConfigurationFactory factory, String name) {
         super(project, factory, name);
-        this.appConfig = SpringCloudAppConfig.builder()
-            .deployment(SpringCloudDeploymentConfig.builder().build())
-            .build();
     }
 
     @Override
     public void readExternal(Element element) throws InvalidDataException {
         super.readExternal(element);
         final AzureArtifactManager manager = AzureArtifactManager.getInstance(this.getProject());
-        this.appConfig = Optional.ofNullable(element.getChild("SpringCloudAppConfig"))
-            .map(e -> XmlSerializer.deserialize(e, SpringCloudAppConfig.class))
-            .orElseGet(() -> SpringCloudAppConfig.builder().deployment(SpringCloudDeploymentConfig.builder().build()).build());
-        Optional.ofNullable(element.getChild("Artifact"))
-            .map(e -> e.getAttributeValue("identifier"))
-            .map(manager::getAzureArtifactById)
-            .map(a -> new WrappedAzureArtifact(a, this.getProject()))
-            .ifPresent(a -> this.appConfig.getDeployment().setArtifact(a));
+//        this.deployment = Optional.ofNullable(element.getChild("SpringCloudAppConfig"))
+//            .map(e -> XmlSerializer.deserialize(e, SpringCloudAppConfig.class))
+//            .orElseGet(() -> SpringCloudAppConfig.builder().deployment(SpringCloudDeploymentConfig.builder().build()).build());
+//        Optional.ofNullable(element.getChild("Artifact"))
+//            .map(e -> e.getAttributeValue("identifier"))
+//            .map(manager::getAzureArtifactById)
+//            .map(a -> new WrappedAzureArtifact(a, this.getProject()))
+//            .ifPresent(a -> this.deployment.setArtifact(a));
     }
 
     @Override
     public void writeExternal(Element element) throws WriteExternalException {
         super.writeExternal(element);
-        final AzureArtifactManager manager = AzureArtifactManager.getInstance(this.getProject());
-        final Element appConfigElement = XmlSerializer.serialize(this.appConfig, (accessor, o) -> !"artifact".equalsIgnoreCase(accessor.getName()));
-        final IArtifact artifact = this.appConfig.getDeployment().getArtifact();
-        Optional.ofNullable(this.appConfig)
-            .map(config -> XmlSerializer.serialize(config, (accessor, o) -> !"artifact".equalsIgnoreCase(accessor.getName())))
-            .ifPresent(element::addContent);
-        Optional.ofNullable(this.appConfig)
-            .map(config -> (WrappedAzureArtifact) config.getDeployment().getArtifact())
-            .map((a) -> a.getArtifact().getIdentifier())
-            .map(id -> new Element("Artifact").setAttribute("identifier", id))
-            .ifPresent(element::addContent);
+//        final AzureArtifactManager manager = AzureArtifactManager.getInstance(this.getProject());
+//        final Element appConfigElement = XmlSerializer.serialize(this.deployment, (accessor, o) -> !"artifact".equalsIgnoreCase(accessor.getName()));
+//        final IArtifact artifact = this.deployment.getArtifact();
+//        Optional.ofNullable(this.deployment)
+//            .map(deployment -> XmlSerializer.serialize(deployment, (accessor, o) -> !"artifact".equalsIgnoreCase(accessor.getName())))
+//            .ifPresent(element::addContent);
+//        Optional.ofNullable(this.deployment)
+//            .map(deployment -> (WrappedAzureArtifact) deployment.getArtifact())
+//            .map((a) -> a.getArtifact().getIdentifier())
+//            .map(id -> new Element("Artifact").setAttribute("identifier", id))
+//            .ifPresent(element::addContent);
     }
 
     @NotNull
@@ -153,12 +140,7 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
         @Override
         protected void resetEditorFrom(@NotNull SpringCloudDeploymentConfiguration config) {
             this.panel.setConfiguration(config);
-            AzureTaskManager.getInstance().runOnPooledThread(() -> {
-                if (Objects.nonNull(config.app)) {
-                    config.appConfig = SpringCloudAppConfig.fromApp(config.app);
-                }
-                AzureTaskManager.getInstance().runLater(() -> this.panel.setValue(config.appConfig), AzureTask.Modality.ANY);
-            });
+            AzureTaskManager.getInstance().runLater(() -> this.panel.setValue(config.deployment), AzureTask.Modality.ANY);
         }
 
         @Override
@@ -171,7 +153,7 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
                 final String message = error.getType() == Type.PENDING ? "Please try later after validation" : error.getMessage();
                 throw new ConfigurationException(message);
             }
-            config.appConfig = this.panel.getValue();
+            config.deployment = this.panel.getValue();
         }
 
         @Override

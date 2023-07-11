@@ -14,20 +14,22 @@ import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBo
 import com.microsoft.azure.toolkit.intellij.springcloud.component.SpringCloudClusterComboBox;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Getter(AccessLevel.PROTECTED)
-public class SpringCloudAppInfoBasicPanel extends AbstractSpringCloudAppInfoPanel {
+public class SpringCloudAppInfoBasicPanel extends SpringCloudAppInfoPanel {
     private JPanel contentPanel;
     private SubscriptionComboBox selectorSubscription;
     private SpringCloudClusterComboBox selectorCluster;
@@ -38,6 +40,8 @@ public class SpringCloudAppInfoBasicPanel extends AbstractSpringCloudAppInfoPane
     private JLabel lblRuntime;
     private TitledSeparator sectionConfiguration;
     private JLabel lblSubscription;
+    @Setter
+    private String defaultRuntimeVersion = SpringCloudDeploymentDraft.DEFAULT_RUNTIME_VERSION.toString();
 
     public SpringCloudAppInfoBasicPanel(@Nullable final SpringCloudCluster cluster) {
         super(cluster);
@@ -57,24 +61,27 @@ public class SpringCloudAppInfoBasicPanel extends AbstractSpringCloudAppInfoPane
     }
 
     @Override
-    public SpringCloudAppConfig getValue() {
-        final SpringCloudAppConfig config = super.getValue();
+    public SpringCloudAppDraft getValue() {
+        final SpringCloudAppDraft app = super.getValue();
         if (this.useJava17.isVisible()) {
             final String javaVersion = this.useJava17.isSelected() ? RuntimeVersion.JAVA_17.toString() :
                 this.useJava11.isSelected() ? RuntimeVersion.JAVA_11.toString() : RuntimeVersion.JAVA_8.toString();
-            final SpringCloudDeploymentConfig deployment = config.getDeployment();
+            final SpringCloudDeploymentDraft deployment = app.updateOrCreateActiveDeployment();
             deployment.setRuntimeVersion(javaVersion);
         }
-        return config;
+        return app;
     }
 
     @Override
-    public void setValue(final SpringCloudAppConfig config) {
-        super.setValue(config);
-        final SpringCloudDeploymentConfig deployment = config.getDeployment();
-        this.useJava17.setSelected(StringUtils.equalsIgnoreCase(deployment.getRuntimeVersion(), RuntimeVersion.JAVA_17.toString()));
-        this.useJava11.setSelected(StringUtils.equalsIgnoreCase(deployment.getRuntimeVersion(), RuntimeVersion.JAVA_11.toString()));
-        this.useJava8.setSelected(StringUtils.equalsIgnoreCase(deployment.getRuntimeVersion(), RuntimeVersion.JAVA_8.toString()));
+    public void setValue(final SpringCloudAppDraft app) {
+        super.setValue(app);
+        final SpringCloudDeploymentDraft deployment = app.updateOrCreateActiveDeployment();
+        final String runtime = Optional.ofNullable(deployment.getRuntimeVersion())
+            .or(() -> Optional.ofNullable(this.getDefaultRuntimeVersion()))
+            .orElse(SpringCloudDeploymentDraft.DEFAULT_RUNTIME_VERSION.toString());
+        this.useJava17.setSelected(StringUtils.equalsIgnoreCase(runtime, RuntimeVersion.JAVA_17.toString()));
+        this.useJava11.setSelected(StringUtils.equalsIgnoreCase(runtime, RuntimeVersion.JAVA_11.toString()));
+        this.useJava8.setSelected(StringUtils.equalsIgnoreCase(runtime, RuntimeVersion.JAVA_8.toString()));
     }
 
     @Override

@@ -18,16 +18,19 @@ import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.lib.common.action.Action.EMPTY_PLACE;
 import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
@@ -49,7 +52,12 @@ public class DeploySpringCloudAppAction extends AnAction {
     public static void deploy(@Nullable SpringCloudApp app, @Nonnull Project project) {
         final RunnerAndConfigurationSettings settings = getOrCreateConfigurationSettings(project);
         final SpringCloudDeploymentConfiguration configuration = ((SpringCloudDeploymentConfiguration) settings.getConfiguration());
-        configuration.setApp(app);
+        if (Objects.nonNull(app)) {
+            final SpringCloudDeploymentDraft deployment = (SpringCloudDeploymentDraft) Optional
+                .ofNullable(app.getActiveDeployment()).map(AbstractAzResource::update)
+                .orElseGet(() -> app.deployments().create("default", null));
+            configuration.setDeployment(deployment);
+        }
         runConfiguration(project, settings);
     }
 

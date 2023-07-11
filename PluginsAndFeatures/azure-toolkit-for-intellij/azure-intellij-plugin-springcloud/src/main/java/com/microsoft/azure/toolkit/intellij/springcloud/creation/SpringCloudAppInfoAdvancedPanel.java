@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.springcloud.creation;
 
+import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
 import com.intellij.icons.AllIcons;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox;
@@ -14,8 +15,8 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -25,7 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Getter(AccessLevel.PROTECTED)
-public class SpringCloudAppInfoAdvancedPanel extends AbstractSpringCloudAppInfoPanel {
+public class SpringCloudAppInfoAdvancedPanel extends SpringCloudAppInfoPanel {
     private JPanel contentPanel;
     private SubscriptionComboBox selectorSubscription;
     private SpringCloudClusterComboBox selectorCluster;
@@ -46,15 +47,16 @@ public class SpringCloudAppInfoAdvancedPanel extends AbstractSpringCloudAppInfoP
     }
 
     @Override
-    public SpringCloudAppConfig getValue() {
-        final SpringCloudAppConfig config = this.formConfig.getValue();
-        return super.getValue(config);
+    public SpringCloudAppDraft getValue() {
+        final SpringCloudAppDraft app = super.getValue();
+        this.formConfig.applyTo(app);
+        return app;
     }
 
     @Override
-    public void setValue(final SpringCloudAppConfig config) {
-        super.setValue(config);
-        this.formConfig.setValue(config);
+    public void setValue(final SpringCloudAppDraft app) {
+        super.setValue(app);
+        this.formConfig.setValue(app);
     }
 
     @Override
@@ -66,5 +68,9 @@ public class SpringCloudAppInfoAdvancedPanel extends AbstractSpringCloudAppInfoP
             this.getSelectorCluster()
         ));
         return inputs;
+    }
+
+    public void setDefaultRuntimeVersion(final String runtime) {
+        this.formConfig.setDefaultRuntimeVersion(runtime);
     }
 }

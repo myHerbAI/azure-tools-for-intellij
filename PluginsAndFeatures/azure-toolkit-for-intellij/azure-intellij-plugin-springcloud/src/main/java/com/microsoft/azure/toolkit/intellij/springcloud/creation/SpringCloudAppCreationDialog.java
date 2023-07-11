@@ -9,13 +9,14 @@ import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.ConfigDialog;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
 
-public class SpringCloudAppCreationDialog extends ConfigDialog<SpringCloudAppConfig> {
+public class SpringCloudAppCreationDialog extends ConfigDialog<SpringCloudAppDraft> {
     private final SpringCloudCluster cluster;
     private JPanel panel;
     private SpringCloudAppInfoBasicPanel basicForm;
@@ -33,12 +34,12 @@ public class SpringCloudAppCreationDialog extends ConfigDialog<SpringCloudAppCon
     }
 
     @Override
-    protected AzureFormPanel<SpringCloudAppConfig> getAdvancedFormPanel() {
+    protected AzureFormPanel<SpringCloudAppDraft> getAdvancedFormPanel() {
         return advancedForm;
     }
 
     @Override
-    protected AzureFormPanel<SpringCloudAppConfig> getBasicFormPanel() {
+    protected AzureFormPanel<SpringCloudAppDraft> getBasicFormPanel() {
         return basicForm;
     }
 
@@ -61,9 +62,8 @@ public class SpringCloudAppCreationDialog extends ConfigDialog<SpringCloudAppCon
     public void setDefaultRuntimeVersion(@Nullable Integer jdkVersion) {
         if (jdkVersion != null) {
             final RuntimeVersion runtime = jdkVersion <= 11 ? RuntimeVersion.JAVA_11 : RuntimeVersion.JAVA_17;
-            final SpringCloudAppConfig config = this.getData();
-            config.getDeployment().setRuntimeVersion(runtime.toString());
-            this.setData(config);
+            this.advancedForm.setDefaultRuntimeVersion(runtime.toString());
+            this.basicForm.setDefaultRuntimeVersion(runtime.toString());
         }
     }
 }
