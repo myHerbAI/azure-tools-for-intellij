@@ -26,11 +26,7 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
     private SpringCloudCluster cluster;
@@ -52,7 +48,7 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
         final SpringCloudApp app = (SpringCloudApp) item;
         final String runtime = Optional.ofNullable(app.getCachedActiveDeployment()).map(SpringCloudDeployment::getRuntimeVersion)
             .map(v -> v.replaceAll("_", " ")).orElse(null);
-        final String appName = app.exists() ? app.getName() : String.format("(New) %s", app.getName());
+        final String appName = app.isDraftForCreating() ? String.format("(New) %s", app.getName()) : app.getName();
         return StringUtils.isBlank(runtime) ? appName : String.format("%s (%s)", appName, runtime);
     }
 

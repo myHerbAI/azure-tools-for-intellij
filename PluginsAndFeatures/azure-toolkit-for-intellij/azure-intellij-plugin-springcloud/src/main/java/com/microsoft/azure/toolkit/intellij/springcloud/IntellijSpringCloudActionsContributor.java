@@ -46,9 +46,7 @@ public class IntellijSpringCloudActionsContributor implements IActionsContributo
 
     private void registerCreateServiceActionHandler(AzureActionManager am) {
         final BiPredicate<Object, AnActionEvent> condition = (r, e) -> r instanceof AzureSpringCloud;
-        final BiConsumer<Object, AnActionEvent> handler = (c, e) -> {
-            CreateSpringCloudClusterAction.createCluster(e.getProject());
-        };
+        final BiConsumer<Object, AnActionEvent> handler = (c, e) -> CreateSpringCloudClusterAction.createCluster(e.getProject());
         am.registerHandler(ResourceCommonActionsContributor.CREATE, condition, handler);
         am.registerHandler(SpringCloudActionsContributor.GROUP_CREATE_CLUSTER, (r, e) -> true, (r, e) -> handler.accept(r, (AnActionEvent) e));
     }
