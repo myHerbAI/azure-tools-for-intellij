@@ -5,26 +5,27 @@
 
 package com.microsoft.azure.hdinsight.sdk.storage.adls;
 
-import com.microsoft.aad.adal4j.*;
+import com.microsoft.aad.msal4j.*;
 import com.microsoft.azure.datalake.store.ADLException;
 import com.microsoft.azure.datalake.store.ADLStoreClient;
 import com.microsoft.azure.datalake.store.IfExists;
 import com.microsoft.azure.hdinsight.common.HDInsightLoader;
 import com.microsoft.azure.hdinsight.sdk.common.HDIException;
-import com.microsoft.azure.hdinsight.sdk.storage.ADLSCertificateInfo;
-import com.microsoft.azure.hdinsight.sdk.storage.ADLSStorageAccount;
-import com.microsoft.azure.hdinsight.sdk.storage.IHDIStorageAccount;
+import com.microsoft.azure.hdinsight.sdk.storage.*;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.net.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class WebHDFSUtils {
+    private static final String STORAGE_RESOURCEID = "https://storage.azure.com/";
     private static ExecutorService service = null;
 
     private static String getUserAgent() {
@@ -44,11 +45,17 @@ public class WebHDFSUtils {
         }
 
         final ADLSCertificateInfo certificateInfo = storageAccount.getCertificateInfo();
-        AuthenticationContext ctx = new AuthenticationContext(certificateInfo.getAadTenantId(), true, service);
-        AsymmetricKeyCredential asymmetricKeyCredential = AsymmetricKeyCredential.create(certificateInfo.getClientId(), certificateInfo.getKey(), certificateInfo.getCertificate());
-        final Future<AuthenticationResult> result = ctx.acquireToken(certificateInfo.getResourceUri(), asymmetricKeyCredential , null);
-        final AuthenticationResult ar = result.get();
-        return ar.getAccessToken();
+
+        IClientCredential credential = ClientCredentialFactory.createFromCertificate(certificateInfo.getKey(),certificateInfo.getCertificate());
+
+        ConfidentialClientApplication app = ConfidentialClientApplication
+                .builder(certificateInfo.getClientId(),credential)
+                .build();
+
+        Set<String> scopes = new HashSet<>();
+        scopes.add(STORAGE_RESOURCEID + "/.default");
+        IAuthenticationResult iAuthenticationResult = app.acquireToken(ClientCredentialParameters.builder(scopes).build()).get();
+        return iAuthenticationResult.accessToken();
     }
 
     public static void uploadFileToADLS(@NotNull IHDIStorageAccount storageAccount, @NotNull File localFile, @NotNull String remotePath, boolean overWrite) throws Exception {
