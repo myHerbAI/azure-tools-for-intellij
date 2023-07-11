@@ -144,5 +144,8 @@ public class SpringCloudClusterCreationPanel extends JPanel implements AzureForm
         this.descPlan.setForeground(UIUtil.getLabelInfoForeground());
         this.descPlan.setAllowAutoWrapping(true);
         this.descPlan.setCopyable(true);// this makes label auto wrapping
+        this.textTerms = new JBLabel();
+        this.textTerms.setAllowAutoWrapping(true);
+        this.textTerms.setCopyable(true);
     }
 }

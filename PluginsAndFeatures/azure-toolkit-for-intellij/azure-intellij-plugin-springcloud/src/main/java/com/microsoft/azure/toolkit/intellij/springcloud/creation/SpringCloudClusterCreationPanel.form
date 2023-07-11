@@ -151,8 +151,8 @@
           </grid>
         </constraints>
         <properties>
-          <visible value="false"/>
           <text value="Terms:"/>
+          <visible value="false"/>
         </properties>
       </component>
       <component id="7e426" class="javax.swing.JCheckBox" binding="checkboxTerms">
@@ -160,11 +160,11 @@
           <grid row="8" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <visible value="false"/>
           <text value=""/>
+          <visible value="false"/>
         </properties>
       </component>
-      <component id="83f42" class="com.intellij.ui.components.JBLabel" binding="textTerms">
+      <component id="83f42" class="com.intellij.ui.components.JBLabel" binding="textTerms" custom-create="true">
         <constraints>
           <grid row="9" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="1" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="50"/>
@@ -172,8 +172,8 @@
         </constraints>
         <properties>
           <enabled value="true"/>
+          <text value="&lt;html&gt;&#13;&#10;  &lt;head&gt;&#13;&#10;    &#13;&#10;  &lt;/head&gt;&#13;&#10;  &lt;body&gt;&#13;&#10;    &lt;p style=&quot;margin-top: 0&quot;&gt;&#13;&#10;      By selecting the checkbox and clicking &quot;Create&quot;, I (a) agree to the &#13;&#10;      legal terms and privacy statement(s) associated with the &lt;a href=&quot;https://aka.ms/ascmpoffer&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Marketplace &#13;&#10;      offering(s)&lt;/a&gt;; (b) authorize Microsoft to bill my current payment &#13;&#10;      method for the fees associated with the offering(s), with the same &#13;&#10;      billing frequency as my Azure subscription; and (c) agree that Microsoft &#13;&#10;      may share my contact, usage and transactional information with the &#13;&#10;      provider(s) of the offering(s) for support, billing and other &#13;&#10;      transactional activities. Microsoft does not provide rights for &#13;&#10;      third-party offerings. See the &lt;a href=&quot;https://azure.microsoft.com/support/legal/marketplace-terms/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Azure &#13;&#10;      Marketplace Terms&lt;/a&gt; for additional details.&#13;&#10;    &lt;/p&gt;&#13;&#10;  &lt;/body&gt;&#13;&#10;&lt;/html&gt;&#13;&#10;"/>
           <visible value="false"/>
-          <text value="&lt;html&gt;&#13;&#10;  &lt;head&gt;&#13;&#10;    &#13;&#10;  &lt;/head&gt;&#13;&#10;  &lt;body&gt;&#13;&#10;    &lt;p style=&quot;margin-top: 0&quot;&gt;&#13;&#10;      By selecting the checkbox and clicking quot;Create&amp;quot;, I (a) agree to the &#13;&#10;      legal terms and privacy statement(s) associated with the &lt;a href=&quot;https://aka.ms/ascmpoffer&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Marketplace &#13;&#10;      offering(s)&lt;/a&gt;; (b) authorize Microsoft to bill my current payment &#13;&#10;      method for the fees associated with the offering(s), with the same &#13;&#10;      billing frequency as my Azure subscription; and (c) agree that Microsoft &#13;&#10;      may share my contact, usage and transactional information with the &#13;&#10;      provider(s) of the offering(s) for support, billing and other &#13;&#10;      transactional activities. Microsoft does not provide rights for &#13;&#10;      third-party offerings. See the &lt;a href=&quot;https://azure.microsoft.com/support/legal/marketplace-terms/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Azure &#13;&#10;      Marketplace Terms&lt;/a&gt; for additional details.&#13;&#10;    &lt;/p&gt;&#13;&#10;  &lt;/body&gt;&#13;&#10;&lt;/html&gt;&#13;&#10;"/>
         </properties>
       </component>
     </children>
