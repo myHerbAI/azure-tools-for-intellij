@@ -16,11 +16,13 @@ import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.microsoft.azure.toolkit.ide.springcloud.SpringCloudActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.common.messager.IntellijAzureMessager;
 import com.microsoft.azure.toolkit.intellij.common.runconfig.RunConfigurationUtils;
 import com.microsoft.azure.toolkit.intellij.common.utils.JdkUtils;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -32,7 +34,12 @@ import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azure.toolkit.lib.springcloud.*;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppInstance;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
+import com.microsoft.azure.toolkit.lib.springcloud.Utils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.Disposable;
@@ -133,6 +140,12 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
             }
         }
         deployment.commit();
+        final AzureTaskManager tm = AzureTaskManager.getInstance();
+        tm.runOnPooledThread(() -> opFile.map(f -> VfsUtil.findFileByIoFile(f, true))
+            .map(f -> AzureModule.from(f, this.project))
+            .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
+                .initializeWithDefaultProfileIfNot()
+                .addApp(deployment.getParent()).save()))));
         deployment.getParent().refresh();
         printPublicUrl(deployment.getParent());
         return deployment;

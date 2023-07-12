@@ -2,7 +2,9 @@ package com.microsoft.azure.toolkit.intellij.containerregistry;
 
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.model.PushResponseItem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.microsoft.azure.toolkit.ide.containerregistry.ContainerRegistryActionsContributor;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.container.AzureDockerClient;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -11,13 +13,14 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerregistry.AzureContainerRegistry;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -54,6 +57,14 @@ public class ContainerService {
                 super.onNext(item);
             }
         };
+        final AzureTaskManager tm = AzureTaskManager.getInstance();
+        tm.runOnPooledThread(() -> Optional.of(image)
+            .map(DockerImage::getDockerFile)
+            .map(f -> VfsUtil.findFileByIoFile(f, true))
+            .map(f -> AzureModule.from(f, configuration.getProject()))
+            .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
+                .initializeWithDefaultProfileIfNot()
+                .addApp(registry).save()))));
         dockerClient.pushImage(Objects.requireNonNull(loginServerUrl), registry.getUserName(), registry.getPrimaryCredential(), imageAndTag, callBack);
         return loginServerUrl;
     }

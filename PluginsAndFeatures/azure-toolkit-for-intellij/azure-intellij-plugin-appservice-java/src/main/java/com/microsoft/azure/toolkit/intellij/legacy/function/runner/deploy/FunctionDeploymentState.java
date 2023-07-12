@@ -12,6 +12,7 @@ import com.intellij.psi.PsiMethod;
 import com.microsoft.azure.toolkit.ide.appservice.AppServiceActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandlerMessenger;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.DotEnvBeforeRunTaskProvider;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
@@ -80,6 +81,11 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
         final FunctionAppBase<?, ?, ?> target = FunctionAppService.getInstance().createOrUpdateFunctionApp(deployModel.getFunctionAppConfig());
         stagingFolder = FunctionUtils.getTempStagingFolder();
         prepareStagingFolder(stagingFolder, operation);
+        final AzureTaskManager tm = AzureTaskManager.getInstance();
+        tm.runOnPooledThread(()-> Optional.ofNullable(this.functionDeployConfiguration.getModule()).map(AzureModule::from)
+            .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
+                .initializeWithDefaultProfileIfNot()
+                .addApp(target).save()))));
         // deploy function to Azure
         FunctionAppService.getInstance().deployFunctionApp(target, stagingFolder);
         AzureTaskManager.getInstance().runInBackground("list HTTPTrigger url", () -> {
