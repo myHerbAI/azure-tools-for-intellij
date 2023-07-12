@@ -172,7 +172,9 @@ public class SpringCloudDeploymentConfigurationPanel extends JPanel implements A
 
     @Override
     public synchronized void setValue(@Nonnull SpringCloudDeploymentDraft deploymentDraft) {
-        Optional.ofNullable(deploymentDraft.getArtifact()).map(a -> (WrappedAzureArtifact) a)
+        Optional.ofNullable(deploymentDraft)
+            .map(SpringCloudDeploymentDraft::getArtifact)
+            .map(a -> (WrappedAzureArtifact) a)
             .map(WrappedAzureArtifact::getArtifact)
             .ifPresent(a -> this.selectorArtifact.setArtifact(a));
         this.selectorSubscription.setValue(deploymentDraft.getSubscription());

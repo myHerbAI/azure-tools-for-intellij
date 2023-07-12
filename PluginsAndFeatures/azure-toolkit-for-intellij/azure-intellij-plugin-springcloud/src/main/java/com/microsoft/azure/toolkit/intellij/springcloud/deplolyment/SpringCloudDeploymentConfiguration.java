@@ -14,11 +14,9 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
-import com.intellij.util.xmlb.XmlSerializer;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifactManager;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo.Type;
-import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
@@ -31,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBase<Element> implements LocatableConfiguration {
     private static final String NEED_SPECIFY_ARTIFACT = "Please select an artifact";
@@ -44,6 +41,7 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
 
     @Getter
     @Setter
+    @Nullable
     private SpringCloudDeploymentDraft deployment;
 
     public SpringCloudDeploymentConfiguration(@NotNull Project project, @NotNull ConfigurationFactory factory, String name) {
@@ -133,14 +131,12 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
             this.panel = new SpringCloudDeploymentConfigurationPanel(configuration, project);
         }
 
-        protected void disposeEditor() {
-            super.disposeEditor();
-        }
-
         @Override
         protected void resetEditorFrom(@NotNull SpringCloudDeploymentConfiguration config) {
             this.panel.setConfiguration(config);
-            AzureTaskManager.getInstance().runLater(() -> this.panel.setValue(config.deployment), AzureTask.Modality.ANY);
+            if (Objects.nonNull(config.deployment)) {
+                AzureTaskManager.getInstance().runLater(() -> this.panel.setValue(config.deployment), AzureTask.Modality.ANY);
+            }
         }
 
         @Override
