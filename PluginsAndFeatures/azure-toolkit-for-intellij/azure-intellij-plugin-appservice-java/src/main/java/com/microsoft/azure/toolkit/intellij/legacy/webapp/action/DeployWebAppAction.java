@@ -42,14 +42,16 @@ public class DeployWebAppAction extends AnAction {
     @Override
     @AzureOperation(name = "user/webapp.deploy_app")
     public void actionPerformed(@Nonnull AnActionEvent event) {
-        OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(event.getPlace(), EMPTY_PLACE));
-        final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
-        final Project project = Objects.requireNonNull(event.getProject());
-        if (Objects.nonNull(module)) {
-            AzureLoginHelper.requireSignedIn(module.getProject(), () -> deploy(module));
-        } else {
-            AzureLoginHelper.requireSignedIn(project, () -> deploy(project));
-        }
+        AzureTaskManager.getInstance().runLater(() -> {
+            OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(event.getPlace(), EMPTY_PLACE));
+            final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
+            final Project project = Objects.requireNonNull(event.getProject());
+            if (Objects.nonNull(module)) {
+                AzureLoginHelper.requireSignedIn(module.getProject(), () -> deploy(module));
+            } else {
+                AzureLoginHelper.requireSignedIn(project, () -> deploy(project));
+            }
+        });
     }
 
     public static void deploy(@Nonnull final WebApp webApp, @Nonnull final Project project) {
