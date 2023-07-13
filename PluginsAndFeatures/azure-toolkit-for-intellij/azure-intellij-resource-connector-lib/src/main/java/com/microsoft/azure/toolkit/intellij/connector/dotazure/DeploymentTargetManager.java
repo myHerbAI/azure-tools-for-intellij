@@ -36,6 +36,10 @@ public class DeploymentTargetManager {
 
     public DeploymentTargetManager(@Nonnull final Profile profile) {
         this.profile = profile;
+        this.reload();
+    }
+
+    public void reload() {
         try {
             this.load();
         } catch (final Exception e) {
@@ -62,7 +66,7 @@ public class DeploymentTargetManager {
 
     @ExceptionNotification
     @AzureOperation("boundary/connector.save_target_apps")
-    void save() throws IOException {
+    synchronized void save() throws IOException {
         final Element appsEle = new Element(ELEMENT_NAME_APPS);
         this.targetAppIds.stream().map(id -> new Element(ELEMENT_NAME_APP).setAttribute("id", id)).forEach(appsEle::addContent);
         final VirtualFile appsFile = this.profile.getProfileDir().findOrCreateChildData(this, TARGETS_FILE);
@@ -71,7 +75,7 @@ public class DeploymentTargetManager {
 
     @ExceptionNotification
     @AzureOperation(name = "boundary/connector.load_target_apps")
-    void load() throws Exception {
+    synchronized void load() throws Exception {
         final VirtualFile appsFile = this.profile.getProfileDir().findChild(TARGETS_FILE);
         if (Objects.isNull(appsFile) || appsFile.contentsToByteArray().length < 1) {
             return;

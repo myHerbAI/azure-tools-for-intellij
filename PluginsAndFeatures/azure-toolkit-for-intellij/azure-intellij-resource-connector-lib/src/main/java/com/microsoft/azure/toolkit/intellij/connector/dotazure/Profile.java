@@ -117,7 +117,13 @@ public class Profile {
         return this.addConnection(connection);
     }
 
-    public void save() {
+    public synchronized void reload() {
+        this.resourceManager.reload();
+        this.deploymentTargetManager.reload();
+        this.connectionManager.reload();
+    }
+
+    public synchronized void save() {
         try {
             this.connectionManager.save();
             this.resourceManager.save();
