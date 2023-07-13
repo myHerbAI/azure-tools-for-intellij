@@ -25,14 +25,18 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.microsoft.azure.toolkit.intellij.common.action.IntellijActionsContributor.ACTIONS_DEPLOY_TO_AZURE;
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor.REFRESH_MODULE_TARGETS;
 
 public class DeploymentTargetsNode extends AbstractAzureFacetNode<DeploymentTargetManager> {
@@ -60,12 +64,18 @@ public class DeploymentTargetsNode extends AbstractAzureFacetNode<DeploymentTarg
     @Override
     @Nonnull
     public Collection<? extends AbstractAzureFacetNode<?>> buildChildren() {
-        return Optional.ofNullable(this.getValue()).stream()
+        final List<? extends AbstractAzureFacetNode<?>> children = Optional.ofNullable(this.getValue()).stream()
             .flatMap(p -> p.getTargets().stream())
             .map(id -> Azure.az().getById(id))
             .filter(Objects::nonNull)
             .map(this::createResourceNode)
             .toList();
+        if (CollectionUtils.isNotEmpty(children)) {
+            return children;
+        }
+        final ArrayList<AbstractAzureFacetNode<?>> nodes = new ArrayList<>();
+        nodes.add(new ActionNode<>(this.getProject(), Action.Id.of(ACTIONS_DEPLOY_TO_AZURE), this.getValue().getProfile().getModule().getModule()));
+        return nodes;
     }
 
     @Override
