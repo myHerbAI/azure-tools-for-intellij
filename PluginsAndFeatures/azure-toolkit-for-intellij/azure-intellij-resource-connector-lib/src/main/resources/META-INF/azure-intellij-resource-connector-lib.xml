@@ -9,6 +9,7 @@
         <actions implementation="com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
+        <treeStructureProvider implementation="com.microsoft.azure.toolkit.intellij.connector.projectexplorer.AzureFacetTreeStructureProvider"/>
         <facetType implementation="com.microsoft.azure.toolkit.intellij.facet.AzureFacetType"/>
 <!--        <framework.detector implementation="com.microsoft.azure.toolkit.intellij.facet.AzureFacetType$AzureFacetDetector"/>-->
         <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.connector.dotazure.MigrateStartupActivity"/>
