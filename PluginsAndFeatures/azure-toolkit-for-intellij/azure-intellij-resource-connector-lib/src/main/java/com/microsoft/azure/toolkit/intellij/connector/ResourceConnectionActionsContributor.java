@@ -82,7 +82,7 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
             .withLabel("Hide 'Azure' Node")
             .withIcon(AzureIcons.Common.HIDE.getIconPath())
             .withHandler((module, e) -> {
-                if(module.getProject().isDisposed()){
+                if (module.getProject().isDisposed()) {
                     return;
                 }
                 final PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
@@ -93,7 +93,7 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
             .register(am);
 
         new Action<>(CONNECT_TO_MODULE)
-            .withLabel("Connect to Azure Resource")
+            .withLabel("Connect Azure Resource...")
             .withIcon(AzureIcons.Connector.CONNECT.getIconPath())
             .withHandler((module, e) -> AzureTaskManager.getInstance().runLater(() -> ModuleConnectorAction.connectModuleToAzureResource(module.getModule())))
             .withShortcut(am.getIDEDefaultShortcuts().refresh())
@@ -127,7 +127,7 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
             .register(am);
 
         new Action<>(FIX_CONNECTION)
-                .withLabel("Edit Connection")
+                .withLabel("Edit Connection...")
                 .withIcon(AzureIcons.Action.EDIT.getIconPath())
                 .visibleWhen(m -> m instanceof Connection<?, ?>)
                 .withHandler((c, e) -> fixResourceConnection(c, ((AnActionEvent) e).getProject()))

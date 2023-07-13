@@ -149,7 +149,7 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
     public AbstractAzureFacetNode<?> toExceptionNode(Throwable e, @Nonnull Project project) { // `static` to make it available for AzureFacetRootNode
         e = ExceptionUtils.getRootCause(e);
         if (e instanceof AzureToolkitAuthenticationException) {
-            final Action<Object> signin = AzureActionManager.getInstance().getAction(Action.AUTHENTICATE).bind(project).withLabel("Sign in to manage connected resource");
+            final Action<Object> signin = AzureActionManager.getInstance().getAction(Action.AUTHENTICATE).bind(project).withLabel("Sign in to manage connected resource...");
             return new ActionNode<>(project, signin);
         } else {
             return new ExceptionNode(project, e);
