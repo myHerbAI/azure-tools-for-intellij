@@ -104,7 +104,7 @@ public class SpringCloudClusterCreationPanel extends JPanel implements AzureForm
         this.selectorResourceGroup.setValue(data.getResourceGroup());
         this.textName.setValue(data.getName());
         Optional.ofNullable(data.getRegion()).ifPresent(this.selectorRegion::setValue);
-        Optional.ofNullable(data.getSku()).map(Sku::new).ifPresent(this.selectorSku::setValue);
+        Optional.ofNullable(data.getSku()).ifPresent(this.selectorSku::setValue);
     }
 
     @Override
@@ -120,7 +120,7 @@ public class SpringCloudClusterCreationPanel extends JPanel implements AzureForm
 
         final SpringCloudClusterDraft.Config config = new SpringCloudClusterDraft.Config();
         config.setRegion(region);
-        config.setSku(sku.toSku());
+        config.setSku(sku);
         config.setResourceGroup(resourceGroup);
 
         final SpringCloudClusterModule clusters = Azure.az(AzureSpringCloud.class).clusters(subscription.getId());

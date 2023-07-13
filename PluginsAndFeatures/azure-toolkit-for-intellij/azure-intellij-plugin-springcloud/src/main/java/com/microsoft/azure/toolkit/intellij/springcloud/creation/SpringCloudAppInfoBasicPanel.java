@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.intellij.springcloud.creation;
 
 import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
-import com.azure.resourcemanager.appplatform.models.Sku;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.TitledSeparator;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
@@ -17,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
+import com.microsoft.azure.toolkit.lib.springcloud.model.Sku;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -54,7 +54,7 @@ public class SpringCloudAppInfoBasicPanel extends SpringCloudAppInfoPanel {
     protected void onAppChanged(SpringCloudApp app) {
         final Sku sku = app.getParent().getSku();
         if (Objects.nonNull(sku)) {
-            final boolean enterprise = sku.name().startsWith("e");
+            final boolean enterprise = sku.isEnterpriseTier();
             this.useJava8.setVisible(!enterprise);
             this.useJava11.setVisible(!enterprise);
             this.useJava17.setVisible(!enterprise);
