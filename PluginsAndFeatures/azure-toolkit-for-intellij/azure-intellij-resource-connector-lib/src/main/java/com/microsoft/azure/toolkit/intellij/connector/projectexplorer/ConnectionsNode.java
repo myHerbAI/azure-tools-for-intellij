@@ -18,6 +18,8 @@ import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -33,14 +35,23 @@ import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionA
 public class ConnectionsNode extends AbstractAzureFacetNode<ConnectionManager> {
 
     private final Action<?> editAction;
+    private final AzureEventBus.EventListener eventListener;
 
     public ConnectionsNode(@Nonnull final Project project, @Nonnull ConnectionManager manager) {
         super(project, manager);
+        this.eventListener = new AzureEventBus.EventListener(this::onEvent);
+        AzureEventBus.on("connector.module_connections_changed", eventListener);
         this.editAction = new Action<>(Action.Id.of("user/connector.edit_connections_in_editor"))
             .withLabel("Open In Editor")
             .withIcon(AzureIcons.Action.EDIT.getIconPath())
             .withHandler(ignore -> AzureTaskManager.getInstance().runLater(() -> this.navigate(true)))
             .withAuthRequired(false);
+    }
+
+    private void onEvent(@Nonnull final AzureEvent azureEvent) {
+        if (Objects.equals(azureEvent.getSource(), this.getValue())) {
+            this.updateChildren();
+        }
     }
 
     @Override
@@ -63,9 +74,10 @@ public class ConnectionsNode extends AbstractAzureFacetNode<ConnectionManager> {
         final List<Connection<?, ?>> connections = Optional.ofNullable(getValue())
             .map(ConnectionManager::getConnections).orElse(Collections.emptyList());
         final boolean isConnectionValid = connections.stream().allMatch(Connection::isValidConnection);
-        presentation.addText("Resource connections", AzureFacetRootNode.getTextAttributes(isConnectionValid));
+        //noinspection DialogTitleCapitalization
+        presentation.addText("Resource Connections", AzureFacetRootNode.getTextAttributes(isConnectionValid));
         presentation.setIcon(AllIcons.Nodes.HomeFolder);
-        presentation.setTooltip("The dependent/connected resources.");
+        presentation.setTooltip("The dependent/connected Azure resources.");
     }
 
     @Nullable
@@ -99,8 +111,19 @@ public class ConnectionsNode extends AbstractAzureFacetNode<ConnectionManager> {
     }
 
     @Override
+    public boolean isAlwaysExpand() {
+        return true;
+    }
+
+    @Override
     public @Nonnull LeafState getLeafState() {
         return LeafState.NEVER;
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        AzureEventBus.off("connector.module_connections_changed", eventListener);
     }
 
     public String toString() {

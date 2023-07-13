@@ -17,6 +17,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jdom.Element;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -62,6 +63,11 @@ public class DeploymentTargetManager {
 
     public List<String> getTargets() {
         return this.targetAppIds.stream().toList();
+    }
+
+    @Nullable
+    public VirtualFile getTargetsFile() {
+        return this.profile.getProfileDir().findChild(TARGETS_FILE);
     }
 
     @ExceptionNotification

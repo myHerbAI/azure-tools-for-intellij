@@ -5,10 +5,9 @@
 
 package com.microsoft.azure.toolkit.intellij.connector;
 
-import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.util.PropertiesComponent;
-import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -17,6 +16,9 @@ import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.DeploymentTargetManager;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
@@ -33,7 +35,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,7 +47,9 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
 
     public static final Action.Id<AzureModule> CONNECT_TO_MODULE = Action.Id.of("user/connector.connect_to_module");
     public static final Action.Id<AzureModule> REFRESH_MODULE = Action.Id.of("user/connector.refresh_module");
-    public static final Action.Id<AzureModule> REFRESH_MODULE_CONNECTIONS = Action.Id.of("user/connector.refresh_module_connections");
+    public static final Action.Id<ConnectionManager> REFRESH_MODULE_CONNECTIONS = Action.Id.of("user/connector.refresh_module_connections");
+    public static final Action.Id<DeploymentTargetManager> REFRESH_MODULE_TARGETS = Action.Id.of("user/connector.refresh_module_targets");
+    public static final Action.Id<Connection<?, ?>> REFRESH_ENVIRONMENT_VARIABLES = Action.Id.of("user/connector.refresh_environment_variables");
     public static final Action.Id<AzureModule> HIDE_AZURE = Action.Id.of("user/connector.hide_azure_root");
 
     public static final Action.Id<Pair<String, String>> COPY_ENV_PAIR = Action.Id.of("user/connector.copy_env_pair");
@@ -65,7 +68,10 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
         new Action<>(REFRESH_MODULE)
             .withLabel("Refresh")
             .withIcon(AzureIcons.Action.REFRESH.getIconPath())
-            .withHandler((module, e) -> refreshModule(module))
+            .withHandler((module, e) -> {
+                Optional.ofNullable(module.getDefaultProfile()).ifPresent(Profile::reload);
+                AzureEventBus.emit("connector.refreshed.module_root", module);
+            })
             .withShortcut(am.getIDEDefaultShortcuts().refresh())
             .withAuthRequired(false)
             .register(am);
@@ -73,7 +79,29 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
         new Action<>(REFRESH_MODULE_CONNECTIONS)
             .withLabel("Refresh")
             .withIcon(AzureIcons.Action.REFRESH.getIconPath())
-            .withHandler((module, e) -> refreshModuleConnections(module))
+            .withHandler((connectionManager, e) -> {
+                connectionManager.reload();
+                AzureEventBus.emit("connector.module_connections_changed", connectionManager);
+            })
+            .withShortcut(am.getIDEDefaultShortcuts().refresh())
+            .withAuthRequired(false)
+            .register(am);
+
+        new Action<>(REFRESH_MODULE_TARGETS)
+            .withLabel("Refresh")
+            .withIcon(AzureIcons.Action.REFRESH.getIconPath())
+            .withHandler((targetManager, e) -> {
+                targetManager.reload();
+                AzureEventBus.emit("connector.module_targets_changed", targetManager);
+            })
+            .withShortcut(am.getIDEDefaultShortcuts().refresh())
+            .withAuthRequired(false)
+            .register(am);
+
+        new Action<>(REFRESH_ENVIRONMENT_VARIABLES)
+            .withLabel("Refresh")
+            .withIcon(AzureIcons.Action.REFRESH.getIconPath())
+            .withHandler((targetManager, e) -> AzureEventBus.emit("connector.connection_environment_variables_changed", targetManager))
             .withShortcut(am.getIDEDefaultShortcuts().refresh())
             .withAuthRequired(false)
             .register(am);
@@ -201,14 +229,6 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
         } catch (InterruptedException | ExecutionException | RuntimeException e) {
             throw new AzureToolkitRuntimeException(e);
         }
-    }
-
-    private void refreshModuleConnections(AzureModule module) {
-        AzureEventBus.emit("connector.refreshed.module_connections", module);
-    }
-
-    private void refreshModule(AzureModule module) {
-        AzureEventBus.emit("connector.refreshed.module_root", module);
     }
 
     @AzureOperation(value = "user/connector.remove_connection.resource", params = "connection.getResource()")
