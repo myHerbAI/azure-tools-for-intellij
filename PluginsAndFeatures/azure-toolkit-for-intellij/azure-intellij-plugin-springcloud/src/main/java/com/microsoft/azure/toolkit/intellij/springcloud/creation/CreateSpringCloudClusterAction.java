@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterDraft;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 public class CreateSpringCloudClusterAction {
     private static final int GET_STATUS_TIMEOUT = 180;
@@ -23,10 +24,13 @@ public class CreateSpringCloudClusterAction {
         "you can check the app status from Azure Portal.";
     private static final String NOTIFICATION_TITLE = "Deploy Spring app";
 
-    public static void createCluster(@Nullable Project project) {
+    public static void createCluster(@Nullable Project project, @Nullable final SpringCloudClusterDraft data) {
         Azure.az(AzureAccount.class).account();
         AzureTaskManager.getInstance().runLater(() -> {
             final SpringCloudClusterCreationDialog dialog = new SpringCloudClusterCreationDialog(project);
+            if (Objects.nonNull(data)) {
+                dialog.getForm().setValue(data);
+            }
             dialog.setOkActionListener((draft) -> {
                 dialog.close();
                 createCluster(draft);

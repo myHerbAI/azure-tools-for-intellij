@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Getter(AccessLevel.PROTECTED)
@@ -52,12 +53,14 @@ public class SpringCloudAppInfoBasicPanel extends SpringCloudAppInfoPanel {
 
     protected void onAppChanged(SpringCloudApp app) {
         final Sku sku = app.getParent().getSku();
-        final boolean enterprise = sku.name().startsWith("e");
-        this.useJava8.setVisible(!enterprise);
-        this.useJava11.setVisible(!enterprise);
-        this.useJava17.setVisible(!enterprise);
-        this.lblRuntime.setVisible(!enterprise);
-        this.sectionConfiguration.setVisible(!enterprise);
+        if (Objects.nonNull(sku)) {
+            final boolean enterprise = sku.name().startsWith("e");
+            this.useJava8.setVisible(!enterprise);
+            this.useJava11.setVisible(!enterprise);
+            this.useJava17.setVisible(!enterprise);
+            this.lblRuntime.setVisible(!enterprise);
+            this.sectionConfiguration.setVisible(!enterprise);
+        }
     }
 
     @Override

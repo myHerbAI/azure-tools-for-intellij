@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class SpringCloudClusterCreationPanel extends JPanel implements AzureFormPanel<SpringCloudClusterDraft> {
     private JPanel contentPanel;
@@ -102,8 +103,8 @@ public class SpringCloudClusterCreationPanel extends JPanel implements AzureForm
         this.selectorSubscription.setValue(data.getSubscription());
         this.selectorResourceGroup.setValue(data.getResourceGroup());
         this.textName.setValue(data.getName());
-        this.selectorRegion.setValue(data.getRegion());
-        this.selectorSku.setValue(new com.microsoft.azure.toolkit.lib.springcloud.model.Sku(data.getSku()));
+        Optional.ofNullable(data.getRegion()).ifPresent(this.selectorRegion::setValue);
+        Optional.ofNullable(data.getSku()).map(Sku::new).ifPresent(this.selectorSku::setValue);
     }
 
     @Override
