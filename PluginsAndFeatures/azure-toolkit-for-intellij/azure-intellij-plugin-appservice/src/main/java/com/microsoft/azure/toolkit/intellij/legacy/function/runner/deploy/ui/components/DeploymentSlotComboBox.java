@@ -48,8 +48,7 @@ public class DeploymentSlotComboBox extends AzureComboBox<DeploymentSlotConfig> 
 
     @Override
     public void setValue(DeploymentSlotConfig val) {
-        if (isDraftResource(val)) {
-            this.draftItems.remove(val);
+        if (isDraftResource(val) && !this.draftItems.contains(val)) {
             this.draftItems.add(0, val);
             this.reloadItems();
         }

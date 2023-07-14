@@ -85,8 +85,7 @@ public class AzureContainerAppsEnvironmentComboBox extends AzureComboBox<Contain
 
     @Override
     public void setValue(@Nullable ContainerAppsEnvironment val) {
-        if (Objects.nonNull(val) && val.isDraftForCreating() && !val.exists()) {
-            this.draftItems.remove(val);
+        if (Objects.nonNull(val) && val.isDraftForCreating() && !val.exists() && !this.draftItems.contains(val)) {
             this.draftItems.add(0, val);
             this.reloadItems();
         }
