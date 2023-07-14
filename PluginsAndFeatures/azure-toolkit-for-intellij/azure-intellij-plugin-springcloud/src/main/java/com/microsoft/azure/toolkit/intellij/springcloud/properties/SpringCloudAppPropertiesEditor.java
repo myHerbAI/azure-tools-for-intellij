@@ -115,9 +115,9 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
         this.setEnabled(false);
         this.formConfig.applyTo(this.draft);
         AzureTaskManager.getInstance().runInBackground("Saving updates", () -> {
-            this.draft.commit();
             final SpringCloudDeployment deployment = this.draft.getActiveDeployment();
             Optional.ofNullable(deployment).filter(AbstractAzResource::isDraft).ifPresent(d -> ((SpringCloudDeploymentDraft) d).commit());
+            this.draft.commit();
         });
     }
 
