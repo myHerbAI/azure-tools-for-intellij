@@ -46,9 +46,11 @@ public class ServiceNameInput extends AzureTextInput {
                 if (!name.matches(NAME_REGEX)) {
                     throw new IllegalArgumentException("It can contain only lowercase letters, numbers and hyphens and the first character must be a letter but the last character can be a letter or number.");
                 }
-                final NameAvailability result = Azure.az(AzureSpringCloud.class).forSubscription(this.subscription.getId()).checkNameAvailability(this.region, name);
-                if (!result.nameAvailable()) {
-                    throw new IllegalArgumentException(result.reason());
+                if (Objects.nonNull(this.subscription) && Objects.nonNull(this.region)) {
+                    final NameAvailability result = Azure.az(AzureSpringCloud.class).forSubscription(this.subscription.getId()).checkNameAvailability(this.region, name);
+                    if (!result.nameAvailable()) {
+                        throw new IllegalArgumentException(result.reason());
+                    }
                 }
             } catch (final IllegalArgumentException e) {
                 return AzureValidationInfo.error(e.getMessage(), this);
