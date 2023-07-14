@@ -97,9 +97,9 @@ public abstract class SpringCloudAppInfoPanel extends JPanel implements AzureFor
     @Nullable
     public SpringCloudAppDraft getValue() {
         final String appName = this.getTextName().getValue();
-        final SpringCloudApp app = Optional.ofNullable(this.getSelectorCluster().getValue())
+        final SpringCloudAppDraft app = (SpringCloudAppDraft) Optional.ofNullable(this.getSelectorCluster().getValue())
             .map(SpringCloudCluster::apps)
-            .map(apps -> apps.getOrDraft(appName, null)).orElse(null);
+            .map(apps -> apps.create(appName, null)).orElse(null);
         return (SpringCloudAppDraft) (Objects.isNull(app) || app.isDraft() ? app : app.update());
     }
 
