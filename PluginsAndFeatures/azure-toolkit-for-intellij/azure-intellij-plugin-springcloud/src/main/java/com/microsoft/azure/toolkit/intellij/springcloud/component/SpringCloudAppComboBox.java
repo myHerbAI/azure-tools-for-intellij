@@ -88,7 +88,7 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
             if (!this.draftItems.isEmpty()) {
                 apps.addAll(this.draftItems.stream().filter(a -> a.getParent().getName().equals(this.cluster.getName())).toList());
             }
-            apps.addAll(cluster.apps().list());
+            apps.addAll(cluster.apps().list().stream().filter(a -> a.getFormalStatus().isConnected()).toList());
         }
         return apps;
     }
@@ -127,6 +127,9 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
         protected void customizeCellRenderer(@Nonnull JList<? extends SpringCloudApp> list, SpringCloudApp app, int index, boolean selected, boolean hasFocus) {
             if (app != null) {
                 append(app.exists() ? app.getName() : String.format("(New) %s", app.getName()));
+                if (!app.getFormalStatus().isConnected()) {
+                    return;
+                }
                 if (app.getFormalStatus().isReading()) {
                     append(" Loading runtime...", SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES);
                 } else {
