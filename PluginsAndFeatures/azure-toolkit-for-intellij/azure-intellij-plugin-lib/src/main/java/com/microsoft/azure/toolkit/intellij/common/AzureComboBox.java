@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.common;
 
-import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
@@ -30,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -249,8 +249,8 @@ public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputCompo
             final DefaultComboBoxModel<T> model = (DefaultComboBoxModel<T>) this.getModel();
             final List<? extends T> oldItems = this.getItems();
             final List<? extends T> newItems = ObjectUtils.firstNonNull(items, Collections.emptyList());
-            final Sets.SetView<T> toRemove = Sets.difference(Sets.newHashSet(oldItems), Sets.newHashSet(newItems));
-            final Sets.SetView<T> toAdd = Sets.difference(Sets.newHashSet(newItems), Sets.newHashSet(oldItems));
+            final List<? extends T> toRemove = ListUtils.removeAll(oldItems, newItems);
+            final List<? extends T> toAdd = ListUtils.removeAll(newItems, oldItems);
             toRemove.forEach(model::removeElement);
             model.addAll(toAdd);
             this.refreshValue();
