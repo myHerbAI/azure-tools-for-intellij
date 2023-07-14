@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.common;
 
+import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
@@ -46,11 +47,8 @@ import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.io.InterruptedIOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -58,6 +56,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@SuppressWarnings("unchecked")
 public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputComponent<T> {
     public static final String EMPTY_ITEM = StringUtils.EMPTY;
     private static final int DEBOUNCE_DELAY = 500;
@@ -248,8 +247,12 @@ public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputCompo
     protected synchronized void setItems(final List<? extends T> items) {
         SwingUtilities.invokeLater(() -> {
             final DefaultComboBoxModel<T> model = (DefaultComboBoxModel<T>) this.getModel();
-            model.removeAllElements();
-            model.addAll(ObjectUtils.firstNonNull(items, Collections.emptyList()));
+            final List<? extends T> oldItems = this.getItems();
+            final List<? extends T> newItems = ObjectUtils.firstNonNull(items, Collections.emptyList());
+            final Sets.SetView<T> toRemove = Sets.difference(Sets.newHashSet(oldItems), Sets.newHashSet(newItems));
+            final Sets.SetView<T> toAdd = Sets.difference(Sets.newHashSet(newItems), Sets.newHashSet(oldItems));
+            toRemove.forEach(model::removeElement);
+            model.addAll(toAdd);
             this.refreshValue();
         });
     }
