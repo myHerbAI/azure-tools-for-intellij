@@ -61,12 +61,12 @@ public class ACRRegistryComboBox extends AzureComboBox<ContainerRegistry> {
     }
 
     @Override
-    public void setValue(@Nullable ContainerRegistry val) {
+    public void setValue(@Nullable ContainerRegistry val, Boolean fixed) {
         if (Objects.nonNull(val) && val.isDraftForCreating() && !this.draftItems.contains(val)) {
             this.draftItems.add(0, val);
             this.reloadItems();
         }
-        super.setValue(val);
+        super.setValue(val, fixed);
     }
 
     @Nullable

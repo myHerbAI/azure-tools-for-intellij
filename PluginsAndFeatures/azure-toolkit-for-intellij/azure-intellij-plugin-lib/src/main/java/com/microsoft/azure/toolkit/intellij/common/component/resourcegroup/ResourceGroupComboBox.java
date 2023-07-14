@@ -67,12 +67,12 @@ public class ResourceGroupComboBox extends AzureComboBox<ResourceGroup> {
     }
 
     @Override
-    public void setValue(@Nullable ResourceGroup val) {
+    public void setValue(@Nullable ResourceGroup val, Boolean fixed) {
         if (Objects.nonNull(val) && val.isDraftForCreating() && !val.exists() && !this.draftItems.contains(val)) {
             this.draftItems.add(0, val);
             this.reloadItems();
         }
-        super.setValue(val);
+        super.setValue(val, fixed);
     }
 
     @Nullable

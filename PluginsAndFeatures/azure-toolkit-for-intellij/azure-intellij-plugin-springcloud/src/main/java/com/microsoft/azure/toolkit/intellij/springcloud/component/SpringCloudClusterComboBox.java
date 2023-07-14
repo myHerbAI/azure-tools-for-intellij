@@ -58,12 +58,12 @@ public class SpringCloudClusterComboBox extends AzureComboBox<SpringCloudCluster
     }
 
     @Override
-    public void setValue(@Nullable SpringCloudCluster val) {
+    public void setValue(@Nullable SpringCloudCluster val, Boolean fixed) {
         if (Objects.nonNull(val) && val.isDraftForCreating() && !this.draftItems.contains(val)) {
             this.draftItems.add(0, val);
             this.reloadItems();
         }
-        super.setValue(val);
+        super.setValue(val, fixed);
     }
 
     @Nullable
