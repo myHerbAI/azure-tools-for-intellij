@@ -34,13 +34,10 @@ import java.util.Optional;
 public abstract class SpringCloudAppInfoPanel extends JPanel implements AzureFormPanel<SpringCloudAppDraft> {
     private static final String SPRING_CLOUD_APP_NAME_PATTERN = "^[a-z][a-z0-9-]{2,30}[a-z0-9]$";
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
-    @Nullable
-    private final SpringCloudCluster cluster;
     private final String defaultAppName;
 
-    public SpringCloudAppInfoPanel(@Nullable final SpringCloudCluster cluster) {
+    public SpringCloudAppInfoPanel() {
         super();
-        this.cluster = cluster;
         this.defaultAppName = String.format("spring-app-%s", DATE_FORMAT.format(new Date()));
     }
 
@@ -56,16 +53,20 @@ public abstract class SpringCloudAppInfoPanel extends JPanel implements AzureFor
         textName.setValue(this.defaultAppName);
         textName.addValidator(() -> {
             try {
-                validateSpringCloudAppName(textName.getValue(), this.cluster);
+                final SpringCloudCluster cluster = this.getSelectorCluster().getValue();
+                validateSpringCloudAppName(textName.getValue(), cluster);
             } catch (final IllegalArgumentException e) {
                 final AzureValidationInfoBuilder builder = AzureValidationInfo.builder();
                 return builder.input(textName).type(AzureValidationInfo.Type.ERROR).message(e.getMessage()).build();
             }
             return AzureValidationInfo.success(this);
         });
-        if (Objects.nonNull(this.cluster)) {
-            selectorSubscription.setValue(this.cluster.getSubscription());
-            selectorCluster.setValue(this.cluster);
+    }
+
+    public void setCluster(SpringCloudCluster cluster, Boolean fixed) {
+        if (Objects.nonNull(cluster)) {
+            this.getSelectorSubscription().setValue(cluster.getSubscription(), fixed);
+            this.getSelectorCluster().setValue(cluster, fixed);
         }
     }
 
@@ -97,7 +98,6 @@ public abstract class SpringCloudAppInfoPanel extends JPanel implements AzureFor
     public SpringCloudAppDraft getValue() {
         final String appName = this.getTextName().getValue();
         final SpringCloudApp app = Optional.ofNullable(this.getSelectorCluster().getValue())
-            .or(() -> Optional.ofNullable(this.cluster))
             .map(SpringCloudCluster::apps)
             .map(apps -> apps.getOrDraft(appName, null)).orElse(null);
         return (SpringCloudAppDraft) (Objects.isNull(app) || app.isDraft() ? app : app.update());
@@ -116,7 +116,7 @@ public abstract class SpringCloudAppInfoPanel extends JPanel implements AzureFor
         super.setVisible(visible);
     }
 
-    public static void validateSpringCloudAppName(final String name, final SpringCloudCluster cluster) {
+    public static void validateSpringCloudAppName(final String name, @Nullable final SpringCloudCluster cluster) {
         if (StringUtils.isEmpty(name)) {
             throw new IllegalArgumentException(AzureMessageBundle.message("springcloud.app.name.validate.empty").toString());
         } else if (!name.matches(SPRING_CLOUD_APP_NAME_PATTERN)) {

@@ -35,7 +35,8 @@ public class CreateSpringCloudAppAction {
     public static void createApp(@Nonnull SpringCloudCluster cluster, @Nullable Project project) {
         Azure.az(AzureAccount.class).account();
         AzureTaskManager.getInstance().runLater(() -> {
-            final SpringCloudAppCreationDialog dialog = new SpringCloudAppCreationDialog(cluster, project);
+            final SpringCloudAppCreationDialog dialog = new SpringCloudAppCreationDialog(project);
+            dialog.setCluster(cluster, false);
             dialog.setDefaultRuntimeVersion(JdkUtils.getJdkLanguageLevel(Optional.ofNullable(project).orElseGet(ProjectUtils::getProject)));
             dialog.setOkActionListener((draft) -> {
                 dialog.close();

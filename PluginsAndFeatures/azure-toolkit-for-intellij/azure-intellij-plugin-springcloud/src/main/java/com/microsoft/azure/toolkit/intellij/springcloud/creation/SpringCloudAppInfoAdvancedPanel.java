@@ -15,11 +15,9 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
@@ -34,8 +32,8 @@ public class SpringCloudAppInfoAdvancedPanel extends SpringCloudAppInfoPanel {
     private SpringCloudAppConfigPanel formConfig;
     private JLabel lblSubscription;
 
-    public SpringCloudAppInfoAdvancedPanel(@Nullable final SpringCloudCluster cluster) {
-        super(cluster);
+    public SpringCloudAppInfoAdvancedPanel() {
+        super();
         $$$setupUI$$$();
         this.init();
         this.lblSubscription.setIcon(AllIcons.General.ContextHelp);

@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.intellij.springcloud.component.SpringCloudClu
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.model.Sku;
 import lombok.AccessLevel;
@@ -22,7 +21,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
@@ -44,8 +42,8 @@ public class SpringCloudAppInfoBasicPanel extends SpringCloudAppInfoPanel {
     @Setter
     private String defaultRuntimeVersion = SpringCloudDeploymentDraft.DEFAULT_RUNTIME_VERSION.toString();
 
-    public SpringCloudAppInfoBasicPanel(@Nullable final SpringCloudCluster cluster) {
-        super(cluster);
+    public SpringCloudAppInfoBasicPanel() {
+        super();
         $$$setupUI$$$();
         this.init();
         this.lblSubscription.setIcon(AllIcons.General.ContextHelp);

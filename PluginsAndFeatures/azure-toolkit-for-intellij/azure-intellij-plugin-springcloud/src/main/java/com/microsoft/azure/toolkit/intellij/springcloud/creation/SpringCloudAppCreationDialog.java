@@ -11,24 +11,21 @@ import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.ConfigDialog;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
 
 public class SpringCloudAppCreationDialog extends ConfigDialog<SpringCloudAppDraft> {
-    private final SpringCloudCluster cluster;
     private JPanel panel;
     private SpringCloudAppInfoBasicPanel basicForm;
     private SpringCloudAppInfoAdvancedPanel advancedForm;
 
-    public SpringCloudAppCreationDialog(@Nullable SpringCloudCluster cluster) {
-        this(cluster, null);
+    public SpringCloudAppCreationDialog() {
+        this(null);
     }
 
-    public SpringCloudAppCreationDialog(@Nullable SpringCloudCluster cluster, @Nullable Project project) {
+    public SpringCloudAppCreationDialog(@Nullable Project project) {
         super(project);
-        this.cluster = cluster;
         this.init();
         setFrontPanel(basicForm);
     }
@@ -55,8 +52,13 @@ public class SpringCloudAppCreationDialog extends ConfigDialog<SpringCloudAppDra
     }
 
     private void createUIComponents() {
-        advancedForm = new SpringCloudAppInfoAdvancedPanel(this.cluster);
-        basicForm = new SpringCloudAppInfoBasicPanel(this.cluster);
+        advancedForm = new SpringCloudAppInfoAdvancedPanel();
+        basicForm = new SpringCloudAppInfoBasicPanel();
+    }
+
+    public void setCluster(@Nullable SpringCloudCluster cluster, Boolean fixed) {
+        this.advancedForm.setCluster(cluster, fixed);
+        this.basicForm.setCluster(cluster, fixed);
     }
 
     public void setDefaultRuntimeVersion(@Nullable Integer jdkVersion) {

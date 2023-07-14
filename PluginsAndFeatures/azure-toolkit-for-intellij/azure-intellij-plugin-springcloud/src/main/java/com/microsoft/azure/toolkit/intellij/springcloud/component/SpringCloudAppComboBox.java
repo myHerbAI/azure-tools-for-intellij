@@ -25,11 +25,7 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
     private SpringCloudCluster cluster;
@@ -116,7 +112,8 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
     }
 
     private void showAppCreationPopup() {
-        final SpringCloudAppCreationDialog dialog = new SpringCloudAppCreationDialog(this.cluster);
+        final SpringCloudAppCreationDialog dialog = new SpringCloudAppCreationDialog();
+        dialog.setCluster(this.cluster, true);
         Optional.ofNullable(this.javaVersion).ifPresent(a -> dialog.setDefaultRuntimeVersion(javaVersion));
         dialog.setOkActionListener((draft) -> {
             dialog.close();
