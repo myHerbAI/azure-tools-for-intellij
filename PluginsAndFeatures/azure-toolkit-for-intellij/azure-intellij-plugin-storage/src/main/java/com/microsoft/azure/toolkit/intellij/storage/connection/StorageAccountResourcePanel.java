@@ -88,8 +88,8 @@ public class StorageAccountResourcePanel implements AzureFormJPanel<Resource<Sto
                 btnLocal.setSelected(true);
             } else {
                 btnAzure.setSelected(true);
-                this.subscriptionComboBox.setValue(new ItemReference<>(a.getSubscriptionId(), Subscription::getId));
-                this.accountComboBox.setValue(new ItemReference<>(a.getName(), StorageAccount::getName));
+                this.subscriptionComboBox.setValue(a.getSubscription());
+                this.accountComboBox.setValue(a);
             }
         }));
     }

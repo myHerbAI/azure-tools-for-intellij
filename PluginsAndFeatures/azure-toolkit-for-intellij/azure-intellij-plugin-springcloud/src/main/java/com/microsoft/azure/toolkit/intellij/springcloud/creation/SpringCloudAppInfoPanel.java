@@ -67,8 +67,8 @@ public abstract class SpringCloudAppInfoPanel extends JPanel implements AzureFor
             return AzureValidationInfo.success(this);
         });
         if (Objects.nonNull(this.cluster)) {
-            selectorSubscription.setValue(new ItemReference<>(this.cluster.getSubscriptionId(), Subscription::getId));
-            selectorCluster.setValue(new ItemReference<>(this.cluster.getName(), AzResource::getName));
+            selectorSubscription.setValue(this.cluster.getSubscription());
+            selectorCluster.setValue(this.cluster);
         }
     }
 
@@ -110,7 +110,7 @@ public abstract class SpringCloudAppInfoPanel extends JPanel implements AzureFor
         this.draft = app;
         this.getTextName().setValue(app.getName());
         this.getSelectorCluster().setValue(app.getParent());
-        this.getSelectorSubscription().setValue(new ItemReference<>(app.getSubscriptionId(), Subscription::getId));
+        this.getSelectorSubscription().setValue(app.getSubscription());
     }
 
     @Override
