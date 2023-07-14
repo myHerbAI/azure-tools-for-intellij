@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.springcloud.creation;
 
-import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
 import com.intellij.icons.AllIcons;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox;
@@ -24,6 +23,7 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Getter(AccessLevel.PROTECTED)
 public class SpringCloudAppInfoAdvancedPanel extends SpringCloudAppInfoPanel {
@@ -49,7 +49,9 @@ public class SpringCloudAppInfoAdvancedPanel extends SpringCloudAppInfoPanel {
     @Override
     public SpringCloudAppDraft getValue() {
         final SpringCloudAppDraft app = super.getValue();
-        this.formConfig.applyTo(app);
+        if (Objects.nonNull(app)) {
+            this.formConfig.applyTo(app);
+        }
         return app;
     }
 

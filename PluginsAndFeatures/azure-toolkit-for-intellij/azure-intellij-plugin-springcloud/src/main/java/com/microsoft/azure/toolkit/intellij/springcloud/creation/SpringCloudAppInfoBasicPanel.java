@@ -66,7 +66,7 @@ public class SpringCloudAppInfoBasicPanel extends SpringCloudAppInfoPanel {
     @Override
     public SpringCloudAppDraft getValue() {
         final SpringCloudAppDraft app = super.getValue();
-        if (this.useJava17.isVisible()) {
+        if (Objects.nonNull(app) && this.useJava17.isVisible()) {
             final String javaVersion = this.useJava17.isSelected() ? RuntimeVersion.JAVA_17.toString() :
                 this.useJava11.isSelected() ? RuntimeVersion.JAVA_11.toString() : RuntimeVersion.JAVA_8.toString();
             final SpringCloudDeploymentDraft deployment = app.updateOrCreateActiveDeployment();

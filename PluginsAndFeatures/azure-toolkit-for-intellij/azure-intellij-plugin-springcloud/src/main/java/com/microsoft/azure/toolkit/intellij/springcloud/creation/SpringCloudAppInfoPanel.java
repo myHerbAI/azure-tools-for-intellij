@@ -39,7 +39,6 @@ public abstract class SpringCloudAppInfoPanel extends JPanel implements AzureFor
     @Nullable
     private final SpringCloudCluster cluster;
     private final String defaultAppName;
-    private SpringCloudAppDraft draft;
 
     public SpringCloudAppInfoPanel(@Nullable final SpringCloudCluster cluster) {
         super();
@@ -84,30 +83,30 @@ public abstract class SpringCloudAppInfoPanel extends JPanel implements AzureFor
             final SpringCloudCluster c = this.getSelectorCluster().getValue();
             final String appName = StringUtils.firstNonBlank(this.getTextName().getName(), this.defaultAppName);
             if (Objects.nonNull(c)) {
-                final SpringCloudApp app = c.apps().create(appName, c.getResourceGroupName());
+                final SpringCloudApp app = c.apps().getOrDraft(appName, c.getResourceGroupName());
                 this.onAppChanged(app);
             }
         }
     }
 
     protected void onAppChanged(SpringCloudApp app) {
-        if (Objects.isNull(this.draft)) {
-            this.draft = (SpringCloudAppDraft) (app.isDraft() ? app : app.update());
-            AzureTaskManager.getInstance().runLater(() -> this.setValue(this.draft), AzureTask.Modality.ANY);
-        }
+        final SpringCloudAppDraft draft = (SpringCloudAppDraft) (app.isDraft() ? app : app.update());
+        AzureTaskManager.getInstance().runLater(() -> this.setValue(draft), AzureTask.Modality.ANY);
     }
 
     @Override
+    @Nullable
     public SpringCloudAppDraft getValue() {
-        final SpringCloudCluster cluster = Optional.ofNullable(this.getSelectorCluster().getValue()).orElse(this.cluster);
         final String appName = this.getTextName().getValue();
-        return Optional.ofNullable(this.draft)
-            .orElseGet(() -> cluster.apps().create(appName, cluster.getResourceGroupName()));
+        final SpringCloudApp app = Optional.ofNullable(this.getSelectorCluster().getValue())
+            .or(() -> Optional.ofNullable(this.cluster))
+            .map(SpringCloudCluster::apps)
+            .map(apps -> apps.getOrDraft(appName, null)).orElse(null);
+        return (SpringCloudAppDraft) (Objects.isNull(app) || app.isDraft() ? app : app.update());
     }
 
     @Override
     public synchronized void setValue(final SpringCloudAppDraft app) {
-        this.draft = app;
         this.getTextName().setValue(app.getName());
         this.getSelectorCluster().setValue(app.getParent());
         this.getSelectorSubscription().setValue(app.getSubscription());
