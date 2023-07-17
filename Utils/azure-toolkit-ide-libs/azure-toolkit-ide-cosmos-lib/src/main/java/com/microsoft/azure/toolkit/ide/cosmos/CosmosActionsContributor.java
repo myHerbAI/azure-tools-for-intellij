@@ -39,6 +39,7 @@ public class CosmosActionsContributor implements IActionsContributor {
     public static final Action.Id<CosmosDBAccount> OPEN_DATA_EXPLORER = Action.Id.of("user/cosmos.open_data_explorer.account");
     public static final Action.Id<CosmosDBAccount> COPY_CONNECTION_STRING = Action.Id.of("user/cosmos.copy_connection_string.account");
     public static final Action.Id<ICosmosDocumentContainer<?>> IMPORT_DOCUMENT = Action.Id.of("user/cosmos.import_document.container");
+    public static final Action.Id<ICosmosDocumentContainer<?>> CREATE_DOCUMENT = Action.Id.of("user/cosmos.create_document.container");
     public static final Action.Id<ICosmosDocument> OPEN_DOCUMENT = Action.Id.of("user/cosmos.open_document.document");
     public static final Action.Id<ResourceGroup> GROUP_CREATE_COSMOS_SERVICE = Action.Id.of("user/cosmos.create_cosmos_db_account.group");
 
@@ -88,6 +89,13 @@ public class CosmosActionsContributor implements IActionsContributor {
 
         new Action<>(IMPORT_DOCUMENT)
             .withLabel("Import Document")
+            .withIdParam(AzResource::getName)
+            .visibleWhen(s -> s instanceof ICosmosDocumentContainer<?>)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .register(am);
+
+        new Action<>(CREATE_DOCUMENT)
+            .withLabel("New Document")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ICosmosDocumentContainer<?>)
             .enableWhen(s -> s.getFormalStatus().isConnected())
@@ -156,6 +164,7 @@ public class CosmosActionsContributor implements IActionsContributor {
             ResourceCommonActionsContributor.REFRESH,
             ResourceCommonActionsContributor.OPEN_PORTAL_URL,
             "---",
+            CosmosActionsContributor.CREATE_DOCUMENT,
             CosmosActionsContributor.IMPORT_DOCUMENT,
             "---",
             ResourceCommonActionsContributor.DELETE
