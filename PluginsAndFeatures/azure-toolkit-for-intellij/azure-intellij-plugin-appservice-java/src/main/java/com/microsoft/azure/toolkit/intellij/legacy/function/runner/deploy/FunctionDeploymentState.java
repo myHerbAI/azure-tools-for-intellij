@@ -79,13 +79,13 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
         OperationContext.current().setMessager(new RunProcessHandlerMessenger(processHandler));
         applyResourceConnection();
         final FunctionAppBase<?, ?, ?> target = FunctionAppService.getInstance().createOrUpdateFunctionApp(deployModel.getFunctionAppConfig());
-        stagingFolder = FunctionUtils.getTempStagingFolder();
-        prepareStagingFolder(stagingFolder, operation);
         final AzureTaskManager tm = AzureTaskManager.getInstance();
         tm.runOnPooledThread(()-> Optional.ofNullable(this.functionDeployConfiguration.getModule()).map(AzureModule::from)
             .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
                 .initializeWithDefaultProfileIfNot()
                 .addApp(target).save()))));
+        stagingFolder = FunctionUtils.getTempStagingFolder();
+        prepareStagingFolder(stagingFolder, operation);
         // deploy function to Azure
         FunctionAppService.getInstance().deployFunctionApp(target, stagingFolder);
         AzureTaskManager.getInstance().runInBackground("list HTTPTrigger url", () -> {

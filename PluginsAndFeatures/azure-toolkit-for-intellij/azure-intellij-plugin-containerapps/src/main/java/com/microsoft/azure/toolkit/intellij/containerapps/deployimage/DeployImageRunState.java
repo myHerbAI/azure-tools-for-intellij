@@ -55,17 +55,6 @@ public class DeployImageRunState extends AzureRunProfileState<ContainerApp> {
         // update Image
         final String containerAppId = dataModel.getContainerAppId();
         final ContainerApp containerApp = Objects.requireNonNull(Azure.az(AzureContainerApps.class).getById(containerAppId), String.format("Container app %s was not found", dataModel.getContainerAppId()));
-        final ContainerAppDraft draft = (ContainerAppDraft) containerApp.update();
-        final ContainerAppDraft.Config config = new ContainerAppDraft.Config();
-        final List<EnvironmentVar> vars = dataModel.getEnvironmentVariables().entrySet().stream()
-            .map(e -> new EnvironmentVar().withName(e.getKey()).withValue(e.getValue()))
-            .collect(Collectors.toList());
-        final ContainerAppDraft.ImageConfig imageConfig = new ContainerAppDraft.ImageConfig(configuration.getFinalImageName());
-        imageConfig.setContainerRegistry(registry);
-        imageConfig.setEnvironmentVariables(vars);
-        config.setImageConfig(imageConfig);
-        config.setIngressConfig(dataModel.getIngressConfig());
-        draft.setConfig(config);
         final AzureTaskManager tm = AzureTaskManager.getInstance();
         tm.runOnPooledThread(() -> Optional.ofNullable(image)
             .map(DockerImage::getDockerFile)
@@ -77,6 +66,17 @@ public class DeployImageRunState extends AzureRunProfileState<ContainerApp> {
                 Optional.of(containerApp).ifPresent(p::addApp);
                 p.save();
             }))));
+        final ContainerAppDraft draft = (ContainerAppDraft) containerApp.update();
+        final ContainerAppDraft.Config config = new ContainerAppDraft.Config();
+        final List<EnvironmentVar> vars = dataModel.getEnvironmentVariables().entrySet().stream()
+            .map(e -> new EnvironmentVar().withName(e.getKey()).withValue(e.getValue()))
+            .collect(Collectors.toList());
+        final ContainerAppDraft.ImageConfig imageConfig = new ContainerAppDraft.ImageConfig(configuration.getFinalImageName());
+        imageConfig.setContainerRegistry(registry);
+        imageConfig.setEnvironmentVariables(vars);
+        config.setImageConfig(imageConfig);
+        config.setIngressConfig(dataModel.getIngressConfig());
+        draft.setConfig(config);
         draft.updateIfExist();
         return containerApp;
     }

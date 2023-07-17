@@ -139,13 +139,13 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
                 throw new AzureToolkitRuntimeException(message.toString(), reopen.withLabel("Reopen Deploy Dialog"));
             }
         }
-        deployment.commit();
         final AzureTaskManager tm = AzureTaskManager.getInstance();
         tm.runOnPooledThread(() -> opFile.map(f -> VfsUtil.findFileByIoFile(f, true))
             .map(f -> AzureModule.from(f, this.project))
             .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
                 .initializeWithDefaultProfileIfNot()
                 .addApp(deployment.getParent()).save()))));
+        deployment.commit();
         deployment.getParent().refresh();
         printPublicUrl(deployment.getParent());
         return deployment;

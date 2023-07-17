@@ -33,14 +33,22 @@ public class ContainerService {
 
     public String pushDockerImage(@Nonnull final IDockerPushConfiguration configuration) throws InterruptedException {
         final IAzureMessager messager = AzureMessager.getMessager();
-        final DockerImage image = configuration.getDockerImageConfiguration();
-        final ContainerRegistry registry = Azure.az(AzureContainerRegistry.class).getById(configuration.getContainerRegistryId());
-        if (Objects.nonNull(registry) && !registry.isAdminUserEnabled()) {
+        final DockerImage image = Objects.requireNonNull(configuration.getDockerImageConfiguration(), "image is not configured.");
+        final ContainerRegistry registry = Objects.requireNonNull(Azure.az(AzureContainerRegistry.class).getById(configuration.getContainerRegistryId()), "registry doesn't exist.");
+        if (!registry.isAdminUserEnabled()) {
             final Action<ContainerRegistry> enableAdminUser = AzureActionManager.getInstance().getAction(ContainerRegistryActionsContributor.ENABLE_ADMIN_USER).bind(registry);
             throw new AzureToolkitRuntimeException(String.format("Admin user is not enabled for (%s), but it is required to push image to Azure Container Registry.", registry.getName()), enableAdminUser);
         }
+        final AzureTaskManager tm = AzureTaskManager.getInstance();
+        tm.runOnPooledThread(() -> Optional.of(image)
+            .map(DockerImage::getDockerFile)
+            .map(f -> VfsUtil.findFileByIoFile(f, true))
+            .map(f -> AzureModule.from(f, configuration.getProject()))
+            .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
+                .initializeWithDefaultProfileIfNot()
+                .addApp(registry).save()))));
         final AzureDockerClient dockerClient = AzureDockerClient.from(Objects.requireNonNull(configuration.getDockerHostConfiguration()));
-        final String loginServerUrl = Objects.requireNonNull(registry).getLoginServerUrl();
+        final String loginServerUrl = registry.getLoginServerUrl();
         final String imageAndTag = configuration.getFinalImageName();
         // tag image with ACR url
         if (!StringUtils.equals(image.getImageName(), imageAndTag)) {
@@ -57,14 +65,6 @@ public class ContainerService {
                 super.onNext(item);
             }
         };
-        final AzureTaskManager tm = AzureTaskManager.getInstance();
-        tm.runOnPooledThread(() -> Optional.of(image)
-            .map(DockerImage::getDockerFile)
-            .map(f -> VfsUtil.findFileByIoFile(f, true))
-            .map(f -> AzureModule.from(f, configuration.getProject()))
-            .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
-                .initializeWithDefaultProfileIfNot()
-                .addApp(registry).save()))));
         dockerClient.pushImage(Objects.requireNonNull(loginServerUrl), registry.getUserName(), registry.getPrimaryCredential(), imageAndTag, callBack);
         return loginServerUrl;
     }
