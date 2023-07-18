@@ -15,6 +15,7 @@ import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
+import com.microsoft.azure.toolkit.intellij.common.action.IntellijActionsContributor;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.DeploymentTargetManager;
@@ -254,6 +255,7 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
         final ActionGroup explorerModuleRootActions = new ActionGroup(
             REFRESH_MODULE,
             "---",
+            IntellijActionsContributor.ACTIONS_DEPLOY_TO_AZURE,
             CONNECT_TO_MODULE,
             "---",
             HIDE_AZURE,
