@@ -136,8 +136,18 @@ public class AzureArtifact {
                 .map(Path::of).map(FileUtils::getNearestExistingParent)
                 .map(p -> VfsUtil.findFile(p, true))
                 .map(f -> ProjectFileIndex.getInstance(project).getModuleForFile(f)).orElse(null);
-            case File -> null;
+            case File -> getNearestParentModuleForFile((VirtualFile) this.getReferencedObject());
         });
+    }
+
+    @Nullable
+    private Module getNearestParentModuleForFile(VirtualFile file) {
+        Module module = null;
+        while (module == null && file != null) {
+            module = ModuleUtil.findModuleForFile(file, project);
+            file = file.getParent();
+        }
+        return module;
     }
 
     @Nullable

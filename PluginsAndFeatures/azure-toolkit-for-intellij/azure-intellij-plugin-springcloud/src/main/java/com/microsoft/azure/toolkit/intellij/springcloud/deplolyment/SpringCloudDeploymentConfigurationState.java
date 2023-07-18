@@ -34,12 +34,7 @@ import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppInstance;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
-import com.microsoft.azure.toolkit.lib.springcloud.Utils;
+import com.microsoft.azure.toolkit.lib.springcloud.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.Disposable;
@@ -63,7 +58,7 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
     private static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "The app is still starting, " +
             "you could start streaming log to check if something wrong in server side.";
     private static final String NOTIFICATION_TITLE = "Querying app status";
-    private static final String DEPLOYMENT_SUCCEED = "Deployment succeed but the app is still starting at server side.";
+    private static final String DEPLOYMENT_SUCCEED = "Deployment was successful but the app may still be starting.";
 
     private final SpringCloudDeploymentConfiguration config;
     private final Project project;
@@ -140,8 +135,8 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
             }
         }
         final AzureTaskManager tm = AzureTaskManager.getInstance();
-        tm.runOnPooledThread(() -> opFile.map(f -> VfsUtil.findFileByIoFile(f, true))
-            .map(f -> AzureModule.from(f, this.project))
+        tm.runOnPooledThread(() -> opFile.map(f -> this.config.getModule())
+            .map(AzureModule::from)
             .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
                 .initializeWithDefaultProfileIfNot()
                 .addApp(deployment.getParent()).save()))));
