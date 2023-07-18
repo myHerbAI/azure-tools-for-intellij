@@ -134,6 +134,9 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
                 throw new AzureToolkitRuntimeException(message.toString(), reopen.withLabel("Reopen Deploy Dialog"));
             }
         }
+        final Map<String, String> environmentVariables = Optional.ofNullable(deployment.getEnvironmentVariables()).orElseGet(HashMap::new);
+        environmentVariables.putAll(this.config.getEnvironmentVariables());
+        deployment.setEnvironmentVariables(environmentVariables);
         final AzureTaskManager tm = AzureTaskManager.getInstance();
         tm.runOnPooledThread(() -> opFile.map(f -> this.config.getModule())
             .map(AzureModule::from)

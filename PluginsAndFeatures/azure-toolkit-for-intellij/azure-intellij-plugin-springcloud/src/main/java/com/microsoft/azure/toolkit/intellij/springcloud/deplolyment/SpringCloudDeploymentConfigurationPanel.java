@@ -88,10 +88,12 @@ public class SpringCloudDeploymentConfigurationPanel extends JPanel implements A
         final AzureArtifact artifact = (AzureArtifact) e.getItem();
         if (Objects.nonNull(editor) && Objects.nonNull(artifact)) {
             if (e.getStateChange() == ItemEvent.DESELECTED) {
+                this.configuration.setArtifact(null);
                 BuildArtifactBeforeRunTaskUtils.removeBeforeRunTask(editor, artifact, this.configuration);
                 this.validateRuntime.debounce();
             }
             if (e.getStateChange() == ItemEvent.SELECTED) {
+                this.configuration.setArtifact(artifact);
                 BuildArtifactBeforeRunTaskUtils.addBeforeRunTask(editor, artifact, this.configuration);
                 this.selectorApp.setJavaVersion(artifact.getBytecodeTargetLevel());
                 this.validateRuntime.debounce();
@@ -115,6 +117,8 @@ public class SpringCloudDeploymentConfigurationPanel extends JPanel implements A
 
     private void onAppChanged(final ItemEvent e) {
         if (e.getStateChange() == ItemEvent.SELECTED || e.getStateChange() == ItemEvent.DESELECTED) {
+            final SpringCloudApp app = this.selectorApp.getValue();
+            this.configuration.setApp(app);
             this.validateRuntime.debounce();
         }
     }

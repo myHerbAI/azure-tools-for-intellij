@@ -10,6 +10,7 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.impl.CheckableRunConfigurationEditor;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
@@ -18,6 +19,7 @@ import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.util.xmlb.XmlSerializer;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifact;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifactManager;
+import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo.Type;
@@ -31,6 +33,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom.Element;
 
@@ -41,7 +44,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBase<Element> implements LocatableConfiguration {
+public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBase<Element> implements IConnectionAware {
     private static final String NEED_SPECIFY_ARTIFACT = "Please select an artifact";
     private static final String NEED_SPECIFY_SUBSCRIPTION = "Please select your subscription.";
     private static final String NEED_SPECIFY_CLUSTER = "Please select a target cluster.";
@@ -52,9 +55,10 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
 
     @Getter
     @Nullable
-    private SpringCloudDeploymentDraft deployment;
+    private SpringCloudApp app;
     private ResourceId appId;
-    private WrappedAzureArtifact artifact;
+    @Setter
+    private AzureArtifact artifact;
 
     public SpringCloudDeploymentConfiguration(@Nonnull Project project, @Nonnull ConfigurationFactory factory, String name) {
         super(project, factory, name);
@@ -84,7 +88,6 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
         this.artifact = Optional.ofNullable(artifactId)
             .map(manager::getAzureArtifactById)
             .or(() -> Optional.ofNullable(AzureArtifact.createFromFile(artifactId, this.getProject())))
-            .map(a -> new WrappedAzureArtifact(a, this.getProject()))
             .orElse(null);
     }
 
@@ -95,17 +98,47 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
             .map(id -> new Element("App").setAttribute("id", id.id()))
             .ifPresent(element::addContent);
         Optional.ofNullable(this.artifact)
-            .map((a) -> a.getArtifact().getIdentifier())
+            .map(AzureArtifact::getIdentifier)
             .map(id -> new Element("Artifact").setAttribute("identifier", id))
             .ifPresent(element::addContent);
     }
 
     public void setDeployment(@Nullable SpringCloudDeploymentDraft deployment) {
-        this.deployment = deployment;
         if (Objects.nonNull(deployment)) {
-            this.appId = ResourceId.fromString(deployment.getParent().getId());
-            this.artifact = (WrappedAzureArtifact) deployment.getArtifact();
+            this.app = deployment.getParent();
+            this.appId = ResourceId.fromString(this.app.getId());
+            this.artifact = ((WrappedAzureArtifact) deployment.getArtifact()).getArtifact();
         }
+    }
+
+    @Nullable
+    public SpringCloudDeploymentDraft getDeployment() {
+        final SpringCloudApp app = this.getApp();
+        if (Objects.nonNull(app)) {
+            final SpringCloudDeployment d = Optional.ofNullable(app.getActiveDeployment()).orElseGet(() -> app.deployments().create("default", null));
+            final SpringCloudDeploymentDraft deployment = (SpringCloudDeploymentDraft) (d.isDraft() ? d : d.update());
+            deployment.setArtifact(new WrappedAzureArtifact(this.artifact, this.getProject()));
+            return deployment;
+        }
+        return null;
+    }
+
+    public void setApp(@Nullable SpringCloudApp app) {
+        this.app = app;
+        this.appId = Optional.ofNullable(app).map(a -> ResourceId.fromString(a.getId())).orElse(null);
+    }
+
+    @Nullable
+    public SpringCloudApp getApp() {
+        if (Objects.isNull(this.app) && Objects.nonNull(this.appId)) {
+            this.app = Azure.az(AzureSpringCloud.class).getById(this.appId.id());
+        }
+        return this.app;
+    }
+
+    @Override
+    public Module getModule() {
+        return Optional.ofNullable(this.artifact).map(AzureArtifact::getModule).orElse(null);
     }
 
     @Nonnull
@@ -118,7 +151,6 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
     @Override
     @ExceptionNotification
     public RunProfileState getState(@Nonnull Executor executor, @Nonnull ExecutionEnvironment executionEnvironment) {
-        restoreDeployment(this);
         return new SpringCloudDeploymentConfigurationState(getProject(), this);
     }
 
@@ -167,9 +199,9 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
         @ExceptionNotification
         protected void resetEditorFrom(@Nonnull SpringCloudDeploymentConfiguration config) {
             this.panel.setConfiguration(config);
-            restoreDeployment(config);
-            if (Objects.nonNull(config.deployment)) {
-                AzureTaskManager.getInstance().runLater(() -> this.panel.setValue(config.deployment), AzureTask.Modality.ANY);
+            final SpringCloudDeploymentDraft deployment = config.getDeployment();
+            if (Objects.nonNull(deployment)) {
+                AzureTaskManager.getInstance().runLater(() -> this.panel.setValue(deployment), AzureTask.Modality.ANY);
             }
         }
 
@@ -193,17 +225,6 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
 
         @Override
         public void checkEditorData(SpringCloudDeploymentConfiguration s) {
-        }
-    }
-
-    private static void restoreDeployment(@Nonnull SpringCloudDeploymentConfiguration config) {
-        if (config.deployment == null && Objects.nonNull(config.appId)) {
-            final SpringCloudApp app = Azure.az(AzureSpringCloud.class).getById(config.appId.id());
-            if (Objects.nonNull(app)) {
-                final SpringCloudDeployment d = Optional.ofNullable(app.getActiveDeployment()).orElseGet(() -> app.deployments().create("default", null));
-                config.deployment = (SpringCloudDeploymentDraft) (d.isDraft() ? d : d.update());
-                config.deployment.setArtifact(config.artifact);
-            }
         }
     }
 }
