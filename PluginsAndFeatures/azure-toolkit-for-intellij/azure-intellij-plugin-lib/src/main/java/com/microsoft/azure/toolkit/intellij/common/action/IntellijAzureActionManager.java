@@ -31,6 +31,7 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessageBundle;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Emulatable;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -87,6 +88,7 @@ public class IntellijAzureActionManager extends AzureActionManager {
             return (Action<D>) ((AnActionWrapper<?>) origin).getAction();
         } else {
             return new Action<>(id)
+                .withTitle(AzureMessageBundle.message(id.getId()))
                 .withLabel(Objects.requireNonNull(origin.getTemplateText()))
                 .withHandler((D d, AnActionEvent e) -> origin.actionPerformed(e))
                 .withAuthRequired(false);
