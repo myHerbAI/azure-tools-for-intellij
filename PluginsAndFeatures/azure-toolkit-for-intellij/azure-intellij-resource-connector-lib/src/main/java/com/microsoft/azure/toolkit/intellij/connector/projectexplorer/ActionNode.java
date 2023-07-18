@@ -93,6 +93,11 @@ public class ActionNode<T> extends AbstractAzureFacetNode<Action<T>> {
             public void addAction(Object action) {
                 // do nothing here
             }
+
+            @Override
+            public void prependAction(Object action) {
+                // do nothing here
+            }
         };
     }
 
