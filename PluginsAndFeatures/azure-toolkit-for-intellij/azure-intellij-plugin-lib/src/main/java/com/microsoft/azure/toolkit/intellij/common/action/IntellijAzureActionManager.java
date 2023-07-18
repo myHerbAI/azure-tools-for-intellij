@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ShortcutSet;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
@@ -32,6 +33,7 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Emulatable;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -199,6 +201,10 @@ public class IntellijAzureActionManager extends AzureActionManager {
             this.group = group;
             this.setPopup(true);
             this.addActions(group.getActions());
+            final Presentation presentation = this.getTemplatePresentation();
+            presentation.setPerformGroup(true);
+            final IView.Label view = this.group.getView();
+            Optional.ofNullable(this.group.getView()).ifPresent(v -> presentation.setText(v.getLabel()));
         }
 
         @Override
@@ -208,7 +214,10 @@ public class IntellijAzureActionManager extends AzureActionManager {
             final Presentation presentation = e.getPresentation();
             Optional.ofNullable(view).ifPresent(v -> {
                 presentation.setText(v.getLabel());
-                Optional.ofNullable(v.getIconPath()).filter(StringUtils::isNotBlank).ifPresent(IntelliJAzureIcons::getIcon);
+                presentation.setDescription(v.getDescription());
+                presentation.setEnabled(v.isEnabled());
+                presentation.setVisible(v.isVisible());
+                Optional.ofNullable(v.getIconPath()).filter(StringUtils::isNotBlank).map(IntelliJAzureIcons::getIcon).ifPresent(presentation::setIcon);
             });
         }
 
@@ -221,6 +230,15 @@ public class IntellijAzureActionManager extends AzureActionManager {
             for (final Object raw : actions) {
                 doAddAction(raw);
             }
+        }
+
+        @Override
+        public void actionPerformed(@Nonnull AnActionEvent e) {
+            AzureTaskManager.getInstance().runLater(() -> JBPopupFactory.getInstance().createActionGroupPopup(
+                    e.getPresentation().getText(), this, e.getDataContext(),
+                    JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
+                    false, null, -1, null, ActionPlaces.getPopupPlace(e.getPlace()))
+                .showInBestPositionFor(e.getDataContext()));
         }
 
         @Override

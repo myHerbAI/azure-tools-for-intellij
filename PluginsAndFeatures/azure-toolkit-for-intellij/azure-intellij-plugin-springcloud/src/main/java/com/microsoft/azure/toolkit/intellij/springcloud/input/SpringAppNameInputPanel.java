@@ -16,7 +16,7 @@ import javax.swing.*;
 import java.util.Collections;
 import java.util.List;
 
-import static com.microsoft.azure.toolkit.intellij.springcloud.creation.AbstractSpringCloudAppInfoPanel.validateSpringCloudAppName;
+import static com.microsoft.azure.toolkit.intellij.springcloud.creation.SpringCloudAppInfoPanel.validateSpringCloudAppName;
 
 public class SpringAppNameInputPanel implements AzureFormJPanel<String> {
     private JPanel rootPanel;

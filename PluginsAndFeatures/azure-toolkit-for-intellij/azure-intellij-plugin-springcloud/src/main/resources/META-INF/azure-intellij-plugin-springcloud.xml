@@ -14,7 +14,7 @@
     </extensions>
     <actions>
         <action id="Actions.DeploySpringCloud" class="com.microsoft.azure.toolkit.intellij.springcloud.deplolyment.DeploySpringCloudAppAction"
-                text="Deploy to Azure Spring Apps" description="Deploy Spring app to azure"
+                text="Deploy to Azure Spring Apps..." description="Deploy selected module to Azure Spring Apps"
                 icon="/icons/SpringCloud/Deploy.svg">
         </action>
     </actions>

@@ -60,6 +60,7 @@ public class AzureArtifactComboBox extends AzureComboBox<AzureArtifact> {
         final AzureArtifactManager artifactManager = AzureArtifactManager.getInstance(this.project);
         this.cachedArtifact = azureArtifact;
         Optional.ofNullable(cachedArtifact).filter(artifact -> artifact.getType() == AzureArtifactType.File).ifPresent(this::addItem);
+        this.reloadItems();
         this.setValue(new ItemReference<>(artifact -> artifactManager.equalsAzureArtifact(cachedArtifact, artifact)));
     }
 

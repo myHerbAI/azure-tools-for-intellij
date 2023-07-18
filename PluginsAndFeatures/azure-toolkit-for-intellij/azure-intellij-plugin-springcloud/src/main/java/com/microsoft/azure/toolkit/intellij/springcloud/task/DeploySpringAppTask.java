@@ -20,9 +20,8 @@ import com.microsoft.azure.toolkit.intellij.springcloud.deplolyment.WrappedAzure
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 import com.microsoft.intellij.util.BuildArtifactBeforeRunTaskUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,6 +29,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class DeploySpringAppTask extends BaseDeployTask {
     public static final String DEPLOY_MODULE = "deployModule";
@@ -47,8 +47,7 @@ public class DeploySpringAppTask extends BaseDeployTask {
         final RunnerAndConfigurationSettings settings = manager.createConfiguration(runConfigurationName, factory);
         final RunConfiguration runConfiguration = settings.getConfiguration();
         if (runConfiguration instanceof SpringCloudDeploymentConfiguration) {
-            ((SpringCloudDeploymentConfiguration) runConfiguration).setApp(app);
-            ((SpringCloudDeploymentConfiguration) runConfiguration).setAppConfig(getAppConfig(app));
+            ((SpringCloudDeploymentConfiguration) runConfiguration).setDeployment(getDeployment(app));
             final List<BeforeRunTask> beforeRunTasks = getBeforeRunTasks(runConfiguration);
             beforeRunTasks.addAll(runConfiguration.getBeforeRunTasks());
             manager.setBeforeRunTasks(runConfiguration, beforeRunTasks);
@@ -56,15 +55,14 @@ public class DeploySpringAppTask extends BaseDeployTask {
         return settings;
     }
 
-    private SpringCloudAppConfig getAppConfig(@Nonnull final SpringCloudApp app) {
+    private SpringCloudDeploymentDraft getDeployment(@Nonnull final SpringCloudApp app) {
         final String packageModule = Objects.requireNonNull((String) context.getParameter(DEPLOY_MODULE),
-                "'deployModule' is required to deploy spring cloud app.");
-        final SpringCloudAppConfig config = app.isDraftForCreating() ?
-                ((SpringCloudAppDraft) app).getConfig() : SpringCloudAppConfig.fromApp(app);
-        final SpringCloudDeploymentConfig deploymentConfig = config.getDeployment();
+            "'deployModule' is required to deploy spring cloud app.");
+        final SpringCloudDeployment d = Optional.ofNullable(app.getActiveDeployment()).orElseGet(() -> app.deployments().create("default", null));
+        final SpringCloudDeploymentDraft deployment = (SpringCloudDeploymentDraft) (d.isDraft() ? d : d.update());
         final AzureArtifact artifact = getArtifactById(packageModule);
-        deploymentConfig.setArtifact(new WrappedAzureArtifact(artifact, this.project));
-        return config;
+        deployment.setArtifact(new WrappedAzureArtifact(artifact, this.project));
+        return deployment;
     }
 
     private List<BeforeRunTask> getBeforeRunTasks(final RunConfiguration runConfiguration) {

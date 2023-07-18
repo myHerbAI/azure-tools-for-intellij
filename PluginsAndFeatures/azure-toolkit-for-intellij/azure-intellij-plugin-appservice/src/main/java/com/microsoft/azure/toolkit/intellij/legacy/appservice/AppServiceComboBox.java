@@ -48,13 +48,12 @@ public abstract class AppServiceComboBox<T extends AppServiceConfig> extends Azu
     }
 
     @Override
-    public void setValue(T val) {
-        if (isDraftResource(val)) {
-            this.draftItems.remove(val);
+    public void setValue(T val, Boolean fixed) {
+        if (isDraftResource(val) && !this.draftItems.contains(val)) {
             this.draftItems.add(0, val);
             this.reloadItems();
         }
-        super.setValue(val);
+        super.setValue(val, fixed);
     }
 
     @Nonnull

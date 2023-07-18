@@ -49,6 +49,10 @@ public class ResourceManager {
 
     public ResourceManager(@Nonnull final Profile profile) {
         this.profile = profile;
+        this.reload();
+    }
+
+    public void reload() {
         try {
             this.load();
         } catch (final Exception e) {
@@ -100,10 +104,10 @@ public class ResourceManager {
 
     @ExceptionNotification
     @AzureOperation("boundary/connector.save_resources")
-    void save() throws IOException {
+    synchronized void save() throws IOException {
         final Element resourcesEle = new Element(ELEMENT_NAME_RESOURCES);
         // todo: whether to save invalid resources?
-        this.resources.stream().forEach(resource -> {
+        for (final Resource<?> resource : this.resources) {
             final Element resourceEle = new Element(ELEMENT_NAME_RESOURCE);
             try {
                 if (resource.writeTo(resourceEle)) {
@@ -113,14 +117,14 @@ public class ResourceManager {
             } catch (final Exception e) {
                 log.warn(String.format("error occurs when persist resource of type '%s'", resource.getDefinition().getName()), e);
             }
-        });
+        }
         final VirtualFile resourcesFile = this.profile.getProfileDir().findOrCreateChildData(this, RESOURCES_FILE);
         JDOMUtil.write(resourcesEle, resourcesFile.toNioPath());
     }
 
     @ExceptionNotification
     @AzureOperation(name = "boundary/connector.load_resources")
-    void load() throws Exception {
+    synchronized void load() throws Exception {
         final VirtualFile resourcesFile = this.profile.getProfileDir().findChild(RESOURCES_FILE);
         if (Objects.isNull(resourcesFile) || resourcesFile.contentsToByteArray().length < 1) {
             return;

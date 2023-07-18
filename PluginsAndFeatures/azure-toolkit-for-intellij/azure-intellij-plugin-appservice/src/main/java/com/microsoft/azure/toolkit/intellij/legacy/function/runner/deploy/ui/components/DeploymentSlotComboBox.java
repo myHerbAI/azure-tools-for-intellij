@@ -47,13 +47,12 @@ public class DeploymentSlotComboBox extends AzureComboBox<DeploymentSlotConfig> 
     }
 
     @Override
-    public void setValue(DeploymentSlotConfig val) {
-        if (isDraftResource(val)) {
-            this.draftItems.remove(val);
+    public void setValue(DeploymentSlotConfig val, Boolean fixed) {
+        if (isDraftResource(val) && !this.draftItems.contains(val)) {
             this.draftItems.add(0, val);
             this.reloadItems();
         }
-        super.setValue(val);
+        super.setValue(val, fixed);
     }
 
     @Nonnull
@@ -84,10 +83,9 @@ public class DeploymentSlotComboBox extends AzureComboBox<DeploymentSlotConfig> 
     @Override
     protected List<? extends DeploymentSlotConfig> loadItems() throws Exception {
         final AbstractAzResource<?, ?, ?> resource = StringUtils.isEmpty(appServiceId) ? null : Azure.az().getById(appServiceId);
-        final IDeploymentSlotModule<?, ?, ?> module = Optional.ofNullable(resource)
-                .map(r -> r.getSubModules().stream().filter(m -> m instanceof IDeploymentSlotModule).findFirst().orElse(null))
-                .map(m -> (IDeploymentSlotModule<?, ?, ?>) m)
-                .orElse(null);
+        final IDeploymentSlotModule<?, ?, ?> module = (IDeploymentSlotModule<?, ?, ?>) Optional.ofNullable(resource)
+            .flatMap(r -> r.getSubModules().stream().filter(m -> m instanceof IDeploymentSlotModule).findFirst())
+            .orElse(null);
         if (module == null) {
             return Collections.emptyList();
         }

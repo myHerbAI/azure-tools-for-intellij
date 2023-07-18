@@ -32,26 +32,26 @@
     <actions>
         <!-- WebApp Start -->
         <action id="Actions.WebDeployAction" class="com.microsoft.azure.toolkit.intellij.legacy.webapp.action.DeployWebAppAction"
-                text="Deploy to Azure Web Apps" description="Deploy to Azure Web Apps"
+                text="Deploy to Azure Web Apps..." description="Deploy selected module to Azure WebApp"
                 icon="/icons/WebApp/Deploy.svg">
         </action>
         <action id="Actions.WebAppOnLinux" class="com.microsoft.azure.toolkit.intellij.legacy.webapp.action.WebAppOnLinuxAction"
-                text="Run on Web App for Containers" description="Run on Web App for Containers"
+                text="Run on Web App for Containers..." description="Run on Web App for Containers"
                 icon="/icons/DockerSupport/RunOnWebApp.svg">
         </action>
         <!-- WebApp End -->
         <!-- Functions Start -->
         <action id="Actions.RunFunction" class="com.microsoft.azure.toolkit.intellij.legacy.function.action.RunFunctionAction"
-                text="Run Function" description="Run function project locally"
+                text="Run Function..." description="Run function project locally"
                 icon="/icons/FunctionApp/Run.svg">
         </action>
         <action id="Actions.DeployFunction" class="com.microsoft.azure.toolkit.intellij.legacy.function.action.DeployFunctionAppAction"
-                text="Deploy to Azure Functions" description="Deploy Java Function to Azure"
+                text="Deploy to Azure Functions..." description="Deploy selected module to Azure Functions"
                 icon="/icons/FunctionApp/Deploy.svg">
         </action>
         <action id="page.new" class="com.microsoft.azure.toolkit.intellij.legacy.function.action.CreateFunctionAction"
                 text="Azure Function Class"
-                description="Create New Azure Function Class">
+                description="Create new Azure Function class">
             <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
         </action>
         <!-- Functions End -->

@@ -29,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -46,11 +47,8 @@ import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.io.InterruptedIOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -58,6 +56,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@SuppressWarnings("unchecked")
 public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputComponent<T> {
     public static final String EMPTY_ITEM = StringUtils.EMPTY;
     private static final int DEBOUNCE_DELAY = 500;
@@ -248,8 +247,12 @@ public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputCompo
     protected synchronized void setItems(final List<? extends T> items) {
         SwingUtilities.invokeLater(() -> {
             final DefaultComboBoxModel<T> model = (DefaultComboBoxModel<T>) this.getModel();
-            model.removeAllElements();
-            model.addAll(ObjectUtils.firstNonNull(items, Collections.emptyList()));
+            final List<? extends T> oldItems = this.getItems();
+            final List<? extends T> newItems = ObjectUtils.firstNonNull(items, Collections.emptyList());
+            final List<? extends T> toRemove = ListUtils.removeAll(oldItems, newItems);
+            final List<? extends T> toAdd = ListUtils.removeAll(newItems, oldItems);
+            toRemove.forEach(model::removeElement);
+            model.addAll(toAdd);
             this.refreshValue();
         });
     }

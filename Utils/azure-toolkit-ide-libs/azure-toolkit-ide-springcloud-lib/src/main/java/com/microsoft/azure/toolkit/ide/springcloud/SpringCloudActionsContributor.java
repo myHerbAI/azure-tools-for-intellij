@@ -132,6 +132,8 @@ public class SpringCloudActionsContributor implements IActionsContributor {
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
             ResourceCommonActionsContributor.OPEN_PORTAL_URL,
             "---",
+            ResourceCommonActionsContributor.DELETE,
+            "---",
             ResourceCommonActionsContributor.CREATE
         );
         am.registerGroup(CLUSTER_ACTIONS, clusterActionGroup);

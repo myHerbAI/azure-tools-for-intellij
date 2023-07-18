@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
+package com.microsoft.azure.toolkit.intellij.connector.projectexplorer;
 
 import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.ide.projectView.PresentationData;
@@ -20,6 +20,8 @@ import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -32,17 +34,28 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor.REFRESH_ENVIRONMENT_VARIABLES;
+
 @Slf4j
 public class EnvironmentVariablesNode extends AbstractAzureFacetNode<Connection<?, ?>> {
     private final Action<?> editAction;
+    private final AzureEventBus.EventListener eventListener;
 
     public EnvironmentVariablesNode(@Nonnull Project project, @Nonnull Connection<?, ?> connection) {
         super(project, connection);
+        this.eventListener = new AzureEventBus.EventListener(this::onEvent);
+        AzureEventBus.on("connector.connection_environment_variables_changed", eventListener);
         this.editAction = new Action<>(Action.Id.of("user/connector.edit_envs_in_editor"))
             .withLabel("Open In Editor")
             .withIcon(AzureIcons.Action.EDIT.getIconPath())
             .withHandler(ignore -> AzureTaskManager.getInstance().runLater(() -> this.navigate(true)))
             .withAuthRequired(false);
+    }
+
+    private void onEvent(@Nonnull final AzureEvent azureEvent) {
+        if (Objects.equals(azureEvent.getSource(), this.getValue())) {
+            this.updateChildren();
+        }
     }
 
     @Override
@@ -79,10 +92,17 @@ public class EnvironmentVariablesNode extends AbstractAzureFacetNode<Connection<
     @Override
     public IActionGroup getActionGroup() {
         return new ActionGroup(
-            editAction,
+            REFRESH_ENVIRONMENT_VARIABLES,
             "---",
+            editAction,
             ResourceConnectionActionsContributor.COPY_ENV_VARS
         );
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        AzureEventBus.off("connector.connection_environment_variables_changed", eventListener);
     }
 
     @Override

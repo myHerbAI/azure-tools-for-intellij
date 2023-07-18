@@ -16,7 +16,11 @@ import com.microsoft.intellij.util.BuildArtifactBeforeRunTaskUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class BeforeRunTaskAdder implements RunManagerListener, ConnectionTopics.ConnectionChanged, IWebAppRunConfiguration.ModuleChangedListener {
     @Override
@@ -28,11 +32,12 @@ public class BeforeRunTaskAdder implements RunManagerListener, ConnectionTopics.
             return;
         }
         final List<Connection<?, ?>> connections = profile.getConnections();
-        final List<BeforeRunTask<?>> tasks = config.getBeforeRunTasks();
+        final List<BeforeRunTask<?>> tasks = new ArrayList<>(config.getBeforeRunTasks());
         tasks.removeIf(t -> t instanceof DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask);
         if (connections.stream().anyMatch(c -> c.isApplicableFor(config))) {
-            config.getBeforeRunTasks().add(new DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask(config));
+            tasks.add(new DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask(config));
         }
+        config.setBeforeRunTasks(tasks);
     }
 
     @Override
@@ -42,7 +47,7 @@ public class BeforeRunTaskAdder implements RunManagerListener, ConnectionTopics.
         final RunManagerEx rm = RunManagerEx.getInstanceEx(project);
         final List<RunConfiguration> configurations = rm.getAllConfigurationsList();
         for (final RunConfiguration config : configurations) {
-            final List<BeforeRunTask<?>> tasks = config.getBeforeRunTasks();
+            final List<BeforeRunTask<?>> tasks = new ArrayList<>(config.getBeforeRunTasks());
             if (change == ConnectionTopics.Action.ADD) {
                 if (connection.isApplicableFor(config) && tasks.stream().noneMatch(t -> t instanceof DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask)) {
                     tasks.add(new DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask(config));
@@ -56,6 +61,7 @@ public class BeforeRunTaskAdder implements RunManagerListener, ConnectionTopics.
                     tasks.removeIf(t -> t instanceof DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask);
                 }
             }
+            config.setBeforeRunTasks(tasks);
         }
     }
 
@@ -70,10 +76,10 @@ public class BeforeRunTaskAdder implements RunManagerListener, ConnectionTopics.
         Optional.ofNullable(editor).ifPresent(e -> BuildArtifactBeforeRunTaskUtils.removeTasks(e, (t) -> t instanceof DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask));
         tasks.removeIf(t -> t instanceof DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask);
         if (connections.stream().anyMatch(c -> c.isApplicableFor(config))) {
-            final List<BeforeRunTask> newTasks = new ArrayList<>(tasks);
+            final List<BeforeRunTask<?>> newTasks = new ArrayList<>(tasks);
             final DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask task = new DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask(config);
             newTasks.add(task);
-            RunManagerEx.getInstanceEx(config.getProject()).setBeforeRunTasks(config, newTasks);
+            config.setBeforeRunTasks(newTasks);
             Optional.ofNullable(editor).ifPresent(e -> e.addBeforeLaunchStep(task));
         }
     }

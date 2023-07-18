@@ -9,36 +9,34 @@ import com.azure.resourcemanager.appplatform.models.RuntimeVersion;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.ConfigDialog;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
 
-public class SpringCloudAppCreationDialog extends ConfigDialog<SpringCloudAppConfig> {
-    private final SpringCloudCluster cluster;
+public class SpringCloudAppCreationDialog extends ConfigDialog<SpringCloudAppDraft> {
     private JPanel panel;
     private SpringCloudAppInfoBasicPanel basicForm;
     private SpringCloudAppInfoAdvancedPanel advancedForm;
 
-    public SpringCloudAppCreationDialog(@Nullable SpringCloudCluster cluster) {
-        this(cluster, null);
+    public SpringCloudAppCreationDialog() {
+        this(null);
     }
 
-    public SpringCloudAppCreationDialog(@Nullable SpringCloudCluster cluster, @Nullable Project project) {
+    public SpringCloudAppCreationDialog(@Nullable Project project) {
         super(project);
-        this.cluster = cluster;
         this.init();
         setFrontPanel(basicForm);
     }
 
     @Override
-    protected AzureFormPanel<SpringCloudAppConfig> getAdvancedFormPanel() {
+    protected AzureFormPanel<SpringCloudAppDraft> getAdvancedFormPanel() {
         return advancedForm;
     }
 
     @Override
-    protected AzureFormPanel<SpringCloudAppConfig> getBasicFormPanel() {
+    protected AzureFormPanel<SpringCloudAppDraft> getBasicFormPanel() {
         return basicForm;
     }
 
@@ -54,16 +52,20 @@ public class SpringCloudAppCreationDialog extends ConfigDialog<SpringCloudAppCon
     }
 
     private void createUIComponents() {
-        advancedForm = new SpringCloudAppInfoAdvancedPanel(this.cluster);
-        basicForm = new SpringCloudAppInfoBasicPanel(this.cluster);
+        advancedForm = new SpringCloudAppInfoAdvancedPanel();
+        basicForm = new SpringCloudAppInfoBasicPanel();
+    }
+
+    public void setCluster(@Nullable SpringCloudCluster cluster, Boolean fixed) {
+        this.advancedForm.setCluster(cluster, fixed);
+        this.basicForm.setCluster(cluster, fixed);
     }
 
     public void setDefaultRuntimeVersion(@Nullable Integer jdkVersion) {
         if (jdkVersion != null) {
             final RuntimeVersion runtime = jdkVersion <= 11 ? RuntimeVersion.JAVA_11 : RuntimeVersion.JAVA_17;
-            final SpringCloudAppConfig config = this.getData();
-            config.getDeployment().setRuntimeVersion(runtime.toString());
-            this.setData(config);
+            this.advancedForm.setDefaultRuntimeVersion(runtime.toString());
+            this.basicForm.setDefaultRuntimeVersion(runtime.toString());
         }
     }
 }

@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
+package com.microsoft.azure.toolkit.intellij.connector.projectexplorer;
 
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -57,12 +57,16 @@ public class ActionNode<T> extends AbstractAzureFacetNode<Action<T>> {
     @Override
     protected void buildView(@Nonnull PresentationData presentation) {
         final IView.Label view = this.getValue().getView(this.source);
-        presentation.addText(StringUtils.capitalize(view.getLabel()), SimpleTextAttributes.LINK_ATTRIBUTES);
+        presentation.addText(StringUtils.capitalize(view.getLabel()), view.isEnabled() && view.isVisible() ? SimpleTextAttributes.LINK_ATTRIBUTES : SimpleTextAttributes.GRAYED_ATTRIBUTES);
         presentation.setTooltip(view.getDescription());
     }
 
     @Override
     public void onClicked(Object event) {
+        final IView.Label view = this.getValue().getView(this.source);
+        if (!view.isVisible() || !view.isEnabled()) {
+            return;
+        }
         final Action<T> value = getValue();
         if (event instanceof AnActionEvent) {
             value.getContext().setTelemetryProperty(Action.PLACE, ((AnActionEvent) event).getPlace());
