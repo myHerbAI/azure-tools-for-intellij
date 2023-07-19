@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.microsoft.azure.toolkit.intellij.common.action.IntellijActionsContributor.ACTIONS_DEPLOY_TO_AZURE;
 import static com.microsoft.azure.toolkit.intellij.connector.ConnectionTopics.CONNECTION_CHANGED;
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor.CONNECT_TO_MODULE;
 
@@ -85,6 +86,7 @@ public class AzureFacetRootNode extends AbstractProjectNode<AzureModule> impleme
         final Profile profile = module.getDefaultProfile();
         if (Objects.isNull(profile)) {
             nodes.add(new ActionNode<>(this.getProject(), CONNECT_TO_MODULE, module));
+            nodes.add(new ActionNode<>(this.getProject(), Action.Id.of(ACTIONS_DEPLOY_TO_AZURE), module.getModule()));
             return nodes;
         }
         nodes.add(new DeploymentTargetsNode(this.getProject(), profile.getDeploymentTargetManager()));
