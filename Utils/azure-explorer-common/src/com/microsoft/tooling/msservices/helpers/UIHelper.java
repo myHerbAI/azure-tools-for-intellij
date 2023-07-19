@@ -8,7 +8,7 @@ package com.microsoft.tooling.msservices.helpers;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.tooling.msservices.serviceexplorer.Node;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.container.ContainerRegistryNode;
-import com.microsoft.tooling.msservices.serviceexplorer.azure.rediscache.RedisCacheNode;
+//import com.microsoft.tooling.msservices.serviceexplorer.azure.rediscache.RedisCacheNode;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,9 +44,9 @@ public interface UIHelper {
 
     File showFileSaver(String title, String fileName);
 
-    void openRedisPropertyView(@NotNull RedisCacheNode node);
+//    void openRedisPropertyView(@NotNull RedisCacheNode node);
 
-    void openRedisExplorer(@NotNull RedisCacheNode node);
+//    void openRedisExplorer(@NotNull RedisCacheNode node);
 
     void openInBrowser(String link);
 

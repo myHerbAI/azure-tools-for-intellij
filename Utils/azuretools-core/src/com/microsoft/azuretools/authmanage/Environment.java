@@ -6,7 +6,7 @@
 package com.microsoft.azuretools.authmanage;
 
 import com.google.common.collect.ImmutableList;
-import com.microsoft.azure.AzureEnvironment;
+import com.azure.core.management.AzureEnvironment;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;

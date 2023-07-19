@@ -42,14 +42,14 @@ public class SparkBatchAzureSubmission extends SparkBatchSubmission {
 
     @NotNull
     private String getResourceEndpoint() {
-        String endpoint = CommonSettings.getAdEnvironment().dataLakeEndpointResourceId();
+        String endpoint = CommonSettings.getAdEnvironment().getDataLakeEndpointResourceId();
 
         return endpoint != null ? endpoint : "https://datalake.azure.net/";
     }
 
     @NotNull
     String getAccessToken() throws IOException {
-        return IdeAzureAccount.getInstance().getCredentialForTrack1(getTenantId()).getToken(getResourceEndpoint());
+        return IdeAzureAccount.getInstance().getAccessTokenByTrack2(getTenantId(),getResourceEndpoint());
     }
 
     @NotNull

@@ -163,12 +163,12 @@
             <artifactId>azure-toolkit-ide-containerregistry-lib</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-mgmt-redis</artifactId>
+            <groupId>com.azure.resourcemanager</groupId>
+            <artifactId>azure-resourcemanager-redis</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-mgmt-resources</artifactId>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-core-management</artifactId>
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure</groupId>

@@ -5,9 +5,9 @@
 
 package com.microsoft.azuretools.azurecommons.rediscacheprocessors;
 
-import com.microsoft.azure.management.redis.RedisCache;
-import com.microsoft.azure.management.redis.RedisCaches;
-import com.microsoft.azure.management.resources.fluentcore.model.Creatable;
+import com.azure.resourcemanager.redis.models.RedisCache;
+import com.azure.resourcemanager.redis.models.RedisCaches;
+import com.azure.resourcemanager.resources.fluentcore.model.Creatable;
 
 public class PremWithNewResGrp extends ProcessorBaseImpl {
 

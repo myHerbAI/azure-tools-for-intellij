@@ -9,12 +9,12 @@ import java.util.Date;
 import java.util.UUID;
 import java.util.List;
 
+import com.azure.core.management.Resource;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.microsoft.azure.hdinsight.sdk.rest.IConvertible;
 import com.microsoft.rest.serializer.JsonFlatten;
 import com.microsoft.rest.SkipParentValidation;
-import com.microsoft.azure.Resource;
 
 /**
  * A Data Lake Analytics account object, containing all information associated
