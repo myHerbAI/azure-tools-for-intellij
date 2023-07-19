@@ -8,7 +8,7 @@ package com.microsoft.azuretools.azurecommons.rediscacheprocessors;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
-import com.microsoft.azure.management.redis.RedisCaches;
+import com.azure.resourcemanager.redis.models.RedisCaches;
 
 public abstract class ProcessorBaseImpl extends ProcessorBase implements ProcessingStrategy {
 

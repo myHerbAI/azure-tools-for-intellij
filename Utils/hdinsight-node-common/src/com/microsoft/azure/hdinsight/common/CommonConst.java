@@ -63,6 +63,6 @@ public class CommonConst {
 
     public static final String[] AZURE_LOGIN_HOSTS = new String[] {
             "login.windows.net",
-            URI.create(CommonSettings.getAdEnvironment().activeDirectoryEndpoint()).getHost()
+            URI.create(CommonSettings.getAdEnvironment().getActiveDirectoryEndpoint()).getHost()
     };
 }

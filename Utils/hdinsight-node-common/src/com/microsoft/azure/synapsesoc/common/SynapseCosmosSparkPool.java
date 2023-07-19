@@ -78,7 +78,7 @@ public class SynapseCosmosSparkPool extends ArcadiaSparkCompute {
             // Get ADLA account details through Azure REST API
             AzureHttpObservable managementHttp =
                     new AzureManagementHttpObservable(subscription, ApiVersion.VERSION);
-            String resourceManagerEndpoint = CommonSettings.getAdEnvironment().resourceManagerEndpoint();
+            String resourceManagerEndpoint = CommonSettings.getAdEnvironment().getResourceManagerEndpoint();
             URI accountDetailUri = URI.create(resourceManagerEndpoint).resolve(getAdlaResourceId());
             AzureSparkServerlessAccount azureSparkServerlessAccount =
                     managementHttp

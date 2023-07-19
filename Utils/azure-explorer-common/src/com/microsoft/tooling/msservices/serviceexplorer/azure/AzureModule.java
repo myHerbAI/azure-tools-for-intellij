@@ -22,7 +22,7 @@ import com.microsoft.tooling.msservices.components.DefaultLoader;
 import com.microsoft.tooling.msservices.serviceexplorer.AzureRefreshableNode;
 import com.microsoft.tooling.msservices.serviceexplorer.Node;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.container.ContainerRegistryModule;
-import com.microsoft.tooling.msservices.serviceexplorer.azure.rediscache.RedisCacheModule;
+//import com.microsoft.tooling.msservices.serviceexplorer.azure.rediscache.RedisCacheModule;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.storage.StorageModule;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.vmarm.VMArmModule;
 import lombok.Setter;
@@ -42,8 +42,8 @@ public class AzureModule extends AzureRefreshableNode {
     private final Object project;
     @Nullable
     private VMArmModule vmArmServiceModule;
-    @Nullable
-    private RedisCacheModule redisCacheModule;
+//    @Nullable
+//    private RedisCacheModule redisCacheModule;
     @Nullable
     private StorageModule storageModule;
     @Nullable
@@ -67,7 +67,7 @@ public class AzureModule extends AzureRefreshableNode {
             this.storageModule = new StorageModule(this);
             //this.hdInsightModule = new HDInsightRootModule(this);
             this.vmArmServiceModule = new VMArmModule(this);
-            this.redisCacheModule = new RedisCacheModule(this);
+            //this.redisCacheModule = new RedisCacheModule(this);
             this.containerRegistryModule = new ContainerRegistryModule(this);
         }
 
@@ -126,9 +126,9 @@ public class AzureModule extends AzureRefreshableNode {
         if (vmArmServiceModule != null && !isDirectChild(vmArmServiceModule)) {
             addChildNode(vmArmServiceModule);
         }
-        if (redisCacheModule != null && !isDirectChild(redisCacheModule)) {
-            addChildNode(redisCacheModule);
-        }
+//        if (redisCacheModule != null && !isDirectChild(redisCacheModule)) {
+//            addChildNode(redisCacheModule);
+//        }
         if (storageModule != null && !isDirectChild(storageModule)) {
             addChildNode(storageModule);
         }
@@ -158,9 +158,9 @@ public class AzureModule extends AzureRefreshableNode {
                 if (vmArmServiceModule != null) {
                     vmArmServiceModule.load(true);
                 }
-                if (redisCacheModule != null) {
-                    redisCacheModule.load(true);
-                }
+//                if (redisCacheModule != null) {
+//                    redisCacheModule.load(true);
+//                }
                 if (storageModule != null) {
                     storageModule.load(true);
                 }

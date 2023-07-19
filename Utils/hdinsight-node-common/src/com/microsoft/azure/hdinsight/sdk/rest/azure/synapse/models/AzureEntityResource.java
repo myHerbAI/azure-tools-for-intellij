@@ -7,7 +7,7 @@ package com.microsoft.azure.hdinsight.sdk.rest.azure.synapse.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.microsoft.azure.ProxyResource;
+import com.azure.core.management.ProxyResource;
 
 /**
  * The resource model definition for a Azure Resource Manager resource with an etag.

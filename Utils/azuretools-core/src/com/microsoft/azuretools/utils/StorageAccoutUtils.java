@@ -5,7 +5,7 @@
 
 package com.microsoft.azuretools.utils;
 
-import com.microsoft.azure.AzureEnvironment;
+import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.storage.CloudStorageAccount;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.BlobContainerPermissions;
@@ -112,10 +112,10 @@ public class StorageAccoutUtils {
             if (IdeAzureAccount.getInstance().isLoggedIn()) {
                 endpointSuffix = Azure.az(AzureCloud.class).getOrDefault().getStorageEndpointSuffix();
             } else {
-                endpointSuffix = AzureEnvironment.AZURE.storageEndpointSuffix();
+                endpointSuffix = AzureEnvironment.AZURE.getStorageEndpointSuffix();
             }
         } catch (Exception ex) {
-            endpointSuffix = AzureEnvironment.AZURE.storageEndpointSuffix();
+            endpointSuffix = AzureEnvironment.AZURE.getStorageEndpointSuffix();
         }
         return endpointSuffix.substring(1);
     }
