@@ -47,8 +47,11 @@ import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.io.InterruptedIOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -251,8 +254,12 @@ public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputCompo
             final List<? extends T> newItems = ObjectUtils.firstNonNull(items, Collections.emptyList());
             final List<? extends T> toRemove = ListUtils.removeAll(oldItems, newItems);
             final List<? extends T> toAdd = ListUtils.removeAll(newItems, oldItems);
+            final T item = (T) model.getSelectedItem();
             toRemove.forEach(model::removeElement);
             model.addAll(toAdd);
+            if (!newItems.contains(item)) {
+                model.setSelectedItem(null);
+            }
             this.refreshValue();
         });
     }
