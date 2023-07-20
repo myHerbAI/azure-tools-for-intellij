@@ -46,7 +46,7 @@ public class PushImageAction extends AnAction {
 
     public PushImageAction(@Nullable DockerImage dockerImage) {
         //noinspection DialogTitleCapitalization
-        super(DIALOG_TITLE, "Build/push local image to Azure Container Registry", IntelliJAzureIcons.getIcon("/icons/DockerSupport/PushImage.svg"));
+        super("Push Image to Azure Container Registry...", "Build/push local image to Azure Container Registry", IntelliJAzureIcons.getIcon("/icons/DockerSupport/PushImage.svg"));
         this.dockerImage = dockerImage;
     }
 

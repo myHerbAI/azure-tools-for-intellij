@@ -44,7 +44,7 @@ public class WebAppOnLinuxAction extends AnAction {
 
     public WebAppOnLinuxAction(@Nullable DockerImage dockerImage) {
         //noinspection DialogTitleCapitalization
-        super(DIALOG_TITLE, "Build/push local image to Azure Web App", IntelliJAzureIcons.getIcon("/icons/DockerSupport/RunOnWebApp.svg"));
+        super("Deploy Image to Web App...", "Build/push local image to Azure Web App", IntelliJAzureIcons.getIcon("/icons/DockerSupport/RunOnWebApp.svg"));
         this.dockerImage = dockerImage;
     }
 
