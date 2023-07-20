@@ -59,6 +59,7 @@ public class SpringCloudAppInfoBasicPanel extends SpringCloudAppInfoPanel {
             this.lblRuntime.setVisible(!enterprise);
             this.sectionConfiguration.setVisible(!enterprise);
         }
+        super.onAppChanged(app);
     }
 
     @Override
