@@ -23,6 +23,7 @@ import com.microsoft.intellij.util.GradleUtils;
 import com.microsoft.intellij.util.MavenUtils;
 import icons.GradleIcons;
 import icons.OpenapiIcons;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -44,10 +45,13 @@ import java.util.Optional;
 @Getter
 @ToString(onlyExplicitlyIncluded = true)
 @RequiredArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AzureArtifact {
+    @EqualsAndHashCode.Include
     private final AzureArtifactType type;
     @ToString.Include
     private final String name;
+    @EqualsAndHashCode.Include
     private final Object referencedObject;
     private final Project project;
 
