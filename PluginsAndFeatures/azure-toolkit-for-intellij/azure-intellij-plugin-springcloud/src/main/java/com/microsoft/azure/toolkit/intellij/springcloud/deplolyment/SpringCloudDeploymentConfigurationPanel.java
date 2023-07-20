@@ -68,6 +68,7 @@ public class SpringCloudDeploymentConfigurationPanel extends JPanel implements A
 
     private void init() {
         this.selectorArtifact.setFileFilter(virtualFile -> StringUtils.equalsIgnoreCase("jar", FileNameUtils.getExtension(virtualFile.getPath())));
+        this.selectorArtifact.setArtifactFilter(a -> "jar".equalsIgnoreCase(a.getPackaging()));
         this.selectorArtifact.addItemListener(this::onArtifactChanged);
         this.selectorSubscription.addItemListener(this::onSubscriptionChanged);
         this.selectorCluster.addItemListener(this::onClusterChanged);
