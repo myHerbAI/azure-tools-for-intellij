@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBo
 import com.microsoft.azure.toolkit.intellij.springcloud.component.SpringCloudAppComboBox;
 import com.microsoft.azure.toolkit.intellij.springcloud.component.SpringCloudClusterComboBox;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -68,7 +69,13 @@ public class SpringCloudDeploymentConfigurationPanel extends JPanel implements A
 
     private void init() {
         this.selectorArtifact.setFileFilter(virtualFile -> StringUtils.equalsIgnoreCase("jar", FileNameUtils.getExtension(virtualFile.getPath())));
-        this.selectorArtifact.setArtifactFilter(a -> "jar".equalsIgnoreCase(a.getPackaging()));
+        this.selectorArtifact.addValidator(() -> {
+            final AzureArtifact artifact = this.selectorArtifact.getValue();
+            if (Objects.nonNull(artifact) && !"jar".equalsIgnoreCase(artifact.getPackaging())) {
+                return AzureValidationInfo.error("Invalid artifact, Azure Spring app only supports 'jar' artifact.", this.selectorArtifact);
+            }
+            return AzureValidationInfo.success(this.selectorArtifact);
+        });
         this.selectorArtifact.addItemListener(this::onArtifactChanged);
         this.selectorSubscription.addItemListener(this::onSubscriptionChanged);
         this.selectorCluster.addItemListener(this::onClusterChanged);
