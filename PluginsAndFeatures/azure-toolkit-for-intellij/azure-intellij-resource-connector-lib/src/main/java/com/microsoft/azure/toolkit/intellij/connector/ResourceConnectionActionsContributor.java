@@ -46,7 +46,7 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
     public static final Action.Id<Connection<?, ?>> REMOVE_CONNECTION = Action.Id.of("user/connector.remove_connection");
     public static final Action.Id<Connection<?, ?>> FIX_CONNECTION = Action.Id.of("user/connector.fix_connection");
 
-    public static final Action.Id<AzureModule> CONNECT_TO_MODULE = Action.Id.of("user/connector.connect_to_module");
+    public static final Action.Id<Object> CONNECT_TO_MODULE = Action.Id.of("user/connector.connect_to_module");
     public static final Action.Id<AzureModule> REFRESH_MODULE = Action.Id.of("user/connector.refresh_module");
     public static final Action.Id<ConnectionManager> REFRESH_MODULE_CONNECTIONS = Action.Id.of("user/connector.refresh_module_connections");
     public static final Action.Id<DeploymentTargetManager> REFRESH_MODULE_TARGETS = Action.Id.of("user/connector.refresh_module_targets");
@@ -124,7 +124,13 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
         new Action<>(CONNECT_TO_MODULE)
             .withLabel("Connect Azure Resource...")
             .withIcon(AzureIcons.Connector.CONNECT.getIconPath())
-            .withHandler((module, e) -> AzureTaskManager.getInstance().runLater(() -> ModuleConnectorAction.connectModuleToAzureResource(module.getModule())))
+            .withHandler((target, e) -> {
+                if (target instanceof AzureModule module) {
+                    AzureTaskManager.getInstance().runLater(() -> ModuleConnectorAction.connectModuleToAzureResource(module.getModule()));
+                } else if (target instanceof ConnectionManager cm) {
+                    AzureTaskManager.getInstance().runLater(() -> ModuleConnectorAction.connectModuleToAzureResource(cm.getProfile().getModule().getModule()));
+                }
+            })
             .withShortcut(am.getIDEDefaultShortcuts().refresh())
             .withAuthRequired(false)
             .register(am);
