@@ -7,7 +7,11 @@ package com.microsoft.azure.toolkit.intellij.springcloud.deplolyment;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.*;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.ConfigurationType;
+import com.intellij.execution.configurations.LocatableConfigurationBase;
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.impl.CheckableRunConfigurationEditor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.module.Module;
@@ -79,7 +83,7 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
             final SpringCloudAppConfig appConfig = Optional.ofNullable(element.getChild("SpringCloudAppConfig"))
                 .map(e -> XmlSerializer.deserialize(e, SpringCloudAppConfig.class))
                 .orElse(SpringCloudAppConfig.builder().deployment(SpringCloudDeploymentConfig.builder().build()).build());
-            if (Objects.nonNull(appConfig)) {
+            if (Objects.nonNull(appConfig) && StringUtils.isNoneBlank(appConfig.getSubscriptionId(), appConfig.getResourceGroup(), appConfig.getClusterName(), appConfig.getAppName())) {
                 final String appId = String.format("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppPlatform/Spring/%s/apps/%s",
                     appConfig.getSubscriptionId(), appConfig.getResourceGroup(), appConfig.getClusterName(), appConfig.getAppName());
                 this.appId = ResourceId.fromString(appId);
