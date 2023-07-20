@@ -16,7 +16,6 @@ import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.microsoft.azure.toolkit.ide.springcloud.SpringCloudActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.common.messager.IntellijAzureMessager;
@@ -105,12 +104,12 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
         return new DefaultExecutionResult(consoleView, processHandler);
     }
 
-    @AzureOperation(name = "user/springcloud.deploy_app.app", params = {"this.config.getAppConfig().getAppName()"})
+    @AzureOperation(name = "user/springcloud.deploy_app.app", params = {"this.config.getApp().getName()"})
     public SpringCloudDeployment execute(IAzureMessager messager) {
         OperationContext.current().setMessager(messager);
         OperationContext.current().setTelemetryProperties(getTelemetryProperties());
         final SpringCloudDeploymentDraft deployment = this.config.getDeployment();
-        final Optional<File> opFile = Optional.ofNullable(deployment.getArtifact()).map(IArtifact::getFile);
+        final Optional<File> opFile = Optional.ofNullable(deployment).map(SpringCloudDeploymentDraft::getArtifact).map(IArtifact::getFile);
         final Action.Id<Void> REOPEN = Action.Id.of("user/springcloud.reopen_deploy_dialog");
         final Action<Void> reopen = new Action<>(REOPEN).withHandler((v) -> DeploySpringCloudAppAction.deploy(this.config, this.project));
         if (opFile.isEmpty() || opFile.filter(File::exists).isEmpty()) {
@@ -196,7 +195,7 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
 
     protected Map<String, String> getTelemetryProperties() {
         final Map<String, String> props = new HashMap<>();
-        final SpringCloudDeploymentDraft deployment = config.getDeployment();
+        final SpringCloudDeploymentDraft deployment = Objects.requireNonNull(config.getDeployment());
         props.put("runtime", String.valueOf(deployment.getRuntimeVersion()));
         props.put("subscriptionId", deployment.getSubscriptionId());
         props.put("public", String.valueOf(deployment.getParent().isPublicEndpointEnabled()));
