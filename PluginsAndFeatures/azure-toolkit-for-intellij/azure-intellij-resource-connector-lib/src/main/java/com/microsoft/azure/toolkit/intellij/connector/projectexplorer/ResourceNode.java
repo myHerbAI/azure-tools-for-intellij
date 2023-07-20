@@ -92,7 +92,7 @@ public class ResourceNode extends AbstractAzureFacetNode<Node<?>> implements Nod
     @Override
     @Nullable
     public IActionGroup getActionGroup() {
-        IActionGroup group = Optional.ofNullable(getValue()).map(Node::getActions).orElse(null);
+        final IActionGroup originalGroup = Optional.ofNullable(getValue()).map(Node::getActions).orElse(null);
         final Object value = this.getValue().getValue();
         if (this.parent instanceof DeploymentTargetsNode targets && value instanceof AbstractAzResource<?, ?, ?> resource) {
             final AzureTaskManager tm = AzureTaskManager.getInstance();
@@ -102,15 +102,16 @@ public class ResourceNode extends AbstractAzureFacetNode<Node<?>> implements Nod
                 .withIcon(AzureIcons.Action.DELETE.getIconPath())
                 .withHandler(ignore -> tm.runLater(() -> tm.write(() -> targets.getValue().getProfile().removeApp(resource).save())))
                 .withAuthRequired(false);
-            if (group != null) {
-                group = new ActionGroup();
+            if (originalGroup != null) {
+                final ActionGroup group = new ActionGroup();
                 group.appendActions(removeTarget, "---");
-                group.appendActions(group.getActions());
+                group.appendActions(originalGroup.getActions());
+                return group;
             } else {
-                group = new ActionGroup(removeTarget);
+                return new ActionGroup(removeTarget);
             }
         }
-        return group;
+        return originalGroup;
     }
 
     @Override
