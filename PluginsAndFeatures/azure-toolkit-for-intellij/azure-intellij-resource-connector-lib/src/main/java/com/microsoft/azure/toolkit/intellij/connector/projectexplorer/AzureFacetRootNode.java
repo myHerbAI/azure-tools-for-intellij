@@ -61,7 +61,7 @@ public class AzureFacetRootNode extends AbstractProjectNode<AzureModule> impleme
             }
         });
         connection.subscribe(DeploymentTargetTopics.TARGET_APP_CHANGED, (DeploymentTargetTopics.TargetAppChanged) (m, app, action) -> {
-            if (app.getName().equalsIgnoreCase(module.getName())) {
+            if (m.getName().equalsIgnoreCase(module.getName())) {
                 updateChildren();
             }
         });
