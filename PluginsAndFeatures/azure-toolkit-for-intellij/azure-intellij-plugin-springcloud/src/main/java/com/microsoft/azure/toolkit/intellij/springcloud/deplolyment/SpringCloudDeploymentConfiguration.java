@@ -56,8 +56,10 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
     @Getter
     @Nullable
     private SpringCloudApp app;
+    @Nullable
     private ResourceId appId;
     @Setter
+    @Nullable
     private AzureArtifact artifact;
 
     public SpringCloudDeploymentConfiguration(@Nonnull Project project, @Nonnull ConfigurationFactory factory, String name) {
@@ -107,7 +109,7 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
         if (Objects.nonNull(deployment)) {
             this.app = deployment.getParent();
             this.appId = ResourceId.fromString(this.app.getId());
-            this.artifact = ((WrappedAzureArtifact) deployment.getArtifact()).getArtifact();
+            this.artifact = Optional.ofNullable((WrappedAzureArtifact) deployment.getArtifact()).map(WrappedAzureArtifact::getArtifact).orElse(null);
         }
     }
 
@@ -117,7 +119,7 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
         if (Objects.nonNull(app)) {
             final SpringCloudDeployment d = Optional.ofNullable(app.getActiveDeployment()).orElseGet(() -> app.deployments().create("default", null));
             final SpringCloudDeploymentDraft deployment = (SpringCloudDeploymentDraft) (d.isDraft() ? d : d.update());
-            deployment.setArtifact(new WrappedAzureArtifact(this.artifact, this.getProject()));
+            Optional.ofNullable(this.artifact).map(a -> new WrappedAzureArtifact(a, this.getProject())).ifPresent(deployment::setArtifact);
             return deployment;
         }
         return null;
