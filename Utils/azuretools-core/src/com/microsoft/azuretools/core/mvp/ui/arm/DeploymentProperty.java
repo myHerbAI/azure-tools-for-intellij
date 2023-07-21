@@ -5,7 +5,7 @@
 
 package com.microsoft.azuretools.core.mvp.ui.arm;
 
-import com.microsoft.azure.management.resources.Deployment;
+import com.azure.resourcemanager.resources.models.Deployment;
 import java.util.List;
 
 public class DeploymentProperty {

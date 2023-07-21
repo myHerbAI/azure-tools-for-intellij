@@ -5,15 +5,6 @@
 
 package com.microsoft.azuretools.azurecommons.helpers;
 
-import com.microsoft.azure.management.redis.RedisCache;
-import com.microsoft.azure.management.redis.implementation.RedisManager;
-import com.microsoft.azure.management.resources.implementation.ResourceManager;
-import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azuretools.authmanage.IdeAzureAccount;
-import com.microsoft.azuretools.azurecommons.exceptions.InvalidFormDataException;
-import com.microsoft.azuretools.azurecommons.rediscacheprocessors.ProcessingStrategy;
-import com.microsoft.azuretools.azurecommons.rediscacheprocessors.RedisCacheCreator;
-
 import java.util.LinkedHashMap;
 
 public final class RedisCacheUtil {
@@ -69,68 +60,4 @@ public final class RedisCacheUtil {
         return skus;
     }
 
-    public static void doValidate(Subscription currentSub, String dnsNameValue,
-                                  String selectedRegionValue, String selectedResGrpValue, String selectedPriceTierValue) throws InvalidFormDataException {
-        if (currentSub == null) {
-            throw new InvalidFormDataException(REQUIRE_SUBSCRIPTION);
-        }
-        if (dnsNameValue == null || dnsNameValue.isEmpty() || !dnsNameValue.matches("^[A-Za-z0-9]+(-[A-Za-z0-9]+)*$") || dnsNameValue.length() > 63) {
-            throw new InvalidFormDataException(INVALID_REDIS_CACHE_NAME);
-        }
-        if (selectedRegionValue == null || selectedRegionValue.isEmpty()) {
-            throw new InvalidFormDataException(REQUIRE_LOCATION);
-        }
-        if (selectedResGrpValue == null || selectedResGrpValue.isEmpty()) {
-            throw new InvalidFormDataException(REQUIRE_RESOURCE_GROUP);
-        }
-        if (selectedPriceTierValue == null || selectedPriceTierValue.isEmpty()) {
-            throw new InvalidFormDataException(REQUIRE_PRICE_TIER);
-        }
-        final RedisManager.Configurable configurable = RedisManager.configure();
-        final String sid = currentSub.getId();
-        final RedisManager azure = IdeAzureAccount.getInstance().authenticateForTrack1(sid, configurable, (t, c) -> c.authenticate(t, sid));
-        for (final RedisCache existingRedisCache : azure.redisCaches().list()) {
-            if (existingRedisCache.name().equals(dnsNameValue)) {
-                throw new InvalidFormDataException("The name " + dnsNameValue + " is not available");
-            }
-        }
-    }
-
-    public static ProcessingStrategy doGetProcessor(
-        String sid,
-        LinkedHashMap<String, String> skus,
-        String dnsNameValue, String selectedRegionValue,
-        String selectedResGrpValue,
-        String selectedPriceTierValue,
-        boolean noSSLPort,
-        boolean newResGrp) {
-        final RedisManager.Configurable configurable = RedisManager.configure();
-        final RedisManager azure = IdeAzureAccount.getInstance().authenticateForTrack1(sid, configurable, (t, c) -> c.authenticate(t, sid));
-        final RedisCacheCreator creator = new RedisCacheCreator(azure.redisCaches(),
-            dnsNameValue,
-            selectedRegionValue,
-            selectedResGrpValue
-        );
-        if (noSSLPort) {
-            if (newResGrp && canCreateNewResGrp(sid, selectedResGrpValue)) {
-                //e.g. BASIC0NewNoSSL
-                return creator.CreatorMap().get(skus.get(selectedPriceTierValue) + "NewNoSSL");
-            } else {
-                return creator.CreatorMap().get(skus.get(selectedPriceTierValue) + "ExistingNoSSL");
-            }
-        } else {
-            if (newResGrp && canCreateNewResGrp(sid, selectedResGrpValue)) {
-                //e.g. BASIC0NewNoSSL
-                return creator.CreatorMap().get(skus.get(selectedPriceTierValue) + "New");
-            } else {
-                return creator.CreatorMap().get(skus.get(selectedPriceTierValue) + "Existing");
-            }
-        }
-    }
-
-    public static boolean canCreateNewResGrp(final String sid, String resGrpName) {
-        final ResourceManager.Configurable configurable = ResourceManager.configure();
-        final ResourceManager azure = IdeAzureAccount.getInstance().authenticateForTrack1(sid, configurable, (t, c) -> c.authenticate(t).withSubscription(sid));
-        return (!azure.resourceGroups().checkExistence(resGrpName));
-    }
 }

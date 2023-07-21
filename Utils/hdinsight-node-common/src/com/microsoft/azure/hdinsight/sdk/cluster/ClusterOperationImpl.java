@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.hdinsight.sdk.cluster;
 
+import com.azure.core.management.AzureEnvironment;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.microsoft.azure.hdinsight.sdk.common.AuthenticationErrorHandler;
@@ -12,6 +13,7 @@ import com.microsoft.azure.hdinsight.sdk.common.RequestCallback;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azuretools.authmanage.Environment;
 import com.microsoft.azuretools.authmanage.IdeAzureAccount;
 import com.microsoft.azuretools.azurecommons.helpers.AzureCmdException;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
@@ -105,7 +107,7 @@ public class ClusterOperationImpl implements IClusterOperation {
      @NotNull
      public <T> T requestWithToken(@NotNull String tenantId, @NotNull final RequestCallback<T> requestCallback)
              throws Throwable {
-          String accessToken = IdeAzureAccount.getInstance().getAccessTokenForTrack1(tenantId);
+          String accessToken = IdeAzureAccount.getInstance().getAccessTokenByTrack2(tenantId, AzureEnvironment.AZURE.getManagementEndpoint());
           return requestCallback.execute(accessToken);
      }
 }

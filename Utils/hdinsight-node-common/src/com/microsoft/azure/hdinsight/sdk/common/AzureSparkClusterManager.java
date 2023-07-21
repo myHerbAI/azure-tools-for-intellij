@@ -54,14 +54,14 @@ public class AzureSparkClusterManager extends AzureSparkCosmosClusterManager imp
 
     @NotNull
     public String getResourceEndpoint() {
-        String endpoint = CommonSettings.getAdEnvironment().resourceManagerEndpoint();
+        String endpoint = CommonSettings.getAdEnvironment().getResourceManagerEndpoint();
 
         return endpoint != null ? endpoint : "https://management.azure.com/";
     }
 
     @NotNull
     public String getAccessToken(String tenantId) throws IOException {
-        return IdeAzureAccount.getInstance().getCredentialForTrack1(tenantId).getToken(getResourceEndpoint());
+        return IdeAzureAccount.getInstance().getAccessTokenByTrack2(tenantId,getResourceEndpoint());
     }
 
     public boolean isLoggedIn() {

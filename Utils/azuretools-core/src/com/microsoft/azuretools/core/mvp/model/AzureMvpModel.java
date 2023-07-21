@@ -5,9 +5,6 @@
 
 package com.microsoft.azuretools.core.mvp.model;
 
-import com.microsoft.azure.management.resources.Deployment;
-import com.microsoft.azure.management.resources.fluentcore.arm.models.HasName;
-import com.microsoft.azure.management.resources.implementation.ResourceManager;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -16,11 +13,8 @@ import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
-import com.microsoft.azuretools.authmanage.IdeAzureAccount;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import rx.Observable;
-import rx.schedulers.Schedulers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -138,45 +132,6 @@ public class AzureMvpModel {
     public ResourceGroup getResourceGroupBySubscriptionIdAndName(String sid, String name) throws Exception {
         return Optional.ofNullable(az(AzureResources.class).groups(sid).get(name, name))
             .orElseThrow(() -> new Exception(CANNOT_GET_RESOURCE_GROUP));
-    }
-
-    @AzureOperation(name = "internal/arm.list_deployments")
-    public List<Deployment> listAllDeployments() {
-        List<Deployment> deployments = new ArrayList<>();
-        List<Subscription> subs = getSelectedSubscriptions();
-        Observable.from(subs).flatMap((sub) ->
-            Observable.create((subscriber) -> {
-                List<Deployment> sidDeployments = listDeploymentsBySid(sub.getId());
-                synchronized (deployments) {
-                    deployments.addAll(sidDeployments);
-                }
-                subscriber.onCompleted();
-            }).subscribeOn(Schedulers.io()), subs.size()).subscribeOn(Schedulers.io()).toBlocking().subscribe();
-        Collections.sort(deployments, getComparator(Deployment::name));
-        return deployments;
-    }
-
-    @AzureOperation(name = "azure/arm.list_deployments.subscription", params = {"sid"})
-    public List<Deployment> listDeploymentsBySid(String sid) {
-        final ResourceManager.Configurable configurable = ResourceManager.configure();
-        final ResourceManager azure = IdeAzureAccount.getInstance().authenticateForTrack1(sid, configurable, (t, c) -> c.authenticate(t).withSubscription(sid));
-        List<Deployment> deployments = azure.deployments().list();
-        Collections.sort(deployments, getComparator(Deployment::name));
-        return deployments;
-    }
-
-    /**
-     * Get deployment by resource group name
-     * @param rgName
-     * @return
-     */
-    @AzureOperation(name = "azure/arm.list_deployments.rg|subscription", params = {"rgName", "sid"})
-    public List<Deployment> getDeploymentByRgName(String sid, String rgName) {
-        final ResourceManager.Configurable configurable = ResourceManager.configure();
-        final ResourceManager azure = IdeAzureAccount.getInstance().authenticateForTrack1(sid, configurable, (t, c) -> c.authenticate(t).withSubscription(sid));
-        final List<Deployment> res = azure.deployments().listByResourceGroup(rgName);
-        res.sort(getComparator(HasName::name));
-        return res;
     }
 
     /**

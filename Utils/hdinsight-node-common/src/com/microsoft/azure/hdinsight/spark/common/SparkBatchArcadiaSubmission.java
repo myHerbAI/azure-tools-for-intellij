@@ -65,7 +65,7 @@ public class SparkBatchArcadiaSubmission extends SparkBatchSubmission {
 
     @NotNull
     protected String getAccessToken() throws IOException {
-        return IdeAzureAccount.getInstance().getCredentialForTrack1(getTenantId()).getToken(getResourceEndpoint());
+        return IdeAzureAccount.getInstance().getAccessTokenByTrack2(getTenantId(),getResourceEndpoint());
     }
 
     @NotNull

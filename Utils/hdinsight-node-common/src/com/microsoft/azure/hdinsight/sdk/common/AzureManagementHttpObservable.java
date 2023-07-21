@@ -17,7 +17,7 @@ public class AzureManagementHttpObservable extends AzureHttpObservable {
     @NotNull
     @Override
     public String getResourceEndpoint() {
-        String endpoint = CommonSettings.getAdEnvironment().managementEndpoint();
+        String endpoint = CommonSettings.getAdEnvironment().getManagementEndpoint();
 
         return endpoint != null ? endpoint : "https://management.core.windows.net/";
     }

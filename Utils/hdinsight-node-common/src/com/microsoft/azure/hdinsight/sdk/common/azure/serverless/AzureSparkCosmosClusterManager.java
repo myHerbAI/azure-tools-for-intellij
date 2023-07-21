@@ -7,7 +7,7 @@ package com.microsoft.azure.hdinsight.sdk.common.azure.serverless;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
-import com.microsoft.azure.AzureEnvironment;
+import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azure.hdinsight.common.logger.ILogger;
 import com.microsoft.azure.hdinsight.sdk.cluster.ClusterContainer;
 import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;
@@ -64,7 +64,7 @@ public class AzureSparkCosmosClusterManager implements ClusterContainer,
     private static final String REST_SEGMENT_ADL_ACCOUNT = "providers/Microsoft.DataLakeAnalytics/accounts";
 
     // TODO!!!
-    private static final String ACCOUNT_FILTER = CommonSettings.getAdEnvironment().endpoints()
+    private static final String ACCOUNT_FILTER = CommonSettings.getAdEnvironment().getEndpoints()
             .getOrDefault("dataLakeSparkAccountFilter",
                     "length(name) gt 4 and substring(name, length(name) sub 4) ge '-c00' and "
                         + "substring(name, length(name) sub 4) le '-c99'");
@@ -248,7 +248,7 @@ public class AzureSparkCosmosClusterManager implements ClusterContainer,
 
     @NotNull
     private URI getResourceManagerEndpoint() {
-        return URI.create(azureEnv.resourceManagerEndpoint());
+        return URI.create(azureEnv.getResourceManagerEndpoint());
     }
 
     @NotNull

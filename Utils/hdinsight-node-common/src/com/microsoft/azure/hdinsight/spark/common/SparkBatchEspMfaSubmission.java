@@ -25,7 +25,7 @@ public class SparkBatchEspMfaSubmission extends SparkBatchSubmission {
 
     @NotNull
     public String getAccessToken() throws IOException {
-        return IdeAzureAccount.getInstance().getCredentialForTrack1(getTenantId()).getToken(resource);
+        return IdeAzureAccount.getInstance().getAccessTokenByTrack2(getTenantId(),resource);
     }
 
     @NotNull

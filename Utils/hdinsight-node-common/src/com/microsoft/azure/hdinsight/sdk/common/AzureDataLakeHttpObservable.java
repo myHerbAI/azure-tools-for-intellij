@@ -26,7 +26,7 @@ public class AzureDataLakeHttpObservable extends AzureHttpObservable {
     @NotNull
     @Override
     public String getResourceEndpoint() {
-        String endpoint = CommonSettings.getAdEnvironment().dataLakeEndpointResourceId();
+        String endpoint = CommonSettings.getAdEnvironment().getDataLakeEndpointResourceId();
 
         return endpoint != null ? endpoint : "https://datalake.azure.net/";
     }

@@ -8,7 +8,7 @@ package com.microsoft.azuretools.azurecommons.rediscacheprocessors;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.microsoft.azure.management.redis.RedisCaches;
+import com.azure.resourcemanager.redis.models.RedisCaches;
 
 public final class RedisCacheCreator {
     private Map<String, ProcessingStrategy> creatorMap = new HashMap<String, ProcessingStrategy>();
