@@ -48,8 +48,8 @@ import java.util.Objects;
 import java.util.function.Function;
 
 public class VirtualFileActions {
+    public static final Key<Boolean> FILE_CHANGED = new Key<>("FILE_CHANGED");
     private static final Key<String> FILE_ID = new Key<>("FILE_ID");
-    private static final Key<Boolean> FILE_CHANGED = new Key<>("FILE_CHANGED");
     private static final String FILE_EDITING = "Save File";
     private static final String SAVE_CHANGES = "Do you want to save your changes?";
     private static final String SUCCESS_DOWNLOADING = "File %s is successfully downloaded to %s.";
