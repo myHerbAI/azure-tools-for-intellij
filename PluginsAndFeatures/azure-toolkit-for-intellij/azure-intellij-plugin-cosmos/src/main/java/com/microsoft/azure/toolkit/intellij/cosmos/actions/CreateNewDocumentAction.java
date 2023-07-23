@@ -40,7 +40,7 @@ public class CreateNewDocumentAction {
         final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
         final VirtualFile virtualFile = getOrCreateVirtualFile(container, fileEditorManager);
         final Function<String, Boolean> onSave = content -> {
-            AzureTaskManager.getInstance().runInBackground(new AzureTask<>(OperationBundle.description("internal/cosmos.create_document.container"), () -> {
+            AzureTaskManager.getInstance().runInBackground(new AzureTask<>(OperationBundle.description("internal/cosmos.create_document.container", container.getName()), () -> {
                 try {
                     final ObjectNode node = new ObjectMapper().readValue(content, ObjectNode.class);
                     container.importDocument(node);
