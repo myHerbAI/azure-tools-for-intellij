@@ -27,6 +27,8 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
 
+import static com.microsoft.azure.toolkit.intellij.common.fileexplorer.VirtualFileActions.FILE_CHANGED;
+
 public class CreateNewDocumentAction {
 
     private static final String DEFAULT_CONTENT =
@@ -39,8 +41,9 @@ public class CreateNewDocumentAction {
     public static void create(@Nonnull final ICosmosDocumentContainer<?> container, @Nonnull final Project project) {
         final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
         final VirtualFile virtualFile = getOrCreateVirtualFile(container, fileEditorManager);
+        virtualFile.putUserData(FILE_CHANGED, true); // mark file changed to prompt when close with default content
         final Function<String, Boolean> onSave = content -> {
-            AzureTaskManager.getInstance().runInBackground(new AzureTask<>(OperationBundle.description("internal/cosmos.create_document.container"), () -> {
+            AzureTaskManager.getInstance().runInBackground(new AzureTask<>(OperationBundle.description("internal/cosmos.create_document.container", container.getName()), () -> {
                 try {
                     final ObjectNode node = new ObjectMapper().readValue(content, ObjectNode.class);
                     container.importDocument(node);
@@ -62,7 +65,7 @@ public class CreateNewDocumentAction {
 
     @SneakyThrows
     private static VirtualFile createVirtualFile(@Nonnull final ICosmosDocumentContainer<?> container, final FileEditorManager manager) {
-        final File tempFile = FileUtil.createTempFile(UUID.randomUUID().toString(), ".json", true);
+        final File tempFile = FileUtil.createTempFile(String.format("%s:New Document", container.getName()), ".json", true);
         FileUtil.writeToFile(tempFile, DEFAULT_CONTENT);
         return VirtualFileActions.createVirtualFile(container.getId(), tempFile.getName(), tempFile, manager);
     }
