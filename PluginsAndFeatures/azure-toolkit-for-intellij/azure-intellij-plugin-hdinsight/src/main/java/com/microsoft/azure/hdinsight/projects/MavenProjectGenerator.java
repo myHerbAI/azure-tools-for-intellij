@@ -14,12 +14,21 @@ import com.microsoft.azure.hdinsight.common.StreamUtil;
 import com.microsoft.azure.hdinsight.projects.util.ProjectSampleUtil;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.tooling.msservices.components.DefaultLoader;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
+import org.dom4j.io.OutputFormat;
+import org.dom4j.io.SAXReader;
+import org.dom4j.io.XMLWriter;
 import org.jetbrains.concurrency.Promise;
 import org.jetbrains.concurrency.Promises;
 import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
 
@@ -27,6 +36,9 @@ public class MavenProjectGenerator {
     private Module module;
     private HDInsightTemplatesType templatesType;
     private SparkVersion sparkVersion;
+    private static final String ARTIFACT_ID = "artifactId";
+    private static final String GROUP_ID = "groupId";
+    private static final String UTF8_ENCODING = "UTF-8";
 
     public MavenProjectGenerator(@NotNull Module module,
                                  @NotNull HDInsightTemplatesType templatesType,
@@ -200,9 +212,60 @@ public class MavenProjectGenerator {
             return Promises.rejectedPromise("Can't find Maven pom.xml file to import into IDEA");
         }
 
+        if(ObjectUtils.isEmpty(pomFile) || !changeArtifactName(pomFile.getPath())){
+            return Promises.rejectedPromise("The artifactId in the Maven pom.xml file has not been modified");
+        }
+
         manager.addManagedFiles(Collections.singletonList(pom));
 
         return manager.scheduleImportAndResolve()
                 .then(modules -> manager.findProject(module));
+    }
+
+    /**
+     *
+     * Solve the problem that idea mistakenly takes the artifactId in the pom.xml file as the Modules name during the template addition process, which causes build failure
+     *
+     * @param pomFile Path to the pom.xml file
+     * @return
+     *        false: indicates that the modification fails
+     *        true:  Indicates that the corresponding artifactId in the pom.xml file is consistent with the project name
+     *
+     */
+    public boolean changeArtifactName(String pomFile)
+    {
+        if(StringUtils.isBlank(pomFile)){
+            return false;
+        }
+        boolean result = false;
+        Document document = null;
+        XMLWriter writer = null;
+        try
+        {
+            SAXReader reader = new SAXReader();
+            document = reader.read(pomFile);
+            Element rootElement = document.getRootElement();
+            rootElement.element(ARTIFACT_ID).setText(this.module.getName());
+            rootElement.element(GROUP_ID).setText(this.module.getName());
+            OutputFormat format = new OutputFormat();
+            format.setEncoding(UTF8_ENCODING);
+            writer = new XMLWriter(new FileWriter(pomFile), format);
+            writer.write(document);
+            result = true;
+        }
+        catch (DocumentException | IOException de)
+        {
+            Promises.rejectedPromise(de);
+        } finally {
+            try {
+                assert writer != null;
+                writer.close();
+                document.clearContent();
+            } catch (IOException | AssertionError e) {
+                Promises.rejectedPromise(e);
+                result = false;
+            }
+        }
+        return result;
     }
 }

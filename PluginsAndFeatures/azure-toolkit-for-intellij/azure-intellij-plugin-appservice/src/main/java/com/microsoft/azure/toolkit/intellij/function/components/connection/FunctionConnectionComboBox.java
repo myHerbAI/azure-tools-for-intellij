@@ -20,7 +20,8 @@ import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.ProjectUtils;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
-import com.microsoft.azure.toolkit.intellij.connector.ConnectionManager;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.function.connection.CommonConnectionResource;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -41,12 +42,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class FunctionConnectionComboBox extends AzureComboBox<FunctionConnectionComboBox.ConnectionConfiguration> {
@@ -101,8 +97,11 @@ public class FunctionConnectionComboBox extends AzureComboBox<FunctionConnection
         if (Objects.isNull(module)) {
             return Collections.emptyList();
         }
-        return project.getService(ConnectionManager.class).getConnectionsByConsumerId(module.getName()).stream()
-                .map(ConnectionConfiguration::new).collect(Collectors.toList());
+        final List<Connection<?, ?>> connections = Optional.ofNullable(AzureModule.from(module))
+                .map(AzureModule::getDefaultProfile)
+                .map(Profile::getConnections)
+                .orElse(Collections.emptyList());
+        return connections.stream().map(ConnectionConfiguration::new).collect(Collectors.toList());
     }
 
     private List<ConnectionConfiguration> getConfigurationFromLocalSettings() {

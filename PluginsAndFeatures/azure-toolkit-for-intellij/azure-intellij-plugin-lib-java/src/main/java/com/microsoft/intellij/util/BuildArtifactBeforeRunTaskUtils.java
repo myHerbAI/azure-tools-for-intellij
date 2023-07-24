@@ -40,7 +40,9 @@ import java.util.stream.Collectors;
 
 public class BuildArtifactBeforeRunTaskUtils {
     private static final String GRADLE_TASK_ASSEMBLE = "assemble";
+    private static final String GRADLE_TASL_SKIP_TESTS = "-x test";
     private static final String MAVEN_TASK_PACKAGE = "package";
+    private static final String MAVEN_TASK_PACKAGE_SKIP_TESTS = "package -DskipTests";
 
     public static void addBeforeRunTask(
         @Nonnull ConfigurationSettingsEditorWrapper editor,
@@ -62,7 +64,7 @@ public class BuildArtifactBeforeRunTaskUtils {
         removeTasks(editor, tasks);
     }
 
-    private static void updateConnectorBeforeRunTask(@Nonnull RunConfiguration config, @Nonnull ConfigurationSettingsEditorWrapper editor) {
+    public static void updateConnectorBeforeRunTask(@Nonnull RunConfiguration config, @Nonnull ConfigurationSettingsEditorWrapper editor) {
         config.getProject().getMessageBus()
             .syncPublisher(IWebAppRunConfiguration.MODULE_CHANGED)
             .artifactMayChanged(config, editor);
@@ -84,11 +86,15 @@ public class BuildArtifactBeforeRunTaskUtils {
     }
 
     public static @Nullable BeforeRunTask<?> createBuildTask(@Nonnull AzureArtifact artifact, @Nonnull RunConfiguration config) {
+        return createBuildTask(artifact, config, false);
+    }
+
+    public static @Nullable BeforeRunTask<?> createBuildTask(@Nonnull AzureArtifact artifact, @Nonnull RunConfiguration config, boolean skipTests) {
         switch (artifact.getType()) {
             case Maven:
-                return createMavenPackageTask((MavenProject) artifact.getReferencedObject(), config);
+                return createMavenPackageTask((MavenProject) artifact.getReferencedObject(), config, skipTests);
             case Gradle:
-                return createGradleAssembleTask((ExternalProjectPojo) artifact.getReferencedObject(), config);
+                return createGradleAssembleTask((ExternalProjectPojo) artifact.getReferencedObject(), config, skipTests);
             case Artifact:
                 return createIntellijBuildTask((Artifact) artifact.getReferencedObject(), config);
             case File:
@@ -136,22 +142,25 @@ public class BuildArtifactBeforeRunTaskUtils {
     }
 
     @Nonnull
-    public static BeforeRunTask<?> createMavenPackageTask(@Nonnull MavenProject project, @Nonnull RunConfiguration config) {
+    public static BeforeRunTask<?> createMavenPackageTask(@Nonnull MavenProject project, @Nonnull RunConfiguration config, boolean skipTests) {
         final String pomXmlPath = MavenUtils.getMavenModulePath(project);
         final MavenBeforeRunTask task = new MavenBeforeRunTask();
         task.setEnabled(true);
         task.setProjectPath(pomXmlPath);
-        task.setGoal(MAVEN_TASK_PACKAGE);
+        task.setGoal(skipTests ? MAVEN_TASK_PACKAGE_SKIP_TESTS : MAVEN_TASK_PACKAGE);
         return task;
     }
 
     @Nonnull
-    public static BeforeRunTask<?> createGradleAssembleTask(@Nonnull ExternalProjectPojo project, @Nonnull RunConfiguration config) {
+    public static BeforeRunTask<?> createGradleAssembleTask(@Nonnull ExternalProjectPojo project, @Nonnull RunConfiguration config, boolean skipTests) {
         final GradleBeforeRunTaskProvider provider = new GradleBeforeRunTaskProvider(config.getProject());
         final ExternalSystemBeforeRunTask task = provider.createTask(config);
         task.getTaskExecutionSettings().setExternalSystemIdString(GradleConstants.SYSTEM_ID.toString());
         task.getTaskExecutionSettings().setExternalProjectPath(project.getPath());
         task.getTaskExecutionSettings().setTaskNames(Collections.singletonList(GRADLE_TASK_ASSEMBLE));
+        if (skipTests) {
+            task.getTaskExecutionSettings().setScriptParameters(GRADLE_TASL_SKIP_TESTS);
+        }
         return task;
     }
 

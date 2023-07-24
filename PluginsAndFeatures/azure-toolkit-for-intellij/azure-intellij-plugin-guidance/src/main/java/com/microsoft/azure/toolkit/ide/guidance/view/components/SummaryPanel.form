@@ -16,7 +16,7 @@
           </grid>
         </constraints>
         <properties>
-          <icon value="actions/commit.png"/>
+          <icon value="actions/commit.svg"/>
           <text value=""/>
         </properties>
       </component>

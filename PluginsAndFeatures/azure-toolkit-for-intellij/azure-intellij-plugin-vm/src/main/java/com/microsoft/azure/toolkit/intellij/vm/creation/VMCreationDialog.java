@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.vm.creation;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
@@ -209,7 +210,18 @@ public class VMCreationDialog extends AzureDialog<VirtualMachineDraft> implement
         final FileChooserDescriptor pub = FileChooserDescriptorFactory.createSingleFileDescriptor("pub");
         txtCertificate.addActionListener(new ComponentWithBrowseButton.BrowseFolderActionListener<>(SELECT_CERT_TITLE, SSH_PUBLIC_KEY_DESCRIPTION, txtCertificate,
             project, pub, TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT));
-
+        lblSubscription.setIcon(AllIcons.General.ContextHelp);
+        lblResourceGroup.setIcon(AllIcons.General.ContextHelp);
+        lblAuthenticationType.setIcon(AllIcons.General.ContextHelp);
+        lblAvailabilityOptions.setIcon(AllIcons.General.ContextHelp);
+        lblVirtualNetwork.setIcon(AllIcons.General.ContextHelp);
+        lblPublicIP.setIcon(AllIcons.General.ContextHelp);
+        lblSubnet.setIcon(AllIcons.General.ContextHelp);
+        lblSecurityGroup.setIcon(AllIcons.General.ContextHelp);
+        lblPublicInboundPorts.setIcon(AllIcons.General.ContextHelp);
+        lblAzureSportInstance.setIcon(AllIcons.General.ContextHelp);
+        lblEvictionPolicy.setIcon(AllIcons.General.ContextHelp);
+        lblMaximumPrice.setIcon(AllIcons.General.ContextHelp);
         unifyComponentsStyle();
     }
 

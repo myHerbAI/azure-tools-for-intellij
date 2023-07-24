@@ -42,10 +42,11 @@ public class SpringCloudStreamingLogAction {
     private static void showLogStreamingDialog(SpringCloudApp app, Project project) {
         AzureTaskManager.getInstance().runLater(() -> {
             final SpringCloudAppInstanceSelectionDialog dialog = new SpringCloudAppInstanceSelectionDialog(project, app);
-            if (dialog.showAndGet()) {
-                final SpringCloudAppInstance target = dialog.getInstance();
+            dialog.setOkActionListener((target) -> {
+                dialog.close();
                 startInstanceStreamingLogs(project, target);
-            }
+            });
+            dialog.show();
         });
     }
 }

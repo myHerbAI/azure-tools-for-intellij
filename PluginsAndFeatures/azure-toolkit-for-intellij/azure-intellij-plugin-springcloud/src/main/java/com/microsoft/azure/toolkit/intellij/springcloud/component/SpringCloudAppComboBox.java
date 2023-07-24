@@ -15,7 +15,6 @@ import com.microsoft.azure.toolkit.intellij.springcloud.creation.SpringCloudAppC
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import lombok.Setter;
@@ -26,11 +25,7 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
     private SpringCloudCluster cluster;
@@ -52,7 +47,7 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
         final SpringCloudApp app = (SpringCloudApp) item;
         final String runtime = Optional.ofNullable(app.getCachedActiveDeployment()).map(SpringCloudDeployment::getRuntimeVersion)
             .map(v -> v.replaceAll("_", " ")).orElse(null);
-        final String appName = app.exists() ? app.getName() : String.format("(New) %s", app.getName());
+        final String appName = app.isDraftForCreating() ? String.format("(New) %s", app.getName()) : app.getName();
         return StringUtils.isBlank(runtime) ? appName : String.format("%s (%s)", appName, runtime);
     }
 
@@ -69,13 +64,12 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
     }
 
     @Override
-    public void setValue(@Nullable SpringCloudApp val) {
-        if (Objects.nonNull(val) && val.isDraftForCreating()) {
-            this.draftItems.remove(val);
+    public void setValue(@Nullable SpringCloudApp val, Boolean fixed) {
+        if (Objects.nonNull(val) && val.isDraftForCreating() && !this.draftItems.contains(val)) {
             this.draftItems.add(0, val);
             this.reloadItems();
         }
-        super.setValue(val);
+        super.setValue(val, fixed);
     }
 
     @Nullable
@@ -94,7 +88,7 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
             if (!this.draftItems.isEmpty()) {
                 apps.addAll(this.draftItems.stream().filter(a -> a.getParent().getName().equals(this.cluster.getName())).toList());
             }
-            apps.addAll(cluster.apps().list());
+            apps.addAll(cluster.apps().list().stream().filter(a -> !a.getFormalStatus().isCreating()).toList());
         }
         return apps;
     }
@@ -118,13 +112,12 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
     }
 
     private void showAppCreationPopup() {
-        final SpringCloudAppCreationDialog dialog = new SpringCloudAppCreationDialog(this.cluster);
+        final SpringCloudAppCreationDialog dialog = new SpringCloudAppCreationDialog();
+        dialog.setCluster(this.cluster, true);
         Optional.ofNullable(this.javaVersion).ifPresent(a -> dialog.setDefaultRuntimeVersion(javaVersion));
-        dialog.setOkActionListener((config) -> {
-            final SpringCloudAppDraft app = cluster.apps().create(config.getAppName(), cluster.getResourceGroupName());
-            app.setConfig(config);
+        dialog.setOkActionListener((draft) -> {
             dialog.close();
-            this.setValue(app);
+            this.setValue(draft);
         });
         dialog.show();
     }
@@ -134,6 +127,9 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
         protected void customizeCellRenderer(@Nonnull JList<? extends SpringCloudApp> list, SpringCloudApp app, int index, boolean selected, boolean hasFocus) {
             if (app != null) {
                 append(app.exists() ? app.getName() : String.format("(New) %s", app.getName()));
+                if (!app.getFormalStatus().isConnected()) {
+                    return;
+                }
                 if (app.getFormalStatus().isReading()) {
                     append(" Loading runtime...", SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES);
                 } else {

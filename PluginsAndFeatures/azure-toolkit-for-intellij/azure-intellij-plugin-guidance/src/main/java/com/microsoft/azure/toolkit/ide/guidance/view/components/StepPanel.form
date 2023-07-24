@@ -17,7 +17,7 @@
         </constraints>
         <properties>
           <horizontalAlignment value="0"/>
-          <icon value="actions/commit.png"/>
+          <icon value="actions/commit.svg"/>
           <text value=""/>
         </properties>
       </component>

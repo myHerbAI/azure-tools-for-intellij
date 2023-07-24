@@ -11,11 +11,15 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 
 import static com.microsoft.azure.toolkit.lib.Azure.az;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.EMPTY_PLACE;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
 
 /**
  * Displays UI to display the code templates for the registered Azure AD applications.
@@ -34,7 +38,7 @@ public class ShowApplicationTemplatesAction extends AnAction {
         try {
             // throws an exception if user is not signed in
             az(AzureAccount.class).account();
-        } catch (AzureToolkitAuthenticationException ex) {
+        } catch (final AzureToolkitAuthenticationException ex) {
             log.debug("user is not signed in", ex);
             e.getPresentation().setEnabled(false);
         }
@@ -44,7 +48,8 @@ public class ShowApplicationTemplatesAction extends AnAction {
     @ExceptionNotification
     @AzureOperation(name = "user/aad.show_application_templates")
     public void actionPerformed(@Nonnull AnActionEvent e) {
-        var project = e.getProject();
+        OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(e.getPlace(), EMPTY_PLACE));
+        final var project = e.getProject();
         assert project != null;
 
         new AzureApplicationTemplateDialog(project, null).show();

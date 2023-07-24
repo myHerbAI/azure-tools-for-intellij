@@ -12,8 +12,9 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.impl.RunDialog;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataKeys;
+import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.AzureFunctionSupportConfigurationType;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 
@@ -40,15 +42,21 @@ public class RunFunctionAction extends AzureAnAction {
 
     @Override
     public boolean onActionPerformed(@NotNull AnActionEvent anActionEvent, @Nullable Operation operation) {
-        final Module module = DataKeys.MODULE.getData(anActionEvent.getDataContext());
+        final Module module = LangDataKeys.MODULE.getData(anActionEvent.getDataContext());
         AzureTaskManager.getInstance().runLater(() -> runConfiguration(module));
         return true;
     }
 
     @Override
     @ExceptionNotification
-    public void update(AnActionEvent event) {
-        event.getPresentation().setEnabledAndVisible(FunctionUtils.isFunctionProject(event.getProject()));
+    public void update(AnActionEvent e) {
+        final boolean onModule = Objects.nonNull(LangDataKeys.MODULE.getData(e.getDataContext()));
+        e.getPresentation().setEnabledAndVisible(onModule && FunctionUtils.isFunctionProject(e.getProject()));
+    }
+
+    @Override
+    public ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
     }
 
     @AzureOperation(name = "user/function.run_app.module", params = {"module.getName()"})

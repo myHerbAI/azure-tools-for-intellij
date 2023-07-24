@@ -6,14 +6,18 @@
 package com.microsoft.azure.toolkit.intellij.storage;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.ide.storage.StorageActionsContributor;
 import com.microsoft.azure.toolkit.intellij.connector.AzureServiceResource;
 import com.microsoft.azure.toolkit.intellij.connector.ConnectorDialog;
+import com.microsoft.azure.toolkit.intellij.storage.azurite.AzuriteService;
 import com.microsoft.azure.toolkit.intellij.storage.component.StorageCreationDialog;
 import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition;
 import com.microsoft.azure.toolkit.intellij.storage.creation.CreateStorageAccountAction;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -33,6 +37,8 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
 public class IntellijStorageActionsContributor implements IActionsContributor {
+    public static final Action.Id<Project> INSTALL_AZURITE = Action.Id.of("user/storage.install_azurite");
+
     @Override
     public void registerHandlers(AzureActionManager am) {
         final BiPredicate<Object, AnActionEvent> condition = (r, e) -> r instanceof AzureStorageAccount;
@@ -59,6 +65,8 @@ public class IntellijStorageActionsContributor implements IActionsContributor {
         am.registerHandler(StorageActionsContributor.DOWNLOAD_FILE, (file, e) -> StorageFileActions.downloadFile(file, ((AnActionEvent) e).getProject()));
         am.registerHandler(StorageActionsContributor.COPY_FILE_URL, (file, e) -> StorageFileActions.copyUrl(file, ((AnActionEvent) e).getProject()));
         am.registerHandler(StorageActionsContributor.COPY_FILE_SAS_URL, (file, e) -> StorageFileActions.copySasUrl(file, ((AnActionEvent) e).getProject()));
+        am.registerHandler(StorageActionsContributor.START_AZURITE, (account, e) -> AzureTaskManager.getInstance().runLater(() -> AzuriteService.getInstance().startAzurite(((AnActionEvent) e).getProject())));
+        am.registerHandler(StorageActionsContributor.STOP_AZURITE, (account, e) -> AzuriteService.getInstance().stopAzurite());
 
         final BiConsumer<ResourceGroup, AnActionEvent> groupCreateAccountHandler = (r, e) -> {
             final StorageAccountConfig config = StorageAccountConfig.builder().build();
@@ -68,6 +76,15 @@ public class IntellijStorageActionsContributor implements IActionsContributor {
             CreateStorageAccountAction.create(e.getProject(), config);
         };
         am.registerHandler(StorageActionsContributor.GROUP_CREATE_ACCOUNT, (r, e) -> true, groupCreateAccountHandler);
+    }
+
+    @Override
+    public void registerActions(AzureActionManager am) {
+        new Action<>(INSTALL_AZURITE)
+                .withLabel("Install Azurite")
+                .withAuthRequired(false)
+                .withHandler((p, e) -> AzuriteService.getInstance().installAzurite(p))
+                .register(am);
     }
 
     private void createStorage(Object m, Object e) {

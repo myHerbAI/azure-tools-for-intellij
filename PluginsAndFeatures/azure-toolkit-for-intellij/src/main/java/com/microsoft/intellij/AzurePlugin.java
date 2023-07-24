@@ -21,8 +21,9 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleTypeId;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupActivity;
+import com.intellij.openapi.startup.ProjectActivity;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ExceptionUtil;
@@ -33,6 +34,7 @@ import com.microsoft.applicationinsights.preference.ApplicationInsightsResourceR
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
 import com.microsoft.azure.toolkit.intellij.azuresdk.dependencesurvey.activity.WorkspaceTaggingActivity;
 import com.microsoft.azure.toolkit.intellij.azuresdk.enforcer.AzureSdkEnforcer;
+import com.microsoft.azure.toolkit.intellij.common.AzureBundle;
 import com.microsoft.azure.toolkit.intellij.common.CommonConst;
 import com.microsoft.azure.toolkit.intellij.common.action.WhatsNewAction;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -45,15 +47,16 @@ import com.microsoft.azuretools.telemetrywrapper.EventType;
 import com.microsoft.azuretools.telemetrywrapper.EventUtil;
 import com.microsoft.intellij.ui.libraries.AILibraryHandler;
 import com.microsoft.intellij.ui.libraries.AzureLibrary;
-import com.microsoft.azure.toolkit.intellij.common.AzureBundle;
 import com.microsoft.intellij.util.PluginUtil;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
+import javax.annotation.Nonnull;
 import javax.swing.event.EventListenerList;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -73,13 +76,11 @@ import java.util.zip.ZipInputStream;
 
 import static com.microsoft.azure.toolkit.ide.common.store.AzureConfigInitializer.TELEMETRY;
 import static com.microsoft.azure.toolkit.ide.common.store.AzureConfigInitializer.TELEMETRY_PLUGIN_VERSION;
-import static com.microsoft.azuretools.telemetry.TelemetryConstants.PLUGIN_UNINSTALL;
-import static com.microsoft.azuretools.telemetry.TelemetryConstants.SHOW_WHATS_NEW;
-import static com.microsoft.azuretools.telemetry.TelemetryConstants.SYSTEM;
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
+import static com.microsoft.azuretools.telemetry.TelemetryConstants.*;
 
 @Slf4j
-public class AzurePlugin implements StartupActivity.DumbAware {
+public class AzurePlugin implements ProjectActivity, DumbAware {
     public static final String PLUGIN_VERSION = com.microsoft.azure.toolkit.intellij.common.CommonConst.PLUGIN_VERSION;
     public static final String AZURE_LIBRARIES_VERSION = "1.0.0";
     public static final String JDBC_LIBRARIES_VERSION = "9.4.0.jre8";
@@ -105,7 +106,7 @@ public class AzurePlugin implements StartupActivity.DumbAware {
     private Boolean firstInstallationByVersion;
 
     @Override
-    public void runActivity(@NotNull Project project) {
+    public Object execute(@Nonnull Project project, @Nonnull Continuation<? super Unit> continuation) {
         initializeAIRegistry(project);
         // Showing dialog needs to be run in UI thread
         initializeWhatsNew(project);
@@ -118,12 +119,12 @@ public class AzurePlugin implements StartupActivity.DumbAware {
                 if (pluginStateListener == null) {
                     pluginStateListener = new PluginStateListener() {
                         @Override
-                        public void install(@NotNull IdeaPluginDescriptor ideaPluginDescriptor) {
+                        public void install(@Nonnull IdeaPluginDescriptor ideaPluginDescriptor) {
                         }
 
                         @Override
-                        public void uninstall(@NotNull IdeaPluginDescriptor ideaPluginDescriptor) {
-                            String pluginId = ideaPluginDescriptor.getPluginId().toString();
+                        public void uninstall(@Nonnull IdeaPluginDescriptor ideaPluginDescriptor) {
+                            final String pluginId = ideaPluginDescriptor.getPluginId().toString();
                             if (pluginId.equalsIgnoreCase(com.microsoft.azure.toolkit.intellij.common.CommonConst.PLUGIN_ID)) {
                                 EventUtil.logEvent(EventType.info, SYSTEM, PLUGIN_UNINSTALL, null, null);
                             }
@@ -134,14 +135,15 @@ public class AzurePlugin implements StartupActivity.DumbAware {
                 clearTempDirectory();
                 loadWebappsSettings(project);
                 afterInitialization(project);
-            } catch (ProcessCanceledException e) {
+            } catch (final ProcessCanceledException e) {
                 throw e;
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 /* This is not a user initiated task
                    So user should not get any exception prompt.*/
                 log.error(AzureBundle.message("expErlStrtUp"), e);
             }
         }
+        return null;
     }
 
     private void initializeWhatsNew(Project project) {
@@ -171,19 +173,19 @@ public class AzurePlugin implements StartupActivity.DumbAware {
 
     private void initializeAIRegistry(Project myProject) {
         try {
-            Module[] modules = ModuleManager.getInstance(myProject).getModules();
-            for (Module module : modules) {
+            final Module[] modules = ModuleManager.getInstance(myProject).getModules();
+            for (final Module module : modules) {
                 if (module != null && module.isLoaded() && ModuleTypeId.JAVA_MODULE.equals(module.getOptionValue(Module.ELEMENT_TYPE))) {
-                    String aiXMLPath = String.format("%s%s%s", PluginUtil.getModulePath(module), File.separator, message("aiXMLPath"));
+                    final String aiXMLPath = String.format("%s%s%s", PluginUtil.getModulePath(module), File.separator, message("aiXMLPath"));
                     if (new File(aiXMLPath).exists()) {
-                        AILibraryHandler handler = new AILibraryHandler();
+                        final AILibraryHandler handler = new AILibraryHandler();
                         handler.parseAIConfXmlPath(aiXMLPath);
-                        String key = handler.getAIInstrumentationKey();
+                        final String key = handler.getAIInstrumentationKey();
                         if (key != null && !key.isEmpty()) {
-                            String unknown = message("unknown");
-                            List<ApplicationInsightsResource> list =
+                            final String unknown = message("unknown");
+                            final List<ApplicationInsightsResource> list =
                                     ApplicationInsightsResourceRegistry.getAppInsightsResrcList();
-                            ApplicationInsightsResource resourceToAdd = new ApplicationInsightsResource(
+                            final ApplicationInsightsResource resourceToAdd = new ApplicationInsightsResource(
                                     key, key, unknown, unknown, unknown, unknown, false);
                             if (!list.contains(resourceToAdd)) {
                                 ApplicationInsightsResourceRegistry.getAppInsightsResrcList().add(resourceToAdd);
@@ -192,7 +194,7 @@ public class AzurePlugin implements StartupActivity.DumbAware {
                     }
                 }
             }
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             // https://intellij-support.jetbrains.com/hc/en-us/community/posts/115000093184-What-is-com-intellij-openapi-progress-ProcessCanceledException
             // should ignore ProcessCanceledException
             if (Objects.isNull(ExceptionUtil.findCause(ex, ProcessCanceledException.class))) {
@@ -210,9 +212,9 @@ public class AzurePlugin implements StartupActivity.DumbAware {
      * @throws Exception
      */
     private void clearTempDirectory() throws Exception {
-        String tmpPath = System.getProperty("java.io.tmpdir");
-        String projPath = String.format("%s%s%s", tmpPath, File.separator, "%proj%");
-        File projFile = new File(projPath);
+        final String tmpPath = System.getProperty("java.io.tmpdir");
+        final String projPath = String.format("%s%s%s", tmpPath, File.separator, "%proj%");
+        final File projFile = new File(projPath);
         WAEclipseHelperMethods.deleteDirectory(projFile);
     }
 
@@ -221,9 +223,9 @@ public class AzurePlugin implements StartupActivity.DumbAware {
                 new Runnable() {
                     @Override
                     public void run() {
-                        Module[] modules = ModuleManager.getInstance(myProject).getModules();
-                        Set<String> javaModules = new HashSet<String>();
-                        for (Module module : modules) {
+                        final Module[] modules = ModuleManager.getInstance(myProject).getModules();
+                        final Set<String> javaModules = new HashSet<String>();
+                        for (final Module module : modules) {
                             if (ModuleTypeId.JAVA_MODULE.equals(module.getOptionValue(Module.ELEMENT_TYPE))) {
                                 javaModules.add(module.getName());
                             }
@@ -253,8 +255,8 @@ public class AzurePlugin implements StartupActivity.DumbAware {
     private void copyPluginComponents() {
         try {
             extractJobViewResource();
-        } catch (ExtractHdiJobViewException e) {
-            Notification hdiSparkJobListNaNotification = new Notification(
+        } catch (final ExtractHdiJobViewException e) {
+            final Notification hdiSparkJobListNaNotification = new Notification(
                     "Azure Toolkit plugin",
                     e.getMessage(),
                     "The HDInsight cluster Spark Job list feature is not available since " + e.getCause().toString() +
@@ -265,10 +267,10 @@ public class AzurePlugin implements StartupActivity.DumbAware {
         }
 
         try {
-            for (AzureLibrary azureLibrary : AzureLibrary.LIBRARIES) {
+            for (final AzureLibrary azureLibrary : AzureLibrary.LIBRARIES) {
                 if (azureLibrary.getLocation() != null) {
                     if (!new File(pluginFolder + File.separator + azureLibrary.getLocation()).exists()) {
-                        for (String entryName : Utils.getJarEntries(pluginFolder + File.separator + "lib" + File.separator +
+                        for (final String entryName : Utils.getJarEntries(pluginFolder + File.separator + "lib" + File.separator +
                                 CommonConst.PLUGIN_NAME + ".jar", azureLibrary.getLocation())) {
                             new File(pluginFolder + File.separator + entryName).getParentFile().mkdirs();
                             copyResourceFile(entryName, pluginFolder + File.separator + entryName);
@@ -277,7 +279,7 @@ public class AzurePlugin implements StartupActivity.DumbAware {
                 }
             }
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.error(e.getMessage(), e);
         }
     }
@@ -290,17 +292,17 @@ public class AzurePlugin implements StartupActivity.DumbAware {
      */
     public static void copyResourceFile(String resourceFile, String destFile) {
         try {
-            InputStream is = ((PluginClassLoader) AzurePlugin.class.getClassLoader()).findResource(resourceFile).openStream();
-            File outputFile = new File(destFile);
-            FileOutputStream fos = new FileOutputStream(outputFile);
+            final InputStream is = ((PluginClassLoader) AzurePlugin.class.getClassLoader()).findResource(resourceFile).openStream();
+            final File outputFile = new File(destFile);
+            final FileOutputStream fos = new FileOutputStream(outputFile);
             FileUtil.writeFile(is, fos);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             log.error(e.getMessage(), e);
         }
     }
 
     public static void fireDeploymentEvent(DeploymentEventArgs args) {
-        Object[] list = DEPLOYMENT_EVENT_LISTENERS.getListenerList();
+        final Object[] list = DEPLOYMENT_EVENT_LISTENERS.getListenerList();
 
         for (int i = 0; i < list.length; i += 2) {
             if (list[i] == DeploymentEventListener.class) {
@@ -343,7 +345,7 @@ public class AzurePlugin implements StartupActivity.DumbAware {
             return false;
         }
 
-        String version = AzureStoreManager.getInstance().getIdeStore().getProperty(TELEMETRY, TELEMETRY_PLUGIN_VERSION);
+        final String version = AzureStoreManager.getInstance().getIdeStore().getProperty(TELEMETRY, TELEMETRY_PLUGIN_VERSION);
         firstInstallationByVersion = StringUtils.equalsIgnoreCase(version, PLUGIN_VERSION);
         // update plugin version;
         AzureStoreManager.getInstance().getIdeStore().setProperty(TELEMETRY, TELEMETRY_PLUGIN_VERSION, PLUGIN_VERSION);
@@ -357,21 +359,21 @@ public class AzurePlugin implements StartupActivity.DumbAware {
     }
 
     private synchronized void extractJobViewResource() throws ExtractHdiJobViewException {
-        File indexRootFile = new File(PluginUtil.getPluginRootDirectory() + File.separator + "com.microsoft.hdinsight");
+        final File indexRootFile = new File(PluginUtil.getPluginRootDirectory() + File.separator + "com.microsoft.hdinsight");
 
         if (isFirstInstallationByVersion() || isDebugModel()) {
             if (indexRootFile.exists()) {
                 try {
                     FileUtils.deleteDirectory(indexRootFile);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     throw new ExtractHdiJobViewException("Delete HDInsight job view folder error", e);
                 }
             }
         }
 
-        URL url = AzurePlugin.class.getResource(HTML_ZIP_FILE_NAME);
+        final URL url = AzurePlugin.class.getResource(HTML_ZIP_FILE_NAME);
         if (url != null) {
-            File toFile = new File(indexRootFile.getAbsolutePath(), HTML_ZIP_FILE_NAME);
+            final File toFile = new File(indexRootFile.getAbsolutePath(), HTML_ZIP_FILE_NAME);
             try {
                 FileUtils.copyURLToFile(url, toFile);
 
@@ -382,7 +384,7 @@ public class AzurePlugin implements StartupActivity.DumbAware {
                 while (!toFile.renameTo(toFile) && retryCount-- > 0) {
                     try {
                         Thread.sleep(1000);
-                    } catch (InterruptedException ignored) {
+                    } catch (final InterruptedException ignored) {
                         break;
                     }
                 }
@@ -394,7 +396,7 @@ public class AzurePlugin implements StartupActivity.DumbAware {
                 }
 
                 unzip(toFile.getAbsolutePath(), toFile.getParent());
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 throw new ExtractHdiJobViewException("Extract Job View Folder error", e);
             }
         } else {
@@ -404,18 +406,18 @@ public class AzurePlugin implements StartupActivity.DumbAware {
     }
 
     private static void unzip(String zipFilePath, String destDirectory) throws IOException {
-        File destDir = new File(destDirectory);
+        final File destDir = new File(destDirectory);
         if (!destDir.exists()) {
             destDir.mkdir();
         }
-        ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zipFilePath));
+        final ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zipFilePath));
         ZipEntry entry = zipIn.getNextEntry();
         while (entry != null) {
-            String filePath = destDirectory + File.separator + entry.getName();
+            final String filePath = destDirectory + File.separator + entry.getName();
             if (!entry.isDirectory()) {
                 extractFile(zipIn, filePath);
             } else {
-                File dir = new File(filePath);
+                final File dir = new File(filePath);
                 dir.mkdir();
             }
             zipIn.closeEntry();
@@ -425,8 +427,8 @@ public class AzurePlugin implements StartupActivity.DumbAware {
     }
 
     private static void extractFile(ZipInputStream zipIn, String filePath) throws IOException {
-        BufferedOutputStream bos = new BufferedOutputStream(new java.io.FileOutputStream(filePath));
-        byte[] bytesIn = new byte[1024 * 10];
+        final BufferedOutputStream bos = new BufferedOutputStream(new java.io.FileOutputStream(filePath));
+        final byte[] bytesIn = new byte[1024 * 10];
         int read = 0;
         while ((read = zipIn.read(bytesIn)) != -1) {
             bos.write(bytesIn, 0, read);

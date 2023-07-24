@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.ide.containerregistry;
 
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.component.AzureResourceLabelView;
-import com.microsoft.azure.toolkit.ide.common.component.AzureServiceLabelView;
+import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.containerregistry.AzureContainerRegistry;
@@ -45,35 +45,32 @@ public class ContainerRegistryNodeProvider implements IExplorerNodeProvider {
     @Override
     public Node<?> createNode(@Nonnull Object data, @Nullable Node<?> parent, @Nonnull Manager manager) {
         if (data instanceof AzureContainerRegistry) {
-            final AzureContainerRegistry service = ((AzureContainerRegistry) data);
             final Function<AzureContainerRegistry, List<ContainerRegistry>> registries = asc -> asc.list().stream().flatMap(m -> m.registry().list().stream())
                 .collect(Collectors.toList());
-            return new Node<>(service).view(new AzureServiceLabelView<>(service, NAME, ICON))
-                .actions(ContainerRegistryActionsContributor.SERVICE_ACTIONS)
+            return new AzServiceNode<>((AzureContainerRegistry) data)
+                .withLabel(NAME)
+                .withIcon(ICON)
+                .withActions(ContainerRegistryActionsContributor.SERVICE_ACTIONS)
                 .addChildren(registries, (server, serviceNode) -> this.createNode(server, serviceNode, manager));
         } else if (data instanceof ContainerRegistry) {
-            final ContainerRegistry server = (ContainerRegistry) data;
-            return new Node<>(server)
-                .view(new AzureResourceLabelView<>(server, ContainerRegistry::getLoginServerUrl))
+            return new AzResourceNode<>((ContainerRegistry) data)
+                .withDescription(ContainerRegistry::getLoginServerUrl)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .doubleClickAction(ResourceCommonActionsContributor.SHOW_PROPERTIES)
-                .actions(ContainerRegistryActionsContributor.REGISTRY_ACTIONS)
+                .onDoubleClicked(ResourceCommonActionsContributor.SHOW_PROPERTIES)
+                .withActions(ContainerRegistryActionsContributor.REGISTRY_ACTIONS)
                 .addChildren(r -> r.getRepositoryModule().list(), ((repository, registryNode) -> this.createNode(repository, registryNode, manager)))
-                .hasMoreChildren(c -> c.getRepositoryModule().hasMoreResources())
-                .loadMoreChildren(c -> c.getRepositoryModule().loadMoreResources());
+                .withMoreChildren(c -> c.getRepositoryModule().hasMoreResources(), c -> c.getRepositoryModule().loadMoreResources());
         } else if (data instanceof Repository) {
-            final Repository repository = (Repository) data;
-            return new Node<>(repository)
-                .view(new AzureResourceLabelView<>(repository, r -> ""))
+            return new AzResourceNode<>((Repository) data)
+                .withDescription(r -> "")
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .actions(ContainerRegistryActionsContributor.REPOSITORY_ACTIONS)
+                .withActions(ContainerRegistryActionsContributor.REPOSITORY_ACTIONS)
                 .addChildren(r -> r.getArtifactModule().list().stream().flatMap(i -> i.getTagModule().list().stream()).collect(Collectors.toList()), ((tag, repositoryNode) -> this.createNode(tag, repositoryNode, manager)))
-                .hasMoreChildren(c -> c.getArtifactModule().hasMoreResources())
-                .loadMoreChildren(c -> c.getArtifactModule().loadMoreResources());
+                .withMoreChildren(c -> c.getArtifactModule().hasMoreResources(), c -> c.getArtifactModule().loadMoreResources());
         } else if (data instanceof Tag) {
-            final Tag tag = (Tag) data;
-            return new Node<>(tag).view(new AzureResourceLabelView<>(tag, t -> t.getLastUpdatedOn().format(DateTimeFormatter.RFC_1123_DATE_TIME)))
-                .actions(ContainerRegistryActionsContributor.TAG_ACTIONS);
+            return new AzResourceNode<>((Tag) data)
+                .withDescription(t -> t.getLastUpdatedOn().format(DateTimeFormatter.RFC_1123_DATE_TIME))
+                .withActions(ContainerRegistryActionsContributor.TAG_ACTIONS);
         }
         return null;
     }

@@ -19,13 +19,18 @@ import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
 import com.microsoft.azure.toolkit.intellij.containerregistry.AzureDockerSupportConfigurationType;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerregistry.Repository;
 import com.microsoft.azure.toolkit.lib.containerregistry.Tag;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
+
+import static com.microsoft.azure.toolkit.lib.common.action.Action.EMPTY_PLACE;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
 
 public class RunOnDockerHostAction extends AnAction {
     private static final String DIALOG_TITLE = "Run on Docker Host";
@@ -37,13 +42,14 @@ public class RunOnDockerHostAction extends AnAction {
     }
 
     public RunOnDockerHostAction(@Nullable final DockerImage dockerImage) {
-        super(DIALOG_TITLE, "Build image and run in local docker host", IntelliJAzureIcons.getIcon("/icons/DockerSupport/Run.svg"));
+        super("Run on Docker Host...", "Build image and run in local docker host", IntelliJAzureIcons.getIcon("/icons/DockerSupport/Run.svg"));
         this.dockerImage = dockerImage;
     }
 
     @Override
     @AzureOperation(name = "user/docker.run_image")
     public void actionPerformed(@Nonnull AnActionEvent e) {
+        OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(e.getPlace(), EMPTY_PLACE));
         Optional.ofNullable(e.getProject()).ifPresent(p -> runConfiguration(p, this.dockerImage));
     }
 

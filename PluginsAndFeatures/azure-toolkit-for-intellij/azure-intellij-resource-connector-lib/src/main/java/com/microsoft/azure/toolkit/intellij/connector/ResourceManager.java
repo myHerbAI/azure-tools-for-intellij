@@ -26,6 +26,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * @deprecated use {@link com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager} instead
+ */
+@Deprecated
 public interface ResourceManager {
 
     static ResourceDefinition<?> getDefinition(String type) {

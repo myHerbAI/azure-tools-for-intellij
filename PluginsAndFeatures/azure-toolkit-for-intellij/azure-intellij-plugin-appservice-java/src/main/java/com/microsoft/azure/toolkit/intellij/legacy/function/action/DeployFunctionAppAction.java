@@ -12,6 +12,7 @@ import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.impl.RunDialog;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -25,8 +26,11 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.Functi
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.FunctionDeploymentConfigurationFactory;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.legacy.function.FunctionAppService;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,6 +39,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.EMPTY_PLACE;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
 
 public class DeployFunctionAppAction extends AnAction {
 
@@ -43,18 +49,26 @@ public class DeployFunctionAppAction extends AnAction {
     @Override
     @AzureOperation(name = "user/function.deploy_app")
     public void actionPerformed(@Nonnull AnActionEvent event) {
-        final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
-        final Project project = Objects.requireNonNull(event.getProject());
-        if (Objects.nonNull(module)) {
-            AzureLoginHelper.requireSignedIn(module.getProject(), () -> deploy(module));
-        } else {
-            AzureLoginHelper.requireSignedIn(project, () -> deploy(project));
-        }
+        OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(event.getPlace(), EMPTY_PLACE));
+        AzureTaskManager.getInstance().runLater(() -> {
+            final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
+            final Project project = Objects.requireNonNull(event.getProject());
+            if (Objects.nonNull(module)) {
+                AzureLoginHelper.requireSignedIn(module.getProject(), () -> deploy(module));
+            } else {
+                AzureLoginHelper.requireSignedIn(project, () -> deploy(project));
+            }
+        });
     }
 
     @Override
     public void update(AnActionEvent event) {
         event.getPresentation().setEnabledAndVisible(FunctionUtils.isFunctionProject(event.getProject()));
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
     }
 
     public static void deploy(@Nonnull final FunctionApp app, @Nonnull final Project project) {

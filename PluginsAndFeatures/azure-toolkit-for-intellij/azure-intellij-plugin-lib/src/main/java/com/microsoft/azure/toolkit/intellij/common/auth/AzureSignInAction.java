@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.common.auth;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -58,8 +59,10 @@ public class AzureSignInAction extends AzureAnAction implements DumbAware {
     }
 
     public boolean onActionPerformed(@NotNull AnActionEvent e, @Nullable Operation operation) {
-        final Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
-        authActionPerformed(project);
+        final Project project = e.getProject();
+        if (Objects.nonNull(project)) {
+            authActionPerformed(project);
+        }
         return true;
     }
 
@@ -69,6 +72,11 @@ public class AzureSignInAction extends AzureAnAction implements DumbAware {
 
     protected String getOperationName(AnActionEvent event) {
         return TelemetryConstants.SIGNIN;
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
     }
 
     @Override

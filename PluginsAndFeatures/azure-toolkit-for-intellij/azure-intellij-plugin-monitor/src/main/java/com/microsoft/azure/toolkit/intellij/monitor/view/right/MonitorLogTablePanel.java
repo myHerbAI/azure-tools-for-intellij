@@ -9,6 +9,7 @@ import com.azure.monitor.query.models.LogsTable;
 import com.azure.monitor.query.models.LogsTableCell;
 import com.azure.monitor.query.models.LogsTableRow;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
@@ -56,7 +57,8 @@ import java.util.*;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 
-public class MonitorLogTablePanel {
+public class MonitorLogTablePanel implements Disposable {
+    private final AzureEventBus.EventListener onWorkspaceChanged;
     private JPanel contentPanel;
     private JPanel filterPanel;
     private LogTable logTable;
@@ -84,7 +86,8 @@ public class MonitorLogTablePanel {
         this.hideFilters();
         this.runButton.setIcon(AllIcons.Actions.Execute);
         this.saveFiltersButton.setIcon(AllIcons.Actions.MenuSaveall);
-        AzureEventBus.on("azure.monitor.change_workspace", new AzureEventBus.EventListener(e -> initResourceId = null));
+        this.onWorkspaceChanged = new AzureEventBus.EventListener(e -> initResourceId = null);
+        AzureEventBus.on("azure.monitor.change_workspace", onWorkspaceChanged);
     }
 
     public JPanel getContentPanel() {
@@ -329,5 +332,10 @@ public class MonitorLogTablePanel {
                 return Objects.nonNull(item) ? item.toString() : StringUtils.EMPTY;
             }
         };
+    }
+
+    @Override
+    public void dispose() {
+        AzureEventBus.off("azure.monitor.change_workspace", onWorkspaceChanged);
     }
 }

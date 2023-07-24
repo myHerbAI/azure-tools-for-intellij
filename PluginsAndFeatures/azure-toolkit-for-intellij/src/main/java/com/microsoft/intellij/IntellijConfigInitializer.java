@@ -47,7 +47,6 @@ public class IntellijConfigInitializer {
         migrateLegacySetting(TELEMETRY, TELEMETRY_ALLOW_TELEMETRY, "true");
         migrateLegacySetting(ACCOUNT, AZURE_ENVIRONMENT_KEY, "Azure");
         migrateLegacySetting(FUNCTION, FUNCTION_CORE_TOOLS_PATH, "");
-        migrateLegacySetting(DATABASE, PASSWORD_SAVE_TYPE, "");
         migrateLegacySetting(TELEMETRY, TELEMETRY_PLUGIN_VERSION, "");
 
         AzureConfigInitializer.initialize(installId, "Azure Toolkit for IntelliJ", AzurePlugin.PLUGIN_VERSION);

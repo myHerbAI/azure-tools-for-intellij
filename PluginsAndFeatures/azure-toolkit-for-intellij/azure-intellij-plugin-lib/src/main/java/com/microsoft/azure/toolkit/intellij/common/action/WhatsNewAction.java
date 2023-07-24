@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
@@ -42,6 +43,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor.OPEN_URL;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.EMPTY_PLACE;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
 
 public class WhatsNewAction extends AnAction implements DumbAware {
     public static final String ID = "Actions.WhatsNew";
@@ -57,6 +60,7 @@ public class WhatsNewAction extends AnAction implements DumbAware {
     @ExceptionNotification
     @AzureOperation(name = "user/common.open_whats_new")
     public void actionPerformed(@Nonnull final AnActionEvent event) {
+        OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(event.getPlace(), EMPTY_PLACE));
         final boolean manually = !"AzurePluginStartupActivity".equals(event.getPlace());
         final String content = getWhatsNewContent();
         final DefaultArtifactVersion currentVersion = getVersion(content);

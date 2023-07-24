@@ -9,11 +9,10 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.AnimatedIcon;
+import com.intellij.util.IconUtil;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
-import com.microsoft.azure.toolkit.intellij.connector.Password;
 import com.microsoft.azure.toolkit.intellij.database.connection.Database;
 import com.microsoft.azure.toolkit.intellij.database.connection.DatabaseConnectionUtils;
-import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
@@ -25,17 +24,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
-public class PasswordDialog extends AzureDialog<Password> implements AzureForm<Password> {
+public class PasswordDialog extends AzureDialog<char[]> implements AzureForm<char[]> {
 
     private static final String TITLE = "Credential for \"%s\"";
     private static final String HEADER_PATTERN = "Please provide credential for user (%s) to access database (%s) on server (%s).";
@@ -48,7 +45,6 @@ public class PasswordDialog extends AzureDialog<Password> implements AzureForm<P
     private JButton testConnectionButton;
     private TestConnectionActionPanel testConnectionActionPanel;
     private JPasswordField passwordField;
-    private PasswordSaveComboBox passwordSaveComboBox;
 
     public PasswordDialog(Project project, Database database) {
         super(project);
@@ -61,13 +57,10 @@ public class PasswordDialog extends AzureDialog<Password> implements AzureForm<P
         testResultTextPane.setVisible(false);
         testResultTextPane.setEditable(false);
         testResultTextPane.setText(StringUtils.EMPTY);
-        final Dimension lastColumnSize = new Dimension(106, this.passwordSaveComboBox.getPreferredSize().height);
-        this.passwordSaveComboBox.setPreferredSize(lastColumnSize);
-        this.passwordSaveComboBox.setMaximumSize(lastColumnSize);
-        this.passwordSaveComboBox.setSize(lastColumnSize);
         this.setValue(this.database.getPassword());
         this.init();
         this.initListener();
+        this.headerIconLabel.setIcon(IconUtil.scale(AllIcons.General.BalloonWarning, headerIconLabel, 2.0f));
     }
 
     private void initListener() {
@@ -131,7 +124,7 @@ public class PasswordDialog extends AzureDialog<Password> implements AzureForm<P
     }
 
     @Override
-    public AzureForm<Password> getForm() {
+    public AzureForm<char[]> getForm() {
         return this;
     }
 
@@ -146,22 +139,17 @@ public class PasswordDialog extends AzureDialog<Password> implements AzureForm<P
     }
 
     @Override
-    public Password getValue() {
-        final Password config = new Password();
-        config.saveType(passwordSaveComboBox.getValue());
-        config.password(passwordField.getPassword());
-        return config;
+    public char[] getValue() {
+        return passwordField.getPassword();
     }
 
     @Override
-    public void setValue(Password data) {
-        this.passwordSaveComboBox.setValue(Optional.ofNullable(data).map(Password::saveType).orElse(Arrays.stream(Password.SaveType.values())
-                .filter(e -> StringUtils.equals(e.name(), Azure.az().config().getDatabasePasswordSaveType())).findAny()
-                .orElse(Password.SaveType.UNTIL_RESTART)));
+    public void setValue(char[] data) {
+        this.passwordField.setText(String.valueOf(data));
     }
 
     @Override
     public List<AzureFormInput<?>> getInputs() {
-        return List.of(this.passwordSaveComboBox);
+        return Collections.emptyList();
     }
 }

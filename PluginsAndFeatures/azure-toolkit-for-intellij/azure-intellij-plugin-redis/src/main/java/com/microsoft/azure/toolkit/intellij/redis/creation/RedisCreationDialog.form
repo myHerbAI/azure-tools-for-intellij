@@ -166,7 +166,6 @@
             </constraints>
             <properties>
               <horizontalTextPosition value="10"/>
-              <icon value="general/contextHelp.png"/>
               <iconTextGap value="0"/>
               <text value=""/>
               <toolTipText value="Click question mark icon to view pricing tiers"/>

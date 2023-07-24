@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.cosmos.creation;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
@@ -76,6 +77,8 @@ public class CosmosDBAccountCreationDialog extends AzureDialog<CosmosDBAccountDr
         this.lblName.setLabelFor(txtName);
         this.lblRegion.setLabelFor(cbRegion);
         this.lblKind.setLabelFor(cbKind);
+        this.lblSubscription.setIcon(AllIcons.General.ContextHelp);
+        this.lblResourceGroup.setIcon(AllIcons.General.ContextHelp);
     }
 
     private void onSubscriptionChanged(final ItemEvent itemEvent) {

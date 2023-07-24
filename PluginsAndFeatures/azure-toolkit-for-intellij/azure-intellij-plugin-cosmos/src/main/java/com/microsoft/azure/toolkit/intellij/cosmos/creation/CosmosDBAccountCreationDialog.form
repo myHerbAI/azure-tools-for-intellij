@@ -30,7 +30,6 @@
         </constraints>
         <properties>
           <horizontalTextPosition value="10"/>
-          <icon value="general/contextHelp.png"/>
           <text value="Subscription:"/>
           <toolTipText value="All resources in an Azure subscription are billed together."/>
         </properties>
@@ -47,7 +46,6 @@
         </constraints>
         <properties>
           <horizontalTextPosition value="10"/>
-          <icon value="general/contextHelp.png"/>
           <text value="Resource group:"/>
           <toolTipText value="A resource group is a collection of resources that share the same lifecycle, permissions, and policies."/>
         </properties>

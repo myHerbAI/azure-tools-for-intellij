@@ -4,6 +4,7 @@
  */
 package com.microsoft.azure.toolkit.ide.common.component;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIconProvider;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
@@ -38,7 +39,7 @@ public class AzureResourceIconProvider<T extends AzResource> implements AzureIco
         if (formalStatus.isWaiting()) {
             return AzureIcons.Common.REFRESH_ICON;
         }
-        final String iconPath = getAzureBaseResourceIconPath(resource);
+        final String iconPath = getResourceBaseIconPath(resource);
         final List<AzureIcon.Modifier> modifiers = modifierFunctionList.stream()
                 .map(function -> function.apply(resource))
                 .filter(Objects::nonNull)
@@ -46,13 +47,18 @@ public class AzureResourceIconProvider<T extends AzResource> implements AzureIco
         return AzureIcon.builder().iconPath(iconPath).modifierList(modifiers).build();
     }
 
-    public static <T extends AzResource> String getAzResourceIconPath(T resource) {
+    public static <T extends AzResource> String getResourceIconPath(T resource) {
         final String modulePath = resource.getFullResourceType();
         return String.format("/icons/%s/default.svg", modulePath);
     }
 
-    public static <T extends AzResource> String getAzureBaseResourceIconPath(@Nonnull T resource) {
-        return AzureResourceIconProvider.getAzResourceIconPath((AzResource) resource);
+    public static <T extends AzResource> String getResourceIconPath(ResourceId id) {
+        final String modulePath = id.fullResourceType();
+        return String.format("/icons/%s/default.svg", modulePath);
+    }
+
+    public static <T extends AzResource> String getResourceBaseIconPath(@Nonnull T resource) {
+        return AzureResourceIconProvider.getResourceIconPath((AzResource) resource);
     }
 
     @Nullable

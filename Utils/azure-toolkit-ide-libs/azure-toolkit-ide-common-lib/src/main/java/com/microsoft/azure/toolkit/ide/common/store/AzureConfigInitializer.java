@@ -21,18 +21,17 @@ public class AzureConfigInitializer {
     public static final String COMMON = "common";
     public static final String ACCOUNT = "account";
     public static final String FUNCTION = "function";
-    public static final String DATABASE = "database";
     public static final String STORAGE = "storage";
     public static final String COSMOS = "cosmos";
     public static final String BICEP = "bicep";
     public static final String MONITOR = "monitor";
+    public static final String AZURITE = "azurite";
     public static final String EVENT_HUBS = "event_hubs";
     public static final String OTHER = "other";
 
     public static final String PAGE_SIZE = "page_size";
     public static final String TELEMETRY_PLUGIN_VERSION = "telemetry_plugin_version";
     public static final String AZURE_ENVIRONMENT_KEY = "azure_environment";
-    public static final String PASSWORD_SAVE_TYPE = "password_save_type";
     public static final String FUNCTION_CORE_TOOLS_PATH = "function_core_tools_path";
     public static final String TELEMETRY_ALLOW_TELEMETRY = "telemetry_allow_telemetry";
     public static final String TELEMETRY_INSTALLATION_ID = "telemetry_installation_id";
@@ -42,6 +41,9 @@ public class AzureConfigInitializer {
     public static final String ENABLE_AUTH_PERSISTENCE = "enable_auth_persistence";
     public static final String MONITOR_TABLE_ROWS = "monitor_table_rows";
     public static final String CONSUMER_GROUP_NAME = "consumer_group_name";
+    public static final String AZURITE_PATH = "azurite_path";
+    public static final String AZURITE_WORKSPACE = "azurite_workspace";
+    public static final String ENABLE_LEASE_MODE = "enable_lease_mode";
 
     public static void initialize(String defaultMachineId, String pluginName, String pluginVersion) {
         String machineId = AzureStoreManager.getInstance().getMachineStore().getProperty(TELEMETRY,
@@ -65,11 +67,6 @@ public class AzureConfigInitializer {
         final String funcPath = ideStore.getProperty(FUNCTION, FUNCTION_CORE_TOOLS_PATH, "");
         if (StringUtils.isNotBlank(funcPath) && Files.exists(Paths.get(funcPath))) {
             config.setFunctionCoreToolsPath(funcPath);
-        }
-
-        final String passwordSaveType = ideStore.getProperty(DATABASE, PASSWORD_SAVE_TYPE, "");
-        if (StringUtils.isNotBlank(passwordSaveType)) {
-            config.setDatabasePasswordSaveType(passwordSaveType);
         }
 
         final String storageExplorerPath = ideStore.getProperty(STORAGE, STORAGE_EXPLORER_PATH, "");
@@ -104,6 +101,19 @@ public class AzureConfigInitializer {
             config.setEventHubsConsumerGroup(consumerGroupName);
         }
 
+        final String azuritePath = ideStore.getProperty(AZURITE, AZURITE_PATH, "");
+        if (StringUtils.isNotBlank(azuritePath)) {
+            config.setAzuritePath(azuritePath);
+        }
+
+        final String azuriteWorkspace = ideStore.getProperty(AZURITE, AZURITE_WORKSPACE, "");
+        if (StringUtils.isNotBlank(azuriteWorkspace)) {
+            config.setAzuriteWorkspace(azuriteWorkspace);
+        }
+
+        final Boolean enableLeaseMode = Boolean.valueOf(ideStore.getProperty(AZURITE, ENABLE_LEASE_MODE, "false"));
+        config.setEnableLeaseMode(enableLeaseMode);
+
         ideStore.getProperty(TELEMETRY, TELEMETRY_PLUGIN_VERSION, "");
 
         final String userAgent = String.format("%s, v%s, machineid:%s", pluginName, pluginVersion,
@@ -127,12 +137,14 @@ public class AzureConfigInitializer {
         ideStore.setProperty(MONITOR, MONITOR_TABLE_ROWS, String.valueOf(config.getMonitorQueryRowNumber()));
         ideStore.setProperty(ACCOUNT, AZURE_ENVIRONMENT_KEY, config.getCloud());
         ideStore.setProperty(FUNCTION, FUNCTION_CORE_TOOLS_PATH, config.getFunctionCoreToolsPath());
-        ideStore.setProperty(DATABASE, PASSWORD_SAVE_TYPE, config.getDatabasePasswordSaveType());
         ideStore.setProperty(STORAGE, STORAGE_EXPLORER_PATH, config.getStorageExplorerPath());
         ideStore.setProperty(COMMON, PAGE_SIZE, String.valueOf(config.getPageSize()));
         ideStore.setProperty(COSMOS, DOCUMENTS_LABEL_FIELDS, String.join(";", config.getDocumentsLabelFields()));
         // don't save pluginVersion, it is saved in AzurePlugin class
         ideStore.setProperty(BICEP, DOTNET_RUNTIME_PATH, config.getDotnetRuntimePath());
         ideStore.setProperty(EVENT_HUBS, CONSUMER_GROUP_NAME, config.getEventHubsConsumerGroup());
+        ideStore.setProperty(AZURITE, AZURITE_PATH, config.getAzuritePath());
+        ideStore.setProperty(AZURITE, AZURITE_WORKSPACE, config.getAzuriteWorkspace());
+        ideStore.setProperty(AZURITE, ENABLE_LEASE_MODE, String.valueOf(config.getEnableLeaseMode()));
     }
 }

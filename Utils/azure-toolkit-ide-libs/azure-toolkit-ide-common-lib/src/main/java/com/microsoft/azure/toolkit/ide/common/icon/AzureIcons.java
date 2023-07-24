@@ -28,6 +28,8 @@ public final class AzureIcons {
         public static final AzureIcon FAVORITE = AzureIcon.builder().iconPath("/icons/Common/favorite.svg").build();
         public static final AzureIcon AZURE_MONITOR = AzureIcon.builder().iconPath("icons/Common/log_analytics_workspace.svg").build();
         public static final AzureIcon AZURE_MONITOR_NEW = AzureIcon.builder().iconPath("icons/Common/log_analytics_workspace_bluedot.svg").build();
+        public static final AzureIcon VARIABLE = AzureIcon.builder().iconPath("icons/Common/variable.svg").build();
+        public static final AzureIcon HIDE = AzureIcon.builder().iconPath("icons/Common/hide").build();
     }
 
     public static final class Action {
@@ -106,6 +108,11 @@ public final class AzureIcons {
         public static final AzureIcon UPDATING_ON_LINUX = AzureIcon.builder().iconPath("/icons/DeploymentSlot/DeploymentSlotUpdatingOnLinux.svg").build();
     }
 
+    public static final class AppService {
+        public static final AzureIcon APP_SETTINGS = AzureIcon.builder().iconPath("/icons/AppService/AppSettings").build();
+        public static final AzureIcon APP_SETTING = AzureIcon.builder().iconPath("/icons/AppService/AppSetting").build();
+    }
+
     public static final class FunctionApp {
         public static final AzureIcon MODULE = AzureIcon.builder().iconPath("/icons/Microsoft.Web/functions.svg").build();
         public static final AzureIcon RUNNING = AzureIcon.builder().iconPath("/icons/FunctionApp/FunctionAppRunning.svg").build();
@@ -165,6 +172,7 @@ public final class AzureIcons {
 
     public static final class StorageAccount {
         public static final AzureIcon MODULE = AzureIcon.builder().iconPath("/icons/Microsoft.Storage/default.svg").build();
+        public static final AzureIcon AZURITE = AzureIcon.builder().iconPath("/icons/Microsoft.Storage/azurite/default.svg").build();
         public static final AzureIcon CONTAINERS = AzureIcon.builder().iconPath("/icons/Microsoft.Storage/storageAccounts/containers/default.svg").build();
         public static final AzureIcon SHARES = AzureIcon.builder().iconPath("/icons/Microsoft.Storage/storageAccounts/shares/default.svg").build();
         public static final AzureIcon QUEUES = AzureIcon.builder().iconPath("/icons/Microsoft.Storage/storageAccounts/queues/default.svg").build();

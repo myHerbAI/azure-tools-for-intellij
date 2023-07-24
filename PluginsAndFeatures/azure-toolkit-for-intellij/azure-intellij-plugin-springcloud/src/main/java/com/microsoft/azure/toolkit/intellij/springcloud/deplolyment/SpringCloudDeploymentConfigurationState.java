@@ -21,7 +21,7 @@ import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.common.messager.IntellijAzureMessager;
 import com.microsoft.azure.toolkit.intellij.common.runconfig.RunConfigurationUtils;
 import com.microsoft.azure.toolkit.intellij.common.utils.JdkUtils;
-import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -34,8 +34,6 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.springcloud.*;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
-import com.microsoft.azure.toolkit.lib.springcloud.task.DeploySpringCloudAppTask;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.Disposable;
@@ -45,7 +43,10 @@ import reactor.core.scheduler.Schedulers;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.lib.common.messager.AzureMessageBundle.message;
 
@@ -56,7 +57,7 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
     private static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "The app is still starting, " +
             "you could start streaming log to check if something wrong in server side.";
     private static final String NOTIFICATION_TITLE = "Querying app status";
-    private static final String DEPLOYMENT_SUCCEED = "Deployment succeed but the app is still starting at server side.";
+    private static final String DEPLOYMENT_SUCCEED = "Deployment was successful but the app may still be starting.";
 
     private final SpringCloudDeploymentConfiguration config;
     private final Project project;
@@ -83,7 +84,7 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
                 processHandler.notifyComplete();
                 waitUntilAppReady(springCloudDeployment);
             } catch (final Exception e) {
-                messager.error(e, "Azure", retry, getOpenStreamingLogAction(getDeploymentFromConfig()));
+                messager.error(e, "Azure", retry, getOpenStreamingLogAction(config.getDeployment()));
                 processHandler.putUserData(RunConfigurationUtils.AZURE_RUN_STATE_RESULT, false);
                 processHandler.putUserData(RunConfigurationUtils.AZURE_RUN_STATE_EXCEPTION, e);
                 processHandler.notifyProcessTerminated(-1);
@@ -103,42 +104,47 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
         return new DefaultExecutionResult(consoleView, processHandler);
     }
 
-    @AzureOperation(name = "user/springcloud.deploy_app.app", params = {"this.config.getAppConfig().getAppName()"})
+    @AzureOperation(name = "user/springcloud.deploy_app.app", params = {"this.config.getApp().getName()"})
     public SpringCloudDeployment execute(IAzureMessager messager) {
         OperationContext.current().setMessager(messager);
         OperationContext.current().setTelemetryProperties(getTelemetryProperties());
-        final SpringCloudAppConfig appConfig = this.config.getAppConfig();
-        final Optional<File> opFile = Optional.ofNullable(this.config.getAppConfig().getDeployment().getArtifact()).map(IArtifact::getFile);
+        final SpringCloudDeploymentDraft deployment = this.config.getDeployment();
+        final Optional<File> opFile = Optional.ofNullable(deployment).map(SpringCloudDeploymentDraft::getArtifact).map(IArtifact::getFile);
         final Action.Id<Void> REOPEN = Action.Id.of("user/springcloud.reopen_deploy_dialog");
         final Action<Void> reopen = new Action<>(REOPEN).withHandler((v) -> DeploySpringCloudAppAction.deploy(this.config, this.project));
         if (opFile.isEmpty() || opFile.filter(File::exists).isEmpty()) {
             throw new AzureToolkitRuntimeException(
-                    message("springcloud.deploy_app.no_artifact").toString(),
-                    message("springcloud.deploy_app.no_artifact.tips").toString(),
-                    reopen.withLabel("Add BeforeRunTask"));
+                message("springcloud.deploy_app.no_artifact").toString(),
+                message("springcloud.deploy_app.no_artifact.tips").toString(),
+                reopen.withLabel("Add BeforeRunTask"));
         }
-        final SpringCloudCluster cluster = Azure.az(AzureSpringCloud.class)
-            .clusters(appConfig.getSubscriptionId())
-            .get(appConfig.getClusterName(), appConfig.getResourceGroup());
-        if (!Optional.ofNullable(cluster).map(SpringCloudCluster::isEnterpriseTier).orElse(true)) {
-            final Integer appVersion = Optional.of(appConfig.getDeployment().getRuntimeVersion())
-                    .map(v -> v.split("\\s|_")[1]).map(Integer::parseInt)
-                    .orElseThrow(() -> new AzureToolkitRuntimeException("Invalid runtime version: " + appConfig.getDeployment().getRuntimeVersion()));
+        final SpringCloudCluster cluster = deployment.getParent().getParent();
+        if (!Optional.of(cluster).map(SpringCloudCluster::isEnterpriseTier).orElse(true)) {
+            final Integer appVersion = Optional.ofNullable(deployment.getRuntimeVersion())
+                .map(v -> v.split("\\s|_")[1]).map(Integer::parseInt)
+                .orElseThrow(() -> new AzureToolkitRuntimeException("Invalid runtime version: " + deployment.getRuntimeVersion()));
             final Integer artifactVersion = JdkUtils.getBytecodeLanguageLevel(opFile.get());
             if (Objects.nonNull(artifactVersion) && artifactVersion > appVersion) {
                 final AzureString message = AzureString.format(
-                        "The bytecode version of artifact (%s) is \"%s (%s)\", " +
-                                "which is incompatible with the runtime \"%s\" of the target app (%s). " +
-                                "This will cause the App to fail to start normally after deploying. Please consider rebuilding the artifact or selecting another app.",
-                        opFile.get().getName(), artifactVersion + 44, "Java " + artifactVersion, "Java " + appVersion, appConfig.getAppName());
+                    "The bytecode version of artifact (%s) is \"%s (%s)\", " +
+                        "which is incompatible with the runtime \"%s\" of the target app (%s). " +
+                        "This will cause the App to fail to start normally after deploying. Please consider rebuilding the artifact or selecting another app.",
+                    opFile.get().getName(), artifactVersion + 44, "Java " + artifactVersion, "Java " + appVersion, deployment.getParent().getName());
                 throw new AzureToolkitRuntimeException(message.toString(), reopen.withLabel("Reopen Deploy Dialog"));
             }
         }
-        final DeploySpringCloudAppTask task = new DeploySpringCloudAppTask(appConfig);
-        final SpringCloudDeployment deployment = task.execute();
-        final SpringCloudApp app = deployment.getParent();
-        app.refresh();
-        printPublicUrl(app);
+        final Map<String, String> environmentVariables = Optional.ofNullable(deployment.getEnvironmentVariables()).orElseGet(HashMap::new);
+        environmentVariables.putAll(this.config.getEnvironmentVariables());
+        deployment.setEnvironmentVariables(environmentVariables);
+        final AzureTaskManager tm = AzureTaskManager.getInstance();
+        tm.runOnPooledThread(() -> opFile.map(f -> this.config.getModule())
+            .map(AzureModule::from)
+            .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
+                .initializeWithDefaultProfileIfNot()
+                .addApp(deployment.getParent()).save()))));
+        deployment.commit();
+        deployment.getParent().refresh();
+        printPublicUrl(deployment.getParent());
         return deployment;
     }
 
@@ -162,16 +168,6 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
         }
     }
 
-    private @Nullable SpringCloudDeployment getDeploymentFromConfig() {
-        final SpringCloudAppConfig appConfig = this.config.getAppConfig();
-        final String clusterName = appConfig.getClusterName();
-        final String appName = appConfig.getAppName();
-        final String resourceGroup = appConfig.getResourceGroup();
-        return Optional.ofNullable(Azure.az(AzureSpringCloud.class)
-                        .clusters(appConfig.getSubscriptionId())
-                        .get(clusterName, resourceGroup)).map(springCloudCluster -> springCloudCluster.apps().get(appName, resourceGroup))
-                .map(SpringCloudApp::getActiveDeployment).orElse(null);
-    }
     @Nullable
     private Action<?> getOpenStreamingLogAction(@Nullable SpringCloudDeployment deployment) {
         final SpringCloudAppInstance appInstance = Optional.ofNullable(deployment).map(SpringCloudDeployment::getLatestInstance).orElse(null);
@@ -199,15 +195,15 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
 
     protected Map<String, String> getTelemetryProperties() {
         final Map<String, String> props = new HashMap<>();
-        final SpringCloudAppConfig cfg = config.getAppConfig();
-        props.put("runtime", String.valueOf(cfg.getDeployment().getRuntimeVersion()));
-        props.put("subscriptionId", String.valueOf(cfg.getSubscriptionId()));
-        props.put("public", String.valueOf(cfg.isPublic()));
-        props.put("jvmOptions", String.valueOf(StringUtils.isNotEmpty(cfg.getDeployment().getJvmOptions())));
-        props.put("instanceCount", String.valueOf(cfg.getDeployment().getInstanceCount()));
-        props.put("memory", String.valueOf(cfg.getDeployment().getMemoryInGB()));
-        props.put("cpu", String.valueOf(cfg.getDeployment().getCpu()));
-        props.put("persistentStorage", String.valueOf(cfg.getDeployment().getEnablePersistentStorage()));
+        final SpringCloudDeploymentDraft deployment = Objects.requireNonNull(config.getDeployment());
+        props.put("runtime", String.valueOf(deployment.getRuntimeVersion()));
+        props.put("subscriptionId", deployment.getSubscriptionId());
+        props.put("public", String.valueOf(deployment.getParent().isPublicEndpointEnabled()));
+        props.put("jvmOptions", String.valueOf(StringUtils.isNotEmpty(deployment.getJvmOptions())));
+        props.put("instanceCount", String.valueOf(deployment.getCapacity()));
+        props.put("memory", String.valueOf(deployment.getMemoryInGB()));
+        props.put("cpu", String.valueOf(deployment.getCpu()));
+        props.put("persistentStorage", String.valueOf(deployment.getParent().isPublicEndpointEnabled()));
         return props;
     }
 

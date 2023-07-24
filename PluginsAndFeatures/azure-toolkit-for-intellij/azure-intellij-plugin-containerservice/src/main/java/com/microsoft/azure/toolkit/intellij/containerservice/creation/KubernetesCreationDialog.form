@@ -30,7 +30,6 @@
         </constraints>
         <properties>
           <horizontalTextPosition value="10"/>
-          <icon value="general/contextHelp.png"/>
           <text value="Subscription:"/>
           <toolTipText value="All resources in an Azure subscription are billed together."/>
         </properties>
@@ -47,7 +46,6 @@
         </constraints>
         <properties>
           <horizontalTextPosition value="10"/>
-          <icon value="general/contextHelp.png"/>
           <text value="Resource group:"/>
           <toolTipText value="A resource group is a collection of resources that share the same lifecycle, permissions, and policies."/>
         </properties>
@@ -75,7 +73,6 @@
         </constraints>
         <properties>
           <horizontalTextPosition value="10"/>
-          <icon value="general/contextHelp.png"/>
           <text value="Name:"/>
           <toolTipText value="The name of the Azure Kubernetes Service cluster."/>
         </properties>
@@ -92,7 +89,6 @@
         </constraints>
         <properties>
           <horizontalTextPosition value="10"/>
-          <icon value="general/contextHelp.png"/>
           <text value="Region:"/>
           <toolTipText value="The Azure region into which the cluster should be deployed."/>
         </properties>
@@ -109,7 +105,6 @@
         </constraints>
         <properties>
           <horizontalTextPosition value="10"/>
-          <icon value="general/contextHelp.png"/>
           <text value="Kubernetes version:"/>
           <toolTipText value="The version of Kubernetes that should be used for this cluster. You will be able to upgrade this version after creating the cluster. "/>
         </properties>
@@ -131,7 +126,6 @@
         </constraints>
         <properties>
           <horizontalTextPosition value="10"/>
-          <icon value="general/contextHelp.png"/>
           <text value="Node size:"/>
           <toolTipText value="The size of the virtual machines that will form the nodes in the cluster. This cannot be changed after creating the cluster."/>
         </properties>
@@ -142,7 +136,6 @@
         </constraints>
         <properties>
           <horizontalTextPosition value="10"/>
-          <icon value="general/contextHelp.png"/>
           <text value="Scale method:"/>
           <toolTipText value="The size of the virtual machines that will form the nodes in the cluster. This cannot be changed after creating the cluster."/>
         </properties>
@@ -153,7 +146,6 @@
         </constraints>
         <properties>
           <horizontalTextPosition value="10"/>
-          <icon value="general/contextHelp.png"/>
           <text value="Node count:"/>
           <toolTipText value="The number of nodes that should be created along with the cluster. You will be able to resize the cluster later."/>
         </properties>
@@ -231,7 +223,6 @@
         </constraints>
         <properties>
           <horizontalTextPosition value="10"/>
-          <icon value="general/contextHelp.png"/>
           <text value="DNS name prefix:"/>
           <toolTipText value="DNS name prefix to use with the hosted Kubernetes API server FQDN. You will use this to connect to the Kubernetes API when managing containers after creating the cluster."/>
         </properties>

@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.containerservice.creation;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
@@ -178,6 +179,16 @@ public class KubernetesCreationDialog extends AzureDialog<KubernetesClusterDraft
         this.lblMinNodeCount.setLabelFor(txtMinNodeCount);
         this.lblMaxNodeCount.setLabelFor(txtMaxNodeCount);
         this.lblDnsNamePrefix.setLabelFor(txtDnsPrefix);
+
+        this.lblSubscription.setIcon(AllIcons.General.ContextHelp);
+        this.lblResourceGroup.setIcon(AllIcons.General.ContextHelp);
+        this.lblName.setIcon(AllIcons.General.ContextHelp);
+        this.lblRegion.setIcon(AllIcons.General.ContextHelp);
+        this.lblKubernetesVersion.setIcon(AllIcons.General.ContextHelp);
+        this.lblNodeSize.setIcon(AllIcons.General.ContextHelp);
+        this.lblScaleMethod.setIcon(AllIcons.General.ContextHelp);
+        this.lblNodeCount.setIcon(AllIcons.General.ContextHelp);
+        this.lblDnsNamePrefix.setIcon(AllIcons.General.ContextHelp);
     }
 
     private void toggleScaleMethod(boolean isAutoScale) {

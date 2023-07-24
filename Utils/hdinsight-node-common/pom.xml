@@ -4,7 +4,7 @@
         <relativePath>../pom.xml</relativePath>
         <groupId>com.microsoft.azuretools</groupId>
         <artifactId>utils</artifactId>
-        <version>3.77.0-SNAPSHOT</version>
+        <version>3.80.0-SNAPSHOT</version>
     </parent>
     <artifactId>hdinsight-node-common</artifactId>
     <properties>
@@ -226,6 +226,10 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-client-runtime</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.jmockit</groupId>
             <artifactId>jmockit</artifactId>
             <scope>provided</scope>
@@ -233,7 +237,6 @@
         <dependency>
             <groupId>com.microsoft.azuretools</groupId>
             <artifactId>azuretools-core</artifactId>
-            <version>${azuretool.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jsoup</groupId>
@@ -242,7 +245,6 @@
         <dependency>
             <groupId>com.microsoft.azuretools</groupId>
             <artifactId>azure-explorer-common</artifactId>
-            <version>${azuretool.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -477,10 +479,6 @@
             <groupId>com.microsoft.azuretools</groupId>
             <artifactId>spark-localrun-mock</artifactId>
             <version>0.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>adal4j</artifactId>
         </dependency>
         <dependency>
             <groupId>com.azure.resourcemanager</groupId>

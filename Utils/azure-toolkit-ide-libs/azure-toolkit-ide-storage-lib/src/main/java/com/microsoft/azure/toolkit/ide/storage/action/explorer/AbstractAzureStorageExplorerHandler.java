@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.storage.AzuriteStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -132,7 +133,8 @@ public abstract class AbstractAzureStorageExplorerHandler {
                 }
             })
             .withAuthRequired(false);
-        return new Action[]{openInAzureAction, downloadAction, configureAction};
+        return storageAccount instanceof AzuriteStorageAccount ? new Action[]{downloadAction, configureAction} :
+                new Action[]{openInAzureAction, downloadAction, configureAction};
     }
 
     protected abstract String getStorageExplorerExecutableFromOS();

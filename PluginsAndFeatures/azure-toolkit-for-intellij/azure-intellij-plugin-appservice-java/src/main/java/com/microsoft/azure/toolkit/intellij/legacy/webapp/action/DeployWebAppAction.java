@@ -22,15 +22,18 @@ import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.WebAppConfigura
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.EMPTY_PLACE;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
 
 public class DeployWebAppAction extends AnAction {
 
@@ -39,13 +42,16 @@ public class DeployWebAppAction extends AnAction {
     @Override
     @AzureOperation(name = "user/webapp.deploy_app")
     public void actionPerformed(@Nonnull AnActionEvent event) {
-        final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
-        final Project project = Objects.requireNonNull(event.getProject());
-        if (Objects.nonNull(module)) {
-            AzureLoginHelper.requireSignedIn(module.getProject(), () -> deploy(module));
-        } else {
-            AzureLoginHelper.requireSignedIn(project, () -> deploy(project));
-        }
+        AzureTaskManager.getInstance().runLater(() -> {
+            OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(event.getPlace(), EMPTY_PLACE));
+            final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
+            final Project project = Objects.requireNonNull(event.getProject());
+            if (Objects.nonNull(module)) {
+                AzureLoginHelper.requireSignedIn(module.getProject(), () -> deploy(module));
+            } else {
+                AzureLoginHelper.requireSignedIn(project, () -> deploy(project));
+            }
+        });
     }
 
     public static void deploy(@Nonnull final WebApp webApp, @Nonnull final Project project) {

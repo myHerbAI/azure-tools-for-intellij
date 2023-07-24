@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.intellij.database.connection;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
-import com.microsoft.azure.toolkit.intellij.connector.Password;
 import com.microsoft.azure.toolkit.lib.database.JdbcUrl;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -23,7 +22,7 @@ public class Database {
 
     private JdbcUrl jdbcUrl;
     private String username;
-    private Password password;
+    private char[] password;
 
     public Database(String serverId, String name) {
         this.serverId = ResourceId.fromString(serverId);

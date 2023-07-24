@@ -22,8 +22,6 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.ComponentUtil;
 import com.intellij.ui.HyperlinkLabel;
-import com.intellij.util.Consumer;
-import com.intellij.util.ui.UIUtil;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.database.mysql.creation.CreateMySqlAction;
@@ -64,6 +62,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class DatabaseServerParamEditor extends ParamEditorBase<DatabaseServerParamEditor.SqlDbServerComboBox> {
@@ -126,7 +125,6 @@ public class DatabaseServerParamEditor extends ParamEditorBase<DatabaseServerPar
     @Nonnull
     private HyperlinkLabel initNotSignInTipsLabel(SqlDbServerComboBox combox) {
         final HyperlinkLabel label = new HyperlinkLabel();
-        label.setForeground(UIUtil.getContextHelpForeground());
         label.setHtmlText(String.format(NOT_SIGNIN_TIPS, getName(combox.getClazz())));
         label.setIcon(AllIcons.General.Information);
         label.addHyperlinkListener(e -> signInAndReloadItems(combox, label));
@@ -136,7 +134,6 @@ public class DatabaseServerParamEditor extends ParamEditorBase<DatabaseServerPar
 
     private HyperlinkLabel initNoServerTipsLabel(SqlDbServerComboBox combox) {
         final HyperlinkLabel label = new HyperlinkLabel();
-        label.setForeground(UIUtil.getContextHelpForeground());
         label.setHtmlText(String.format(NO_SERVERS_TIPS, getName(combox.getClazz())));
         label.setIcon(AllIcons.General.Information);
         label.addHyperlinkListener(e -> createServerInIde(e.getInputEvent()));
@@ -264,13 +261,13 @@ public class DatabaseServerParamEditor extends ParamEditorBase<DatabaseServerPar
                     .filter(s -> s.getFormalStatus().isRunning()).collect(Collectors.toList());
             }
             this.noServers = CollectionUtils.isEmpty(servers);
-            Optional.ofNullable(this.serverListener).ifPresent(l -> l.consume(this.noServers));
+            Optional.ofNullable(this.serverListener).ifPresent(l -> l.accept(this.noServers));
             return servers;
         }
 
         public void setServerListener(@Nonnull Consumer<Boolean> serverListener) {
             this.serverListener = serverListener;
-            serverListener.consume(this.noServers);
+            serverListener.accept(this.noServers);
         }
 
         @Override

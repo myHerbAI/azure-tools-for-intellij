@@ -13,12 +13,9 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
-import com.microsoft.azure.toolkit.lib.springcloud.task.DeploySpringCloudAppTask;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -46,18 +43,14 @@ public class CreateSpringAppTask implements Task {
     public void execute() {
         final SpringCloudCluster cluster = (SpringCloudCluster) Objects.requireNonNull(context.getParameter(SPRING_APP_CLUSTER), "`cluster` is required to create spring app");
         final String name = (String) Objects.requireNonNull(context.getParameter(SPRING_APP_NAME), "`name` is required to create spring app");
-        final SpringCloudDeploymentConfig deploymentConfig = SpringCloudDeploymentConfig.builder().runtimeVersion(RuntimeVersion.JAVA_17.toString()).instanceCount(1).build();
-        final SpringCloudAppConfig config = SpringCloudAppConfig.builder()
-                .appName(name)
-                .subscriptionId(cluster.getSubscriptionId())
-                .clusterName(cluster.getName())
-                .resourceGroup(cluster.getResourceGroupName())
-                .isPublic(true)
-                .deployment(deploymentConfig).build();
-        final SpringCloudDeployment deployment = new DeploySpringCloudAppTask(config).execute();
-        final SpringCloudApp parent = deployment.getParent();
+        final SpringCloudAppDraft appDraft = cluster.apps().create(name, null);
+        appDraft.setPublicEndpointEnabled(true);
+        final SpringCloudDeploymentDraft deploymentDraft = appDraft.deployments().create("default", null);
+        deploymentDraft.setRuntimeVersion(RuntimeVersion.JAVA_17.toString());
+        deploymentDraft.setCapacity(1);
+        deploymentDraft.commit();
         AzureMessager.getMessager().info(AzureString.format("Azure Spring app %s is successfully created.", name));
-        context.applyResult(SPRING_APP, parent);
+        context.applyResult(SPRING_APP, appDraft);
     }
 
     @Nonnull

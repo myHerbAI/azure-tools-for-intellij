@@ -11,25 +11,30 @@ import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.springcloud.SpringCloudActionsContributor;
 import com.microsoft.azure.toolkit.intellij.springcloud.creation.CreateSpringCloudAppAction;
+import com.microsoft.azure.toolkit.intellij.springcloud.creation.CreateSpringCloudClusterAction;
 import com.microsoft.azure.toolkit.intellij.springcloud.deplolyment.DeploySpringCloudAppAction;
 import com.microsoft.azure.toolkit.intellij.springcloud.remotedebug.AttachDebuggerAction;
 import com.microsoft.azure.toolkit.intellij.springcloud.remotedebug.EnableRemoteDebuggingAction;
 import com.microsoft.azure.toolkit.intellij.springcloud.streaminglog.SpringCloudStreamingLogAction;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.account.IAccount;
-import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppInstance;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterDraft;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
 public class IntellijSpringCloudActionsContributor implements IActionsContributor {
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyMMddHHmmss");
+
     @Override
     public void registerHandlers(AzureActionManager am) {
         this.registerCreateServiceActionHandler(am);
@@ -45,13 +50,15 @@ public class IntellijSpringCloudActionsContributor implements IActionsContributo
 
     private void registerCreateServiceActionHandler(AzureActionManager am) {
         final BiPredicate<Object, AnActionEvent> condition = (r, e) -> r instanceof AzureSpringCloud;
-        final BiConsumer<Object, AnActionEvent> handler = (c, e) -> {
-            final IAccount account = Azure.az(IAzureAccount.class).account();
-            final String url = String.format("%s/#create/Microsoft.AppPlatform", account.getPortalUrl());
-            am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(url, null);
-        };
+        final BiConsumer<Object, AnActionEvent> handler = (c, e) -> CreateSpringCloudClusterAction.createCluster(e.getProject(), null);
         am.registerHandler(ResourceCommonActionsContributor.CREATE, condition, handler);
-        am.registerHandler(SpringCloudActionsContributor.GROUP_CREATE_CLUSTER, (r, e) -> true, (r, e) -> handler.accept(r, (AnActionEvent) e));
+
+        final BiConsumer<ResourceGroup, AnActionEvent> groupCreateClusterHandler = (r, e) -> {
+            final String date = DATE_FORMAT.format(new Date());
+            final SpringCloudClusterDraft data = Azure.az(AzureSpringCloud.class).clusters(r.getSubscriptionId()).create("asa-" + date, r.getName());
+            CreateSpringCloudClusterAction.createCluster(e.getProject(), data);
+        };
+        am.registerHandler(SpringCloudActionsContributor.GROUP_CREATE_CLUSTER, (r, e) -> true, groupCreateClusterHandler);
     }
 
     private void registerCreateAppActionHandler(AzureActionManager am) {

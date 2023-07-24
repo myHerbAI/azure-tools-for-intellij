@@ -22,7 +22,7 @@
         </constraints>
         <properties>
           <horizontalAlignment value="0"/>
-          <icon value="providers/azure.png"/>
+          <icon value="providers/azure.svg"/>
           <text value=""/>
         </properties>
       </component>
@@ -36,7 +36,6 @@
           <component id="3f4d8" class="javax.swing.JLabel" binding="star0">
             <constraints/>
             <properties>
-              <icon value="nodes/notFavoriteOnHover@2x.png"/>
               <text value=""/>
               <toolTipText value="click to send and tell us more."/>
             </properties>
@@ -44,7 +43,6 @@
           <component id="4ad9e" class="javax.swing.JLabel" binding="star1">
             <constraints/>
             <properties>
-              <icon value="nodes/notFavoriteOnHover@2x.png"/>
               <text value=""/>
               <toolTipText value="click to send and tell us more."/>
             </properties>
@@ -52,7 +50,6 @@
           <component id="4d4d6" class="javax.swing.JLabel" binding="star2">
             <constraints/>
             <properties>
-              <icon value="nodes/notFavoriteOnHover@2x.png"/>
               <text value=""/>
               <toolTipText value="click to send and tell us more."/>
             </properties>
@@ -60,7 +57,6 @@
           <component id="f1053" class="javax.swing.JLabel" binding="star3">
             <constraints/>
             <properties>
-              <icon value="nodes/notFavoriteOnHover@2x.png"/>
               <text value=""/>
               <toolTipText value="click to send."/>
             </properties>
@@ -68,7 +64,6 @@
           <component id="16cae" class="javax.swing.JLabel" binding="star4">
             <constraints/>
             <properties>
-              <icon value="nodes/notFavoriteOnHover@2x.png"/>
               <text value=""/>
               <toolTipText value="click to send."/>
             </properties>

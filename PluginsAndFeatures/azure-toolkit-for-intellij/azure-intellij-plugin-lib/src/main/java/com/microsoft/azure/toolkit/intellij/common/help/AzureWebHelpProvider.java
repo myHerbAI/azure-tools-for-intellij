@@ -14,9 +14,11 @@ import java.util.Map;
 
 public class AzureWebHelpProvider extends WebHelpProvider {
     public static final String HELP_SIGN_IN = AzurePlugin.PLUGIN_ID + "." + "sign_in";
+    public static final String HELP_AZURE_WEB_JOBS_STORAGE = AzurePlugin.PLUGIN_ID + "." + "azure_web_jobs_storage";
 
     private static final Map<String, String> HELP_URLS = Map.of(
-        AzureWebHelpProvider.HELP_SIGN_IN, "https://docs.microsoft.com/en-us/azure/azure-toolkit-for-intellij-sign-in-instructions"
+        AzureWebHelpProvider.HELP_SIGN_IN, "https://docs.microsoft.com/en-us/azure/azure-toolkit-for-intellij-sign-in-instructions",
+        AzureWebHelpProvider.HELP_AZURE_WEB_JOBS_STORAGE, "https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings#azurewebjobsstorage"
     );
 
     @Override

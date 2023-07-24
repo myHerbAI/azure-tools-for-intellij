@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.ide.common.icon;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -20,12 +21,13 @@ import java.util.stream.Collectors;
 @Getter
 @Builder(toBuilder = true)
 @EqualsAndHashCode
+@ToString(onlyExplicitlyIncluded = true)
 public class AzureIcon {
-
+    @ToString.Include
     private String iconPath;
     private List<Modifier> modifierList;
 
-    public static final String getIconPathWithModifier(@Nonnull final AzureIcon azureIcon) {
+    public static String getIconPathWithModifier(@Nonnull final AzureIcon azureIcon) {
         if (CollectionUtils.isEmpty(azureIcon.getModifierList())) {
             return azureIcon.getIconPath();
         }

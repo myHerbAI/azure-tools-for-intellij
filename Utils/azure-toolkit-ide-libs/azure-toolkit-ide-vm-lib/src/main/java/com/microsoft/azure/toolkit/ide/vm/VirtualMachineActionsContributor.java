@@ -34,7 +34,7 @@ public class VirtualMachineActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.ADD.getIconPath())
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof VirtualMachine)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .register(am);
 
         new Action<>(CONNECT_SSH)
@@ -42,7 +42,7 @@ public class VirtualMachineActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.CONSOLE.getIconPath())
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof VirtualMachine)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .register(am);
 
         new Action<>(SFTP_CONNECTION)
@@ -50,14 +50,14 @@ public class VirtualMachineActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.SFTP.getIconPath())
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof VirtualMachine)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .register(am);
 
         new Action<>(GROUP_CREATE_VM)
             .withLabel("Virtual Machine")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ResourceGroup)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .register(am);
     }
 

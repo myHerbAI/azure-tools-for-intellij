@@ -39,7 +39,6 @@
         </constraints>
         <properties>
           <horizontalTextPosition value="10"/>
-          <icon value="general/contextHelp.png"/>
           <text value="Subscription:"/>
           <toolTipText value="All resources in an Azure subscription are billed together."/>
         </properties>

@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.common.component.resourcegroup;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.ui.components.JBLabel;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.SwingUtils;
@@ -58,6 +59,7 @@ public class FullResourceGroupCreationDialog extends AzureDialog<ResourceGroupDr
         this.textName.putClientProperty(AccessibleRelation.LABELED_BY, this.lblName);
         SwingUtils.setTextAndEnableAutoWrap(this.labelDescription, AzureMessageBundle.message("common.resourceGroup.description").toString());
         this.selectorSubscription.addItemListener(this::onSubscriptionChanged);
+        this.lblSubscription.setIcon(AllIcons.General.ContextHelp);
     }
 
     private void onSubscriptionChanged(ItemEvent e) {

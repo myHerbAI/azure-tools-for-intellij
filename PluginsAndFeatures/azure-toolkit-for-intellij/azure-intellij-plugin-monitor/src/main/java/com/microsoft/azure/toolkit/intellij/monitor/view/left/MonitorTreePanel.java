@@ -14,7 +14,9 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.treeView.NodeRenderer;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.RelativeFont;
 import com.intellij.ui.render.RenderingUtil;
 import com.intellij.ui.treeStructure.SimpleTree;
@@ -37,7 +39,7 @@ import javax.swing.tree.TreeSelectionModel;
 import java.io.InputStream;
 import java.util.*;
 
-public class MonitorTreePanel extends JPanel {
+public class MonitorTreePanel extends JPanel implements Disposable {
     private JPanel contentPanel;
     private Tree tree;
     private DefaultTreeModel treeModel;
@@ -51,11 +53,12 @@ public class MonitorTreePanel extends JPanel {
     private final AzureEventBus.EventListener eventListener;
     private final Project project;
 
-    public MonitorTreePanel(Project project) {
+    public MonitorTreePanel(Project project, Disposable parentDisposable) {
         super();
         this.project = project;
         $$$setupUI$$$(); // tell IntelliJ to call createUIComponents() here.
         this.eventListener = new AzureEventBus.EventListener(e -> this.addQueryNode((QueryData) e.getSource()));
+        Disposer.register(parentDisposable, this);
         AzureEventBus.on("azure.monitor.add_query_node", this.eventListener);
     }
 
@@ -92,12 +95,12 @@ public class MonitorTreePanel extends JPanel {
         if (isTableTab) {
             return;
         }
-        final DefaultMutableTreeNode customQueryRootNode = getOrCreateCustomQueriesTabNode();
-        final DefaultMutableTreeNode overrideNode = TreeUtil.findNode(customQueryRootNode, n ->
-                n.getUserObject() instanceof QueryData && Objects.equals(((QueryData) n.getUserObject()).displayName, data.displayName));
         customQueries.stream().filter(q -> Objects.equals(q.displayName, data.displayName)).findAny()
                 .ifPresentOrElse(q -> q.setQueryString(data.queryString), () -> customQueries.add(data));
         AzureTaskManager.getInstance().runLater(() -> {
+            final DefaultMutableTreeNode customQueryRootNode = getOrCreateCustomQueriesTabNode();
+            final DefaultMutableTreeNode overrideNode = TreeUtil.findNode(customQueryRootNode, n ->
+                n.getUserObject() instanceof QueryData && Objects.equals(((QueryData) n.getUserObject()).displayName, data.displayName));
             AzureMonitorManager.getInstance().changeContentView(project, AzureMonitorManager.QUERIES_TAB_NAME);
             final DefaultMutableTreeNode selectedNode;
             if (Objects.nonNull(overrideNode)) {
@@ -111,10 +114,10 @@ public class MonitorTreePanel extends JPanel {
             TreeUtil.selectNode(this.tree, selectedNode);
         });
         AzureTaskManager.getInstance().runInBackground("save query", () -> {
+            final ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
             final List<String> customQueryList = new ArrayList<>();
             this.customQueries.forEach(q -> {
                 try {
-                    final ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
                     customQueryList.add(ow.writeValueAsString(q));
                 } catch (final JsonProcessingException ignored) {
                 }
@@ -226,7 +229,7 @@ public class MonitorTreePanel extends JPanel {
             return node;
         }
         final DefaultMutableTreeNode tabNode = new DefaultMutableTreeNode(CUSTOM_QUERIES_TAB);
-        ((DefaultMutableTreeNode) this.treeModel.getRoot()).add(tabNode);
+        this.treeModel.insertNodeInto(tabNode, (DefaultMutableTreeNode) this.treeModel.getRoot(), 0);
         return tabNode;
     }
 

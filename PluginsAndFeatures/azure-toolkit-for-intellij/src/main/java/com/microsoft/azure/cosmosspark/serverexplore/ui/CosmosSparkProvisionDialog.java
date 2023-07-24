@@ -7,6 +7,7 @@ package com.microsoft.azure.cosmosspark.serverexplore.ui;
 
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -174,6 +175,7 @@ public class CosmosSparkProvisionDialog extends DialogWrapper
                 super.windowOpened(e);
             }
         });
+        refreshButton.setIcon(AllIcons.Actions.Refresh);
     }
 
     @Override

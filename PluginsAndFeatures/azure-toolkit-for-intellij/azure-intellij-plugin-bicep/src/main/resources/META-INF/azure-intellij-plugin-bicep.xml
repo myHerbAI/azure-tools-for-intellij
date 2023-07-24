@@ -31,7 +31,7 @@
                       id="LSPTypedHandler"/>
 
         <!-- needed for code diagnostics -->
-        <externalAnnotator id="LSPAnnotator" language="Bicep"
+        <externalAnnotator id="LSPAnnotator" language="TEXT"
                            implementationClass="org.wso2.lsp4intellij.contributors.annotator.LSPAnnotator"/>
 
         <!-- needed for Workspace Symbols -->

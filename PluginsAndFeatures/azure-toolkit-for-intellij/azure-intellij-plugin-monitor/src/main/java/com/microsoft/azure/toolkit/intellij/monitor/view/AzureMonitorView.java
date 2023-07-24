@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.monitor.view;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
@@ -39,7 +40,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-public class AzureMonitorView extends JPanel {
+public class AzureMonitorView extends JPanel implements Disposable {
     private JPanel contentPanel;
     private JPanel leftPanel;
     private ActionLink changeWorkspace;
@@ -147,7 +148,7 @@ public class AzureMonitorView extends JPanel {
                 });
             }
         });
-        this.monitorTreePanel = new MonitorTreePanel(project);
+        this.monitorTreePanel = new MonitorTreePanel(project, this);
         this.tabbedPanePanel = new MonitorTabbedPane();
         this.rightPanel = tabbedPanePanel.getContentPanel();
     }

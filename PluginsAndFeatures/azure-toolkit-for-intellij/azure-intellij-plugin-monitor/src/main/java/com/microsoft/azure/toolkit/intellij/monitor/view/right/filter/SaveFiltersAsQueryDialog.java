@@ -1,26 +1,20 @@
 package com.microsoft.azure.toolkit.intellij.monitor.view.right.filter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.editor.impl.DocumentImpl;
 import com.intellij.openapi.fileTypes.PlainTextFileType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.EditorTextField;
-import com.microsoft.azure.toolkit.intellij.monitor.AzureMonitorManager;
 import com.microsoft.azure.toolkit.intellij.monitor.view.left.MonitorTreePanel;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import javax.swing.*;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class SaveFiltersAsQueryDialog extends DialogWrapper {
     private JPanel rootPanel;

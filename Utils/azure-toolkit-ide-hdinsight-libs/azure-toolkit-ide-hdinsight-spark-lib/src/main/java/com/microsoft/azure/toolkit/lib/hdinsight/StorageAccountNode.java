@@ -32,7 +32,7 @@ public class StorageAccountNode extends AbstractAzResource<StorageAccountNode,Sp
 
     @NotNull
     @Override
-    public String loadStatus(@NotNull com.azure.resourcemanager.hdinsight.models.StorageAccount remote) {
+    protected String loadStatus(@NotNull com.azure.resourcemanager.hdinsight.models.StorageAccount remote) {
         if(remote.isDefault())
             return "(default)";
         return StringUtils.EMPTY;

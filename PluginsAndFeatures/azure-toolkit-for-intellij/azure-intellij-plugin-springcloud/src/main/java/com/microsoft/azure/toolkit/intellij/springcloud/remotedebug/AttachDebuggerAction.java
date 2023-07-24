@@ -58,10 +58,11 @@ public class AttachDebuggerAction {
     public static void startDebuggingApp(@Nonnull SpringCloudApp app, Project project) {
         AzureTaskManager.getInstance().runLater(() -> {
             final SpringCloudAppInstanceSelectionDialog dialog = new SpringCloudAppInstanceSelectionDialog(project, app);
-            if (dialog.showAndGet()) {
-                final SpringCloudAppInstance target = dialog.getInstance();
+            dialog.setOkActionListener((target)->{
+                dialog.close();
                 startDebugging(target, project);
-            }
+            });
+            dialog.show();
         });
     }
 

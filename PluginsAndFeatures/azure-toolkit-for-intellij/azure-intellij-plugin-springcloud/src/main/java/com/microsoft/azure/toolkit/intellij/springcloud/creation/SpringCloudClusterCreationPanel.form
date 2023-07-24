@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.microsoft.azure.toolkit.intellij.springcloud.creation.SpringCloudClusterCreationPanel">
+  <grid id="27dc6" binding="contentPanel" layout-manager="GridLayoutManager" row-count="11" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="0" left="0" bottom="0" right="0"/>
+    <constraints>
+      <xy x="20" y="20" width="500" height="479"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <component id="1b562" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+            <minimum-size width="100" height="24"/>
+            <preferred-size width="100" height="24"/>
+            <maximum-size width="100" height="24"/>
+          </grid>
+        </constraints>
+        <properties>
+          <text value="Name:"/>
+        </properties>
+      </component>
+      <component id="afe32" class="com.microsoft.azure.toolkit.intellij.springcloud.component.ServiceNameInput" binding="textName">
+        <constraints>
+          <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+      </component>
+      <component id="958fd" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+            <minimum-size width="100" height="24"/>
+            <preferred-size width="100" height="24"/>
+            <maximum-size width="100" height="24"/>
+          </grid>
+        </constraints>
+        <properties>
+          <horizontalTextPosition value="10"/>
+          <labelFor value=""/>
+          <text value="Subscription:"/>
+          <toolTipText value="All resources in an Azure subscription are billed together."/>
+        </properties>
+      </component>
+      <component id="3ad82" class="com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox" binding="selectorSubscription">
+        <constraints>
+          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="0" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="10" height="11"/>
+          </grid>
+        </constraints>
+        <properties/>
+      </component>
+      <component id="1f37d" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+            <minimum-size width="100" height="24"/>
+            <preferred-size width="100" height="24"/>
+            <maximum-size width="100" height="24"/>
+          </grid>
+        </constraints>
+        <properties>
+          <labelFor value=""/>
+          <text value="Resource Group:"/>
+        </properties>
+      </component>
+      <component id="f6a3a" class="com.microsoft.azure.toolkit.intellij.common.component.resourcegroup.ResourceGroupComboBox" binding="selectorResourceGroup">
+        <constraints>
+          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+      </component>
+      <vspacer id="772f6">
+        <constraints>
+          <grid row="10" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </vspacer>
+      <component id="bc814" class="com.intellij.ui.TitledSeparator">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <font/>
+          <text value="Service Basics"/>
+          <titleFont style="1"/>
+          <toolTipText value="Select a subscription to manage deployed resources and costs. Use resource groups like folders to organize and manage all your resources."/>
+        </properties>
+      </component>
+      <component id="ab05d" class="com.intellij.ui.TitledSeparator">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <font/>
+          <text value="Service Details"/>
+          <titleFont style="1"/>
+          <toolTipText value="Select a subscription to manage deployed resources and costs. Use resource groups like folders to organize and manage all your resources."/>
+        </properties>
+      </component>
+      <component id="97f93" class="javax.swing.JLabel" binding="labelPlan">
+        <constraints>
+          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+            <minimum-size width="100" height="24"/>
+            <preferred-size width="100" height="24"/>
+            <maximum-size width="100" height="24"/>
+          </grid>
+        </constraints>
+        <properties>
+          <horizontalTextPosition value="10"/>
+          <labelFor value=""/>
+          <text value="Plan:"/>
+          <toolTipText value="Pricing Tier determines the resource and cost associated with your instance."/>
+        </properties>
+      </component>
+      <component id="9024d" class="com.microsoft.azure.toolkit.intellij.springcloud.component.SpringCloudSkuComboBox" binding="selectorSku">
+        <constraints>
+          <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+      </component>
+      <component id="41505" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+            <minimum-size width="100" height="24"/>
+            <preferred-size width="100" height="24"/>
+            <maximum-size width="100" height="24"/>
+          </grid>
+        </constraints>
+        <properties>
+          <text value="Region:"/>
+        </properties>
+      </component>
+      <component id="980eb" class="com.microsoft.azure.toolkit.intellij.springcloud.component.SpringCloudRegionComboBox" binding="selectorRegion">
+        <constraints>
+          <grid row="7" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+      </component>
+      <component id="caa15" class="com.intellij.ui.components.JBLabel" binding="descPlan" custom-create="true">
+        <constraints>
+          <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="2 vCPUs, 4 Gi included, 25 app instances max."/>
+        </properties>
+      </component>
+      <component id="c9234" class="javax.swing.JLabel" binding="labelTerms">
+        <constraints>
+          <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+            <minimum-size width="100" height="24"/>
+            <preferred-size width="100" height="24"/>
+            <maximum-size width="100" height="24"/>
+          </grid>
+        </constraints>
+        <properties>
+          <text value="Terms:"/>
+          <visible value="false"/>
+        </properties>
+      </component>
+      <component id="7e426" class="javax.swing.JCheckBox" binding="checkboxTerms">
+        <constraints>
+          <grid row="8" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value=""/>
+          <visible value="false"/>
+        </properties>
+      </component>
+      <component id="83f42" class="com.intellij.ui.components.JBLabel" binding="textTerms" custom-create="true">
+        <constraints>
+          <grid row="9" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="1" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="150" height="50"/>
+          </grid>
+        </constraints>
+        <properties>
+          <enabled value="true"/>
+          <text value="&lt;html&gt;&#13;&#10;  &lt;head&gt;&#13;&#10;    &#13;&#10;  &lt;/head&gt;&#13;&#10;  &lt;body&gt;&#13;&#10;    &lt;p style=&quot;margin-top: 0&quot;&gt;&#13;&#10;      By selecting the checkbox and clicking &quot;Create&quot;, I (a) agree to the &#13;&#10;      legal terms and privacy statement(s) associated with the &lt;a href=&quot;https://aka.ms/ascmpoffer&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Marketplace &#13;&#10;      offering(s)&lt;/a&gt;; (b) authorize Microsoft to bill my current payment &#13;&#10;      method for the fees associated with the offering(s), with the same &#13;&#10;      billing frequency as my Azure subscription; and (c) agree that Microsoft &#13;&#10;      may share my contact, usage and transactional information with the &#13;&#10;      provider(s) of the offering(s) for support, billing and other &#13;&#10;      transactional activities. Microsoft does not provide rights for &#13;&#10;      third-party offerings. See the &lt;a href=&quot;https://azure.microsoft.com/support/legal/marketplace-terms/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Azure &#13;&#10;      Marketplace Terms&lt;/a&gt; for additional details.&#13;&#10;    &lt;/p&gt;&#13;&#10;  &lt;/body&gt;&#13;&#10;&lt;/html&gt;&#13;&#10;"/>
+          <visible value="false"/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+</form>

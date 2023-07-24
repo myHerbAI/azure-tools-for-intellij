@@ -12,11 +12,13 @@ import com.intellij.psi.PsiMethod;
 import com.microsoft.azure.toolkit.ide.appservice.AppServiceActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandlerMessenger;
-import com.microsoft.azure.toolkit.intellij.connector.function.FunctionSupported;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.DotEnvBeforeRunTaskProvider;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -38,6 +40,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
+
+import static com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition.LOCAL_STORAGE_CONNECTION_STRING;
 
 
 public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBase<?, ?, ?>> {
@@ -76,6 +80,11 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
         OperationContext.current().setMessager(new RunProcessHandlerMessenger(processHandler));
         applyResourceConnection();
         final FunctionAppBase<?, ?, ?> target = FunctionAppService.getInstance().createOrUpdateFunctionApp(deployModel.getFunctionAppConfig());
+        final AzureTaskManager tm = AzureTaskManager.getInstance();
+        tm.runOnPooledThread(() -> Optional.ofNullable(this.functionDeployConfiguration.getModule()).map(AzureModule::from)
+            .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
+                .initializeWithDefaultProfileIfNot()
+                .addApp(target instanceof FunctionAppDeploymentSlot ? target.getParent() : target).save()))));
         stagingFolder = FunctionUtils.getTempStagingFolder();
         prepareStagingFolder(stagingFolder, operation);
         // deploy function to Azure
@@ -97,11 +106,12 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
 
     private void applyResourceConnection() {
         if (functionDeployConfiguration.isConnectionEnabled()) {
-            functionDeployConfiguration.getConnections().stream()
-                    .filter(connection -> connection.getResource().getDefinition() instanceof FunctionSupported)
-                    .forEach(connection -> ((FunctionSupported) connection.getResource().getDefinition())
-                            .getPropertiesForFunction(connection.getResource().getData(), connection)
-                            .forEach((key, value) -> functionDeployConfiguration.getConfig().getAppSettings().put(key.toString(), value.toString())));
+            final DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask loadDotEnvBeforeRunTask = functionDeployConfiguration.getLoadDotEnvBeforeRunTask();
+            final Map<String, String> appSettings = functionDeployConfiguration.getConfig().getAppSettings();
+            loadDotEnvBeforeRunTask.loadEnv().stream()
+                    .filter(pair -> !(StringUtils.equalsIgnoreCase(pair.getKey(), "AzureWebJobsStorage") &&
+                            StringUtils.equalsIgnoreCase(pair.getValue(), LOCAL_STORAGE_CONNECTION_STRING))) // workaround to remove local connections
+                    .forEach(env -> appSettings.put(env.getKey(), env.getValue()));
         }
     }
 

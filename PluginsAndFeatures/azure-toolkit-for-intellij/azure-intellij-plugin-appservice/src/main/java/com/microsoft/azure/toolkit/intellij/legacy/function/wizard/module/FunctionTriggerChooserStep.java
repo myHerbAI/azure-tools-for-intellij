@@ -46,7 +46,8 @@ public class FunctionTriggerChooserStep extends ModuleWizardStep {
     @Override
     public JComponent getComponent() {
         final FormBuilder builder = new FormBuilder();
-        builder.addComponent(new JBLabel("Choose Functions Triggers:"));
+        final JBLabel listLabel = new JBLabel("Choose Functions Triggers:");
+        builder.addComponent(listLabel);
 
         triggerList = new CheckBoxList<>() {
             @Override
@@ -67,6 +68,7 @@ public class FunctionTriggerChooserStep extends ModuleWizardStep {
                 };
             }
         };
+        listLabel.setLabelFor(triggerList);
         setupFunctionTriggers();
 
         final BorderLayoutPanel customPanel = JBUI.Panels.simplePanel(10, 0);

@@ -7,7 +7,7 @@ package com.microsoft.azuretools.authmanage;
 
 import com.google.gson.*;
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.StringUtils;
-import com.microsoft.azure.AzureEnvironment;
+import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.azurecommons.util.FileUtil;
 import com.microsoft.azuretools.azurecommons.util.Utils;

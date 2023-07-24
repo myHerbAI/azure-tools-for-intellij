@@ -5,9 +5,9 @@
 
 package com.microsoft.azuretools.azurecommons.rediscacheprocessors;
 
-import com.microsoft.azure.management.redis.RedisCaches;
+import com.azure.resourcemanager.redis.models.RedisCaches;
 
-import com.microsoft.azure.management.redis.RedisCache.DefinitionStages.WithGroup;
+import com.azure.resourcemanager.redis.models.RedisCache.DefinitionStages.WithGroup;
 
 public abstract class ProcessorBase{
     private RedisCaches redisCachesInst;

@@ -10,13 +10,20 @@ import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContri
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
 
 public class AppServiceActionsContributor implements IActionsContributor {
 
@@ -28,6 +35,10 @@ public class AppServiceActionsContributor implements IActionsContributor {
     public static final Action.Id<AppServiceAppBase<?, ?, ?>> OPEN_IN_BROWSER = Action.Id.of("user/webapp.open_in_browser.app");
     public static final Action.Id<AppServiceAppBase<?, ?, ?>> SSH_INTO_WEBAPP = Action.Id.of("user/webapp.connect_ssh.app");
     public static final Action.Id<AppServiceAppBase<?, ?, ?>> PROFILE_FLIGHT_RECORD = Action.Id.of("user/webapp.profile_flight_recorder.app");
+    public static final Action.Id<AppServiceAppBase<?, ?, ?>> COPY_FULL_APP_SETTINGS = Action.Id.of("user/appservice.copy_app_settings.app");
+    public static final Action.Id<Map.Entry<String, String>> COPY_APP_SETTING = Action.Id.of("user/appservice.copy_app_setting");
+    public static final Action.Id<Map.Entry<String, String>> COPY_APP_SETTING_KEY = Action.Id.of("user/appservice.copy_app_setting_key.key");
+    public static final String APP_SETTINGS_ACTIONS = "actions.appservice.app_settings";
 
     @Override
     public void registerActions(AzureActionManager am) {
@@ -36,7 +47,7 @@ public class AppServiceActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.PORTAL.getIconPath())
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof AppServiceAppBase)
-            .enableWhen(s -> s.getFormalStatus(true).isConnected())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
             .withHandler(s -> am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle("https://" + s.getHostName()))
             .register(am);
 
@@ -45,7 +56,7 @@ public class AppServiceActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.LOG.getIconPath())
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof AppServiceAppBase)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .register(am);
 
         new Action<>(STOP_STREAM_LOG)
@@ -53,21 +64,21 @@ public class AppServiceActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.LOG.getIconPath())
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof AppServiceAppBase)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .register(am);
 
         new Action<>(PROFILE_FLIGHT_RECORD)
             .withLabel("Profile Flight Recorder")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof AppServiceAppBase)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .register(am);
 
         new Action<>(SSH_INTO_WEBAPP)
             .withLabel("SSH into Web App")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof AppServiceAppBase)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .register(am);
 
         new Action<>(REFRESH_DEPLOYMENT_SLOTS)
@@ -84,8 +95,48 @@ public class AppServiceActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Common.AZURE_MONITOR.getIconPath())
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof AppServiceAppBase)
-            .enableWhen(s -> s.getFormalStatus(true).isRunning())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .register(am);
+
+        new Action<>(COPY_FULL_APP_SETTINGS)
+            .withLabel("Copy All")
+            .withIdParam(AppServiceAppBase::getName)
+            .withIcon(AzureIcons.Action.COPY.getIconPath())
+            .withHandler(app -> {
+                final Map<String, String> variables = Optional.ofNullable(app.getAppSettings()).orElse(Collections.emptyMap());
+                final String str = variables.entrySet().stream().map(v -> String.format("%s=%s", v.getKey(), v.getValue())).collect(Collectors.joining(System.lineSeparator()));
+                AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.COPY_STRING).handle(str);
+                AzureMessager.getMessager().success(AzureString.format("App settings of app (%s) has been copied into clipboard.", app.getName()));
+            })
+            .withAuthRequired(false)
+            .register(am);
+
+        new Action<>(COPY_APP_SETTING)
+                .withLabel("Copy")
+                .withIcon(AzureIcons.Action.COPY.getIconPath())
+                .withHandler(entry -> {
+                    final String str = String.format("%s=%s", entry.getKey(), entry.getValue());
+                    AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.COPY_STRING).handle(str);
+                    AzureMessager.getMessager().success(AzureString.format("App setting (%s) has been copied into clipboard.", entry.getKey()));
+                })
+                .withAuthRequired(false)
+                .register(am);
+
+        new Action<>(COPY_APP_SETTING_KEY)
+                .withLabel("Copy Key")
+                .withIdParam(Map.Entry::getKey)
+                .withIcon(AzureIcons.Action.COPY.getIconPath())
+                .withHandler(entry -> {
+                    AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.COPY_STRING).handle(entry.getKey());
+                    AzureMessager.getMessager().success(AzureString.format("App setting key (%s) been copied into clipboard.", entry.getKey()));
+                })
+                .withAuthRequired(false)
+                .register(am);
+    }
+
+    @Override
+    public void registerGroups(AzureActionManager am) {
+        am.registerGroup(APP_SETTINGS_ACTIONS, new ActionGroup(AppServiceActionsContributor.COPY_FULL_APP_SETTINGS));
     }
 
     @Override

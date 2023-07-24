@@ -5,7 +5,7 @@
 
 package com.microsoft.azuretools.authmanage;
 
-import com.microsoft.azure.AzureEnvironment;
+import com.azure.core.management.AzureEnvironment;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
 
 public class ProvidedEnvironment extends Environment {

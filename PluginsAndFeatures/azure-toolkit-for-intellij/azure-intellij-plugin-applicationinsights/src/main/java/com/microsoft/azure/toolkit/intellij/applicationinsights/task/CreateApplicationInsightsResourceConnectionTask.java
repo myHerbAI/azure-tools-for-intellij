@@ -1,6 +1,5 @@
 package com.microsoft.azure.toolkit.intellij.applicationinsights.task;
 
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -8,10 +7,11 @@ import com.microsoft.azure.toolkit.ide.guidance.ComponentContext;
 import com.microsoft.azure.toolkit.ide.guidance.Task;
 import com.microsoft.azure.toolkit.intellij.applicationinsights.connection.ApplicationInsightsResourceDefinition;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
-import com.microsoft.azure.toolkit.intellij.connector.ConnectionManager;
 import com.microsoft.azure.toolkit.intellij.connector.ModuleResource;
 import com.microsoft.azure.toolkit.intellij.connector.Resource;
-import com.microsoft.azure.toolkit.intellij.connector.ResourceManager;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
 import com.microsoft.azure.toolkit.lib.applicationinsights.AzureApplicationInsights;
@@ -35,17 +35,20 @@ public class CreateApplicationInsightsResourceConnectionTask implements Task {
 
     @Override
     @AzureOperation(name = "internal/guidance.create_ai_resource_connection")
-    public void execute() throws Exception {
+    public void execute() {
         final Resource resource = getResource();
-        final Resource consumer = getModuleConsumer();
-        final Connection connection = ConnectionManager.getDefinitionOrDefault(resource.getDefinition(),
+        final Module module = getModule();
+        final Resource consumer = getModuleConsumer(module);
+        final AzureModule azureModule = AzureModule.from(module);
+        final Profile profile = azureModule.getDefaultProfile();
+        if (Objects.isNull(profile)) {
+            return;
+        }
+        final Connection<?,?> connection = ConnectionManager.getDefinitionOrDefault(resource.getDefinition(),
                 consumer.getDefinition()).define(resource, consumer);
-        final ConnectionManager connectionManager = this.project.getService(ConnectionManager.class);
-        final ResourceManager resourceManager = ServiceManager.getService(ResourceManager.class);
         if (connection.validate(this.project)) {
-            resourceManager.addResource(resource);
-            resourceManager.addResource(consumer);
-            connectionManager.addConnection(connection);
+            profile.createOrUpdateConnection(connection);
+            profile.save();
             final String message = String.format("The connection between %s and %s has been successfully created.",
                     resource.getName(), consumer.getName());
             AzureMessager.getMessager().success(message);
@@ -65,8 +68,12 @@ public class CreateApplicationInsightsResourceConnectionTask implements Task {
         return ApplicationInsightsResourceDefinition.INSTANCE.define(applicationInsight);
     }
 
-    private Resource<String> getModuleConsumer() {
-        final Module module = ModuleManager.getInstance(project).getModules()[0];
+    private Resource<String> getModuleConsumer(@Nonnull final Module module) {
         return ModuleResource.Definition.IJ_MODULE.define(module.getName());
+    }
+
+    // todo: @hanli refactor to pass it from configuration
+    private Module getModule() {
+        return ModuleManager.getInstance(project).getModules()[0];
     }
 }

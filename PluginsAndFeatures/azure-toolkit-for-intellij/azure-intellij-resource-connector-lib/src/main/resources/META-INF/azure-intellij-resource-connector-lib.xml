@@ -9,6 +9,11 @@
         <actions implementation="com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
+        <treeStructureProvider implementation="com.microsoft.azure.toolkit.intellij.connector.projectexplorer.AzureFacetTreeStructureProvider"/>
+        <facetType implementation="com.microsoft.azure.toolkit.intellij.facet.AzureFacetType"/>
+<!--        <framework.detector implementation="com.microsoft.azure.toolkit.intellij.facet.AzureFacetType$AzureFacetDetector"/>-->
+        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.connector.dotazure.MigrateStartupActivity"/>
+        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.facet.AddFacetStartupActivity"/>
         <toolWindow id="Resource Connections" anchor="right" icon="/icons/Common/AzureResourceConnector.svg" canCloseContents="false"
                     factoryClass="com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionExplorer$ToolWindowFactory"/>
         <projectService
@@ -17,7 +22,7 @@
         <applicationService
             serviceInterface="com.microsoft.azure.toolkit.intellij.connector.ResourceManager"
             serviceImplementation="com.microsoft.azure.toolkit.intellij.connector.ResourceManager$Impl" />
-        <stepsBeforeRunProvider implementation="com.microsoft.azure.toolkit.intellij.connector.ConnectionRunnerForRunConfiguration" id="ConnectionRunnerForConfigurationId"/>
+        <stepsBeforeRunProvider implementation="com.microsoft.azure.toolkit.intellij.connector.dotazure.DotEnvBeforeRunTaskProvider" id="ConnectionRunnerForConfigurationId"/>
     </extensions>
     <projectListeners>
         <listener class="com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionExplorer$ToolWindowOpener"
@@ -25,9 +30,15 @@
     </projectListeners>
     <actions>
         <action
+            id="Connector.ShowAzureNode"
+            class="com.microsoft.azure.toolkit.intellij.facet.ToggleAzureFacetNodeAction"
+            text="Show 'Azure' Node"
+            icon="AllIcons.General.InspectionsEye"
+            description="Show 'Azure' Node for resource connections management"/>
+        <action
             id="AzureToolkit.ConnectToAzureResource"
             class="com.microsoft.azure.toolkit.intellij.connector.ModuleConnectorAction"
-            text="Connect to Azure Resource"
+            text="Connect Azure Resource..."
             icon="/icons/connector/connect.svg"
             description="To consume azure resources in your project"/>
         <action class="com.microsoft.azure.toolkit.intellij.connector.actions.OpenResourceConnectionExplorerAction" id="AzureToolkit.OpenResourceConnectionExplorerAction"

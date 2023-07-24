@@ -9,7 +9,7 @@ import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginInstaller;
 import com.intellij.ide.plugins.PluginStateListener;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupActivity;
+import com.intellij.openapi.startup.ProjectActivity;
 import com.intellij.ui.EditorNotifications;
 import com.microsoft.azure.toolkit.ide.common.dotnet.DotnetRuntimeHandler;
 import com.microsoft.azure.toolkit.intellij.common.CommonConst;
@@ -18,6 +18,8 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.SystemException;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,7 +42,7 @@ import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 
 @Slf4j
-public class BicepStartupActivity implements StartupActivity, PluginStateListener {
+public class BicepStartupActivity implements ProjectActivity, PluginStateListener {
     public static final String BICEP_LANGSERVER = "bicep-langserver";
     public static final String BICEP_LANG_SERVER_DLL = "Bicep.LangServer.dll";
     public static final String STDIO = "--stdio";
@@ -49,7 +51,7 @@ public class BicepStartupActivity implements StartupActivity, PluginStateListene
     @Override
     @ExceptionNotification
     @AzureOperation(name = "platform/bicep.startup_language_server")
-    public void runActivity(@Nonnull Project project) {
+    public Object execute(@Nonnull Project project, @Nonnull Continuation<? super Unit> continuation) {
         final File bicep = FileUtils.getFile(CommonConst.PLUGIN_PATH, "bicep", BICEP_LANGSERVER, BICEP_LANG_SERVER_DLL);
         final String dotnet = Azure.az().config().getDotnetRuntimePath();
         final boolean isDotnetReady = StringUtils.isNotEmpty(dotnet) && DotnetRuntimeHandler.isDotnetRuntimeInstalled(dotnet);
@@ -58,13 +60,17 @@ public class BicepStartupActivity implements StartupActivity, PluginStateListene
             if (!isDotnetReady) {
                 AzureEventBus.on("dotnet_runtime.updated", new AzureEventBus.EventListener(e -> registerLanguageServerDefinition(project)));
             }
-            return;
+            return null;
         }
         PluginInstaller.addStateListener(this);
         registerLanguageServerDefinition(project);
+        return null;
     }
 
     public static void registerLanguageServerDefinition(@Nonnull Project project) {
+        if(project.isDisposed()){
+            return;
+        }
         EditorNotifications.getInstance(project).updateAllNotifications();
         final File bicep = FileUtils.getFile(CommonConst.PLUGIN_PATH, "bicep", BICEP_LANGSERVER, BICEP_LANG_SERVER_DLL);
         final String dotnet = Azure.az().config().getDotnetRuntimePath();

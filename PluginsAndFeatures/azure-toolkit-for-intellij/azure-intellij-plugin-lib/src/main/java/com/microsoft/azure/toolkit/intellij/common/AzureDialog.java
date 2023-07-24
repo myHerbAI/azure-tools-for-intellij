@@ -11,11 +11,13 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo.Type.SUCCESS;
@@ -23,6 +25,7 @@ import static com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo.Ty
 @Slf4j
 public abstract class AzureDialog<T> extends DialogWrapper {
     protected OkActionListener<T> okActionListener;
+    protected String helpId;
 
     public AzureDialog(Project project) {
         super(project, true);
@@ -82,5 +85,10 @@ public abstract class AzureDialog<T> extends DialogWrapper {
     @FunctionalInterface
     public interface OkActionListener<T> {
         void onOk(T data);
+    }
+
+    @Override
+    protected @NonNls @Nullable String getHelpId() {
+        return Optional.ofNullable(helpId).orElseGet(super::getHelpId);
     }
 }

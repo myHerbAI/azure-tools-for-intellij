@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.appservice;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.TitledSeparator;
 import com.microsoft.azure.toolkit.ide.appservice.model.ApplicationInsightsConfig;
@@ -180,6 +181,12 @@ public class AppServiceMonitorPanel extends JPanel implements AzureFormPanel<Mon
         applicationLogGroup.add(rdoDisableApplicationLog);
         rdoEnableApplicationLog.addItemListener(e -> setApplicationLogEnabled(rdoEnableApplicationLog.isSelected()));
         rdoDisableApplicationLog.addItemListener(e -> setApplicationLogEnabled(rdoEnableApplicationLog.isSelected()));
+
+        this.lblApplicationInsights.setIcon(AllIcons.General.ContextHelp);
+        this.lblWebServerLog.setIcon(AllIcons.General.ContextHelp);
+        this.lblQuota.setIcon(AllIcons.General.ContextHelp);
+        this.lblRetention.setIcon(AllIcons.General.ContextHelp);
+        this.lblApplicationLog.setIcon(AllIcons.General.ContextHelp);
     }
 
     private void setApplicationInsightsEnabled(boolean enable) {

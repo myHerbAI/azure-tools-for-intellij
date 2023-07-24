@@ -4,7 +4,7 @@
         <relativePath>../pom.xml</relativePath>
         <groupId>com.microsoft.azuretools</groupId>
         <artifactId>utils</artifactId>
-        <version>3.77.0-SNAPSHOT</version>
+        <version>3.80.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>spark-tools</artifactId>
@@ -21,7 +21,7 @@
         <scala.version>${scala.version.major}.${scala.version.minor}</scala.version>
         <build.copyDependenciesPhase>none</build.copyDependenciesPhase>
         <CodeCacheSize>512m</CodeCacheSize>
-        <hadoop.version>3.3.0</hadoop.version>
+        <hadoop.version>3.3.3</hadoop.version>
         <test.exclude.tags></test.exclude.tags>
     </properties>
 
@@ -41,7 +41,16 @@
                         <groupId>com.google.protobuf</groupId>
                         <artifactId>protobuf-java</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-handler</artifactId>
+                    </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-handler</artifactId>
+                <version>4.1.69.Final</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.hadoop</groupId>

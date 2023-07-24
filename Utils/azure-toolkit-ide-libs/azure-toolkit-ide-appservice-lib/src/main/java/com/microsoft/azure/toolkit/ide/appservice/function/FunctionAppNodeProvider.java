@@ -5,16 +5,17 @@
 
 package com.microsoft.azure.toolkit.ide.appservice.function;
 
-import com.microsoft.azure.toolkit.ide.appservice.AppServiceDeploymentSlotsNodeView;
+import com.microsoft.azure.toolkit.ide.appservice.AppServiceDeploymentSlotsNode;
 import com.microsoft.azure.toolkit.ide.appservice.file.AppServiceFileNode;
 import com.microsoft.azure.toolkit.ide.appservice.function.node.FunctionsNode;
+import com.microsoft.azure.toolkit.ide.appservice.appsettings.AppSettingsNode;
 import com.microsoft.azure.toolkit.ide.appservice.webapp.WebAppNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.component.AzureModuleLabelView;
+import com.microsoft.azure.toolkit.ide.common.component.AzModuleNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
 import com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider;
-import com.microsoft.azure.toolkit.ide.common.component.AzureResourceLabelView;
-import com.microsoft.azure.toolkit.ide.common.component.AzureServiceLabelView;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIconProvider;
@@ -26,7 +27,6 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlotModule;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -58,48 +58,41 @@ public class FunctionAppNodeProvider implements IExplorerNodeProvider {
     @Override
     public Node<?> createNode(@Nonnull Object data, @Nullable Node<?> parent, @Nonnull Manager manager) {
         if (data instanceof AzureFunctions) {
-            final AzureFunctions service = Azure.az(AzureFunctions.class);
-            return new Node<>(service)
-                .view(new AzureServiceLabelView<>(service, NAME, ICON))
-                .actions(FunctionAppActionsContributor.SERVICE_ACTIONS)
+            return new AzServiceNode<>(Azure.az(AzureFunctions.class))
+                .withIcon(ICON)
+                .withLabel(NAME)
+                .withActions(FunctionAppActionsContributor.SERVICE_ACTIONS)
                 .addChildren(AzureFunctions::functionApps, (d, p) -> this.createNode(d, p, manager));
         } else if (data instanceof FunctionApp) {
-            final FunctionApp functionApp = (FunctionApp) data;
-            return new Node<>(functionApp)
-                .view(new AzureResourceLabelView<>(functionApp, FunctionApp::getStatus, FUNCTIONAPP_ICON_PROVIDER))
+            return new AzResourceNode<>((FunctionApp) data)
+                .withIcon(FUNCTIONAPP_ICON_PROVIDER::getIcon)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .addInlineAction(ResourceCommonActionsContributor.DEPLOY)
-                .actions(FunctionAppActionsContributor.FUNCTION_APP_ACTIONS)
+                .withActions(FunctionAppActionsContributor.FUNCTION_APP_ACTIONS)
                 .addChildren(Arrays::asList, (app, webAppNode) -> new FunctionsNode(app))
                 .addChild(FunctionApp::getDeploymentModule, (module, functionAppNode) -> createNode(module, functionAppNode, manager))
                 .addChild(AppServiceFileNode::getRootFileNodeForAppService, (d, p) -> this.createNode(d, p, manager)) // Files
-                .addChild(AppServiceFileNode::getRootLogNodeForAppService, (d, p) -> this.createNode(d, p, manager));
+                .addChild(AppServiceFileNode::getRootLogNodeForAppService, (d, p) -> this.createNode(d, p, manager))
+                .addChild(app -> new AppSettingsNode(app.getValue()));
         } else if (data instanceof FunctionAppDeploymentSlotModule) {
-            final FunctionAppDeploymentSlotModule module = (FunctionAppDeploymentSlotModule) data;
-            return new Node<>(module)
-                .view(new AzureModuleLabelView<>(module, "Deployment Slots", AzureIcons.WebApp.DEPLOYMENT_SLOT.getIconPath()))
-                .actions(FunctionAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
-                .addChildren(FunctionAppDeploymentSlotModule::list, (d, p) -> this.createNode(d, p, manager))
-                .hasMoreChildren(AbstractAzResourceModule::hasMoreResources)
-                .loadMoreChildren(AbstractAzResourceModule::loadMoreResources);
+            return new AzModuleNode<>((FunctionAppDeploymentSlotModule) data)
+                .withIcon(AzureIcons.WebApp.DEPLOYMENT_SLOT)
+                .withLabel("Deployment Slots")
+                .withActions(FunctionAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
+                .addChildren(FunctionAppDeploymentSlotModule::list, (d, p) -> this.createNode(d, p, manager));
         } else if (data instanceof FunctionAppDeploymentSlot) {
-            final FunctionAppDeploymentSlot slot = (FunctionAppDeploymentSlot) data;
-            return new Node<>(slot)
-                .view(new AzureResourceLabelView<>(slot))
-                .actions(FunctionAppActionsContributor.DEPLOYMENT_SLOT_ACTIONS);
+            return new AzResourceNode<>((FunctionAppDeploymentSlot) data)
+                .withActions(FunctionAppActionsContributor.DEPLOYMENT_SLOT_ACTIONS);
         } else if (data instanceof AppServiceFile) {
-            final AppServiceFile file = (AppServiceFile) data;
-            return new AppServiceFileNode(file);
+            return new AppServiceFileNode((AppServiceFile) data);
         }
         return null;
     }
 
     private Node<?> createDeploymentSlotNode(@Nonnull FunctionAppDeploymentSlotModule module, @Nonnull Manager manager) {
-        return new Node<>(module)
-            .view(new AppServiceDeploymentSlotsNodeView(module.getParent()))
-            .actions(FunctionAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
-            .addChildren(FunctionAppDeploymentSlotModule::list, (d, p) -> this.createNode(d, p, manager))
-            .hasMoreChildren(AbstractAzResourceModule::hasMoreResources)
-            .loadMoreChildren(AbstractAzResourceModule::loadMoreResources);
+        return new AppServiceDeploymentSlotsNode(module.getParent())
+            .withActions(FunctionAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
+            .addChildren(a -> module.list(), (d, p) -> this.createNode(d, p, manager))
+            .withMoreChildren(a -> module.hasMoreResources(), a -> module.loadMoreResources());
     }
 }

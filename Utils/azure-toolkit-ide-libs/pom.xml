@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.microsoft.azure</groupId>
     <artifactId>azure-toolkit-ide-libs</artifactId>
-    <version>0.33.0-SNAPSHOT</version>
+    <version>0.36.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Libs for Azure Toolkit for IDEs</name>
     <description>Wrapped libs of Microsoft Azure Toolkits for IDEs</description>
@@ -53,9 +53,9 @@
     </modules>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-        <azure.toolkit-lib.version>0.33.0-SNAPSHOT</azure.toolkit-lib.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <azure.toolkit-lib.version>0.36.0-SNAPSHOT</azure.toolkit-lib.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -150,11 +150,6 @@
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>okhttp</artifactId>
                 <version>4.10.0</version>
-            </dependency>
-            <dependency>
-                <groupId>net.minidev</groupId>
-                <artifactId>json-smart</artifactId>
-                <version>2.4.10</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

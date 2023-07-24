@@ -14,11 +14,10 @@ import com.intellij.ui.content.ContentFactory;
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
-import com.microsoft.azure.toolkit.ide.common.component.NodeView;
 import com.microsoft.azure.toolkit.ide.common.favorite.Favorites;
-import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.ide.common.genericresource.GenericResourceActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.genericresource.GenericResourceLabelView;
+import com.microsoft.azure.toolkit.ide.common.genericresource.GenericResourceNode;
+import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.component.Tree;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.Account;
@@ -28,27 +27,35 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
+import lombok.Getter;
 
 import javax.annotation.Nonnull;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
+
 public class AzureExplorer extends Tree {
-    private static final AzureExplorerNodeProviderManager manager = new AzureExplorerNodeProviderManager();
+    @Getter
+    public static final AzureExplorerNodeProviderManager manager = new AzureExplorerNodeProviderManager();
     public static final String AZURE_ICON = AzureIcons.Common.AZURE.getIconPath();
 
     private AzureExplorer() {
         super();
+        this.putClientProperty(PLACE, ResourceCommonActionsContributor.AZURE_EXPLORER);
         this.root = buildAzureRoot();
         this.init(this.root);
     }
 
     private static Node<Azure> buildAzureRoot() {
         final List<Node<?>> modules = getModules();
-        return new Node<>(Azure.az(), new NodeView.Static(getTitle(), AZURE_ICON)).lazy(false).addChildren(modules);
+        return new Node<>(Azure.az())
+            .withIcon(AZURE_ICON)
+            .withLabel(getTitle())
+            .withChildrenLoadLazily(false)
+            .addChildren(modules);
     }
 
     public static Node<?> buildAppCentricViewRoot() {
@@ -77,7 +84,6 @@ public class AzureExplorer extends Tree {
     public static List<Node<?>> getModules() {
         return manager.getRoots().stream()
             .map(r -> manager.createNode(r, null, IExplorerNodeProvider.ViewType.TYPE_CENTRIC))
-            .sorted(Comparator.comparing(Node::order))
             .collect(Collectors.toList());
     }
 
@@ -91,13 +97,13 @@ public class AzureExplorer extends Tree {
         public void createToolWindowContent(@Nonnull Project project, @Nonnull ToolWindow toolWindow) {
             final SimpleToolWindowPanel windowPanel = new SimpleToolWindowPanel(true, true);
             windowPanel.setContent(new AzureExplorer());
-            final ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+            final ContentFactory contentFactory = ContentFactory.getInstance();
             final Content content = contentFactory.createContent(windowPanel, null, false);
             toolWindow.getContentManager().addContent(content);
         }
     }
 
-    private static class AzureExplorerNodeProviderManager implements IExplorerNodeProvider.Manager {
+    public static class AzureExplorerNodeProviderManager implements IExplorerNodeProvider.Manager {
         private static final ExtensionPointName<IExplorerNodeProvider> providers =
             ExtensionPointName.create("com.microsoft.tooling.msservices.intellij.azure.explorerNodeProvider");
 
@@ -120,10 +126,10 @@ public class AzureExplorer extends Tree {
         }
 
         private static <U> U createGenericNode(Object o) {
-            final var view = new GenericResourceLabelView<>((AbstractAzResource<?, ?, ?>) o);
-            return (U) new Node<>((AbstractAzResource<?, ?, ?>) o).view(view)
-                .doubleClickAction(ResourceCommonActionsContributor.OPEN_PORTAL_URL)
-                .actions(GenericResourceActionsContributor.GENERIC_RESOURCE_ACTIONS);
+            //noinspection unchecked
+            return (U) new GenericResourceNode((AbstractAzResource<?, ?, ?>) o)
+                .onDoubleClicked(ResourceCommonActionsContributor.OPEN_PORTAL_URL)
+                .withActions(GenericResourceActionsContributor.GENERIC_RESOURCE_ACTIONS);
         }
     }
 }

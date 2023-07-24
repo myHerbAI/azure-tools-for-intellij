@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.monitor.view.right;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.Disposable;
 import com.microsoft.azure.toolkit.intellij.monitor.view.AzureMonitorView;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -25,7 +26,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-public class MonitorTabbedPane {
+public class MonitorTabbedPane implements Disposable {
+    private final AzureEventBus.EventListener onWorkspaceChanged;
     @Getter
     private JPanel contentPanel;
     private JTabbedPane closeableTabbedPane;
@@ -37,7 +39,8 @@ public class MonitorTabbedPane {
     private String initResourceId;
 
     public MonitorTabbedPane() {
-        AzureEventBus.on("azure.monitor.change_workspace", new AzureEventBus.EventListener(e -> reloadSelectedTab()));
+        this.onWorkspaceChanged = new AzureEventBus.EventListener(e -> reloadSelectedTab());
+        AzureEventBus.on("azure.monitor.change_workspace", onWorkspaceChanged);
     }
 
     public void setParentView(AzureMonitorView parentView) {
@@ -133,5 +136,10 @@ public class MonitorTabbedPane {
             }
         });
         return tabTitle;
+    }
+
+    @Override
+    public void dispose() {
+        AzureEventBus.off("azure.monitor.change_workspace", onWorkspaceChanged);
     }
 }

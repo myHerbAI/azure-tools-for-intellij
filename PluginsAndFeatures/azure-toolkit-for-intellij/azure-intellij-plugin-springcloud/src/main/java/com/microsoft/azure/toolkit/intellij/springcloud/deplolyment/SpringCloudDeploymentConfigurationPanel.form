@@ -26,13 +26,12 @@
           <text value="Artifact:"/>
         </properties>
       </component>
-      <component id="76f2" class="javax.swing.JLabel">
+      <component id="76f2" class="javax.swing.JLabel" binding="lblSubscription">
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false"/>
         </constraints>
         <properties>
           <horizontalTextPosition value="10"/>
-          <icon value="general/contextHelp.png"/>
           <labelFor value="92371"/>
           <text value="Subscription:"/>
           <toolTipText value="All resources in an Azure subscription are billed together."/>

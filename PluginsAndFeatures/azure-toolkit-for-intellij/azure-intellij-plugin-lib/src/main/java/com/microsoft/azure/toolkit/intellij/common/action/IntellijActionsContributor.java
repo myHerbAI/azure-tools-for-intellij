@@ -16,21 +16,25 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.fileexplorer.VirtualFileActions;
 import com.microsoft.azure.toolkit.intellij.common.properties.IntellijShowPropertiesViewAction;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
 public class IntellijActionsContributor implements IActionsContributor {
     public static final Action.Id<Object> TRY_ULTIMATE = Action.Id.of("user/database.try_ultimate");
     private static final String IDE_DOWNLOAD_URL = "https://www.jetbrains.com/idea/download/";
+    public static final String ACTIONS_DEPLOY_TO_AZURE = "actions.common.deploy_to_azure";
 
     @Override
     public void registerHandlers(AzureActionManager am) {
@@ -78,6 +82,16 @@ public class IntellijActionsContributor implements IActionsContributor {
                 }, fileEditorManager);
             }))
             .register(am);
+    }
+
+    @Override
+    public void registerGroups(final AzureActionManager am) {
+        final ActionGroup deployToAzure = new ActionGroup(Arrays.asList(
+            "Actions.DeployFunction",
+            "Actions.DeploySpringCloud",
+            "Actions.WebDeployAction"
+        ), new Action.View("Deploy to Azure...", AzureIcons.Action.DEPLOY.getIconPath(), true, null));
+        am.registerGroup(ACTIONS_DEPLOY_TO_AZURE, deployToAzure);
     }
 
     @Override

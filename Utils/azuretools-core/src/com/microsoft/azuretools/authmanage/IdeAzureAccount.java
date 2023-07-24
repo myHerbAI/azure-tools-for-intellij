@@ -9,11 +9,7 @@ import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.identity.implementation.util.ScopeUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.AzureEnvironment;
-import com.microsoft.azure.credentials.AzureTokenCredentials;
-import com.microsoft.azure.management.resources.fluentcore.arm.AzureConfigurable;
-import com.microsoft.azure.management.resources.fluentcore.arm.implementation.ManagerBase;
-import com.microsoft.azure.management.resources.implementation.ResourceManager;
+import com.azure.resourcemanager.resources.ResourceManager;
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
 import com.microsoft.azure.toolkit.ide.common.store.IIdeStore;
 import com.microsoft.azure.toolkit.ide.common.store.ISecureStore;
@@ -176,21 +172,6 @@ public class IdeAzureAccount {
         return null;
     }
 
-    public <T extends AzureConfigurable<T>, M extends ManagerBase> M authenticateForTrack1(String sid, T configurable, BiFunction<AzureTokenCredentials, T, M> auth) {
-        final Subscription subscription = az(AzureAccount.class).account().getSubscription(sid);
-        final AzureTokenCredentials credentials = getCredentialForTrack1(subscription.getTenantId());
-        configurable
-            .withInterceptor(new TelemetryInterceptor())
-            .withUserAgent(CommonSettings.USER_AGENT);
-        Optional.ofNullable(createProxyFromConfig()).ifPresent(proxy -> {
-            configurable.withProxy(proxy);
-            Optional.ofNullable(createProxyAuthenticatorFromConfig()).ifPresent(configurable::withProxyAuthenticator);
-        });
-        final M m = auth.apply(credentials, configurable);
-        registerAzureNamespaces(m.resourceManager());
-        return m;
-    }
-
     @Nullable
     private static Proxy createProxyFromConfig() {
         final AzureConfiguration config = az().config();
@@ -214,24 +195,10 @@ public class IdeAzureAccount {
         return null;
     }
 
-    public AzureTokenCredentials getCredentialForTrack1(String tid) {
-        final com.azure.core.management.AzureEnvironment env = az(AzureCloud.class).getOrDefault();
-        final AzureEnvironment azureEnvironment = Arrays.stream(AzureEnvironment.knownEnvironments())
-            .filter(e -> StringUtils.equalsIgnoreCase(env.getManagementEndpoint(), e.managementEndpoint()))
-            .findFirst().orElse(AzureEnvironment.AZURE);
-        return new AzureTokenCredentials(azureEnvironment, tid) {
-            @Override
-            public String getToken(String s) {
-                final TokenRequestContext context = new TokenRequestContext().addScopes(ScopeUtil.resourceToScopes(s));
-                final AccessToken token = az(AzureAccount.class).account().getTenantTokenCredential(tid).getToken(context).block();
-                return Objects.requireNonNull(token, "failed to get access token for track1 lib").getToken();
-            }
-        };
-    }
-
-    public String getAccessTokenForTrack1(String tid) throws IOException {
-        final com.azure.core.management.AzureEnvironment env = az(AzureCloud.class).getOrDefault();
-        return getCredentialForTrack1(tid).getToken(env.getManagementEndpoint());
+    public String getAccessTokenByTrack2(String tenantId,String resourceId) {
+        final TokenRequestContext context = new TokenRequestContext().addScopes(ScopeUtil.resourceToScopes(resourceId));
+        final AccessToken token = az(AzureAccount.class).account().getTenantTokenCredential(tenantId).getToken(context).block();
+        return Objects.requireNonNull(token, "failed to get access token for track2 lib").getToken();
     }
 
     private static void registerAzureNamespaces(ResourceManager resourceManager) {

@@ -5,11 +5,17 @@
 
 package com.microsoft.azure.toolkit.ide.appservice.webapp;
 
-import com.microsoft.azure.toolkit.ide.appservice.AppServiceDeploymentSlotsNodeView;
+import com.microsoft.azure.toolkit.ide.appservice.AppServiceDeploymentSlotsNode;
 import com.microsoft.azure.toolkit.ide.appservice.file.AppServiceFileNode;
+import com.microsoft.azure.toolkit.ide.appservice.appsettings.AppSettingsNode;
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.component.*;
+import com.microsoft.azure.toolkit.ide.common.component.AzModuleNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
+import com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider;
+import com.microsoft.azure.toolkit.ide.common.component.Node;
+import com.microsoft.azure.toolkit.ide.common.component.ServiceLinkerNode;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIconProvider;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
@@ -22,7 +28,6 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlotModule;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinker;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
 
@@ -56,57 +61,49 @@ public class WebAppNodeProvider implements IExplorerNodeProvider {
     @Override
     public Node<?> createNode(@Nonnull Object data, @Nullable Node<?> parent, @Nonnull Manager manager) {
         if (data instanceof AzureWebApp) {
-            final AzureWebApp service = Azure.az(AzureWebApp.class);
-            return new Node<>(service)
-                .view(new AzureServiceLabelView<>(service, NAME, ICON))
-                .actions(WebAppActionsContributor.SERVICE_ACTIONS)
+            return new AzServiceNode<>(Azure.az(AzureWebApp.class))
+                .withIcon(ICON)
+                .withLabel(NAME)
+                .withActions(WebAppActionsContributor.SERVICE_ACTIONS)
                 .addChildren(AzureWebApp::webApps, (d, p) -> this.createNode(d, p, manager));
         } else if (data instanceof WebApp) {
-            final WebApp webApp = (WebApp) data;
-            return new Node<>(webApp)
-                .view(new AzureResourceLabelView<>(webApp, WebApp::getStatus, WEBAPP_ICON_PROVIDER))
+            return new AzResourceNode<>((WebApp) data)
+                .withIcon(WEBAPP_ICON_PROVIDER::getIcon)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .addInlineAction(ResourceCommonActionsContributor.DEPLOY)
-                .actions(WebAppActionsContributor.WEBAPP_ACTIONS)
+                .withActions(WebAppActionsContributor.WEBAPP_ACTIONS)
                 .addChildren(WebApp::getSubModules, (module, webAppNode) -> createNode(module, webAppNode, manager))
                 .addChild(AppServiceFileNode::getRootFileNodeForAppService, (d, p) -> this.createNode(d, p, manager)) // Files
-                .addChild(AppServiceFileNode::getRootLogNodeForAppService, (d, p) -> this.createNode(d, p, manager));
+                .addChild(AppServiceFileNode::getRootLogNodeForAppService, (d, p) -> this.createNode(d, p, manager))
+                .addChild(app -> new AppSettingsNode(app.getValue()));
         } else if (data instanceof WebAppDeploymentSlotModule) {
-            final WebAppDeploymentSlotModule module = (WebAppDeploymentSlotModule) data;
-            return new Node<>(module)
-                .view(new AzureModuleLabelView<>(module, "Deployment Slots", AzureIcons.WebApp.DEPLOYMENT_SLOT.getIconPath()))
-                .actions(WebAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
-                .addChildren(WebAppDeploymentSlotModule::list, (d, p) -> this.createNode(d, p, manager))
-                .hasMoreChildren(AbstractAzResourceModule::hasMoreResources)
-                .loadMoreChildren(AbstractAzResourceModule::loadMoreResources);
+            return new AzModuleNode<>((WebAppDeploymentSlotModule) data)
+                .withIcon(AzureIcons.WebApp.DEPLOYMENT_SLOT)
+                .withLabel("Deployment Slots")
+                .withActions(WebAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
+                .addChildren(WebAppDeploymentSlotModule::list, (d, p) -> this.createNode(d, p, manager));
         } else if (data instanceof WebAppDeploymentSlot) {
-            final WebAppDeploymentSlot slot = (WebAppDeploymentSlot) data;
-            return new Node<>(slot)
-                .view(new AzureResourceLabelView<>(slot))
-                .actions(WebAppActionsContributor.DEPLOYMENT_SLOT_ACTIONS);
+            return new AzResourceNode<>((WebAppDeploymentSlot) data)
+                .withActions(WebAppActionsContributor.DEPLOYMENT_SLOT_ACTIONS);
         } else if (data instanceof AppServiceFile) {
-            final AppServiceFile file = (AppServiceFile) data;
-            return new AppServiceFileNode(file);
+            return new AppServiceFileNode((AppServiceFile) data);
         } else if (data instanceof ServiceLinkerModule) {
-            final ServiceLinkerModule module = (ServiceLinkerModule) data;
-            return new Node<>(module)
-                    .view(new AzureModuleLabelView<>(module, "Service Connector", AzureIcons.Connector.SERVICE_LINKER_MODULE.getIconPath()))
-                    .actions(ResourceCommonActionsContributor.SERVICE_LINKER_MODULE_ACTIONS)
-                    .addChildren(ServiceLinkerModule::list, (d, p) -> this.createNode(d, p, manager));
+            return new AzModuleNode<>((ServiceLinkerModule) data)
+                .withIcon(AzureIcons.Connector.SERVICE_LINKER_MODULE)
+                .withLabel("Service Connector")
+                .withActions(ResourceCommonActionsContributor.SERVICE_LINKER_MODULE_ACTIONS)
+                .addChildren(ServiceLinkerModule::list, (d, p) -> this.createNode(d, p, manager));
         } else if (data instanceof ServiceLinker) {
-            final ServiceLinker serviceLinker = (ServiceLinker) data;
-            return new ServiceLinkerNode(serviceLinker);
+            return new ServiceLinkerNode((ServiceLinker) data);
         }
         return null;
     }
 
     private Node<?> createDeploymentSlotNode(@Nonnull WebAppDeploymentSlotModule module, @Nonnull Manager manager) {
-        return new Node<>(module)
-            .view(new AppServiceDeploymentSlotsNodeView(module.getParent()))
-            .actions(WebAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
-            .addChildren(WebAppDeploymentSlotModule::list, (d, p) -> this.createNode(d, p, manager))
-            .hasMoreChildren(AbstractAzResourceModule::hasMoreResources)
-            .loadMoreChildren(AbstractAzResourceModule::loadMoreResources);
+        return new AppServiceDeploymentSlotsNode(module.getParent())
+            .withActions(WebAppActionsContributor.DEPLOYMENT_SLOTS_ACTIONS)
+            .addChildren(a -> module.list(), (d, p) -> this.createNode(d, p, manager))
+            .withMoreChildren(a -> module.hasMoreResources(), a -> module.loadMoreResources());
     }
 
     @Nullable

@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.springcloud.creation;
 
+import com.intellij.icons.AllIcons;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox;
 import com.microsoft.azure.toolkit.intellij.springcloud.component.SpringCloudAppConfigPanel;
@@ -13,28 +14,29 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Getter(AccessLevel.PROTECTED)
-public class SpringCloudAppInfoAdvancedPanel extends AbstractSpringCloudAppInfoPanel {
+public class SpringCloudAppInfoAdvancedPanel extends SpringCloudAppInfoPanel {
     private JPanel contentPanel;
     private SubscriptionComboBox selectorSubscription;
     private SpringCloudClusterComboBox selectorCluster;
     private AzureTextInput textName;
     private SpringCloudAppConfigPanel formConfig;
+    private JLabel lblSubscription;
 
-    public SpringCloudAppInfoAdvancedPanel(@Nullable final SpringCloudCluster cluster) {
-        super(cluster);
+    public SpringCloudAppInfoAdvancedPanel() {
+        super();
         $$$setupUI$$$();
         this.init();
+        this.lblSubscription.setIcon(AllIcons.General.ContextHelp);
     }
 
     protected void onAppChanged(SpringCloudApp app) {
@@ -43,15 +45,18 @@ public class SpringCloudAppInfoAdvancedPanel extends AbstractSpringCloudAppInfoP
     }
 
     @Override
-    public SpringCloudAppConfig getValue() {
-        final SpringCloudAppConfig config = this.formConfig.getValue();
-        return super.getValue(config);
+    public SpringCloudAppDraft getValue() {
+        final SpringCloudAppDraft app = super.getValue();
+        if (Objects.nonNull(app)) {
+            this.formConfig.applyTo(app);
+        }
+        return app;
     }
 
     @Override
-    public void setValue(final SpringCloudAppConfig config) {
-        super.setValue(config);
-        this.formConfig.setValue(config);
+    public void setValue(final SpringCloudAppDraft app) {
+        super.setValue(app);
+        this.formConfig.setValue(app);
     }
 
     @Override
@@ -63,5 +68,9 @@ public class SpringCloudAppInfoAdvancedPanel extends AbstractSpringCloudAppInfoP
             this.getSelectorCluster()
         ));
         return inputs;
+    }
+
+    public void setDefaultRuntimeVersion(final String runtime) {
+        this.formConfig.setDefaultRuntimeVersion(runtime);
     }
 }

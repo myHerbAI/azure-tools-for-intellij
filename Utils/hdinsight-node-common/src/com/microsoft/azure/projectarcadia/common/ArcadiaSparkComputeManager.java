@@ -111,7 +111,7 @@ public class ArcadiaSparkComputeManager implements ClusterContainer, ILogger {
 
     @NotNull
     private URI getSubscriptionsUri(@NotNull String subscriptionId) {
-        return URI.create(CommonSettings.getAdEnvironment().resourceManagerEndpoint())
+        return URI.create(CommonSettings.getAdEnvironment().getResourceManagerEndpoint())
                 .resolve(REST_SEGMENT_SUBSCRIPTION)
                 .resolve(subscriptionId);
     }

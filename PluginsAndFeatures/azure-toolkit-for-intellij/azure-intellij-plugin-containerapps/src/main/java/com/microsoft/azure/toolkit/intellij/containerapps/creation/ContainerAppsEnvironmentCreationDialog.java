@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.containerapps.creation;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.monitor.view.left.WorkspaceComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
@@ -131,6 +132,8 @@ public class ContainerAppsEnvironmentCreationDialog extends AzureDialog<Containe
         this.lblResourceGroup.setLabelFor(cbResourceGroup);
         this.lblEnvironmentName.setLabelFor(txtEnvironmentName);
         this.lblRegion.setLabelFor(cbRegion);
+        this.lblSubscription.setIcon(AllIcons.General.ContextHelp);
+        this.lblResourceGroup.setIcon(AllIcons.General.ContextHelp);
     }
 
     private AzureValidationInfo validateContainerAppsEnvironmentName() {

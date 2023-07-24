@@ -142,7 +142,6 @@
                   <contentAreaFilled value="false"/>
                   <horizontalAlignment value="0"/>
                   <horizontalTextPosition value="0"/>
-                  <icon value="actions/refresh.png"/>
                   <text value=""/>
                   <verticalAlignment value="0"/>
                 </properties>

@@ -172,7 +172,7 @@ public class HDInsightActionsContributor implements IActionsContributor {
                     final Account account = Azure.az(AzureAccount.class).account();
                     final String portalUrl = account.getPortalUrl();
                     StorageAccountNode storageAccountNode = (StorageAccountNode)resource;
-                    StorageAccount remote = storageAccountNode.getRemote(true);
+                    StorageAccount remote = storageAccountNode.getRemote();
                     String resourceId = remote.resourceId();
                     String tenantId = storageAccountNode.getSubscription().getTenantId();
                     String url = portalUrl + "/#@" + tenantId + "/resource" + resourceId;
@@ -184,7 +184,7 @@ public class HDInsightActionsContributor implements IActionsContributor {
     @Override
     public void registerGroups(AzureActionManager am) {
         final ActionGroup serviceActionGroup = new ActionGroup(
-                this.REFRESH,
+                ResourceCommonActionsContributor.REFRESH,
                 ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
                 "---",
                 this.LINK_A_CLUSTER
@@ -192,7 +192,7 @@ public class HDInsightActionsContributor implements IActionsContributor {
         am.registerGroup(SERVICE_ACTIONS, serviceActionGroup);
 
         final ActionGroup sparkActionGroup = new ActionGroup(
-                this.REFRESH,
+                ResourceCommonActionsContributor.REFRESH,
                 ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
                 ResourceCommonActionsContributor.OPEN_PORTAL_URL,
                 "---",
@@ -204,7 +204,7 @@ public class HDInsightActionsContributor implements IActionsContributor {
         am.registerGroup(SPARK_CLUSTER_ACTIONS, sparkActionGroup);
 
         final ActionGroup sparkAdditionalActionGroup = new ActionGroup(
-                this.REFRESH,
+                ResourceCommonActionsContributor.REFRESH,
                 ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
                 "---",
                 this.OPEN_AZURE_STORAGE_EXPLORER,

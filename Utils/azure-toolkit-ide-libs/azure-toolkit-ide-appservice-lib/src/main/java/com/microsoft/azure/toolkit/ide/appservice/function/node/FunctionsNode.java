@@ -7,90 +7,52 @@ package com.microsoft.azure.toolkit.ide.appservice.function.node;
 
 import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
-import com.microsoft.azure.toolkit.ide.common.component.NodeView;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
-import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlotModule;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class FunctionsNode extends Node<FunctionApp> {
-    private final FunctionApp functionApp;
+    private final AzureEventBus.EventListener listener;
 
     public FunctionsNode(@Nonnull FunctionApp functionApp) {
         super(functionApp);
-        this.functionApp = functionApp;
-        this.view(new FunctionsNodeView(functionApp));
-        this.actions(FunctionAppActionsContributor.FUNCTIONS_ACTIONS);
-        this.addChildren(ignore -> functionApp.listFunctions().stream()
-                .sorted(Comparator.comparing(FunctionEntity::getName)).collect(Collectors.toList()),
-            (function, functionsNode) -> new Node<>(function)
-                .view(new NodeView.Static(function.getName(), "/icons/function-trigger.png", getFunctionTriggerType(function)))
-                .doubleClickAction(FunctionAppActionsContributor.TRIGGER_FUNCTION)
-                .actions(FunctionAppActionsContributor.FUNCTION_ACTION));
+        this.withIcon(AzureIcons.FunctionApp.MODULE)
+            .withLabel("Functions")
+            .withActions(FunctionAppActionsContributor.FUNCTIONS_ACTIONS)
+            .addChildren(a -> a.listFunctions().stream().sorted(Comparator.comparing(FunctionEntity::getName)).collect(Collectors.toList()), (a, functionsNode) -> new Node<>(a)
+                .withIcon("/icons/function-trigger.png")
+                .withLabel(FunctionEntity::getName)
+                .withDescription(FunctionsNode::getFunctionTriggerType)
+                .onDoubleClicked(FunctionAppActionsContributor.TRIGGER_FUNCTION)
+                .withActions(FunctionAppActionsContributor.FUNCTION_ACTION));
+
+        this.listener = new AzureEventBus.EventListener(this::onEvent);
+        AzureEventBus.on("resource.refreshed.resource", listener);
     }
 
     private static String getFunctionTriggerType(@Nonnull FunctionEntity functionEntity) {
         return Optional.ofNullable(functionEntity.getTrigger()).map(FunctionEntity.BindingEntity::getType).map(StringUtils::capitalize).orElse("Unknown");
     }
 
-    static class FunctionsNodeView implements NodeView {
-
-        @Nonnull
-        @Getter
-        private final FunctionApp functionApp;
-        private final AzureEventBus.EventListener listener;
-
-        @Nullable
-        @Setter
-        @Getter
-        private Refresher refresher;
-
-        public FunctionsNodeView(@Nonnull FunctionApp functionApp) {
-            this.functionApp = functionApp;
-            this.listener = new AzureEventBus.EventListener(this::onEvent);
-            AzureEventBus.on("resource.refreshed.resource", listener);
-            this.refreshView();
+    public void onEvent(AzureEvent event) {
+        final Object source = event.getSource();
+        if (source instanceof AzResource && ((AzResource) source).getId().equals(this.getValue().getId())) {
+            this.refreshChildrenLater();
         }
+    }
 
-        @Override
-        public String getLabel() {
-            return "Functions";
-        }
-
-        @Override
-        public String getIconPath() {
-            return AzureIcons.FunctionApp.MODULE.getIconPath();
-        }
-
-        @Override
-        public String getDescription() {
-            return getLabel();
-        }
-
-        @Override
-        public void dispose() {
-            AzureEventBus.off("resource.refreshed.resource", listener);
-            this.refresher = null;
-        }
-
-        public void onEvent(AzureEvent event) {
-            final Object source = event.getSource();
-            if (source instanceof AzResource && ((AzResource) source).id().equals(this.functionApp.id())) {
-                AzureTaskManager.getInstance().runLater(this::refreshChildren);
-            }
-        }
+    @Override
+    public void dispose() {
+        super.dispose();
+        AzureEventBus.off("resource.refreshed.resource", listener);
     }
 }

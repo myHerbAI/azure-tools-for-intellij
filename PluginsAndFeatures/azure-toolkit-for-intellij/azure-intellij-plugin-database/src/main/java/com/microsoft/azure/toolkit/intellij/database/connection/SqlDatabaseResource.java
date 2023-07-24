@@ -8,9 +8,8 @@ import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
 import com.microsoft.azure.toolkit.intellij.connector.AzureServiceResource;
-import com.microsoft.azure.toolkit.intellij.connector.Password;
-import com.microsoft.azure.toolkit.intellij.connector.PasswordStore;
 import com.microsoft.azure.toolkit.intellij.database.component.PasswordDialog;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -22,11 +21,11 @@ import com.microsoft.azure.toolkit.lib.database.entity.IDatabase;
 import com.microsoft.azure.toolkit.lib.database.entity.IDatabaseServer;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -66,17 +65,13 @@ public class SqlDatabaseResource<T extends IDatabase> extends AzureServiceResour
 
     @Nullable
     public String loadPassword() {
-        final Password password = getPassword();
-        if (Objects.nonNull(password) && password.saveType() == Password.SaveType.NEVER) {
-            return null;
+        final char[] password = getPassword();
+        if (ArrayUtils.isNotEmpty(password)) {
+            return String.valueOf(password);
         }
         final String defName = this.getDefinition().getName();
-        if (password.saveType() == Password.SaveType.FOREVER) {
-            PasswordStore.migratePassword(this.getDataId(), this.getUsername(),
-                defName, this.getDataId(), this.getUsername());
-        }
-        final String saved = PasswordStore.loadPassword(defName, this.getDataId(), this.getUsername(), password.saveType());
-        if (password.saveType() == Password.SaveType.UNTIL_RESTART && StringUtils.isBlank(saved)) {
+        final String saved = AzureStoreManager.getInstance().getSecureStore().loadPassword(defName, this.getDataId(), this.getUsername());
+        if (StringUtils.isBlank(saved)) {
             return null;
         }
         final DatabaseConnectionUtils.ConnectResult result = DatabaseConnectionUtils.connectWithPing(this.getJdbcUrl(), this.getUsername(), saved);
@@ -90,19 +85,16 @@ public class SqlDatabaseResource<T extends IDatabase> extends AzureServiceResour
     }
 
     public String inputPassword(@Nonnull final Project project) {
-        final AtomicReference<Password> passwordRef = new AtomicReference<>();
+        final AtomicReference<char[]> passwordRef = new AtomicReference<>();
         final AzureString title = OperationBundle.description("internal/connector.update_database_password.database", this.database.getName());
         AzureTaskManager.getInstance().runAndWait(title, () -> {
             final PasswordDialog dialog = new PasswordDialog(project, this.database);
-            if (dialog.showAndGet()) {
-                final Password password = dialog.getValue();
-                this.database.getPassword().saveType(password.saveType());
-                PasswordStore.savePassword(this.getDefinition().getName(),
-                    this.getDataId(), this.database.getUsername(), password.password(), password.saveType());
+            dialog.setOkActionListener(password -> {
+                dialog.close();
                 passwordRef.set(password);
-            }
+            });
         });
-        return Optional.ofNullable(passwordRef.get()).map(c -> String.valueOf(c.password())).orElse(null);
+        return Optional.ofNullable(passwordRef.get()).map(String::valueOf).orElse(null);
     }
 
     public JdbcUrl getJdbcUrl() {
@@ -113,7 +105,7 @@ public class SqlDatabaseResource<T extends IDatabase> extends AzureServiceResour
         return database.getUsername();
     }
 
-    public Password getPassword() {
+    public char[] getPassword() {
         return database.getPassword();
     }
 
@@ -126,7 +118,7 @@ public class SqlDatabaseResource<T extends IDatabase> extends AzureServiceResour
         this.database.setJdbcUrl(url);
     }
 
-    public void setPassword(Password password) {
+    public void setPassword(char[] password) {
         this.database.setPassword(password);
     }
 

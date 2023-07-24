@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class CommonConnectionCreationPanel implements AzureFormJPanel<Resource<ConnectionTarget>> {
@@ -29,11 +30,12 @@ public class CommonConnectionCreationPanel implements AzureFormJPanel<Resource<C
     }
 
     @Override
-    public void setValue(Resource<ConnectionTarget> data) {
-        final ConnectionTarget target = data.getData();
-        this.id = data.getDataId();
-        this.txtConnectionName.setValue(target.getName());
-        this.txtConnectionString.setValue(target.getConnectionString());
+    public void setValue(Resource<ConnectionTarget> target) {
+        this.id = target.getDataId();
+        Optional.ofNullable(target.getData()).ifPresent(data -> {
+            this.txtConnectionName.setValue(data.getName());
+            this.txtConnectionString.setValue(data.getConnectionString());
+        });
     }
 
     @Override

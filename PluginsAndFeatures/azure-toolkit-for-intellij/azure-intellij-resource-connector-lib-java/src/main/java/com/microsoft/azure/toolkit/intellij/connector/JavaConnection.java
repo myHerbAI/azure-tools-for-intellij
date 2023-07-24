@@ -17,6 +17,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * the <b>{@code resource connection}</b>
@@ -30,8 +31,8 @@ public class JavaConnection<TResource, TConsumer> extends Connection<TResource, 
 
     private static final String SPRING_BOOT_CONFIGURATION = "com.intellij.spring.boot.run.SpringBootApplicationRunConfiguration";
 
-    public JavaConnection(@Nonnull Resource<TResource> resource, @Nonnull Resource<TConsumer> consumer, @Nonnull ConnectionDefinition<TResource, TConsumer> definition) {
-        super(resource, consumer, definition);
+    public JavaConnection(@Nonnull final String id, @Nonnull Resource<TResource> resource, @Nonnull Resource<TConsumer> consumer, @Nonnull ConnectionDefinition<TResource, TConsumer> definition) {
+        super(id, resource, consumer, definition);
     }
 
     /**
@@ -83,8 +84,8 @@ public class JavaConnection<TResource, TConsumer> extends Connection<TResource, 
 
     public static class JavaConnectionProvider implements ConnectionProvider {
         @Override
-        public <R, C> Connection<R, C> define(Resource<R> resource, Resource<C> consumer, ConnectionDefinition<R, C> definition) {
-            return new JavaConnection<>(resource, consumer, definition);
+        public <R, C> Connection<R, C> define(String s, Resource<R> resource, Resource<C> consumer, ConnectionDefinition<R, C> definition) {
+            return new JavaConnection<>(s ,resource, consumer, definition);
         }
     }
 }

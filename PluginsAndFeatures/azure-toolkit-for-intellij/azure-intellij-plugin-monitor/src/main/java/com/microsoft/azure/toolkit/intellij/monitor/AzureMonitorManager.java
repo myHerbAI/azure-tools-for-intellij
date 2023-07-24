@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.monitor;
 
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -103,11 +104,13 @@ public class AzureMonitorManager {
     private void addContent(@Nonnull ToolWindow toolWindow, String contentName, AzureMonitorView view) {
         final Content tableContent = ContentFactory.getInstance().createContent(view, contentName, true);
         tableContent.setCloseable(false);
+        tableContent.setDisposer(view);
         toolWindow.getContentManager().addContent(tableContent);
     }
 
-    public static class AzureMonitorFactory implements ToolWindowFactory {
+    public static class AzureMonitorFactory implements ToolWindowFactory, DumbAware {
         private boolean isTriggered = false;
+
         @Override
         public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
             if (!isTriggered) {
@@ -121,16 +124,6 @@ public class AzureMonitorManager {
             } catch (final Exception e) {
                 instance.initToolWindow(project, null, null);
             }
-            toolWindow.getContentManager().addContentManagerListener(new ContentManagerListener() {
-                @Override
-                public void contentRemoved(@NotNull ContentManagerEvent event) {
-                    final JComponent contentComponent = event.getContent().getComponent();
-                    if (contentComponent instanceof AzureMonitorView) {
-                        ((AzureMonitorView) contentComponent).getMonitorTreePanel().dispose();
-                        ((AzureMonitorView) contentComponent).dispose();
-                    }
-                }
-            });
         }
     }
 }

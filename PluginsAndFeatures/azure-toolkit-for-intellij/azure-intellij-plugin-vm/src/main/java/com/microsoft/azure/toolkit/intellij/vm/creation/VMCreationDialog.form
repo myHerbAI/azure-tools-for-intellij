@@ -42,7 +42,6 @@
                 </constraints>
                 <properties>
                   <horizontalTextPosition value="10"/>
-                  <icon value="general/contextHelp.png"/>
                   <text value="Resource group:"/>
                   <toolTipText value="A resource group is a collection of resources that share the same lifecycle, permissions, and policies."/>
                 </properties>
@@ -53,7 +52,6 @@
                 </constraints>
                 <properties>
                   <horizontalTextPosition value="10"/>
-                  <icon value="general/contextHelp.png"/>
                   <text value="Subscription:"/>
                   <toolTipText value="All resources in an Azure subscription are billed together."/>
                 </properties>
@@ -126,7 +124,6 @@
                 </constraints>
                 <properties>
                   <horizontalTextPosition value="10"/>
-                  <icon value="general/contextHelp.png"/>
                   <text value="Authentication type:"/>
                   <toolTipText value="Choose whether the administrator account will use username/password or SSH keys for authentication."/>
                 </properties>
@@ -182,7 +179,6 @@
                 </constraints>
                 <properties>
                   <horizontalTextPosition value="10"/>
-                  <icon value="general/contextHelp.png"/>
                   <text value="Availability options:"/>
                   <toolTipText value="Azure offers a range of options for managing availability and resiliency for your applications. Architect your solution to use replicated VMs in Availability Zones or Availability Sets to protect your apps and data from datacenter outages and maintenance events."/>
                 </properties>
@@ -310,7 +306,6 @@
                 </constraints>
                 <properties>
                   <horizontalTextPosition value="10"/>
-                  <icon value="general/contextHelp.png"/>
                   <text value="Virtual network:"/>
                   <toolTipText value="Virtual networks are logically isolated from each other in Azure. You can configure their IP address ranges, subnets, route tables, gateways, and security settings, much like a traditional network in your data center. Virtual machines in the same virtual network can access each other by default."/>
                 </properties>
@@ -321,7 +316,6 @@
                 </constraints>
                 <properties>
                   <horizontalTextPosition value="10"/>
-                  <icon value="general/contextHelp.png"/>
                   <text value="Public IP:"/>
                   <toolTipText value="Use a public IP address if you want to communicate with the virtual machine from outside the virtual network."/>
                 </properties>
@@ -332,7 +326,7 @@
                 </constraints>
                 <properties>
                   <horizontalTextPosition value="10"/>
-                  <icon value="general/contextHelp.png"/>
+                  general/contextHelp.svg"/>
                   <text value="Subnet:"/>
                   <toolTipText value="A subnet is a range of IP addresses in your virtual network, which can be used to isolate virtual machines from each other or from the Internet."/>
                 </properties>
@@ -343,7 +337,6 @@
                 </constraints>
                 <properties>
                   <horizontalTextPosition value="10"/>
-                  <icon value="general/contextHelp.png"/>
                   <text value="Security group:"/>
                   <toolTipText value="A network security group contains security rules that allow or deny inbound network traffic to, or outbound network traffic from, the virtual machine. To simplify management of security rules, it's recommended that you associate a network security group to individual subnets, rather than individual network interfaces within the subnet, whenever possible."/>
                 </properties>
@@ -431,7 +424,6 @@
                 </constraints>
                 <properties>
                   <horizontalTextPosition value="10"/>
-                  <icon value="general/contextHelp.png"/>
                   <text value="Public inbound ports:"/>
                   <toolTipText value="By default, access to the virtual machine is restricted to sources in the same virtual network, and traffic from Azure load balancing solutions. Select None to confirm, or choose to allow traffic from the public internet to one of these common ports."/>
                   <visible value="false"/>
@@ -502,7 +494,6 @@
                 </constraints>
                 <properties>
                   <horizontalTextPosition value="10"/>
-                  <icon value="general/contextHelp.png"/>
                   <text value="Enable Azure Spot instance:"/>
                   <toolTipText value="Azure Spot offers unused Azure capacity at a discounted rate versus pay as you go prices. Workloads should be tolerant to infrastructure loss as Azure may recall capacity for pay as you go workloads."/>
                 </properties>
@@ -522,7 +513,6 @@
                 </constraints>
                 <properties>
                   <horizontalTextPosition value="10"/>
-                  <icon value="general/contextHelp.png"/>
                   <text value="Eviction policy:"/>
                   <toolTipText value="Choose what happens to the virtual machine when it's evicted. Upon eviction, the VM can either be stopped and deallocated if you plan to re-deploy or need access to the disk after eviction, or the VM can be deleted to clean up the VM and disks"/>
                 </properties>
@@ -551,7 +541,6 @@
                 </constraints>
                 <properties>
                   <horizontalTextPosition value="10"/>
-                  <icon value="general/contextHelp.png"/>
                   <text value="Maximum price per hour:"/>
                   <toolTipText value="Choose the maximum price per hour you are willing to pay for a single instance of the selected virtual machine size. While your selected price is greater than the platform price and Azure has excess capacity, you will be allocated capacity. Azure Spot prices are in USD ($) only."/>
                 </properties>

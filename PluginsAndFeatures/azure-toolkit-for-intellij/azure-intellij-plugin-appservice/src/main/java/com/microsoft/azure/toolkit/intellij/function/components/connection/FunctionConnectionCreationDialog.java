@@ -5,32 +5,38 @@
 
 package com.microsoft.azure.toolkit.intellij.function.components.connection;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
-import com.microsoft.azure.toolkit.intellij.connector.ConnectionManager;
-import com.microsoft.azure.toolkit.intellij.connector.ConnectionTopics;
 import com.microsoft.azure.toolkit.intellij.connector.ModuleResource;
 import com.microsoft.azure.toolkit.intellij.connector.Resource;
-import com.microsoft.azure.toolkit.intellij.connector.ResourceManager;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.connector.function.FunctionSupported;
 import com.microsoft.azure.toolkit.intellij.function.connection.CommonConnectionResource;
 import com.microsoft.azure.toolkit.intellij.function.connection.ConnectionTarget;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import java.awt.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -39,6 +45,7 @@ import java.util.stream.Stream;
 
 public class FunctionConnectionCreationDialog extends AzureDialog<FunctionConnectionComboBox.ConnectionConfiguration> implements AzureForm<FunctionConnectionComboBox.ConnectionConfiguration> {
 
+    public static final String CONNECTION_CREATED_MESSAGE = "The connection between %s and %s has been successfully created.";
     private JLabel lblConnectionName;
     private JLabel lblConnectionString;
     private AzureTextInput txtConnectionName;
@@ -51,7 +58,6 @@ public class FunctionConnectionCreationDialog extends AzureDialog<FunctionConnec
     private JPanel pnlMode;
     private JPanel descriptionContainer;
     private JTextPane descriptionPane;
-    private JLabel descriptionIcon;
     private Subscription subscription;
 
     private final Project project;
@@ -62,10 +68,15 @@ public class FunctionConnectionCreationDialog extends AzureDialog<FunctionConnec
     private AzureFormJPanel<? extends Resource<?>> resourcePanel;
 
     public FunctionConnectionCreationDialog(final Project project, final Module module, final String resourceType) {
+        this(project, module, resourceType, null);
+    }
+
+    public FunctionConnectionCreationDialog(final Project project, final Module module, final String resourceType, final String helpId) {
         super(project);
         this.project = project;
         this.module = module;
         this.definition = FunctionDefinitionManager.getFunctionDefinitionByResourceType(resourceType);
+        this.helpId = helpId;
         $$$setupUI$$$();
         init();
     }
@@ -80,6 +91,23 @@ public class FunctionConnectionCreationDialog extends AzureDialog<FunctionConnec
         rdoConnectionString.addItemListener(ignore -> toggleSelectionMode());
         rdoSelectResource.setSelected(Objects.nonNull(definition));
         rdoConnectionString.setSelected(!Objects.nonNull(definition));
+        descriptionPane.addHyperlinkListener(new HyperlinkAdapter() {
+            @Override
+            protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
+                if (Objects.nonNull(e.getURL())) {
+                    AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(e.getURL().toString());
+                }
+            }
+        });
+        final Font font = UIManager.getFont("Label.font");
+        final Color foregroundColor = UIManager.getColor("Label.foreground");
+        final Color backgroundColor = UIManager.getColor("Label.backgroundColor");
+        descriptionPane.putClientProperty(JTextPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+        if (font != null && foregroundColor != null) {
+            descriptionPane.setFont(font);
+            descriptionPane.setForeground(foregroundColor);
+            descriptionPane.setBackground(backgroundColor);
+        }
         if (Objects.nonNull(definition)) {
             initResourceSelectionPanel();
         }
@@ -138,21 +166,24 @@ public class FunctionConnectionCreationDialog extends AzureDialog<FunctionConnec
     protected void doOKAction() {
         final Resource resource = getResource();
         final Resource consumer = ModuleResource.Definition.IJ_MODULE.define(module.getName());
-        this.connection = ConnectionManager.getDefinitionOrDefault(resource.getDefinition(),
-                consumer.getDefinition()).define(resource, consumer);
-        connection.setEnvPrefix(txtConnectionName.getValue());
-        final ConnectionManager connectionManager = this.project.getService(ConnectionManager.class);
-        final ResourceManager resourceManager = ApplicationManager.getApplication().getService(ResourceManager.class);
-        if (connection.validate(this.project)) {
-            resourceManager.addResource(resource);
-            resourceManager.addResource(consumer);
-            connectionManager.addConnection(connection);
-            final String message = String.format("The connection between %s and %s has been successfully created.",
-                    resource.getName(), consumer.getName());
-            AzureMessager.getMessager().success(message);
-            project.getMessageBus().syncPublisher(ConnectionTopics.CONNECTION_CHANGED).connectionChanged(project, connection, ConnectionTopics.Action.ADD);
+        this.connection = ConnectionManager.getDefinitionOrDefault(resource.getDefinition(), consumer.getDefinition()).define(resource, consumer);
+        this.connection.setEnvPrefix(txtConnectionName.getValue());
+        if (this.connection.validate(this.project)) {
+            AzureTaskManager.getInstance().write(() -> saveConnection(connection));
         }
         super.doOKAction();
+    }
+
+    @AzureOperation(
+            name = "user/function.create_connection.consumer|resource",
+            params = {"connection.getConsumer().getName()", "connection.getResource().getName()"}
+    )
+    private void saveConnection(final Connection<?, ?> connection) {
+        AzureTaskManager.getInstance().write(() -> {
+            final Profile profile = AzureModule.from(module).initializeWithDefaultProfileIfNot();
+            profile.addConnection(connection);
+            profile.save();
+        });
     }
 
     private Resource<?> getResource() {
@@ -166,6 +197,10 @@ public class FunctionConnectionCreationDialog extends AzureDialog<FunctionConnec
         }
     }
 
+    public void setOKActionText(@Nonnull final String text) {
+        super.setOKButtonText(text);
+    }
+
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES
     private void $$$setupUI$$$() {
     }
@@ -174,11 +209,12 @@ public class FunctionConnectionCreationDialog extends AzureDialog<FunctionConnec
         txtConnectionName.setValue(azureWebJobStorageKey);
         txtConnectionName.setEnabled(false);
         txtConnectionName.setEditable(false);
+        txtConnectionName.setVisible(false);
+        lblConnectionName.setVisible(false);
     }
 
-    public void setDescription(@Nonnull final String description, @Nullable Icon icon) {
+    public void setDescription(@Nonnull final String description) {
         descriptionContainer.setVisible(true);
         descriptionPane.setText(description);
-        descriptionIcon.setIcon(icon);
     }
 }

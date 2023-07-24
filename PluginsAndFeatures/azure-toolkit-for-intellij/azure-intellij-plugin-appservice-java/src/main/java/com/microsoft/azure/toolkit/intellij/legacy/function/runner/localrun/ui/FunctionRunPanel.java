@@ -5,7 +5,10 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localrun.ui;
 
+import com.intellij.execution.impl.ConfigurationSettingsEditorWrapper;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
@@ -24,6 +27,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localrun.Func
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.legacy.function.FunctionCoreToolsCombobox;
+import com.microsoft.intellij.util.BuildArtifactBeforeRunTaskUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +65,7 @@ public class FunctionRunPanel extends AzureSettingPanel<FunctionRunConfiguration
     private Module previousModule = null;
 
     public FunctionRunPanel(@NotNull Project project, FunctionRunConfiguration functionRunConfiguration) {
-        super(project);
+        super(project, false);
         this.functionRunConfiguration = functionRunConfiguration;
         $$$setupUI$$$();
         init();
@@ -81,7 +85,6 @@ public class FunctionRunPanel extends AzureSettingPanel<FunctionRunConfiguration
         lblModule.setLabelFor(cbFunctionModule);
         lblFunctionCli.setLabelFor(txtFunc);
         lblAppSettings.setLabelFor(appSettingsTable);
-
         this.txtFuncArguments.setValue(FunctionUtils.getDefaultFuncArguments());
         fillModules();
     }
@@ -89,7 +92,12 @@ public class FunctionRunPanel extends AzureSettingPanel<FunctionRunConfiguration
     private void onSelectModule(ItemEvent itemEvent) {
         final Object module = cbFunctionModule.getSelectedItem();
         if (module instanceof Module) {
+            // sync connector tasks
             cbHostJson.setModule((Module) module);
+            functionRunConfiguration.saveModule((Module) module);
+            final DataContext context = DataManager.getInstance().getDataContext(pnlMain);
+            final ConfigurationSettingsEditorWrapper editor = ConfigurationSettingsEditorWrapper.CONFIGURATION_EDITOR_KEY.getData(context);
+            BuildArtifactBeforeRunTaskUtils.updateConnectorBeforeRunTask(this.functionRunConfiguration, editor);
         } else {
             cbHostJson.setModule(null);
         }

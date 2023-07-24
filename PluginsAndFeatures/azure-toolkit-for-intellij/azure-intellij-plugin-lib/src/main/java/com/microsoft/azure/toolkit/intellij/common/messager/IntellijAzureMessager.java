@@ -10,12 +10,10 @@ import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.ui.MessageDialogBuilder;
-import com.intellij.util.ThrowableRunnable;
 import com.intellij.util.ui.UIUtil;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessage;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -53,10 +51,10 @@ public class IntellijAzureMessager implements IAzureMessager {
             case ALERT, CONFIRM -> {
                 final boolean[] result = new boolean[]{true};
                 try {
-                    UIUtil.invokeAndWaitIfNeeded((ThrowableRunnable<?>) () -> {
+                    ApplicationManager.getApplication().invokeAndWait(() -> {
                         final String title = StringUtils.firstNonBlank(raw.getTitle(), DEFAULT_TITLE);
                         result[0] = MessageDialogBuilder.yesNo(title, raw.getContent()).guessWindowAndAsk();
-                    });
+                    }, ModalityState.any());
                 } catch (final Throwable e) {
                     e.printStackTrace();
                 }

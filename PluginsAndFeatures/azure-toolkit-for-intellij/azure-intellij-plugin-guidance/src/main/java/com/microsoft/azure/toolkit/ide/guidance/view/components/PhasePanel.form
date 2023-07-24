@@ -17,7 +17,7 @@
         </constraints>
         <properties>
           <horizontalAlignment value="0"/>
-          <icon value="actions/commit.png"/>
+          <icon value="actions/commit.svg"/>
           <text value=""/>
         </properties>
       </component>
@@ -39,7 +39,6 @@
         </constraints>
         <properties>
           <horizontalAlignment value="4"/>
-          <icon value="actions/allLeft.png"/>
           <text value=""/>
         </properties>
       </component>
@@ -90,7 +89,6 @@
           <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <icon value="actions/execute.png"/>
           <text value="Run"/>
         </properties>
       </component>
@@ -124,7 +122,7 @@
             </constraints>
             <properties>
               <horizontalAlignment value="0"/>
-              <icon value="actions/commit.png"/>
+              <icon value="actions/commit.svg"/>
               <text value=""/>
             </properties>
           </component>

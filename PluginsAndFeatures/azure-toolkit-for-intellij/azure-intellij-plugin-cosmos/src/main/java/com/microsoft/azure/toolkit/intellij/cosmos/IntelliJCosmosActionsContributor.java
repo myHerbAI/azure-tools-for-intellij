@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.ide.cosmos.CosmosActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.action.IntellijActionsContributor;
 import com.microsoft.azure.toolkit.intellij.connector.AzureServiceResource;
 import com.microsoft.azure.toolkit.intellij.connector.ConnectorDialog;
+import com.microsoft.azure.toolkit.intellij.cosmos.actions.CreateNewDocumentAction;
 import com.microsoft.azure.toolkit.intellij.cosmos.actions.OpenCosmosDocumentAction;
 import com.microsoft.azure.toolkit.intellij.cosmos.actions.UploadCosmosDocumentAction;
 import com.microsoft.azure.toolkit.intellij.cosmos.connection.CassandraCosmosDBAccountResourceDefinition;
@@ -71,52 +72,58 @@ public class IntelliJCosmosActionsContributor implements IActionsContributor {
         am.registerHandler(CosmosActionsContributor.OPEN_DOCUMENT, documentCondition, documentHandler);
 
         final BiPredicate<ICosmosDocumentContainer<?>, AnActionEvent> importCondition = (r, e) ->
-                r instanceof ICosmosDocumentContainer && r.getFormalStatus(true).isConnected();
+                r instanceof ICosmosDocumentContainer && r.getFormalStatus().isConnected();
         final BiConsumer<ICosmosDocumentContainer<?>, AnActionEvent> importHandler = (c, e) -> UploadCosmosDocumentAction.importDocument(c, e.getProject());
         am.registerHandler(CosmosActionsContributor.IMPORT_DOCUMENT, importCondition, importHandler);
+
+        final BiPredicate<ICosmosDocumentContainer<?>, AnActionEvent> createDocumentCondition = (r, e) ->
+                r instanceof ICosmosDocumentContainer && r.getFormalStatus().isConnected();
+        final BiConsumer<ICosmosDocumentContainer<?>, AnActionEvent> createDocumentHandler = (c, e) ->
+                AzureTaskManager.getInstance().runLater(() -> CreateNewDocumentAction.create(c, e.getProject()));
+        am.registerHandler(CosmosActionsContributor.CREATE_DOCUMENT, createDocumentCondition, createDocumentHandler);
 
         final BiConsumer<ResourceGroup, AnActionEvent> groupCreateHandler = (r, e) ->
             CreateCosmosDBAccountAction.create(e.getProject(), getDefaultConfig(r));
         am.registerHandler(CosmosActionsContributor.GROUP_CREATE_COSMOS_SERVICE, (r, e) -> true, groupCreateHandler);
 
         final Function<MongoCosmosDBAccount, MongoDatabase> mongoFunction = account -> account.mongoDatabases().list().stream().findFirst().orElse(null);
-        am.registerHandler(ResourceCommonActionsContributor.CONNECT, (r, e) -> r instanceof MongoCosmosDBAccount && r.getFormalStatus(true).isConnected(), (AzResource r, AnActionEvent e) ->
+        am.registerHandler(ResourceCommonActionsContributor.CONNECT, (r, e) -> r instanceof MongoCosmosDBAccount && r.getFormalStatus().isConnected(), (AzResource r, AnActionEvent e) ->
             openResourceConnector((MongoCosmosDBAccount) r, mongoFunction, MongoCosmosDBAccountResourceDefinition.INSTANCE, e.getProject()));
-        am.registerHandler(ResourceCommonActionsContributor.CONNECT, (r, e) -> r instanceof MongoDatabase && r.getFormalStatus(true).isConnected(), (AzResource r, AnActionEvent e) ->
+        am.registerHandler(ResourceCommonActionsContributor.CONNECT, (r, e) -> r instanceof MongoDatabase && r.getFormalStatus().isConnected(), (AzResource r, AnActionEvent e) ->
             openResourceConnector((MongoDatabase) r, MongoCosmosDBAccountResourceDefinition.INSTANCE, e.getProject()));
 
         final Function<SqlCosmosDBAccount, SqlDatabase> sqlFunction = account -> account.sqlDatabases().list().stream().findFirst().orElse(null);
-        am.registerHandler(ResourceCommonActionsContributor.CONNECT, (r, e) -> r instanceof SqlCosmosDBAccount && r.getFormalStatus(true).isConnected(), (AzResource r, AnActionEvent e) ->
+        am.registerHandler(ResourceCommonActionsContributor.CONNECT, (r, e) -> r instanceof SqlCosmosDBAccount && r.getFormalStatus().isConnected(), (AzResource r, AnActionEvent e) ->
             openResourceConnector((SqlCosmosDBAccount) r, sqlFunction, SqlCosmosDBAccountResourceDefinition.INSTANCE, e.getProject()));
-        am.registerHandler(ResourceCommonActionsContributor.CONNECT, (r, e) -> r instanceof SqlDatabase && r.getFormalStatus(true).isConnected(), (AzResource r, AnActionEvent e) ->
+        am.registerHandler(ResourceCommonActionsContributor.CONNECT, (r, e) -> r instanceof SqlDatabase && r.getFormalStatus().isConnected(), (AzResource r, AnActionEvent e) ->
             openResourceConnector((SqlDatabase) r, SqlCosmosDBAccountResourceDefinition.INSTANCE, e.getProject()));
 
         final Function<CassandraCosmosDBAccount, CassandraKeyspace> cassandraFunction = account -> account.keySpaces().list().stream().findFirst().orElse(null);
-        am.registerHandler(ResourceCommonActionsContributor.CONNECT, (r, e) -> r instanceof CassandraCosmosDBAccount && r.getFormalStatus(true).isConnected(), (AzResource r, AnActionEvent e) ->
+        am.registerHandler(ResourceCommonActionsContributor.CONNECT, (r, e) -> r instanceof CassandraCosmosDBAccount && r.getFormalStatus().isConnected(), (AzResource r, AnActionEvent e) ->
             openResourceConnector((CassandraCosmosDBAccount) r, cassandraFunction, CassandraCosmosDBAccountResourceDefinition.INSTANCE, e.getProject()));
-        am.registerHandler(ResourceCommonActionsContributor.CONNECT, (r, e) -> r instanceof CassandraKeyspace && r.getFormalStatus(true).isConnected(), (AzResource r, AnActionEvent e) ->
+        am.registerHandler(ResourceCommonActionsContributor.CONNECT, (r, e) -> r instanceof CassandraKeyspace && r.getFormalStatus().isConnected(), (AzResource r, AnActionEvent e) ->
             openResourceConnector((CassandraKeyspace) r, CassandraCosmosDBAccountResourceDefinition.INSTANCE, e.getProject()));
 
         final BiFunction<MongoCosmosDBAccount, DatabaseConfig, ICosmosDatabaseDraft<?, ?>> mongoDraftSupplier = (account, config) ->
             (ICosmosDatabaseDraft<?, ?>) account.mongoDatabases().getOrDraft(config.getName(), account.getResourceGroupName());
-        am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof MongoCosmosDBAccount && ((MongoCosmosDBAccount) r).getFormalStatus(true).isRunning(), (Object r, AnActionEvent e) ->
+        am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof MongoCosmosDBAccount && ((MongoCosmosDBAccount) r).getFormalStatus().isRunning(), (Object r, AnActionEvent e) ->
             CreateCosmosDatabaseAction.create(e.getProject(), (MongoCosmosDBAccount) r, mongoDraftSupplier, getDefaultDatabaseConfig()));
 
         final BiFunction<SqlCosmosDBAccount, DatabaseConfig, ICosmosDatabaseDraft<?, ?>> sqlDraftSupplier = (account, config) ->
             (ICosmosDatabaseDraft<?, ?>) account.sqlDatabases().getOrDraft(config.getName(), account.getResourceGroupName());
-        am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof SqlCosmosDBAccount && ((SqlCosmosDBAccount) r).getFormalStatus(true).isRunning(), (Object r, AnActionEvent e) ->
+        am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof SqlCosmosDBAccount && ((SqlCosmosDBAccount) r).getFormalStatus().isRunning(), (Object r, AnActionEvent e) ->
             CreateCosmosDatabaseAction.create(e.getProject(), (SqlCosmosDBAccount) r, sqlDraftSupplier, getDefaultDatabaseConfig()));
 
         final BiFunction<CassandraCosmosDBAccount, DatabaseConfig, ICosmosDatabaseDraft<?, ?>> cassandraDraftSupplier = (account, config) ->
             (ICosmosDatabaseDraft<?, ?>) account.keySpaces().getOrDraft(config.getName(), account.getResourceGroupName());
-        am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof CassandraCosmosDBAccount && ((CassandraCosmosDBAccount) r).getFormalStatus(true).isRunning(), (Object r, AnActionEvent e) ->
+        am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof CassandraCosmosDBAccount && ((CassandraCosmosDBAccount) r).getFormalStatus().isRunning(), (Object r, AnActionEvent e) ->
             CreateCosmosDatabaseAction.create(e.getProject(), (CassandraCosmosDBAccount) r, cassandraDraftSupplier, getDefaultDatabaseConfig("keyspace")));
 
-        am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof SqlDatabase && ((SqlDatabase) r).getFormalStatus(true).isRunning(), (Object r, AnActionEvent e) ->
+        am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof SqlDatabase && ((SqlDatabase) r).getFormalStatus().isRunning(), (Object r, AnActionEvent e) ->
                 CreateCosmosContainerAction.createSQLContainer(e.getProject(), (SqlDatabase) r, SqlContainerDraft.SqlContainerConfig.getDefaultConfig()));
-        am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof MongoDatabase && ((MongoDatabase) r).getFormalStatus(true).isRunning(), (Object r, AnActionEvent e) ->
+        am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof MongoDatabase && ((MongoDatabase) r).getFormalStatus().isRunning(), (Object r, AnActionEvent e) ->
                 CreateCosmosContainerAction.createMongoCollection(e.getProject(), (MongoDatabase) r, MongoCollectionDraft.MongoCollectionConfig.getDefaultConfig()));
-        am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof CassandraKeyspace && ((CassandraKeyspace) r).getFormalStatus(true).isRunning(), (Object r, AnActionEvent e) ->
+        am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof CassandraKeyspace && ((CassandraKeyspace) r).getFormalStatus().isRunning(), (Object r, AnActionEvent e) ->
                 CreateCosmosContainerAction.createCassandraTable(e.getProject(), (CassandraKeyspace) r, CassandraTableDraft.CassandraTableConfig.getDefaultConfig()));
 
         final String DATABASE_TOOLS_PLUGIN_ID = "com.intellij.database";

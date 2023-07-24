@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.storage.connection;
 
-import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
@@ -17,8 +16,10 @@ import com.microsoft.azure.toolkit.intellij.connector.spring.SpringSupported;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.AzuriteStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
@@ -32,6 +33,7 @@ import java.util.Map;
 public class StorageAccountResourceDefinition extends AzureServiceResource.Definition<StorageAccount>
         implements SpringSupported<StorageAccount>, FunctionSupported<StorageAccount> {
     public static final StorageAccountResourceDefinition INSTANCE = new StorageAccountResourceDefinition();
+    public static final String LOCAL_STORAGE_CONNECTION_STRING = "UseDevelopmentStorage=true";
 
     public StorageAccountResourceDefinition() {
         super("Azure.Storage", "Azure Storage Account", AzureIcons.StorageAccount.MODULE.getIconPath());
@@ -63,11 +65,10 @@ public class StorageAccountResourceDefinition extends AzureServiceResource.Defin
 
     @Override
     public StorageAccount getResource(String dataId) {
-        final ResourceId resourceId = ResourceId.fromString(dataId);
-        final String subscriptionId = resourceId.subscriptionId();
-        final String rg = resourceId.resourceGroupName();
-        final String name = resourceId.name();
-        return Azure.az(AzureStorageAccount.class).forSubscription(subscriptionId).storageAccounts().get(name, rg);
+        if (StringUtils.equalsIgnoreCase(dataId, AzuriteStorageAccount.AZURITE_RESOURCE_ID)) {
+            return AzuriteStorageAccount.AZURITE_STORAGE_ACCOUNT;
+        }
+        return Azure.az(AzureStorageAccount.class).getById(dataId);
     }
 
     @Override
@@ -84,6 +85,6 @@ public class StorageAccountResourceDefinition extends AzureServiceResource.Defin
     @Nullable
     @Override
     public String getResourceConnectionString(@Nonnull StorageAccount resource) {
-        return resource.getConnectionString();
+        return resource instanceof AzuriteStorageAccount ? LOCAL_STORAGE_CONNECTION_STRING : resource.getConnectionString();
     }
 }

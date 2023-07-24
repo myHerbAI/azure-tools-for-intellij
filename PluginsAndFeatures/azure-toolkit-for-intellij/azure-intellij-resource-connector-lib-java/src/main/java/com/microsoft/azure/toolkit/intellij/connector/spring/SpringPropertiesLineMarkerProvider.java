@@ -20,8 +20,9 @@ import com.intellij.psi.PsiElement;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
-import com.microsoft.azure.toolkit.intellij.connector.ConnectionManager;
 import com.microsoft.azure.toolkit.intellij.connector.Resource;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.RequiredArgsConstructor;
@@ -31,8 +32,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.event.MouseEvent;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class SpringPropertiesLineMarkerProvider implements LineMarkerProvider {
 
@@ -50,8 +53,10 @@ public class SpringPropertiesLineMarkerProvider implements LineMarkerProvider {
             return null;
         }
         final ImmutablePair<String, String> keyProp = new ImmutablePair<>(propKey, propVal);
-        final List<Connection<?, ?>> connections = element.getProject().getService(ConnectionManager.class)
-                .getConnectionsByConsumerId(module.getName());
+        final List<Connection<?, ?>> connections = Optional.ofNullable(AzureModule.from(module)).map(AzureModule::getDefaultProfile)
+                .map(Profile::getConnectionManager)
+                .map(cm -> cm.getConnectionsByConsumerId(module.getName()))
+                .orElse(Collections.emptyList());
         for (final Connection<?, ?> connection : connections) {
             final List<Pair<String, String>> properties = SpringSupported.getProperties(connection);
             if (!properties.isEmpty() && properties.get(0).equals(keyProp)) {

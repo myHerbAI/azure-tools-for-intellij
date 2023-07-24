@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.intellij.common.component;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
@@ -22,6 +23,13 @@ import static com.microsoft.azure.toolkit.lib.Azure.az;
 
 public class SubscriptionComboBox extends AzureComboBox<Subscription> {
 
+    private final AzureEventBus.EventListener onSubscriptionsChanged;
+
+    public SubscriptionComboBox() {
+        super();
+        this.onSubscriptionsChanged = new AzureEventBus.EventListener(e -> this.reloadItems());
+    }
+
     @Override
     public String getLabel() {
         return "Subscription";
@@ -30,10 +38,22 @@ public class SubscriptionComboBox extends AzureComboBox<Subscription> {
     @Nonnull
     @Override
     @AzureOperation(name = "internal/account.list_subscriptions")
-    protected List<Subscription> loadItems() throws Exception {
+    protected List<Subscription> loadItems() {
         return az(AzureAccount.class).account().getSelectedSubscriptions().stream()
             .sorted(Comparator.comparing(Subscription::getName))
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        AzureEventBus.on("account.subscription_changed.account", this.onSubscriptionsChanged);
+    }
+
+    @Override
+    public void removeNotify() {
+        AzureEventBus.off("account.subscription_changed.account", this.onSubscriptionsChanged);
+        super.removeNotify();
     }
 
     @Override

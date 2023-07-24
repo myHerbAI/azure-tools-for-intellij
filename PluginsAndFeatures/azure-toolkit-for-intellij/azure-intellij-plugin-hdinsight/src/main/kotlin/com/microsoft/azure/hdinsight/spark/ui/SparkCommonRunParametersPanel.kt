@@ -44,6 +44,8 @@ class SparkCommonRunParametersPanel(private val myProject: Project, private val 
         button.name = "mainClassTextFieldButton"
         toolTipText = mainClassToolTip
 
+        accessibleContext.accessibleDescription = "$mainClassToolTip required"
+
         // Button actions
         addActionListener {
             val selected = if (wholePanel.submissionContentPanel.localArtifactPrompt.isSelected)

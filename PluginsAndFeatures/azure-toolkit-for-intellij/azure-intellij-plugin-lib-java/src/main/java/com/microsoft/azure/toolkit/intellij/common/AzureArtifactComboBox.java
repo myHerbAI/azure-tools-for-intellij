@@ -11,7 +11,6 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
@@ -33,11 +32,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class AzureArtifactComboBox extends AzureComboBox<AzureArtifact> {
     private final Project project;
     private final boolean fileArtifactOnly;
-    private Condition<? super VirtualFile> fileFilter;
+    @Nonnull
+    private Predicate<? super VirtualFile> fileFilter = artifact -> true;
+    @Nonnull
+    private Predicate<? super AzureArtifact> artifactFilter = artifact -> true;
     private Subscription subscription;
     private AzureArtifact cachedArtifact;
 
@@ -52,14 +56,19 @@ public class AzureArtifactComboBox extends AzureComboBox<AzureArtifact> {
         this.setRenderer(new ArtifactItemRenderer());
     }
 
-    public void setFileFilter(final Condition<? super VirtualFile> filter) {
+    public void setFileFilter(@Nonnull final Predicate<? super VirtualFile> filter) {
         this.fileFilter = filter;
+    }
+
+    public void setArtifactFilter(@Nonnull final Predicate<? super AzureArtifact> filter) {
+        this.artifactFilter = filter;
     }
 
     public void setArtifact(@Nullable final AzureArtifact azureArtifact) {
         final AzureArtifactManager artifactManager = AzureArtifactManager.getInstance(this.project);
         this.cachedArtifact = azureArtifact;
         Optional.ofNullable(cachedArtifact).filter(artifact -> artifact.getType() == AzureArtifactType.File).ifPresent(this::addItem);
+        this.reloadItems();
         this.setValue(new ItemReference<>(artifact -> artifactManager.equalsAzureArtifact(cachedArtifact, artifact)));
     }
 
@@ -74,9 +83,9 @@ public class AzureArtifactComboBox extends AzureComboBox<AzureArtifact> {
     @Nonnull
     @Override
     @AzureOperation(name = "internal/common.list_artifacts.project", params = {"this.project.getName()"})
-    protected List<? extends AzureArtifact> loadItems() throws Exception {
+    protected List<? extends AzureArtifact> loadItems() {
         final List<AzureArtifact> collect = fileArtifactOnly ?
-            new ArrayList<>() : AzureArtifactManager.getInstance(project).getAllSupportedAzureArtifacts();
+            new ArrayList<>() : AzureArtifactManager.getInstance(project).getAllSupportedAzureArtifacts().stream().filter(this.artifactFilter).collect((Collectors.toCollection(ArrayList::new)));
         Optional.ofNullable(cachedArtifact).filter(artifact -> artifact.getType() == AzureArtifactType.File).ifPresent(collect::add);
         return collect;
     }
@@ -110,7 +119,7 @@ public class AzureArtifactComboBox extends AzureComboBox<AzureArtifact> {
     public AzureValidationInfo doValidate(AzureArtifact artifact) {
         if (Objects.nonNull(artifact) && artifact.getType() == AzureArtifactType.File) {
             final VirtualFile referencedObject = (VirtualFile) artifact.getReferencedObject();
-            if (Objects.nonNull(this.fileFilter) && !this.fileFilter.value(referencedObject)) {
+            if (!this.fileFilter.test(referencedObject)) {
                 final AzureValidationInfo.AzureValidationInfoBuilder builder = AzureValidationInfo.builder();
                 return builder.input(this).message(AzureMessageBundle.message("common.artifact.artifactNotSupport").toString())
                     .type(Type.ERROR).build();
@@ -121,9 +130,7 @@ public class AzureArtifactComboBox extends AzureComboBox<AzureArtifact> {
 
     private void onSelectFile() {
         final FileChooserDescriptor fileDescriptor = FileChooserDescriptorFactory.createSingleFileDescriptor();
-        if (fileFilter != null) {
-            fileDescriptor.withFileFilter(fileFilter);
-        }
+        fileDescriptor.withFileFilter(v -> this.fileFilter.test(v));
         fileDescriptor.withTitle(AzureMessageBundle.message("common.artifact.selector.title").toString());
         final VirtualFile file = FileChooser.chooseFile(fileDescriptor, null, null);
         if (file != null && file.exists()) {

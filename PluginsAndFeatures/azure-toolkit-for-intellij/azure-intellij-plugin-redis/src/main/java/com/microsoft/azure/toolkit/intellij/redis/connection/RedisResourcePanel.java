@@ -42,7 +42,6 @@ public class RedisResourcePanel implements AzureFormJPanel<Resource<RedisCache>>
 
     private void init() {
         this.redisComboBox.setRequired(true);
-        this.redisComboBox.trackValidation();
         this.subscriptionComboBox.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 this.redisComboBox.reloadItems();
@@ -56,8 +55,8 @@ public class RedisResourcePanel implements AzureFormJPanel<Resource<RedisCache>>
     public void setValue(Resource<RedisCache> accountDef) {
         final RedisCache account = accountDef.getData();
         Optional.ofNullable(account).ifPresent((a -> {
-            this.subscriptionComboBox.setValue(new ItemReference<>(a.getSubscriptionId(), Subscription::getId));
-            this.redisComboBox.setValue(new ItemReference<>(a.getName(), RedisCache::getName));
+            this.subscriptionComboBox.setValue(a.getSubscription());
+            this.redisComboBox.setValue(a);
         }));
     }
 

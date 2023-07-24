@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.containerapps.component;
 
+import com.intellij.icons.AllIcons;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
@@ -22,6 +23,7 @@ public class DockerHubImageForm implements AzureFormJPanel<ContainerAppDraft.Ima
     @Getter
     private JPanel contentPanel;
     private AzureTextInput txtImage;
+    private JLabel lblImage;
 
     final Pattern dockerHubImage = Pattern.compile("^(?<registry>[\\w.\\-_]+((?::\\d+|)(?=/[a-z0-9._\\-]+/[a-z0-9._\\-]+))|)(?:/|)(?<image>[a-z0-9.\\-_]+(?:/[a-z0-9.\\-_]+|))(:(?<tag>[\\w.\\-_]{1,127})|)$");
 
@@ -43,6 +45,7 @@ public class DockerHubImageForm implements AzureFormJPanel<ContainerAppDraft.Ima
             }
             return AzureValidationInfo.ok(this.txtImage);
         });
+        this.lblImage.setIcon(AllIcons.General.ContextHelp);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.microsoft.azure.toolkit.ide.guidance.action;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
@@ -45,4 +46,8 @@ public class ShowGettingStartAction extends AzureAnAction implements DumbAware {
         e.getPresentation().setIcon(IntelliJAzureIcons.getIcon(isActionTriggered ? GET_START : GET_START_NEW));
     }
 
+    @Override
+    public ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+    }
 }

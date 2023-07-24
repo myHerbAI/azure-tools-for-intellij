@@ -12,6 +12,7 @@ import com.intellij.ide.AppLifecycleListener;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.util.EnvironmentUtil;
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.exception.ExceptionUtils;
 import com.microsoft.azure.cosmosspark.CosmosSparkClusterOpsCtrl;
 import com.microsoft.azure.cosmosspark.serverexplore.cosmossparknode.CosmosSparkClusterOps;
@@ -37,6 +38,7 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureRxTaskManager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
+import com.microsoft.azure.toolkit.lib.common.utils.CommandUtils;
 import com.microsoft.azuretools.authmanage.CommonSettings;
 import com.microsoft.azuretools.azurecommons.util.FileUtil;
 import com.microsoft.azuretools.core.mvp.ui.base.AppSchedulerProvider;
@@ -137,7 +139,7 @@ public class AzureActionsListener implements AppLifecycleListener, PluginCompone
             Node.setNode2Actions(NodeActionsMap.NODE_ACTIONS);
             SchedulerProviderFactory.getInstance().init(new AppSchedulerProvider());
             MvpUIHelperFactory.getInstance().init(new MvpUIHelperImpl());
-
+            CommandUtils.setEnv(EnvironmentUtil.getEnvironmentMap());
             HDInsightLoader.setHHDInsightHelper(new HDInsightHelperImpl());
             // workaround fixes for web app on linux run configuration
             AzureDockerSupportConfigurationType.registerConfigurationFactory("Web App for Containers", DeprecatedWebAppOnLinuxDeployConfigurationFactory::new);

@@ -57,6 +57,7 @@ public class IntelliJAzureIcons {
             put(AzureIcons.Common.RESTART, AllIcons.Actions.Restart);
             put(AzureIcons.Common.SHOW_PROPERTIES, AllIcons.Actions.Properties);
             put(AzureIcons.Common.UNKNOWN_ICON, AllIcons.Nodes.Unknown);
+            put(AzureIcons.Common.HIDE, AllIcons.General.InspectionsEye);
             put(AzureIcons.Action.CONSOLE, AllIcons.Nodes.Console);
             put(AzureIcons.Action.SFTP, AllIcons.Nodes.Servlet);
             put(AzureIcons.Action.UPLOAD, AllIcons.Actions.Upload);
@@ -66,6 +67,8 @@ public class IntelliJAzureIcons {
             put(AzureIcons.Action.REMOTE_DEBUG, AllIcons.RunConfigurations.RemoteDebug);
             put(AzureIcons.Action.SEARCH, AllIcons.Actions.Search);
             put(AzureIcons.Action.LOG, AllIcons.Nodes.LogFolder);
+            put(AzureIcons.AppService.APP_SETTING, AllIcons.Nodes.Variable);
+            put(AzureIcons.AppService.APP_SETTINGS, AllIcons.Actions.Properties);
         }
     };
 

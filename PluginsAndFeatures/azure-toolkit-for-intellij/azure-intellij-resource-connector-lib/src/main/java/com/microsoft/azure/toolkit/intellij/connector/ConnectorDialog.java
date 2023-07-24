@@ -5,8 +5,16 @@
 
 package com.microsoft.azure.toolkit.intellij.connector;
 
-import com.intellij.openapi.components.ServiceManager;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.intellij.icons.AllIcons;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
@@ -15,26 +23,35 @@ import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox.ItemReference;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ItemEvent;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.Future;
 
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition.CONSUMER;
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition.RESOURCE;
 
 public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements AzureForm<Connection<?, ?>> {
+    public static final String NOT_SIGNIN_TIPS = "<html><a href=\"\">Sign in</a> to select an existing Azure resource.</html>";
     private final Project project;
     private JPanel contentPane;
     @SuppressWarnings("rawtypes")
@@ -50,8 +67,18 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     private TitledSeparator resourceTitle;
     private TitledSeparator consumerTitle;
     protected JTextField envPrefixTextField;
+    private HyperlinkLabel lblSignIn;
+    private JPanel descriptionContainer;
+    private JTextPane descriptionPane;
+    private JPanel pnlEnvPrefix;
+    private JLabel lblEnvPrefix;
     private ResourceDefinition<?> resourceDefinition;
     private ResourceDefinition<?> consumerDefinition;
+
+    private Connection<?,?> connection;
+    @Getter
+
+    private Future<?> future;
 
     @Getter
     private final String dialogTitle = "Azure Resource Connector";
@@ -59,15 +86,27 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     public ConnectorDialog(Project project) {
         super(project);
         this.project = project;
+        $$$setupUI$$$();
         this.init();
     }
 
     @Override
     protected void init() {
         super.init();
+        this.lblSignIn.setVisible(!Azure.az(AzureAccount.class).isLoggedIn());
         this.setOkActionListener(this::saveConnection);
         this.consumerTypeSelector.addItemListener(this::onResourceOrConsumerTypeChanged);
         this.resourceTypeSelector.addItemListener(this::onResourceOrConsumerTypeChanged);
+        final Font font = UIManager.getFont("Label.font");
+        final Color foregroundColor = UIManager.getColor("Label.foreground");
+        final Color backgroundColor = UIManager.getColor("Label.backgroundColor");
+        this.descriptionPane.putClientProperty("JEditorPane.honorDisplayProperties", Boolean.TRUE);
+        if (font != null && foregroundColor != null) {
+            this.descriptionPane.setFont(font);
+            this.descriptionPane.setForeground(foregroundColor);
+            this.descriptionPane.setBackground(backgroundColor);
+        }
+
         final var resourceDefinitions = ResourceManager.getDefinitions(RESOURCE);
         final var consumerDefinitions = ResourceManager.getDefinitions(CONSUMER);
         if (resourceDefinitions.size() == 1) {
@@ -110,23 +149,35 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
         if (connection == null) {
             return;
         }
-        AzureTaskManager.getInstance().runLater(() -> {
-            this.close(0);
-            final Resource<?> resource = connection.getResource();
-            final Resource<?> consumer = connection.getConsumer();
-            final ConnectionManager connectionManager = this.project.getService(ConnectionManager.class);
-            final ResourceManager resourceManager = ServiceManager.getService(ResourceManager.class);
-            if (connection.validate(this.project)) {
-                resourceManager.addResource(resource);
-                resourceManager.addResource(consumer);
-                connectionManager.addConnection(connection);
-                final String message = String.format("The connection between %s and %s has been successfully created.",
-                    resource.getName(), consumer.getName());
-                AzureMessager.getMessager().success(message);
-                project.getMessageBus().syncPublisher(ConnectionTopics.CONNECTION_CHANGED).connectionChanged(project, connection, ConnectionTopics.Action.ADD);
+        this.close(0);
+        if (connection.validate(this.project)) {
+            saveConnectionToDotAzure(connection);
+        }
+    }
 
+    @AzureOperation(
+        name = "user/connector.create_or_update_connection.consumer|resource",
+        params = {"connection.getConsumer().getName()", "connection.getResource().getName()"}
+    )
+    private void saveConnectionToDotAzure(Connection<?, ?> connection) {
+        final Resource<?> consumer = connection.getConsumer();
+        final Resource<?> resource = connection.getResource();
+        if (resource instanceof AzureServiceResource<?>) {
+            OperationContext.action().setTelemetryProperty("subscriptionId", ResourceId.fromString(resource.getDataId()).subscriptionId());
+        }
+        if (consumer instanceof ModuleResource) {
+            final ModuleManager moduleManager = ModuleManager.getInstance(project);
+            final Module m = moduleManager.findModuleByName(consumer.getName());
+            if (Objects.nonNull(m)) {
+                final AzureModule module = AzureModule.from(m);
+                final AzureTaskManager taskManager = AzureTaskManager.getInstance();
+                taskManager.runLater(() -> taskManager.write(() -> {
+                    final Profile profile = module.initializeWithDefaultProfileIfNot();
+                    this.future = profile.createOrUpdateConnection(connection);
+                    profile.save();
+                }));
             }
-        });
+        }
     }
 
     @Override
@@ -151,8 +202,19 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
         if (Objects.isNull(resource) || Objects.isNull(consumer)) {
             return null;
         }
-        final Connection connection = ConnectionManager.getDefinitionOrDefault(resourceDef, consumerDef).define(resource, consumer);
-        connection.setEnvPrefix(this.envPrefixTextField.getText().trim());
+        final ConnectionDefinition<?, ?> connectionDefinition = ConnectionManager.getDefinitionOrDefault(resourceDef, consumerDef);
+        final Connection connection;
+        if (Objects.isNull(this.connection)) {
+            connection = connectionDefinition.define(resource, consumer);
+        } else {
+            connection = this.connection;
+            connection.setResource(resource);
+            connection.setConsumer(consumer);
+            connection.setDefinition(connectionDefinition);
+        }
+        if (resourceDef.isEnvPrefixSupported()) {
+            connection.setEnvPrefix(this.envPrefixTextField.getText().trim());
+        }
         return connection;
     }
 
@@ -161,6 +223,7 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
         this.setConsumer(connection.getConsumer());
         this.setResource(connection.getResource());
         this.envPrefixTextField.setText(connection.getEnvPrefix());
+        this.connection = connection;
     }
 
     @Override
@@ -176,8 +239,10 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     public void setResource(@Nullable final Resource<?> resource) {
         if (Objects.nonNull(resource)) {
             this.setResourceDefinition(resource.getDefinition());
-            //noinspection unchecked
-            this.resourcePanel.setValue(resource);
+            if (resource.isValidResource()) {
+                //noinspection unchecked
+                this.resourcePanel.setValue(resource);
+            }
         } else {
             ResourceManager.getDefinitions(RESOURCE).stream().findFirst().ifPresent(this::setResourceDefinition);
         }
@@ -199,6 +264,8 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
             this.envPrefixTextField.setText(definition.getDefaultEnvPrefix());
             this.resourceTypeSelector.setValue(new ItemReference<>(definition.getName(), ResourceDefinition::getName));
             this.resourcePanel = this.updatePanel(definition, this.resourcePanelContainer);
+            this.lblEnvPrefix.setVisible(resourceDefinition.isEnvPrefixSupported());
+            this.envPrefixTextField.setVisible(resourceDefinition.isEnvPrefixSupported());
         }
     }
 
@@ -223,8 +290,8 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
 
     private void fixResourceType(ResourceDefinition<?> definition) {
         this.resourceTitle.setText(definition.getTitle());
-        this.resourceTypeLabel.setVisible(false);
-        this.resourceTypeSelector.setVisible(false);
+        this.resourceTypeSelector.setEnabled(false);
+        this.resourceTypeSelector.setEditable(false);
     }
 
     private void fixConsumerType(ResourceDefinition<?> definition) {
@@ -248,5 +315,41 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
                 return Collections.emptyList();
             }
         };
+
+        this.lblSignIn = new HyperlinkLabel();
+        this.lblSignIn.setHtmlText(NOT_SIGNIN_TIPS);
+        this.lblSignIn.setIcon(AllIcons.General.Information);
+        this.lblSignIn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        this.lblSignIn.addHyperlinkListener(e -> {
+            final DataContext context = DataManager.getInstance().getDataContext(this.lblSignIn);
+            final AnActionEvent event = AnActionEvent.createFromInputEvent(e.getInputEvent(), "ConnectorDialog", new Presentation(), context);
+            AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH)
+                .handle(() -> this.lblSignIn.setVisible(!Azure.az(AzureAccount.class).isLoggedIn()), event);
+        });
+    }
+
+    public void setDescription(@Nonnull final String description) {
+        descriptionContainer.setVisible(true);
+        descriptionPane.setText(description);
+    }
+
+    public void setFixedConnectionDefinition(ConnectionDefinition<?,?> definition) {
+        this.fixResourceType(definition.getResourceDefinition());
+        this.fixConsumerType(definition.getConsumerDefinition());
+    }
+
+    public void setFixedEnvPrefix(@Nonnull final String envPrefix) {
+        envPrefixTextField.setText(envPrefix);
+        envPrefixTextField.setEnabled(false);
+        envPrefixTextField.setEditable(false);
+    }
+
+    private void signInAndReloadItems(@Nonnull final HyperlinkLabel notSignInTips) {
+        AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle(() -> {
+            notSignInTips.setVisible(false);
+        });
+    }
+    // CHECKSTYLE IGNORE check FOR NEXT 1 LINES
+    void $$$setupUI$$$() {
     }
 }

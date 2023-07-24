@@ -6,5 +6,5 @@ package com.microsoft.azure.toolkit.intellij.connector;
 
 @FunctionalInterface
 public interface ConnectionProvider {
-    <R, C> Connection<R, C> define(Resource<R> resource, Resource<C> consumer, ConnectionDefinition<R, C> definition);
+    <R, C> Connection<R, C> define(String id, Resource<R> resource, Resource<C> consumer, ConnectionDefinition<R, C> definition);
 }

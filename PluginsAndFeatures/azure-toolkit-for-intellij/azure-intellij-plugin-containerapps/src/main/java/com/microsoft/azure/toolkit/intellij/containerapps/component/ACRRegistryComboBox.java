@@ -45,7 +45,7 @@ public class ACRRegistryComboBox extends AzureComboBox<ContainerRegistry> {
         if (entity.isDraftForCreating()) {
             return "(New) " + entity.getName();
         }
-        return entity.getName();
+        return entity.isAdminUserEnabled() ? entity.getName() : String.format("%s (Admin User Disabled)", entity.getName());
     }
 
     public void setSubscription(Subscription subscription) {
@@ -61,13 +61,12 @@ public class ACRRegistryComboBox extends AzureComboBox<ContainerRegistry> {
     }
 
     @Override
-    public void setValue(@Nullable ContainerRegistry val) {
-        if (Objects.nonNull(val) && val.isDraftForCreating() && !val.exists()) {
-            this.draftItems.remove(val);
+    public void setValue(@Nullable ContainerRegistry val, Boolean fixed) {
+        if (Objects.nonNull(val) && val.isDraftForCreating() && !this.draftItems.contains(val)) {
             this.draftItems.add(0, val);
             this.reloadItems();
         }
-        super.setValue(val);
+        super.setValue(val, fixed);
     }
 
     @Nullable

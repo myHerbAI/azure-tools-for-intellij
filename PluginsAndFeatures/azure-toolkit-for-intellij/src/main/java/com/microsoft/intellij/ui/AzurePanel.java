@@ -23,7 +23,7 @@ import com.microsoft.azure.toolkit.ide.common.dotnet.DotnetRuntimeHandler;
 import com.microsoft.azure.toolkit.ide.common.store.AzureConfigInitializer;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.intellij.common.component.AzureFileInput;
-import com.microsoft.azure.toolkit.intellij.connector.Password;
+import com.microsoft.azure.toolkit.intellij.storage.component.AzuriteWorkspaceComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.AzureConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
@@ -54,7 +54,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppActionsContributor.DOWNLOAD_CORE_TOOLS;
@@ -70,7 +69,6 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
     private JCheckBox allowTelemetryCheckBox;
     private JTextPane allowTelemetryComment;
     private JComboBox<AzureEnvironment> azureEnvironmentComboBox;
-    private JComboBox<Password.SaveType> savePasswordComboBox;
     private FunctionCoreToolsCombobox funcCoreToolsPath;
     private JLabel azureEnvDesc;
     private AzureFileInput txtStorageExplorer;
@@ -81,7 +79,13 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
     private ActionLink installDotnetRuntime;
     private JBIntSpinner queryRowNumber;
     private JCheckBox enableAuthPersistence;
+    private JLabel lblDocumentsLabelFields;
+    private JLabel lblPageSize;
+    private JLabel lblRows;
     private AzureTextInput consumerGroupName;
+    private JCheckBox chkLooseMode;
+    private AzureFileInput txtAzurite;
+    private AzuriteWorkspaceComboBox txtAzuriteWorkspace;
 
     private AzureConfiguration originalConfig;
 
@@ -100,14 +104,6 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
                 setText(azureEnvironmentDisplayString(value));
             }
         });
-        final ComboBoxModel<Password.SaveType> saveTypeModel = new DefaultComboBoxModel<>(Password.SaveType.values());
-        savePasswordComboBox.setModel(saveTypeModel);
-        savePasswordComboBox.setRenderer(new SimpleListCellRenderer<>() {
-            @Override
-            public void customize(@Nonnull JList<? extends Password.SaveType> list, Password.SaveType value, int index, boolean selected, boolean hasFocus) {
-                setText(value.title());
-            }
-        });
 
         azureEnvDesc.setForeground(UIUtil.getContextHelpForeground());
         azureEnvDesc.setMaximumSize(new Dimension());
@@ -120,10 +116,10 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
         displayDescriptionForAzureEnv();
 
         final AzureConfiguration config = Azure.az().config();
-        if (Objects.isNull(config.getDatabasePasswordSaveType())) {
-            config.setDatabasePasswordSaveType(Password.SaveType.UNTIL_RESTART.name());
-        }
         setData(config);
+        this.lblRows.setIcon(AllIcons.General.ContextHelp);
+        this.lblPageSize.setIcon(AllIcons.General.ContextHelp);
+        this.lblDocumentsLabelFields.setIcon(AllIcons.General.ContextHelp);
     }
 
     public void setData(AzureConfiguration config) {
@@ -134,7 +130,6 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
         final boolean oldEnableAuthPersistence = config.isAuthPersistenceEnabled();
         final String oldFuncCoreToolsPath = config.getFunctionCoreToolsPath();
         azureEnvironmentComboBox.setSelectedItem(oldEnv);
-        savePasswordComboBox.setSelectedItem(Optional.ofNullable(oldPasswordSaveType).map(Password.SaveType::valueOf).orElse(Password.SaveType.UNTIL_RESTART));
         if (StringUtils.isNotBlank(oldFuncCoreToolsPath)) {
             funcCoreToolsPath.setValue(oldFuncCoreToolsPath);
         }
@@ -144,8 +139,15 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
         if (StringUtils.isNotBlank(config.getDotnetRuntimePath())) {
             dotnetRuntimePath.setValue(config.getDotnetRuntimePath());
         }
+        if (StringUtils.isNotBlank(config.getAzuriteWorkspace())) {
+            txtAzuriteWorkspace.setValue(config.getAzuriteWorkspace());
+        }
+        if (StringUtils.isNotBlank(config.getAzuritePath())) {
+            txtAzurite.setValue(config.getAzuritePath());
+        }
         allowTelemetryCheckBox.setSelected(oldTelemetryEnabled);
         enableAuthPersistence.setSelected(oldEnableAuthPersistence);
+        chkLooseMode.setSelected(BooleanUtils.isTrue(config.getEnableLeaseMode()));
         txtPageSize.setNumber(config.getPageSize());
         queryRowNumber.setValue(config.getMonitorQueryRowNumber());
         txtLabelFields.setValue(String.join(";", config.getDocumentsLabelFields()));
@@ -155,9 +157,6 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
     public AzureConfiguration getData() {
         final AzureConfiguration data = new AzureConfiguration();
         data.setCloud(AzureEnvironmentUtils.azureEnvironmentToString((AzureEnvironment) azureEnvironmentComboBox.getSelectedItem()));
-        data.setDatabasePasswordSaveType(Optional.ofNullable(savePasswordComboBox.getSelectedItem())
-            .map(i -> ((Password.SaveType) i).name())
-            .orElse(Password.SaveType.UNTIL_RESTART.name()));
         data.setTelemetryEnabled(allowTelemetryCheckBox.isSelected());
         data.setAuthPersistenceEnabled(enableAuthPersistence.isSelected());
         if (Objects.nonNull(funcCoreToolsPath.getSelectedItem())) {
@@ -184,6 +183,13 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
         if (StringUtils.isNotBlank(consumerGroupName.getValue())) {
             data.setEventHubsConsumerGroup(consumerGroupName.getValue());
         }
+        if (StringUtils.isNotBlank(txtAzuriteWorkspace.getValue())) {
+            data.setAzuriteWorkspace(txtAzuriteWorkspace.getValue());
+        }
+        if (StringUtils.isNotBlank(txtAzurite.getValue())) {
+            data.setAzuritePath(txtAzurite.getValue());
+        }
+        data.setEnableLeaseMode(chkLooseMode.isSelected());
         return data;
     }
 
@@ -259,6 +265,9 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
         this.originalConfig.setDotnetRuntimePath(newConfig.getDotnetRuntimePath());
         this.originalConfig.setMonitorQueryRowNumber(newConfig.getMonitorQueryRowNumber());
         this.originalConfig.setEventHubsConsumerGroup(newConfig.getEventHubsConsumerGroup());
+        this.originalConfig.setAzuritePath(newConfig.getAzuritePath());
+        this.originalConfig.setAzuriteWorkspace(newConfig.getAzuriteWorkspace());
+        this.originalConfig.setEnableLeaseMode(newConfig.getEnableLeaseMode());
         CommonSettings.setUserAgent(newConfig.getUserAgent());
 
         if (StringUtils.isNotBlank(newConfig.getCloud())) {
@@ -304,7 +313,10 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
             !Objects.equals(newConfig.getPageSize(), originalConfig.getPageSize()) ||
             !Objects.equals(newConfig.getMonitorQueryRowNumber(), originalConfig.getMonitorQueryRowNumber()) ||
             !Objects.equals(newConfig.getEventHubsConsumerGroup(), originalConfig.getEventHubsConsumerGroup()) ||
-            !Objects.equals(newConfig.getDocumentsLabelFields(), originalConfig.getDocumentsLabelFields());
+            !Objects.equals(newConfig.getDocumentsLabelFields(), originalConfig.getDocumentsLabelFields()) ||
+            !Objects.equals(newConfig.getAzuritePath(), originalConfig.getAzuritePath()) ||
+            !Objects.equals(newConfig.getAzuriteWorkspace(), originalConfig.getAzuriteWorkspace()) ||
+            !Objects.equals(newConfig.getEnableLeaseMode(), originalConfig.getEnableLeaseMode());
     }
 
     @Override
@@ -321,6 +333,10 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
         this.txtStorageExplorer.addActionListener(new ComponentWithBrowseButton.BrowseFolderActionListener<>("Select Path of Azure Storage Explorer", null, txtStorageExplorer,
             null, FileChooserDescriptorFactory.createSingleLocalFileDescriptor(), TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT));
         this.txtStorageExplorer.addValidator(this::validateStorageExplorerPath);
+        this.txtAzurite = new AzureFileInput();
+        this.txtAzurite.addActionListener(new ComponentWithBrowseButton.BrowseFolderActionListener<>("Select Path of Azurite", null, txtAzurite,
+                null, FileChooserDescriptorFactory.createSingleLocalFileDescriptor(), TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT));
+        this.txtAzuriteWorkspace = new AzuriteWorkspaceComboBox();
         this.dotnetRuntimePath = new AzureFileInput();
         // noinspection DialogTitleCapitalization
         this.dotnetRuntimePath.addActionListener(new ComponentWithBrowseButton.BrowseFolderActionListener<>("Select Path of .NET Runtime", null, dotnetRuntimePath,

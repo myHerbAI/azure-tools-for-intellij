@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.redis.connection;
 
-import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
@@ -24,7 +23,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @Getter
 public class RedisResourceDefinition extends AzureServiceResource.Definition<RedisCache> implements SpringSupported<RedisCache> {
@@ -58,9 +56,7 @@ public class RedisResourceDefinition extends AzureServiceResource.Definition<Red
 
     @Override
     public RedisCache getResource(String dataId) {
-        final ResourceId resourceId = ResourceId.fromString(dataId);
-        final String rg = resourceId.resourceGroupName();
-        return Objects.requireNonNull(Azure.az(AzureRedis.class).get(resourceId.subscriptionId(), rg)).caches().get(resourceId.name(), rg);
+        return Azure.az(AzureRedis.class).getById(dataId);
     }
 
     @Override

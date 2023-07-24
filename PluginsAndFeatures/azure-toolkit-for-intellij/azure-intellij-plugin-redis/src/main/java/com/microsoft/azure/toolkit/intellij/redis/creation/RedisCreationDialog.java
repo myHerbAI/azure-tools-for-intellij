@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.redis.creation;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
@@ -59,6 +60,7 @@ public class RedisCreationDialog extends AzureDialog<RedisConfig> implements Azu
         super(project);
         this.init();
         initListeners();
+        this.lblPricingHelp.setIcon(AllIcons.General.ContextHelp);
     }
 
     @Override

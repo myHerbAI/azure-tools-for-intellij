@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.database.component;
 
+import com.intellij.icons.AllIcons;
 import lombok.Getter;
 
 import javax.swing.*;
@@ -45,6 +46,8 @@ public class TestConnectionActionPanel extends JPanel {
                 }
             }
         });
+        iconLabel.setIcon(AllIcons.General.InspectionsOK);
+        copyButton.setIcon(AllIcons.General.CopyHovered);
     }
 
     @Override

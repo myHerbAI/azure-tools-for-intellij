@@ -56,7 +56,6 @@
         </constraints>
         <properties>
           <horizontalTextPosition value="10"/>
-          <icon value="general/contextHelp.png"/>
           <text value="Application Insights :"/>
           <toolTipText value="Application Insights is a code-less attach to provide detailed observability in to your application."/>
           <visible value="true"/>
@@ -84,7 +83,6 @@
         </constraints>
         <properties>
           <horizontalTextPosition value="10"/>
-          <icon value="general/contextHelp.png"/>
           <text value="Web Server Logging:"/>
           <toolTipText value="Gather diagnostic information for your web server"/>
         </properties>
@@ -182,7 +180,6 @@
             </constraints>
             <properties>
               <horizontalTextPosition value="2"/>
-              <icon value="general/contextHelp.png"/>
               <text value="Quota(MB):"/>
               <toolTipText value="This is the limit that restricts file system usage by app diagnostics logs.The default value is 35 MB. Value can range from 25 MB and 100 MB."/>
             </properties>
@@ -225,7 +222,6 @@
             </constraints>
             <properties>
               <horizontalTextPosition value="10"/>
-              <icon value="general/contextHelp.png"/>
               <text value="Retention Period (Days) :"/>
               <toolTipText value="By default, site diagnostic logs are never deleted. Using this option will delete the logs older than the specified number of days. The retention period must be a value from 0 through 99999 (0 means never deleted)."/>
             </properties>
@@ -238,7 +234,6 @@
         </constraints>
         <properties>
           <horizontalTextPosition value="10"/>
-          <icon value="general/contextHelp.png"/>
           <text value="Application Logging:"/>
           <toolTipText value="Enable application logging to collect diagnostic traces from your web app code."/>
         </properties>

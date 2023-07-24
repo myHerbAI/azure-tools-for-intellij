@@ -14,12 +14,14 @@ import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.graph.models.Application;
 import com.microsoft.graph.models.ImplicitGrantSettings;
 import com.microsoft.graph.models.WebApplication;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -27,6 +29,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.microsoft.azure.toolkit.lib.Azure.az;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.EMPTY_PLACE;
+import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
 
 /**
  * Displays UI to create a new Azure AD application.
@@ -45,7 +49,7 @@ public class RegisterApplicationAction extends AnAction {
         try {
             // throws an exception if user is not signed in
             az(AzureAccount.class).account();
-        } catch (AzureToolkitAuthenticationException ex) {
+        } catch (final AzureToolkitAuthenticationException ex) {
             log.debug("user is not signed in", ex);
             e.getPresentation().setEnabled(false);
         }
@@ -55,21 +59,22 @@ public class RegisterApplicationAction extends AnAction {
     @ExceptionNotification
     @AzureOperation(name = "user/aad.register_application")
     public void actionPerformed(@Nonnull AnActionEvent e) {
-        var project = e.getProject();
+        OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(e.getPlace(), EMPTY_PLACE));
+        final var project = e.getProject();
         if (project == null || project.isDisposed()) {
             return;
         }
 
         // Show dialog to enter the application data, then create in background after user confirmed
-        var dialog = new RegisterApplicationInAzureAdDialog(project);
+        final var dialog = new RegisterApplicationInAzureAdDialog(project);
         if (dialog.showAndGet()) {
-            var subscription = dialog.getSubscription();
+            final var subscription = dialog.getSubscription();
             if (subscription == null) {
                 return;
             }
 
-            var task = new RegisterApplicationTask(project, dialog.getForm().getValue(), subscription);
-            var title = MessageBundle.message("action.azure.aad.registerApp.registeringApplication");
+            final var task = new RegisterApplicationTask(project, dialog.getForm().getValue(), subscription);
+            final var title = MessageBundle.message("action.azure.aad.registerApp.registeringApplication");
 
             AzureTaskManager.getInstance().runInBackground(title, task);
         }
@@ -89,14 +94,14 @@ public class RegisterApplicationAction extends AnAction {
         @Override
         @AzureOperation(name = "internal/aad.create_application")
         public void run() {
-            var validSuffix = new StringBuilder();
-            for (char c : (model.getDisplayName() + UUID.randomUUID().toString().substring(0, 6)).toCharArray()) {
+            final var validSuffix = new StringBuilder();
+            for (final char c : (model.getDisplayName() + UUID.randomUUID().toString().substring(0, 6)).toCharArray()) {
                 if (Character.isLetterOrDigit(c)) {
                     validSuffix.append(c);
                 }
             }
 
-            var params = new Application();
+            final var params = new Application();
             params.displayName = model.getDisplayName();
             params.identifierUris = Collections.singletonList("https://" + model.getDomain() + "/" + validSuffix);
             params.web = new WebApplication();
@@ -111,18 +116,18 @@ public class RegisterApplicationAction extends AnAction {
             params.web.implicitGrantSettings.enableIdTokenIssuance = true;
 
             // read-only access if the client ID was defined by the user
-            var clientID = model.getClientId();
+            final var clientID = model.getClientId();
             if (StringUtil.isNotEmpty(clientID)) {
                 params.appId = model.getClientId();
                 showApplicationTemplateDialog(subscription, params);
                 return;
             }
 
-            var graphClient = AzureUtils.createGraphClient(subscription);
-            var application = graphClient.applications().buildRequest().post(params);
+            final var graphClient = AzureUtils.createGraphClient(subscription);
+            final var application = graphClient.applications().buildRequest().post(params);
             assert application.id != null;
 
-            var newCredentials = AzureUtils.createApplicationClientSecret(graphClient, application);
+            final var newCredentials = AzureUtils.createApplicationClientSecret(graphClient, application);
             if (application.passwordCredentials == null) {
                 application.passwordCredentials = Collections.singletonList(newCredentials);
             } else {
@@ -135,9 +140,8 @@ public class RegisterApplicationAction extends AnAction {
 
         @AzureOperation(name = "to_user/aad.show_application_template")
         private void showApplicationTemplateDialog(@Nonnull Subscription subscription, @Nonnull Application application) {
-            AzureTaskManager.getInstance().runLater(() -> {
-                new AzureApplicationTemplateDialog(project, new SubscriptionApplicationPair(subscription, application)).show();
-            });
+            AzureTaskManager.getInstance().runLater(() ->
+                    new AzureApplicationTemplateDialog(project, new SubscriptionApplicationPair(subscription, application)).show());
         }
     }
 }

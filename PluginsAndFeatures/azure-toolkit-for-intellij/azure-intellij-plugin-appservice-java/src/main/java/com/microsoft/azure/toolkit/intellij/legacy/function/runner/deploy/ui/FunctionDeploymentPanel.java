@@ -5,7 +5,10 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.ui;
 
+import com.intellij.execution.impl.ConfigurationSettingsEditorWrapper;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
@@ -32,6 +35,7 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.intellij.util.BuildArtifactBeforeRunTaskUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -107,6 +111,11 @@ public class FunctionDeploymentPanel extends AzureSettingPanel<FunctionDeployCon
         final Object module = cbFunctionModule.getSelectedItem();
         if (module instanceof Module) {
             cbHostJson.setModule((Module) module);
+            configuration.saveTargetModule((Module) module);
+            // sync connector tasks
+            final DataContext context = DataManager.getInstance().getDataContext(pnlRoot);
+            final ConfigurationSettingsEditorWrapper editor = ConfigurationSettingsEditorWrapper.CONFIGURATION_EDITOR_KEY.getData(context);
+            BuildArtifactBeforeRunTaskUtils.updateConnectorBeforeRunTask(this.configuration, editor);
         } else {
             cbHostJson.setModule(null);
         }

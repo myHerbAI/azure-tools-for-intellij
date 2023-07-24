@@ -5,7 +5,7 @@
 package com.microsoft.azure.toolkit.intellij.function.components.connection;
 
 import com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition;
-import com.microsoft.azure.toolkit.intellij.connector.ResourceManager;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager;
 import com.microsoft.azure.toolkit.intellij.connector.function.FunctionSupported;
 import org.apache.commons.lang3.StringUtils;
 
@@ -23,7 +23,7 @@ public class FunctionDefinitionManager {
                     .map(d -> (FunctionSupported) d)
                     .filter(d -> StringUtils.equals(d.getResourceType(), resourceType))
                     .findFirst().orElse(null);
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             // swallow exception when get connection definition
             return null;
         }

@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.connector;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -12,6 +13,7 @@ import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
@@ -29,6 +31,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * @deprecated use {@link com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager} instead
+ */
+@Deprecated
 public interface ConnectionManager extends PersistentStateComponent<Element> {
     @Nonnull
     static ArrayList<ConnectionDefinition<?, ?>> getDefinitions() {
@@ -97,6 +103,10 @@ public interface ConnectionManager extends PersistentStateComponent<Element> {
         @Override
         @AzureOperation(name = "user/connector.add_connection")
         public synchronized void addConnection(Connection<?, ?> connection) {
+            final Resource<?> resource = connection.getResource();
+            if (resource instanceof AzureServiceResource<?>) {
+                OperationContext.action().setTelemetryProperty("subscriptionId", ResourceId.fromString(resource.getDataId()).subscriptionId());
+            }
             connections.removeIf(c -> Objects.equals(c, connection)); // always replace the old with the new one.
             connections.add(connection);
         }
@@ -104,6 +114,9 @@ public interface ConnectionManager extends PersistentStateComponent<Element> {
         @Override
         @AzureOperation(name = "user/connector.remove_connection")
         public synchronized void removeConnection(String resourceId, String consumerId) {
+            if (StringUtils.isNotBlank(resourceId)) {
+                OperationContext.action().setTelemetryProperty("subscriptionId", ResourceId.fromString(resourceId).subscriptionId());
+            }
             connections.removeIf(c -> StringUtils.equals(resourceId, c.getResource().getId()) && StringUtils.equals(consumerId, c.getConsumer().getId()));
         }
 
@@ -143,7 +156,7 @@ public interface ConnectionManager extends PersistentStateComponent<Element> {
                 final String name = connectionEle.getAttributeValue(FIELD_TYPE);
                 final ConnectionDefinition<?, ?> definition = ConnectionManager.getDefinitionOrDefault(name);
                 try {
-                    Optional.ofNullable(definition).map(d -> d.read(connectionEle)).ifPresent(this::addConnection);
+                    Optional.ofNullable(definition).map(d -> d.readDeprecatedConnection(connectionEle)).ifPresent(this::addConnection);
                 } catch (final Exception e) {
                     log.warn(String.format("error occurs when load a resource connection of type '%s'", name), e);
                 }
