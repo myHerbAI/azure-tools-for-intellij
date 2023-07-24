@@ -6,7 +6,6 @@
 package com.microsoft.azure.hdinsight.sdk.common;
 
 import com.microsoft.azure.hdinsight.sdk.storage.adlsgen2.SharedKeyCredential;
-import com.microsoft.azure.storage.core.Utility;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
 import org.apache.http.Header;
@@ -19,7 +18,11 @@ import org.apache.http.message.HeaderGroup;
 import rx.Observable;
 
 import java.io.IOException;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
@@ -27,13 +30,14 @@ import static java.util.Optional.ofNullable;
 
 public class SharedKeyHttpObservable extends HttpObservable {
     public static String ApiVersion = "2018-11-09";
+    static final DateTimeFormatter HMAC_DATETIMEFORMATTER_PATTERN = DateTimeFormatter.ofPattern("E, dd MMM yyyy HH:mm:ss 'GMT'", Locale.US);
     private SharedKeyCredential cred;
     private HeaderGroup defaultHeaders;
 
     public SharedKeyHttpObservable(String accountName, String accessKey) {
         defaultHeaders = new HeaderGroup();
         defaultHeaders.addHeader(new BasicHeader("x-ms-client-request-id", UUID.randomUUID().toString()));
-        defaultHeaders.addHeader(new BasicHeader("x-ms-date", Utility.getGMTTime()));
+        defaultHeaders.addHeader(new BasicHeader("x-ms-date", OffsetDateTime.now(ZoneOffset.UTC).format(HMAC_DATETIMEFORMATTER_PATTERN)));
         defaultHeaders.addHeader(new BasicHeader("x-ms-version", ApiVersion));
         defaultHeaders.addHeader(new BasicHeader("Authorization", ""));
         defaultHeaders.addHeader(new BasicHeader("Content-Type", "application/json"));
