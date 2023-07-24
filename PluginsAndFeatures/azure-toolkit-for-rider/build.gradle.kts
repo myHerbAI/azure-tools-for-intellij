@@ -65,7 +65,6 @@ extra["rdLibDirectory"] = rdLibDirectory
 
 
 dependencies {
-    implementation(project(":azure-intellij-plugin-common"))
     implementation(project(":azure-intellij-plugin-lib"))
 }
 
