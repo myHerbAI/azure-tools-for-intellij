@@ -116,7 +116,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
                 return true;
             })
             .withHandler((s) -> {
-                if (AzureMessager.getMessager().confirm(String.format("Are you sure to delete %s \"%s\"", s.getResourceTypeName(), s.getName()))) {
+                if (AzureMessager.getMessager().confirm(String.format("This will delete %s \"%s\" from Azure cloud, are you sure to do this?", s.getResourceTypeName(), s.getName()))) {
                     ((Deletable) s).delete();
                 }
             }).register(am);

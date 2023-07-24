@@ -42,7 +42,7 @@ public class RunOnDockerHostAction extends AnAction {
     }
 
     public RunOnDockerHostAction(@Nullable final DockerImage dockerImage) {
-        super(DIALOG_TITLE, "Build image and run in local docker host", IntelliJAzureIcons.getIcon("/icons/DockerSupport/Run.svg"));
+        super("Run on Docker Host...", "Build image and run in local docker host", IntelliJAzureIcons.getIcon("/icons/DockerSupport/Run.svg"));
         this.dockerImage = dockerImage;
     }
 

@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBo
 import com.microsoft.azure.toolkit.intellij.springcloud.component.SpringCloudAppComboBox;
 import com.microsoft.azure.toolkit.intellij.springcloud.component.SpringCloudClusterComboBox;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -68,6 +69,13 @@ public class SpringCloudDeploymentConfigurationPanel extends JPanel implements A
 
     private void init() {
         this.selectorArtifact.setFileFilter(virtualFile -> StringUtils.equalsIgnoreCase("jar", FileNameUtils.getExtension(virtualFile.getPath())));
+        this.selectorArtifact.addValidator(() -> {
+            final AzureArtifact artifact = this.selectorArtifact.getValue();
+            if (Objects.nonNull(artifact) && !"jar".equalsIgnoreCase(artifact.getPackaging())) {
+                return AzureValidationInfo.error("Invalid artifact, Azure Spring app only supports 'jar' artifact.", this.selectorArtifact);
+            }
+            return AzureValidationInfo.success(this.selectorArtifact);
+        });
         this.selectorArtifact.addItemListener(this::onArtifactChanged);
         this.selectorSubscription.addItemListener(this::onSubscriptionChanged);
         this.selectorCluster.addItemListener(this::onClusterChanged);
@@ -88,10 +96,12 @@ public class SpringCloudDeploymentConfigurationPanel extends JPanel implements A
         final AzureArtifact artifact = (AzureArtifact) e.getItem();
         if (Objects.nonNull(editor) && Objects.nonNull(artifact)) {
             if (e.getStateChange() == ItemEvent.DESELECTED) {
+                this.configuration.setArtifact(null);
                 BuildArtifactBeforeRunTaskUtils.removeBeforeRunTask(editor, artifact, this.configuration);
                 this.validateRuntime.debounce();
             }
             if (e.getStateChange() == ItemEvent.SELECTED) {
+                this.configuration.setArtifact(artifact);
                 BuildArtifactBeforeRunTaskUtils.addBeforeRunTask(editor, artifact, this.configuration);
                 this.selectorApp.setJavaVersion(artifact.getBytecodeTargetLevel());
                 this.validateRuntime.debounce();
@@ -115,6 +125,8 @@ public class SpringCloudDeploymentConfigurationPanel extends JPanel implements A
 
     private void onAppChanged(final ItemEvent e) {
         if (e.getStateChange() == ItemEvent.SELECTED || e.getStateChange() == ItemEvent.DESELECTED) {
+            final SpringCloudApp app = this.selectorApp.getValue();
+            this.configuration.setApp(app);
             this.validateRuntime.debounce();
         }
     }

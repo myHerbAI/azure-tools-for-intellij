@@ -22,13 +22,7 @@ import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlotDraft;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDraft;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppModule;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.*;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -56,12 +50,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
@@ -75,7 +64,7 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
     private final IntelliJWebAppSettingModel webAppSettingModel;
 
     private final Map<String, String> appSettingsForResourceConnection = new HashMap<>();
-    private static final String DEPLOYMENT_SUCCEED = "Deployment succeed but the app is still starting at server side.";
+    private static final String DEPLOYMENT_SUCCEED = "Deployment was successful but the app may still be starting.";
 
     /**
      * Place to execute the Web App deployment task.
@@ -97,13 +86,13 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
         }
         final WebAppBase<?, ?, ?> deployTarget = getOrCreateDeployTargetFromAppSettingModel(processHandler);
         final AzureTaskManager tm = AzureTaskManager.getInstance();
-        tm.runOnPooledThread(()-> Optional.ofNullable(this.webAppConfiguration.getModule()).map(AzureModule::from)
+        tm.runOnPooledThread(() -> Optional.ofNullable(this.webAppConfiguration.getModule()).map(AzureModule::from)
             .or(() -> Optional.ofNullable(artifact)
                 .map(f -> VfsUtil.findFileByIoFile(f, true))
                 .map(f -> AzureModule.from(f, this.project)))
             .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
                 .initializeWithDefaultProfileIfNot()
-                .addApp(deployTarget).save()))));
+                .addApp(deployTarget instanceof WebAppDeploymentSlot ? deployTarget.getParent() : deployTarget).save()))));
         applyResourceConnections(deployTarget);
         updateApplicationSettings(deployTarget, processHandler);
         AzureWebAppMvpModel.getInstance().deployArtifactsToWebApp(deployTarget, artifact, webAppSettingModel.isDeployToRoot(), processHandler);

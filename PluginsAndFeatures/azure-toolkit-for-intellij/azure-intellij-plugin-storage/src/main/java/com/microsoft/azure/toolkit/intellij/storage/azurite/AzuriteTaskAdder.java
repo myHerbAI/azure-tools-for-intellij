@@ -11,18 +11,19 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.ConfigurationSettingsEditorWrapper;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.CollectionListModel;
 import com.microsoft.azure.toolkit.intellij.common.runconfig.IWebAppRunConfiguration;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.ConnectionTopics;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager;
-import com.microsoft.azure.toolkit.intellij.connector.dotazure.DotEnvBeforeRunTaskProvider;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.storage.AzuriteStorageAccount;
-import com.microsoft.intellij.util.BuildArtifactBeforeRunTaskUtils;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -30,6 +31,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 // todo: Remove duplicates with com.microsoft.azure.toolkit.intellij.connector.BeforeRunTaskAdder
 public class AzuriteTaskAdder implements RunManagerListener, ConnectionTopics.ConnectionChanged, IWebAppRunConfiguration.ModuleChangedListener {
@@ -72,7 +75,7 @@ public class AzuriteTaskAdder implements RunManagerListener, ConnectionTopics.Co
                 .map(ConnectionManager::getConnections)
                 .orElse(Collections.emptyList());
         final List<BeforeRunTask<?>> tasks = config.getBeforeRunTasks();
-        Optional.ofNullable(editor).ifPresent(e -> BuildArtifactBeforeRunTaskUtils.removeTasks(e, (t) -> t instanceof AzuriteTaskProvider.AzuriteBeforeRunTask));
+        Optional.ofNullable(editor).ifPresent(e -> removeTasks(e, (t) -> t instanceof AzuriteTaskProvider.AzuriteBeforeRunTask));
         tasks.removeIf(t -> t instanceof AzuriteTaskProvider.AzuriteBeforeRunTask);
         if (isConfigurationConnectedToAzurite(config)) {
             final List<BeforeRunTask> newTasks = new ArrayList<>(tasks);
@@ -100,6 +103,18 @@ public class AzuriteTaskAdder implements RunManagerListener, ConnectionTopics.Co
 
     public static boolean isAzuriteResourceConnection(@Nonnull final Connection<?, ?> connection) {
         return connection.getDefinition().getResourceDefinition() instanceof StorageAccountResourceDefinition &&
-                StringUtils.equalsIgnoreCase(connection.getResource().getDataId(), AzuriteStorageAccount.AZURITE_RESOURCE_ID);
+            StringUtils.equalsIgnoreCase(connection.getResource().getDataId(), AzuriteStorageAccount.AZURITE_RESOURCE_ID);
+    }
+
+    @SneakyThrows
+    public static synchronized <T extends BeforeRunTask<?>> void removeTasks(@Nonnull ConfigurationSettingsEditorWrapper editor, Predicate<T> cond) {
+        // there is no way of removing tasks, use reflection
+        final Object myBeforeRunStepsPanelField = FieldUtils.readField(editor, "myBeforeRunStepsPanel", true);
+        final CollectionListModel<T> model = (CollectionListModel<T>) FieldUtils.readField(myBeforeRunStepsPanelField, "myModel", true);
+        final List<T> tasks = model.getItems().stream().filter(cond).collect(Collectors.toList());
+        for (final T t : tasks) {
+            t.setEnabled(false);
+            model.remove(t);
+        }
     }
 }

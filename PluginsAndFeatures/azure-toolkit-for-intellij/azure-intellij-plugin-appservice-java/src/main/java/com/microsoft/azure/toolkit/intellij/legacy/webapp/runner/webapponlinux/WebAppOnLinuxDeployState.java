@@ -6,8 +6,11 @@
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapponlinux;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
 import com.microsoft.azure.toolkit.intellij.containerregistry.ContainerService;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState;
@@ -16,8 +19,11 @@ import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateWebAppTask;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerregistry.AzureContainerRegistry;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
 import com.microsoft.azure.toolkit.lib.legacy.webapp.WebAppService;
@@ -59,6 +65,19 @@ public class WebAppOnLinuxDeployState extends AzureRunProfileState<AppServiceApp
         appSettings.put(WEBSITES_PORT, String.valueOf(configuration.getPort()));
         webAppConfig.setAppSettings(appSettings);
         final AppServiceConfig appServiceConfig = WebAppService.convertToTaskConfig(webAppConfig);
+        final WebApp webapp = Azure.az(AzureWebApp.class).webApps(appServiceConfig.subscriptionId()).getOrDraft(appServiceConfig.appName(), appServiceConfig.resourceGroup());
+
+        final AzureTaskManager tm = AzureTaskManager.getInstance();
+        tm.runOnPooledThread(() -> Optional.ofNullable(image)
+            .map(DockerImage::getDockerFile)
+            .map(f -> VfsUtil.findFileByIoFile(f, true))
+            .map(f -> AzureModule.from(f, this.project))
+            .ifPresent(module -> tm.runLater(() -> tm.write(() -> {
+                final Profile p = module.initializeWithDefaultProfileIfNot();
+                Optional.of(registry).ifPresent(p::addApp);
+                Optional.of(webapp).ifPresent(p::addApp);
+                p.save();
+            }))));
         // update image configuration
         final RuntimeConfig runtime = appServiceConfig.runtime();
         final DockerImage dockerImageConfiguration = configuration.getDockerImageConfiguration();

@@ -11,9 +11,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.tree.LeafState;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
+import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -88,7 +92,26 @@ public class ResourceNode extends AbstractAzureFacetNode<Node<?>> implements Nod
     @Override
     @Nullable
     public IActionGroup getActionGroup() {
-        return Optional.ofNullable(getValue()).map(Node::getActions).orElse(null);
+        final IActionGroup originalGroup = Optional.ofNullable(getValue()).map(Node::getActions).orElse(null);
+        final Object value = Optional.ofNullable(getValue()).map(Node::getValue).orElse(null);
+        if (this.parent instanceof DeploymentTargetsNode targets && value instanceof AbstractAzResource<?, ?, ?> resource) {
+            final AzureTaskManager tm = AzureTaskManager.getInstance();
+            final Action<Object> removeTarget = new Action<>(Action.Id.of("user/connector.remove_target.app"))
+                .withLabel("Remove")
+                .withIdParam(this.getValue().getLabel())
+                .withIcon(AzureIcons.Action.DELETE.getIconPath())
+                .withHandler(ignore -> tm.runLater(() -> tm.write(() -> targets.getValue().getProfile().removeApp(resource).save())))
+                .withAuthRequired(false);
+            if (originalGroup != null) {
+                final ActionGroup group = new ActionGroup();
+                group.appendActions(removeTarget, "---");
+                group.appendActions(originalGroup.getActions());
+                return group;
+            } else {
+                return new ActionGroup(removeTarget);
+            }
+        }
+        return originalGroup;
     }
 
     @Override

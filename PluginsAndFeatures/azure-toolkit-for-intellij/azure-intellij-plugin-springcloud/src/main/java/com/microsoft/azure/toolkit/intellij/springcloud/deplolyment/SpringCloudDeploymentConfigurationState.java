@@ -16,7 +16,6 @@ import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.microsoft.azure.toolkit.ide.springcloud.SpringCloudActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.common.messager.IntellijAzureMessager;
@@ -34,12 +33,7 @@ import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppInstance;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
-import com.microsoft.azure.toolkit.lib.springcloud.Utils;
+import com.microsoft.azure.toolkit.lib.springcloud.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.Disposable;
@@ -63,7 +57,7 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
     private static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "The app is still starting, " +
             "you could start streaming log to check if something wrong in server side.";
     private static final String NOTIFICATION_TITLE = "Querying app status";
-    private static final String DEPLOYMENT_SUCCEED = "Deployment succeed but the app is still starting at server side.";
+    private static final String DEPLOYMENT_SUCCEED = "Deployment was successful but the app may still be starting.";
 
     private final SpringCloudDeploymentConfiguration config;
     private final Project project;
@@ -110,12 +104,12 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
         return new DefaultExecutionResult(consoleView, processHandler);
     }
 
-    @AzureOperation(name = "user/springcloud.deploy_app.app", params = {"this.config.getAppConfig().getAppName()"})
+    @AzureOperation(name = "user/springcloud.deploy_app.app", params = {"this.config.getApp().getName()"})
     public SpringCloudDeployment execute(IAzureMessager messager) {
         OperationContext.current().setMessager(messager);
         OperationContext.current().setTelemetryProperties(getTelemetryProperties());
         final SpringCloudDeploymentDraft deployment = this.config.getDeployment();
-        final Optional<File> opFile = Optional.ofNullable(deployment.getArtifact()).map(IArtifact::getFile);
+        final Optional<File> opFile = Optional.ofNullable(deployment).map(SpringCloudDeploymentDraft::getArtifact).map(IArtifact::getFile);
         final Action.Id<Void> REOPEN = Action.Id.of("user/springcloud.reopen_deploy_dialog");
         final Action<Void> reopen = new Action<>(REOPEN).withHandler((v) -> DeploySpringCloudAppAction.deploy(this.config, this.project));
         if (opFile.isEmpty() || opFile.filter(File::exists).isEmpty()) {
@@ -139,9 +133,12 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
                 throw new AzureToolkitRuntimeException(message.toString(), reopen.withLabel("Reopen Deploy Dialog"));
             }
         }
+        final Map<String, String> environmentVariables = Optional.ofNullable(deployment.getEnvironmentVariables()).orElseGet(HashMap::new);
+        environmentVariables.putAll(this.config.getEnvironmentVariables());
+        deployment.setEnvironmentVariables(environmentVariables);
         final AzureTaskManager tm = AzureTaskManager.getInstance();
-        tm.runOnPooledThread(() -> opFile.map(f -> VfsUtil.findFileByIoFile(f, true))
-            .map(f -> AzureModule.from(f, this.project))
+        tm.runOnPooledThread(() -> opFile.map(f -> this.config.getModule())
+            .map(AzureModule::from)
             .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
                 .initializeWithDefaultProfileIfNot()
                 .addApp(deployment.getParent()).save()))));
@@ -198,7 +195,7 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
 
     protected Map<String, String> getTelemetryProperties() {
         final Map<String, String> props = new HashMap<>();
-        final SpringCloudDeploymentDraft deployment = config.getDeployment();
+        final SpringCloudDeploymentDraft deployment = Objects.requireNonNull(config.getDeployment());
         props.put("runtime", String.valueOf(deployment.getRuntimeVersion()));
         props.put("subscriptionId", deployment.getSubscriptionId());
         props.put("public", String.valueOf(deployment.getParent().isPublicEndpointEnabled()));

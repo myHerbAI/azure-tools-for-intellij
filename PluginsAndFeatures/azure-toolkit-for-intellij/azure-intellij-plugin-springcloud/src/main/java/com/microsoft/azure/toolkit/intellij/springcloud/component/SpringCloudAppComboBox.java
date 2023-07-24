@@ -88,7 +88,7 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
             if (!this.draftItems.isEmpty()) {
                 apps.addAll(this.draftItems.stream().filter(a -> a.getParent().getName().equals(this.cluster.getName())).toList());
             }
-            apps.addAll(cluster.apps().list().stream().filter(a -> a.getFormalStatus().isConnected()).toList());
+            apps.addAll(cluster.apps().list().stream().filter(a -> !a.getFormalStatus().isCreating()).toList());
         }
         return apps;
     }

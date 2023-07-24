@@ -49,6 +49,7 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
     private final SpringCloudApp app;
     @Nonnull
     private final SpringCloudAppDraft draft;
+    private SpringCloudDeploymentDraft deploymentDraft;
 
     public SpringCloudAppPropertiesEditor(@Nonnull Project project, @Nonnull SpringCloudApp app, @Nonnull final VirtualFile virtualFile) {
         super(virtualFile, app, project);
@@ -61,16 +62,27 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
 
     @Override
     protected void rerender() {
-        this.setEnabled(false);
-        AzureTaskManager.getInstance().runLater(() -> {
-            this.formConfig.updateForm(this.draft);
-            this.panelInstances.setApp(this.draft);
-            this.lblSubscription.setText(this.draft.getSubscription().getName());
-            this.lblCluster.setText(this.draft.getParent().getName());
-            this.lblApp.setText(this.draft.getName());
-            this.refreshToolbar();
-            this.formConfig.setValue(this.draft);
-            this.setEnabled(true);
+        final AzureTaskManager tm = AzureTaskManager.getInstance();
+        tm.runLater(() -> {
+            this.setEnabled(false);
+            tm.runOnPooledThread(() -> {
+                final SpringCloudDeployment deployment = this.draft.getActiveDeployment();
+                if (deployment == null) {
+                    AzureMessager.getMessager().warning(AzureString.format("No active deployment found for app(%s)", this.draft.getName()));
+                    return;
+                }
+                this.deploymentDraft = (SpringCloudDeploymentDraft) (deployment.isDraft() ? deployment : deployment.update());
+                tm.runLater(() -> {
+                    this.formConfig.updateForm(this.draft);
+                    this.panelInstances.setApp(this.draft);
+                    this.lblSubscription.setText(this.draft.getSubscription().getName());
+                    this.lblCluster.setText(this.draft.getParent().getName());
+                    this.lblApp.setText(this.draft.getName());
+                    this.refreshToolbar();
+                    this.formConfig.setValue(this.draft);
+                    this.setEnabled(true);
+                });
+            });
         });
     }
 
@@ -128,7 +140,7 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
 
     @Override
     public boolean isModified() {
-        return this.draft.isModified() || this.draft.updateOrCreateActiveDeployment().isModified();
+        return this.draft.isModified() || this.deploymentDraft.isModified();
     }
 
     protected void refresh() {

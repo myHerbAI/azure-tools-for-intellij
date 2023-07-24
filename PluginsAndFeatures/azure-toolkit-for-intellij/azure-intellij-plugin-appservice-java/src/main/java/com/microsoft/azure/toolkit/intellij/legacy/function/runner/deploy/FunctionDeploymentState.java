@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -80,10 +81,10 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
         applyResourceConnection();
         final FunctionAppBase<?, ?, ?> target = FunctionAppService.getInstance().createOrUpdateFunctionApp(deployModel.getFunctionAppConfig());
         final AzureTaskManager tm = AzureTaskManager.getInstance();
-        tm.runOnPooledThread(()-> Optional.ofNullable(this.functionDeployConfiguration.getModule()).map(AzureModule::from)
+        tm.runOnPooledThread(() -> Optional.ofNullable(this.functionDeployConfiguration.getModule()).map(AzureModule::from)
             .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
                 .initializeWithDefaultProfileIfNot()
-                .addApp(target).save()))));
+                .addApp(target instanceof FunctionAppDeploymentSlot ? target.getParent() : target).save()))));
         stagingFolder = FunctionUtils.getTempStagingFolder();
         prepareStagingFolder(stagingFolder, operation);
         // deploy function to Azure
