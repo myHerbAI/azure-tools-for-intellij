@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscriptio
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -39,6 +40,16 @@ public class AzureHDInsightService extends AbstractAzService<HDInsightServiceSub
         final HDInsightServiceSubscription rm = get(subscriptionId, null);
         assert rm != null;
         return rm.clusters();
+    }
+
+    @Nonnull
+    @Override
+    public List<HDInsightServiceSubscription> list() {
+        if (Azure.az(AzureAccount.class).isLoggedIn()) {
+            return super.list();
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     public List<SparkClusterNode> listAdditionalCluster() {

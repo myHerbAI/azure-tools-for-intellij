@@ -184,7 +184,7 @@ public class HDInsightActionsContributor implements IActionsContributor {
     @Override
     public void registerGroups(AzureActionManager am) {
         final ActionGroup serviceActionGroup = new ActionGroup(
-                this.REFRESH,
+                ResourceCommonActionsContributor.REFRESH,
                 ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
                 "---",
                 this.LINK_A_CLUSTER
@@ -192,7 +192,7 @@ public class HDInsightActionsContributor implements IActionsContributor {
         am.registerGroup(SERVICE_ACTIONS, serviceActionGroup);
 
         final ActionGroup sparkActionGroup = new ActionGroup(
-                this.REFRESH,
+                ResourceCommonActionsContributor.REFRESH,
                 ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
                 ResourceCommonActionsContributor.OPEN_PORTAL_URL,
                 "---",
@@ -204,7 +204,7 @@ public class HDInsightActionsContributor implements IActionsContributor {
         am.registerGroup(SPARK_CLUSTER_ACTIONS, sparkActionGroup);
 
         final ActionGroup sparkAdditionalActionGroup = new ActionGroup(
-                this.REFRESH,
+                ResourceCommonActionsContributor.REFRESH,
                 ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
                 "---",
                 this.OPEN_AZURE_STORAGE_EXPLORER,
