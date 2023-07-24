@@ -66,7 +66,12 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
         tm.runLater(() -> {
             this.setEnabled(false);
             tm.runOnPooledThread(() -> {
-                this.deploymentDraft = this.draft.updateOrCreateActiveDeployment();
+                final SpringCloudDeployment deployment = this.draft.getActiveDeployment();
+                if (deployment == null) {
+                    AzureMessager.getMessager().warning(AzureString.format("No active deployment found for app(%s)", this.draft.getName()));
+                    return;
+                }
+                this.deploymentDraft = (SpringCloudDeploymentDraft) (deployment.isDraft() ? deployment : deployment.update());
                 tm.runLater(() -> {
                     this.formConfig.updateForm(this.draft);
                     this.panelInstances.setApp(this.draft);

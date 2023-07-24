@@ -78,7 +78,7 @@ public class AzureModule {
 
     @SneakyThrows(value = {IOException.class, JDOMException.class})
     private void loadProfiles(@Nonnull final VirtualFile profilesXmlFile) {
-        if (profilesXmlFile.contentsToByteArray().length < 1 && !profilesXmlFile.exists()) {
+        if (!profilesXmlFile.exists() || profilesXmlFile.contentsToByteArray().length < 1) {
             return;
         }
         final Element profilesEle = JDOMUtil.load(Objects.requireNonNull(profilesXmlFile).toNioPath());

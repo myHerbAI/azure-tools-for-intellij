@@ -93,7 +93,7 @@ public class ResourceNode extends AbstractAzureFacetNode<Node<?>> implements Nod
     @Nullable
     public IActionGroup getActionGroup() {
         final IActionGroup originalGroup = Optional.ofNullable(getValue()).map(Node::getActions).orElse(null);
-        final Object value = this.getValue().getValue();
+        final Object value = Optional.ofNullable(getValue()).map(Node::getValue).orElse(null);
         if (this.parent instanceof DeploymentTargetsNode targets && value instanceof AbstractAzResource<?, ?, ?> resource) {
             final AzureTaskManager tm = AzureTaskManager.getInstance();
             final Action<Object> removeTarget = new Action<>(Action.Id.of("user/connector.remove_target.app"))
