@@ -7,20 +7,17 @@ package com.microsoft.azuretools.core.mvp.model.rediscache;
 
 import java.util.List;
 import java.util.Map;
-import com.microsoft.azure.management.redis.RebootType;
-import com.microsoft.azure.management.redis.RedisAccessKeys;
-import com.microsoft.azure.management.redis.RedisCache;
-import com.microsoft.azure.management.redis.RedisCachePremium;
-import com.microsoft.azure.management.redis.RedisFirewallRule;
-import com.microsoft.azure.management.redis.RedisKeyType;
-import com.microsoft.azure.management.redis.ScheduleEntry;
-import com.microsoft.azure.management.redis.Sku;
-import com.microsoft.azure.management.redis.TlsVersion;
-import com.microsoft.azure.management.redis.implementation.RedisManager;
-import com.microsoft.azure.management.redis.implementation.RedisResourceInner;
-import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 
-import rx.Observable;
+import com.azure.core.http.rest.PagedFlux;
+import com.azure.core.http.rest.PagedIterable;
+import com.azure.resourcemanager.redis.models.*;
+import com.azure.resourcemanager.redis.RedisManager;
+import com.azure.core.management.Region;
+import com.azure.resourcemanager.redis.fluent.models.RedisResourceInner;
+
+import com.azure.resourcemanager.resources.fluentcore.arm.models.PrivateEndpointConnection;
+import com.azure.resourcemanager.resources.fluentcore.arm.models.PrivateLinkResource;
+import reactor.core.publisher.Mono;
 
 public class RedisCacheMock implements RedisCache{
 
@@ -84,17 +81,12 @@ public class RedisCacheMock implements RedisCache{
     }
 
     @Override
-    public RedisResourceInner inner() {
-        return null;
-    }
-
-    @Override
     public RedisCache refresh() {
         return null;
     }
 
     @Override
-    public Observable<RedisCache> refreshAsync() {
+    public Mono<RedisCache> refreshAsync() {
         return null;
     }
 
@@ -116,6 +108,11 @@ public class RedisCacheMock implements RedisCache{
     @Override
     public String provisioningState() {
         return MOCK_STRING;
+    }
+
+    @Override
+    public String hostname() {
+        return null;
     }
 
     @Override
@@ -154,15 +151,9 @@ public class RedisCacheMock implements RedisCache{
     }
 
     @Override
-    public String staticIP() {
+    public String staticIp() {
         return MOCK_STRING;
     }
-
-    @Override
-    public RedisAccessKeys getKeys() {
-        return new RedisAccessKeysMock();
-    }
-
 
     @Override
     public RedisAccessKeys refreshKeys() {
@@ -193,4 +184,48 @@ public class RedisCacheMock implements RedisCache{
         return null;
     }
 
+    @Override
+    public PagedIterable<PrivateEndpointConnection> listPrivateEndpointConnections() {
+        return null;
+    }
+
+    @Override
+    public PagedFlux<PrivateEndpointConnection> listPrivateEndpointConnectionsAsync() {
+        return null;
+    }
+
+    @Override
+    public PagedIterable<PrivateLinkResource> listPrivateLinkResources() {
+        return null;
+    }
+
+    @Override
+    public PagedFlux<PrivateLinkResource> listPrivateLinkResourcesAsync() {
+        return null;
+    }
+
+    @Override
+    public void approvePrivateEndpointConnection(String s) {
+
+    }
+
+    @Override
+    public Mono<Void> approvePrivateEndpointConnectionAsync(String s) {
+        return null;
+    }
+
+    @Override
+    public void rejectPrivateEndpointConnection(String s) {
+
+    }
+
+    @Override
+    public Mono<Void> rejectPrivateEndpointConnectionAsync(String s) {
+        return null;
+    }
+
+    @Override
+    public RedisResourceInner innerModel() {
+        return null;
+    }
 }

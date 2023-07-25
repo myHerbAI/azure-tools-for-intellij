@@ -5,7 +5,7 @@
 
 package com.microsoft.azuretools.core.mvp.model.rediscache;
 
-import com.microsoft.azure.management.redis.RedisCache;
+import com.azure.resourcemanager.redis.models.RedisCache;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -71,14 +71,15 @@ public class RedisConnectionPools {
     }
 
     private void connect(String sid, String id) throws Exception {
-        RedisCache redisCache = AzureRedisMvpModel.getInstance().getRedisCache(sid, id);
+        // try to delete AzureRedisMvpModel
+        RedisCache redisCache = null;//AzureRedisMvpModel.getInstance().getRedisCache(sid, id);
 
         if (redisCache == null) {
             throw new Exception(GANNOT_GET_RESID);
         }
 
         // get redis setting
-        String hostName = redisCache.hostName();
+        String hostName = redisCache.hostname();
         String password = redisCache.keys().primaryKey();
         int port = redisCache.sslPort();
 

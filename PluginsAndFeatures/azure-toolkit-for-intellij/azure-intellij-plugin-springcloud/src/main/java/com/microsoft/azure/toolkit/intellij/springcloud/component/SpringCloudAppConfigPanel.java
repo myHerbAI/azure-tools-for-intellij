@@ -16,20 +16,20 @@ import com.intellij.util.ui.UIUtil;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.EnvironmentVariablesTextFieldWithBrowseButton;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
-import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.model.SpringCloudPersistentDisk;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
@@ -39,9 +39,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 
-public class SpringCloudAppConfigPanel extends JPanel implements AzureFormPanel<SpringCloudAppConfig> {
+public class SpringCloudAppConfigPanel extends JPanel implements AzureFormPanel<SpringCloudAppDraft> {
     @Getter
     private JPanel contentPanel;
     private HyperlinkLabel txtEndpoint;
@@ -64,10 +63,12 @@ public class SpringCloudAppConfigPanel extends JPanel implements AzureFormPanel<
     private JLabel lblDisk;
     private JPanel pnlDisk;
     private JLabel lblInstance;
+    @Setter
+    private String defaultRuntimeVersion = SpringCloudDeploymentDraft.DEFAULT_RUNTIME_VERSION.toString();
 
-    private Consumer<? super SpringCloudAppConfig> listener = (config) -> {
+    @Setter
+    private Runnable dataChangedListener = () -> {
     };
-    private SpringCloudAppConfig originalConfig;
 
     public SpringCloudAppConfigPanel() {
         super();
@@ -106,10 +107,10 @@ public class SpringCloudAppConfigPanel extends JPanel implements AzureFormPanel<
         final DefaultComboBoxModel<Double> numCpuModel = new DefaultComboBoxModel<>(new Double[]{0.5, 1.0});
         final DefaultComboBoxModel<Double> numMemoryModel = new DefaultComboBoxModel<>(new Double[]{0.5, 1.0, 2.0});
         numCpuModel.setSelectedItem(1.0);
-        numMemoryModel.setSelectedItem(1.0);
+        numMemoryModel.setSelectedItem(2.0);
         this.numMemory.setRenderer(new SimpleListCellRenderer<>() {
             @Override
-            public void customize(@NotNull JList<? extends Double> list, Double value, int index, boolean selected, boolean hasFocus) {
+            public void customize(@Nonnull JList<? extends Double> list, Double value, int index, boolean selected, boolean hasFocus) {
                 Optional.ofNullable(value)
                     .map(v -> v < 1 ? Double.valueOf(v * 1024).intValue() + "Mi" : v + "Gi")
                     .ifPresentOrElse(this::setText, () -> setText(""));
@@ -119,19 +120,8 @@ public class SpringCloudAppConfigPanel extends JPanel implements AzureFormPanel<
         this.numMemory.setModel(numMemoryModel);
     }
 
-    public void reset() {
-        AzureTaskManager.getInstance().runLater(() -> Optional.ofNullable(this.originalConfig).ifPresent(this::setValue));
-    }
-
-    public void setDataChangedListener(Consumer<? super SpringCloudAppConfig> listener) {
-        this.listener = listener;
-    }
-
     private void onDataChanged() {
-        if (Objects.nonNull(this.originalConfig) && Objects.nonNull(this.listener)) {
-            final SpringCloudAppConfig newConfig = this.getValue();
-            this.listener.accept(newConfig);
-        }
+        Optional.ofNullable(this.dataChangedListener).ifPresent(Runnable::run);
     }
 
     public synchronized void updateForm(@Nonnull SpringCloudApp app) {
@@ -162,7 +152,6 @@ public class SpringCloudAppConfigPanel extends JPanel implements AzureFormPanel<
             }, AzureTask.Modality.ANY);
         });
         final SpringCloudCluster service = app.getParent();
-        final String sku = service.getSku();
         final boolean enterprise = service.isEnterpriseTier();
         final boolean consumption = service.isConsumptionTier();
         final boolean standard = service.isStandardTier();
@@ -196,57 +185,59 @@ public class SpringCloudAppConfigPanel extends JPanel implements AzureFormPanel<
         this.numInstance.updateLabels();
     }
 
-    @Contract("_->_")
-    public SpringCloudAppConfig getValue(@Nonnull SpringCloudAppConfig appConfig) { // get config from form
-        final SpringCloudDeploymentConfig deploymentConfig = Optional.ofNullable(appConfig.getDeployment())
-            .orElseGet(() -> SpringCloudDeploymentConfig.builder().build());
+    public void applyTo(@Nonnull SpringCloudAppDraft app) {
+        final SpringCloudDeploymentDraft deployment = app.updateOrCreateActiveDeployment();
         final boolean isEnterpriseTier = this.useJava17.isVisible();
         if (isEnterpriseTier) {
             final String javaVersion = this.useJava17.isSelected() ? RuntimeVersion.JAVA_17.toString() :
                 this.useJava11.isSelected() ? RuntimeVersion.JAVA_11.toString() : RuntimeVersion.JAVA_8.toString();
-            deploymentConfig.setRuntimeVersion(javaVersion);
-            deploymentConfig.setEnablePersistentStorage("disable".equals(this.toggleStorage.getActionCommand()));
+            deployment.setRuntimeVersion(javaVersion);
+            app.setPersistentDiskEnabled("disable".equals(this.toggleStorage.getActionCommand()));
         } else {
-            deploymentConfig.setRuntimeVersion(null);
-            deploymentConfig.setEnablePersistentStorage(false);
+            deployment.setRuntimeVersion(null);
+            app.setPersistentDiskEnabled(false);
         }
-        appConfig.setIsPublic("disable".equals(this.toggleEndpoint.getActionCommand()));
-        deploymentConfig.setCpu(numCpu.getItem());
-        deploymentConfig.setMemoryInGB(numMemory.getItem());
-        deploymentConfig.setCapacity(numInstance.getValue());
-        deploymentConfig.setJvmOptions(Optional.ofNullable(this.txtJvmOptions.getText()).map(String::trim).orElse(""));
-        deploymentConfig.setEnvironment(Optional.ofNullable(envTable.getEnvironmentVariables()).orElse(new HashMap<>()));
-        appConfig.setDeployment(deploymentConfig);
-        return appConfig;
+        app.setPublicEndpointEnabled("disable".equals(this.toggleEndpoint.getActionCommand()));
+        deployment.setCpu(numCpu.getItem());
+        deployment.setMemoryInGB(numMemory.getItem());
+        deployment.setCapacity(numInstance.getValue());
+        deployment.setJvmOptions(Optional.ofNullable(this.txtJvmOptions.getText()).map(String::trim).orElse(""));
+        deployment.setEnvironmentVariables(Optional.ofNullable(envTable.getEnvironmentVariables()).orElse(new HashMap<>()));
     }
 
     @Override
-    public synchronized void setValue(SpringCloudAppConfig config) {
-        this.originalConfig = config;
-        final SpringCloudDeploymentConfig deployment = config.getDeployment();
-        this.toggleStorage(deployment.getEnablePersistentStorage());
-        this.toggleEndpoint(config.getIsPublic());
-        this.useJava17.setSelected(StringUtils.equalsIgnoreCase(deployment.getRuntimeVersion(), RuntimeVersion.JAVA_17.toString()));
-        this.useJava11.setSelected(StringUtils.equalsIgnoreCase(deployment.getRuntimeVersion(), RuntimeVersion.JAVA_11.toString()));
-        this.useJava8.setSelected(StringUtils.equalsIgnoreCase(deployment.getRuntimeVersion(), RuntimeVersion.JAVA_8.toString()));
+    public synchronized void setValue(SpringCloudAppDraft app) {
+        final SpringCloudDeploymentDraft deployment = app.updateOrCreateActiveDeployment();
+        this.statusStorage.putClientProperty("origin.enabled", app.isPersistentDiskEnabled());
+        this.statusEndpoint.putClientProperty("origin.enabled", app.isPublicEndpointEnabled());
+        this.toggleStorage(app.isPersistentDiskEnabled());
+        this.toggleEndpoint(app.isPublicEndpointEnabled());
+        final String runtime = Optional.ofNullable(deployment.getRuntimeVersion())
+            .or(() -> Optional.ofNullable(this.defaultRuntimeVersion))
+            .orElse(SpringCloudDeploymentDraft.DEFAULT_RUNTIME_VERSION.toString());
+        this.useJava17.setSelected(StringUtils.equalsIgnoreCase(runtime, RuntimeVersion.JAVA_17.toString()));
+        this.useJava11.setSelected(StringUtils.equalsIgnoreCase(runtime, RuntimeVersion.JAVA_11.toString()));
+        this.useJava8.setSelected(StringUtils.equalsIgnoreCase(runtime, RuntimeVersion.JAVA_8.toString()));
 
         this.txtJvmOptions.setText(deployment.getJvmOptions());
-        final Map<String, String> env = deployment.getEnvironment();
+        final Map<String, String> env = deployment.getEnvironmentVariables();
         this.envTable.setEnvironmentVariables(ObjectUtils.firstNonNull(env, Collections.emptyMap()));
 
-        Optional.ofNullable(deployment.getCpu()).ifPresent(c -> this.numCpu.setItem(c));
-        Optional.ofNullable(deployment.getMemoryInGB()).ifPresent(c -> this.numMemory.setItem(c));
-        this.numInstance.setValue(Optional.ofNullable(deployment.getCapacity()).orElse(0));
+        if (deployment.isDraftForCreating()) {
+            this.numCpu.setItem(Optional.ofNullable(deployment.getCpu()).orElse(SpringCloudDeploymentDraft.DEFAULT_CPU));
+            this.numMemory.setItem(Optional.ofNullable(deployment.getMemoryInGB()).orElse(SpringCloudDeploymentDraft.DEFAULT_MEMORY));
+            this.numInstance.setValue(Optional.ofNullable(deployment.getCapacity()).orElse(SpringCloudDeploymentDraft.DEFAULT_CAPACITY));
+        } else {
+            this.numCpu.setItem(Optional.ofNullable(deployment.getCpu()).orElse(0d));
+            this.numMemory.setItem(Optional.ofNullable(deployment.getMemoryInGB()).orElse(0d));
+            this.numInstance.setValue(Optional.ofNullable(deployment.getCapacity()).orElse(0));
+        }
     }
 
     @Nonnull
     @Override
-    public SpringCloudAppConfig getValue() {
-        final SpringCloudAppConfig appConfig = SpringCloudAppConfig.builder()
-                .deployment(SpringCloudDeploymentConfig.builder().build())
-                .build();
-        this.getValue(appConfig);
-        return appConfig;
+    public SpringCloudAppDraft getValue() {
+        throw new AzureToolkitRuntimeException("Not supported, use `applyTo` instead.");
     }
 
     public void setEnabled(boolean enable) {
@@ -263,28 +254,22 @@ public class SpringCloudAppConfigPanel extends JPanel implements AzureFormPanel<
     }
 
     private void toggleStorage(Boolean e) {
-        if (Objects.isNull(this.originalConfig)) { // prevent action before data is loaded.
-            return;
-        }
         final boolean enabled = BooleanUtils.isTrue(e);
         this.toggleStorage.setActionCommand(enabled ? "disable" : "enable");
         this.toggleStorage.setText(enabled ? "Disable" : "Enable");
         this.statusStorage.setText("");
-        if (this.originalConfig.getDeployment().isEnablePersistentStorage() != enabled) {
+        if (BooleanUtils.isTrue((Boolean) this.statusStorage.getClientProperty("origin.enabled")) != enabled) {
             this.statusStorage.setForeground(UIUtil.getContextHelpForeground());
             this.statusStorage.setText(enabled ? "<to be enabled>" : "<to be disabled>");
         }
     }
 
     private void toggleEndpoint(Boolean e) {
-        if (Objects.isNull(this.originalConfig)) { // prevent action before data is loaded.
-            return;
-        }
         final boolean enabled = BooleanUtils.isTrue(e);
         this.toggleEndpoint.setActionCommand(enabled ? "disable" : "enable");
         this.toggleEndpoint.setText(enabled ? "Disable" : "Enable");
         this.statusEndpoint.setText("");
-        if (this.originalConfig.isPublic() != enabled) {
+        if (BooleanUtils.isTrue((Boolean) this.statusEndpoint.getClientProperty("origin.enabled")) != enabled) {
             this.statusEndpoint.setForeground(UIUtil.getContextHelpForeground());
             this.statusEndpoint.setText(enabled ? "<to be enabled>" : "<to be disabled>");
         }

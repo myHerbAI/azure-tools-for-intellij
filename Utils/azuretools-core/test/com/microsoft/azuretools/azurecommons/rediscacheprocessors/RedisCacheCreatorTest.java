@@ -14,8 +14,8 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.microsoft.azure.management.redis.RedisCaches;
-import com.microsoft.azure.management.resources.fluentcore.arm.Region;
+import com.azure.resourcemanager.redis.models.RedisCaches;
+import com.azure.core.management.Region;
 
 public class RedisCacheCreatorTest {
 

@@ -5,42 +5,50 @@
 
 package com.microsoft.azure.toolkit.intellij.springcloud.deplolyment;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
-import com.intellij.execution.configurations.LocatableConfiguration;
 import com.intellij.execution.configurations.LocatableConfigurationBase;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.impl.CheckableRunConfigurationEditor;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.util.xmlb.XmlSerializer;
+import com.microsoft.azure.toolkit.intellij.common.AzureArtifact;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifactManager;
+import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo.Type;
-import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
+import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudAppConfig;
 import com.microsoft.azure.toolkit.lib.springcloud.config.SpringCloudDeploymentConfig;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.jdom.Element;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBase<Element> implements LocatableConfiguration {
+public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBase<Element> implements IConnectionAware {
     private static final String NEED_SPECIFY_ARTIFACT = "Please select an artifact";
     private static final String NEED_SPECIFY_SUBSCRIPTION = "Please select your subscription.";
     private static final String NEED_SPECIFY_CLUSTER = "Please select a target cluster.";
@@ -50,50 +58,96 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
     private static final String TARGET_CLUSTER_IS_NOT_AVAILABLE = "Target cluster cannot be found in current subscription";
 
     @Getter
-    @Setter
-    private SpringCloudAppConfig appConfig;
-    @Getter
-    @Setter
+    @Nullable
     private SpringCloudApp app;
+    @Nullable
+    private ResourceId appId;
+    @Setter
+    @Nullable
+    private AzureArtifact artifact;
 
-    public SpringCloudDeploymentConfiguration(@NotNull Project project, @NotNull ConfigurationFactory factory, String name) {
+    public SpringCloudDeploymentConfiguration(@Nonnull Project project, @Nonnull ConfigurationFactory factory, String name) {
         super(project, factory, name);
-        this.appConfig = SpringCloudAppConfig.builder()
-            .deployment(SpringCloudDeploymentConfig.builder().build())
-            .build();
     }
 
     @Override
     public void readExternal(Element element) throws InvalidDataException {
         super.readExternal(element);
         final AzureArtifactManager manager = AzureArtifactManager.getInstance(this.getProject());
-        this.appConfig = Optional.ofNullable(element.getChild("SpringCloudAppConfig"))
-            .map(e -> XmlSerializer.deserialize(e, SpringCloudAppConfig.class))
-            .orElseGet(() -> SpringCloudAppConfig.builder().deployment(SpringCloudDeploymentConfig.builder().build()).build());
-        Optional.ofNullable(element.getChild("Artifact"))
-            .map(e -> e.getAttributeValue("identifier"))
+        this.appId = Optional.ofNullable(element.getChild("App"))
+            .map(e -> e.getAttributeValue("id"))
+            .filter(StringUtils::isNotBlank)
+            .map(ResourceId::fromString)
+            .orElse(null);
+        if (this.appId == null) {
+            final SpringCloudAppConfig appConfig = Optional.ofNullable(element.getChild("SpringCloudAppConfig"))
+                .map(e -> XmlSerializer.deserialize(e, SpringCloudAppConfig.class))
+                .orElse(SpringCloudAppConfig.builder().deployment(SpringCloudDeploymentConfig.builder().build()).build());
+            if (Objects.nonNull(appConfig) && StringUtils.isNoneBlank(appConfig.getSubscriptionId(), appConfig.getResourceGroup(), appConfig.getClusterName(), appConfig.getAppName())) {
+                final String appId = String.format("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppPlatform/Spring/%s/apps/%s",
+                    appConfig.getSubscriptionId(), appConfig.getResourceGroup(), appConfig.getClusterName(), appConfig.getAppName());
+                this.appId = ResourceId.fromString(appId);
+            }
+        }
+        final String artifactId = Optional.ofNullable(element.getChild("Artifact"))
+            .map(e -> e.getAttributeValue("identifier")).orElse(null);
+        this.artifact = Optional.ofNullable(artifactId)
             .map(manager::getAzureArtifactById)
-            .map(a -> new WrappedAzureArtifact(a, this.getProject()))
-            .ifPresent(a -> this.appConfig.getDeployment().setArtifact(a));
+            .or(() -> Optional.ofNullable(AzureArtifact.createFromFile(artifactId, this.getProject())))
+            .orElse(null);
     }
 
     @Override
     public void writeExternal(Element element) throws WriteExternalException {
         super.writeExternal(element);
-        final AzureArtifactManager manager = AzureArtifactManager.getInstance(this.getProject());
-        final Element appConfigElement = XmlSerializer.serialize(this.appConfig, (accessor, o) -> !"artifact".equalsIgnoreCase(accessor.getName()));
-        final IArtifact artifact = this.appConfig.getDeployment().getArtifact();
-        Optional.ofNullable(this.appConfig)
-            .map(config -> XmlSerializer.serialize(config, (accessor, o) -> !"artifact".equalsIgnoreCase(accessor.getName())))
+        Optional.ofNullable(this.appId)
+            .map(id -> new Element("App").setAttribute("id", id.id()))
             .ifPresent(element::addContent);
-        Optional.ofNullable(this.appConfig)
-            .map(config -> (WrappedAzureArtifact) config.getDeployment().getArtifact())
-            .map((a) -> a.getArtifact().getIdentifier())
+        Optional.ofNullable(this.artifact)
+            .map(AzureArtifact::getIdentifier)
             .map(id -> new Element("Artifact").setAttribute("identifier", id))
             .ifPresent(element::addContent);
     }
 
-    @NotNull
+    public void setDeployment(@Nullable SpringCloudDeploymentDraft deployment) {
+        if (Objects.nonNull(deployment)) {
+            this.app = deployment.getParent();
+            this.appId = ResourceId.fromString(this.app.getId());
+            this.artifact = Optional.ofNullable((WrappedAzureArtifact) deployment.getArtifact()).map(WrappedAzureArtifact::getArtifact).orElse(null);
+        }
+    }
+
+    @Nullable
+    public SpringCloudDeploymentDraft getDeployment() {
+        final SpringCloudApp app = this.getApp();
+        if (Objects.nonNull(app)) {
+            final SpringCloudDeployment d = Optional.ofNullable(app.getActiveDeployment()).orElseGet(() -> app.deployments().create("default", null));
+            final SpringCloudDeploymentDraft deployment = (SpringCloudDeploymentDraft) (d.isDraft() ? d : d.update());
+            Optional.ofNullable(this.artifact).map(a -> new WrappedAzureArtifact(a, this.getProject())).ifPresent(deployment::setArtifact);
+            return deployment;
+        }
+        return null;
+    }
+
+    public void setApp(@Nullable SpringCloudApp app) {
+        this.app = app;
+        this.appId = Optional.ofNullable(app).map(a -> ResourceId.fromString(a.getId())).orElse(null);
+    }
+
+    @Nullable
+    public SpringCloudApp getApp() {
+        if (Objects.isNull(this.app) && Objects.nonNull(this.appId)) {
+            this.app = Azure.az(AzureSpringCloud.class).getById(this.appId.id());
+        }
+        return this.app;
+    }
+
+    @Override
+    public Module getModule() {
+        return Optional.ofNullable(this.artifact).map(AzureArtifact::getModule).orElse(null);
+    }
+
+    @Nonnull
     @Override
     public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
         return new Editor(this, getProject());
@@ -101,7 +155,8 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
 
     @Nullable
     @Override
-    public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment executionEnvironment) {
+    @ExceptionNotification
+    public RunProfileState getState(@Nonnull Executor executor, @Nonnull ExecutionEnvironment executionEnvironment) {
         return new SpringCloudDeploymentConfigurationState(getProject(), this);
     }
 
@@ -112,13 +167,13 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
     static class Factory extends ConfigurationFactory {
         public static final String FACTORY_NAME = "Deploy Spring app";
 
-        public Factory(@NotNull ConfigurationType type) {
+        public Factory(@Nonnull ConfigurationType type) {
             super(type);
         }
 
-        @NotNull
+        @Nonnull
         @Override
-        public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
+        public RunConfiguration createTemplateConfiguration(@Nonnull Project project) {
             return new SpringCloudDeploymentConfiguration(project, this, project.getName());
         }
 
@@ -128,7 +183,7 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
         }
 
         @Override
-        public @NotNull String getId() {
+        public @Nonnull String getId() {
             return "Deploy Spring Cloud Services";
         }
 
@@ -146,23 +201,18 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
             this.panel = new SpringCloudDeploymentConfigurationPanel(configuration, project);
         }
 
-        protected void disposeEditor() {
-            super.disposeEditor();
-        }
-
         @Override
-        protected void resetEditorFrom(@NotNull SpringCloudDeploymentConfiguration config) {
+        @ExceptionNotification
+        protected void resetEditorFrom(@Nonnull SpringCloudDeploymentConfiguration config) {
             this.panel.setConfiguration(config);
-            AzureTaskManager.getInstance().runOnPooledThread(() -> {
-                if (Objects.nonNull(config.app)) {
-                    config.appConfig = SpringCloudAppConfig.fromApp(config.app);
-                }
-                AzureTaskManager.getInstance().runLater(() -> this.panel.setValue(config.appConfig), AzureTask.Modality.ANY);
-            });
+            final SpringCloudDeploymentDraft deployment = config.getDeployment();
+            if (Objects.nonNull(deployment)) {
+                AzureTaskManager.getInstance().runLater(() -> this.panel.setValue(deployment), AzureTask.Modality.ANY);
+            }
         }
 
         @Override
-        protected void applyEditorTo(@NotNull SpringCloudDeploymentConfiguration config) throws ConfigurationException {
+        protected void applyEditorTo(@Nonnull SpringCloudDeploymentConfiguration config) throws ConfigurationException {
             final List<AzureValidationInfo> infos = this.panel.getAllValidationInfos(true);
             final AzureValidationInfo error = infos.stream()
                 .filter(i -> !i.isValid())
@@ -171,11 +221,11 @@ public class SpringCloudDeploymentConfiguration extends LocatableConfigurationBa
                 final String message = error.getType() == Type.PENDING ? "Please try later after validation" : error.getMessage();
                 throw new ConfigurationException(message);
             }
-            config.appConfig = this.panel.getValue();
+            config.setDeployment(this.panel.getValue());
         }
 
         @Override
-        protected @NotNull JComponent createEditor() {
+        protected @Nonnull JComponent createEditor() {
             return this.panel.getContentPanel();
         }
 

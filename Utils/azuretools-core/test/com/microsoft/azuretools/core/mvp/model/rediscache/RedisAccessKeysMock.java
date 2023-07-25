@@ -5,7 +5,7 @@
 
 package com.microsoft.azuretools.core.mvp.model.rediscache;
 
-import com.microsoft.azure.management.redis.RedisAccessKeys;
+import com.azure.resourcemanager.redis.models.RedisAccessKeys;
 
 public class RedisAccessKeysMock implements RedisAccessKeys {
 

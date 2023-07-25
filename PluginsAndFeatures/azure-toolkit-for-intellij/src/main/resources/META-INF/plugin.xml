@@ -2,7 +2,7 @@
              xmlns:xi="http://www.w3.org/2001/XInclude">
   <id>com.microsoft.tooling.msservices.intellij.azure</id>
   <name>Azure Toolkit for IntelliJ</name>
-  <version>3.79.0-SNAPSHOT</version>
+  <version>3.79.0</version>
   <vendor email="java@microsoft.com" url="http://www.microsoft.com">Microsoft</vendor>
 
   <description><![CDATA[
@@ -27,6 +27,13 @@
   <change-notes>
     <![CDATA[
     <html>
+      <h3>3.78.1</h3>
+        <h4 id="fixed">Fixed</h4>
+        <ul>
+        <li>Fix: error pops when starting/stopping/restarting spring app.</li>
+        <li>Fix: error pops when deleting cosmos db document.</li>
+        <li>Fix: updating firewall rules in sql database&#39;s properties editor view doesn&#39;t work.</li>
+        </ul>
       <h3>3.78.0</h3>
         <h4>Added</h4>
         <ul>
@@ -87,7 +94,6 @@
   <xi:include href="/META-INF/azure-intellij-plugin-containerapps.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-eventhubs.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-servicebus.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/azure-intellij-plugin-facet.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <!-- please see https://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
        on how to target different products -->
   <!-- uncomment to enable plugin in all products

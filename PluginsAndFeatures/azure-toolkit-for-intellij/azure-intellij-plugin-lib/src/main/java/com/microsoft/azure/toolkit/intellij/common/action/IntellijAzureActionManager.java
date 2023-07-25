@@ -6,23 +6,10 @@
 package com.microsoft.azure.toolkit.intellij.common.action;
 
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.ActionUpdateThread;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.CommonShortcuts;
-import com.intellij.openapi.actionSystem.CustomShortcutSet;
-import com.intellij.openapi.actionSystem.DataKey;
-import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.EmptyAction;
-import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.ShortcutSet;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
@@ -30,10 +17,13 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessageBundle;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Emulatable;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import lombok.Getter;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -85,6 +75,7 @@ public class IntellijAzureActionManager extends AzureActionManager {
             return (Action<D>) ((AnActionWrapper<?>) origin).getAction();
         } else {
             return new Action<>(id)
+                .withTitle(AzureMessageBundle.message(id.getId()))
                 .withLabel(Objects.requireNonNull(origin.getTemplateText()))
                 .withHandler((D d, AnActionEvent e) -> origin.actionPerformed(e))
                 .withAuthRequired(false);
@@ -199,6 +190,10 @@ public class IntellijAzureActionManager extends AzureActionManager {
             this.group = group;
             this.setPopup(true);
             this.addActions(group.getActions());
+            final Presentation presentation = this.getTemplatePresentation();
+            presentation.setPerformGroup(true);
+            final IView.Label view = this.group.getView();
+            Optional.ofNullable(this.group.getView()).ifPresent(v -> presentation.setText(v.getLabel()));
         }
 
         @Override
@@ -208,7 +203,10 @@ public class IntellijAzureActionManager extends AzureActionManager {
             final Presentation presentation = e.getPresentation();
             Optional.ofNullable(view).ifPresent(v -> {
                 presentation.setText(v.getLabel());
-                Optional.ofNullable(v.getIconPath()).filter(StringUtils::isNotBlank).ifPresent(IntelliJAzureIcons::getIcon);
+                presentation.setDescription(v.getDescription());
+                presentation.setEnabled(v.isEnabled());
+                presentation.setVisible(v.isVisible());
+                Optional.ofNullable(v.getIconPath()).filter(StringUtils::isNotBlank).map(IntelliJAzureIcons::getIcon).ifPresent(presentation::setIcon);
             });
         }
 
@@ -221,6 +219,15 @@ public class IntellijAzureActionManager extends AzureActionManager {
             for (final Object raw : actions) {
                 doAddAction(raw);
             }
+        }
+
+        @Override
+        public void actionPerformed(@Nonnull AnActionEvent e) {
+            AzureTaskManager.getInstance().runLater(() -> JBPopupFactory.getInstance().createActionGroupPopup(
+                    e.getPresentation().getText(), this, e.getDataContext(),
+                    JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
+                    false, null, -1, null, ActionPlaces.getPopupPlace(e.getPlace()))
+                .showInBestPositionFor(e.getDataContext()));
         }
 
         @Override
@@ -237,6 +244,11 @@ public class IntellijAzureActionManager extends AzureActionManager {
         public void addAction(Object raw) {
             this.group.addAction(raw);
             this.doAddAction(raw);
+        }
+
+        @Override
+        public void prependAction(Object action) {
+            throw new NotImplementedException();
         }
 
         public void doAddAction(Object raw) {

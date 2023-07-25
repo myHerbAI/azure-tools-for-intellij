@@ -34,7 +34,7 @@ public class ADLSGen2OAuthHttpObservable extends OAuthTokenHttpObservable {
 
     @Override
     public String getAccessToken() throws IOException {
-        return IdeAzureAccount.getInstance().getCredentialForTrack1(tenantId).getToken(resource);
+        return IdeAzureAccount.getInstance().getAccessTokenByTrack2(tenantId,resource);
     }
 
     @Override

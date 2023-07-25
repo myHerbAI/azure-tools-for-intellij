@@ -34,7 +34,6 @@ import com.microsoft.tooling.msservices.helpers.UIHelper;
 import com.microsoft.tooling.msservices.model.storage.ClientStorageAccount;
 import com.microsoft.tooling.msservices.serviceexplorer.Node;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.container.ContainerRegistryNode;
-import com.microsoft.tooling.msservices.serviceexplorer.azure.rediscache.RedisCacheNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -148,16 +147,6 @@ public class UIHelperImpl implements UIHelper {
             return save.getFile();
         }
         return null;
-    }
-
-    @Override
-    public void openRedisPropertyView(@NotNull RedisCacheNode node) {
-        throw new UnsupportedOperationException("this method should not be called");
-    }
-
-    @Override
-    public void openRedisExplorer(RedisCacheNode redisCacheNode) {
-        throw new UnsupportedOperationException("this method should not be called");
     }
 
     @Override

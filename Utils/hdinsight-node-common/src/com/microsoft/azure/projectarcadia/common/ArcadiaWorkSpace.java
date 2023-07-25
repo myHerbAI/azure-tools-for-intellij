@@ -48,7 +48,7 @@ public class ArcadiaWorkSpace implements ClusterContainer, Comparable<ArcadiaWor
         this.subscription = subscription;
         this.workspaceResponse = workspaceResponse;
         this.name = workspaceResponse.name();
-        this.uri = URI.create(CommonSettings.getAdEnvironment().resourceManagerEndpoint()).resolve(workspaceResponse.id());
+        this.uri = URI.create(CommonSettings.getAdEnvironment().getResourceManagerEndpoint()).resolve(workspaceResponse.id());
         this.http = new AzureHttpObservable(subscription, ApiVersion.VERSION);
     }
 

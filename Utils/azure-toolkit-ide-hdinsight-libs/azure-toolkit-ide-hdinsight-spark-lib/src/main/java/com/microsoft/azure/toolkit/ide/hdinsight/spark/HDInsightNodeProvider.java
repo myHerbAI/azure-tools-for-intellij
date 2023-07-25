@@ -59,6 +59,7 @@ public class HDInsightNodeProvider implements IExplorerNodeProvider {
                 .ifPresent(sparkClusterNode::setClusterDetail);
             final Node<SparkClusterNode> jobsNode = new AzResourceNode<>(sparkClusterNode)
                 .withIcon(AzureIcon.builder().iconPath("/icons/StorageAccountFolder.png").build())
+                .withLabel("Jobs")
                 .withDescription("")
                 .onClicked(HDInsightActionsContributor.OPEN_HDINSIGHT_JOB_VIEW);
             if ("[LinkedCluster]".equals(sparkClusterNode.getClusterDetail().getSubscription().getId())) {

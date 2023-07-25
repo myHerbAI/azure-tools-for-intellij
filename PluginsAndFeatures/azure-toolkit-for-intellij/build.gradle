@@ -64,9 +64,9 @@ allprojects {
     }
 
     ext {
-        azureToolkitLibsVersion = "0.35.0-SNAPSHOT"
-        azureToolkitIdeLibsVersion = "0.35.0-SNAPSHOT"
-        azureToolkitUtilsVersion = "3.79.0-SNAPSHOT"
+        azureToolkitLibsVersion = "0.35.0"
+        azureToolkitIdeLibsVersion = "0.35.0"
+        azureToolkitUtilsVersion = "3.79.0"
         azureToolkitHDInsightVersion = "0.1.0"
     }
 
@@ -178,7 +178,6 @@ dependencies {
     implementation project(path: ':azure-intellij-plugin-hdinsight', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-eventhubs', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-servicebus', configuration: 'instrumentedJar')
-    implementation project(path: ':azure-intellij-plugin-facet', configuration: 'instrumentedJar')
     implementation 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-spark-lib'
     implementation 'com.microsoft.azure:azure-toolkit-ide-appservice-lib'
     implementation 'com.microsoft.azure:azure-toolkit-applicationinsights-lib'

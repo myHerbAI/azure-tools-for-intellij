@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
+package com.microsoft.azure.toolkit.intellij.connector.projectexplorer;
 
 import com.intellij.ide.projectView.NodeSortOrder;
 import com.intellij.ide.projectView.NodeSortSettings;
@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.ConnectionTopics;
+import com.microsoft.azure.toolkit.intellij.connector.DeploymentTargetTopics;
 import com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
@@ -32,8 +33,14 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
+import static com.microsoft.azure.toolkit.intellij.common.action.IntellijActionsContributor.ACTIONS_DEPLOY_TO_AZURE;
 import static com.microsoft.azure.toolkit.intellij.connector.ConnectionTopics.CONNECTION_CHANGED;
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor.CONNECT_TO_MODULE;
 
@@ -50,6 +57,11 @@ public class AzureFacetRootNode extends AbstractProjectNode<AzureModule> impleme
         final MessageBusConnection connection = module.getProject().getMessageBus().connect();
         connection.subscribe(CONNECTION_CHANGED, (ConnectionTopics.ConnectionChanged) (p, conn, action) -> {
             if (conn.getConsumer().getId().equalsIgnoreCase(module.getName())) {
+                updateChildren();
+            }
+        });
+        connection.subscribe(DeploymentTargetTopics.TARGET_APP_CHANGED, (DeploymentTargetTopics.TargetAppChanged) (m, app, action) -> {
+            if (m.getName().equalsIgnoreCase(module.getName())) {
                 updateChildren();
             }
         });
@@ -74,9 +86,12 @@ public class AzureFacetRootNode extends AbstractProjectNode<AzureModule> impleme
         final Profile profile = module.getDefaultProfile();
         if (Objects.isNull(profile)) {
             nodes.add(new ActionNode<>(this.getProject(), CONNECT_TO_MODULE, module));
+            nodes.add(new ActionNode<>(this.getProject(), Action.Id.of(ACTIONS_DEPLOY_TO_AZURE), module.getModule()));
             return nodes;
         }
-        return new ConnectionsNode(this.getProject(), profile.getConnectionManager()).buildChildren();
+        nodes.add(new DeploymentTargetsNode(this.getProject(), profile.getDeploymentTargetManager()));
+        nodes.add(new ConnectionsNode(this.getProject(), profile.getConnectionManager()));
+        return nodes;
     }
 
     @Override

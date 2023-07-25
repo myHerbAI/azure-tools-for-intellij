@@ -10,6 +10,7 @@ import lombok.Getter;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
+import java.util.Optional;
 
 public class AzureFacetEditorPanel {
     @Nonnull
@@ -39,7 +40,7 @@ public class AzureFacetEditorPanel {
         this.dotAzureDirInput = new TextFieldWithBrowseButton(new JTextField());
         final FileChooserDescriptor descriptor = new FileChooserDescriptor(false, true, false, false, false, false)
             .withFileFilter(file -> file.isDirectory() && file.findChild("profiles.xml") != null);
-        descriptor.setRoots(ProjectUtil.guessModuleDir(this.module));
+        Optional.ofNullable(ProjectUtil.guessModuleDir(this.module)).ifPresent(descriptor::setRoots);
         this.dotAzureDirInput.setEditable(false);
         this.dotAzureDirInput.setEnabled(false);
         // noinspection DialogTitleCapitalization

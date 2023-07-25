@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.ide.cosmos.CosmosActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.action.IntellijActionsContributor;
 import com.microsoft.azure.toolkit.intellij.connector.AzureServiceResource;
 import com.microsoft.azure.toolkit.intellij.connector.ConnectorDialog;
+import com.microsoft.azure.toolkit.intellij.cosmos.actions.CreateNewDocumentAction;
 import com.microsoft.azure.toolkit.intellij.cosmos.actions.OpenCosmosDocumentAction;
 import com.microsoft.azure.toolkit.intellij.cosmos.actions.UploadCosmosDocumentAction;
 import com.microsoft.azure.toolkit.intellij.cosmos.connection.CassandraCosmosDBAccountResourceDefinition;
@@ -74,6 +75,12 @@ public class IntelliJCosmosActionsContributor implements IActionsContributor {
                 r instanceof ICosmosDocumentContainer && r.getFormalStatus().isConnected();
         final BiConsumer<ICosmosDocumentContainer<?>, AnActionEvent> importHandler = (c, e) -> UploadCosmosDocumentAction.importDocument(c, e.getProject());
         am.registerHandler(CosmosActionsContributor.IMPORT_DOCUMENT, importCondition, importHandler);
+
+        final BiPredicate<ICosmosDocumentContainer<?>, AnActionEvent> createDocumentCondition = (r, e) ->
+                r instanceof ICosmosDocumentContainer && r.getFormalStatus().isConnected();
+        final BiConsumer<ICosmosDocumentContainer<?>, AnActionEvent> createDocumentHandler = (c, e) ->
+                AzureTaskManager.getInstance().runLater(() -> CreateNewDocumentAction.create(c, e.getProject()));
+        am.registerHandler(CosmosActionsContributor.CREATE_DOCUMENT, createDocumentCondition, createDocumentHandler);
 
         final BiConsumer<ResourceGroup, AnActionEvent> groupCreateHandler = (r, e) ->
             CreateCosmosDBAccountAction.create(e.getProject(), getDefaultConfig(r));

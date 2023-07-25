@@ -12,5 +12,5 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * tags.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ProxyResource extends com.microsoft.azure.ProxyResource {
+public class ProxyResource extends com.azure.core.management.ProxyResource {
 }

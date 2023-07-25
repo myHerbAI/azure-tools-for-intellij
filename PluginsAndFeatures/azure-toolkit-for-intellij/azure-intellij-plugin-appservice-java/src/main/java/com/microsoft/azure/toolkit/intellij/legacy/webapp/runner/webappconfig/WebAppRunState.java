@@ -7,11 +7,13 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig;
 
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.util.PathUtil;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifact;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifactManager;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.connector.IJavaAgentSupported;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.DotEnvBeforeRunTaskProvider;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState;
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.Constants;
@@ -26,6 +28,7 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
@@ -61,7 +64,7 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
     private final IntelliJWebAppSettingModel webAppSettingModel;
 
     private final Map<String, String> appSettingsForResourceConnection = new HashMap<>();
-    private static final String DEPLOYMENT_SUCCEED = "Deployment succeed but the app is still starting at server side.";
+    private static final String DEPLOYMENT_SUCCEED = "Deployment was successful but the app may still be starting.";
 
     /**
      * Place to execute the Web App deployment task.
@@ -82,6 +85,14 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
             throw new FileNotFoundException(message("webapp.deploy.error.noTargetFile", artifact.getAbsolutePath()));
         }
         final WebAppBase<?, ?, ?> deployTarget = getOrCreateDeployTargetFromAppSettingModel(processHandler);
+        final AzureTaskManager tm = AzureTaskManager.getInstance();
+        tm.runOnPooledThread(() -> Optional.ofNullable(this.webAppConfiguration.getModule()).map(AzureModule::from)
+            .or(() -> Optional.ofNullable(artifact)
+                .map(f -> VfsUtil.findFileByIoFile(f, true))
+                .map(f -> AzureModule.from(f, this.project)))
+            .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
+                .initializeWithDefaultProfileIfNot()
+                .addApp(deployTarget instanceof WebAppDeploymentSlot ? deployTarget.getParent() : deployTarget).save()))));
         applyResourceConnections(deployTarget);
         updateApplicationSettings(deployTarget, processHandler);
         AzureWebAppMvpModel.getInstance().deployArtifactsToWebApp(deployTarget, artifact, webAppSettingModel.isDeployToRoot(), processHandler);

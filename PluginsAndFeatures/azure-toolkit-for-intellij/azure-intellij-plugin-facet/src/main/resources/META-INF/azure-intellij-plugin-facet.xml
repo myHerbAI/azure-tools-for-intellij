@@ -1,5 +1,0 @@
-<idea-plugin>
-    <extensions defaultExtensionNs="com.intellij">
-        <treeStructureProvider implementation="com.microsoft.azure.toolkit.intellij.facet.projectexplorer.AzureFacetTreeStructureProvider"/>
-    </extensions>
-</idea-plugin>

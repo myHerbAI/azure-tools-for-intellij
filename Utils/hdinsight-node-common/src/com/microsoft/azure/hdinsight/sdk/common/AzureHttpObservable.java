@@ -68,7 +68,7 @@ public class AzureHttpObservable extends OAuthTokenHttpObservable {
     @NotNull
     @Override
     public String getAccessToken() throws IOException {
-        return IdeAzureAccount.getInstance().getCredentialForTrack1(getTenantId()).getToken(getResourceEndpoint());
+        return IdeAzureAccount.getInstance().getAccessTokenByTrack2(getTenantId(),getResourceEndpoint());
     }
 
     @NotNull
@@ -105,7 +105,7 @@ public class AzureHttpObservable extends OAuthTokenHttpObservable {
 
     @NotNull
     public String getResourceEndpoint() {
-        String endpoint = CommonSettings.getAdEnvironment().resourceManagerEndpoint();
+        String endpoint = CommonSettings.getAdEnvironment().getResourceManagerEndpoint();
 
         return endpoint != null ? endpoint : "https://management.azure.com/";
     }

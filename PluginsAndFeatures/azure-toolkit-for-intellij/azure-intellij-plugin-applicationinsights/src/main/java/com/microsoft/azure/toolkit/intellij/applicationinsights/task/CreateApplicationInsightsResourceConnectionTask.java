@@ -12,7 +12,6 @@ import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
-import com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
 import com.microsoft.azure.toolkit.lib.applicationinsights.AzureApplicationInsights;
@@ -45,14 +44,11 @@ public class CreateApplicationInsightsResourceConnectionTask implements Task {
         if (Objects.isNull(profile)) {
             return;
         }
-        final ConnectionManager connectionManager = profile.getConnectionManager();
-        final ResourceManager resourceManager = profile.getResourceManager();
-        final Connection connection = ConnectionManager.getDefinitionOrDefault(resource.getDefinition(),
+        final Connection<?,?> connection = ConnectionManager.getDefinitionOrDefault(resource.getDefinition(),
                 consumer.getDefinition()).define(resource, consumer);
         if (connection.validate(this.project)) {
-            Objects.requireNonNull(resourceManager).addResource(resource);
-            resourceManager.addResource(consumer);
-            Objects.requireNonNull(connectionManager).addConnection(connection);
+            profile.createOrUpdateConnection(connection);
+            profile.save();
             final String message = String.format("The connection between %s and %s has been successfully created.",
                     resource.getName(), consumer.getName());
             AzureMessager.getMessager().success(message);

@@ -155,7 +155,7 @@ public class KubernetesServicePropertiesEditor extends AzResourcePropertiesEdito
         txtPodCidr.setText(Optional.ofNullable(profile).map(p -> p.getPodCidr()).orElse("N/A"));
         txtServiceCidr.setText(Optional.ofNullable(profile).map(p -> p.getServiceCidr()).orElse("N/A"));
         txtDndServiceIp.setText(Optional.ofNullable(profile).map(p -> p.getDnsServiceIp()).orElse("N/A"));
-        txtDockerBridgeCidr.setText(Optional.ofNullable(profile).map(p -> p.getDockerBridgeCidr()).orElse("N/A"));
+        txtDockerBridgeCidr.setText("N/A");
         AzureTaskManager.getInstance().runInBackgroundAsObservable(new AzureTask<>("Loading node pools", () -> cluster.agentPools().list()))
                 .subscribeOn(Schedulers.io())
                 .subscribe(pools -> AzureTaskManager.getInstance().runLater(() -> fillNodePools(pools)));

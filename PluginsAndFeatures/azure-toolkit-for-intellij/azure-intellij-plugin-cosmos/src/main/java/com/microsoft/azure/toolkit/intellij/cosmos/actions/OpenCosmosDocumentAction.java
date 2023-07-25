@@ -62,7 +62,6 @@ public class OpenCosmosDocumentAction {
         AzureTaskManager.getInstance().runLater(new AzureTask<>(title, () -> VirtualFileActions.openFileInEditor(virtualFile, onSave, onClose, fileEditorManager)));
     }
 
-
     private static synchronized VirtualFile getOrCreateVirtualFile(final ICosmosDocument document, final FileEditorManager manager) {
         final VirtualFile virtualFile = VirtualFileActions.getVirtualFile(document.getId(), manager);
         return Objects.isNull(virtualFile) ? createVirtualFile(document, manager) : virtualFile;

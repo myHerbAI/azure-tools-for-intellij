@@ -56,6 +56,10 @@ public class ConnectionManager {
 
     public ConnectionManager(@Nonnull final Profile profile) {
         this.profile = profile;
+        this.reload();
+    }
+
+    public void reload() {
         try {
             this.load();
         } catch (final Exception e) {
@@ -142,7 +146,7 @@ public class ConnectionManager {
 
     @ExceptionNotification
     @AzureOperation(name = "boundary/connector.save_connections")
-    void save() throws IOException {
+    synchronized void save() throws IOException {
         final Element connectionsEle = new Element(ELEMENT_NAME_CONNECTIONS);
         for (final Connection<?, ?> connection : this.connections) {
             final Element connectionEle = new Element(ELEMENT_NAME_CONNECTION);
@@ -159,7 +163,7 @@ public class ConnectionManager {
 
     @ExceptionNotification
     @AzureOperation(name = "boundary/connector.load_connections")
-    void load() throws Exception {
+    synchronized void load() throws Exception {
         this.connectionsFile = getConnectionsFile();
         if (Objects.isNull(connectionsFile) || connectionsFile.contentsToByteArray().length < 1) {
             return;

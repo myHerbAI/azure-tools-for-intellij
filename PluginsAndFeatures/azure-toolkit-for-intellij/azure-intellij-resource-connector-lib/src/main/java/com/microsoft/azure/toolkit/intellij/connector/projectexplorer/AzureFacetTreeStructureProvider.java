@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.intellij.facet.projectexplorer;
+package com.microsoft.azure.toolkit.intellij.connector.projectexplorer;
 
 import com.intellij.ide.DataManager;
 import com.intellij.ide.projectView.ProjectView;

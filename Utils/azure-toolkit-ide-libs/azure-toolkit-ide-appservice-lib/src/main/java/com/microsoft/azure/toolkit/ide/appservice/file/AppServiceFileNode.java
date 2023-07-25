@@ -61,8 +61,8 @@ public class AppServiceFileNode extends Node<AppServiceFile> {
             if (file.getType() != AppServiceFile.Type.DIRECTORY) {
                 return Collections.emptyList();
             }
-            if (!appService.getFormalStatus().isRunning()) {
-                AzureMessager.getMessager().warning(AzureString.format("Can not list files for app service with status %s", appService.getStatus()));
+            if (!appService.getFormalStatus().isConnected()) {
+                AzureMessager.getMessager().warning(AzureString.format("Can not list files of app service %s with status %s", appService.getName(), appService.getStatus()));
                 return Collections.emptyList();
             }
             return appService.getFilesInDirectory(file.getPath()).stream()

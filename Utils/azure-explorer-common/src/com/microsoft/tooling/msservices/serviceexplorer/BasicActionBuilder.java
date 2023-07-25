@@ -8,7 +8,7 @@ package com.microsoft.tooling.msservices.serviceexplorer;
 import com.google.common.base.Preconditions;
 import com.microsoft.azuretools.ActionConstants;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.container.ContainerRegistryModule;
-import com.microsoft.tooling.msservices.serviceexplorer.azure.rediscache.RedisCacheModule;
+//import com.microsoft.tooling.msservices.serviceexplorer.azure.rediscache.RedisCacheModule;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.storage.StorageModule;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.vmarm.VMArmModule;
 import org.apache.commons.lang3.StringUtils;
@@ -40,7 +40,7 @@ public class BasicActionBuilder {
     private boolean promptable;
 
     static {
-        MODULE_NAME_TO_SERVICE_NAME_MAP.put(RedisCacheModule.MODULE_NAME, ActionConstants.RedisCache.MODULE);
+        //MODULE_NAME_TO_SERVICE_NAME_MAP.put(RedisCacheModule.MODULE_NAME, ActionConstants.RedisCache.MODULE);
         MODULE_NAME_TO_SERVICE_NAME_MAP.put(VMArmModule.MODULE_NAME, ActionConstants.VirtualMachine.MODULE);
         MODULE_NAME_TO_SERVICE_NAME_MAP.put(StorageModule.MODULE_NAME, ActionConstants.StorageAccount.MODULE);
         MODULE_NAME_TO_SERVICE_NAME_MAP.put("Deployment of Resource Management", ActionConstants.ResourceManagement.MODULE);
