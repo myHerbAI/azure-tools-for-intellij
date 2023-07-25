@@ -102,7 +102,7 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
     private static final ComparableVersion MINIMUM_JAVA_9_SUPPORTED_VERSION_V2 = new ComparableVersion("2.7.2628");
     private static final BindingEnum[] FUNCTION_WITHOUT_FUNCTION_EXTENSION = {BindingEnum.HttpOutput, BindingEnum.HttpTrigger};
     private static final List<String> AZURE_WEB_JOBS_STORAGE_NOT_REQUIRED_TRIGGERS = Arrays.asList("httptrigger", "kafkatrigger", "rabbitmqtrigger",
-            "orchestrationTrigger", "activityTrigger", "entityTrigger");
+            "activityTrigger", "entityTrigger");
     private static final String CONNECTION_TITLE = "AzureWebJobsStorage is missing";
     private static final String CONNECTION_DESCRIPTION = "Please set the resource connection for AzureWebJobsStorage.";
     private boolean isDebuggerLaunched;
