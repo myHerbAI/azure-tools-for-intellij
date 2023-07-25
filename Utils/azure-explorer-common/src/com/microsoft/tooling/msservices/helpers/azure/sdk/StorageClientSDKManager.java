@@ -5,6 +5,8 @@
 
 package com.microsoft.tooling.msservices.helpers.azure.sdk;
 
+import com.azure.core.http.policy.HttpLogDetailLevel;
+import com.azure.core.http.policy.HttpLogOptions;
 import com.azure.core.util.logging.ClientLogger;
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
@@ -13,7 +15,6 @@ import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.models.BlobContainerAccessPolicies;
 import com.azure.storage.blob.models.BlobContainerItem;
 import com.azure.storage.blob.models.BlobContainerItemProperties;
-import com.azure.storage.blob.models.ListBlobContainersOptions;
 import com.azure.storage.common.implementation.connectionstring.StorageAuthenticationSettings;
 import com.azure.storage.common.implementation.connectionstring.StorageConnectionString;
 import com.azure.storage.common.implementation.connectionstring.StorageEndpoint;
@@ -31,6 +32,7 @@ import javax.annotation.Nonnull;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -89,13 +91,13 @@ public class StorageClientSDKManager {
         return getBlobContainers(connectionString, null);
     }
 
-    public List<BlobContainer> getBlobContainers(@NotNull String connectionString, @Nullable ListBlobContainersOptions options)
+    public List<BlobContainer> getBlobContainers(@NotNull String connectionString, @Nullable Duration timeouts)
             throws AzureCmdException {
         List<BlobContainer> bcList = new ArrayList<>();
 
         try {
             BlobServiceClient client = getCloudBlobClient(connectionString);
-            for (BlobContainerItem container : client.listBlobContainers(options, null)) {
+            for (BlobContainerItem container : client.listBlobContainers(null, timeouts)) {
                 final BlobContainerClient containerClient = client.getBlobContainerClient(container.getName());
                 String uri = containerClient.getBlobContainerUrl();
                 String eTag = "";
@@ -157,6 +159,6 @@ public class StorageClientSDKManager {
 
     @NotNull
     public static BlobServiceClient getCloudBlobClient(@NotNull String connectionString) {
-        return new BlobServiceClientBuilder().connectionString(connectionString).buildClient();
+        return new BlobServiceClientBuilder().httpLogOptions(new HttpLogOptions().setLogLevel(HttpLogDetailLevel.BODY_AND_HEADERS)).connectionString(connectionString).buildClient();
     }
 }
