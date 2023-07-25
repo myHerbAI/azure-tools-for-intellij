@@ -243,7 +243,7 @@ public class AddNewClusterCtrlProvider {
 
                             // Storage Key check
                             try {
-                                StorageClientSDKManager.getCloudStorageAccount(storageAccountClient.getConnectionString());
+                                StorageClientSDKManager.getCloudBlobClient(storageAccountClient.getConnectionString());
                             } catch (Exception ex) {
                                 return toUpdate.setErrorMessage("Storage key doesn't match the account.");
                             }

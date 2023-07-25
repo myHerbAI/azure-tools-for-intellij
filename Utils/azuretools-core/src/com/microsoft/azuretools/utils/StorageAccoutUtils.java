@@ -6,13 +6,11 @@
 package com.microsoft.azuretools.utils;
 
 import com.azure.core.management.AzureEnvironment;
-import com.microsoft.azure.storage.CloudStorageAccount;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.BlobContainerPermissions;
-import com.microsoft.azure.storage.blob.CloudBlobClient;
-import com.microsoft.azure.storage.blob.CloudBlobContainer;
-import com.microsoft.azure.storage.blob.SharedAccessBlobPermissions;
-import com.microsoft.azure.storage.blob.SharedAccessBlobPolicy;
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.storage.blob.sas.BlobSasPermission;
+import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azuretools.authmanage.IdeAzureAccount;
@@ -22,10 +20,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.InvalidKeyException;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
@@ -51,7 +47,7 @@ public class StorageAccoutUtils {
             ACCOUNT_NAME_KEY + "=%s;" +
             ACCOUNT_KEY_KEY + "=%s";
 
-    private static CloudStorageAccount getCloudStorageAccount(String blobLink, String saKey) throws MalformedURLException, URISyntaxException, InvalidKeyException {
+    private static BlobServiceClient getCloudStorageAccount(String blobLink, String saKey) throws MalformedURLException, URISyntaxException {
         if (blobLink == null || blobLink.isEmpty()) {
             throw new IllegalArgumentException("Invalid blob link, it's null or empty: " + blobLink);
         }
@@ -66,14 +62,12 @@ public class StorageAccoutUtils {
         }
         String storageAccountName = host.substring(0, host.indexOf("."));
         String storageConnectionString = getConnectionString(storageAccountName, saKey);
-        CloudStorageAccount cloudStorageAccount = CloudStorageAccount.parse(storageConnectionString);
-        return cloudStorageAccount;
+        return new BlobServiceClientBuilder().connectionString(storageConnectionString).buildClient();
     }
 
-    public static String  getBlobSasUri(String blobLink, String saKey) throws URISyntaxException, StorageException, InvalidKeyException, MalformedURLException {
-        CloudStorageAccount cloudStorageAccount = getCloudStorageAccount(blobLink, saKey);
+    public static String  getBlobSasUri(String blobLink, String saKey) throws URISyntaxException, MalformedURLException {
+        final BlobServiceClient cloudStorageAccount = getCloudStorageAccount(blobLink, saKey);
         // Create the blob client.
-        CloudBlobClient blobClient = cloudStorageAccount.createCloudBlobClient();
         // Get container and blob name from the link
         String path = new URI(blobLink).getPath();
         if (path == null) {
@@ -81,27 +75,26 @@ public class StorageAccoutUtils {
         }
         int containerNameEndIndex = path.indexOf("/", 1);
         String containerName = path.substring(1, containerNameEndIndex);
-        if (containerName == null || containerName.isEmpty()) {
+        if (containerName.isEmpty()) {
             throw new IllegalArgumentException("Invalid blobLink, can't find container name: " + blobLink);
         }
         String blobName = path.substring(path.indexOf("/", containerNameEndIndex)+1);
-        if (blobName == null || blobName.isEmpty()) {
+        if (blobName.isEmpty()) {
             throw new IllegalArgumentException("Invalid blobLink, can't find blob name: " + blobLink);
         }
         // Retrieve reference to a previously created container.
-        CloudBlobContainer container = blobClient.getContainerReference(containerName);
+        BlobContainerClient container = cloudStorageAccount.getBlobContainerClient(containerName);
 
         //CloudBlockBlob blob = container.getBlockBlobReference(blobName);
-        SharedAccessBlobPolicy sharedAccessBlobPolicy = new SharedAccessBlobPolicy();
+        BlobServiceSasSignatureValues sharedAccessBlobPolicy = new BlobServiceSasSignatureValues();
         GregorianCalendar calendar = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         calendar.setTime(new Date());
-        sharedAccessBlobPolicy.setSharedAccessStartTime(calendar.getTime());
+        sharedAccessBlobPolicy.setStartTime(calendar.toZonedDateTime().toOffsetDateTime());
         calendar.add(Calendar.HOUR, 23);
-        sharedAccessBlobPolicy.setSharedAccessExpiryTime(calendar.getTime());
-        sharedAccessBlobPolicy.setPermissions(EnumSet.of(SharedAccessBlobPermissions.READ));
-        BlobContainerPermissions containerPermissions = new BlobContainerPermissions();
-        container.uploadPermissions(containerPermissions);
-        String signature = container.generateSharedAccessSignature(sharedAccessBlobPolicy, null);
+        sharedAccessBlobPolicy.setExpiryTime(calendar.toZonedDateTime().toOffsetDateTime());
+        sharedAccessBlobPolicy.setPermissions(new BlobSasPermission().setReadPermission(true));
+        container.setAccessPolicy(null, container.getAccessPolicy().getIdentifiers());
+        String signature = container.generateSas(sharedAccessBlobPolicy, null);
         return blobLink + "?" + signature;
     }
 
