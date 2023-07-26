@@ -84,7 +84,12 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
                 processHandler.notifyComplete();
                 waitUntilAppReady(springCloudDeployment);
             } catch (final Exception e) {
-                messager.error(e, "Azure", retry, getOpenStreamingLogAction(config.getDeployment()));
+                final Action<?> action = getOpenStreamingLogAction(config.getDeployment());
+                if (Objects.nonNull(action)) {
+                    messager.error(e, "Azure", retry, action);
+                } else {
+                    messager.error(e, "Azure", retry);
+                }
                 processHandler.putUserData(RunConfigurationUtils.AZURE_RUN_STATE_RESULT, false);
                 processHandler.putUserData(RunConfigurationUtils.AZURE_RUN_STATE_EXCEPTION, e);
                 processHandler.notifyProcessTerminated(-1);
@@ -177,13 +182,17 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
 
     @Nullable
     private Action<?> getOpenStreamingLogAction(@Nullable SpringCloudDeployment deployment) {
-        final SpringCloudAppInstance appInstance = Optional.ofNullable(deployment).map(SpringCloudDeployment::getLatestInstance).orElse(null);
-        if (Objects.isNull(appInstance)) {
-            return Optional.ofNullable(deployment)
+        try {
+            final SpringCloudAppInstance appInstance = Optional.ofNullable(deployment).map(SpringCloudDeployment::getLatestInstance).orElse(null);
+            if (Objects.isNull(appInstance)) {
+                return Optional.ofNullable(deployment)
                     .map(d -> AzureActionManager.getInstance().getAction(SpringCloudActionsContributor.STREAM_LOG_APP).bind(d.getParent()))
                     .orElse(null);
+            }
+            return AzureActionManager.getInstance().getAction(SpringCloudActionsContributor.STREAM_LOG).bind(appInstance);
+        } catch (Throwable e) {
+            return null;
         }
-        return AzureActionManager.getInstance().getAction(SpringCloudActionsContributor.STREAM_LOG).bind(appInstance);
     }
 
     private void waitUntilAppReady(SpringCloudDeployment springCloudDeployment) {
