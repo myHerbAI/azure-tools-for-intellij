@@ -118,7 +118,8 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
                 message("springcloud.deploy_app.no_artifact.tips").toString(),
                 reopen.withLabel("Add BeforeRunTask"));
         }
-        final SpringCloudCluster cluster = deployment.getParent().getParent();
+        final SpringCloudApp app = deployment.getParent();
+        final SpringCloudCluster cluster = app.getParent();
         if (!Optional.of(cluster).map(SpringCloudCluster::isEnterpriseTier).orElse(true)) {
             final Integer appVersion = Optional.ofNullable(deployment.getRuntimeVersion())
                 .map(v -> v.split("\\s|_")[1]).map(Integer::parseInt)
@@ -129,7 +130,7 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
                     "The bytecode version of artifact (%s) is \"%s (%s)\", " +
                         "which is incompatible with the runtime \"%s\" of the target app (%s). " +
                         "This will cause the App to fail to start normally after deploying. Please consider rebuilding the artifact or selecting another app.",
-                    opFile.get().getName(), artifactVersion + 44, "Java " + artifactVersion, "Java " + appVersion, deployment.getParent().getName());
+                    opFile.get().getName(), artifactVersion + 44, "Java " + artifactVersion, "Java " + appVersion, app.getName());
                 throw new AzureToolkitRuntimeException(message.toString(), reopen.withLabel("Reopen Deploy Dialog"));
             }
         }
@@ -141,10 +142,16 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
             .map(AzureModule::from)
             .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
                 .initializeWithDefaultProfileIfNot()
-                .addApp(deployment.getParent()).save()))));
-        deployment.commit();
-        deployment.getParent().refresh();
-        printPublicUrl(deployment.getParent());
+                .addApp(app).save()))));
+        try {
+            deployment.commit();
+        } catch (final Exception e) {
+            app.refresh();
+            Optional.ofNullable(app.getActiveDeployment()).ifPresent(d -> d.startStreamingLog(true));
+            throw new AzureToolkitRuntimeException(e);
+        }
+        app.refresh();
+        printPublicUrl(app);
         return deployment;
     }
 
