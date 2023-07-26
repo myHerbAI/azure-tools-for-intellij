@@ -72,6 +72,7 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
                     return;
                 }
                 this.deploymentDraft = (SpringCloudDeploymentDraft) (deployment.isDraft() ? deployment : deployment.update());
+                this.draft.setActiveDeployment(this.deploymentDraft);
                 tm.runLater(() -> {
                     this.formConfig.updateForm(this.draft);
                     this.panelInstances.setApp(this.draft);
