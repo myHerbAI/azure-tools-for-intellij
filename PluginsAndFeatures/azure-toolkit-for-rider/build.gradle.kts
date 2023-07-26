@@ -86,8 +86,8 @@ allprojects {
     }
 
     intellij {
-        version = "2023.1.4"
-        type = "IU"
+        version = properties("platformVersion")
+        type = properties("platformType")
     }
 }
 
@@ -123,6 +123,7 @@ sourceSets {
 
 dependencies {
     implementation(project(path = ":azure-intellij-plugin-lib", configuration = "instrumentedJar"))
+    implementation(project(path = ":azure-intellij-plugin-lib-dotnet", configuration = "instrumentedJar"))
     implementation(project(":azure-intellij-resource-connector-lib", configuration = "instrumentedJar"))
     implementation(project(path = ":azure-intellij-plugin-service-explorer", configuration = "instrumentedJar"))
     implementation(project(":azure-intellij-plugin-arm", configuration = "instrumentedJar"))

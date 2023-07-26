@@ -22,6 +22,7 @@ pluginManagement {
 include("protocol")
 include(":azure-intellij-plugin-lib")
 project(":azure-intellij-plugin-lib").projectDir = file("../azure-toolkit-for-intellij/azure-intellij-plugin-lib")
+include(":azure-intellij-plugin-lib-dotnet")
 include(":azure-intellij-resource-connector-lib")
 project(":azure-intellij-resource-connector-lib").projectDir = file("../azure-toolkit-for-intellij/azure-intellij-resource-connector-lib")
 include(":azure-intellij-plugin-service-explorer")
