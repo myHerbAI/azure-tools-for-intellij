@@ -43,6 +43,10 @@ allprojects {
         compileKotlin {
             kotlinOptions.jvmTarget = "17"
         }
+
+        processResources {
+            duplicatesStrategy = DuplicatesStrategy.WARN
+        }
     }
 
     repositories {
@@ -82,8 +86,8 @@ allprojects {
     }
 
     intellij {
-        version = properties("platformVersion")
-        type = properties("platformType")
+        version = "2023.1.4"
+        type = "IU"
     }
 }
 
@@ -114,6 +118,26 @@ sourceSets {
     main {
         kotlin.srcDir("src/main/kotlin")
         resources.srcDir("src/main/resources")
+    }
+}
+
+dependencies {
+    implementation(project(path = ":azure-intellij-plugin-lib", configuration = "instrumentedJar"))
+    implementation(project(":azure-intellij-resource-connector-lib", configuration = "instrumentedJar"))
+    implementation(project(path = ":azure-intellij-plugin-service-explorer", configuration = "instrumentedJar"))
+    implementation(project(":azure-intellij-plugin-arm", configuration = "instrumentedJar"))
+
+    aspect("com.microsoft.azure:azure-toolkit-common-lib") {
+        exclude("com.squareup.okhttp3", "okhttp")
+        exclude("com.squareup.okhttp3", "okhttp-urlconnection")
+        exclude("com.squareup.okhttp3", "logging-interceptor")
+    }
+
+    implementation("com.microsoft.azuretools:azure-explorer-common") {
+        exclude("javax.xml.bind", "jaxb-api")
+    }
+    implementation("com.microsoft.azuretools:hdinsight-node-common") {
+        exclude("javax.xml.bind", "jaxb-api")
     }
 }
 
