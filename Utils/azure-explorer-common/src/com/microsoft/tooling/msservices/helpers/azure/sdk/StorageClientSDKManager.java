@@ -5,19 +5,20 @@
 
 package com.microsoft.tooling.msservices.helpers.azure.sdk;
 
+import com.azure.core.http.policy.HttpLogDetailLevel;
+import com.azure.core.http.policy.HttpLogOptions;
+import com.azure.core.util.logging.ClientLogger;
+import com.azure.storage.blob.BlobClient;
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.storage.blob.models.BlobContainerAccessPolicies;
+import com.azure.storage.blob.models.BlobContainerItem;
+import com.azure.storage.blob.models.BlobContainerItemProperties;
+import com.azure.storage.common.implementation.connectionstring.StorageAuthenticationSettings;
+import com.azure.storage.common.implementation.connectionstring.StorageConnectionString;
+import com.azure.storage.common.implementation.connectionstring.StorageEndpoint;
 import com.google.common.base.Strings;
-import com.microsoft.azure.storage.CloudStorageAccount;
-import com.microsoft.azure.storage.blob.BlobContainerPermissions;
-import com.microsoft.azure.storage.blob.BlobContainerProperties;
-import com.microsoft.azure.storage.blob.BlobRequestOptions;
-import com.microsoft.azure.storage.blob.BlockEntry;
-import com.microsoft.azure.storage.blob.BlockSearchMode;
-import com.microsoft.azure.storage.blob.CloudBlobClient;
-import com.microsoft.azure.storage.blob.CloudBlobContainer;
-import com.microsoft.azure.storage.blob.CloudBlockBlob;
-import com.microsoft.azure.storage.blob.ContainerListingDetails;
-import com.microsoft.azure.storage.core.Base64;
-import com.microsoft.azure.storage.core.Utility;
 import com.microsoft.azuretools.azurecommons.helpers.AzureCmdException;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
@@ -25,16 +26,15 @@ import com.microsoft.azuretools.utils.StorageAccoutUtils;
 import com.microsoft.tooling.msservices.helpers.CallableSingleArg;
 import com.microsoft.tooling.msservices.model.storage.BlobContainer;
 import com.microsoft.tooling.msservices.model.storage.ClientStorageAccount;
+import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.time.Duration;
+import java.util.*;
+import java.util.stream.Stream;
 
 public class StorageClientSDKManager {
     private static StorageClientSDKManager apiManager;
@@ -53,37 +53,36 @@ public class StorageClientSDKManager {
 
     @NotNull
     public ClientStorageAccount getStorageAccount(@NotNull String connectionString) {
-        HashMap<String, String> settings = Utility.parseAccountString(connectionString);
+        final ClientLogger logger = new ClientLogger(StorageClientSDKManager.class);
+        final StorageConnectionString connection = StorageConnectionString.create(connectionString, logger);
+        final ClientStorageAccount storageAccount = new ClientStorageAccount(connection.getAccountName());
 
-        String name = settings.containsKey(ClientStorageAccount.ACCOUNT_NAME_KEY) ?
-                settings.get(ClientStorageAccount.ACCOUNT_NAME_KEY) : "";
-
-        ClientStorageAccount storageAccount = new ClientStorageAccount(name);
-
-        if (settings.containsKey(ClientStorageAccount.ACCOUNT_KEY_KEY)) {
-            storageAccount.setPrimaryKey(settings.get(ClientStorageAccount.ACCOUNT_KEY_KEY));
-        }
-
-        if (settings.containsKey(ClientStorageAccount.DEFAULT_ENDPOINTS_PROTOCOL_KEY)) {
+        final StorageAuthenticationSettings authSettings = connection.getStorageAuthSettings();
+        storageAccount.setPrimaryKey(authSettings.getAccount().getAccessKey());
+        if (StringUtils.containsIgnoreCase(connectionString, ClientStorageAccount.DEFAULT_ENDPOINTS_PROTOCOL_KEY)) {
+            final String protocol = Stream.of(connection.getBlobEndpoint(), connection.getQueueEndpoint(), connection.getTableEndpoint())
+                    .map(StorageEndpoint::getPrimaryUri)
+                    .filter(StringUtils::isNoneBlank)
+                    .findFirst()
+                    .map(this::getProtocol).orElse(null);
+            storageAccount.setProtocol(protocol);
             storageAccount.setUseCustomEndpoints(false);
-            storageAccount.setProtocol(settings.get(ClientStorageAccount.DEFAULT_ENDPOINTS_PROTOCOL_KEY));
         } else {
             storageAccount.setUseCustomEndpoints(true);
-
-            if (settings.containsKey(ClientStorageAccount.BLOB_ENDPOINT_KEY)) {
-                storageAccount.setBlobsUri(settings.get(ClientStorageAccount.BLOB_ENDPOINT_KEY));
-            }
-
-            if (settings.containsKey(ClientStorageAccount.QUEUE_ENDPOINT_KEY)) {
-                storageAccount.setQueuesUri(settings.get(ClientStorageAccount.QUEUE_ENDPOINT_KEY));
-            }
-
-            if (settings.containsKey(ClientStorageAccount.TABLE_ENDPOINT_KEY)) {
-                storageAccount.setTablesUri(settings.get(ClientStorageAccount.TABLE_ENDPOINT_KEY));
-            }
+            storageAccount.setBlobsUri(connection.getBlobEndpoint().getPrimaryUri());
+            storageAccount.setQueuesUri(connection.getQueueEndpoint().getPrimaryUri());
+            storageAccount.setTablesUri(connection.getTableEndpoint().getPrimaryUri());
         }
 
         return storageAccount;
+    }
+
+    private String getProtocol(@Nonnull final String s) {
+        try {
+            return new URL(s).getProtocol();
+        } catch (MalformedURLException e) {
+            return null;
+        }
     }
 
     @NotNull
@@ -92,31 +91,32 @@ public class StorageClientSDKManager {
         return getBlobContainers(connectionString, null);
     }
 
-    public List<BlobContainer> getBlobContainers(@NotNull String connectionString, @Nullable BlobRequestOptions options)
+    public List<BlobContainer> getBlobContainers(@NotNull String connectionString, @Nullable Duration timeouts)
             throws AzureCmdException {
-        List<BlobContainer> bcList = new ArrayList<BlobContainer>();
+        List<BlobContainer> bcList = new ArrayList<>();
 
         try {
-            CloudBlobClient client = getCloudBlobClient(connectionString);
-            for (CloudBlobContainer container : client.listContainers(null, ContainerListingDetails.ALL, options, null)) {
-                String uri = container.getUri() != null ? container.getUri().toString() : "";
+            BlobServiceClient client = getCloudBlobClient(connectionString);
+            for (BlobContainerItem container : client.listBlobContainers(null, timeouts)) {
+                final BlobContainerClient containerClient = client.getBlobContainerClient(container.getName());
+                String uri = containerClient.getBlobContainerUrl();
                 String eTag = "";
                 Calendar lastModified = new GregorianCalendar();
-                BlobContainerProperties properties = container.getProperties();
+                final BlobContainerItemProperties properties = container.getProperties();
 
                 if (properties != null) {
-                    eTag = Strings.nullToEmpty(properties.getEtag());
+                    eTag = Strings.nullToEmpty(properties.getETag());
 
                     if (properties.getLastModified() != null) {
-                        lastModified.setTime(properties.getLastModified());
+                        lastModified.setTime(Date.from(properties.getLastModified().toInstant()));
                     }
                 }
 
                 String publicReadAccessType = "";
-                BlobContainerPermissions blobContainerPermissions = container.downloadPermissions();
+                BlobContainerAccessPolicies blobContainerPermissions = containerClient.getAccessPolicy();
 
-                if (blobContainerPermissions != null && blobContainerPermissions.getPublicAccess() != null) {
-                    publicReadAccessType = blobContainerPermissions.getPublicAccess().toString();
+                if (blobContainerPermissions != null && blobContainerPermissions.getBlobAccessType() != null) {
+                    publicReadAccessType = blobContainerPermissions.getBlobAccessType().toString();
                 }
 
                 bcList.add(new BlobContainer(Strings.nullToEmpty(container.getName()),
@@ -142,37 +142,12 @@ public class StorageClientSDKManager {
                                       long length)
             throws AzureCmdException {
         try {
-            CloudBlobClient client = getCloudBlobClient(connectionString);
+            BlobServiceClient client = getCloudBlobClient(connectionString);
             String containerName = blobContainer.getName();
 
-            CloudBlobContainer container = client.getContainerReference(containerName);
-            final CloudBlockBlob blob = container.getBlockBlobReference(filePath);
-            long uploadedBytes = 0;
-
-            ArrayList<BlockEntry> blockEntries = new ArrayList<BlockEntry>();
-
-            while (uploadedBytes < length) {
-                String blockId = Base64.encode(UUID.randomUUID().toString().getBytes());
-                BlockEntry entry = new BlockEntry(blockId, BlockSearchMode.UNCOMMITTED);
-
-                long blockSize = maxBlockSize;
-                if (length - uploadedBytes <= maxBlockSize) {
-                    blockSize = length - uploadedBytes;
-                }
-
-                if (processBlock != null) {
-                    processBlock.call(uploadedBytes);
-                }
-
-                entry.setSize(blockSize);
-
-                blockEntries.add(entry);
-                blob.uploadBlock(entry.getId(), content, blockSize);
-                uploadedBytes += blockSize;
-            }
-
-            blob.commitBlockList(blockEntries);
-
+            BlobContainerClient container = client.getBlobContainerClient(containerName);
+            final BlobClient blob = container.getBlobClient(filePath);
+            blob.upload(content, length);
         } catch (Throwable t) {
             throw new AzureCmdException("Error uploading the Blob File content", t);
         }
@@ -183,13 +158,7 @@ public class StorageClientSDKManager {
     }
 
     @NotNull
-    public static CloudStorageAccount getCloudStorageAccount(@NotNull String connectionString) throws URISyntaxException, InvalidKeyException {
-        return CloudStorageAccount.parse(connectionString);
-    }
-
-    @NotNull
-    private static CloudBlobClient getCloudBlobClient(@NotNull String connectionString) throws Exception {
-        CloudStorageAccount csa = getCloudStorageAccount(connectionString);
-        return csa.createCloudBlobClient();
+    public static BlobServiceClient getCloudBlobClient(@NotNull String connectionString) {
+        return new BlobServiceClientBuilder().httpLogOptions(new HttpLogOptions().setLogLevel(HttpLogDetailLevel.BODY_AND_HEADERS)).connectionString(connectionString).buildClient();
     }
 }

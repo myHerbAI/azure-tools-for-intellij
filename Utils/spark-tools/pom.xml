@@ -48,11 +48,6 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-handler</artifactId>
-                <version>4.1.69.Final</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-client</artifactId>
                 <version>${hadoop.version}</version>
