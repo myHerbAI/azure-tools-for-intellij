@@ -10,6 +10,7 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.synapse.AzureSynapseService;
+import com.microsoft.azure.toolkit.lib.synapse.WorkspaceNode;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,22 +34,26 @@ public class SynapseNodeProvider implements IExplorerNodeProvider {
 
     @Override
     public boolean accept(@Nonnull Object data, @Nullable Node<?> parent, ViewType type) {
-        return data instanceof AzureSynapseService;
+        return data instanceof AzureSynapseService
+                || data instanceof WorkspaceNode;
     }
 
     @Nullable
     @Override
     public Node<?> createNode(@Nonnull Object data,@Nullable Node<?> parent,@Nonnull Manager manager) {
         if (data instanceof AzureSynapseService) {
-//            final Function<AzureHDInsightService, List<SparkClusterNode>> clusters = s -> s.list().stream()
-//                    .flatMap(m -> m.clusters().list().stream()).collect(Collectors.toList());
-//            final Function<AzureHDInsightService, List<SparkClusterNode>> additionalClusters = AzureHDInsightService::listAdditionalCluster;
+            final Function<AzureSynapseService, List<WorkspaceNode>> workspaces = s -> s.list().stream()
+                    .flatMap(m -> m.workspaces().list().stream()).collect(Collectors.toList());
             return new AzServiceNode<>((AzureSynapseService) data)
                     .withIcon(ICON)
-                    .withLabel("Synapse");
-//                    .withActions(HDInsightActionsContributor.SERVICE_ACTIONS)
-//                    .addChildren(additionalClusters, (cluster, serviceNode) -> this.createNode(cluster, serviceNode, manager))
-//                    .addChildren(clusters, (cluster, serviceNode) -> this.createNode(cluster, serviceNode, manager));
+                    .withLabel("Apache Spark on Azure Synapse")
+                    .withActions(SynapseActionsContributor.SERVICE_ACTIONS)
+                    .addChildren(workspaces, (workspace, serviceNode) -> this.createNode(workspace, serviceNode, manager));
+        } else if (data instanceof WorkspaceNode) {
+            final WorkspaceNode workspaceNode = (WorkspaceNode) data;
+            return new AzResourceNode<>(workspaceNode)
+                    .withIcon(AzureIcon.builder().iconPath("/icons/Workspace_13x.png").build())
+                    .withActions(SynapseActionsContributor.WORKSPACES_NODE_ACTIONS);
         } else {
             return null;
         }

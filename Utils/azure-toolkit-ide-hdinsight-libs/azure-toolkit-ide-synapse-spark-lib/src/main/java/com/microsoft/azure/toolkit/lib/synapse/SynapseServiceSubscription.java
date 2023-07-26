@@ -16,18 +16,18 @@ public class SynapseServiceSubscription extends AbstractAzServiceSubscription<Sy
     @Nonnull
     private final String subscriptionId;
     @Nonnull
-//    private final SparkClusterModule sparkClusterModule;
+    private final WorkspaceModule workspaceModule;
 
     protected SynapseServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzureSynapseService service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
-//        this.sparkClusterModule = new SparkClusterModule(this);
+        this.workspaceModule = new WorkspaceModule(this);
     }
 
-//    @Nonnull
-//    public SparkClusterModule clusters() {
-//        return this.sparkClusterModule;
-//    }
+    @Nonnull
+    public WorkspaceModule workspaces() {
+        return this.workspaceModule;
+    }
 
     protected SynapseServiceSubscription(@Nonnull HDInsightManager manager, @Nonnull AzureSynapseService service) {
         this(manager.serviceClient().getSubscriptionId(), service);

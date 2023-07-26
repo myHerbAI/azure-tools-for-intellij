@@ -33,12 +33,22 @@ import static com.microsoft.azure.toolkit.lib.Azure.az;
 public class SynapseActionsContributor implements IActionsContributor {
 
     public static final int INITIALIZE_ORDER = ResourceCommonActionsContributor.INITIALIZE_ORDER + 1;
-
     public static final String SERVICE_ACTIONS = "actions.synapse.service";
-    public static final Action.Id<ResourceGroup> GROUP_CREATE_Synapse_SERVICE = Action.Id.of("user/synapse.create_synapse.group");
+    public static final String WORKSPACES_NODE_ACTIONS = "actions.synapse.workspace";
+    public static final Action.Id<ResourceGroup> GROUP_CREATE_SYNAPSE_SERVICE = Action.Id.of("user/synapse.create_synapse.group");
+    public static final Action.Id<AzResource> OPEN_LAUNCH_WORKSPACE = Action.Id.of("user/synapse.open_launch_workspace");
+
     @Override
     public void registerActions(AzureActionManager am) {
+        new Action<>(OPEN_LAUNCH_WORKSPACE)
+                .withLabel("launch workspace")
+                .enableWhen(s -> true)
+                .withAuthRequired(false)
+                .withHandler(resource -> {
 
+                })
+                .withShortcut(am.getIDEDefaultShortcuts().edit())
+                .register(am);
     }
 
     @Override
@@ -49,8 +59,14 @@ public class SynapseActionsContributor implements IActionsContributor {
         );
         am.registerGroup(SERVICE_ACTIONS, serviceActionGroup);
 
+        final ActionGroup workspaceActionGroup = new ActionGroup(
+                ResourceCommonActionsContributor.REFRESH,
+                this.OPEN_LAUNCH_WORKSPACE
+        );
+        am.registerGroup(WORKSPACES_NODE_ACTIONS, workspaceActionGroup);
+
         final IActionGroup group = am.getGroup(ResourceCommonActionsContributor.RESOURCE_GROUP_CREATE_ACTIONS);
-        group.addAction(GROUP_CREATE_Synapse_SERVICE);
+        group.addAction(GROUP_CREATE_SYNAPSE_SERVICE);
     }
 
     @Override
