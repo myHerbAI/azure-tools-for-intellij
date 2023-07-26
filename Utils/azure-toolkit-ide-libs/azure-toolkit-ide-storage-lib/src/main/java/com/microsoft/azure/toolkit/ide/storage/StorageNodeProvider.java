@@ -64,6 +64,7 @@ public class StorageNodeProvider implements IExplorerNodeProvider {
         } else if (data instanceof AzuriteStorageAccount) {
             return new AzResourceNode<>((AzuriteStorageAccount) data)
                 .withDescription(AzuriteStorageAccount::getStatus)
+                .withLabel("Storage Emulator (Azurite)")
                 .withIcon(StorageNodeProvider::getAzuriteIcon)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .withActions(StorageActionsContributor.AZURITE_ACTIONS)
