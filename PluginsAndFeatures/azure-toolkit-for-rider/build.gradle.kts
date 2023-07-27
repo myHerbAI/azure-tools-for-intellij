@@ -124,9 +124,13 @@ sourceSets {
 dependencies {
     implementation(project(path = ":azure-intellij-plugin-lib", configuration = "instrumentedJar"))
     implementation(project(path = ":azure-intellij-plugin-lib-dotnet", configuration = "instrumentedJar"))
-    implementation(project(":azure-intellij-resource-connector-lib", configuration = "instrumentedJar"))
+    implementation(project(path = ":azure-intellij-plugin-guidance", configuration = "instrumentedJar"))
+    implementation(project(path = ":azure-intellij-resource-connector-lib", configuration = "instrumentedJar"))
     implementation(project(path = ":azure-intellij-plugin-service-explorer", configuration = "instrumentedJar"))
-    implementation(project(":azure-intellij-plugin-arm", configuration = "instrumentedJar"))
+    implementation(project(path = ":azure-intellij-plugin-arm", configuration = "instrumentedJar"))
+    implementation(project(path = ":azure-intellij-plugin-appservice", configuration = "instrumentedJar"))
+    implementation(project(path = ":azure-intellij-plugin-appservice-dotnet", configuration = "instrumentedJar"))
+    implementation(project(path = ":azure-intellij-plugin-monitor", configuration = "instrumentedJar"))
 
     aspect("com.microsoft.azure:azure-toolkit-common-lib") {
         exclude("com.squareup.okhttp3", "okhttp")
