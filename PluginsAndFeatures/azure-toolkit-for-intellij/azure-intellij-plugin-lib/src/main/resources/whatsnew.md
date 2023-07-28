@@ -1,6 +1,19 @@
 <!-- Version: 3.78.0 -->
 # What's new in Azure Toolkit for IntelliJ
 
+## 3.79.0
+### Added
+- Support for creating Azure Spring apps/services of Enterprise/Standard/Basic tier in IDE.    
+  <img alt="create spring apps" src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202307/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib/src/main/resources/whatsnew.assets/202307.create-spring-apps.png" width="500"/>
+- Support for managing deployment target services directly in Project Explorer.    
+  <img alt="deployment targets" src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202307/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib/src/main/resources/whatsnew.assets/202307.deployment-targets.png" width="600"/>
+
+### Fixed
+- status shows inactive after creating/refreshing spring app.
+- error may occur when importing document into SQL container.
+- error may occur when connecting to the storage emulator and running locally.
+- error may occur when deploy function app.
+
 ## 3.78.0
 ### Added
 - New UX for Azure resource connections in IntelliJ project view

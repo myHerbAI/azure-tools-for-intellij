@@ -3,6 +3,7 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.79.0](#3790)
   - [3.78.1](#3781)
   - [3.78.0](#3780)
   - [3.77.0](#3770)
@@ -98,6 +99,17 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.8](#308)
   - [3.0.7](#307)
   - [3.0.6](#306)
+
+## 3.79.0
+### Added
+- Support for creating Azure Spring apps/services of Enterprise/Standard/Basic tier in IDE.    
+- Support for managing deployment target services directly in Project Explorer.    
+
+### Fixed
+- status shows inactive after creating/refreshing spring app.
+- error may occur when importing document into SQL container.
+- error may occur when connecting to the storage emulator and running locally.
+- error may occur when deploy function app.
 
 ## 3.78.1
 ### Fixed
