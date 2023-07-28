@@ -948,7 +948,7 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
  - Support virtual file system on ADLS Gen2 storage for HDInsight Spark cluster and Synapse Spark pool
 
 ### Changed
- - Seperator for multiple referenced jars and referenced files is changed from semicolon to space in Spark batch job configuration
+ - Separator for multiple referenced jars and referenced files is changed from semicolon to space in Spark batch job configuration
  - "Continue Anyway" is changed to "Cancel submit" in "Change configuration settings" dialog when validation check failed for spark batch job
  - The behavior of "Rerun" button action for Spark batch job is changed from re-run with current selected configuration to re-run with previous job configuration
 
