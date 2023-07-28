@@ -46,7 +46,10 @@ public class AzureFacet extends Facet<AzureFacetConfiguration> {
             final PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
             FacetManager.getInstance(module).addFacet(AzureFacetType.INSTANCE, "Azure", null);
             properties.setValue(getFacetFlag(module), true);
-            Optional.ofNullable(ProjectView.getInstance(module.getProject())).ifPresent(v -> v.getCurrentProjectViewPane().updateFromRoot(true));
+            Optional.of(module.getProject())
+                .map(ProjectView::getInstance)
+                .map(ProjectView::getCurrentProjectViewPane)
+                .ifPresent(p -> p.updateFromRoot(true));
         }
     }
 

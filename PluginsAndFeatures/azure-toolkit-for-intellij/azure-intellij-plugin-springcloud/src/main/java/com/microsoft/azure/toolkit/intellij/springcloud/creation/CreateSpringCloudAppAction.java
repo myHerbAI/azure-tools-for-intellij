@@ -49,7 +49,10 @@ public class CreateSpringCloudAppAction {
     @AzureOperation(name = "user/springcloud.create_app.app", params = "app.getName()")
     private static void createApp(SpringCloudAppDraft app) {
         AzureTaskManager.getInstance().runInBackground(OperationBundle.description("user/springcloud.create_app.app", app.getName()), () -> {
-            final SpringCloudDeploymentDraft deployment = (SpringCloudDeploymentDraft) app.getActiveDeployment();
+            SpringCloudDeploymentDraft deployment = (SpringCloudDeploymentDraft) app.getActiveDeployment();
+            if (deployment == null) {
+                deployment = app.updateOrCreateActiveDeployment();
+            }
             Objects.requireNonNull(deployment).commit();
             app.reset();
             CacheManager.getUsageHistory(SpringCloudCluster.class).push(app.getParent());
