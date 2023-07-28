@@ -157,6 +157,20 @@ tasks {
         }
     }
 
+    val copyIcons by registering(Copy::class) {
+        description = "Copies the icons directory of the base plugin."
+        from(projectDir.resolve("..").resolve("azure-toolkit-for-intellij").resolve("src").resolve("main").resolve("resources").resolve("icons"))
+        into(projectDir.resolve("src").resolve("main").resolve("resources").resolve("icons"))
+    }
+
+    buildPlugin  {
+        dependsOn(copyIcons)
+    }
+
+    processResources {
+        dependsOn(copyIcons)
+    }
+
     configure<com.jetbrains.rd.generator.gradle.RdGenExtension> {
         val modelDir = projectDir.resolve("protocol").resolve("src").resolve("main")
             .resolve("kotlin")
@@ -193,5 +207,9 @@ tasks {
 
     processResources {
         duplicatesStrategy = DuplicatesStrategy.WARN
+    }
+
+    buildSearchableOptions {
+        enabled = false
     }
 }
