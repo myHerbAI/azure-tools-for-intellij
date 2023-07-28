@@ -21,9 +21,6 @@
         <registryKey key="azure.toolkit.feedback.score.threshold" description="Score threshold to popup for rating" restartRequired="false" defaultValue="20"/>
     </extensions>
     <actions>
-        <action id="Actions.WhatsNew"
-                class="com.microsoft.azure.toolkit.intellij.common.action.WhatsNewAction" text="What's New in Azure Toolkit"
-                description="Show new features of Azure Toolkit for Java"/>
         <action id="user/common.never_show_again"
                 class="com.microsoft.azure.toolkit.intellij.common.messager.IntellijNeverShowAgainAction"
                 text="Never Show Again"

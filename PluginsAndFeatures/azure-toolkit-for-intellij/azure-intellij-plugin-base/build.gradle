@@ -106,6 +106,7 @@ dependencies {
     implementation 'com.microsoft.azure:azure-toolkit-ide-common-lib'
 
     implementation project(path: ':azure-intellij-plugin-lib', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-lib-java', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-service-explorer', configuration: 'instrumentedJar')
 
     def modules = IntellijPluginModules.split(",")
