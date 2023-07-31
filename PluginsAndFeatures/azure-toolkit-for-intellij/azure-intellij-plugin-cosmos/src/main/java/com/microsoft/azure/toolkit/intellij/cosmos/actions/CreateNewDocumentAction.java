@@ -86,7 +86,7 @@ public class CreateNewDocumentAction {
     @SneakyThrows
     private static VirtualFile createVirtualFile(@Nonnull final ICosmosDocumentContainer<?> container,
                                                  final FileEditorManager manager, final String content) {
-        final File tempFile = FileUtil.createTempFile(String.format("%s:New Document", container.getName()), ".json", true);
+        final File tempFile = FileUtil.createTempFile(String.format("New Document - %s", container.getName()), ".json", true);
         FileUtil.writeToFile(tempFile, content);
         return VirtualFileActions.createVirtualFile(container.getId(), tempFile.getName(), tempFile, manager);
     }
