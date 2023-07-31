@@ -110,6 +110,8 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
 - error may occur when importing document into SQL container.
 - error may occur when connecting to the storage emulator and running locally.
 - error may occur when deploy function app.
+- HDInsight Job view nodes are displayed as 'folder icon + cluster name'.
+- HDInsight Linked cluster cannot display in Azure Explorer when not signed in.
 
 ## 3.78.1
 ### Fixed
