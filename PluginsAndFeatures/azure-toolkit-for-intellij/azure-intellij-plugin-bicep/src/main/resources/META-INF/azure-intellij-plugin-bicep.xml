@@ -28,30 +28,30 @@
                                 id="org.wso2.lsp4intellij.contributors.LSPCompletionContributor" language="any"/>
         <!-- needed for completion as well as signature help -->
         <typedHandler implementation="org.wso2.lsp4intellij.listeners.LSPTypedHandler"
-                      id="LSPTypedHandler"/>
+                      id="Azure.LSPTypedHandler"/>
 
         <!-- needed for code diagnostics -->
-        <externalAnnotator id="LSPAnnotator" language="TEXT"
+        <externalAnnotator id="Azure.LSPAnnotator" language="TEXT"
                            implementationClass="org.wso2.lsp4intellij.contributors.annotator.LSPAnnotator"/>
 
         <!-- needed for Workspace Symbols -->
         <gotoSymbolContributor implementation="org.wso2.lsp4intellij.contributors.symbol.LSPSymbolContributor"
-                               id="LSPSymbolContributor"/>
+                               id="Azure.LSPSymbolContributor"/>
 
         <!-- needed for renaming -->
-        <renameHandler implementation="org.wso2.lsp4intellij.contributors.rename.LSPRenameHandler" id="LSPRenameHandler" order="first"/>
-        <renamePsiElementProcessor implementation="org.wso2.lsp4intellij.contributors.rename.LSPRenameProcessor" id="LSPRenameProcessor" order="first"/>
+        <renameHandler implementation="org.wso2.lsp4intellij.contributors.rename.LSPRenameHandler" id="Azure.LSPRenameHandler" order="first"/>
+        <renamePsiElementProcessor implementation="org.wso2.lsp4intellij.contributors.rename.LSPRenameProcessor" id="Azure.LSPRenameProcessor" order="first"/>
     </extensions>
 
     <actions>
         <!-- needed for hover -->
         <action id="org.intellij.sdk.action.QuickDocAction" class="org.wso2.lsp4intellij.actions.LSPQuickDocAction" text="Show Quick Doc"/>
-        <action class="org.wso2.lsp4intellij.actions.LSPGotoDeclarationAction" id="GotoDeclaration" use-shortcut-of="GotoDeclaration"
+        <action class="org.wso2.lsp4intellij.actions.LSPGotoDeclarationAction" id="Azure.GotoDeclaration" use-shortcut-of="GotoDeclaration"
                 overrides="true" text="Go to Declaration or Usages"/>
-        <action class="org.wso2.lsp4intellij.actions.LSPReformatAction" id="ReformatCode" use-shortcut-of="ReformatCode"
+        <action class="org.wso2.lsp4intellij.actions.LSPReformatAction" id="Azure.ReformatCode" use-shortcut-of="ReformatCode"
                 overrides="true" text="Reformat Code" />
         <!-- needed for find references -->
-        <action class="org.wso2.lsp4intellij.actions.LSPReferencesAction" id="LSPFindUsages" text="Find Usages">
+        <action class="org.wso2.lsp4intellij.actions.LSPReferencesAction" id="Azure.LSPFindUsages" text="Find Usages">
             <keyboard-shortcut first-keystroke="shift alt F7" keymap="$default"/>
         </action>
     </actions>
