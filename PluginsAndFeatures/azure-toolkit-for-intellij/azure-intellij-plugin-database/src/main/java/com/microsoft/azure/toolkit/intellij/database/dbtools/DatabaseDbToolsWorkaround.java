@@ -9,18 +9,26 @@ import com.intellij.database.dataSource.DatabaseDriverImpl;
 import com.intellij.database.dataSource.DatabaseDriverManager;
 import com.intellij.database.dataSource.url.template.UrlTemplate;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PreloadingActivity;
+import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.ProjectActivity;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-public class DatabaseDbToolsWorkaround extends PreloadingActivity {
+public class DatabaseDbToolsWorkaround implements ProjectActivity, DumbAware {
+
+    @Nullable
     @Override
-    public void preload() {
+    public Object execute(@Nonnull Project project, @Nonnull Continuation<? super Unit> continuation) {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             try {
                 loadMySqlAzureTemplates();
@@ -32,6 +40,7 @@ public class DatabaseDbToolsWorkaround extends PreloadingActivity {
                 AzureTelemeter.log(AzureTelemetry.Type.ERROR, new HashMap<>(), t);
             }
         });
+        return null;
     }
 
     private static void loadMySqlAzureTemplates() {
