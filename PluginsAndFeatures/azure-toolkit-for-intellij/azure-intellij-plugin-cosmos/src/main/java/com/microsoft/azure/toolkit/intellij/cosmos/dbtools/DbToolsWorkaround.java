@@ -14,6 +14,8 @@ import com.intellij.openapi.application.PreloadingActivity;
 import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.util.registry.Registry;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -22,6 +24,7 @@ import org.jdom.Element;
 import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -38,9 +41,14 @@ public class DbToolsWorkaround extends PreloadingActivity {
     @Override
     public void preload() {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
-            DbToolsWorkaround.makeAccountShowAtTop();
-            loadMongoDriver();
-            loadCassandraDriver();
+            try {
+                DbToolsWorkaround.makeAccountShowAtTop();
+                loadMongoDriver();
+                loadCassandraDriver();
+            } catch (final Throwable t) {
+                // swallow exception for preloading workarounds
+                AzureTelemeter.log(AzureTelemetry.Type.ERROR, new HashMap<>(), t);
+            }
         });
     }
 

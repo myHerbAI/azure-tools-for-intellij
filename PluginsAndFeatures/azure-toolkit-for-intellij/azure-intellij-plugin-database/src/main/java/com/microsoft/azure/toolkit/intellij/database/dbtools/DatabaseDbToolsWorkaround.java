@@ -10,7 +10,10 @@ import com.intellij.database.dataSource.DatabaseDriverManager;
 import com.intellij.database.dataSource.url.template.UrlTemplate;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PreloadingActivity;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -19,10 +22,15 @@ public class DatabaseDbToolsWorkaround extends PreloadingActivity {
     @Override
     public void preload() {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
-            loadMySqlAzureTemplates();
-            loadPostgreSqlAzureTemplates();
-            loadSqlServerAzureTemplates();
-            loadAzureSqlDatabaseAzureTemplates();
+            try {
+                loadMySqlAzureTemplates();
+                loadPostgreSqlAzureTemplates();
+                loadSqlServerAzureTemplates();
+                loadAzureSqlDatabaseAzureTemplates();
+            } catch (final Throwable t) {
+                // swallow exception for preloading workarounds
+                AzureTelemeter.log(AzureTelemetry.Type.ERROR, new HashMap<>(), t);
+            }
         });
     }
 
