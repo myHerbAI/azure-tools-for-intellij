@@ -38,6 +38,8 @@
       <li>error may occur when importing document into SQL container.</li>
       <li>error may occur when connecting to the storage emulator and running locally.</li>
       <li>error may occur when deploy function app.</li>
+      <li>HDInsight Job view nodes are displayed as 'folder icon + cluster name'.</li>
+      <li>HDInsight Linked cluster cannot display in Azure Explorer when not signed in.</li>
       </ul>
       <p>You may get the full change log <a href="https://github.com/Microsoft/azure-tools-for-java/blob/develop/CHANGELOG.md">here</a></p>
     </html>
