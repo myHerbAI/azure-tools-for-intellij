@@ -115,6 +115,7 @@ public class FunctionUtils {
         REQUIRED_ATTRIBUTE_MAP.put(BindingEnum.HttpTrigger, Arrays.asList("authLevel"));
     }
 
+    @AzureOperation(name = "internal/function.save_app_settings_to_security_storage")
     public static void saveAppSettingsToSecurityStorage(String key, Map<String, String> appSettings) {
         if (StringUtils.isEmpty(key)) {
             return;
@@ -123,6 +124,7 @@ public class FunctionUtils {
         IntelliJSecureStore.getInstance().savePassword(AZURE_FUNCTIONS_APP_SETTINGS, key, null, appSettingsJsonValue);
     }
 
+    @AzureOperation(name = "internal/function.load_app_settings_from_security_storage")
     public static Map<String, String> loadAppSettingsFromSecurityStorage(String key) {
         if (StringUtils.isEmpty(key)) {
             return new HashMap<>();

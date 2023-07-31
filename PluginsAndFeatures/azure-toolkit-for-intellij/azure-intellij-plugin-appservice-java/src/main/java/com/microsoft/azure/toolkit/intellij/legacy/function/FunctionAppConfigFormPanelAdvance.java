@@ -77,6 +77,7 @@ public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFo
                 final ApplicationInsightsComboBox insightsComboBox = appServiceMonitorPanel.getApplicationInsightsComboBox();
                 insightsComboBox.removeItem(insightsConfig);
                 insightsComboBox.setValue(insightsConfig);
+                insightsComboBox.reloadItems();
             }
         });
     }

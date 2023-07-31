@@ -8,12 +8,18 @@ package com.microsoft.azure.toolkit.intellij.cosmos.dbtools;
 import com.intellij.database.dataSource.DatabaseDriverImpl;
 import com.intellij.database.dataSource.DatabaseDriverManager;
 import com.intellij.database.dataSource.DatabaseDriverManagerImpl;
-import com.intellij.database.dataSource.url.ui.UrlPropertiesPanel;
+import com.intellij.database.dataSource.url.ui.ParametersLayoutUtils;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PreloadingActivity;
+import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.ProjectActivity;
 import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.util.registry.Registry;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -22,11 +28,12 @@ import org.jdom.Element;
 import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-public class DbToolsWorkaround extends PreloadingActivity {
+public class DbToolsWorkaround implements ProjectActivity, DumbAware {
     private static final String PARAM_NAME = "account";
     public static final String COSMOS_MONGO_ICON = "icons/Microsoft.DocumentDB/databaseAccounts/mongo.svg";
     public static final String COSMOS_MONGO_DRIVER_ID = "az_cosmos_mongo";
@@ -36,12 +43,18 @@ public class DbToolsWorkaround extends PreloadingActivity {
     public static final String COSMOS_CASSANDRA_DRIVER_CONFIG = "databaseDrivers/azure-cosmos-cassandra-drivers.xml";
 
     @Override
-    public void preload() {
+    public Object execute(@Nonnull Project project, @Nonnull Continuation<? super Unit> continuation) {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
-            DbToolsWorkaround.makeAccountShowAtTop();
-            loadMongoDriver();
-            loadCassandraDriver();
+            try {
+                DbToolsWorkaround.makeAccountShowAtTop();
+                loadMongoDriver();
+                loadCassandraDriver();
+            } catch (final Throwable t) {
+                // swallow exception for preloading workarounds
+                AzureTelemeter.log(AzureTelemetry.Type.ERROR, new HashMap<>(), t);
+            }
         });
+        return null;
     }
 
     private static void loadMongoDriver() {
@@ -92,7 +105,7 @@ public class DbToolsWorkaround extends PreloadingActivity {
     @SuppressWarnings("unchecked")
     private static void makeAccountShowAtTop() {
         try {
-            final Field HEADS = FieldUtils.getField(UrlPropertiesPanel.class, "HEADS", true);
+            final Field HEADS = FieldUtils.getField(ParametersLayoutUtils.class, "HEADS", true);
             final List<String> heads = (List<String>) FieldUtils.readStaticField(HEADS, true);
             if (!heads.contains(PARAM_NAME)) {
                 final Object[] old = heads.toArray();
