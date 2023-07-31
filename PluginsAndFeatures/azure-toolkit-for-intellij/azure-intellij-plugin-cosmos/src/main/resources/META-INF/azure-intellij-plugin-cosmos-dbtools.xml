@@ -15,7 +15,7 @@
         <registryKey key="azure.toolkit.cosmos_cassandra.dbtools.enabled"
                      description="Enables DB tools related features of Azure cosmos DB API for cassandra"
                      restartRequired="true" defaultValue="false"/>
-        <preloadingActivity implementation="com.microsoft.azure.toolkit.intellij.cosmos.dbtools.DbToolsWorkaround"/>
+        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.cosmos.dbtools.DbToolsWorkaround"/>
     </extensions>
     <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
         <actions implementation="com.microsoft.azure.toolkit.intellij.cosmos.IntelliJCosmosActionsContributorForUltimate"/>
