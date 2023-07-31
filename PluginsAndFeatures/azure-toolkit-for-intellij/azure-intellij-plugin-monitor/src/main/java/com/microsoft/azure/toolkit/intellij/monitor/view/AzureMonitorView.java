@@ -26,6 +26,9 @@ import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessage;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -69,15 +72,20 @@ public class AzureMonitorView extends JPanel implements Disposable {
             this.updateWorkspaceNameLabel();
             Optional.ofNullable(this.selectedWorkspace).ifPresent(w -> PropertiesComponent.getInstance().setValue(AzureMonitorManager.AZURE_MONITOR_SELECTED_WORKSPACE, w.getId()));
         });
+        final IAzureMessager messager = AzureMessager.getMessager();
         this.subscriptionChangeListener = new AzureEventBus.EventListener(e -> {
             LogAnalyticsWorkspace defaultWorkspace = null;
             final Account account = Azure.az(AzureAccount.class).account();
             if (Objects.nonNull(account) && account.getSelectedSubscriptions().size() > 0) {
                 final Subscription subscription = account.getSelectedSubscriptions().get(0);
-                final List<LogAnalyticsWorkspace> workspaceList = Azure.az(AzureLogAnalyticsWorkspace.class)
-                        .logAnalyticsWorkspaces(subscription.getId()).list().stream().toList();
-                if (workspaceList.size() > 0) {
-                    defaultWorkspace = workspaceList.get(0);
+                try {
+                    final List<LogAnalyticsWorkspace> workspaceList = Azure.az(AzureLogAnalyticsWorkspace.class)
+                            .logAnalyticsWorkspaces(subscription.getId()).list().stream().toList();
+                    if (workspaceList.size() > 0) {
+                        defaultWorkspace = workspaceList.get(0);
+                    }
+                } catch (final Throwable t) {
+                    messager.error(t);
                 }
             }
             this.selectedWorkspace = defaultWorkspace;

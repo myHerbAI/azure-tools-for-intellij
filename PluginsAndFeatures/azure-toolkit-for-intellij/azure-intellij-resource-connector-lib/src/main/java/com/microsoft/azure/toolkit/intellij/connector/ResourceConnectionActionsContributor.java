@@ -170,7 +170,7 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
                 .register(am);
 
         new Action<>(REMOVE_CONNECTION)
-            .withLabel("Remove")
+            .withLabel("Remove Resource Connection")
             .withIcon(AzureIcons.Action.REMOVE.getIconPath())
             .visibleWhen(m -> m instanceof Connection<?, ?>)
             .withHandler((c, e) -> ResourceConnectionActionsContributor.removeConnection(c, (AnActionEvent) e))

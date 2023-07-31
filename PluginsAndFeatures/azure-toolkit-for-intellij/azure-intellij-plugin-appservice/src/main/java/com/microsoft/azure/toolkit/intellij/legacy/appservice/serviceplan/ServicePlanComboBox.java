@@ -97,7 +97,8 @@ public class ServicePlanComboBox extends AzureComboBox<AppServicePlan> {
 
     @Override
     public void setValue(@Nullable AppServicePlan val, Boolean fixed) {
-        if (Objects.nonNull(val) && val.isDraftForCreating() && !this.draftItems.contains(val)) {
+        if (Objects.nonNull(val) && val.isDraftForCreating()) {
+            this.draftItems.remove(val);
             this.draftItems.add(0, val);
             this.reloadItems();
         }

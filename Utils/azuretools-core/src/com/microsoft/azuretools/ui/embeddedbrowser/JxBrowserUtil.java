@@ -5,9 +5,10 @@
 
 package com.microsoft.azuretools.ui.embeddedbrowser;
 
-import com.microsoft.azure.storage.blob.CloudBlobClient;
-import com.microsoft.azure.storage.blob.CloudBlobContainer;
-import com.microsoft.azure.storage.blob.CloudBlockBlob;
+import com.azure.storage.blob.BlobClient;
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -21,7 +22,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
@@ -210,11 +210,10 @@ public class JxBrowserUtil {
     private static Boolean downloadFromAzure(@NotNull Path filePathName) {
         boolean result = true;
         try {
-            URI cloudBlobUri = new URI(AZURE_BLOB_URI);
-            CloudBlobClient serviceClient = new CloudBlobClient(cloudBlobUri);
-            CloudBlobContainer container = serviceClient.getContainerReference("libcontainer1");
-            CloudBlockBlob blob = container.getBlockBlobReference(filePathName.getFileName().toString());
-            File downloadingFile = filePathName.toFile();
+            final BlobServiceClient serviceClient = new BlobServiceClientBuilder().connectionString(AZURE_BLOB_URI).buildClient();
+            final BlobContainerClient container = serviceClient.getBlobContainerClient("libcontainer1");
+            final BlobClient blob = container.getBlobClient(filePathName.getFileName().toString());
+            final File downloadingFile = filePathName.toFile();
             blob.downloadToFile(downloadingFile.getAbsolutePath());
         } catch (Exception e) {
             result = false;
