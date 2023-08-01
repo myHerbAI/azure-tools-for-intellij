@@ -1,14 +1,15 @@
 package com.microsoft.azure.toolkit.ide.synapse.spark;
 
-import com.microsoft.azure.hdinsight.common.JobViewManager;
+import com.google.common.collect.ImmutableSortedSet;
+import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;
+import com.microsoft.azure.projectarcadia.common.ArcadiaSparkComputeManager;
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
-import com.microsoft.azure.toolkit.ide.common.component.AzModuleNode;
 import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
 import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.synapse.ArcadiaSparkComputeNode;
 import com.microsoft.azure.toolkit.lib.synapse.AzureSynapseService;
 import com.microsoft.azure.toolkit.lib.synapse.WorkspaceNode;
 
@@ -35,7 +36,8 @@ public class SynapseNodeProvider implements IExplorerNodeProvider {
     @Override
     public boolean accept(@Nonnull Object data, @Nullable Node<?> parent, ViewType type) {
         return data instanceof AzureSynapseService
-                || data instanceof WorkspaceNode;
+                || data instanceof WorkspaceNode
+                || data instanceof ArcadiaSparkComputeNode;
     }
 
     @Nullable
@@ -51,9 +53,19 @@ public class SynapseNodeProvider implements IExplorerNodeProvider {
                     .addChildren(workspaces, (workspace, serviceNode) -> this.createNode(workspace, serviceNode, manager));
         } else if (data instanceof WorkspaceNode) {
             final WorkspaceNode workspaceNode = (WorkspaceNode) data;
+            ArcadiaSparkComputeManager arcadiaSparkComputeManager = ArcadiaSparkComputeManager.getInstance();
+            ImmutableSortedSet<? extends IClusterDetail> clusters = arcadiaSparkComputeManager.getClusters();
+
             return new AzResourceNode<>(workspaceNode)
                     .withIcon(AzureIcon.builder().iconPath("/icons/Workspace_13x.png").build())
-                    .withActions(SynapseActionsContributor.WORKSPACES_NODE_ACTIONS);
+                    .withActions(SynapseActionsContributor.WORKSPACES_NODE_ACTIONS)
+                    .withChildrenLoadLazily(false)
+                    .addChildren(s->s.getArcadiaSparkComputeModule().list(), (d, mn) -> this.createNode(d, mn, manager));
+        } else if (data instanceof ArcadiaSparkComputeNode) {
+            final ArcadiaSparkComputeNode arcadiaSparkComputeNode = (ArcadiaSparkComputeNode) data;
+
+            return new AzResourceNode<>(arcadiaSparkComputeNode)
+                    .withIcon(AzureIcon.builder().iconPath("/icons/Cluster.png").build());
         } else {
             return null;
         }

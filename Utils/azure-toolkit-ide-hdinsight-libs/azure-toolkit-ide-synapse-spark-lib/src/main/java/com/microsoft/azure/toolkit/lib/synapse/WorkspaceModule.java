@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 
 import static com.microsoft.azure.toolkit.lib.common.model.AzResource.RESOURCE_GROUP_PLACEHOLDER;
 
-public class WorkspaceModule extends AbstractAzResourceModule<WorkspaceNode, SynapseServiceSubscription, com.azure.resourcemanager.synapse.models.Workspace> {
+public class WorkspaceModule extends AbstractAzResourceModule<WorkspaceNode, SynapseServiceSubscription, ArcadiaWorkSpace> {
 
     public static final String NAME = "workspaces";
 
@@ -44,45 +44,18 @@ public class WorkspaceModule extends AbstractAzResourceModule<WorkspaceNode, Syn
 
     @Nonnull
     @Override
-    protected Iterator<? extends ContinuablePage<String, Workspace>> loadResourcePagesFromAzure() {
+    protected Iterator<? extends ContinuablePage<String, ArcadiaWorkSpace>> loadResourcePagesFromAzure() {
         return Collections.singletonList(new ItemPage<>(this.loadResourcesFromAzure())).iterator();
     }
 
     @Nonnull
     @AzureOperation(name = "resource.load_resources_in_azure.type", params = {"this.getResourceTypeName()"})
-    protected Stream<Workspace> loadResourcesFromAzure() {
-        return Optional.ofNullable( this.getClient()).map((c) -> {
-            ArcadiaSparkComputeManager manager = new ArcadiaSparkComputeManager();
-            List<ArcadiaWorkSpace> workspaces = manager.getWorkspaces().stream().collect(Collectors.toList());
-
-
-            List<Workspace> sourceList = c.list().iterableByPage().iterator().next().getValue();
-            for (Workspace workspace : sourceList) {
-
-            }
-            List<Workspace> resultList = new ArrayList<Workspace>();
-
-            // Remove duplicate clusters that share the same cluster name
-//            List<IClusterDetail> additionalClusterDetails = ClusterManagerEx.getInstance().getAdditionalClusterDetails();
-//            HashSet<String> clusterIdSet = new HashSet<>();
-//            for (Cluster cluster : sourceList) {
-//                boolean isLinkedCluster = false;
-//                for (IClusterDetail additionalCluster : additionalClusterDetails) {
-//                    if (additionalCluster.getName().equals(cluster.name()))
-//                        isLinkedCluster = true;
-//                }
-//                if ((!isLinkedCluster) && (clusterIdSet.add(cluster.id()) && isSparkCluster(cluster.properties().clusterDefinition().kind())))
-//                    resultList.add(cluster);
-//            }
-            return sourceList.stream();
-        }).orElse(Stream.empty());
+    protected Stream<ArcadiaWorkSpace> loadResourcesFromAzure() {
+            ArcadiaSparkComputeManager.getInstance().refresh();
+            List<ArcadiaWorkSpace> workspaces = ArcadiaSparkComputeManager.getInstance().getWorkspaces().stream().collect(Collectors.toList());
+            return workspaces.stream();
     }
 
-    @Nullable
-    @Override
-    public Workspaces getClient() {
-        return Optional.ofNullable(this.parent.getRemote()).map(SynapseManager::workspaces).orElse(null);
-    }
 
     @Nullable
     @Override
@@ -96,7 +69,7 @@ public class WorkspaceModule extends AbstractAzResourceModule<WorkspaceNode, Syn
 
     @NotNull
     @Override
-    protected WorkspaceNode newResource(@NotNull Workspace workspace) {
+    protected WorkspaceNode newResource(@NotNull ArcadiaWorkSpace workspace) {
         return new WorkspaceNode(workspace,this);
     }
 

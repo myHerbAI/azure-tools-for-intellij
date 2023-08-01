@@ -15,20 +15,10 @@ import com.microsoft.azure.toolkit.lib.common.action.*;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.Refreshable;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
-import com.microsoft.azuretools.azurecommons.helpers.StringHelper;
 import com.microsoft.tooling.msservices.components.DefaultLoader;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Optional;
-
-import static com.microsoft.azure.toolkit.lib.Azure.az;
+import com.microsoft.azure.toolkit.lib.synapse.WorkspaceNode;
 
 public class SynapseActionsContributor implements IActionsContributor {
 
@@ -41,11 +31,15 @@ public class SynapseActionsContributor implements IActionsContributor {
     @Override
     public void registerActions(AzureActionManager am) {
         new Action<>(OPEN_LAUNCH_WORKSPACE)
-                .withLabel("launch workspace")
+                .withLabel("Launch workspace")
                 .enableWhen(s -> true)
                 .withAuthRequired(false)
                 .withHandler(resource -> {
-
+                    if (resource instanceof WorkspaceNode) {
+                        WorkspaceNode workspaceNode = (WorkspaceNode) resource;
+                        String webUrl = workspaceNode.getRemote().getWebUrl();
+                        DefaultLoader.getIdeHelper().openLinkInBrowser(webUrl);
+                    }
                 })
                 .withShortcut(am.getIDEDefaultShortcuts().edit())
                 .register(am);
