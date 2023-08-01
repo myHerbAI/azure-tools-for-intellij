@@ -3,6 +3,7 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.79.0](#3790)
   - [3.78.1](#3781)
   - [3.78.0](#3780)
   - [3.77.0](#3770)
@@ -98,6 +99,19 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.8](#308)
   - [3.0.7](#307)
   - [3.0.6](#306)
+
+## 3.79.0
+### Added
+- Support for creating Azure Spring apps/services of Enterprise/Standard/Basic tier in IDE.    
+- Support for managing deployment target services directly in Project Explorer.    
+
+### Fixed
+- status shows inactive after creating/refreshing spring app.
+- error may occur when importing document into SQL container.
+- error may occur when connecting to the storage emulator and running locally.
+- error may occur when deploy function app.
+- HDInsight Job view nodes are displayed as 'folder icon + cluster name'.
+- HDInsight Linked cluster cannot display in Azure Explorer when not signed in.
 
 ## 3.78.1
 ### Fixed
@@ -948,7 +962,7 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
  - Support virtual file system on ADLS Gen2 storage for HDInsight Spark cluster and Synapse Spark pool
 
 ### Changed
- - Seperator for multiple referenced jars and referenced files is changed from semicolon to space in Spark batch job configuration
+ - Separator for multiple referenced jars and referenced files is changed from semicolon to space in Spark batch job configuration
  - "Continue Anyway" is changed to "Cancel submit" in "Change configuration settings" dialog when validation check failed for spark batch job
  - The behavior of "Rerun" button action for Spark batch job is changed from re-run with current selected configuration to re-run with previous job configuration
 

@@ -52,7 +52,8 @@ public class ApplicationInsightsComboBox extends AzureComboBox<ApplicationInsigh
 
     @Override
     public void setValue(final ApplicationInsightsConfig val, Boolean fixed) {
-        if (val != null && val.isNewCreate() && !this.draftItems.contains(val)) {
+        if (val != null && val.isNewCreate()) {
+            this.draftItems.remove(val);
             this.draftItems.add(0, val);
             this.reloadItems();
         }

@@ -51,8 +51,9 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
     public AzureFacetTreeStructureProvider(Project project) {
         myProject = project;
         final AbstractProjectViewPane currentProjectViewPane = ProjectView.getInstance(project).getCurrentProjectViewPane();
-        final JTree tree = currentProjectViewPane.getTree();
-        ClientProperty.put(tree, ANIMATION_IN_RENDERER_ALLOWED, true);
+        Optional.ofNullable(currentProjectViewPane)
+                .map(AbstractProjectViewPane::getTree)
+                .ifPresent(tree -> ClientProperty.put(tree, ANIMATION_IN_RENDERER_ALLOWED, true));
     }
 
     @Override
@@ -69,7 +70,6 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
             final boolean defaultShow = state == null && Objects.nonNull(azureModule) && (azureModule.hasAzureFacet() || azureModule.isInitialized() || azureModule.hasAzureDependencies());
             if (!forceHide && (forceShow || defaultShow)) {
                 addListener(parent.getProject());
-                final AbstractProjectViewPane viewPane = ProjectView.getInstance(parent.getProject()).getCurrentProjectViewPane();
                 final AbstractTreeNode<?> dotAzureDir = children.stream()
                     .filter(n -> n instanceof PsiDirectoryNode)
                     .map(n -> ((PsiDirectoryNode) n))
@@ -110,9 +110,7 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
 
     @RequiredArgsConstructor
     static class AzureProjectExplorerMouseListener extends MouseAdapter {
-        private static final Separator SEPARATOR = new Separator();
         private final JTree tree;
-        private final Project project;
 
         private IAzureFacetNode currentNode;
         private List<AnAction> backupActions;
@@ -120,8 +118,7 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
         @Override
         public void mousePressed(MouseEvent e) {
             final AbstractTreeNode<?> currentTreeNode = getCurrentTreeNode(e);
-            if (SwingUtilities.isLeftMouseButton(e) && currentTreeNode instanceof IAzureFacetNode) {
-                final IAzureFacetNode node = (IAzureFacetNode) currentTreeNode;
+            if (SwingUtilities.isLeftMouseButton(e) && currentTreeNode instanceof IAzureFacetNode node) {
                 final DataContext context = DataManager.getInstance().getDataContext(tree);
                 final AnActionEvent event = AnActionEvent.createFromAnAction(new EmptyAction(), e, ActionPlaces.PROJECT_VIEW_POPUP + ".click", context);
                 if (e.getClickCount() == 1) {
@@ -146,14 +143,13 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
 
         private void modifyPopupActions(MouseEvent e) {
             final AbstractTreeNode<?> node = getCurrentTreeNode(e);
-            if (!(node instanceof IAzureFacetNode)) {
+            if (!(node instanceof IAzureFacetNode newNode)) {
                 if (Objects.nonNull(currentNode)) {
                     // clean up popup menu actions
                     resetPopupMenuActions();
                 }
                 return;
             }
-            final IAzureFacetNode newNode = (IAzureFacetNode) node;
             if (!Objects.equals(newNode, currentNode)) {
                 // update popup menu actions for new node
                 updatePopupMenuActions(newNode);
@@ -163,8 +159,6 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
 
         private AbstractTreeNode<?> getCurrentTreeNode(MouseEvent e) {
             final TreePath path = tree.getClosestPathForLocation(e.getX(), e.getY());
-//            final int rowForLocation = tree.getRowForLocation(e.getX(), e.getY());
-//            final TreePath pathForRow = tree.getPathForRow(rowForLocation);
             return TreeUtil.getAbstractTreeNode(path);
         }
 
@@ -201,7 +195,7 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
         if (!exists) {
             final MouseListener[] mouseListeners = tree.getMouseListeners();
             Arrays.stream(mouseListeners).forEach(tree::removeMouseListener);
-            tree.addMouseListener(new AzureProjectExplorerMouseListener(tree, project));
+            tree.addMouseListener(new AzureProjectExplorerMouseListener(tree));
             Arrays.stream(mouseListeners).forEach(tree::addMouseListener);
         }
     }

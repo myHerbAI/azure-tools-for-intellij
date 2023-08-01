@@ -134,20 +134,6 @@
             <artifactId>azure-toolkit-storage-lib</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-storage</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml</groupId>
-                    <artifactId>jackson.core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>com.microsoft.azuretools</groupId>
             <artifactId>azuretools-core</artifactId>
         </dependency>

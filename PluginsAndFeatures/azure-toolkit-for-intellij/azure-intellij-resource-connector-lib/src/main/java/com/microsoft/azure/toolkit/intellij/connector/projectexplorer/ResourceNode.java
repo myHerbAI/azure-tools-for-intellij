@@ -97,15 +97,15 @@ public class ResourceNode extends AbstractAzureFacetNode<Node<?>> implements Nod
         if (this.parent instanceof DeploymentTargetsNode targets && value instanceof AbstractAzResource<?, ?, ?> resource) {
             final AzureTaskManager tm = AzureTaskManager.getInstance();
             final Action<Object> removeTarget = new Action<>(Action.Id.of("user/connector.remove_target.app"))
-                .withLabel("Remove")
+                .withLabel("Remove Deployment Target")
                 .withIdParam(this.getValue().getLabel())
                 .withIcon(AzureIcons.Action.DELETE.getIconPath())
                 .withHandler(ignore -> tm.runLater(() -> tm.write(() -> targets.getValue().getProfile().removeApp(resource).save())))
                 .withAuthRequired(false);
             if (originalGroup != null) {
                 final ActionGroup group = new ActionGroup();
-                group.appendActions(removeTarget, "---");
                 group.appendActions(originalGroup.getActions());
+                group.appendActions("---", removeTarget);
                 return group;
             } else {
                 return new ActionGroup(removeTarget);
