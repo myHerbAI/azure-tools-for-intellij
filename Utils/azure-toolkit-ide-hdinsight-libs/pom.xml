@@ -31,6 +31,7 @@
 
     <modules>
         <module>azure-toolkit-ide-hdinsight-spark-lib</module>
+        <module>azure-toolkit-ide-synapse-spark-lib</module>
     </modules>
 
     <dependencyManagement>
@@ -57,6 +58,11 @@
             <dependency>
                 <groupId>com.microsoft.hdinsight</groupId>
                 <artifactId>azure-toolkit-ide-hdinsight-spark-lib</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.hdinsight</groupId>
+                <artifactId>azure-toolkit-ide-synapse-spark-lib</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -52,6 +52,10 @@ public class ArcadiaSparkCompute extends SparkCluster implements AzureAdAccountD
         return BigDataPoolProvisioningState.fromString(this.sparkComputeResponse.provisioningState());
     }
 
+    public String getId() {
+        return sparkComputeResponse.id();
+    }
+
     @NotNull
     @Override
     public String getState() {
