@@ -9,6 +9,7 @@ import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContri
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.ActionInstance;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -127,7 +128,8 @@ public abstract class AbstractAzureStorageExplorerHandler {
             .withLabel("Configure")
             .withHandler(ignore -> {
                 final Action<Object> openSettingsAction = am.getAction(ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS);
-                Objects.requireNonNull(openSettingsAction.getHandler(null, null)).accept(null, null); // Open Azure Settings Panel sync
+                final ActionInstance<Object> instance = openSettingsAction.instantiate(null, null);
+                Objects.requireNonNull(instance).perform(); // Open Azure Settings Panel sync
                 if (StringUtils.isNotBlank(Azure.az().config().getStorageExplorerPath())) {
                     openResource(storageAccount);
                 }

@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.connector.projectexplorer;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
@@ -26,11 +27,11 @@ public interface IAzureFacetNode extends DataProvider, Disposable {
         return null;
     }
 
-    default void onClicked(Object event) {
+    default void onClicked(AnActionEvent event) {
 
     }
 
-    default void onDoubleClicked(Object event) {
+    default void onDoubleClicked(AnActionEvent event) {
 
     }
 

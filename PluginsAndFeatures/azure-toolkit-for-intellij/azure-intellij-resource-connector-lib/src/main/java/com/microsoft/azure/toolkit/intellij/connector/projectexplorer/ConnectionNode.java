@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.intellij.connector.projectexplorer;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.ide.projectView.PresentationData;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -126,7 +127,7 @@ public class ConnectionNode extends AbstractAzureFacetNode<Connection<?, ?>> {
     }
 
     @Override
-    public void onDoubleClicked(Object event) {
+    public void onDoubleClicked(AnActionEvent event) {
         final boolean isValid = getValue().validate(getProject());
         if (!isValid) {
             Optional.ofNullable(AzureActionManager.getInstance().getAction(EDIT_CONNECTION))
