@@ -90,7 +90,7 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
     private void initListeners() {
         this.resetButton.addActionListener(e -> this.reset());
         this.refreshButton.addActionListener(e -> refresh());
-        final AzureString deleteTitle = OperationBundle.description("user/resource.delete_resource.resource", this.draft.getName());
+        final AzureString deleteTitle = OperationBundle.description("user/springcloud.delete_app.app", this.draft.getName());
         final AzureTaskManager tm = AzureTaskManager.getInstance();
         this.deleteButton.addActionListener(e -> {
             final String message = String.format("Are you sure to delete Spring app(%s)", this.draft.getName());
@@ -101,17 +101,17 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
                 });
             }
         });
-        final AzureString startTitle = OperationBundle.description("user/resource.start_resource.resource", this.draft.getName());
+        final AzureString startTitle = OperationBundle.description("user/springcloud.start_app.app", this.draft.getName());
         this.startButton.addActionListener(e -> tm.runInBackground(startTitle, () -> {
             this.reset();
             this.app.start();
         }));
-        final AzureString stopTitle = OperationBundle.description("user/resource.stop_resource.resource", this.draft.getName());
+        final AzureString stopTitle = OperationBundle.description("user/springcloud.stop_app.app", this.draft.getName());
         this.stopButton.addActionListener(e -> tm.runInBackground(stopTitle, () -> {
             this.reset();
             this.app.stop();
         }));
-        final AzureString restartTitle = OperationBundle.description("user/resource.restart_resource.resource", this.draft.getName());
+        final AzureString restartTitle = OperationBundle.description("user/springcloud.restart_app.app", this.draft.getName());
         this.restartButton.addActionListener(e -> tm.runInBackground(restartTitle, () -> {
             this.reset();
             this.app.restart();

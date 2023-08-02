@@ -31,7 +31,6 @@ import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeExcep
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.cosmos.AzureCosmosService;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
@@ -72,14 +71,14 @@ public class IntelliJCosmosActionsContributor implements IActionsContributor {
         am.registerHandler(CosmosActionsContributor.OPEN_DOCUMENT, documentCondition, documentHandler);
 
         final BiPredicate<ICosmosDocumentContainer<?>, AnActionEvent> importCondition = (r, e) ->
-                r instanceof ICosmosDocumentContainer && r.getFormalStatus().isConnected();
+            r instanceof ICosmosDocumentContainer && r.getFormalStatus().isConnected();
         final BiConsumer<ICosmosDocumentContainer<?>, AnActionEvent> importHandler = (c, e) -> UploadCosmosDocumentAction.importDocument(c, e.getProject());
         am.registerHandler(CosmosActionsContributor.IMPORT_DOCUMENT, importCondition, importHandler);
 
         final BiPredicate<ICosmosDocumentContainer<?>, AnActionEvent> createDocumentCondition = (r, e) ->
-                r instanceof ICosmosDocumentContainer && r.getFormalStatus().isConnected();
+            r instanceof ICosmosDocumentContainer && r.getFormalStatus().isConnected();
         final BiConsumer<ICosmosDocumentContainer<?>, AnActionEvent> createDocumentHandler = (c, e) ->
-                AzureTaskManager.getInstance().runLater(() -> CreateNewDocumentAction.create(c, e.getProject()));
+            AzureTaskManager.getInstance().runLater(() -> CreateNewDocumentAction.create(c, e.getProject()));
         am.registerHandler(CosmosActionsContributor.CREATE_DOCUMENT, createDocumentCondition, createDocumentHandler);
 
         final BiConsumer<ResourceGroup, AnActionEvent> groupCreateHandler = (r, e) ->
@@ -120,11 +119,11 @@ public class IntelliJCosmosActionsContributor implements IActionsContributor {
             CreateCosmosDatabaseAction.create(e.getProject(), (CassandraCosmosDBAccount) r, cassandraDraftSupplier, getDefaultDatabaseConfig("keyspace")));
 
         am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof SqlDatabase && ((SqlDatabase) r).getFormalStatus().isRunning(), (Object r, AnActionEvent e) ->
-                CreateCosmosContainerAction.createSQLContainer(e.getProject(), (SqlDatabase) r, SqlContainerDraft.SqlContainerConfig.getDefaultConfig()));
+            CreateCosmosContainerAction.createSQLContainer(e.getProject(), (SqlDatabase) r, SqlContainerDraft.SqlContainerConfig.getDefaultConfig()));
         am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof MongoDatabase && ((MongoDatabase) r).getFormalStatus().isRunning(), (Object r, AnActionEvent e) ->
-                CreateCosmosContainerAction.createMongoCollection(e.getProject(), (MongoDatabase) r, MongoCollectionDraft.MongoCollectionConfig.getDefaultConfig()));
+            CreateCosmosContainerAction.createMongoCollection(e.getProject(), (MongoDatabase) r, MongoCollectionDraft.MongoCollectionConfig.getDefaultConfig()));
         am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof CassandraKeyspace && ((CassandraKeyspace) r).getFormalStatus().isRunning(), (Object r, AnActionEvent e) ->
-                CreateCosmosContainerAction.createCassandraTable(e.getProject(), (CassandraKeyspace) r, CassandraTableDraft.CassandraTableConfig.getDefaultConfig()));
+            CreateCosmosContainerAction.createCassandraTable(e.getProject(), (CassandraKeyspace) r, CassandraTableDraft.CassandraTableConfig.getDefaultConfig()));
 
         final String DATABASE_TOOLS_PLUGIN_ID = "com.intellij.database";
         if (PluginManagerCore.getPlugin(PluginId.findId(DATABASE_TOOLS_PLUGIN_ID)) == null) {
@@ -143,8 +142,7 @@ public class IntelliJCosmosActionsContributor implements IActionsContributor {
     }
 
     private <T extends AzResource> void openResourceConnector(@Nonnull final T resource, @Nonnull final AzureServiceResource.Definition<T> definition, Project project) {
-        final Function<AzResource, AzureString> titleSupplier = r -> OperationBundle.description("user/resource.connect_resource.resource", r.getName());
-        AzureTaskManager.getInstance().runLater(titleSupplier.apply(resource), () -> {
+        AzureTaskManager.getInstance().runLater(() -> {
             final ConnectorDialog dialog = new ConnectorDialog(project);
             dialog.setResource(new AzureServiceResource<>(resource, definition));
             dialog.show();
@@ -152,7 +150,7 @@ public class IntelliJCosmosActionsContributor implements IActionsContributor {
     }
 
     private <T extends AzResource, R extends CosmosDBAccount> void openResourceConnector(@Nonnull final R account, @Nonnull Function<R, T> databaseFunction,
-                                                                                                  @Nonnull final AzureServiceResource.Definition<T> definition, Project project) {
+                                                                                         @Nonnull final AzureServiceResource.Definition<T> definition, Project project) {
         final T database = databaseFunction.apply(account);
         if (Objects.isNull(database)) {
             AzureMessager.getMessager().warning(AzureString.format("Can not connect to %s as there is no database in selected account", account.getName()));
