@@ -51,7 +51,6 @@
         <module>./check-tools</module>
         <module>./azuretools-core</module>
         <module>./azure-explorer-common</module>
-        <module>./spark-tools</module>
         <module>./hdinsight-node-common</module>
         <module>./spark-localrun-mock</module>
         <module>azure-toolkit-ide-hdinsight-libs</module>
