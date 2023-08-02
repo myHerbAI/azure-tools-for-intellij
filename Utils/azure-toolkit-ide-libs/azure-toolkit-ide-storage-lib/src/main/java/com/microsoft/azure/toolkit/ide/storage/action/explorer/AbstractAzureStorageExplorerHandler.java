@@ -7,12 +7,14 @@ package com.microsoft.azure.toolkit.ide.storage.action.explorer;
 
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
+import com.microsoft.azure.toolkit.ide.storage.StorageActionsContributor;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionInstance;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.AzuriteStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
@@ -39,7 +41,6 @@ public abstract class AbstractAzureStorageExplorerHandler {
     private static final String STORAGE_EXPLORER_DOWNLOAD_URL = "https://go.microsoft.com/fwlink/?LinkId=723579";
     private static final String STORAGE_EXPLORER = "StorageExplorer";
 
-    @AzureOperation(name = "user/storage.open_azure_storage_explorer.account", params = {"account.getName()"})
     public void openResource(@Nonnull StorageAccount account) {
         // Get resource url
         final Charset charset = Charset.forName("UTF-8");
@@ -55,7 +56,6 @@ public abstract class AbstractAzureStorageExplorerHandler {
         }
     }
 
-    @AzureOperation(name = "user/storage.open_azure_storage_explorer.storage", params = {"storage.getName()"})
     public void openResource(@Nonnull final AbstractAzResource<?, StorageAccount, ?> storage) {
         // Get resource url
         final StorageAccount storageAccount = storage.getParent();
@@ -128,10 +128,10 @@ public abstract class AbstractAzureStorageExplorerHandler {
             .withLabel("Configure")
             .withHandler(ignore -> {
                 final Action<Object> openSettingsAction = am.getAction(ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS);
-                final ActionInstance<Object> instance = openSettingsAction.instantiate(null, null);
-                Objects.requireNonNull(instance).perform(); // Open Azure Settings Panel sync
+                final Action<AzResource> openExplorerAction = am.getAction(StorageActionsContributor.OPEN_AZURE_STORAGE_EXPLORER);
+                openSettingsAction.handleSync(null, null); // Open Azure Settings Panel sync
                 if (StringUtils.isNotBlank(Azure.az().config().getStorageExplorerPath())) {
-                    openResource(storageAccount);
+                    openExplorerAction.handle(storageAccount);
                 }
             })
             .withAuthRequired(false);

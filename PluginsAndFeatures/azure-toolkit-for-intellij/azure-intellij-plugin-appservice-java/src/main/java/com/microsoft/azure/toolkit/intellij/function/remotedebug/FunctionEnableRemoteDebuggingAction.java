@@ -28,12 +28,10 @@ public class FunctionEnableRemoteDebuggingAction {
     private static final String CONFIRM_DIALOG_TITLE = "%s Remote Debugging";
     private static final String SUCCESS_MESSAGE = "Remote debugging is %sd for app %s successfully";
 
-    @AzureOperation(name = "user/function.enable_remote_debugging.app", params = {"app.getName()"})
     public static void enableRemoteDebugging(@Nonnull FunctionAppBase<?, ?, ?> app, @Nullable Project project) {
         toggleDebuggingAction(app, true, project);
     }
 
-    @AzureOperation(name = "user/function.disable_remote_debugging.app", params = {"app.getName()"})
     public static void disableRemoteDebugging(@Nonnull FunctionAppBase<?, ?, ?> app, @Nullable Project project) {
         toggleDebuggingAction(app, false, project);
     }

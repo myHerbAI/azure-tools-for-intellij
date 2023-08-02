@@ -75,7 +75,7 @@ public class CreateWebAppAction {
         return AzureTaskManager.getInstance().runInBackgroundAsObservable(task).toSingle();
     }
 
-    @AzureOperation(name = "user/webapp.deploy_artifact.app", params = {"webapp.name()"})
+    @AzureOperation(name = "user/webapp.deploy_artifact.app", params = {"webapp.name()"}, source = "webapp")
     private static void deploy(final WebApp webapp, final Path application, final Project project) {
         final AzureString title = description("user/webapp.deploy_artifact.app", webapp.getName());
         final AzureTask<Void> task = new AzureTask<>(null, title, false, () -> {

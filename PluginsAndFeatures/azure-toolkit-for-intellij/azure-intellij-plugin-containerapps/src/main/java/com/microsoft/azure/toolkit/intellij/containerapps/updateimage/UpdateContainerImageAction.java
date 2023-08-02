@@ -21,7 +21,6 @@ import javax.annotation.Nonnull;
 import java.util.Objects;
 
 public class UpdateContainerImageAction {
-    @AzureOperation(name = "user/containerapps.open_update_image_dialog.app", params = {"app.getName()"})
     public static void openUpdateDialog(ContainerApp app, AnActionEvent e) {
         AzureTaskManager.getInstance().runLater(() -> {
             final UpdateImageDialog dialog = new UpdateImageDialog(e.getProject());
@@ -36,7 +35,6 @@ public class UpdateContainerImageAction {
         });
     }
 
-    @AzureOperation(name = "user/containerapps.open_update_image_dialog.image", params = {"tag.getFullName()"})
     public static void openUpdateDialog(Tag tag, AnActionEvent e) {
         final ContainerRegistry registry = tag.getParent().getParent().getParent();
         if (!registry.isAdminUserEnabled()) {
@@ -58,7 +56,7 @@ public class UpdateContainerImageAction {
         });
     }
 
-    @AzureOperation(name = "user/containerapps.update_image.app", params = {"app.getName()"})
+    @AzureOperation(name = "user/containerapps.update_image.app", params = {"app.getName()"}, source = "app")
     private static void updateImage(@Nonnull ContainerApp app, ContainerAppDraft.ImageConfig imageConfig) {
         AzureTaskManager.getInstance().runOnPooledThread(() -> {
             final ContainerAppDraft draft = (ContainerAppDraft) app.update();

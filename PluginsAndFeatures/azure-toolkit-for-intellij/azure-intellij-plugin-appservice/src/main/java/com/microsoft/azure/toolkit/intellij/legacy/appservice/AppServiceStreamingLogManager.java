@@ -82,12 +82,10 @@ public enum AppServiceStreamingLogManager {
         showAppServiceStreamingLog(project, app.getId(), new FunctionDeploymentSlotLogStreaming(app));
     }
 
-    @AzureOperation(name = "user/appservice.close_log_stream.app", params = {"nameFromResourceId(appId)"})
     public void closeStreamingLog(Project project, String appId) {
         StreamingLogsManager.getInstance().closeStreamingLog(project, appId);
     }
 
-    @AzureOperation(name = "user/appservice.open_log_stream.app", params = {"nameFromResourceId(resourceId)"})
     private void showAppServiceStreamingLog(Project project, String resourceId, ILogStreaming logStreaming) {
         final Action<Void> retry = Action.retryFromFailure(() -> this.showAppServiceStreamingLog(project, resourceId, logStreaming));
         final AzureString title = OperationBundle.description("user/appservice.open_log_stream.app", ResourceUtils.nameFromResourceId(resourceId));

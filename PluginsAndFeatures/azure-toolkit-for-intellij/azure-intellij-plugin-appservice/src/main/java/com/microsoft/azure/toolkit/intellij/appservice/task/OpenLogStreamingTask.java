@@ -25,7 +25,7 @@ public class OpenLogStreamingTask implements Task {
     }
 
     @Override
-    @AzureOperation(name = "internal/guidance.open_log_streaming")
+    @AzureOperation(name = "user/guidance.open_log_streaming")
     public void execute() throws Exception {
         final String resourceId = (String) context.getParameter(RESOURCE_ID);
         final Object resource = Azure.az(AzureAppService.class).getById(resourceId);

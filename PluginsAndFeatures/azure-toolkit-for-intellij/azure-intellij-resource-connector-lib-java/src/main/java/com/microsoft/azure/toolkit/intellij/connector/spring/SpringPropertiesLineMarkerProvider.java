@@ -77,7 +77,7 @@ public class SpringPropertiesLineMarkerProvider implements LineMarkerProvider {
 
         @Override
         @ExceptionNotification
-        @AzureOperation(name = "user/connector.navigate_from_line_marker")
+        @AzureOperation(name = "user/connector.navigate_from_line_marker", source = "this.resource.getData()")
         public void navigate(MouseEvent mouseEvent, PsiElement psiElement) {
             final DataContext context = DataManager.getInstance().getDataContext(mouseEvent.getComponent());
             final AnActionEvent event = AnActionEvent.createFromInputEvent(mouseEvent, ActionPlaces.EDITOR_GUTTER, null, context);

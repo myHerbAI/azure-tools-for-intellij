@@ -76,7 +76,6 @@ public class LegacyIntellijAccountActionsContributor implements IActionsContribu
         am.registerHandler(ResourceCommonActionsContributor.OPEN_AZURE_EXPLORER, (i, e) -> true, openAzureExplorer);
     }
 
-    @AzureOperation(name = "user/common.open_azure_explorer")
     private static void openAzureExplorer(AnActionEvent e) {
         final ToolWindow toolWindow = ToolWindowManager.getInstance(Objects.requireNonNull(e.getProject())).
             getToolWindow(ServerExplorerToolWindowFactory.EXPLORER_WINDOW);
@@ -85,7 +84,6 @@ public class LegacyIntellijAccountActionsContributor implements IActionsContribu
         }
     }
 
-    @AzureOperation(name = "user/common.open_azure_settings")
     private static void openSettingsDialog(Project project) {
         ShowSettingsUtil.getInstance().showSettingsDialog(project, AzureConfigurable.class);
     }

@@ -38,7 +38,6 @@ public class WebAppService {
         return WebAppService.instance;
     }
 
-    @AzureOperation(name = "user/webapp.create_app.app", params = {"config.getName()"})
     public WebApp createWebApp(final WebAppConfig config) {
         final WebAppSettingModel settings = convertConfig2Settings(config);
         settings.setCreatingNew(true);

@@ -39,7 +39,7 @@ public class CreateApplicationInsightsAction {
         });
     }
 
-    @AzureOperation(name = "user/ai.create_ai.ai", params = {"config.getName()"})
+    @AzureOperation(name = "user/ai.create_ai.ai", params = {"config.getName()"}, source = "config")
     public static void create(final ApplicationInsightDraft config) {
         final AzureString title = OperationBundle.description("user/ai.create_ai.ai", config.getName());
         AzureTaskManager.getInstance().runInBackground(title, () -> createApplicationInsights(config));
@@ -50,7 +50,7 @@ public class CreateApplicationInsightsAction {
         OperationContext.action().setTelemetryProperty("subscriptionId", subscriptionId);
         if (draft.getResourceGroup() == null) { // create resource group if necessary.
             final ResourceGroup newResourceGroup = Azure.az(AzureResources.class)
-                    .groups(subscriptionId).createResourceGroupIfNotExist(draft.getResourceGroupName(), draft.getRegion());
+                .groups(subscriptionId).createResourceGroupIfNotExist(draft.getResourceGroupName(), draft.getRegion());
         }
         final ApplicationInsight resource = draft.commit();
         CacheManager.getUsageHistory(ApplicationInsight.class).push(draft);

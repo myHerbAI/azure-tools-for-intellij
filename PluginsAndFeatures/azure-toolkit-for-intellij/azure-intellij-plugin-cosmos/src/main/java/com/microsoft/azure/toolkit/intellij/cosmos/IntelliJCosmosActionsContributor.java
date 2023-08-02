@@ -133,7 +133,6 @@ public class IntelliJCosmosActionsContributor implements IActionsContributor {
         }
     }
 
-    @AzureOperation(name = "user/cosmos.open_database_tools.account", params = {"account.getName()"})
     private void openDatabaseTool(Project project, CosmosDBAccount account) {
         final String DATABASE_TOOLS_PLUGIN_ID = "com.intellij.database";
         final String DATABASE_PLUGIN_NOT_INSTALLED = "\"Database tools and SQL\" plugin is not installed.";

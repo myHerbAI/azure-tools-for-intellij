@@ -38,7 +38,7 @@ public class CreateWebAppTask implements Task {
     }
 
     @Override
-    @AzureOperation(name = "internal/guidance.create_webapp")
+    @AzureOperation(name = "user/guidance.create_webapp")
     public void execute() throws Exception {
         final String name = (String) Objects.requireNonNull(context.getParameter(WEBAPP_NAME), "`name` is required to create web app");
         final Subscription subscription = Optional.ofNullable((String) context.getParameter(SignInTask.SUBSCRIPTION_ID))

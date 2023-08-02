@@ -65,7 +65,6 @@ public class IntellijSqlServerActionsContributor implements IActionsContributor 
         am.registerHandler(SqlServerActionsContributor.OPEN_DATABASE_TOOL, (r, e) -> true, openDatabaseHandler);
     }
 
-    @AzureOperation(name = "user/sqlserver.open_database_tools.server", params = {"server.getName()"})
     private void openDatabaseTool(Project project, @Nonnull MicrosoftSqlServer server) {
         final String DATABASE_TOOLS_PLUGIN_ID = "com.intellij.database";
         final String DATABASE_PLUGIN_NOT_INSTALLED = "\"Database tools and SQL\" plugin is not installed.";

@@ -39,7 +39,7 @@ public class CreateSpringCloudClusterAction {
         });
     }
 
-    @AzureOperation(name = "user/springcloud.create_cluster.cluster", params = "cluster.getName()")
+    @AzureOperation(name = "user/springcloud.create_cluster.cluster", params = "cluster.getName()", source = "cluster")
     private static void createCluster(SpringCloudClusterDraft cluster) {
         AzureTaskManager.getInstance().runInBackground(OperationBundle.description("user/springcloud.create_cluster.cluster", cluster.getName()), () -> {
             CacheManager.getUsageHistory(SpringCloudCluster.class).push(cluster);

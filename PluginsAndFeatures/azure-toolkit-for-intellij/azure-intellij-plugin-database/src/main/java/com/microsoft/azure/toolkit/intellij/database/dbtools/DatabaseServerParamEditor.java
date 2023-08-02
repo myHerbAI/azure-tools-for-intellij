@@ -177,7 +177,7 @@ public class DatabaseServerParamEditor extends ParamEditorBase<DatabaseServerPar
         }
     }
 
-    @AzureOperation(name = "user/database.select_server_dbtools.server", params = {"server.getName()"})
+    @AzureOperation(name = "user/database.select_server_dbtools.server", params = {"server.getName()"}, source = "server")
     private void setServer(@Nullable IDatabaseServer<?> server) {
         Optional.ofNullable(server).ifPresent(a -> {
             OperationContext.action().setTelemetryProperty("subscriptionId", a.getSubscriptionId());

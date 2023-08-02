@@ -164,7 +164,7 @@ public class AzureCosmosDbAccountParamEditor extends ParamEditorBase<AzureCosmos
         }
     }
 
-    @AzureOperation(name = "user/cosmos.select_account_dbtools.account", params = {"account.getName()"})
+    @AzureOperation(name = "user/cosmos.select_account_dbtools.account", params = {"account.getName()"}, source = "account")
     private void setAccount(@Nullable CosmosDBAccount account) {
         Optional.ofNullable(account).ifPresent(a -> {
             OperationContext.action().setTelemetryProperty("subscriptionId", a.getSubscriptionId());

@@ -41,9 +41,9 @@ import java.util.stream.Stream;
 
 public class ResourceConnectionActionsContributor implements IActionsContributor {
     public static final Action.Id<Object> REFRESH_CONNECTIONS = Action.Id.of("user/connector.refresh_connections");
-    public static final Action.Id<AzureModule> ADD_CONNECTION = Action.Id.of("user/connector.add_connection");
+    public static final Action.Id<AzureModule> ADD_CONNECTION = Action.Id.of("boundary/connector.add_connection");
     public static final Action.Id<Connection<?, ?>> EDIT_CONNECTION = Action.Id.of("user/connector.edit_connection");
-    public static final Action.Id<Connection<?, ?>> REMOVE_CONNECTION = Action.Id.of("user/connector.remove_connection");
+    public static final Action.Id<Connection<?, ?>> REMOVE_CONNECTION = Action.Id.of("boundary/connector.remove_connection");
     public static final Action.Id<Connection<?, ?>> FIX_CONNECTION = Action.Id.of("user/connector.fix_connection");
 
     public static final Action.Id<Object> CONNECT_TO_MODULE = Action.Id.of("user/connector.connect_to_module");

@@ -228,14 +228,12 @@ public class StorageFileActions {
         });
     }
 
-    @AzureOperation(name = "user/storage.copy_file_url.file", params = {"file.getName()"})
     public static void copyUrl(StorageFile file, Project project) {
         final String url = file.getUrl();
         CopyPasteManager.getInstance().setContents(new StringSelection(url));
         AzureMessager.getMessager().success(AzureString.format("URL of %s copied to clipboard: %s", file.getName(), url));
     }
 
-    @AzureOperation(name = "user/storage.copy_file_sas_url.file", params = {"file.getName()"})
     public static void copySasUrl(StorageFile file, Project project) {
         final String url = file.getSasUrl();
         CopyPasteManager.getInstance().setContents(new StringSelection(url));

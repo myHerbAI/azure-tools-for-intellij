@@ -195,7 +195,6 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
     }
 
     @Override
-    @AzureOperation(name = "user/webapp.open_public_url.app")
     protected void onSuccess(WebAppBase<?, ?, ?> result, @NotNull RunProcessHandler processHandler) {
         updateConfigurationDataModel(result);
         final String fileName = FileNameUtils.getBaseName(artifact.getName());
