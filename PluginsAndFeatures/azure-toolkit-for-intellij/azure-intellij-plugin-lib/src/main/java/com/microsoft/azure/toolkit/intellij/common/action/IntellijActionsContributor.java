@@ -56,7 +56,7 @@ public class IntellijActionsContributor implements IActionsContributor {
         }));
     }
 
-    @AzureOperation(name = "boundary/resource.open_url.url", params = {"u"})
+    @AzureOperation(name = "boundary/$resource.open_url.url", params = {"u"})
     private static void browseUrl(String u) {
         BrowserUtil.browse(u);
     }
