@@ -166,12 +166,6 @@ public class AzureCosmosDbAccountParamEditor extends ParamEditorBase<AzureCosmos
 
     @AzureOperation(name = "user/cosmos.select_account_dbtools.account", params = {"account.getName()"}, source = "account")
     private void setAccount(@Nullable CosmosDBAccount account) {
-        Optional.ofNullable(account).ifPresent(a -> {
-            OperationContext.action().setTelemetryProperty("subscriptionId", a.getSubscriptionId());
-            OperationContext.action().setTelemetryProperty("resourceType", a.getFullResourceType());
-            OperationContext.action().setTelemetryProperty("kind", Optional.ofNullable(a.getKind()).map(DatabaseAccountKind::getValue).orElse("unknown"));
-        });
-
         final DataInterchange interchange = this.getInterchange();
         final String oldAccountId = interchange.getProperty(KEY_COSMOS_ACCOUNT_ID);
         final String newAccountId = Optional.ofNullable(account).map(AbstractAzResource::getId).orElse(null);
