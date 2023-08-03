@@ -46,9 +46,9 @@
     <actions>
         <!-- needed for hover -->
         <action id="org.intellij.sdk.action.QuickDocAction" class="org.wso2.lsp4intellij.actions.LSPQuickDocAction" text="Show Quick Doc"/>
-        <action class="org.wso2.lsp4intellij.actions.LSPGotoDeclarationAction" id="Azure.GotoDeclaration" use-shortcut-of="GotoDeclaration"
+        <action class="org.wso2.lsp4intellij.actions.LSPGotoDeclarationAction" id="GotoDeclaration" use-shortcut-of="GotoDeclaration"
                 overrides="true" text="Go to Declaration or Usages"/>
-        <action class="org.wso2.lsp4intellij.actions.LSPReformatAction" id="Azure.ReformatCode" use-shortcut-of="ReformatCode"
+        <action class="org.wso2.lsp4intellij.actions.LSPReformatAction" id="ReformatCode" use-shortcut-of="ReformatCode"
                 overrides="true" text="Reformat Code" />
         <!-- needed for find references -->
         <action class="org.wso2.lsp4intellij.actions.LSPReferencesAction" id="Azure.LSPFindUsages" text="Find Usages">
