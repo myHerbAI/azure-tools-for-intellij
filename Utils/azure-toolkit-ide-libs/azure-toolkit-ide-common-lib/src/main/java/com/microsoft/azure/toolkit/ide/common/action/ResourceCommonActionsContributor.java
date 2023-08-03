@@ -213,8 +213,6 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withIdParam(r -> {
                 if (r instanceof AzResource) {
                     return ((AzResource) r).getName();
-                } else if (r instanceof AzService) {
-                    return ((AzService) r).getName();
                 } else if (r instanceof AzResourceModule) {
                     return ((AzResourceModule<?>) r).getResourceTypeName();
                 }
