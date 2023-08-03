@@ -88,7 +88,7 @@ public enum AppServiceStreamingLogManager {
 
     private void showAppServiceStreamingLog(Project project, String resourceId, ILogStreaming logStreaming) {
         final Action<Void> retry = Action.retryFromFailure(() -> this.showAppServiceStreamingLog(project, resourceId, logStreaming));
-        final AzureString title = OperationBundle.description("user/appservice.open_log_stream.app", ResourceUtils.nameFromResourceId(resourceId));
+        final AzureString title = OperationBundle.description("user/$appservice.open_log_stream.app", ResourceUtils.nameFromResourceId(resourceId));
         AzureTaskManager.getInstance().runInBackground(new AzureTask<>(project, title, false, () -> {
             try {
                 final String name = logStreaming.getTitle();

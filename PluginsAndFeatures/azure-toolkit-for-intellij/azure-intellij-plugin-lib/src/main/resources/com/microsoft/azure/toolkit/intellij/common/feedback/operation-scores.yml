@@ -4,7 +4,7 @@ boundary/springcloud.start_debug_configuration.instance:
 boundary/function.start_debug_configuration.app:
   success: 5
   failure: 0
-boundary/appservice.deploy_app.app:
+boundary/$appservice.deploy_app.app:
   success: 5
   failure: 0
 boundary/vm.open_sftp_toolwindow:
@@ -162,7 +162,7 @@ boundary/vm.create_ssh_session_ic:
 azure/kubernetes.download_config:
   success: 2
   failure: 0
-boundary/appservice.open_ssh_terminal:
+boundary/$appservice.open_ssh_terminal:
   success: 2
   failure: 0
 common.start_log_streaming.resource:
@@ -406,7 +406,7 @@ boundary/function.run_deploy_configuration.app:
 boundary/webapp.run_deploy_configuration.app:
   success: 1
   failure: 0
-azure/appservice.profile_flight_recorder:
+azure/$appservice.profile_flight_recorder:
   success: 1
   failure: 0
 boundary/acr.run_push_image_configuration.config:

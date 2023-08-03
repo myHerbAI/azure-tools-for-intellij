@@ -134,7 +134,7 @@ public class ServicePlanComboBox extends AzureComboBox<AppServicePlan> {
 
     @Nonnull
     @Override
-    @AzureOperation(name = "internal/appservice.list_plans.subscription|region|os", params = {"this.subscription.getId()", "this.region.getName()", "this.os.name()"})
+    @AzureOperation(name = "internal/$appservice.list_plans.subscription|region|os", params = {"this.subscription.getId()", "this.region.getName()", "this.os.name()"})
     protected List<AppServicePlan> loadItems() {
         final List<AppServicePlan> plans = new ArrayList<>();
         if (Objects.nonNull(this.subscription)) {
