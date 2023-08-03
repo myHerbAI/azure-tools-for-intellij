@@ -76,6 +76,7 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
             .withLabel("Open File")
             .withIdParam(AppServiceFile::getName)
             .visibleWhen(s -> s instanceof AppServiceFile)
+            .withSource(AppServiceFile::getApp)
             .withHandler((file, e) -> tm.runLater(() -> new AppServiceFileAction().openAppServiceFile(file, ((AnActionEvent) e).getProject())))
             .withShortcut(am.getIDEDefaultShortcuts().edit())
             .register(am);
@@ -84,6 +85,7 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
             .withLabel("Download")
             .withIdParam(AppServiceFile::getName)
             .visibleWhen(s -> s instanceof AppServiceFile)
+            .withSource(AppServiceFile::getApp)
             .withHandler((file, e) -> tm.runLater(() -> new AppServiceFileAction().saveAppServiceFile(file, ((AnActionEvent) e).getProject(), null)))
             .register(am);
     }

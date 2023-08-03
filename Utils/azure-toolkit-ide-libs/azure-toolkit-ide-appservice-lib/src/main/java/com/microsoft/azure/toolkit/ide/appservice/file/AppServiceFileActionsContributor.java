@@ -44,6 +44,7 @@ public class AppServiceFileActionsContributor implements IActionsContributor {
             .withLabel("Refresh")
             .withIcon(AzureIcons.Action.REFRESH.getIconPath())
             .withIdParam(AppServiceFile::getName)
+            .withSource(AppServiceFile::getApp)
             .visibleWhen(s -> s instanceof AppServiceFile)
             .withHandler(file -> AzureEventBus.emit("resource.refreshed.resource", file))
             .withShortcut(am.getIDEDefaultShortcuts().refresh())

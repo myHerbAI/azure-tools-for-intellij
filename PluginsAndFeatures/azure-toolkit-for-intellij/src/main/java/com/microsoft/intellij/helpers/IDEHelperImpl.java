@@ -308,7 +308,7 @@ public class IDEHelperImpl implements IDEHelper {
         return type.getIcon();
     }
 
-    @AzureOperation(name = "user/$appservice.open_file.file", params = {"target.getName()"})
+    @AzureOperation(name = "user/$appservice.open_file.file", params = {"target.getName()"}, source = "target.getApp()")
     @SneakyThrows
     public void openAppServiceFile(AppServiceFile target, Object context) {
         final com.microsoft.azure.toolkit.lib.common.action.Action<Void> retry = Action.retryFromFailure((() -> this.openAppServiceFile(target, context)));
