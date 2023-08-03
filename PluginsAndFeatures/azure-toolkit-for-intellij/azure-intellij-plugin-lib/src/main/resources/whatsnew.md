@@ -3,7 +3,7 @@
 
 ## 3.79.1
 ### Fixed
-- Fix: Code navigation and formatting were not working for bicep files.
+- Fix: Code navigation was not working for bicep files.
 - Fix: Textmate rendering was not functioning for bicep files in IntelliJ 2023.2.
 
 ## 3.79.0
