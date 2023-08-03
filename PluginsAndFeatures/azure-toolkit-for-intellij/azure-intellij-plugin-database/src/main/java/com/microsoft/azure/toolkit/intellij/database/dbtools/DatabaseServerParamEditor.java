@@ -113,9 +113,9 @@ public class DatabaseServerParamEditor extends ParamEditorBase<DatabaseServerPar
         return container;
     }
 
-    @AzureOperation(name = "user/database.signin_from_dbtools")
+    @AzureOperation(name = "user/$database.signin_from_dbtools")
     private void signInAndReloadItems(SqlDbServerComboBox combox, HyperlinkLabel notSignInTips) {
-        OperationContext.action().setTelemetryProperty("kind", this.clazz.getName());
+        OperationContext.current().setTelemetryProperty("serviceName", getServiceName());
         AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle((a) -> {
             notSignInTips.setVisible(false);
             combox.reloadItems();
@@ -142,9 +142,9 @@ public class DatabaseServerParamEditor extends ParamEditorBase<DatabaseServerPar
         return label;
     }
 
-    @AzureOperation(name = "user/database.create_database_from_dbtools")
+    @AzureOperation(name = "user/$database.create_server_from_dbtools")
     private void createServerInIde(InputEvent e) {
-        OperationContext.action().setTelemetryProperty("kind", this.clazz.getName());
+        OperationContext.current().setTelemetryProperty("serviceName", getServiceName());
         final DataContext context = DataManager.getInstance().getDataContext(e.getComponent());
         final Project project = context.getData(CommonDataKeys.PROJECT);
         final Window window = ComponentUtil.getActiveWindow();
@@ -177,12 +177,8 @@ public class DatabaseServerParamEditor extends ParamEditorBase<DatabaseServerPar
         }
     }
 
-    @AzureOperation(name = "user/database.select_server_dbtools.server", params = {"server.getName()"}, source = "server")
+    @AzureOperation(name = "user/$database.select_server_dbtools.server", params = {"server.getName()"}, source = "server")
     private void setServer(@Nullable IDatabaseServer<?> server) {
-        Optional.ofNullable(server).ifPresent(a -> {
-            OperationContext.action().setTelemetryProperty("subscriptionId", a.getSubscriptionId());
-            OperationContext.action().setTelemetryProperty("resourceType", ((AzResource) a).getFullResourceType());
-        });
         final DataInterchange interchange = this.getInterchange();
         final String oldServerId = interchange.getProperty(KEY_DB_SERVER_ID);
         final String newServerId = Optional.ofNullable(server).map(IDatabaseServer::getId).orElse(null);
@@ -274,5 +270,17 @@ public class DatabaseServerParamEditor extends ParamEditorBase<DatabaseServerPar
         protected String getItemText(Object item) {
             return Optional.ofNullable(item).map(i -> ((IDatabaseServer<?>) i)).map(AzResource::getName).orElse("");
         }
+    }
+
+    @Nullable
+    private String getServiceName() {
+        if (MySqlServer.class.isAssignableFrom(clazz)) {
+            return "mysql";
+        } else if (PostgreSqlServer.class.isAssignableFrom(clazz)) {
+            return "postgre";
+        } else if (MicrosoftSqlServer.class.isAssignableFrom(clazz)) {
+            return "sqlserver";
+        }
+        return null;
     }
 }

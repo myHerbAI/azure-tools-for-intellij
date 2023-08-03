@@ -19,7 +19,7 @@ user/cosmos.open_database_tools.account:
 boundary/kubernetes.open_in_k8s_plugin:
   success: 3
   failure: 0
-boundary/database.open_database_tools.server:
+boundary/$database.open_database_tools.server:
   success: 3
   failure: 0
 boundary/kubernetes.merge_into_kube_config:
