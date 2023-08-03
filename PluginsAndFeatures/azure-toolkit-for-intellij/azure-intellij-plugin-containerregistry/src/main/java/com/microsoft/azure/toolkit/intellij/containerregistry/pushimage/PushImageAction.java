@@ -57,7 +57,7 @@ public class PushImageAction extends AnAction {
         final Project project = e.getProject();
         if (project != null) {
             AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH)
-                .handle(() -> runConfiguration(project, this.dockerImage, null));
+                .handle((a) -> runConfiguration(project, this.dockerImage, null));
         }
     }
 

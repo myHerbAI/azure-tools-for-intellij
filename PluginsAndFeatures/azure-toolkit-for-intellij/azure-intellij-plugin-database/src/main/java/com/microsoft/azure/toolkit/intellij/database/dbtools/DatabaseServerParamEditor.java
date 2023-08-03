@@ -116,7 +116,7 @@ public class DatabaseServerParamEditor extends ParamEditorBase<DatabaseServerPar
     @AzureOperation(name = "user/database.signin_from_dbtools")
     private void signInAndReloadItems(SqlDbServerComboBox combox, HyperlinkLabel notSignInTips) {
         OperationContext.action().setTelemetryProperty("kind", this.clazz.getName());
-        AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle(() -> {
+        AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle((a) -> {
             notSignInTips.setVisible(false);
             combox.reloadItems();
         });

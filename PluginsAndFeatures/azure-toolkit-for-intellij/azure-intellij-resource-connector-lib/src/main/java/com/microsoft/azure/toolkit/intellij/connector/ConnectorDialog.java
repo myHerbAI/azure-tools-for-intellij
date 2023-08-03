@@ -324,7 +324,7 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
             final DataContext context = DataManager.getInstance().getDataContext(this.lblSignIn);
             final AnActionEvent event = AnActionEvent.createFromInputEvent(e.getInputEvent(), "ConnectorDialog", new Presentation(), context);
             AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH)
-                .handle(() -> this.lblSignIn.setVisible(!Azure.az(AzureAccount.class).isLoggedIn()), event);
+                .handle((a) -> this.lblSignIn.setVisible(!Azure.az(AzureAccount.class).isLoggedIn()), event);
         });
     }
 
@@ -345,9 +345,7 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     }
 
     private void signInAndReloadItems(@Nonnull final HyperlinkLabel notSignInTips) {
-        AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle(() -> {
-            notSignInTips.setVisible(false);
-        });
+        AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle((a) -> notSignInTips.setVisible(false));
     }
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES
     void $$$setupUI$$$() {

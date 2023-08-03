@@ -54,9 +54,9 @@ public class DeployFunctionAppAction extends AnAction {
             final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
             final Project project = Objects.requireNonNull(event.getProject());
             if (Objects.nonNull(module)) {
-                AzureLoginHelper.requireSignedIn(module.getProject(), () -> deploy(module));
+                AzureLoginHelper.requireSignedIn(module.getProject(), (a) -> deploy(module));
             } else {
-                AzureLoginHelper.requireSignedIn(project, () -> deploy(project));
+                AzureLoginHelper.requireSignedIn(project, (a) -> deploy(project));
             }
         });
     }

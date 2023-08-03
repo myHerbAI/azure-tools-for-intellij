@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.intellij.common.auth;
 
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.DumbAware;
@@ -16,7 +15,10 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.WindowManager;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction;
+import com.microsoft.azure.toolkit.intellij.common.subscription.SelectSubscriptionsAction;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AuthConfiguration;
 import com.microsoft.azure.toolkit.lib.auth.AuthType;
@@ -28,8 +30,6 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
-import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction;
-import com.microsoft.azure.toolkit.intellij.common.subscription.SelectSubscriptionsAction;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +39,7 @@ import javax.swing.*;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 import static com.microsoft.azuretools.telemetry.TelemetryConstants.ACCOUNT;
 
@@ -109,13 +110,13 @@ public class AzureSignInAction extends AzureAnAction implements DumbAware {
                 az.logout();
             }
         } else {
-            login(project, () -> {
+            login(project, (account) -> {
             });
         }
     }
 
     @AzureOperation(name = "internal/account.sign_in")
-    private static void login(Project project, Runnable callback) {
+    private static void login(Project project, Consumer<IAccount> callback) {
         final AzureTaskManager manager = AzureTaskManager.getInstance();
         manager.runLater(() -> {
             final AuthConfiguration auth = promptForAuthConfiguration(project);
@@ -134,9 +135,12 @@ public class AzureSignInAction extends AzureAnAction implements DumbAware {
                     final Account account = Azure.az(AzureAccount.class).login(auth, Azure.az().config().isAuthPersistenceEnabled());
                     if (account.isLoggedIn()) {
                         SelectSubscriptionsAction.selectSubscriptions(project);
-                        manager.runLater(callback);
+                        manager.runOnPooledThread(() -> callback.accept(account));
+                    } else {
+                        manager.runOnPooledThread(() -> callback.accept(null));
                     }
                 } catch (final Throwable t) {
+                    manager.runOnPooledThread(() -> callback.accept(null));
                     final Throwable cause = ExceptionUtils.getRootCause(t);
                     Optional.ofNullable(dcWindow[0]).ifPresent(w -> manager.runLater(w::doCancelAction));
                     if (!(cause instanceof InterruptedException)) {
@@ -180,11 +184,12 @@ public class AzureSignInAction extends AzureAnAction implements DumbAware {
         return config;
     }
 
-    public static void requireSignedIn(Project project, Runnable runnable) {
+    public static void requireSignedIn(Project project, Consumer<IAccount> consumer) {
         if (Azure.az(AzureAccount.class).isLoggedIn()) {
-            AzureTaskManager.getInstance().runLater(runnable);
+            final Account account = Azure.az(AzureAccount.class).account();
+            AzureTaskManager.getInstance().runOnPooledThread(() -> consumer.accept(account));
         } else {
-            login(project, runnable);
+            login(project, consumer);
         }
     }
 }

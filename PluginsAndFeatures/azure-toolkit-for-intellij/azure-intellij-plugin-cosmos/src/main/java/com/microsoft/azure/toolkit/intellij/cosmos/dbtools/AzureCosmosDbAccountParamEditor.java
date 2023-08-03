@@ -111,7 +111,7 @@ public class AzureCosmosDbAccountParamEditor extends ParamEditorBase<AzureCosmos
     @AzureOperation(name = "user/cosmos.signin_from_dbtools")
     private void signInAndReloadItems(CosmosDbAccountComboBox combox, HyperlinkLabel notSignInTips) {
         OperationContext.action().setTelemetryProperty("kind", this.kind.getValue());
-        AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle(() -> {
+        AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle((a) -> {
             notSignInTips.setVisible(false);
             combox.reloadItems();
         });
