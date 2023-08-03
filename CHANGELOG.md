@@ -3,6 +3,7 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.79.1](#3791)
   - [3.79.0](#3790)
   - [3.78.1](#3781)
   - [3.78.0](#3780)
@@ -99,6 +100,11 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.8](#308)
   - [3.0.7](#307)
   - [3.0.6](#306)
+
+## 3.79.1
+### Fixed
+- Fix: Code navigation and formatting were not working for bicep files.
+- Fix: Textmate rendering was not functioning for bicep files in IntelliJ 2023.2.
 
 ## 3.79.0
 ### Added

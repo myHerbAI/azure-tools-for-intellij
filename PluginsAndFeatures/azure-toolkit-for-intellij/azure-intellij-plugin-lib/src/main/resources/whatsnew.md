@@ -1,6 +1,11 @@
 <!-- Version: 3.78.0 -->
 # What's new in Azure Toolkit for IntelliJ
 
+## 3.79.1
+### Fixed
+- Fix: Code navigation and formatting were not working for bicep files.
+- Fix: Textmate rendering was not functioning for bicep files in IntelliJ 2023.2.
+
 ## 3.79.0
 ### Added
 - Support for creating Azure Spring apps/services of Enterprise/Standard/Basic tier in IDE.    
