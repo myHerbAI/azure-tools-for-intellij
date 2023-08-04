@@ -56,7 +56,7 @@ public class SynapseServiceSubscription extends AbstractAzServiceSubscription<Sy
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return Collections.singletonList(null);//sparkClusterModule);
+        return Collections.singletonList(workspaceModule);
     }
 
     @Override

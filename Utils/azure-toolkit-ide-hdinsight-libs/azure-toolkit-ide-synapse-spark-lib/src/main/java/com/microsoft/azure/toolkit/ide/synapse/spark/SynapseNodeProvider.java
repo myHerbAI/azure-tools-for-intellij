@@ -53,8 +53,6 @@ public class SynapseNodeProvider implements IExplorerNodeProvider {
                     .addChildren(workspaces, (workspace, serviceNode) -> this.createNode(workspace, serviceNode, manager));
         } else if (data instanceof WorkspaceNode) {
             final WorkspaceNode workspaceNode = (WorkspaceNode) data;
-            ArcadiaSparkComputeManager arcadiaSparkComputeManager = ArcadiaSparkComputeManager.getInstance();
-            ImmutableSortedSet<? extends IClusterDetail> clusters = arcadiaSparkComputeManager.getClusters();
 
             return new AzResourceNode<>(workspaceNode)
                     .withIcon(AzureIcon.builder().iconPath("/icons/Workspace_13x.png").build())
