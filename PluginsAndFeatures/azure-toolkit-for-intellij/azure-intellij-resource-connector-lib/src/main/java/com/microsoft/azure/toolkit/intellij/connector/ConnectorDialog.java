@@ -33,7 +33,6 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
@@ -43,8 +42,11 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Future;
 
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition.CONSUMER;
@@ -75,7 +77,7 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     private ResourceDefinition<?> resourceDefinition;
     private ResourceDefinition<?> consumerDefinition;
 
-    private Connection<?,?> connection;
+    private Connection<?, ?> connection;
     @Getter
 
     private Future<?> future;
@@ -94,7 +96,21 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     protected void init() {
         super.init();
         this.lblSignIn.setVisible(!Azure.az(AzureAccount.class).isLoggedIn());
-        this.setOkActionListener(this::saveConnection);
+        final Action.Id<Connection<?, ?>> actionId = Action.Id.of("user/connector.create_or_update_connection.consumer|resource");
+        this.setOkAction(new Action<>(actionId)
+            .withLabel("Save")
+            .withIdParam(c -> c.consumer.getName())
+            .withIdParam(c -> c.resource.getName())
+            .withSource(c -> c.resource.getData())
+            .withAuthRequired(false)
+            .withHandler(c -> {
+                if (c == null) {
+                    return;
+                }
+                if (c.validate(this.project)) {
+                    saveConnectionToDotAzure(c);
+                }
+            }));
         this.consumerTypeSelector.addItemListener(this::onResourceOrConsumerTypeChanged);
         this.resourceTypeSelector.addItemListener(this::onResourceOrConsumerTypeChanged);
         final Font font = UIManager.getFont("Label.font");
@@ -145,20 +161,6 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
         return false;
     }
 
-    protected void saveConnection(Connection<?, ?> connection) {
-        if (connection == null) {
-            return;
-        }
-        this.close(0);
-        if (connection.validate(this.project)) {
-            saveConnectionToDotAzure(connection);
-        }
-    }
-
-    @AzureOperation(
-        name = "user/connector.create_or_update_connection.consumer|resource",
-        params = {"connection.getConsumer().getName()", "connection.getResource().getName()"}
-    )
     private void saveConnectionToDotAzure(Connection<?, ?> connection) {
         final Resource<?> consumer = connection.getConsumer();
         final Resource<?> resource = connection.getResource();
@@ -333,7 +335,7 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
         descriptionPane.setText(description);
     }
 
-    public void setFixedConnectionDefinition(ConnectionDefinition<?,?> definition) {
+    public void setFixedConnectionDefinition(ConnectionDefinition<?, ?> definition) {
         this.fixResourceType(definition.getResourceDefinition());
         this.fixConsumerType(definition.getConsumerDefinition());
     }
@@ -347,6 +349,7 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     private void signInAndReloadItems(@Nonnull final HyperlinkLabel notSignInTips) {
         AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle((a) -> notSignInTips.setVisible(false));
     }
+
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES
     void $$$setupUI$$$() {
     }

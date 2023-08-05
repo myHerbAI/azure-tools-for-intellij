@@ -8,10 +8,8 @@ package com.microsoft.azure.toolkit.intellij.database.sqlserver.creation;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
@@ -32,28 +30,27 @@ public class CreateSqlServerAction {
             if (Objects.nonNull(data)) {
                 dialog.getForm().setValue(data);
             }
-            dialog.setOkActionListener(config -> {
-                doCreate(config, project);
-                dialog.close();
-            });
+            final Action.Id<DatabaseServerConfig> actionId = Action.Id.of("user/sqlserver.create_server.server");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Create")
+                .withIdParam(DatabaseServerConfig::getName)
+                .withSource(DatabaseServerConfig::getResourceGroup)
+                .withAuthRequired(true)
+                .withHandler(c -> doCreate(c, project)));
             dialog.show();
         });
 
     }
 
-    @AzureOperation(name = "user/sqlserver.create_server.server", params = {"config.getName()"})
     private static void doCreate(final DatabaseServerConfig config, final Project project) {
-        final AzureString title = OperationBundle.description("user/sqlserver.create_server.server", config.getName());
-        AzureTaskManager.getInstance().runInBackground(title, () -> {
-            final ResourceGroup rg = config.getResourceGroup();
-            if (Objects.nonNull(rg) && rg.isDraftForCreating()) {
-                new CreateResourceGroupTask(rg.getSubscriptionId(), rg.getName(), config.getRegion()).execute();
-            }
-            final MicrosoftSqlServerDraft draft = Azure.az(AzureSqlServer.class).servers(config.getSubscription().getId())
-                .create(config.getName(), config.getResourceGroup().getName());
-            draft.setConfig(config);
-            draft.commit();
-            CacheManager.getUsageHistory(MicrosoftSqlServer.class).push(draft);
-        });
+        final ResourceGroup rg = config.getResourceGroup();
+        if (Objects.nonNull(rg) && rg.isDraftForCreating()) {
+            new CreateResourceGroupTask(rg.getSubscriptionId(), rg.getName(), config.getRegion()).execute();
+        }
+        final MicrosoftSqlServerDraft draft = Azure.az(AzureSqlServer.class).servers(config.getSubscription().getId())
+            .create(config.getName(), config.getResourceGroup().getName());
+        draft.setConfig(config);
+        draft.commit();
+        CacheManager.getUsageHistory(MicrosoftSqlServer.class).push(draft);
     }
 }

@@ -5,10 +5,8 @@
 package com.microsoft.azure.toolkit.intellij.cosmos.creation;
 
 import com.intellij.openapi.project.Project;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.cosmos.AzureCosmosService;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
@@ -29,27 +27,26 @@ public class CreateCosmosDBAccountAction {
             if (Objects.nonNull(data)) {
                 dialog.getForm().setValue(data);
             }
-            dialog.setOkActionListener(config -> {
-                doCreate(config, project);
-                dialog.close();
-            });
+            final Action.Id<CosmosDBAccountDraft.Config> actionId = Action.Id.of("user/cosmos.create_account.account");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Create")
+                .withIdParam(CosmosDBAccountDraft.Config::getName)
+                .withSource(CosmosDBAccountDraft.Config::getResourceGroup)
+                .withAuthRequired(true)
+                .withHandler(draft -> doCreate(draft, project)));
             dialog.show();
         });
     }
 
-    @AzureOperation(name = "user/cosmos.create_account.account", params = {"config.getName()"})
     private static void doCreate(final CosmosDBAccountDraft.Config config, final Project project) {
-        final AzureString title = OperationBundle.description("user/cosmos.create_account.account", config.getName());
-        AzureTaskManager.getInstance().runInBackground(title, () -> {
-            final ResourceGroup rg = config.getResourceGroup();
-            if (rg.isDraftForCreating()) {
-                new CreateResourceGroupTask(rg.getSubscriptionId(), rg.getName(), config.getRegion()).execute();
-            }
-            final CosmosDBAccountModule module = az(AzureCosmosService.class).databaseAccounts(config.getSubscription().getId());
-            final CosmosDBAccountDraft draft = module.create(config.getName(), config.getResourceGroup().getName());
-            CacheManager.getUsageHistory(CosmosDBAccount.class).push(draft);
-            draft.setConfig(config);
-            draft.commit();
-        });
+        final ResourceGroup rg = config.getResourceGroup();
+        if (rg.isDraftForCreating()) {
+            new CreateResourceGroupTask(rg.getSubscriptionId(), rg.getName(), config.getRegion()).execute();
+        }
+        final CosmosDBAccountModule module = az(AzureCosmosService.class).databaseAccounts(config.getSubscription().getId());
+        final CosmosDBAccountDraft draft = module.create(config.getName(), config.getResourceGroup().getName());
+        CacheManager.getUsageHistory(CosmosDBAccount.class).push(draft);
+        draft.setConfig(config);
+        draft.commit();
     }
 }

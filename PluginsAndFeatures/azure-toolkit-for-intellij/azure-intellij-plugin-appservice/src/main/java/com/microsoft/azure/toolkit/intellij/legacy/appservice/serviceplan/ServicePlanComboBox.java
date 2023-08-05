@@ -15,7 +15,9 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanDraft;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -144,7 +146,7 @@ public class ServicePlanComboBox extends AzureComboBox<AppServicePlan> {
                     .collect(Collectors.toList()));
             }
             final List<AppServicePlan> remotePlans = Azure.az(AzureAppService.class).plans(subscription.getId()).list()
-                    .stream().sorted((first, second) -> StringUtils.compare(first.getName(), second.getName())).toList();
+                .stream().sorted((first, second) -> StringUtils.compare(first.getName(), second.getName())).toList();
             plans.addAll(remotePlans);
             Stream<AppServicePlan> stream = plans.stream();
             if (Objects.nonNull(this.region)) {
@@ -181,12 +183,17 @@ public class ServicePlanComboBox extends AzureComboBox<AppServicePlan> {
 
     private void showServicePlanCreationPopup() {
         final ServicePlanCreationDialog dialog = new ServicePlanCreationDialog(this.subscription, this.resourceGroup, pricingTierList, defaultPricingTier);
-        dialog.setOkActionListener((plan) -> {
-            plan.setRegion(region);
-            plan.setOperatingSystem(os);
-            dialog.close();
-            this.setValue(plan);
-        });
+        final Action.Id<AppServicePlanDraft> actionId = Action.Id.of("user/$appservice.create_service_plan.plan");
+        dialog.setOkAction(new Action<>(actionId)
+            .withLabel("Create")
+            .withIdParam(AbstractAzResource::getName)
+            .withSource(s -> s)
+            .withAuthRequired(false)
+            .withHandler(plan -> {
+                plan.setRegion(region);
+                plan.setOperatingSystem(os);
+                this.setValue(plan);
+            }));
         dialog.show();
     }
 }

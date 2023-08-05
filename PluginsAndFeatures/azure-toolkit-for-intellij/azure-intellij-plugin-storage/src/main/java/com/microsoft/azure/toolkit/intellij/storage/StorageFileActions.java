@@ -19,12 +19,12 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.intellij.common.fileexplorer.VirtualFileActions;
 import com.microsoft.azure.toolkit.intellij.storage.component.FileCreationDialog;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -95,31 +95,32 @@ public class StorageFileActions {
     public static void createBlob(IBlobFile file, Project project) {
         AzureTaskManager.getInstance().runLater(() -> {
             final FileCreationDialog dialog = new FileCreationDialog(file, project, "New Blob");
-            dialog.setOkActionListener((p) -> {
-                dialog.close();
-                final Path rawPath = Paths.get(p);
-                IBlobFile current = file;
-                int i = 0;
-                for (; i < rawPath.getNameCount(); i++) {
-                    final String name = rawPath.getName(i).toString();
-                    final IBlobFile temp = (IBlobFile) current.getFile(name);
-                    if (Objects.isNull(temp)) {
-                        break;
+            final Action.Id<String> actionId = Action.Id.of("user/storage.create_blob.blob");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Create")
+                .withIdParam(s -> s)
+                .withSource(file)
+                .withAuthRequired(true)
+                .withHandler(p -> {
+                    final Path rawPath = Paths.get(p);
+                    IBlobFile current = file;
+                    int i = 0;
+                    for (; i < rawPath.getNameCount(); i++) {
+                        final String name = rawPath.getName(i).toString();
+                        final IBlobFile temp = (IBlobFile) current.getFile(name);
+                        if (Objects.isNull(temp)) {
+                            break;
+                        }
+                        current = temp;
                     }
-                    current = temp;
-                }
-                final Path relativePath = rawPath.subpath(i, rawPath.getNameCount());
-                final AbstractAzResourceModule<? extends StorageFile, ? extends StorageFile, ?> module = current.getSubFileModule();
-                final BlobFileDraft draft = (BlobFileDraft) module.create(relativePath.getName(0).toString(), "");
-                draft.setRelativePath(relativePath.toString());
-                draft.setDirectory(relativePath.getNameCount() > 1);
-                final AzureString title = OperationBundle.description("user/storage.create_blob.blob", draft.getPath());
-                final IBlobFile finalCurrent = current;
-                AzureTaskManager.getInstance().runInBackground(title, () -> {
+                    final Path relativePath = rawPath.subpath(i, rawPath.getNameCount());
+                    final AbstractAzResourceModule<? extends StorageFile, ? extends StorageFile, ?> module = current.getSubFileModule();
+                    final BlobFileDraft draft = (BlobFileDraft) module.create(relativePath.getName(0).toString(), "");
+                    draft.setRelativePath(relativePath.toString());
+                    draft.setDirectory(relativePath.getNameCount() > 1);
                     draft.createIfNotExist();
-                    openFileInEditor(finalCurrent.getFile(relativePath.toString()), project);
-                });
-            });
+                    openFileInEditor(Objects.requireNonNull(current.getFile(relativePath.toString())), project);
+                }));
             dialog.show();
         });
     }
@@ -127,16 +128,18 @@ public class StorageFileActions {
     public static void createFile(StorageFile file, Project project) {
         AzureTaskManager.getInstance().runLater(() -> {
             final FileCreationDialog dialog = new FileCreationDialog(file, project, "New Empty File");
-            dialog.setOkActionListener((name) -> {
-                dialog.close();
-                final AbstractAzResourceModule<? extends StorageFile, ? extends StorageFile, ?> module = file.getSubFileModule();
-                final AzResource.Draft<? extends StorageFile, ?> draft = module.create(name, "");
-                final AzureString title = OperationBundle.description("user/storage.create_file.file", draft.getName());
-                AzureTaskManager.getInstance().runInBackground(title, () -> {
+            final Action.Id<String> actionId = Action.Id.of("user/storage.create_file.file");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Create")
+                .withIdParam(s -> s)
+                .withSource(file)
+                .withAuthRequired(true)
+                .withHandler(name -> {
+                    final AbstractAzResourceModule<? extends StorageFile, ? extends StorageFile, ?> module = file.getSubFileModule();
+                    final AzResource.Draft<? extends StorageFile, ?> draft = module.create(name, "");
                     draft.createIfNotExist();
                     openFileInEditor((StorageFile) draft, project);
-                });
-            });
+                }));
             dialog.show();
         });
     }
@@ -144,13 +147,17 @@ public class StorageFileActions {
     public static void createDirectory(StorageFile file, Project project) {
         AzureTaskManager.getInstance().runLater(() -> {
             final FileCreationDialog dialog = new FileCreationDialog(file, project, "New Subdirectory");
-            dialog.setOkActionListener((name) -> {
-                dialog.close();
-                final StorageFile.Draft<?, ?> draft = (StorageFile.Draft<?, ?>) file.getSubFileModule().create(name, "");
-                draft.setDirectory(true);
-                final AzureString title = OperationBundle.description("user/storage.create_directory.dir", draft.getName());
-                AzureTaskManager.getInstance().runInBackground(title, draft::createIfNotExist);
-            });
+            final Action.Id<String> actionId = Action.Id.of("user/storage.create_directory.dir");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Create")
+                .withIdParam(s -> s)
+                .withSource(file)
+                .withAuthRequired(true)
+                .withHandler(name -> {
+                    final StorageFile.Draft<?, ?> draft = (StorageFile.Draft<?, ?>) file.getSubFileModule().create(name, "");
+                    draft.setDirectory(true);
+                    draft.createIfNotExist();
+                }));
             dialog.show();
         });
     }

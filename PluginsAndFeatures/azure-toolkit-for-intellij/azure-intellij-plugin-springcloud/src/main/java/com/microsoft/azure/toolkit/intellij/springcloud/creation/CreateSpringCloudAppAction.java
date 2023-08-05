@@ -10,11 +10,10 @@ import com.microsoft.azure.toolkit.intellij.common.ProjectUtils;
 import com.microsoft.azure.toolkit.intellij.common.utils.JdkUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
@@ -38,31 +37,31 @@ public class CreateSpringCloudAppAction {
             final SpringCloudAppCreationDialog dialog = new SpringCloudAppCreationDialog(project);
             dialog.setCluster(cluster, false);
             dialog.setDefaultRuntimeVersion(JdkUtils.getJdkLanguageLevel(Optional.ofNullable(project).orElseGet(ProjectUtils::getProject)));
-            dialog.setOkActionListener((draft) -> {
-                dialog.close();
-                createApp(draft);
-            });
+            final Action.Id<SpringCloudAppDraft> actionId = Action.Id.of("user/springcloud.create_app.app");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Create")
+                .withIdParam(SpringCloudAppDraft::getName)
+                .withSource(s -> s)
+                .withAuthRequired(true)
+                .withHandler(draft -> createApp(draft)));
             dialog.show();
         });
     }
 
-    @AzureOperation(name = "user/springcloud.create_app.app", params = "app.getName()", source = "app")
     private static void createApp(SpringCloudAppDraft app) {
-        AzureTaskManager.getInstance().runInBackground(OperationBundle.description("user/springcloud.create_app.app", app.getName()), () -> {
-            SpringCloudDeploymentDraft deployment = (SpringCloudDeploymentDraft) app.getActiveDeployment();
-            if (deployment == null) {
-                deployment = app.updateOrCreateActiveDeployment();
-            }
-            Objects.requireNonNull(deployment).commit();
-            app.reset();
-            CacheManager.getUsageHistory(SpringCloudCluster.class).push(app.getParent());
-            CacheManager.getUsageHistory(SpringCloudApp.class).push(app);
-            final boolean hasArtifact = Optional.of(deployment)
-                .map(SpringCloudDeploymentDraft::getArtifact)
-                .map(IArtifact::getFile).isPresent();
-            if (hasArtifact && !deployment.waitUntilReady(GET_STATUS_TIMEOUT)) {
-                AzureMessager.getMessager().warning(GET_DEPLOYMENT_STATUS_TIMEOUT, NOTIFICATION_TITLE);
-            }
-        });
+        SpringCloudDeploymentDraft deployment = (SpringCloudDeploymentDraft) app.getActiveDeployment();
+        if (deployment == null) {
+            deployment = app.updateOrCreateActiveDeployment();
+        }
+        Objects.requireNonNull(deployment).commit();
+        app.reset();
+        CacheManager.getUsageHistory(SpringCloudCluster.class).push(app.getParent());
+        CacheManager.getUsageHistory(SpringCloudApp.class).push(app);
+        final boolean hasArtifact = Optional.of(deployment)
+            .map(SpringCloudDeploymentDraft::getArtifact)
+            .map(IArtifact::getFile).isPresent();
+        if (hasArtifact && !deployment.waitUntilReady(GET_STATUS_TIMEOUT)) {
+            AzureMessager.getMessager().warning(GET_DEPLOYMENT_STATUS_TIMEOUT, NOTIFICATION_TITLE);
+        }
     }
 }

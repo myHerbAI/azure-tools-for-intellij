@@ -15,6 +15,7 @@ import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.container.AzureDockerClient;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerHost;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -82,12 +83,16 @@ public class AzureDockerHostComboBox extends AzureComboBox<DockerHost> {
 
     private void createDockerHostConfiguration() {
         final DockerHostCreationDialog dialog = new DockerHostCreationDialog(project);
-        dialog.setOkActionListener((dockerHost) -> {
-            dialog.close();
-            this.addItem(dockerHost);
-            this.setValue(dockerHost);
-            saveHistory();
-        });
+        final Action.Id<DockerHost> actionId = Action.Id.of("user/docker.add_docker_host.host");
+        dialog.setOkAction(new Action<>(actionId)
+            .withLabel("Add")
+            .withIdParam(DockerHost::getDockerHost)
+            .withAuthRequired(true)
+            .withHandler(dockerHost -> {
+                this.addItem(dockerHost);
+                this.setValue(dockerHost);
+                saveHistory();
+            }));
         dialog.show();
     }
 

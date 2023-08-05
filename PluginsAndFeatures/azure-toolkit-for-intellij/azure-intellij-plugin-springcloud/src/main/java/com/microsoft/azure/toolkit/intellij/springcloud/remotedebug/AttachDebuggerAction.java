@@ -43,7 +43,6 @@ import java.util.Optional;
 public class AttachDebuggerAction {
     private static final int DEFAULT_PORT = 5005;
 
-    @AzureOperation(name = "user/springcloud.start_remote_debugging.instance", params = {"appInstance.getName()"}, source = "appInstance")
     public static void startDebugging(@Nonnull SpringCloudAppInstance appInstance, Project project) {
         if (!appInstance.getParent().isRemoteDebuggingEnabled()) {
             showEnableDebuggingMessage(appInstance);
@@ -57,10 +56,13 @@ public class AttachDebuggerAction {
     public static void startDebuggingApp(@Nonnull SpringCloudApp app, Project project) {
         AzureTaskManager.getInstance().runLater(() -> {
             final SpringCloudAppInstanceSelectionDialog dialog = new SpringCloudAppInstanceSelectionDialog(project, app);
-            dialog.setOkActionListener((target)->{
-                dialog.close();
-                startDebugging(target, project);
-            });
+            final Action.Id<SpringCloudAppInstance> actionId = Action.Id.of("user/springcloud.start_remote_debugging.instance");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Start")
+                .withIdParam(SpringCloudAppInstance::getName)
+                .withSource(s -> s)
+                .withAuthRequired(true)
+                .withHandler(instance -> startDebugging(instance, project)));
             dialog.show();
         });
     }

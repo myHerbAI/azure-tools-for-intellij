@@ -5,82 +5,45 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.action;
 
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig;
-import com.microsoft.azure.toolkit.intellij.common.messager.IntellijAzureMessager;
 import com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppCreationDialog;
-import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
-import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessage;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.legacy.function.FunctionAppService;
-import com.microsoft.azuretools.telemetry.TelemetryConstants;
-import com.microsoft.azuretools.telemetrywrapper.Operation;
-import com.microsoft.azuretools.telemetrywrapper.TelemetryManager;
-import rx.Single;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
 
-import static com.microsoft.azure.toolkit.lib.common.operation.OperationBundle.description;
-
 public class CreateFunctionAppAction {
-    @AzureOperation(name = "user/function.open_creation_dialog")
     public static void openDialog(final Project project, @Nullable final FunctionAppConfig data) {
         AzureTaskManager.getInstance().runLater(() -> {
             final FunctionAppCreationDialog dialog = new FunctionAppCreationDialog(project);
             if (Objects.nonNull(data)) {
                 dialog.setData(data);
             }
-            dialog.setOkActionListener((config) -> {
-                dialog.close();
-                createFunctionApp(config)
-                    .subscribe(functionApp -> {
-                    }, (error) -> {
+            final Action.Id<FunctionAppConfig> actionId = Action.Id.of("user/function.create_app.app");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Create")
+                .withIdParam(FunctionAppConfig::getName)
+                .withSource(FunctionAppConfig::getResourceGroup)
+                .withAuthRequired(true)
+                .withHandler(config -> {
+                    try {
+                        CacheManager.getUsageHistory(FunctionAppConfig.class).push(config);
+                        OperationContext.current().setTelemetryProperties(config.getTelemetryProperties());
+                        FunctionAppService.getInstance().createOrUpdateFunctionApp(config);
+                    } catch (final Exception error) {
                         final Action<?> action = new Action<>(Action.Id.of("user/function.reopen_creation_dialog"))
                             .withLabel(String.format("Reopen dialog \"%s\"", dialog.getTitle()))
                             .withHandler(t -> openDialog(project, config));
                         AzureMessager.getMessager().error(error, null, action);
-                    });
-            });
+                    }
+                }));
             dialog.show();
         });
-    }
-
-    @AzureOperation(name = "user/function.create_app.app", params = {"config.getName()"})
-    private static Single<FunctionAppBase<?, ?, ?>> createFunctionApp(final FunctionAppConfig config) {
-        final AzureString title = description("user/function.create_app.app", config.getName());
-        final IntellijAzureMessager actionMessenger = new IntellijAzureMessager() {
-            @Override
-            public boolean show(IAzureMessage raw) {
-                if (raw.getType() != IAzureMessage.Type.INFO) {
-                    return super.show(raw);
-                }
-                return false;
-            }
-        };
-        final AzureTask<FunctionAppBase<?, ?, ?>> task = new AzureTask<>(null, title, false, () -> {
-            final Operation operation = TelemetryManager.createOperation(TelemetryConstants.FUNCTION, TelemetryConstants.CREATE_FUNCTION_APP);
-            operation.trackProperties(config.getTelemetryProperties());
-            try {
-                OperationContext.current().setMessager(actionMessenger);
-                final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
-                indicator.setIndeterminate(true);
-                return FunctionAppService.getInstance().createOrUpdateFunctionApp(config);
-            } finally {
-                operation.trackProperties(OperationContext.action().getTelemetryProperties());
-                operation.complete();
-            }
-        });
-        CacheManager.getUsageHistory(FunctionAppConfig.class).push(config);
-        return AzureTaskManager.getInstance().runInBackgroundAsObservable(task).toSingle();
     }
 }
