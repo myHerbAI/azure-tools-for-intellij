@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.common.auth;
 
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -15,7 +16,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.WindowManager;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
-import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction;
 import com.microsoft.azure.toolkit.intellij.common.subscription.SelectSubscriptionsAction;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
@@ -44,7 +44,7 @@ import java.util.function.Consumer;
 import static com.microsoft.azuretools.telemetry.TelemetryConstants.ACCOUNT;
 
 @Slf4j
-public class AzureSignInAction extends AzureAnAction implements DumbAware {
+public class AzureSignInAction extends AnAction implements DumbAware {
     private static final String SIGN_IN = "Azure Sign In...";
     private static final String SIGN_OUT = "Azure Sign Out...";
     private static final String SIGN_IN_ERROR = "Sign In Error";
@@ -59,20 +59,12 @@ public class AzureSignInAction extends AzureAnAction implements DumbAware {
                 : com.microsoft.azure.toolkit.ide.common.icon.AzureIcons.Common.SIGN_IN));
     }
 
-    public boolean onActionPerformed(@NotNull AnActionEvent e, @Nullable Operation operation) {
+    @AzureOperation(name = "user/account.authenticate")
+    public void actionPerformed(@NotNull AnActionEvent e) {
         final Project project = e.getProject();
         if (Objects.nonNull(project)) {
             authActionPerformed(project);
         }
-        return true;
-    }
-
-    protected String getServiceName(AnActionEvent event) {
-        return ACCOUNT;
-    }
-
-    protected String getOperationName(AnActionEvent event) {
-        return TelemetryConstants.SIGNIN;
     }
 
     @Override

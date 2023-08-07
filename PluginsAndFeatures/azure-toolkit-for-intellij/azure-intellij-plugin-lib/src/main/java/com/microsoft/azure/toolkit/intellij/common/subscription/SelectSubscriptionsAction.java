@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.common.subscription;
 
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -12,24 +13,17 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azuretools.telemetrywrapper.Operation;
-import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 @Slf4j
-public class SelectSubscriptionsAction extends AzureAnAction implements DumbAware {
-
-    public SelectSubscriptionsAction() {
-    }
+public class SelectSubscriptionsAction extends AnAction implements DumbAware {
 
     @Override
     @AzureOperation(name = "user/account.select_subscription")
-    public boolean onActionPerformed(@Nonnull AnActionEvent e, @Nullable Operation operation) {
+    public void actionPerformed(@Nonnull AnActionEvent e) {
         selectSubscriptions(e.getProject());
-        return true;
     }
 
     @Override
