@@ -238,7 +238,6 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
         }
     }
 
-    @AzureOperation(value = "user/connector.remove_connection.resource", params = "connection.getResource()")
     private static void removeConnection(Connection<?, ?> connection, AnActionEvent e) {
         final Project project = Objects.requireNonNull(e.getProject());
         final Module module = ModuleManager.getInstance(project).findModuleByName(connection.getConsumer().getName());
@@ -249,7 +248,6 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
             .ifPresent(p -> m.write(p::save)));
     }
 
-    @AzureOperation("user/connector.refresh_connections")
     private static void refreshConnections(AnActionEvent e) {
         Objects.requireNonNull(e.getProject())
             .getMessageBus().syncPublisher(ConnectionTopics.CONNECTIONS_REFRESHED)

@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.intellij.springcloud.task;
 import com.microsoft.azure.toolkit.ide.guidance.ComponentContext;
 import com.microsoft.azure.toolkit.ide.guidance.Task;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
 
 import javax.annotation.Nonnull;
@@ -26,6 +27,7 @@ public class OpenInBrowserTask implements Task {
     }
 
     @Override
+    @AzureOperation(name = "user/guidance.open_in_browser")
     public void execute() {
         final SpringCloudApp app = Objects.requireNonNull((SpringCloudApp) context.getParameter(SPRING_APP),
                 "`springApp` is required to open test endpoint");

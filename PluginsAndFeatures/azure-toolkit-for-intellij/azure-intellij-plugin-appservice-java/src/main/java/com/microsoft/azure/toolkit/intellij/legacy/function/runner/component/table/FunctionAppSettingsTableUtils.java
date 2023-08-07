@@ -71,6 +71,7 @@ public class FunctionAppSettingsTableUtils {
 
         final AnActionButton exportButton = new AnActionButton(message("function.appSettings.export.title"), AllIcons.ToolbarDecorator.Export) {
             @Override
+            @AzureOperation(name = "user/function.export_app_settings")
             public void actionPerformed(AnActionEvent anActionEvent) {
                 exportAppSettings(appSettingsTable);
             }

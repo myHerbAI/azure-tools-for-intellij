@@ -25,13 +25,12 @@ public class ConnectUsingSshActionCommunityImpl implements ConnectUsingSshAction
         return instance;
     }
 
-    @AzureOperation(name = "user/vm.connect_using_ssh_community.vm", params = "vm.getName()", source = "vm")
     public void connectBySsh(VirtualMachine vm, @Nonnull Project project) {
         final String machineName = vm.getName();
-        final String terminalTitle =  String.format(SSH_TERMINAL_TABLE_NAME, machineName);
-        AzureTaskManager.getInstance().runLater(terminalTitle, () -> {
+        AzureTaskManager.getInstance().runLater(() -> {
             // create a new terminal tab
             final TerminalView terminalView = TerminalView.getInstance(project);
+            final String terminalTitle =  String.format(SSH_TERMINAL_TABLE_NAME, machineName);
             final ShellTerminalWidget shellTerminalWidget = terminalView.createLocalShellWidget(null, terminalTitle);
             try {
                 // create ssh connection in terminal

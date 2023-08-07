@@ -32,7 +32,6 @@ import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 public class CreateWebAppAction {
     private static final String NOTIFICATION_GROUP_ID = "Azure Plugin";
 
-    @AzureOperation(name = "user/webapp.open_creation_dialog")
     public static void openDialog(final Project project, @Nullable final WebAppConfig data) {
         AzureTaskManager.getInstance().runLater(() -> {
             final WebAppCreationDialog dialog = new WebAppCreationDialog(project);
