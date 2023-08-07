@@ -28,8 +28,6 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azuretools.telemetry.TelemetryConstants;
-import com.microsoft.azuretools.telemetrywrapper.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -40,8 +38,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
-
-import static com.microsoft.azuretools.telemetry.TelemetryConstants.ACCOUNT;
 
 @Slf4j
 public class AzureSignInAction extends AnAction implements DumbAware {
@@ -134,7 +130,7 @@ public class AzureSignInAction extends AnAction implements DumbAware {
                 } catch (final Throwable t) {
                     manager.runOnPooledThread(() -> callback.accept(null));
                     final Throwable cause = ExceptionUtils.getRootCause(t);
-                    Optional.ofNullable(dcWindow[0]).ifPresent(w -> manager.runLater(w::doCancelAction));
+                    Optional.ofNullable(dcWindow[0]).ifPresent(w -> manager.runLater((Runnable) w::doCancelAction));
                     if (!(cause instanceof InterruptedException)) {
                         throw t;
                     }
@@ -154,7 +150,7 @@ public class AzureSignInAction extends AnAction implements DumbAware {
             }
         });
         auth.setDeviceCodeConsumer(info -> manager.runLater(() -> dcWindow.show(info)));
-        auth.setDoAfterLogin(() -> manager.runLater(dcWindow::close, AzureTask.Modality.ANY));
+        auth.setDoAfterLogin(() -> manager.runLater((Runnable) dcWindow::close, AzureTask.Modality.ANY));
         return dcWindow;
     }
 

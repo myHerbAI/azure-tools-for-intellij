@@ -29,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterDraft;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
@@ -68,7 +69,7 @@ public class IntellijSpringCloudActionsContributor implements IActionsContributo
     }
 
     private void registerDeployAppActionHandler(AzureActionManager am) {
-        final BiPredicate<AzResource, AnActionEvent> condition = (r, e) -> r instanceof SpringCloudApp && Objects.nonNull(e.getProject());
+        final BiPredicate<AzResource, AnActionEvent> condition = (r, e) -> r instanceof SpringCloudApp && Optional.ofNullable(e).map(AnActionEvent::getProject).isPresent();
         final BiConsumer<AzResource, AnActionEvent> handler = (c, e) -> {
             final Project project = Objects.requireNonNull(e.getProject());
             DeploySpringCloudAppAction.deploy((SpringCloudApp) c, project);

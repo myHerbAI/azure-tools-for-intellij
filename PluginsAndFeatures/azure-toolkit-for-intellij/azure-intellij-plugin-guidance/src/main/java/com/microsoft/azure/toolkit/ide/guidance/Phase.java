@@ -19,7 +19,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import rx.schedulers.Schedulers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -138,18 +137,16 @@ public class Phase implements Disposable {
 
     public void execute() {
         setStatus(Status.RUNNING);
-        AzureTaskManager.getInstance().runInBackgroundAsObservable("Validating inputs", this::validateInputs)
-                .subscribeOn(Schedulers.io())
-                .subscribe(result -> {
-                    if (result) {
-                        final Step currentStep = getCurrentStep();
-                        if (currentStep != null) {
-                            currentStep.execute();
-                        }
-                    } else {
-                        setStatus(Status.FAILED);
-                    }
-                });
+        AzureTaskManager.getInstance().runInBackground("Validating inputs", this::validateInputs).thenAccept(result -> {
+            if (result) {
+                final Step currentStep = getCurrentStep();
+                if (currentStep != null) {
+                    currentStep.execute();
+                }
+            } else {
+                setStatus(Status.FAILED);
+            }
+        });
     }
 
     public Context getContext() {

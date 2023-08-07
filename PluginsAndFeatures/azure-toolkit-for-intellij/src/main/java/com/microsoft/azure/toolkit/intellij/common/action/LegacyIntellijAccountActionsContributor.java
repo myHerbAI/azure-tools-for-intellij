@@ -82,7 +82,7 @@ public class LegacyIntellijAccountActionsContributor implements IActionsContribu
         final ToolWindow toolWindow = ToolWindowManager.getInstance(Objects.requireNonNull(e.getProject())).
             getToolWindow(ServerExplorerToolWindowFactory.EXPLORER_WINDOW);
         if (Objects.nonNull(toolWindow) && !toolWindow.isVisible()) {
-            AzureTaskManager.getInstance().runLater(toolWindow::show);
+            AzureTaskManager.getInstance().runLater((Runnable) toolWindow::show);
         }
     }
 

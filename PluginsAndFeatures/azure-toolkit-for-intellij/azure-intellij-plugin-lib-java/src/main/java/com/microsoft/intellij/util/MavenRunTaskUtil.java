@@ -62,8 +62,8 @@ public class MavenRunTaskUtil {
               .filter(Objects::nonNull)
               .flatMap(type ->
                   AzureTaskManager.getInstance()
-                      .readAsObservable(new AzureTask<>(() -> ArtifactManager.getInstance(project).getArtifactsByType(type)))
-                      .toBlocking().single().stream())
+                      .read(() -> ArtifactManager.getInstance(project).getArtifactsByType(type))
+                      .join().stream())
             .collect(Collectors.toList());
     }
 

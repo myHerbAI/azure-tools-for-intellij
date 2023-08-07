@@ -23,7 +23,6 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerAppDraft;
@@ -32,7 +31,6 @@ import com.microsoft.azure.toolkit.lib.containerapps.model.IngressConfig;
 import com.microsoft.azure.toolkit.lib.containerapps.model.RevisionMode;
 import com.microsoft.azure.toolkit.lib.containerapps.model.TransportMethod;
 import org.apache.commons.lang3.StringUtils;
-import rx.schedulers.Schedulers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -239,9 +237,10 @@ public class ContainerAppPropertiesEditor extends AzResourcePropertiesEditor<Con
 
     private void refresh() {
         this.draft.reset();
-        AzureTaskManager.getInstance().runInBackgroundAsObservable(new AzureTask<>("Refreshing...", containerApp::refresh))
-            .subscribeOn(Schedulers.io())
-            .subscribe(ignore -> rerender());
+        AzureTaskManager.getInstance().runInBackground("Refreshing...", () -> {
+            this.containerApp.refresh();
+            this.rerender();
+        });
     }
 
     @Override
@@ -281,9 +280,8 @@ public class ContainerAppPropertiesEditor extends AzResourcePropertiesEditor<Con
         txtTransportMethod.setText(Optional.ofNullable(ingressConfig).map(IngressConfig::getTransport).map(TransportMethod::getDisplayName).orElse(null));
         txtTargetPort.setNumber(Optional.ofNullable(ingressConfig).map(IngressConfig::getTargetPort).orElse(80));
 
-        AzureTaskManager.getInstance().runInBackgroundAsObservable(new AzureTask<>("Loading revisions.", () -> this.containerApp.revisions().list()))
-            .subscribeOn(Schedulers.io())
-            .subscribe(pools -> AzureTaskManager.getInstance().runLater(() -> fillRevisions(pools)));
+        AzureTaskManager.getInstance().runInBackground("Loading revisions.", () -> this.containerApp.revisions().list())
+            .thenAccept(pools -> AzureTaskManager.getInstance().runLater(() -> fillRevisions(pools)));
     }
 
     private void fillRevisions(List<Revision> pools) {
