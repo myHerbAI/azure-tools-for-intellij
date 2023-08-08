@@ -112,6 +112,7 @@ public class FunctionAppSettingsTableUtils {
         final ImportAppSettingsDialog importAppSettingsDialog = new ImportAppSettingsDialog(appSettingsTable.getProject());
         importAppSettingsDialog.addWindowListener(new WindowAdapter() {
             @Override
+            @AzureOperation("user/function.close_app_settings_dialog")
             public void windowClosed(WindowEvent windowEvent) {
                 super.windowClosed(windowEvent);
                 final Map<String, String> appSettings = importAppSettingsDialog.getAppSettings();

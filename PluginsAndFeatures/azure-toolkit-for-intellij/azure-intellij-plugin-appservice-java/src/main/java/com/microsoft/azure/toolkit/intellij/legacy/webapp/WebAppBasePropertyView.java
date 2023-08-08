@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azuretools.core.mvp.ui.webapp.WebAppProperty;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
@@ -116,6 +117,7 @@ public abstract class WebAppBasePropertyView extends BaseEditor implements WebAp
         btnGetPublishFile.setIcon(AllIcons.Actions.Download);
         btnGetPublishFile.addActionListener(new AzureActionListenerWrapper(INSIGHT_NAME, "btnGetPublishFile", null) {
             @Override
+            @AzureOperation("user/webapp.get_publish_profile")
             public void actionPerformedFunc(ActionEvent event) {
                 EventUtil.executeWithLog(TelemetryConstants.APP_SERVICE, TelemetryConstants.GET_PUBLISH_FILE, operation -> {
                     final FileChooserDescriptor fileChooserDescriptor = new FileChooserDescriptor(
@@ -137,6 +139,7 @@ public abstract class WebAppBasePropertyView extends BaseEditor implements WebAp
 
         btnDiscard.addActionListener(new AzureActionListenerWrapper(INSIGHT_NAME, "btnDiscard", null) {
             @Override
+            @AzureOperation("user/webapp.discard_property_changes")
             public void actionPerformedFunc(ActionEvent event) {
                 updateMapStatus(editedAppSettings, cachedAppSettings);
                 tblAppSetting.clear();
@@ -146,6 +149,7 @@ public abstract class WebAppBasePropertyView extends BaseEditor implements WebAp
 
         btnSave.addActionListener(new AzureActionListenerWrapper(INSIGHT_NAME, "btnSave", null) {
             @Override
+            @AzureOperation("user/webapp.save_property_changes")
             public void actionPerformedFunc(ActionEvent event) {
                 EventUtil.executeWithLog(TelemetryConstants.APP_SERVICE, TelemetryConstants.SAVE_APP_SERVICE, operation -> {
                     setLoading(true);
