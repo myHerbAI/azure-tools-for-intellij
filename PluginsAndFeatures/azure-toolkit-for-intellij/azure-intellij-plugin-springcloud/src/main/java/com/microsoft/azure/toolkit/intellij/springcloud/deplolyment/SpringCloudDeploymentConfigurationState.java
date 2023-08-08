@@ -75,7 +75,6 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
 
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "user/springcloud.deploy_app.app", params = {"this.config.getApp().getName()"}, source = "this.config.getDeployment()")
     public @Nullable ExecutionResult execute(Executor executor, @Nonnull ProgramRunner<?> runner) {
         final Action<Void> retry = Action.retryFromFailure(() -> this.execute(executor, runner));
         final RunProcessHandler processHandler = new RunProcessHandler();
@@ -117,6 +116,7 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
         return new DefaultExecutionResult(consoleView, processHandler);
     }
 
+    @AzureOperation(name = "user/springcloud.deploy_app.app", params = {"this.config.getApp().getName()"}, source = "this.config.getDeployment()")
     public SpringCloudDeployment execute(IAzureMessager messager) {
         OperationContext.current().setMessager(messager);
         OperationContext.current().setTelemetryProperties(getTelemetryProperties());
