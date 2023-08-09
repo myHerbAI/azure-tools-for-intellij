@@ -34,7 +34,7 @@ import com.microsoft.azure.hdinsight.common.ClusterManagerEx
 import com.microsoft.azure.hdinsight.common.logger.ILogger
 import com.microsoft.azure.hdinsight.common.viewmodels.ComboBoxSelectionDelegated
 import com.microsoft.azure.hdinsight.common.viewmodels.ImmutableComboBoxModelDelegated
-import com.microsoft.azure.hdinsight.sdk.storage.HDStorageAccount.DefaultScheme
+import com.microsoft.azure.hdinsight.sdk.storage.implementation.HDStorageAccount.DefaultScheme
 import com.microsoft.azure.hdinsight.spark.common.SparkSubmitJobUploadStorageModel
 import com.microsoft.azure.hdinsight.spark.common.SparkSubmitStorageType.BLOB
 import com.microsoft.azure.hdinsight.spark.common.getSecureStoreServiceOf
