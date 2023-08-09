@@ -31,7 +31,7 @@ import com.microsoft.azure.toolkit.intellij.common.component.UIUtils;
 import com.microsoft.intellij.util.PluginUtil;
 import com.microsoft.tooling.msservices.components.DefaultLoader;
 import com.microsoft.tooling.msservices.helpers.UIHelper;
-import com.microsoft.tooling.msservices.model.storage.ClientStorageAccount;
+import com.microsoft.azure.hdinsight.sdk.storage.model.ClientStorageAccount;
 import com.microsoft.tooling.msservices.serviceexplorer.Node;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.container.ContainerRegistryNode;
 import lombok.extern.slf4j.Slf4j;

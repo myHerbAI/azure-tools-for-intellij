@@ -3,16 +3,18 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.hdinsight.sdk.storage;
+package com.microsoft.azure.hdinsight.sdk.storage.implementation;
 
 import com.microsoft.azure.hdinsight.sdk.cluster.ClusterIdentity;
 import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;
 import com.microsoft.azure.hdinsight.sdk.common.HDIException;
+import com.microsoft.azure.hdinsight.sdk.storage.ADLSCertificateInfo;
+import com.microsoft.azure.hdinsight.sdk.storage.StorageAccountType;
+import com.microsoft.azure.hdinsight.sdk.storage.model.IHDIStorageAccount;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
-import com.microsoft.tooling.msservices.model.ServiceTreeItem;
 import java.net.URI;
 
-public class ADLSStorageAccount implements IHDIStorageAccount, ServiceTreeItem {
+public class ADLSStorageAccount implements IHDIStorageAccount {
     private final String name;
     private boolean isDefaultStorageAccount;
     private final String defaultRootFolderPath;
@@ -37,16 +39,6 @@ public class ADLSStorageAccount implements IHDIStorageAccount, ServiceTreeItem {
         this.clusterDetail = clusterDetail;
         this.clusterIdentity = clusterIdentity;
         this.defaultStorageSchema = rootURI.getScheme();
-    }
-
-    @Override
-    public boolean isLoading() {
-        return false;
-    }
-
-    @Override
-    public void setLoading(boolean loading) {
-
     }
 
     @Override

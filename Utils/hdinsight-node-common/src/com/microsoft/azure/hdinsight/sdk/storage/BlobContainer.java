@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.tooling.msservices.model.storage;
+package com.microsoft.azure.hdinsight.sdk.storage;
 
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 

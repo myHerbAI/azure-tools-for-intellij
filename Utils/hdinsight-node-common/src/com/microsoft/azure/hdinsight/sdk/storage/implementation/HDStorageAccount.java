@@ -3,12 +3,14 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.hdinsight.sdk.storage;
+package com.microsoft.azure.hdinsight.sdk.storage.implementation;
 
 import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;
+import com.microsoft.azure.hdinsight.sdk.storage.StorageAccountType;
+import com.microsoft.azure.hdinsight.sdk.storage.model.IHDIStorageAccount;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
-import com.microsoft.tooling.msservices.model.storage.ClientStorageAccount;
+import com.microsoft.azure.hdinsight.sdk.storage.model.ClientStorageAccount;
 
 public class HDStorageAccount extends ClientStorageAccount implements IHDIStorageAccount {
     public final static String DefaultScheme = "wasbs";
