@@ -3,8 +3,9 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.hdinsight.sdk.storage;
+package com.microsoft.azure.hdinsight.sdk.storage.model;
 
+import com.microsoft.azure.hdinsight.sdk.storage.StorageAccountType;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
 
 public interface IHDIStorageAccount {
