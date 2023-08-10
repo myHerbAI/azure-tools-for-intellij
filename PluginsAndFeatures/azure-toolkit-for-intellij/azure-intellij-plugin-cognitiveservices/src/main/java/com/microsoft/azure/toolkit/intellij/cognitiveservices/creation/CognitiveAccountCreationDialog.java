@@ -35,7 +35,7 @@ import java.util.Optional;
 
 public class CognitiveAccountCreationDialog extends AzureDialog<CognitiveAccountDraft> implements AzureForm<CognitiveAccountDraft> {
     public static final String REGISTER_SUBSCRIPTION_TEXT = "The selected subscription has not been enabled for use of the service and does not have quota for any pricing tiers. " +
-            "<a href = \"https://aka.ms/oai/access\">Click here to request access to Azure OpenAI service</a>\u2197.";
+            "<a href = \"https://aka.ms/oai/access\">Click here to request access to Azure OpenAI service</a>.\u2197";
     private JLabel lblSubscription;
     private CognitiveSubscriptionComboBox cbSubscription;
     private JLabel lblResourceGroup;
