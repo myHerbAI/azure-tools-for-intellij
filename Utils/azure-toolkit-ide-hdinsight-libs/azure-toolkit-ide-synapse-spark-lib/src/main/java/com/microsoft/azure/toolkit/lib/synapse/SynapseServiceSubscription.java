@@ -2,8 +2,6 @@ package com.microsoft.azure.toolkit.lib.synapse;
 
 import com.azure.resourcemanager.hdinsight.HDInsightManager;
 import com.azure.resourcemanager.synapse.SynapseManager;
-import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 
@@ -35,22 +33,8 @@ public class SynapseServiceSubscription extends AbstractAzServiceSubscription<Sy
 
     @Override
     @Nonnull
-    public String getStatus() {
-        if (Azure.az(AzureAccount.class).isLoggedIn()) {
-            return super.getStatus();
-        } else {
-            return "Linked";
-        }
-    }
-
-    @Override
-    @Nonnull
     protected Optional<SynapseManager> remoteOptional() {
-        if (Azure.az(AzureAccount.class).isLoggedIn()) {
-            return Optional.ofNullable(this.getRemote());
-        } else {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(this.getRemote());
     }
 
     @Nonnull
