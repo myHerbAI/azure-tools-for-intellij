@@ -10,6 +10,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
@@ -22,6 +23,7 @@ import org.apache.commons.collections.CollectionUtils;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class AzureLoginHelper {
 
@@ -57,13 +59,13 @@ public class AzureLoginHelper {
         }
     }
 
-    public static void requireSignedIn(Project project, Runnable runnable) {
+    public static void requireSignedIn(Project project, Consumer<IAccount> consumer) {
         // Todo(andxu): legacy code shall be deleted later.
-        final Action<Runnable> requireAuth = AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH);
+        final Action<Consumer<IAccount>> requireAuth = AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH);
         final AnActionEvent event = AnActionEvent.createFromAnAction(ActionManager.getInstance().getAction("AzureToolkit.AzureSignIn"),
                 null, "not_used", SimpleDataContext.getSimpleContext(CommonDataKeys.PROJECT, project));
         if (Objects.nonNull(requireAuth)) {
-            requireAuth.handle(() -> runnable.run(), event);
+            requireAuth.handle(consumer, event);
         }
     }
 }

@@ -5,23 +5,17 @@
 
 package com.microsoft.azure.toolkit.intellij.containerservice.actions;
 
-import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.FileChooser;
-import com.microsoft.azure.toolkit.intellij.common.fileexplorer.VirtualFileActions;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerservice.KubernetesCluster;
 import org.apache.commons.io.FileUtils;
@@ -36,9 +30,9 @@ import java.io.IOException;
 public class DownloadKubuConfigAction {
     @AzureOperation(name = "azure/kubernetes.download_config.kubernetes", params = {"cluster.getName()"})
     public static void downloadKubuConfig(@Nonnull KubernetesCluster cluster, @Nonnull Project project, boolean isAdmin) {
-        final File destFile = AzureTaskManager.getInstance().runLaterAsObservable(new AzureTask<>(() ->
-                FileChooser.showFileSaver("Download kubernetes configuration", String.format("%s-%s.yml", cluster.getName(), isAdmin ? "admin" : "user"))))
-            .toBlocking().first();
+        final String title = "Download kubernetes configuration";
+        final String fileName = String.format("%s-%s.yml", cluster.getName(), isAdmin ? "admin" : "user");
+        final File destFile = AzureTaskManager.getInstance().runLater(() -> FileChooser.showFileSaver(title, fileName)).join();
         if (destFile == null) {
             return;
         }

@@ -98,7 +98,7 @@ public class FunctionPortForwardingTaskProvider extends BeforeRunTaskProvider<Fu
 
         public boolean startPortForwarding(int localPort) {
             if (this.config instanceof RemoteConfiguration && StringUtils.isNotEmpty(portForwarderConfig.getResourceId())) {
-                return AzureTaskManager.getInstance().runInBackgroundAsObservable(AzureString.format("Start port forward for remote debugging"), () -> {
+                return AzureTaskManager.getInstance().runInBackground(AzureString.format("Start port forward for remote debugging"), () -> {
                     try {
                         final FunctionAppBase<?, ?, ?> target = Azure.az(AzureFunctions.class).getById(portForwarderConfig.getResourceId());
                         Objects.requireNonNull(target).ping();
@@ -110,7 +110,7 @@ public class FunctionPortForwardingTaskProvider extends BeforeRunTaskProvider<Fu
                         AzureMessager.getMessager().error(e);
                         return false;
                     }
-                }).toBlocking().last();
+                }).join();
             }
             return false;
         }

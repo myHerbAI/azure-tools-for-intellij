@@ -8,6 +8,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.ActionInstance;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -110,8 +111,8 @@ public abstract class AbstractHDIAzureStorageExplorerHandler {
             .withLabel("Configure")
             .withHandler(ignore -> {
                 final Action<Object> openSettingsAction = am.getAction(ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS);
-                // Open Azure Settings Panel sync
-                Objects.requireNonNull(openSettingsAction.getHandler(null, null)).accept(null, null);
+                final ActionInstance<Object> instance = openSettingsAction.instantiate(null, null);
+                Objects.requireNonNull(instance).perform(); // Open Azure Settings Panel sync
                 if (StringUtils.isNotBlank(Azure.az().config().getStorageExplorerPath())) {
                     openResource(clusterDetail);
                 }

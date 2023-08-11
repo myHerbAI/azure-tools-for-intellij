@@ -5,10 +5,8 @@
 
 package com.microsoft.azure.toolkit.intellij.containerregistry.action;
 
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -18,22 +16,18 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction;
 import com.microsoft.azure.toolkit.intellij.container.AzureDockerClient;
 import com.microsoft.azure.toolkit.intellij.container.Constant;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
-import com.microsoft.azuretools.telemetrywrapper.ErrorType;
-import com.microsoft.azuretools.telemetrywrapper.EventUtil;
-import com.microsoft.azuretools.telemetrywrapper.Operation;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.idea.maven.model.MavenConstants;
 import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -41,7 +35,7 @@ import java.util.List;
 import java.util.Optional;
 
 @SuppressWarnings({"ComponentNotRegistered"})
-public class AddDockerSupportAction extends AzureAnAction {
+public class AddDockerSupportAction extends AnAction {
     private static final String NOTIFICATION_GROUP_ID = "Azure Plugin";
     private static final String NOTIFICATION_TITLE = "Add Docker Support";
     private Module module;
@@ -54,11 +48,11 @@ public class AddDockerSupportAction extends AzureAnAction {
 
     @Override
     @AzureOperation(name = "user/docker.add_docker_support")
-    public boolean onActionPerformed(@Nonnull AnActionEvent anActionEvent, @Nullable Operation operation) {
+    public void actionPerformed(@Nonnull AnActionEvent anActionEvent) {
         module = PlatformDataKeys.MODULE.getData(anActionEvent.getDataContext());
         if (module == null) {
-            notifyError(Constant.ERROR_NO_SELECTED_PROJECT);
-            return true;
+            AzureMessager.getMessager().error(Constant.ERROR_NO_SELECTED_PROJECT);
+            return;
         }
         pomXmlBasePath = getModulePath(module);
         String artifactRelativePath = Constant.DOCKERFILE_ARTIFACT_PLACEHOLDER;
@@ -94,10 +88,8 @@ public class AddDockerSupportAction extends AzureAnAction {
                 }
             });
         } catch (final IOException e) {
-            EventUtil.logError(operation, ErrorType.userError, e, null, null);
-            e.printStackTrace();
-            notifyError(e.getMessage());
-            return true;
+            AzureMessager.getMessager().error(e);
+            return;
         }
 
         // print instructions
@@ -105,8 +97,7 @@ public class AddDockerSupportAction extends AzureAnAction {
         notificationContent += String.format(Constant.MESSAGE_DOCKERFILE_CREATED, path.normalize()) + "\n";
         notificationContent += Constant.MESSAGE_ADD_DOCKER_SUPPORT_OK + "\n";
         notificationContent += Constant.MESSAGE_INSTRUCTION + "\n";
-        notifyInfo(notificationContent);
-        return true;
+        AzureMessager.getMessager().info(notificationContent);
     }
 
     protected String getServiceName(AnActionEvent event) {
@@ -127,18 +118,6 @@ public class AddDockerSupportAction extends AzureAnAction {
             dockerFileExists = basePath != null && Paths.get(basePath, Constant.DOCKERFILE_NAME).toFile().exists();
         }
         event.getPresentation().setEnabledAndVisible(!dockerFileExists);
-    }
-
-    private void notifyInfo(String msg) {
-        final Notification notification = new Notification(NOTIFICATION_GROUP_ID, NOTIFICATION_TITLE,
-            msg, NotificationType.INFORMATION);
-        Notifications.Bus.notify(notification);
-    }
-
-    private void notifyError(String msg) {
-        final Notification notification = new Notification(NOTIFICATION_GROUP_ID, NOTIFICATION_TITLE,
-            msg, NotificationType.ERROR);
-        Notifications.Bus.notify(notification);
     }
 
     public static String getModulePath(Module module) {

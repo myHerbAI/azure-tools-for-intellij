@@ -9,7 +9,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.ide.storage.StorageActionsContributor;
 import com.microsoft.azure.toolkit.intellij.connector.AzureServiceResource;
 import com.microsoft.azure.toolkit.intellij.connector.ConnectorDialog;
@@ -19,7 +18,6 @@ import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountRes
 import com.microsoft.azure.toolkit.intellij.storage.creation.CreateStorageAccountAction;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
@@ -81,10 +79,10 @@ public class IntellijStorageActionsContributor implements IActionsContributor {
     @Override
     public void registerActions(AzureActionManager am) {
         new Action<>(INSTALL_AZURITE)
-                .withLabel("Install Azurite")
-                .withAuthRequired(false)
-                .withHandler((p, e) -> AzuriteService.getInstance().installAzurite(p))
-                .register(am);
+            .withLabel("Install Azurite")
+            .withAuthRequired(false)
+            .withHandler((p, e) -> AzuriteService.installAzurite(p))
+            .register(am);
     }
 
     private void createStorage(Object m, Object e) {
@@ -92,11 +90,13 @@ public class IntellijStorageActionsContributor implements IActionsContributor {
         final AnActionEvent event = (AnActionEvent) e;
         AzureTaskManager.getInstance().runLater(() -> {
             final StorageCreationDialog dialog = new StorageCreationDialog(module, event.getProject());
-            dialog.setOkActionListener((name) -> {
-                dialog.close();
-                final AzureString title = OperationBundle.description("internal/storage.create_storage.type|storage", module.getResourceTypeName(), name);
-                AzureTaskManager.getInstance().runInBackground(title, () -> module.create(name, "").createIfNotExist());
-            });
+            final Action.Id<String> actionId = Action.Id.of("user/storage.create_account.account");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Create")
+                .withIdParam(n -> n)
+                .withSource(module)
+                .withAuthRequired(true)
+                .withHandler(c -> module.create(c, "").createIfNotExist()));
             dialog.show();
         });
     }

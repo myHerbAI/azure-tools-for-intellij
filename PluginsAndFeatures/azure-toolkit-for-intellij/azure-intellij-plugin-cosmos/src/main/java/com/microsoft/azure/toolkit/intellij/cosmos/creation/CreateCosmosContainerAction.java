@@ -6,11 +6,9 @@ package com.microsoft.azure.toolkit.intellij.cosmos.creation;
 
 import com.intellij.openapi.project.Project;
 import com.microsoft.applicationinsights.core.dependencies.javaxannotation.Nonnull;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.cache.LRUStack;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.cosmos.cassandra.CassandraKeyspace;
 import com.microsoft.azure.toolkit.lib.cosmos.cassandra.CassandraTableDraft;
@@ -27,24 +25,24 @@ public class CreateCosmosContainerAction {
         AzureTaskManager.getInstance().runLater(() -> {
             final CosmosSQLContainerCreationDialog dialog = new CosmosSQLContainerCreationDialog(project, database);
             dialog.getForm().setValue(data);
-            dialog.setOkActionListener((config) -> {
-                dialog.close();
-                doCreateSqlContainer(database, config);
-            });
+            final Action.Id<SqlContainerDraft.SqlContainerConfig> actionId = Action.Id.of("user/cosmos.create_container.container|database");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Create")
+                .withIdParam(SqlContainerDraft.SqlContainerConfig::getContainerId)
+                .withIdParam(database.getName())
+                .withSource(database)
+                .withAuthRequired(true)
+                .withHandler(c -> doCreateSqlContainer(database, c)));
             dialog.show();
         });
     }
 
-    @AzureOperation(name = "user/cosmos.create_container.container|database", params = {"config.getContainerId()", "database.getName()"})
-    private static void doCreateSqlContainer(@Nonnull SqlDatabase database, @Nullable final SqlContainerDraft.SqlContainerConfig config) {
-        final AzureString title = OperationBundle.description("user/cosmos.create_container.container|database", config.getContainerId(), database.getName());
-        AzureTaskManager.getInstance().runInBackground(title, () -> {
-            final SqlContainerDraft draft = database.containers().create(config.getContainerId(), database.getResourceGroupName());
-            draft.setConfig(config);
-            draft.commit();
-            final LRUStack history = CacheManager.getUsageHistory(draft.getClass());
-            history.push(draft);
-        });
+    private static void doCreateSqlContainer(@Nonnull SqlDatabase database, @Nonnull final SqlContainerDraft.SqlContainerConfig config) {
+        final SqlContainerDraft draft = database.containers().create(config.getContainerId(), database.getResourceGroupName());
+        draft.setConfig(config);
+        draft.commit();
+        final LRUStack history = CacheManager.getUsageHistory(draft.getClass());
+        history.push(draft);
     }
 
     public static void createMongoCollection(@Nonnull Project project, @Nonnull MongoDatabase database,
@@ -52,24 +50,24 @@ public class CreateCosmosContainerAction {
         AzureTaskManager.getInstance().runLater(() -> {
             final CosmosMongoCollectionCreationDialog dialog = new CosmosMongoCollectionCreationDialog(project, database);
             dialog.getForm().setValue(data);
-            dialog.setOkActionListener((config) -> {
-                dialog.close();
-                doCreateMongoCollection(database, config);
-            });
+            final Action.Id<MongoCollectionDraft.MongoCollectionConfig> actionId = Action.Id.of("user/cosmos.create_collection.collection|database");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Create")
+                .withIdParam(MongoCollectionDraft.MongoCollectionConfig::getCollectionId)
+                .withIdParam(database.getName())
+                .withSource(database)
+                .withAuthRequired(true)
+                .withHandler(c -> doCreateMongoCollection(database, c)));
             dialog.show();
         });
     }
 
-    @AzureOperation(name = "user/cosmos.create_collection.collection|database", params = {"config.getCollectionId()", "database.getName()"})
     private static void doCreateMongoCollection(@Nonnull MongoDatabase database, @Nullable final MongoCollectionDraft.MongoCollectionConfig config) {
-        final AzureString title = OperationBundle.description("user/cosmos.create_collection.collection|database", config.getCollectionId(), database.getName());
-        AzureTaskManager.getInstance().runInBackground(title, () -> {
-            final MongoCollectionDraft draft = database.collections().create(config.getCollectionId(), database.getResourceGroupName());
-            draft.setConfig(config);
-            draft.commit();
-            final LRUStack history = CacheManager.getUsageHistory(draft.getClass());
-            history.push(draft);
-        });
+        final MongoCollectionDraft draft = database.collections().create(config.getCollectionId(), database.getResourceGroupName());
+        draft.setConfig(config);
+        draft.commit();
+        final LRUStack history = CacheManager.getUsageHistory(draft.getClass());
+        history.push(draft);
     }
 
     public static void createCassandraTable(@Nonnull Project project, @Nonnull CassandraKeyspace keyspace,
@@ -77,23 +75,23 @@ public class CreateCosmosContainerAction {
         AzureTaskManager.getInstance().runLater(() -> {
             final CosmosCassandraTableCreationDialog dialog = new CosmosCassandraTableCreationDialog(project, keyspace);
             dialog.getForm().setValue(data);
-            dialog.setOkActionListener((config) -> {
-                dialog.close();
-                doCreateCassandraTable(keyspace, config);
-            });
+            final Action.Id<CassandraTableDraft.CassandraTableConfig> actionId = Action.Id.of("user/cosmos.create_table.table|keyspace");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Create")
+                .withIdParam(CassandraTableDraft.CassandraTableConfig::getTableId)
+                .withIdParam(keyspace.getName())
+                .withSource(keyspace)
+                .withAuthRequired(true)
+                .withHandler(config -> doCreateCassandraTable(keyspace, config)));
             dialog.show();
         });
     }
 
-    @AzureOperation(name = "user/cosmos.create_table.table|keyspace", params = {"config.getTableId()", "keyspace.getName()"})
-    private static void doCreateCassandraTable(@Nonnull CassandraKeyspace keyspace, @Nullable final CassandraTableDraft.CassandraTableConfig config) {
-        final AzureString title = OperationBundle.description("user/cosmos.create_table.table|keyspace", config.getTableId(), keyspace.getName());
-        AzureTaskManager.getInstance().runInBackground(title, () -> {
-            final CassandraTableDraft draft = keyspace.tables().create(config.getTableId(), keyspace.getResourceGroupName());
-            draft.setConfig(config);
-            draft.commit();
-            final LRUStack history = CacheManager.getUsageHistory(draft.getClass());
-            history.push(draft);
-        });
+    private static void doCreateCassandraTable(@Nonnull CassandraKeyspace keyspace, @Nonnull final CassandraTableDraft.CassandraTableConfig config) {
+        final CassandraTableDraft draft = keyspace.tables().create(config.getTableId(), keyspace.getResourceGroupName());
+        draft.setConfig(config);
+        draft.commit();
+        final LRUStack history = CacheManager.getUsageHistory(draft.getClass());
+        history.push(draft);
     }
 }

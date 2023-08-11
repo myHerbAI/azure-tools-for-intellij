@@ -39,15 +39,8 @@ public class ConnectUsingSshActionUltimateImpl implements ConnectUsingSshAction 
         return instance;
     }
 
-    @AzureOperation(name = "user/vm.connect_using_ssh_ultimate.vm", params = "vm.getName()")
     public void connectBySsh(VirtualMachine vm, @Nonnull Project project) {
-        final SshConfig existingConfig = AddSshConfigAction.getOrCreateSshConfig(vm, project);
-        AzureTaskManager.getInstance().runInBackground(SSH_CONNECTION_TITLE, () ->
-            connectToSshUnderProgress(project, existingConfig)
-        );
-    }
-
-    private void connectToSshUnderProgress(final @NotNull Project project, SshConfig ssh) {
+        final SshConfig ssh = AddSshConfigAction.getOrCreateSshConfig(vm, project);
         final SshConsoleOptionsProvider provider = SshConsoleOptionsProvider.getInstance(project);
         final RemoteCredentials sshCredential = new SshUiData(ssh, true);
         final SshTerminalCachingRunner runner = new SshTerminalCachingRunner(project, sshCredential, provider.getCharset());

@@ -10,12 +10,15 @@ import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.ui.components.fields.ExtendableTextComponent.Extension;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessageBundle;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroupDraft;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -123,10 +126,13 @@ public class ResourceGroupComboBox extends AzureComboBox<ResourceGroup> {
 
     private void showResourceGroupCreationPopup() {
         final ResourceGroupCreationDialog dialog = new ResourceGroupCreationDialog(this.subscription);
-        dialog.setOkActionListener((group) -> {
-            dialog.close();
-            this.setValue(group);
-        });
+        final Action.Id<ResourceGroupDraft> actionId = Action.Id.of("user/arm.create_group.rg");
+        dialog.setOkAction(new Action<>(actionId)
+            .withLabel("Create")
+            .withIdParam(AbstractAzResource::getName)
+            .withSource(s -> s)
+            .withAuthRequired(false)
+            .withHandler(draft -> this.setValue(draft)));
         dialog.show();
     }
 }

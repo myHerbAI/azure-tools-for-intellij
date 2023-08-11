@@ -5,27 +5,24 @@
 
 package com.microsoft.intellij.actions;
 
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleTypeId;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
-import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction;
-import com.microsoft.azuretools.telemetry.TelemetryConstants;
-import com.microsoft.azuretools.telemetrywrapper.Operation;
 import com.microsoft.intellij.ui.libraries.AzureLibrary;
 import com.microsoft.intellij.ui.libraries.LibrariesConfigurationDialog;
 import com.microsoft.intellij.util.MavenUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class LibraryConfigurationAction extends AzureAnAction {
+public class LibraryConfigurationAction extends AnAction {
 
-    public boolean onActionPerformed(@NotNull AnActionEvent event, @Nullable Operation operation) {
+    public void actionPerformed(@NotNull AnActionEvent event) {
         final Module module = event.getData(LangDataKeys.MODULE);
         List<AzureLibrary> currentLibs = new ArrayList<AzureLibrary>();
         for (AzureLibrary azureLibrary : AzureLibrary.LIBRARIES) {
@@ -35,17 +32,6 @@ public class LibraryConfigurationAction extends AzureAnAction {
         }
         LibrariesConfigurationDialog configurationDialog = new LibrariesConfigurationDialog(module, currentLibs);
         configurationDialog.show();
-        return true;
-    }
-
-    @Override
-    protected String getServiceName(AnActionEvent event) {
-        return TelemetryConstants.SYSTEM;
-    }
-
-    @Override
-    protected String getOperationName(AnActionEvent event) {
-        return TelemetryConstants.LIB_CONFIGURATION;
     }
 
     @ExceptionNotification

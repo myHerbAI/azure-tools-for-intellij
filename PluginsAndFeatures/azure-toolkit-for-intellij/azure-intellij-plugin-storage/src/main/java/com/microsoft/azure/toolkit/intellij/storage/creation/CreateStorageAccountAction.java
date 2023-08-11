@@ -8,10 +8,8 @@ package com.microsoft.azure.toolkit.intellij.storage.creation;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
@@ -33,21 +31,18 @@ public class CreateStorageAccountAction {
             if (Objects.nonNull(data)) {
                 dialog.getForm().setValue(data);
             }
-            dialog.setOkActionListener((config) -> {
-                dialog.close();
-                create(config);
-            });
+            final Action.Id<StorageAccountConfig> actionId = Action.Id.of("user/storage.create_account.account");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Create")
+                .withIdParam(StorageAccountConfig::getName)
+                .withSource(StorageAccountConfig::getResourceGroup)
+                .withAuthRequired(false)
+                .withHandler(CreateStorageAccountAction::createStorageAccount));
             dialog.show();
         });
     }
 
-    @AzureOperation(name = "user/storage.create_account.account", params = {"config.getName()"})
-    public static void create(final StorageAccountConfig config) {
-        final AzureString title = OperationBundle.description("user/storage.create_account.account", config.getName());
-        AzureTaskManager.getInstance().runInBackground(title, () -> createStorageAccount(config));
-    }
-
-    public static StorageAccount createStorageAccount(StorageAccountConfig config) {
+    public static void createStorageAccount(StorageAccountConfig config) {
         final String subscriptionId = config.getSubscription().getId();
         OperationContext.action().setTelemetryProperty("subscriptionId", subscriptionId);
         if (config.getResourceGroup().isDraftForCreating()) { // create resource group if necessary.
@@ -60,6 +55,5 @@ public class CreateStorageAccountAction {
         draft.setConfig(config);
         final StorageAccount resource = draft.commit();
         CacheManager.getUsageHistory(StorageAccount.class).push(draft);
-        return resource;
     }
 }

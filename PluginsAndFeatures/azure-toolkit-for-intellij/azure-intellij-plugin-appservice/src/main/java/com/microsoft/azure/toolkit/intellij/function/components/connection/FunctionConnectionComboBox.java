@@ -17,12 +17,13 @@ import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
-import com.microsoft.azure.toolkit.intellij.common.ProjectUtils;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.intellij.common.ProjectUtils;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.function.connection.CommonConnectionResource;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import lombok.AllArgsConstructor;
@@ -42,7 +43,13 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class FunctionConnectionComboBox extends AzureComboBox<FunctionConnectionComboBox.ConnectionConfiguration> {
@@ -69,10 +76,10 @@ public class FunctionConnectionComboBox extends AzureComboBox<FunctionConnection
     @Nullable
     private VirtualFile getLocalSettingsFromModule(final Module module) {
         return ReadAction.compute(() -> FilenameIndex.getVirtualFilesByName("local.settings.json", GlobalSearchScope.projectScope(project))).stream()
-                .filter(file -> ProjectUtils.isSameModule(ModuleUtil.findModuleForFile(file, project), module))
-                .filter(file -> Objects.nonNull(file.getCanonicalPath()))
-                .min(Comparator.comparing(VirtualFile::getCanonicalPath))
-                .orElse(null);
+            .filter(file -> ProjectUtils.isSameModule(ModuleUtil.findModuleForFile(file, project), module))
+            .filter(file -> Objects.nonNull(file.getCanonicalPath()))
+            .min(Comparator.comparing(VirtualFile::getCanonicalPath))
+            .orElse(null);
     }
 
     public void setLocalSettings(final VirtualFile virtualFile) {
@@ -98,9 +105,9 @@ public class FunctionConnectionComboBox extends AzureComboBox<FunctionConnection
             return Collections.emptyList();
         }
         final List<Connection<?, ?>> connections = Optional.ofNullable(AzureModule.from(module))
-                .map(AzureModule::getDefaultProfile)
-                .map(Profile::getConnections)
-                .orElse(Collections.emptyList());
+            .map(AzureModule::getDefaultProfile)
+            .map(Profile::getConnections)
+            .orElse(Collections.emptyList());
         return connections.stream().map(ConnectionConfiguration::new).collect(Collectors.toList());
     }
 
@@ -109,8 +116,8 @@ public class FunctionConnectionComboBox extends AzureComboBox<FunctionConnection
             return Collections.emptyList();
         }
         return readAppSettings(localSettingsFile).keySet().stream()
-                .map(s -> new ConnectionConfiguration(s, null))
-                .collect(Collectors.toList());
+            .map(s -> new ConnectionConfiguration(s, null))
+            .collect(Collectors.toList());
     }
 
     // todo: move to function utils in app service module
@@ -121,7 +128,7 @@ public class FunctionConnectionComboBox extends AzureComboBox<FunctionConnection
                 return new HashMap<>();
             }
             return ((Map<?, ?>) map.get(LOCAL_SETTINGS_VALUES)).entrySet().stream()
-                    .collect(Collectors.toMap(entry -> entry.getKey().toString(), entry -> entry.getValue().toString()));
+                .collect(Collectors.toMap(entry -> entry.getKey().toString(), entry -> entry.getValue().toString()));
         } catch (final IOException e) {
             AzureMessager.getMessager().warning(AzureString.format("Failed to read local.setting.json from %s", virtualFile.getCanonicalPath()));
         }
@@ -155,11 +162,15 @@ public class FunctionConnectionComboBox extends AzureComboBox<FunctionConnection
 
     private void createConnection() {
         final FunctionConnectionCreationDialog dialog = new FunctionConnectionCreationDialog(project, module, resourceType);
-        dialog.setOkActionListener(connection -> {
-            dialog.close();
-            FunctionConnectionComboBox.this.reloadItems();
-            FunctionConnectionComboBox.this.setValue(connection);
-        });
+        final Action.Id<FunctionConnectionComboBox.ConnectionConfiguration> actionId = Action.Id.of("user/connector.add_function_connection.connection");
+        dialog.setOkAction(new Action<>(actionId)
+            .withLabel("Add")
+            .withIdParam(FunctionConnectionComboBox.ConnectionConfiguration::getName)
+            .withAuthRequired(false)
+            .withHandler(connection -> {
+                FunctionConnectionComboBox.this.reloadItems();
+                FunctionConnectionComboBox.this.setValue(connection);
+            }));
         dialog.show();
     }
 
@@ -175,7 +186,7 @@ public class FunctionConnectionComboBox extends AzureComboBox<FunctionConnection
         public ConnectionConfiguration(final Connection<?, ?> connection) {
             // for common connection, use connection name, for app service connection, use env prefix
             this.name = connection.getResource().getDefinition() instanceof CommonConnectionResource.Definition ?
-                    connection.getResource().getName() : connection.getEnvPrefix();
+                connection.getResource().getName() : connection.getEnvPrefix();
             this.icon = connection.getResource().getDefinition().getIcon();
         }
     }

@@ -51,13 +51,13 @@ public class PushImageAction extends AnAction {
     }
 
     @Override
-    @AzureOperation(name = "user/docker.push_image")
+    @AzureOperation(name = "user/acr.push_image")
     public void actionPerformed(@Nonnull AnActionEvent e) {
         OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(e.getPlace(), EMPTY_PLACE));
         final Project project = e.getProject();
         if (project != null) {
             AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH)
-                .handle(() -> runConfiguration(project, this.dockerImage, null));
+                .handle((a) -> runConfiguration(project, this.dockerImage, null));
         }
     }
 

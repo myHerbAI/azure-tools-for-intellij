@@ -8,13 +8,14 @@ package com.microsoft.azure.toolkit.intellij.arm;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.component.resourcegroup.FullResourceGroupCreationDialog;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroupDraft;
 import com.microsoft.azure.toolkit.lib.resource.ResourcesServiceSubscription;
-
-import java.util.Objects;
 
 public class IntellijResourceGroupActionsContributor implements IActionsContributor {
     @Override
@@ -27,12 +28,11 @@ public class IntellijResourceGroupActionsContributor implements IActionsContribu
         AzureTaskManager.getInstance().runLater(() -> {
             final Subscription s = o instanceof ResourcesServiceSubscription ? ((ResourcesServiceSubscription) o).getSubscription() : null;
             final FullResourceGroupCreationDialog dialog = new FullResourceGroupCreationDialog(s);
-            dialog.setOkActionListener((group) -> {
-                if (Objects.nonNull(group)) {
-                    dialog.close();
-                    AzureTaskManager.getInstance().runOnPooledThread(group::createIfNotExist);
-                }
-            });
+            dialog.setOkAction(new Action<ResourceGroupDraft>(Action.Id.of("user/arm.create_group.rg"))
+                .withLabel("Create")
+                .withIdParam(ResourceGroupDraft::getName)
+                .withAuthRequired(true)
+                .withHandler(AzResource.Draft::createIfNotExist));
             dialog.show();
         });
     }

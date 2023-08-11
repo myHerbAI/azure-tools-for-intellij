@@ -4,7 +4,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.ActionLink;
 import com.intellij.ui.components.AnActionLink;
-import com.intellij.ui.components.JBList;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBFont;
@@ -18,7 +17,6 @@ import com.microsoft.azure.toolkit.intellij.common.action.ViewToolingDocumentAct
 import com.microsoft.azure.toolkit.intellij.common.action.WhatsNewAction;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.collections.CollectionUtils;
-import rx.schedulers.Schedulers;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
@@ -57,9 +55,8 @@ public class CoursesView {
         final String showNewUiFlag = Optional.ofNullable(ExperimentationClient.getExperimentationService())
                 .map(service -> service.getFeatureVariable(ExperimentationClient.FeatureFlag.GETTING_STARTED_UI.getFlagName())).orElse("false");
         this.actionLinkPanel.setVisible(Boolean.parseBoolean(showNewUiFlag));
-        AzureTaskManager.getInstance().runInBackgroundAsObservable("Loading lesson", () -> GuidanceConfigManager.getInstance().loadCourses())
-                .subscribeOn(Schedulers.computation())
-                .subscribe(courses -> AzureTaskManager.getInstance().runLater(() -> this.setCourses(courses)));
+        AzureTaskManager.getInstance().runInBackground("Loading lesson", () -> GuidanceConfigManager.getInstance().loadCourses())
+            .thenAccept(courses -> AzureTaskManager.getInstance().runLater(() -> this.setCourses(courses)));
     }
 
     private void setCourses(final List<CourseConfig> courseConfigs) {

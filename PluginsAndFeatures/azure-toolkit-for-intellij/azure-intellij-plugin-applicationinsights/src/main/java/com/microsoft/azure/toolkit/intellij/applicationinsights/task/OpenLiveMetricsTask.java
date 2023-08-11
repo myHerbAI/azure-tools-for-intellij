@@ -35,7 +35,7 @@ public class OpenLiveMetricsTask implements Task {
     }
 
     @Override
-    @AzureOperation(name = "internal/guidance.open_live_metrics")
+    @AzureOperation(name = "user/guidance.open_live_metrics")
     public void execute() throws Exception {
         final String applicationInsightsId = (String) context.getParameter("applicationInsightsId");
         final String instrumentKey = (String) context.getParameter("instrumentKey");

@@ -88,7 +88,7 @@ public class ProfileFlightRecordAction {
         return null;
     }
 
-    @AzureOperation(name = "azure/appservice.profile_flight_recorder")
+    @AzureOperation(name = "azure/$appservice.profile_flight_recorder")
     private void doProfileFlightRecorder(FlightRecorderConfiguration config) {
         try {
             AzureMessager.getMessager().info(String.format(message("webapp.flightRecord.task.startProcessRecorder.title"), config.getPid(), config.getProcessName()));

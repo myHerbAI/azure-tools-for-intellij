@@ -29,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
@@ -52,6 +53,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.*;
 import java.util.stream.StreamSupport;
@@ -91,10 +93,9 @@ public class TreeUtils {
             @Override
             public void treeWillExpand(TreeExpansionEvent event) {
                 final Object component = event.getPath().getLastPathComponent();
-                if (component instanceof Tree.TreeNode) {
-                    final Tree.TreeNode<?> treeNode = (Tree.TreeNode<?>) component;
+                if (component instanceof Tree.TreeNode<?> treeNode) {
                     if (treeNode.getAllowsChildren() && treeNode.loaded == null) {
-                        treeNode.inner.refreshChildrenLater();
+                        expandNode(treeNode);
                     }
                 }
             }
@@ -102,6 +103,11 @@ public class TreeUtils {
             @Override
             public void treeWillCollapse(TreeExpansionEvent event) {
 
+            }
+
+            @AzureOperation(name = "user/$resource.expand_node.resource", params = {"treeNode.inner.getValue()"}, source = "treeNode.inner.getValue()")
+            private static void expandNode(final Tree.TreeNode<?> treeNode) {
+                treeNode.inner.refreshChildrenLater();
             }
         };
         tree.addTreeWillExpandListener(listener);
@@ -124,30 +130,36 @@ public class TreeUtils {
                 final Object n = tree.getLastSelectedPathComponent();
                 if (n instanceof Tree.TreeNode) {
                     final Tree.TreeNode<?> node = (Tree.TreeNode<?>) n;
-                    final String place = TreeUtils.getPlace(tree) + "." + (TreeUtils.isInAppCentricView(node) ? "app" : "type");
-                    if (SwingUtilities.isRightMouseButton(e) || e.isPopupTrigger()) {
-                        final IActionGroup actions = node.inner.getActions();
-                        if (Objects.nonNull(actions)) {
-                            final ActionManager am = ActionManager.getInstance();
-                            final IntellijAzureActionManager.ActionGroupWrapper group = toIntellijActionGroup(actions);
-                            final ActionPopupMenu menu = am.createActionPopupMenu(place, group);
-                            menu.setTargetComponent(tree);
-                            final JPopupMenu popupMenu = menu.getComponent();
-                            popupMenu.show(tree, e.getX(), e.getY());
-                        }
-                    } else {
-                        final DataContext context = DataManager.getInstance().getDataContext(tree);
-                        final AnActionEvent event = AnActionEvent.createFromAnAction(new EmptyAction(), e, place, context);
-                        if (e.getClickCount() == 1) {
-                            node.inner.click(event);
-                        } else if (e.getClickCount() == 2) {
-                            node.inner.doubleClick(event);
-                        }
-                    }
+                    clickNode(e, node);
                 } else if (n instanceof Tree.LoadMoreNode && SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2) {
                     ((Tree.LoadMoreNode) n).load();
                 }
                 super.mouseClicked(e);
+            }
+
+            @AzureOperation(name = "user/$resource.click_node.resource", params = {"node.inner.getValue()"}, source = "node.inner.getValue()")
+            private static void clickNode(final MouseEvent e, final Tree.TreeNode<?> node) {
+                final JTree tree = node.tree;
+                final String place = TreeUtils.getPlace(tree) + "." + (TreeUtils.isInAppCentricView(node) ? "app" : "type");
+                if (SwingUtilities.isRightMouseButton(e) || e.isPopupTrigger()) {
+                    final IActionGroup actions = node.inner.getActions();
+                    if (Objects.nonNull(actions)) {
+                        final ActionManager am = ActionManager.getInstance();
+                        final IntellijAzureActionManager.ActionGroupWrapper group = toIntellijActionGroup(actions);
+                        final ActionPopupMenu menu = am.createActionPopupMenu(place, group);
+                        menu.setTargetComponent(tree);
+                        final JPopupMenu popupMenu = menu.getComponent();
+                        popupMenu.show(tree, e.getX(), e.getY());
+                    }
+                } else {
+                    final DataContext context = DataManager.getInstance().getDataContext(tree);
+                    final AnActionEvent event = AnActionEvent.createFromAnAction(new EmptyAction(), e, place, context);
+                    if (e.getClickCount() == 1) {
+                        node.inner.click(event);
+                    } else if (e.getClickCount() == 2) {
+                        node.inner.doubleClick(event);
+                    }
+                }
             }
 
             @Override

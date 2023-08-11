@@ -98,7 +98,7 @@ public class UpdateDeploymentDialog extends AzureDialogWrapper {
         close(OK_EXIT_CODE, true);
     }
 
-    @AzureOperation(name = "user/arm.update_deployment.deployment", params = {"this.deployment.getName()"})
+    @AzureOperation(name = "user/arm.update_deployment.deployment", params = {"this.deployment.getName()"}, source = "this.deployment")
     private void updateDeployment() {
         final ResourceDeploymentDraft draft = (ResourceDeploymentDraft) this.deployment.update();
         final String templatePath = templateTextField.getText();

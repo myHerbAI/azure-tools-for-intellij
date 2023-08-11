@@ -7,13 +7,14 @@ package com.microsoft.azure.toolkit.intellij.legacy.appservice.table;
 
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.table.JBTable;
-import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig;
+import com.microsoft.azure.toolkit.intellij.common.CommonConst;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azure.toolkit.intellij.common.CommonConst;
 import lombok.Getter;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -26,9 +27,7 @@ import java.util.function.Supplier;
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 
 public class AppSettingsTable extends JBTable {
-
     protected final AppSettingModel appSettingModel = new AppSettingModel();
-    protected AppServiceConfig config;
     @Getter
     protected boolean loading = false;
     private final TableRowSorter<AppSettingModel> sorter;
@@ -52,10 +51,11 @@ public class AppSettingsTable extends JBTable {
 
     public void addAppSettings() {
         final AddAppSettingsDialog dialog = new AddAppSettingsDialog(this);
-        dialog.setOkActionListener(pair -> {
-            this.addAppSettings(pair.getKey(), pair.getValue());
-            dialog.close();
-        });
+        final Action.Id<Pair<String, String>> actionId = Action.Id.of("user/$appservice.add_app_setting");
+        dialog.setOkAction(new Action<>(actionId)
+            .withLabel("Add")
+            .withAuthRequired(false)
+            .withHandler(pair -> this.addAppSettings(pair.getKey(), pair.getValue())));
         dialog.show();
     }
 

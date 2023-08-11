@@ -20,9 +20,9 @@ public class AppServiceFileActionsContributor implements IActionsContributor {
     public static final String APP_SERVICE_FILE_ACTIONS = "actions.appservice.file";
     public static final String APP_SERVICE_DIRECTORY_ACTIONS = "actions.appservice.directory";
 
-    public static final Action.Id<AppServiceFile> APP_SERVICE_DIRECTORY_REFRESH = Action.Id.of("user/appservice.refresh_directory.dir");
-    public static final Action.Id<AppServiceFile> APP_SERVICE_FILE_VIEW = Action.Id.of("user/appservice.open_file.file");
-    public static final Action.Id<AppServiceFile> APP_SERVICE_FILE_DOWNLOAD = Action.Id.of("user/appservice.download_file.file");
+    public static final Action.Id<AppServiceFile> APP_SERVICE_DIRECTORY_REFRESH = Action.Id.of("user/$appservice.refresh_directory.dir");
+    public static final Action.Id<AppServiceFile> APP_SERVICE_FILE_VIEW = Action.Id.of("user/$appservice.open_file.file");
+    public static final Action.Id<AppServiceFile> APP_SERVICE_FILE_DOWNLOAD = Action.Id.of("user/$appservice.download_file.file");
 
     @Override
     public void registerGroups(AzureActionManager am) {
@@ -44,6 +44,7 @@ public class AppServiceFileActionsContributor implements IActionsContributor {
             .withLabel("Refresh")
             .withIcon(AzureIcons.Action.REFRESH.getIconPath())
             .withIdParam(AppServiceFile::getName)
+            .withSource(AppServiceFile::getApp)
             .visibleWhen(s -> s instanceof AppServiceFile)
             .withHandler(file -> AzureEventBus.emit("resource.refreshed.resource", file))
             .withShortcut(am.getIDEDefaultShortcuts().refresh())

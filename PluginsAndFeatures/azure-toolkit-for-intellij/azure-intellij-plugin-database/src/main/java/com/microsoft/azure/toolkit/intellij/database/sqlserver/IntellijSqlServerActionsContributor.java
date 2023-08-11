@@ -19,10 +19,10 @@ import com.microsoft.azure.toolkit.intellij.database.dbtools.OpenWithDatabaseToo
 import com.microsoft.azure.toolkit.intellij.database.sqlserver.connection.SqlServerDatabaseResourceDefinition;
 import com.microsoft.azure.toolkit.intellij.database.sqlserver.creation.CreateSqlServerAction;
 import com.microsoft.azure.toolkit.intellij.database.sqlserver.creation.SqlServerCreationDialog;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.database.DatabaseServerConfig;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
@@ -65,13 +65,13 @@ public class IntellijSqlServerActionsContributor implements IActionsContributor 
         am.registerHandler(SqlServerActionsContributor.OPEN_DATABASE_TOOL, (r, e) -> true, openDatabaseHandler);
     }
 
-    @AzureOperation(name = "user/sqlserver.open_database_tools.server", params = {"server.getName()"})
     private void openDatabaseTool(Project project, @Nonnull MicrosoftSqlServer server) {
         final String DATABASE_TOOLS_PLUGIN_ID = "com.intellij.database";
         final String DATABASE_PLUGIN_NOT_INSTALLED = "\"Database tools and SQL\" plugin is not installed.";
         final String NOT_SUPPORT_ERROR_ACTION = "\"Database tools and SQL\" plugin is only provided in IntelliJ Ultimate edition.";
         if (PluginManagerCore.getPlugin(PluginId.findId(DATABASE_TOOLS_PLUGIN_ID)) == null) {
-            throw new AzureToolkitRuntimeException(DATABASE_PLUGIN_NOT_INSTALLED, NOT_SUPPORT_ERROR_ACTION, IntellijActionsContributor.TRY_ULTIMATE);
+            final Action<Object> tryUltimate = AzureActionManager.getInstance().getAction(IntellijActionsContributor.TRY_ULTIMATE).bind(server);
+            throw new AzureToolkitRuntimeException(DATABASE_PLUGIN_NOT_INSTALLED, NOT_SUPPORT_ERROR_ACTION, tryUltimate);
         }
         AzureTaskManager.getInstance().runLater(() -> OpenWithDatabaseToolsAction.openDataSourceManagerDialog(server, project));
     }

@@ -27,13 +27,19 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessage;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.IArtifact;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azure.toolkit.lib.springcloud.*;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppInstance;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeploymentDraft;
+import com.microsoft.azure.toolkit.lib.springcloud.Utils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.Disposable;
@@ -55,7 +61,7 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
     private static final int GET_STATUS_TIMEOUT = 180;
     private static final String UPDATE_APP_WARNING = "It may take some moments for the configuration to be applied at server side!";
     private static final String GET_DEPLOYMENT_STATUS_TIMEOUT = "The app is still starting, " +
-            "you could start streaming log to check if something wrong in server side.";
+        "you could start streaming log to check if something wrong in server side.";
     private static final String NOTIFICATION_TITLE = "Querying app status";
     private static final String DEPLOYMENT_SUCCEED = "Deployment was successful but the app may still be starting.";
 
@@ -68,6 +74,7 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
     }
 
     @Override
+    @ExceptionNotification
     public @Nullable ExecutionResult execute(Executor executor, @Nonnull ProgramRunner<?> runner) {
         final Action<Void> retry = Action.retryFromFailure(() -> this.execute(executor, runner));
         final RunProcessHandler processHandler = new RunProcessHandler();
@@ -109,7 +116,7 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
         return new DefaultExecutionResult(consoleView, processHandler);
     }
 
-    @AzureOperation(name = "user/springcloud.deploy_app.app", params = {"this.config.getApp().getName()"})
+    @AzureOperation(name = "user/springcloud.deploy_app.app", params = {"this.config.getApp().getName()"}, source = "this.config.getDeployment()")
     public SpringCloudDeployment execute(IAzureMessager messager) {
         OperationContext.current().setMessager(messager);
         OperationContext.current().setTelemetryProperties(getTelemetryProperties());
@@ -203,8 +210,8 @@ public class SpringCloudDeploymentConfigurationState implements RunProfileState 
                 messager.warning(GET_DEPLOYMENT_STATUS_TIMEOUT, null, getOpenStreamingLogAction(springCloudDeployment));
             } else {
                 messager.success(AzureString.format("App({0}) started successfully", app.getName()), null,
-                        AzureActionManager.getInstance().getAction(SpringCloudActionsContributor.OPEN_PUBLIC_URL).bind(app),
-                        AzureActionManager.getInstance().getAction(SpringCloudActionsContributor.OPEN_TEST_URL).bind(app));
+                    AzureActionManager.getInstance().getAction(SpringCloudActionsContributor.OPEN_PUBLIC_URL).bind(app),
+                    AzureActionManager.getInstance().getAction(SpringCloudActionsContributor.OPEN_TEST_URL).bind(app));
             }
         });
     }

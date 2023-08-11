@@ -8,9 +8,8 @@ package com.microsoft.azure.toolkit.intellij.springcloud.creation;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterDraft;
@@ -31,19 +30,17 @@ public class CreateSpringCloudClusterAction {
             if (Objects.nonNull(data)) {
                 dialog.getForm().setValue(data);
             }
-            dialog.setOkActionListener((draft) -> {
-                dialog.close();
-                createCluster(draft);
-            });
+            final Action.Id<SpringCloudClusterDraft> actionId = Action.Id.of("user/springcloud.create_cluster.cluster");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Create")
+                .withIdParam(SpringCloudClusterDraft::getName)
+                .withSource(s -> s)
+                .withAuthRequired(true)
+                .withHandler(cluster -> {
+                    CacheManager.getUsageHistory(SpringCloudCluster.class).push(cluster);
+                    final SpringCloudCluster createdCluster = cluster.createIfNotExist();
+                }));
             dialog.show();
-        });
-    }
-
-    @AzureOperation(name = "user/springcloud.create_cluster.cluster", params = "cluster.getName()")
-    private static void createCluster(SpringCloudClusterDraft cluster) {
-        AzureTaskManager.getInstance().runInBackground(OperationBundle.description("user/springcloud.create_cluster.cluster", cluster.getName()), () -> {
-            CacheManager.getUsageHistory(SpringCloudCluster.class).push(cluster);
-            final SpringCloudCluster createdCluster = cluster.createIfNotExist();
         });
     }
 }
