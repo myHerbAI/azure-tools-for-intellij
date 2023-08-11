@@ -83,11 +83,7 @@ public class WorkspaceModule extends AbstractAzResourceModule<WorkspaceNode, Syn
     @Override
     @Nonnull
     public String getSubscriptionId() {
-        if (Azure.az(AzureAccount.class).isLoggedIn()) {
-            return super.getSubscriptionId();
-        } else {
-            return "[LinkedCluster]";
-        }
+        return super.getSubscriptionId();
     }
 
     @Nonnull
