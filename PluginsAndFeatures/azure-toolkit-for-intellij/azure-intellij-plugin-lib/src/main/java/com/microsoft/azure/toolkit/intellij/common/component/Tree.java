@@ -52,7 +52,7 @@ public class Tree extends SimpleTree implements DataProvider {
     }
 
     protected void init(@Nonnull Node<?> root) {
-        ComponentUtil.putClientProperty(this, ANIMATION_IN_RENDERER_ALLOWED, true);
+        this.putClientProperty(ANIMATION_IN_RENDERER_ALLOWED, true);
         this.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         TreeUtil.installActions(this);
         TreeUIHelper.getInstance().installTreeSpeedSearch(this);
