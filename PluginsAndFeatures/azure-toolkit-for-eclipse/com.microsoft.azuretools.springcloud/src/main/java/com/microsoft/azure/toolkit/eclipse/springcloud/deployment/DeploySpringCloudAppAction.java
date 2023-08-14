@@ -86,7 +86,7 @@ public class DeploySpringCloudAppAction {
                 final AzureString title = OperationBundle.description("springcloud.create_update_app", config.getAppName());
                 final AzureTask<Void> task = new AzureTask<Void>(title, () -> execute(config, messager));
                 task.setType("user");
-                AzureTaskManager.getInstance().runImmediatelyAsObservable(task).subscribe();
+                AzureTaskManager.getInstance().runImmediately(task).join();
                 return Status.OK_STATUS;
             });
             job.schedule();

@@ -111,8 +111,8 @@ public abstract class AbstractSpringCloudAppInfoPanel extends Composite implemen
 
     @Override
     public synchronized void setValue(final SpringCloudAppConfig config) {
-        final Integer count = config.getDeployment().getInstanceCount();
-        config.getDeployment().setInstanceCount(Objects.isNull(count) || count == 0 ? 1 : count);
+        final Integer count = config.getDeployment().getCapacity();
+        config.getDeployment().setCapacity(Objects.isNull(count) || count == 0 ? 1 : count);
         this.originalConfig = config;
         this.getTextName().setValue(config.getAppName());
         if (Objects.nonNull(config.getClusterName())) {
