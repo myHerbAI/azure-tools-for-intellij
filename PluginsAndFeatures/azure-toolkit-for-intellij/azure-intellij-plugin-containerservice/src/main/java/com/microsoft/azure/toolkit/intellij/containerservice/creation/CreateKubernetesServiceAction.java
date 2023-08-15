@@ -9,12 +9,10 @@ import com.google.common.base.Preconditions;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.containerservice.AzureContainerService;
@@ -42,10 +40,13 @@ public class CreateKubernetesServiceAction {
             if (Objects.nonNull(data)) {
                 dialog.getForm().setValue(data);
             }
-            dialog.setOkActionListener(config -> {
-                doCreate(config, project);
-                dialog.close();
-            });
+            final Action.Id<KubernetesClusterDraft.Config> actionId = Action.Id.of("user/kubernetes.create_cluster.cluster");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Create")
+                .withIdParam(KubernetesClusterDraft.Config::getName)
+                .withSource(KubernetesClusterDraft.Config::getResourceGroup)
+                .withAuthRequired(true)
+                .withHandler(config -> doCreate(config, project)));
             dialog.show();
         });
     }
@@ -77,19 +78,15 @@ public class CreateKubernetesServiceAction {
         return config;
     }
 
-    @AzureOperation(name = "user/kubernetes.create_cluster.cluster", params = {"config.getName()"})
     private static void doCreate(final KubernetesClusterDraft.Config config, final Project project) {
-        final AzureString title = OperationBundle.description("user/kubernetes.create_cluster.cluster", config.getName());
-        AzureTaskManager.getInstance().runInBackground(title, () -> {
-            final ResourceGroup rg = config.getResourceGroup();
-            if (rg.isDraftForCreating()) {
-                new CreateResourceGroupTask(rg.getSubscriptionId(), rg.getName(), config.getRegion()).execute();
-            }
-            final KubernetesClusterModule module = Azure.az(AzureContainerService.class).kubernetes(config.getSubscription().getId());
-            final KubernetesClusterDraft draft = module.create(config.getName(), config.getResourceGroup().getName());
-            draft.setConfig(config);
-            draft.commit();
-            CacheManager.getUsageHistory(KubernetesCluster.class).push(draft);
-        });
+        final ResourceGroup rg = config.getResourceGroup();
+        if (rg.isDraftForCreating()) {
+            new CreateResourceGroupTask(rg.getSubscriptionId(), rg.getName(), config.getRegion()).execute();
+        }
+        final KubernetesClusterModule module = Azure.az(AzureContainerService.class).kubernetes(config.getSubscription().getId());
+        final KubernetesClusterDraft draft = module.create(config.getName(), config.getResourceGroup().getName());
+        draft.setConfig(config);
+        draft.commit();
+        CacheManager.getUsageHistory(KubernetesCluster.class).push(draft);
     }
 }

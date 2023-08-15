@@ -6,11 +6,9 @@ package com.microsoft.azure.toolkit.intellij.cosmos.creation;
 
 import com.intellij.openapi.project.Project;
 import com.microsoft.applicationinsights.core.dependencies.javaxannotation.Nonnull;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.cache.LRUStack;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabaseDraft;
@@ -30,25 +28,25 @@ public class CreateCosmosDatabaseAction {
             if (Objects.nonNull(data)) {
                 dialog.getForm().setValue(data);
             }
-            dialog.setOkActionListener((config) -> {
-                dialog.close();
-                doCreate(account, draftSupplier, config);
-            });
+            final Action.Id<DatabaseConfig> actionId = Action.Id.of("user/cosmos.create_database.database|account");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Create")
+                .withIdParam(DatabaseConfig::getName)
+                .withIdParam(account.getName())
+                .withSource(s -> s)
+                .withAuthRequired(true)
+                .withHandler(draft -> doCreate(account, draftSupplier, draft)));
             dialog.show();
         });
     }
 
-    @AzureOperation(name = "user/cosmos.create_database.database|account", params = {"config.getName()", "account.getName()"})
     private static <T extends CosmosDBAccount> void doCreate(@Nonnull T account,
                                                              @Nonnull BiFunction<T, DatabaseConfig, ICosmosDatabaseDraft<?, ?>> draftSupplier,
                                                              @Nullable final DatabaseConfig config) {
-        final AzureString title = OperationBundle.description("user/cosmos.create_database.database|account", Objects.requireNonNull(config).getName(), account.getName());
-        AzureTaskManager.getInstance().runInBackground(title, () -> {
-            final ICosmosDatabaseDraft<?, ?> draft = draftSupplier.apply(account, config);
-            draft.setConfig(config);
-            draft.commit();
-            final LRUStack history = CacheManager.getUsageHistory(draft.getClass());
-            history.push(draft);
-        });
+        final ICosmosDatabaseDraft<?, ?> draft = draftSupplier.apply(account, config);
+        draft.setConfig(config);
+        draft.commit();
+        final LRUStack history = CacheManager.getUsageHistory(draft.getClass());
+        history.push(draft);
     }
 }

@@ -259,11 +259,11 @@ public class FunctionDeploymentPanel extends AzureSettingPanel<FunctionDeployCon
 
     private void fillModules() {
         AzureTaskManager.getInstance()
-                .runOnPooledThreadAsObservable(new AzureTask<>(() -> FunctionUtils.listFunctionModules(project)))
-                .subscribe(modules -> AzureTaskManager.getInstance().runLater(() -> {
-                    Arrays.stream(modules).forEach(cbFunctionModule::addItem);
-                    selectModule(previousModule);
-                }, AzureTask.Modality.ANY));
+            .runOnPooledThread(new AzureTask<>(() -> FunctionUtils.listFunctionModules(project)))
+            .thenAccept(modules -> AzureTaskManager.getInstance().runLater(() -> {
+                Arrays.stream(modules).forEach(cbFunctionModule::addItem);
+                selectModule(previousModule);
+            }, AzureTask.Modality.ANY));
     }
 
     // todo: @hanli migrate to use AzureComboBox<Module>

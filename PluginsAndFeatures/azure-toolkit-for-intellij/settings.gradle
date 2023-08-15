@@ -35,5 +35,6 @@ include 'azure-intellij-plugin-monitor'
 include 'azure-intellij-plugin-hdinsight'
 include 'azure-intellij-plugin-eventhubs'
 include 'azure-intellij-plugin-servicebus'
+include 'azure-intellij-plugin-cognitiveservices'
 include 'azure-intellij-plugin-synapse'
 

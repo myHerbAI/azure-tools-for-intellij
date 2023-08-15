@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.intellij.springcloud.streaminglog;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.common.streaminglog.StreamingLogsManager;
 import com.microsoft.azure.toolkit.intellij.springcloud.component.SpringCloudAppInstanceSelectionDialog;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
@@ -42,10 +43,13 @@ public class SpringCloudStreamingLogAction {
     private static void showLogStreamingDialog(SpringCloudApp app, Project project) {
         AzureTaskManager.getInstance().runLater(() -> {
             final SpringCloudAppInstanceSelectionDialog dialog = new SpringCloudAppInstanceSelectionDialog(project, app);
-            dialog.setOkActionListener((target) -> {
-                dialog.close();
-                startInstanceStreamingLogs(project, target);
-            });
+            final Action.Id<SpringCloudAppInstance> actionId = Action.Id.of("user/springcloud.open_stream_log.app");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Open")
+                .withIdParam(a -> a.getParent().getParent().getName())
+                .withSource(s -> s.getParent().getParent())
+                .withAuthRequired(true)
+                .withHandler(draft -> startInstanceStreamingLogs(project, draft)));
             dialog.show();
         });
     }

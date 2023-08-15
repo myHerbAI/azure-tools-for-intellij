@@ -32,7 +32,6 @@ public class EnableRemoteDebuggingAction {
     private static final String CONFIRM_DIALOG_TITLE = "%s Remote Debugging";
     private static final String SUCCESS_MESSAGE = "Remote debugging is %sd for app %s successfully";
 
-    @AzureOperation(name = "user/springcloud.enable_remote_debugging.app", params = {"app.getName()"})
     public static void enableRemoteDebugging(@Nonnull SpringCloudApp app, @Nullable Project project) {
         toggleDebuggingAction(true, app, project);
     }

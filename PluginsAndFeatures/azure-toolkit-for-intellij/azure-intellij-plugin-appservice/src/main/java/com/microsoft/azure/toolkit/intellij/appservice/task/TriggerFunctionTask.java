@@ -37,7 +37,7 @@ public class TriggerFunctionTask implements Task {
     }
 
     @Override
-    @AzureOperation(name = "internal/guidance.trigger_function")
+    @AzureOperation(name = "user/guidance.trigger_function")
     public void execute() throws Exception {
         final String functionId = Objects.requireNonNull((String) context.getParameter(FUNCTION_ID), "Failed to get the id of function created in tasks");
         final String trigger = (String) context.getParameter(TRIGGER);

@@ -71,7 +71,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -367,8 +373,7 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
         if (StringUtils.isEmpty(webJobStorage) && isWebJobStorageRequired(functionBindingList)) {
             final Callable<Connection<?, ?>> connectionSupplier = () -> createMissingConnection(appSettings, AZURE_WEB_JOB_STORAGE_KEY, "Storage",
                     CONNECTION_DESCRIPTION, CONNECTION_TITLE, AzureWebHelpProvider.HELP_AZURE_WEB_JOBS_STORAGE);
-            final Connection<?, ?> connection = AzureTaskManager.getInstance()
-                    .runAndWaitAsObservable(new AzureTask<>("Add Missing Connection", connectionSupplier)).toBlocking().first();
+            final Connection<?, ?> connection = AzureTaskManager.getInstance().runAndWait("Add Missing Connection", connectionSupplier).join();
             Optional.ofNullable(connection).ifPresent(c -> saveConnection(c, appSettings));
         }
     }
@@ -398,8 +403,7 @@ public class FunctionRunState extends AzureRunProfileState<Boolean> {
             return;
         }
         // start azurite if azurite connection is added
-        final Boolean startAzurite = AzureTaskManager.getInstance().runAndWaitAsObservable(new AzureTask<>("Start Azurite", () ->
-                AzuriteService.getInstance().startAzurite(project))).toBlocking().first();
+        final Boolean startAzurite = AzureTaskManager.getInstance().runAndWait("Start Azurite", () -> AzuriteService.getInstance().startAzurite(project)).join();
         if (BooleanUtils.isTrue(startAzurite)) {
             AzuriteTaskProvider.AzuriteBeforeRunTask.addStopAzuriteListener(this.functionRunConfiguration);
         }

@@ -200,8 +200,8 @@ public class FunctionRunPanel extends AzureSettingPanel<FunctionRunConfiguration
 
     private void fillModules() {
         AzureTaskManager.getInstance()
-                .runOnPooledThreadAsObservable(new AzureTask<>(() -> FunctionUtils.listFunctionModules(project)))
-                .subscribe(modules -> AzureTaskManager.getInstance().runLater(() -> {
+                .runOnPooledThread(new AzureTask<>(() -> FunctionUtils.listFunctionModules(project)))
+                .thenAccept(modules -> AzureTaskManager.getInstance().runLater(() -> {
                     Arrays.stream(modules).forEach(cbFunctionModule::addItem);
                     selectModule(previousModule);
                 }, AzureTask.Modality.ANY));

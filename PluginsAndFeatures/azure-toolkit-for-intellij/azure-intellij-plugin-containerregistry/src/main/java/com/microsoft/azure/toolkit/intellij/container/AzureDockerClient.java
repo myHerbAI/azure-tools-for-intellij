@@ -131,7 +131,7 @@ public class AzureDockerClient {
             .exec(Optional.ofNullable(callback).orElseGet(BuildImageResultCallback::new)).awaitImageId();
     }
 
-    @AzureOperation(name = "boundary/docker.push_image.image|registry", params = {"targetImageName", "registryUrl"})
+    @AzureOperation(name = "boundary/acr.push_image.image|registry", params = {"targetImageName", "registryUrl"})
     public void pushImage(@Nonnull String registryUrl, String username, String password, @Nonnull String targetImageName, @Nullable ResultCallback.Adapter<PushResponseItem> callback)
         throws InterruptedException {
         this.ping();
@@ -140,7 +140,7 @@ public class AzureDockerClient {
         cmd.exec(Optional.ofNullable(callback).orElseGet(ResultCallback.Adapter::new)).awaitCompletion();
     }
 
-    @AzureOperation(name = "boundary/docker.pull_image.image|registry", params = {"repository", "registryUrl"})
+    @AzureOperation(name = "boundary/acr.pull_image.image|registry", params = {"repository", "registryUrl"})
     public void pullImage(@Nonnull String registryUrl, String username, String password, @Nonnull String repository, @Nonnull String tag)
         throws InterruptedException {
         this.ping();

@@ -35,7 +35,7 @@ public class PushImageRunState extends AzureRunProfileState<String> {
     }
 
     @Override
-    @AzureOperation(name = "platform/docker.push_image.registry", params = {"nameFromResourceId(this.dataModel.getContainerRegistryId())"})
+    @AzureOperation(name = "platform/acr.push_image.registry", params = {"nameFromResourceId(this.dataModel.getContainerRegistryId())"})
     public String executeSteps(@Nonnull RunProcessHandler processHandler, @Nonnull Operation operation) throws Exception {
         OperationContext.current().setMessager(getProcessHandlerMessenger());
         return ContainerService.getInstance().pushDockerImage(configuration);

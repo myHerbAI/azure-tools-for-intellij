@@ -111,7 +111,6 @@ public class SenderReceiverPanel extends JPanel {
         });
     }
 
-    @AzureOperation(name = "user/eventhubs.start_listening.instance")
     private void execute() {
         final ConsoleMessager messager = new ConsoleMessager(consoleView);
         OperationContext.current().setMessager(messager);

@@ -101,7 +101,7 @@ public interface ConnectionManager extends PersistentStateComponent<Element> {
         }
 
         @Override
-        @AzureOperation(name = "user/connector.add_connection")
+        @AzureOperation(name = "boundary/connector.add_connection")
         public synchronized void addConnection(Connection<?, ?> connection) {
             final Resource<?> resource = connection.getResource();
             if (resource instanceof AzureServiceResource<?>) {
@@ -112,7 +112,7 @@ public interface ConnectionManager extends PersistentStateComponent<Element> {
         }
 
         @Override
-        @AzureOperation(name = "user/connector.remove_connection")
+        @AzureOperation(name = "boundary/connector.remove_connection")
         public synchronized void removeConnection(String resourceId, String consumerId) {
             if (StringUtils.isNotBlank(resourceId)) {
                 OperationContext.action().setTelemetryProperty("subscriptionId", ResourceId.fromString(resourceId).subscriptionId());

@@ -10,7 +10,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocument;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocumentContainer;
@@ -23,10 +22,10 @@ public class UploadCosmosDocumentAction {
     public static void importDocument(@Nonnull ICosmosDocumentContainer<?> container, @Nonnull Project project) {
         final FileChooserDescriptor json = FileChooserDescriptorFactory.createSingleFileDescriptor("json");
         json.setTitle("Select the document to import");
-        final VirtualFile[] virtualFiles = AzureTaskManager.getInstance().runLaterAsObservable(new AzureTask<>(() -> {
+        final VirtualFile[] virtualFiles = AzureTaskManager.getInstance().runLater(() -> {
             final FileChooserDialog fileChooser = FileChooserFactory.getInstance().createFileChooser(json, project, null);
             return fileChooser.choose(project, LocalFileSystem.getInstance().findFileByPath(System.getProperty("user.home")));
-        })).toBlocking().first();
+        }).join();
         if (virtualFiles != null && virtualFiles.length > 0) {
             try (final InputStream stream = virtualFiles[0].getInputStream()) {
                 final ObjectNode jsonNodes = new ObjectMapper().readValue(stream, ObjectNode.class);

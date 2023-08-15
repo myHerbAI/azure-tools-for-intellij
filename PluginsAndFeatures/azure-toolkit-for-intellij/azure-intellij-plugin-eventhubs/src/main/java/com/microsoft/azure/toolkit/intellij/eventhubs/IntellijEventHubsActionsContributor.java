@@ -106,7 +106,7 @@ public class IntellijEventHubsActionsContributor implements IActionsContributor 
 
     private static Action<?> generateConfigAction(AzResource resource) {
         final String sasKeyUrl = String.format("%s/saskey", resource.getPortalUrl());
-        return new Action<>(Action.Id.of("user/eventhub.config_shared_access_key"))
+        return new Action<>(Action.Id.of("user/eventhubs.config_shared_access_key"))
                 .withLabel("Configure in Azure Portal")
                 .withHandler(s -> AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(sasKeyUrl));
     }

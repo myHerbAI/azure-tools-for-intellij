@@ -135,7 +135,6 @@ public class AzureWebAppMvpModel {
     /**
      * API to create new Web App by setting model.
      */
-    @AzureOperation(name = "user/webapp.create_app.app", params = {"model.getWebAppName()"})
     public WebApp createWebAppFromSettingModel(@Nonnull WebAppSettingModel model) {
         final ResourceGroup resourceGroup = getOrCreateResourceGroup(model.getSubscriptionId(), model.getResourceGroup(), model.getRegion());
         final AppServicePlanConfig servicePlanConfig = AppServicePlanConfig.builder()

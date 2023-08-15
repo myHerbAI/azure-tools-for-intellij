@@ -45,7 +45,7 @@ public class DeploySpringCloudAppAction extends AnAction {
         OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(anActionEvent.getPlace(), EMPTY_PLACE));
         final Project project = anActionEvent.getProject();
         if (project != null) {
-            AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle(() -> deploy((SpringCloudApp) null, project));
+            AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle((a) -> deploy((SpringCloudApp) null, project));
         }
     }
 

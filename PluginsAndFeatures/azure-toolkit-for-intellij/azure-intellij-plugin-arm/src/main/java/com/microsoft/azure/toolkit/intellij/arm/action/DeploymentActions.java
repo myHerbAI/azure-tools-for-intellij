@@ -45,7 +45,6 @@ public class DeploymentActions {
     public static final String NOTIFY_UPDATE_DEPLOYMENT_SUCCESS = "Update deployment successfully";
     public static final String NOTIFY_UPDATE_DEPLOYMENT_FAIL = "Update deployment failed";
 
-    @AzureOperation(name = "user/arm.create_deployment_ui.rg", params = {"rg.getName()"})
     public static void createDeployment(@Nonnull final Project project, @Nullable ResourceGroup rg) {
         Azure.az(AzureAccount.class).account();
         AzureTaskManager.getInstance().runLater(() -> {
@@ -66,7 +65,6 @@ public class DeploymentActions {
         });
     }
 
-    @AzureOperation(name = "user/arm.update_deployment_ui.deployment", params = {"deployment.getName()"})
     public static void updateDeployment(@Nonnull final Project project, @Nonnull final ResourceDeployment deployment) {
         AzureTaskManager.getInstance().runLater(() -> new UpdateDeploymentDialog(project, deployment).show());
     }

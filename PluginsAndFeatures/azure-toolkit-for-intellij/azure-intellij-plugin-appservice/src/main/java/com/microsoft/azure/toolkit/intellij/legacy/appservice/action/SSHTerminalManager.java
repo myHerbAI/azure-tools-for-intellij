@@ -60,7 +60,7 @@ public enum SSHTerminalManager {
         }
     }
 
-    @AzureOperation(name = "boundary/appservice.open_ssh_terminal")
+    @AzureOperation(name = "boundary/$appservice.open_ssh_terminal")
     private void doOpenTerminal(ShellTerminalWidget shellTerminalWidget, CreateRemoteConnectionInfo connectionInfo) throws IOException, IllegalAccessException {
         shellTerminalWidget.executeCommand(String.format(CMD_SSH_TO_LOCAL_PROXY, connectionInfo.getUsername(), connectionInfo.getPort()));
         waitForInputPassword(shellTerminalWidget, 30000);

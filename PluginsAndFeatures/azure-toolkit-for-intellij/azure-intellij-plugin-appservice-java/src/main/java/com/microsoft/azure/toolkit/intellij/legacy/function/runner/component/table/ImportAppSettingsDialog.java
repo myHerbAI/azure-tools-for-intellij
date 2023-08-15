@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.intellij.common.ProjectUtils;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import rx.Observable;
@@ -158,11 +159,13 @@ public class ImportAppSettingsDialog extends JDialog implements ImportAppSetting
         pnlAppSettings = ToolbarDecorator.createDecorator(tblAppSettings).createPanel();
     }
 
+    @AzureOperation("user/function.do_import_app_settings")
     private void onOK() {
         this.appSettings = tblAppSettings.getAppSettings();
         dispose();
     }
 
+    @AzureOperation("user/function.cancel_import_app_settings")
     private void onCancel() {
         this.appSettings = null;
         this.eraseExistingSettings = false;

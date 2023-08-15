@@ -4,7 +4,7 @@ boundary/springcloud.start_debug_configuration.instance:
 boundary/function.start_debug_configuration.app:
   success: 5
   failure: 0
-boundary/appservice.deploy_app.app:
+boundary/$appservice.deploy_app.app:
   success: 5
   failure: 0
 boundary/vm.open_sftp_toolwindow:
@@ -19,7 +19,7 @@ user/cosmos.open_database_tools.account:
 boundary/kubernetes.open_in_k8s_plugin:
   success: 3
   failure: 0
-boundary/database.open_database_tools.server:
+boundary/$database.open_database_tools.server:
   success: 3
   failure: 0
 boundary/kubernetes.merge_into_kube_config:
@@ -162,7 +162,7 @@ boundary/vm.create_ssh_session_ic:
 azure/kubernetes.download_config:
   success: 2
   failure: 0
-boundary/appservice.open_ssh_terminal:
+boundary/$appservice.open_ssh_terminal:
   success: 2
   failure: 0
 common.start_log_streaming.resource:
@@ -178,7 +178,7 @@ azure/cosmos.load_more_sql_documents:
   success: 2
   failure: 0
 # delete resources, success:1
-azure/resource.delete_resource.resource|type:
+azure/$resource.delete_resource.resource|type:
   success: 1
   failure: 0
 azure/ai.delete_ai.ai:
@@ -385,13 +385,13 @@ platform/webapp.create_app_properties_editor.app:
   success: 1
   failure: 0
 # other operations, success:1
-azure/resource.start_resource.resource:
+azure/$resource.start_resource.resource:
   success: 1
   failure: 0
-azure/resource.stop_resource.resource:
+azure/$resource.stop_resource.resource:
   success: 1
   failure: 0
-azure/resource.restart_resource.resource:
+azure/$resource.restart_resource.resource:
   success: 1
   failure: 0
 azure/arm.create_group.rg:
@@ -406,7 +406,7 @@ boundary/function.run_deploy_configuration.app:
 boundary/webapp.run_deploy_configuration.app:
   success: 1
   failure: 0
-azure/appservice.profile_flight_recorder:
+azure/$appservice.profile_flight_recorder:
   success: 1
   failure: 0
 boundary/acr.run_push_image_configuration.config:
@@ -463,7 +463,7 @@ boundary/arm.export_parameters_to_file.file:
 internal/favorite.add_favorite:
   success: 1
   failure: 0
-boundary/resource.open_url.url:
+boundary/$resource.open_url.url:
   success: 1
   failure: 0
 boundary/kubernetes.search_k8s_plugin:

@@ -17,6 +17,7 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandlerMessenger;
 import com.microsoft.azure.toolkit.intellij.common.runconfig.RunConfigurationUtils;
+import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azuretools.telemetrywrapper.ErrorType;
 import com.microsoft.azuretools.telemetrywrapper.EventUtil;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
@@ -40,6 +41,7 @@ public abstract class AzureRunProfileState<T> implements RunProfileState {
 
     @Nullable
     @Override
+    @ExceptionNotification
     public ExecutionResult execute(Executor executor, @NotNull ProgramRunner programRunner) {
         final RunProcessHandler processHandler = new RunProcessHandler();
         processHandler.addDefaultListener();

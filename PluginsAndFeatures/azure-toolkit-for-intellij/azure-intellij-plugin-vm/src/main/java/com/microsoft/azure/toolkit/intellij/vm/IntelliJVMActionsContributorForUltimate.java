@@ -22,15 +22,15 @@ public class IntelliJVMActionsContributorForUltimate implements IActionsContribu
     public void registerHandlers(AzureActionManager am) {
         final BiConsumer<VirtualMachine, AnActionEvent> addSshConfigHandler = (c, e) -> AddSshConfigAction
             .addSshConfig(c, Objects.requireNonNull(e.getProject()));
-        am.registerHandler(VirtualMachineActionsContributor.ADD_SSH_CONFIG, (c, e) -> c instanceof VirtualMachine, addSshConfigHandler);
+        am.registerHandler(VirtualMachineActionsContributor.ADD_SSH_CONFIG, addSshConfigHandler);
 
         final BiConsumer<VirtualMachine, AnActionEvent> connectBySshHandler = (c, e) ->
                 ConnectUsingSshActionUltimateImpl.getInstance().connectBySsh(c, Objects.requireNonNull(e.getProject()));
-        am.registerHandler(VirtualMachineActionsContributor.CONNECT_SSH,  (c, e) -> c instanceof VirtualMachine, connectBySshHandler);
+        am.registerHandler(VirtualMachineActionsContributor.CONNECT_SSH, connectBySshHandler);
 
         final BiConsumer<VirtualMachine, AnActionEvent> sftpHandler = (c, e) -> BrowseRemoteHostSftpAction
                 .browseRemoteHost(c, Objects.requireNonNull(e.getProject()));
-        am.registerHandler(VirtualMachineActionsContributor.SFTP_CONNECTION, (c, e) -> c instanceof VirtualMachine, sftpHandler);
+        am.registerHandler(VirtualMachineActionsContributor.SFTP_CONNECTION, sftpHandler);
     }
 
     @Override

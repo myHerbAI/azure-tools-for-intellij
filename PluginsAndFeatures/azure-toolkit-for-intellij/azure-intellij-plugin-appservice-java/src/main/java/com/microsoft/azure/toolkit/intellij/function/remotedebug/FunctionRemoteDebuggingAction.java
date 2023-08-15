@@ -38,7 +38,6 @@ import java.util.Optional;
 
 public class FunctionRemoteDebuggingAction {
 
-    @AzureOperation(name = "user/function.start_remote_debugging.app", params = {"target.getName()"})
     public static void startDebugging(@Nonnull FunctionAppBase<?, ?, ?> target, Project project) {
         if (!target.isRemoteDebugEnabled()) {
             showEnableDebuggingMessage(target);
