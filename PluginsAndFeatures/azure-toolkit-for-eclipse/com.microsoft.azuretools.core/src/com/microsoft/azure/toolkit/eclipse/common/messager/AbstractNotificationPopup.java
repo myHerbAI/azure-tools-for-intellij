@@ -57,6 +57,7 @@ public abstract class AbstractNotificationPopup extends Window {
     private final Job closeJob;
     private AnimationUtil.FadeJob fadeJob;
     private boolean fadingEnabled;
+    private Image titleImage;
 
     public AbstractNotificationPopup(Display display) {
         this(display, 540684);
@@ -120,8 +121,8 @@ public abstract class AbstractNotificationPopup extends Window {
         titleTextLabel.setLayoutData(new GridData(SWT.FILL, 16777216, true, true));
         titleTextLabel.setCursor(parent.getDisplay().getSystemCursor(21));
         final Label button = new Label(parent, 0);
-        final Image image = Activator.getImageDescriptor("icons/azure_small.png").createImage();
-        button.setImage(image);
+        titleImage = Activator.getImageDescriptor("icons/close.png").createImage();
+        button.setImage(titleImage);
         button.addMouseListener(new MouseAdapter() {
             public void mouseUp(MouseEvent e) {
                 AbstractNotificationPopup.this.close();
@@ -284,7 +285,7 @@ public abstract class AbstractNotificationPopup extends Window {
         Rectangle clArea = this.getPrimaryClientArea();
         Point initialSize = this.shell.computeSize(-1, -1);
         int height = Math.max(initialSize.y, 100);
-        int width = Math.min(initialSize.x, 400);
+        int width = Math.max(initialSize.x, 400);
         Point size = new Point(width, height);
         this.shell.setLocation(clArea.width + clArea.x - size.x - 5, clArea.height + clArea.y - size.y - 5);
         this.shell.setSize(size);
@@ -323,6 +324,9 @@ public abstract class AbstractNotificationPopup extends Window {
 
     public boolean close() {
         this.resources.dispose();
+		if (titleImage != null) {
+			titleImage.dispose();
+		}
         return super.close();
     }
 
