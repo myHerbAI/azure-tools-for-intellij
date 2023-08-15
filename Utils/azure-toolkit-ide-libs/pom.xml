@@ -50,6 +50,7 @@
         <module>azure-toolkit-ide-containerapps-lib</module>
         <module>azure-toolkit-ide-eventhubs-lib</module>
         <module>azure-toolkit-ide-servicebus-lib</module>
+        <module>azure-toolkit-ide-cognitiveservices-lib</module>
     </modules>
 
     <properties>
@@ -119,6 +120,11 @@
             <dependency>
                 <groupId>com.microsoft.azure</groupId>
                 <artifactId>azure-toolkit-ide-containerservice-lib</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-toolkit-ide-cognitiveservices-lib</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
