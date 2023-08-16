@@ -3,7 +3,13 @@
   <name>Azure Toolkit for Rider</name>
   <vendor url="https://www.jetbrains.com">JetBrains</vendor>
 
-<!--  <xi:include href="/META-INF/platformPlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+  <xi:include href="/META-INF/azure-intellij-plugin-lib.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/azure-intellij-plugin-service-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/azure-intellij-plugin-arm.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+  <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
+    <actions implementation="com.microsoft.azure.toolkit.intellij.common.action.LegacyIntellijAccountActionsContributor"/>
+  </extensions>
 
   <resource-bundle>messages.RiderAzureMessages</resource-bundle>
 
@@ -14,6 +20,16 @@
   <depends>JavaScript</depends>
 
   <extensions defaultExtensionNs="com.intellij">
+    <toolWindow
+            anchor="left"
+            factoryClass="com.microsoft.intellij.ui.ServerExplorerToolWindowFactory"
+            id="Azure Explorer"
+            canCloseContents="false"
+            icon="/Common/Azure.svg"/>
+
+    <applicationConfigurable parentId="tools"
+                             id="com.microsoft.intellij.RiderAzureConfigurable"
+                             provider="com.microsoft.intellij.AzureConfigurableProvider"/>
 
 <!--    <applicationService serviceInterface="org.jetbrains.plugins.azure.storage.azurite.AzuriteService"-->
 <!--                        serviceImplementation="org.jetbrains.plugins.azure.storage.azurite.AzuriteService"/>-->
@@ -91,9 +107,9 @@
 <!--    <nodeActionsMap implementation="com.microsoft.intellij.serviceexplorer.RiderNodeActionsMap" />-->
 <!--  </extensions>-->
 
-<!--  <applicationListeners>-->
-<!--    <listener class="com.microsoft.intellij.AzureActionsListener" topic="com.intellij.ide.AppLifecycleListener"/>-->
-<!--  </applicationListeners>-->
+  <applicationListeners>
+    <listener class="com.microsoft.intellij.AzureActionsListener" topic="com.intellij.ide.AppLifecycleListener"/>
+  </applicationListeners>
 
 <!--  <project-components>-->
 <!--    <component>-->
@@ -101,7 +117,34 @@
 <!--    </component>-->
 <!--  </project-components>-->
 
-<!--  <actions>-->
+  <actions>
+    <action class="com.microsoft.intellij.actions.AzureExplorerOpenAction" id="Actions.AzureExplorerOpenAction"
+            text="Show Azure Explorer" description="Show Azure Explorer" icon="/Common/Azure.svg"/>
+
+    <action id="AzureToolkit.AzureSignIn" class="com.microsoft.azure.toolkit.intellij.common.auth.AzureSignInAction" text="Azure Sign In..." />
+    <action id="AzureToolkit.SelectSubscriptions" class="com.microsoft.azure.toolkit.intellij.common.subscription.SelectSubscriptionsAction" text="Select Subscriptions..."
+            description="ShowSubscriptionsAction" icon="AllIcons.General.Filter" />
+
+    <group id="AzurePopupGroup" text="Azure" description="Azure" icon="/Common/Azure.svg" popup="true" class="com.microsoft.intellij.actions.AzurePopupGroup">
+      <reference ref="AzureToolkit.ConnectToAzureResource"/>
+    </group>
+
+    <group id="AzureToolbarGroup" text="Azure" description="Azure">
+      <reference ref="Actions.AzureExplorerOpenAction"/>
+      <reference ref="AzureToolkit.OpenResourceConnectionExplorerAction"/>
+    </group>
+
+    <group id="AzureToolkit.AzureActionGroup"
+           class="com.intellij.openapi.actionSystem.DefaultActionGroup"
+           text="Azure"
+           description="Contains Azure tools plugin actions"
+           icon="/Common/Azure.svg"
+           popup="true">
+      <add-to-group group-id="ToolsMenu" anchor="first"/>
+      <reference ref="AzureToolkit.SelectSubscriptions"/>
+      <separator/>
+      <reference ref="AzureToolkit.AzureSignIn"/>
+    </group>
 <!--    <action id="Actions.AzureCodeSamples"-->
 <!--            class="com.microsoft.intellij.actions.AzureDotNetCodeSamples"-->
 <!--            text="Azure Code Samples"-->
@@ -210,5 +253,5 @@
 
 <!--      <separator />-->
 <!--    </group>-->
-<!--  </actions>-->
+  </actions>
 </idea-plugin>
