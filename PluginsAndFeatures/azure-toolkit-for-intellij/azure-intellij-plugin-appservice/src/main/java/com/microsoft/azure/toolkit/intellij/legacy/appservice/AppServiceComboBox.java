@@ -49,7 +49,8 @@ public abstract class AppServiceComboBox<T extends AppServiceConfig> extends Azu
 
     @Override
     public void setValue(T val, Boolean fixed) {
-        if (isDraftResource(val) && !this.draftItems.contains(val)) {
+        if (isDraftResource(val)) {
+            this.draftItems.remove(val);
             this.draftItems.add(0, val);
             this.reloadItems();
         }
@@ -78,7 +79,7 @@ public abstract class AppServiceComboBox<T extends AppServiceConfig> extends Azu
         config.setName(appService.getName());
         config.setRuntime(null);
         config.setSubscription(new com.microsoft.azure.toolkit.lib.common.model.Subscription(appService.getSubscriptionId()));
-        AzureTaskManager.getInstance().runOnPooledThreadAsObservable(() -> {
+        AzureTaskManager.getInstance().runOnPooledThread(() -> {
             try {
                 config.setResourceGroup(ResourceGroupConfig.fromResource(appService.getResourceGroup()));
                 config.setRuntime(appService.getRuntime());
@@ -91,7 +92,7 @@ public abstract class AppServiceComboBox<T extends AppServiceConfig> extends Azu
             } catch (final Throwable ignored) {
                 config.setSubscription(null);
             }
-        }).subscribe();
+        });
         return config;
     }
 

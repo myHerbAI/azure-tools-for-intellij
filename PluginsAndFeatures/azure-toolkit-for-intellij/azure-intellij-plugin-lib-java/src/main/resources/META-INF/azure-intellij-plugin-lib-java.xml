@@ -1,0 +1,10 @@
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+
+    <xi:include href="/META-INF/azure-intellij-plugin-lib.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+    <actions>
+        <action id="Actions.WhatsNew"
+                class="com.microsoft.azure.toolkit.intellij.common.action.WhatsNewAction" text="What's New in Azure Toolkit"
+                description="Show new features of Azure Toolkit for Java"/>
+    </actions>
+</idea-plugin>

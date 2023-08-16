@@ -37,6 +37,7 @@ public class FunctionsNode extends Node<FunctionApp> {
 
         this.listener = new AzureEventBus.EventListener(this::onEvent);
         AzureEventBus.on("resource.refreshed.resource", listener);
+        AzureEventBus.on("appservice|function.functions.refresh", listener);
     }
 
     private static String getFunctionTriggerType(@Nonnull FunctionEntity functionEntity) {
@@ -54,5 +55,6 @@ public class FunctionsNode extends Node<FunctionApp> {
     public void dispose() {
         super.dispose();
         AzureEventBus.off("resource.refreshed.resource", listener);
+        AzureEventBus.off("appservice|function.functions.refresh", listener);
     }
 }

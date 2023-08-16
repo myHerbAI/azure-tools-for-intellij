@@ -19,28 +19,46 @@ import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDocumentContainer;
+import com.microsoft.azure.toolkit.lib.cosmos.mongo.MongoCollection;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.function.Function;
 
 import static com.microsoft.azure.toolkit.intellij.common.fileexplorer.VirtualFileActions.FILE_CHANGED;
 
 public class CreateNewDocumentAction {
 
-    private static final String DEFAULT_CONTENT =
-        "{\n" +
-        "\t\"id\": \"replace_with_new_document_id\"\n" +
-        "}";
+    private static final String DEFAULT_TEMPLATE = """
+            {
+            \t"id": "replace_with_new_document_id"
+            }
+            """;
+    private static final String SHARED_KEY_TEMPLATE = """
+            {
+            \t"id": "replace_with_new_document_id",
+            \t"%s": "replace_with_new_document_shared_key"
+            }""";
 
-    @AzureOperation(name = "user/cosmos.create_document.container", params = {"container.getName()"})
-    @SneakyThrows
     public static void create(@Nonnull final ICosmosDocumentContainer<?> container, @Nonnull final Project project) {
+        create(container, project, getDocumentTemplate(container));
+    }
+
+    private static String getDocumentTemplate(@Nonnull final ICosmosDocumentContainer<?> container) {
+        if (container instanceof MongoCollection) {
+            final String sharedKey = ((MongoCollection) container).getSharedKey();
+            return StringUtils.isEmpty(sharedKey) ? DEFAULT_TEMPLATE : String.format(SHARED_KEY_TEMPLATE, sharedKey);
+        }
+        return DEFAULT_TEMPLATE;
+    }
+
+    @SneakyThrows
+    public static void create(@Nonnull final ICosmosDocumentContainer<?> container, @Nonnull final Project project, @Nonnull final String template) {
         final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-        final VirtualFile virtualFile = getOrCreateVirtualFile(container, fileEditorManager);
+        final VirtualFile virtualFile = getOrCreateVirtualFile(container, fileEditorManager, template);
         virtualFile.putUserData(FILE_CHANGED, true); // mark file changed to prompt when close with default content
         final Function<String, Boolean> onSave = content -> {
             AzureTaskManager.getInstance().runInBackground(new AzureTask<>(OperationBundle.description("internal/cosmos.create_document.container", container.getName()), () -> {
@@ -58,15 +76,17 @@ public class CreateNewDocumentAction {
         VirtualFileActions.openFileInEditor(virtualFile, onSave, onClose, fileEditorManager);
     }
 
-    private static synchronized VirtualFile getOrCreateVirtualFile(@Nonnull final ICosmosDocumentContainer<?> container, final FileEditorManager manager) {
+    private static synchronized VirtualFile getOrCreateVirtualFile(@Nonnull final ICosmosDocumentContainer<?> container,
+                                                                   final FileEditorManager manager, final String content) {
         final VirtualFile virtualFile = VirtualFileActions.getVirtualFile(container.getId(), manager);
-        return Objects.isNull(virtualFile) ? createVirtualFile(container, manager) : virtualFile;
+        return Objects.isNull(virtualFile) ? createVirtualFile(container, manager, content) : virtualFile;
     }
 
     @SneakyThrows
-    private static VirtualFile createVirtualFile(@Nonnull final ICosmosDocumentContainer<?> container, final FileEditorManager manager) {
-        final File tempFile = FileUtil.createTempFile(String.format("%s:New Document", container.getName()), ".json", true);
-        FileUtil.writeToFile(tempFile, DEFAULT_CONTENT);
+    private static VirtualFile createVirtualFile(@Nonnull final ICosmosDocumentContainer<?> container,
+                                                 final FileEditorManager manager, final String content) {
+        final File tempFile = FileUtil.createTempFile(String.format("New Document - %s", container.getName()), ".json", true);
+        FileUtil.writeToFile(tempFile, content);
         return VirtualFileActions.createVirtualFile(container.getId(), tempFile.getName(), tempFile, manager);
     }
 }

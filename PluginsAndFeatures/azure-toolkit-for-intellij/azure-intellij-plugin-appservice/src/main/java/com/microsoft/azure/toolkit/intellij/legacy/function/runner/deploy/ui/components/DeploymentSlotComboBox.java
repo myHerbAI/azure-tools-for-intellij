@@ -12,8 +12,8 @@ import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.IDeploymentSlotModule;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -48,7 +48,8 @@ public class DeploymentSlotComboBox extends AzureComboBox<DeploymentSlotConfig> 
 
     @Override
     public void setValue(DeploymentSlotConfig val, Boolean fixed) {
-        if (isDraftResource(val) && !this.draftItems.contains(val)) {
+        if (isDraftResource(val)) {
+            this.draftItems.remove(val);
             this.draftItems.add(0, val);
             this.reloadItems();
         }
@@ -69,13 +70,15 @@ public class DeploymentSlotComboBox extends AzureComboBox<DeploymentSlotConfig> 
 
     private void createResource() {
         final List<DeploymentSlotConfig> existingSlots = this.getItems().stream()
-                .filter(config -> !config.isNewCreate())
-                .collect(Collectors.toList());
+            .filter(config -> !config.isNewCreate())
+            .collect(Collectors.toList());
         final DeploymentSlotCreationDialog dialog = new DeploymentSlotCreationDialog(project, existingSlots);
-        dialog.setOkActionListener(config -> {
-            DeploymentSlotComboBox.this.setValue(config);
-            AzureTaskManager.getInstance().runLater(dialog::close);
-        });
+        final Action.Id<DeploymentSlotConfig> actionId = Action.Id.of("user/function.create_slot.slot");
+        dialog.setOkAction(new Action<>(actionId)
+            .withLabel("Create")
+            .withIdParam(DeploymentSlotConfig::getName)
+            .withAuthRequired(false)
+            .withHandler(config -> this.setValue(config)));
         dialog.show();
     }
 
@@ -90,7 +93,7 @@ public class DeploymentSlotComboBox extends AzureComboBox<DeploymentSlotConfig> 
             return Collections.emptyList();
         }
         final List<DeploymentSlotConfig> result = module.list().stream().map(slot ->
-                DeploymentSlotConfig.builder().name(slot.getName()).newCreate(false).build()).collect(Collectors.toList());
+            DeploymentSlotConfig.builder().name(slot.getName()).newCreate(false).build()).collect(Collectors.toList());
         this.draftItems.stream().filter(config -> !result.contains(config)).forEach(result::add);
         return result;
     }

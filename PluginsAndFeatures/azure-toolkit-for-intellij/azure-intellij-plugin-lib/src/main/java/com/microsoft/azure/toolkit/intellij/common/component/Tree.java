@@ -151,7 +151,7 @@ public class Tree extends SimpleTree implements DataProvider {
         }
 
         @Override
-        @AzureOperation(name = "user/common.load_children.node", params = "this.getLabel()")
+        @AzureOperation(name = "internal/common.load_children.node", params = "this.getLabel()")
         public void updateChildren(boolean... incremental) {
             AzureTaskManager.getInstance().runLater(() -> {
                 if (this.getAllowsChildren() && BooleanUtils.isNotFalse(this.loaded)) {

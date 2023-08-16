@@ -40,7 +40,6 @@ public class OpenCosmosDocumentAction {
     private static final String NOTIFICATION_GROUP_ID = "Azure Plugin";
     private static final String FILE_HAS_BEEN_SAVED = "File %s has been saved to Azure";
 
-    @AzureOperation(name = "user/cosmos.open_document.document", params = {"target.getName()"})
     @SneakyThrows
     public static void open(ICosmosDocument target, Project project) {
         final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
@@ -58,7 +57,7 @@ public class OpenCosmosDocumentAction {
             return true;
         };
         final Runnable onClose = () -> WriteAction.run(() -> FileUtil.delete(new File(virtualFile.getPath())));
-        final AzureString title = OperationBundle.description("user/appservice.open_file.file", virtualFile.getName());
+        final AzureString title = OperationBundle.description("user/$appservice.open_file.file", virtualFile.getName());
         AzureTaskManager.getInstance().runLater(new AzureTask<>(title, () -> VirtualFileActions.openFileInEditor(virtualFile, onSave, onClose, fileEditorManager)));
     }
 

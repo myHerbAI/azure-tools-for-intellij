@@ -242,7 +242,7 @@ public class Favorites extends AbstractAzResourceModule<Favorite, AzResource.Non
         final AzureActionManager am = AzureActionManager.getInstance();
         final AzureActionManager.Shortcuts shortcuts = am.getIDEDefaultShortcuts();
 
-        final Action<Favorites> unpinAllAction = new Action<>(Action.Id.<Favorites>of("user/resource.unpin_all"))
+        final Action<Favorites> unpinAllAction = new Action<>(Action.Id.<Favorites>of("user/$resource.unpin_all"))
             .withLabel("Unmark All As Favorite")
             .withIcon(AzureIcons.Action.UNPIN.getIconPath())
             .visibleWhen(s -> s instanceof Favorites)

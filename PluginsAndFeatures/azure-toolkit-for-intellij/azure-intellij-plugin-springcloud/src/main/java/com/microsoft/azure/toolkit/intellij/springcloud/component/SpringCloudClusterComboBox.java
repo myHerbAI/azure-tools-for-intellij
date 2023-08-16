@@ -6,23 +6,18 @@
 package com.microsoft.azure.toolkit.intellij.springcloud.component;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.DataManager;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.EmptyAction;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
-import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
-import com.microsoft.azure.toolkit.intellij.springcloud.creation.SpringCloudAppCreationDialog;
 import com.microsoft.azure.toolkit.intellij.springcloud.creation.SpringCloudClusterCreationDialog;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudClusterModule;
 
 import javax.annotation.Nonnull;
@@ -30,7 +25,11 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class SpringCloudClusterComboBox extends AzureComboBox<SpringCloudCluster> {
     private final List<SpringCloudCluster> draftItems = new LinkedList<>();
@@ -59,7 +58,8 @@ public class SpringCloudClusterComboBox extends AzureComboBox<SpringCloudCluster
 
     @Override
     public void setValue(@Nullable SpringCloudCluster val, Boolean fixed) {
-        if (Objects.nonNull(val) && val.isDraftForCreating() && !this.draftItems.contains(val)) {
+        if (Objects.nonNull(val) && val.isDraftForCreating()) {
+            this.draftItems.remove(val);
             this.draftItems.add(0, val);
             this.reloadItems();
         }
@@ -109,10 +109,12 @@ public class SpringCloudClusterComboBox extends AzureComboBox<SpringCloudCluster
 
     private void showClusterCreationPopup() {
         final SpringCloudClusterCreationDialog dialog = new SpringCloudClusterCreationDialog(null);
-        dialog.setOkActionListener((draft) -> {
-            dialog.close();
-            this.setValue(draft);
-        });
+        final Action.Id<SpringCloudClusterDraft> actionId = Action.Id.of("user/springcloud.create_cluster.cluster");
+        dialog.setOkAction(new Action<>(actionId)
+            .withLabel("Create")
+            .withIdParam(SpringCloudClusterDraft::getName)
+            .withAuthRequired(false)
+            .withHandler(c -> this.setValue(c)));
         dialog.show();
     }
 }

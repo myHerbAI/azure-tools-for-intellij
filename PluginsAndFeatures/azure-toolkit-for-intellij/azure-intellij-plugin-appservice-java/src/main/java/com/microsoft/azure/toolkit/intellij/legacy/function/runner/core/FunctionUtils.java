@@ -43,7 +43,6 @@ import com.microsoft.azure.toolkit.lib.appservice.utils.FunctionCliResolver;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import com.microsoft.azure.toolkit.lib.legacy.function.bindings.Binding;
@@ -115,6 +114,7 @@ public class FunctionUtils {
         REQUIRED_ATTRIBUTE_MAP.put(BindingEnum.HttpTrigger, Arrays.asList("authLevel"));
     }
 
+    @AzureOperation(name = "internal/function.save_app_settings_to_security_storage")
     public static void saveAppSettingsToSecurityStorage(String key, Map<String, String> appSettings) {
         if (StringUtils.isEmpty(key)) {
             return;
@@ -123,6 +123,7 @@ public class FunctionUtils {
         IntelliJSecureStore.getInstance().savePassword(AZURE_FUNCTIONS_APP_SETTINGS, key, null, appSettingsJsonValue);
     }
 
+    @AzureOperation(name = "internal/function.load_app_settings_from_security_storage")
     public static Map<String, String> loadAppSettingsFromSecurityStorage(String key) {
         if (StringUtils.isEmpty(key)) {
             return new HashMap<>();
@@ -162,7 +163,7 @@ public class FunctionUtils {
             }
             final GlobalSearchScope scope = GlobalSearchScope.moduleWithLibrariesScope(m);
             final Callable<PsiClass> psiClassSupplier = () -> JavaPsiFacade.getInstance(project).findClass(AZURE_FUNCTION_ANNOTATION_CLASS, scope);
-            final PsiClass ecClass = AzureTaskManager.getInstance().readAsObservable(new AzureTask<>(psiClassSupplier)).toBlocking().first();
+            final PsiClass ecClass = AzureTaskManager.getInstance().read(psiClassSupplier).join();
             return ecClass != null;
         }).toArray(Module[]::new);
     }

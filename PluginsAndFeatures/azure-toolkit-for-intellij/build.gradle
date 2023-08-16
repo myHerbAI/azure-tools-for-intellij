@@ -178,6 +178,7 @@ dependencies {
     implementation project(path: ':azure-intellij-plugin-hdinsight', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-eventhubs', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-servicebus', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-cognitiveservices', configuration: 'instrumentedJar')
     implementation 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-spark-lib'
     implementation 'com.microsoft.azure:azure-toolkit-ide-appservice-lib'
     implementation 'com.microsoft.azure:azure-toolkit-applicationinsights-lib'

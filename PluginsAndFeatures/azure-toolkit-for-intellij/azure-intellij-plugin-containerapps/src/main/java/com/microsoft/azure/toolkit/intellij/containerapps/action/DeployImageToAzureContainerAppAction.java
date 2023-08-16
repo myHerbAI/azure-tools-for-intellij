@@ -17,7 +17,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
 import com.microsoft.azure.toolkit.intellij.containerapps.AzureContainerAppConfigurationType;
 import com.microsoft.azure.toolkit.intellij.containerregistry.dockerhost.DockerHostRunConfiguration;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 
 import javax.annotation.Nonnull;
@@ -25,7 +24,6 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class DeployImageToAzureContainerAppAction {
-    @AzureOperation(name = "user/containerapps.open_update_image_dialog.app", params = {"app.getName()"})
     public static void deployImageToAzureContainerApps(@Nullable final VirtualFile file, @Nonnull final AnActionEvent e) {
         AzureTaskManager.getInstance().runLater(() -> runConfiguration(e.getProject(), file));
     }

@@ -12,9 +12,13 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.fields.ExtendableTextComponent.Extension;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.springcloud.creation.SpringCloudAppCreationDialog;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroupDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 import lombok.Setter;
@@ -65,7 +69,8 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
 
     @Override
     public void setValue(@Nullable SpringCloudApp val, Boolean fixed) {
-        if (Objects.nonNull(val) && val.isDraftForCreating() && !this.draftItems.contains(val)) {
+        if (Objects.nonNull(val) && val.isDraftForCreating()) {
+            this.draftItems.remove(val);
             this.draftItems.add(0, val);
             this.reloadItems();
         }
@@ -115,10 +120,13 @@ public class SpringCloudAppComboBox extends AzureComboBox<SpringCloudApp> {
         final SpringCloudAppCreationDialog dialog = new SpringCloudAppCreationDialog();
         dialog.setCluster(this.cluster, true);
         Optional.ofNullable(this.javaVersion).ifPresent(a -> dialog.setDefaultRuntimeVersion(javaVersion));
-        dialog.setOkActionListener((draft) -> {
-            dialog.close();
-            this.setValue(draft);
-        });
+        final Action.Id<SpringCloudAppDraft> actionId = Action.Id.of("user/springcloud.create_app.app");
+        dialog.setOkAction(new Action<>(actionId)
+            .withLabel("Create")
+            .withIdParam(AbstractAzResource::getName)
+            .withSource(s -> s)
+            .withAuthRequired(false)
+            .withHandler(draft -> this.setValue(draft)));
         dialog.show();
     }
 

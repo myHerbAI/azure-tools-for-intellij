@@ -15,7 +15,11 @@ import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.EmptyAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.ToolWindow;
@@ -28,7 +32,6 @@ import com.microsoft.azure.toolkit.intellij.container.AzureDockerClient;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
 import com.microsoft.azure.toolkit.intellij.containerregistry.IDockerConfiguration;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Getter;
 import lombok.Setter;
@@ -100,8 +103,8 @@ public class DockerBuildTaskProvider extends BeforeRunTaskProvider<DockerBuildTa
                 return false;
             }
             final AzureDockerClient dockerClient = AzureDockerClient.from(configuration.getDockerHostConfiguration());
-            final ConsoleView consoleView = AzureTaskManager.getInstance().runAndWaitAsObservable(new AzureTask<>(() ->
-                    createConsoleView(configuration.getProject(), image.getImageName()))).toBlocking().first();
+            final ConsoleView consoleView = AzureTaskManager.getInstance().runAndWait(() ->
+                createConsoleView(configuration.getProject(), image.getImageName())).join();
             final BuildImageResultCallback callback = createBuildImageResultCallback(consoleView);
             dockerClient.buildImage(image.getImageName(), image.getDockerFile(), image.getBaseDirectory(), callback);
             return true;

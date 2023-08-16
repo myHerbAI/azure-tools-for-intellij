@@ -69,7 +69,6 @@ public class AddSshConfigAction {
         return result;
     }
 
-    @AzureOperation(name = "user/vm.open_ssh_config_dialog", params = "vm.name()")
     private static void openConfigDialog(VirtualMachine vm, @Nonnull Project project, Configurable configurable) {
         ShowSettingsUtil.getInstance().editConfigurable(project, configurable, () -> {
             final String name = String.format("Azure: %s", vm.getName());

@@ -11,7 +11,7 @@
     </extensions>
 
     <actions>
-        <action id="user/AzureToolkit.OpenSdkReferenceBook"
+        <action id="user/sdk.OpenSdkReferenceBook"
                 class="com.microsoft.azure.toolkit.intellij.azuresdk.referencebook.OpenReferenceBookAction"
                 text="Azure SDK Reference Book"
                 description="Open Azure SDK reference book dialog.">

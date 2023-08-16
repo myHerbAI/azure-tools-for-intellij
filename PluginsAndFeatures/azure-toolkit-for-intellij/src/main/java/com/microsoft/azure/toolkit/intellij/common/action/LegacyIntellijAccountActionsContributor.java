@@ -14,6 +14,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.IAccountActions;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
@@ -32,13 +33,14 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class LegacyIntellijAccountActionsContributor implements IActionsContributor {
     @Override
     public void registerActions(AzureActionManager am) {
         new Action<>(Action.REQUIRE_AUTH)
             .withLabel("Authorize")
-            .withHandler((Runnable r, AnActionEvent e) ->
+            .withHandler((Consumer<IAccount> r, AnActionEvent e) ->
                 AzureSignInAction.requireSignedIn(Optional.ofNullable(e).map(AnActionEvent::getProject).orElse(null), r))
             .withAuthRequired(false)
             .register(am);
@@ -76,16 +78,14 @@ public class LegacyIntellijAccountActionsContributor implements IActionsContribu
         am.registerHandler(ResourceCommonActionsContributor.OPEN_AZURE_EXPLORER, (i, e) -> true, openAzureExplorer);
     }
 
-    @AzureOperation(name = "user/common.open_azure_explorer")
     private static void openAzureExplorer(AnActionEvent e) {
         final ToolWindow toolWindow = ToolWindowManager.getInstance(Objects.requireNonNull(e.getProject())).
             getToolWindow(ServerExplorerToolWindowFactory.EXPLORER_WINDOW);
         if (Objects.nonNull(toolWindow) && !toolWindow.isVisible()) {
-            AzureTaskManager.getInstance().runLater(toolWindow::show);
+            AzureTaskManager.getInstance().runLater((Runnable) toolWindow::show);
         }
     }
 
-    @AzureOperation(name = "user/common.open_azure_settings")
     private static void openSettingsDialog(Project project) {
         ShowSettingsUtil.getInstance().showSettingsDialog(project, AzureConfigurable.class);
     }

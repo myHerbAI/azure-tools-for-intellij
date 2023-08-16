@@ -39,7 +39,6 @@ import com.microsoft.azure.hdinsight.spark.common.SparkSubmitJobUploadStorageMod
 import com.microsoft.azure.hdinsight.spark.common.SparkSubmitStorageType.BLOB
 import com.microsoft.azure.hdinsight.spark.common.getSecureStoreServiceOf
 import com.microsoft.azure.hdinsight.spark.ui.SparkSubmissionContentPanel.Constants.Companion.submissionFolder
-import com.microsoft.azure.storage.blob.BlobRequestOptions
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager
 import com.microsoft.azure.toolkit.ide.common.store.ISecureStore
 import com.microsoft.intellij.forms.dsl.panel
@@ -57,6 +56,8 @@ import java.awt.Font
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.ItemEvent
+import java.time.Duration
+import java.time.temporal.TemporalUnit
 import javax.swing.*
 import javax.swing.event.DocumentEvent
 
@@ -220,10 +221,9 @@ class SparkSubmissionJobUploadStorageAzureBlobCard
 
                         // Add Timeout for list containers operation to avoid getting stuck
                         // when storage account or key is invalid
-                        val requestOptions = BlobRequestOptions().apply { maximumExecutionTimeInMs = 5000 }
                         val containers = StorageClientSDKManager
                                 .getManager()
-                                .getBlobContainers(clientStorageAccount.connectionString, requestOptions)
+                                .getBlobContainers(clientStorageAccount.connectionString, Duration.ofMillis(5000))
                                 .map { it.name as Any }
                                 .toTypedArray()
 

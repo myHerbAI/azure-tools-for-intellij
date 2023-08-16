@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.connector.projectexplorer;
 
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.tree.LeafState;
@@ -80,12 +81,12 @@ public class ResourceNode extends AbstractAzureFacetNode<Node<?>> implements Nod
     }
 
     @Override
-    public void onDoubleClicked(Object event) {
+    public void onDoubleClicked(AnActionEvent event) {
         Optional.ofNullable(this.getValue()).ifPresent(n -> n.doubleClick(event));
     }
 
     @Override
-    public void onClicked(Object event) {
+    public void onClicked(AnActionEvent event) {
         Optional.ofNullable(this.getValue()).ifPresent(n -> n.click(event));
     }
 
@@ -97,15 +98,15 @@ public class ResourceNode extends AbstractAzureFacetNode<Node<?>> implements Nod
         if (this.parent instanceof DeploymentTargetsNode targets && value instanceof AbstractAzResource<?, ?, ?> resource) {
             final AzureTaskManager tm = AzureTaskManager.getInstance();
             final Action<Object> removeTarget = new Action<>(Action.Id.of("user/connector.remove_target.app"))
-                .withLabel("Remove")
+                .withLabel("Remove Deployment Target")
                 .withIdParam(this.getValue().getLabel())
                 .withIcon(AzureIcons.Action.DELETE.getIconPath())
                 .withHandler(ignore -> tm.runLater(() -> tm.write(() -> targets.getValue().getProfile().removeApp(resource).save())))
                 .withAuthRequired(false);
             if (originalGroup != null) {
                 final ActionGroup group = new ActionGroup();
-                group.appendActions(removeTarget, "---");
                 group.appendActions(originalGroup.getActions());
+                group.appendActions("---", removeTarget);
                 return group;
             } else {
                 return new ActionGroup(removeTarget);

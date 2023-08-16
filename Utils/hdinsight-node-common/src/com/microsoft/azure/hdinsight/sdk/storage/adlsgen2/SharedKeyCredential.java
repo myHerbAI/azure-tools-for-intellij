@@ -5,7 +5,8 @@
 
 package com.microsoft.azure.hdinsight.sdk.storage.adlsgen2;
 
-import com.microsoft.azure.storage.Constants;
+import com.azure.storage.common.implementation.Constants;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -30,23 +31,23 @@ public final class SharedKeyCredential {
     }
 
     private String buildStringToSign(HttpRequestBase request, HeaderGroup httpHeaders, List<NameValuePair> pairs) {
-        String contentLength = getStandardHeaderValue(httpHeaders, Constants.HeaderConstants.CONTENT_LENGTH);
-        contentLength = contentLength.equals("0") ? Constants.EMPTY_STRING : contentLength;
+        String contentLength = getStandardHeaderValue(httpHeaders, "Content-Length");
+        contentLength = contentLength.equals("0") ? StringUtils.EMPTY : contentLength;
 
         return String.join("\n",
                 request.getMethod().toString(),
                 getStandardHeaderValue(httpHeaders, Constants.HeaderConstants.CONTENT_ENCODING),
-                getStandardHeaderValue(httpHeaders, Constants.HeaderConstants.CONTENT_LANGUAGE),
+                getStandardHeaderValue(httpHeaders, Constants.UrlConstants.SAS_CONTENT_LANGUAGE),
                 contentLength,
-                getStandardHeaderValue(httpHeaders, Constants.HeaderConstants.CONTENT_MD5),
+                getStandardHeaderValue(httpHeaders, "Content-MD5"),
                 getStandardHeaderValue(httpHeaders, Constants.HeaderConstants.CONTENT_TYPE),
                 // x-ms-date header exists, so don't sign date header
-                Constants.EMPTY_STRING,
-                getStandardHeaderValue(httpHeaders, Constants.HeaderConstants.IF_MODIFIED_SINCE),
-                getStandardHeaderValue(httpHeaders, Constants.HeaderConstants.IF_MATCH),
-                getStandardHeaderValue(httpHeaders, Constants.HeaderConstants.IF_NONE_MATCH),
-                getStandardHeaderValue(httpHeaders, Constants.HeaderConstants.IF_UNMODIFIED_SINCE),
-                getStandardHeaderValue(httpHeaders, Constants.HeaderConstants.RANGE),
+                StringUtils.EMPTY,
+                getStandardHeaderValue(httpHeaders, "If-Modified-Since"),
+                getStandardHeaderValue(httpHeaders, "If-Match"),
+                getStandardHeaderValue(httpHeaders, "If-None-Match"),
+                getStandardHeaderValue(httpHeaders, "If-Unmodified-Since"),
+                getStandardHeaderValue(httpHeaders, "Range"),
                 getCanonicalizedHeader(httpHeaders),
                 getCanonicalizedResource(request.getURI(), pairs));
     }
@@ -116,8 +117,8 @@ public final class SharedKeyCredential {
 
     private String getStandardHeaderValue(HeaderGroup headers, final String headerName) {
         Header header = headers.getFirstHeader(headerName);
-        return header == null ? Constants.EMPTY_STRING
-                : header.getName().startsWith(Constants.PREFIX_FOR_STORAGE_HEADER)
+        return header == null ? StringUtils.EMPTY
+                : header.getName().startsWith("x-ms-")
                 ? String.format("%s:%s", header.getName(), header.getValue()) : header.getValue();
     }
 
@@ -130,7 +131,7 @@ public final class SharedKeyCredential {
              */
             Mac hmacSha256 = Mac.getInstance("HmacSHA256");
             hmacSha256.init(new SecretKeySpec(this.accountKey, "HmacSHA256"));
-            byte[] utf8Bytes = stringToSign.getBytes(Constants.UTF8_CHARSET);
+            byte[] utf8Bytes = stringToSign.getBytes("UTF-8");
             return Base64.getEncoder().encodeToString(hmacSha256.doFinal(utf8Bytes));
         } catch (final UnsupportedEncodingException | NoSuchAlgorithmException e) {
             throw new Error(e);

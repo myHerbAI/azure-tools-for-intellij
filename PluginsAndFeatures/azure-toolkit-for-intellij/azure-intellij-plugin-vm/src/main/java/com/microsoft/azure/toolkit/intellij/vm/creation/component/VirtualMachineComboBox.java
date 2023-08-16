@@ -8,10 +8,13 @@ package com.microsoft.azure.toolkit.intellij.vm.creation.component;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.vm.creation.VMCreationDialog;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.compute.AzureCompute;
 import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VirtualMachine;
+import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VirtualMachineDraft;
 import org.apache.commons.collections.CollectionUtils;
 
 import javax.annotation.Nonnull;
@@ -47,7 +50,8 @@ public class VirtualMachineComboBox extends AzureComboBox<VirtualMachine> {
 
     @Override
     public void setValue(@Nullable VirtualMachine val, Boolean fixed) {
-        if (Objects.nonNull(val) && val.isDraftForCreating() && !this.draftItems.contains(val)) {
+        if (Objects.nonNull(val) && val.isDraftForCreating()) {
+            this.draftItems.remove(val);
             this.draftItems.add(0, val);
             this.reloadItems();
         }
@@ -93,10 +97,13 @@ public class VirtualMachineComboBox extends AzureComboBox<VirtualMachine> {
 
     private void showVirtualMachineCreationPopup() {
         final VMCreationDialog dialog = new VMCreationDialog(null);
-        dialog.setOkActionListener((vm) -> {
-            dialog.close();
-            this.setValue(vm);
-        });
+        final Action.Id<VirtualMachineDraft> actionId = Action.Id.of("user/vm.create_vm.vm");
+        dialog.setOkAction(new Action<>(actionId)
+            .withLabel("Create")
+            .withIdParam(AbstractAzResource::getName)
+            .withSource(s -> s)
+            .withAuthRequired(false)
+            .withHandler(vm -> this.setValue(vm)));
         dialog.show();
     }
 }
