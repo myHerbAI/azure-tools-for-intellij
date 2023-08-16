@@ -10,6 +10,7 @@ import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContri
 import com.microsoft.azure.toolkit.intellij.common.auth.AzureSignInAction
 import com.microsoft.azure.toolkit.intellij.common.subscription.SelectSubscriptionsAction
 import com.microsoft.azure.toolkit.lib.Azure
+import com.microsoft.azure.toolkit.lib.account.IAccount
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.auth.IAccountActions
 import com.microsoft.azure.toolkit.lib.common.action.Action
@@ -19,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTask
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 import com.microsoft.intellij.AzureConfigurable
 import com.microsoft.intellij.ui.ServerExplorerToolWindowFactory
+import java.util.function.Consumer
 
 class LegacyIntellijAccountActionsContributor : IActionsContributor {
     companion object {
@@ -38,7 +40,7 @@ class LegacyIntellijAccountActionsContributor : IActionsContributor {
     override fun registerActions(am: AzureActionManager?) {
         Action(Action.REQUIRE_AUTH)
             .withLabel("Authorize")
-            .withHandler { r: Runnable, e: AnActionEvent -> AzureSignInAction.requireSignedIn(e.project, r) }
+            .withHandler { r: Consumer<IAccount>, e: AnActionEvent -> AzureSignInAction.requireSignedIn(e.project, r) }
             .withAuthRequired(false)
             .register(am)
 
@@ -69,7 +71,7 @@ class LegacyIntellijAccountActionsContributor : IActionsContributor {
                 if (openProjects.isEmpty()) null else openProjects[0]
             }
             val title = OperationBundle.description("user/common.open_azure_settings")
-            AzureTaskManager.getInstance().runLater(AzureTask(title) { openSettingsDialog(project) })
+            AzureTaskManager.getInstance().runLater(AzureTask<Any>(title) { openSettingsDialog(project) })
         }
 
         am.registerHandler(
