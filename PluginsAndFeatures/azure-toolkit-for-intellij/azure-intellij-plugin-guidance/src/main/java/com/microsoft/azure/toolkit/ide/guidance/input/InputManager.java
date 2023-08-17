@@ -17,7 +17,7 @@ public class InputManager {
             ExtensionPointName.create("com.microsoft.tooling.msservices.intellij.azure.guidanceInputProvider");
     private static List<GuidanceInputProvider> providers;
 
-    public synchronized static List<GuidanceInputProvider> getTaskProviders() {
+    public synchronized static List<GuidanceInputProvider> getInputProviders() {
         if (CollectionUtils.isEmpty(providers)) {
             providers = exPoints.extensions().collect(Collectors.toList());
         }
@@ -26,7 +26,7 @@ public class InputManager {
 
     @Nonnull
     public static GuidanceInput<?> createInputComponent(@Nonnull final InputConfig config, @Nonnull final Context context) {
-        return getTaskProviders().stream()
+        return getInputProviders().stream()
                 .map(provider -> provider.createInputComponent(config, context))
                 .filter(Objects::nonNull)
                 .findFirst()
