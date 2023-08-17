@@ -1,0 +1,85 @@
+{
+  "$schema": "../flow-schema/Course.json",
+  "name": "hello-openai",
+  "title": "Try Azure Open AI within IntelliJ",
+  "description": "This tutorial shows how to use the IntelliJ toolkit to deploy your own GPT 3.5 model to Azure and try the features in IntelliJ.",
+  "tags": [
+    "Open AI",
+    "GPT 3.5",
+    "Quickstart"
+  ],
+  "context": {
+  },
+  "phases": [
+    {
+      "title": "Sign-in",
+      "description": "Sign in with your Azure account",
+      "steps": [
+        {
+          "title": "Sign-in",
+          "description": null,
+          "task": {
+            "name": "task.signin"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Select Subscription",
+      "description": "Select the subscription to deploy your own GPT model",
+      "steps": [
+        {
+          "title": "Select Subscription",
+          "description": null,
+          "task": {
+            "name": "task.openai.select_subscription"
+          },
+          "inputs": [
+            {
+              "name": "input.openai.subscription"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Prepare Resources",
+      "description": "Initialize Open AI deployment or select an existing one",
+      "steps": [
+        {
+          "title": "Prepare GPT 3.5 deployment",
+          "description": "Create GPT 3.5 deployment and related account or select an existing one",
+          "task": {
+            "name": "task.openai.create_deployment"
+          },
+          "inputs": [
+            {
+              "name": "input.openai.deployment"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Congratulations!",
+      "type": "summary",
+      "description": "Your own GPT 3.5 model has been deployed to Azure, enjoy your Azure Open AI experience!",
+      "steps": [
+        {
+          "title": "Try with Open AI playground",
+          "description": null,
+          "task": {
+            "name": "task.open_ai.open_playground"
+          }
+        },
+        {
+          "title": "Open in portal",
+          "description": null,
+          "task": {
+            "name": "task.resource.open_in_portal"
+          }
+        }
+      ]
+    }
+  ]
+}

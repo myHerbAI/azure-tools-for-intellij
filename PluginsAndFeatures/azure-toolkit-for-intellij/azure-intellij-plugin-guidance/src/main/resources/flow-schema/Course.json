@@ -6,7 +6,6 @@
   "required": [
     "title",
     "description",
-    "repository",
     "phases"
   ],
   "properties": {
