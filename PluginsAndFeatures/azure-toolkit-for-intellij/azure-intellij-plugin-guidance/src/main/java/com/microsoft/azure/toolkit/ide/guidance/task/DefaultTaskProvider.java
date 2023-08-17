@@ -25,7 +25,7 @@ public class DefaultTaskProvider implements GuidanceTaskProvider {
             case FocusResourceInAzureExplorerTask.ID:
                 return new FocusResourceInAzureExplorerTask(taskContext);
             default:
-                return new EmptyTask();
+                return null;
         }
     }
 }
