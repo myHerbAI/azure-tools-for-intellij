@@ -61,7 +61,7 @@ public class ChatBox {
 
     public void setChatBot(ChatBot chatBot) {
         this.chatBot = chatBot;
-        AzureTaskManager.getInstance().runLater(()->{
+        AzureTaskManager.getInstance().runLater(() -> {
             this.clearBtn.doClick();
             this.sendBtn.setEnabled(true);
         }, AzureTask.Modality.ANY);
@@ -150,14 +150,14 @@ public class ChatBox {
         this.sendBtn.setToolTipText("Sending...");
         final AzureTaskManager tm = AzureTaskManager.getInstance();
         tm.runOnPooledThread(() -> {
-            try{
+            try {
                 this.addMessage(new MarkdownText(prompt), ChatRole.USER);
                 tm.runLater(() -> this.promptInput.setText(""));
                 final ChatChoice response = this.chatBot.send(prompt);
                 final ChatMessage message = response.getMessage();
                 final String content = message.getContent();
                 this.addMessage(new MarkdownText(content), ChatRole.ASSISTANT);
-            }finally {
+            } finally {
                 tm.runLater(() -> {
                     this.sendBtn.setEnabled(true);
                     this.clearBtn.setEnabled(true);
@@ -172,7 +172,7 @@ public class ChatBox {
         final AzureTaskManager tm = AzureTaskManager.getInstance();
         tm.runLater(() -> {
             final JPanel message = role == ChatRole.USER ?
-                new MessagePane(markdown).getContentPanel() : new MarkdownPane(markdown).getContentPanel();
+                new UserMessagePane(markdown).getContentPanel() : new BotMessagePane(markdown).getContentPanel();
             this.messageBox.add(message);
             this.messageBox.revalidate();
             this.messageBox.repaint();

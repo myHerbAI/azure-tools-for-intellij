@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccount;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
 import lombok.Getter;
 
+import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.Stack;
 
@@ -20,6 +21,7 @@ public class ChatBot {
     private final OpenAIClient client;
     @Getter
     private final CognitiveDeployment deployment;
+    @Nonnull
     private String systemMessage;
 
     public ChatBot(final CognitiveDeployment deployment) {
@@ -33,7 +35,7 @@ public class ChatBot {
             .buildClient();
     }
 
-    public void setSystemMessage(String systemMessage) {
+    public void setSystemMessage(@Nonnull final String systemMessage) {
         this.systemMessage = systemMessage;
         chatMessages.push(new ChatMessage(ChatRole.SYSTEM, systemMessage));
     }
