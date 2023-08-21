@@ -29,9 +29,9 @@ public class EclipseAzureMessager implements IAzureMessager {
             case CONFIRM:
                 final boolean[] result = new boolean[]{true};
                 final String title = Optional.ofNullable(raw.getTitle()).orElse(DEFAULT_TITLE);
-                AzureTaskManager.getInstance().runLaterAsObservable(()->{
+                AzureTaskManager.getInstance().runLater(()->{
                     result[0] = MessageDialog.openConfirm(null, title, raw.getContent());
-                }).toBlocking().subscribe();
+                }).join();
                 return result[0];
             default:
         }

@@ -40,7 +40,7 @@ public class AzureLongDurationTaskRunnerWithConsole {
             final AzureTask<Void> task = new AzureTask<Void>(title, runnable);
             task.setType("user");
             try {
-                AzureTaskManager.getInstance().runImmediatelyAsObservable(() -> {
+                AzureTaskManager.getInstance().runImmediately(() -> {
                     ConsolePlugin.getDefault().getConsoleManager().showConsoleView(myConsole);
                     OperationContext.current().setMessager(messager);
                     task.execute();
@@ -49,14 +49,15 @@ public class AzureLongDurationTaskRunnerWithConsole {
                     if (removeConsoleAfterSucceed) {
                         ConsolePlugin.getDefault().getConsoleManager().removeConsoles(new IConsole[]{myConsole});
                     }
-                }).doOnError(e -> {
-                    ConsolePlugin.getDefault().getConsoleManager().warnOfContentChange(myConsole);
-                    if (ExceptionUtils.getRootCause(e) instanceof InterruptedException) {
-                        messager.error("Cancelled.");
-                    } else {
-                        messager.error(e);
-                    }
-                }).toBlocking().single();
+				}).exceptionally(e -> {
+					ConsolePlugin.getDefault().getConsoleManager().warnOfContentChange(myConsole);
+					if (ExceptionUtils.getRootCause(e) instanceof InterruptedException) {
+						messager.error("Cancelled.");
+					} else {
+						messager.error(e);
+					}
+					return null;
+				}).join();
                 return Status.OK_STATUS;
             } catch (Exception ex) {
                 if (ExceptionUtils.hasCause(ex, InterruptedException.class)) {
