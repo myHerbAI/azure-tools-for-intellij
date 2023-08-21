@@ -65,7 +65,9 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
         final ToolWindow window = manager.getToolWindow("Azure OpenAI ChatBot");
         AzureTaskManager.getInstance().runLater(()-> Objects.requireNonNull(window).activate(() -> {
             final ChatBox chatBox = (ChatBox)window.getComponent().getClientProperty("ChatBox");
-            chatBox.setChatBot(new ChatBot(c));
+            final ChatBot chatBot = new ChatBot(c);
+            chatBot.setSystemMessage("you are a java expert.");
+            chatBox.setChatBot(chatBot);
         }));
     }
 
