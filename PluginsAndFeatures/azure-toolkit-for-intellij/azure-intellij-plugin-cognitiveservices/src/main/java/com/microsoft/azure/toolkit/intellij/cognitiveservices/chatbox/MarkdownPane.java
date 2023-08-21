@@ -21,7 +21,9 @@ import lombok.Getter;
 import org.intellij.plugins.markdown.ui.preview.html.MarkdownUtil;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 public class MarkdownPane {
@@ -45,6 +47,8 @@ public class MarkdownPane {
         final List<MarkdownText.Part> parts = markdown.getParts();
         final GridLayoutManager newLayout = new GridLayoutManager(parts.size(), 1);
         this.contentPanel.setLayout(newLayout);
+        final Container container = this.contentPanel.getParent();
+        Optional.ofNullable(container).map(Component::getBackground).ifPresent(contentPanel::setBackground);
         for (int i = 0; i < parts.size(); i++) {
             final MarkdownText.Part part = parts.get(i);
             final GridConstraints constraints = new GridConstraints(i, 0, 1, 1,
@@ -60,7 +64,9 @@ public class MarkdownPane {
                 final JTextPane pane = new JTextPane();
                 pane.setContentType("text/html");
                 pane.setEditorKit(new UIUtil.JBWordWrapHtmlEditorKit());
+                Messages.installHyperlinkSupport(pane);
                 Messages.configureMessagePaneUi(pane, String.format("<html><body>%s</body></html", html));
+                Optional.ofNullable(container).map(Component::getBackground).ifPresent(pane::setBackground);
                 this.contentPanel.add(pane, constraints);
             }
         }
