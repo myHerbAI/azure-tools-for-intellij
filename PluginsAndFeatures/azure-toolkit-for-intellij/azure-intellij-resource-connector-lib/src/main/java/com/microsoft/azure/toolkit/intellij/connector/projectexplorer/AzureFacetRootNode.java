@@ -16,6 +16,7 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.JBUI;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.intellij.common.component.TreeUtils;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.ConnectionTopics;
 import com.microsoft.azure.toolkit.intellij.connector.DeploymentTargetTopics;
@@ -27,12 +28,16 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,6 +48,7 @@ import java.util.Optional;
 import static com.microsoft.azure.toolkit.intellij.common.action.IntellijActionsContributor.ACTIONS_DEPLOY_TO_AZURE;
 import static com.microsoft.azure.toolkit.intellij.connector.ConnectionTopics.CONNECTION_CHANGED;
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor.CONNECT_TO_MODULE;
+import static com.microsoft.azure.toolkit.intellij.connector.projectexplorer.AbstractAzureFacetNode.FOCUS_KEY;
 
 @Slf4j
 public class AzureFacetRootNode extends AbstractProjectNode<AzureModule> implements IAzureFacetNode {
@@ -55,15 +61,30 @@ public class AzureFacetRootNode extends AbstractProjectNode<AzureModule> impleme
         AzureEventBus.on("account.logged_out.account", eventListener);
         AzureEventBus.on("connector.refreshed.module_root", eventListener);
         final MessageBusConnection connection = module.getProject().getMessageBus().connect();
-        connection.subscribe(CONNECTION_CHANGED, (ConnectionTopics.ConnectionChanged) (p, conn, action) -> {
-            if (conn.getConsumer().getId().equalsIgnoreCase(module.getName())) {
+        connection.subscribe(CONNECTION_CHANGED, (ConnectionTopics.ConnectionChanged) (project, conn, action) -> {
+            final JTree tree = this.getTree();
+            if (conn.getConsumer().getId().equalsIgnoreCase(module.getName()) && tree != null) {
+                TreeUtils.addClientProperty(tree, FOCUS_KEY, conn);
                 updateChildren();
+                AzureTaskManager.getInstance().runLater(() -> expandChild(1));
             }
         });
         connection.subscribe(DeploymentTargetTopics.TARGET_APP_CHANGED, (DeploymentTargetTopics.TargetAppChanged) (m, app, action) -> {
-            if (m.getName().equalsIgnoreCase(module.getName())) {
+            final JTree tree = this.getTree();
+            if (m.getName().equalsIgnoreCase(module.getName()) && tree != null) {
+                TreeUtils.addClientProperty(tree, FOCUS_KEY, app);
                 updateChildren();
+                AzureTaskManager.getInstance().runLater(() -> expandChild(0));
             }
+        });
+    }
+
+    private void expandChild(int childIndex) {
+        this.expandNode(this.getPath()).thenAsync(p -> {
+            final DefaultMutableTreeNode thisNode = (DefaultMutableTreeNode) p.getLastPathComponent();
+            final DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) thisNode.getChildAt(childIndex);
+            final TreePath childNodePath = new TreePath(childNode.getPath());
+            return this.expandNode(childNodePath);
         });
     }
 
@@ -113,7 +134,7 @@ public class AzureFacetRootNode extends AbstractProjectNode<AzureModule> impleme
     public static SimpleTextAttributes getTextAttributes(boolean isValid) {
         final SimpleTextAttributes regularAttributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
         return isValid ? regularAttributes : new SimpleTextAttributes(regularAttributes.getBgColor(),
-                regularAttributes.getFgColor(), JBUI.CurrentTheme.Focus.warningColor(true), SimpleTextAttributes.STYLE_WAVED);
+            regularAttributes.getFgColor(), JBUI.CurrentTheme.Focus.warningColor(true), SimpleTextAttributes.STYLE_WAVED);
     }
 
     @Override
