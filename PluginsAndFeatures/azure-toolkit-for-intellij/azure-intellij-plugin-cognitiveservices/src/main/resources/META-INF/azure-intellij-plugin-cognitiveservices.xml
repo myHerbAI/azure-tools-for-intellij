@@ -6,4 +6,8 @@
         <guidanceTaskProvider implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.IntelliJCognitiveServicesTaskProvider"/>
         <guidanceInputProvider implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.IntelliJCognitiveServicesInputProvider"/>
     </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.playground.CognitiveAccountPlaygroundProvider"/>
+        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.playground.CognitiveDeploymentPlaygroundProvider"/>
+    </extensions>
 </idea-plugin>
