@@ -51,7 +51,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
     public static final Action.Id<AzResource> OPEN_PORTAL_URL = Action.Id.of("user/$resource.open_portal_url.resource");
     public static final Action.Id<AzResource> SHOW_PROPERTIES = Action.Id.of("user/$resource.show_properties.resource");
     public static final Action.Id<AzResource> DEPLOY = Action.Id.of("user/$resource.deploy_resource.resource");
-    public static final Action.Id<AzResource> CONNECT = Action.Id.of("user/$resource.connect_resource.resource");
+    public static final Action.Id<AzResource> CONNECT = Action.CONNECT_RESOURCE;
     public static final Action.Id<Object> CREATE = Action.Id.of("user/$resource.create_resource.type");
     public static final Action.Id<AzService> CREATE_IN_PORTAL = Action.Id.of("user/$resource.create_resource_in_portal.type");
     public static final Action.Id<AbstractAzResource<?, ?, ?>> PIN = Action.Id.of("user/$resource.pin");
