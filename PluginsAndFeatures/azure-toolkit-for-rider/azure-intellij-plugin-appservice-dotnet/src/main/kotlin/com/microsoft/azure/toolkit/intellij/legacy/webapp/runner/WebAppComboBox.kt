@@ -8,7 +8,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
+import com.microsoft.azure.toolkit.lib.common.action.Action
 import java.util.stream.Collectors
 
 class WebAppComboBox(project: Project) : AppServiceComboBox<WebAppConfig>(project) {
@@ -27,13 +27,16 @@ class WebAppComboBox(project: Project) : AppServiceComboBox<WebAppConfig>(projec
     }
 
     override fun createResource() {
-        val webAppCreationDialog = RiderWebAppCreationDialog(project)
-        webAppCreationDialog.setDeploymentVisible(false)
-        webAppCreationDialog.setOkActionListener { webAppConfig ->
-            setValue(webAppConfig)
-            AzureTaskManager.getInstance().runLater(webAppCreationDialog::close)
-        }
-        webAppCreationDialog.show()
+        val dialog = RiderWebAppCreationDialog(project)
+        dialog.setDeploymentVisible(false)
+        val actionId: Action.Id<WebAppConfig> = Action.Id.of("user/webapp.create_app.app")
+        dialog.setOkAction(Action(actionId)
+                .withLabel("Create")
+                .withIdParam(WebAppConfig::getName)
+                .withAuthRequired(false)
+                .withHandler(this::setValue)
+        )
+        dialog.show()
     }
 }
 
