@@ -36,7 +36,7 @@ public class PostgreSqlDatabaseResourceDefinition extends SqlDatabaseResourceDef
 
     @Override
     public AzureFormJPanel<Resource<PostgreSqlDatabase>> getResourcePanel(Project project) {
-        return new SqlDatabaseResourcePanel<>(this) {
+        return new SqlDatabaseResourcePanel<>(this, Azure.az(AzurePostgreSql.class)) {
             @Override
             protected ServerComboBox<IDatabaseServer<PostgreSqlDatabase>> initServerComboBox() {
                 return new ServerComboBox<>() {

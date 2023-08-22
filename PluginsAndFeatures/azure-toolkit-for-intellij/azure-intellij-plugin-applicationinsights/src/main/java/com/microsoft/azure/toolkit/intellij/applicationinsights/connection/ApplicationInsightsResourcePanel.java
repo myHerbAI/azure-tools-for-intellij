@@ -5,6 +5,13 @@
 
 package com.microsoft.azure.toolkit.intellij.applicationinsights.connection;
 
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.ui.HyperlinkLabel;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox;
@@ -12,10 +19,12 @@ import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
 import com.microsoft.azure.toolkit.lib.applicationinsights.AzureApplicationInsights;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
@@ -30,9 +39,11 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class ApplicationInsightsResourcePanel implements AzureFormJPanel<Resource<ApplicationInsight>> {
-    private JPanel pnlRoot;
+    @Getter
+    private JPanel contentPanel;
     private SubscriptionComboBox subscriptionComboBox;
     private AzureComboBox<ApplicationInsight> insightComboBox;
+    private HyperlinkLabel lblCreate;
 
     public ApplicationInsightsResourcePanel() {
         this.init();
@@ -45,6 +56,19 @@ public class ApplicationInsightsResourcePanel implements AzureFormJPanel<Resourc
                 this.insightComboBox.reloadItems();
             } else if (e.getStateChange() == ItemEvent.DESELECTED) {
                 this.insightComboBox.clear();
+            }
+        });
+
+        //noinspection DialogTitleCapitalization
+        this.lblCreate.setHtmlText("<html><a href=\"\">Create new Application Insights</a> in Azure.</html>");
+        this.lblCreate.addHyperlinkListener(e -> {
+            final DataContext context = DataManager.getInstance().getDataContext(this.lblCreate);
+            final AnActionEvent event = AnActionEvent.createFromInputEvent(e.getInputEvent(), "ApplicationInsightsResourcePanel", new Presentation(), context);
+            final DialogWrapper dialog = DialogWrapper.findInstance(this.contentPanel);
+            if (dialog != null) {
+                dialog.close(DialogWrapper.CLOSE_EXIT_CODE);
+                final AzureApplicationInsights service = Azure.az(AzureApplicationInsights.class);
+                AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.CREATE).bind(service).handle(service, event);
             }
         });
     }
@@ -107,10 +131,5 @@ public class ApplicationInsightsResourcePanel implements AzureFormJPanel<Resourc
                 super.refreshItems();
             }
         };
-    }
-
-    @Override
-    public JPanel getContentPanel() {
-        return pnlRoot;
     }
 }

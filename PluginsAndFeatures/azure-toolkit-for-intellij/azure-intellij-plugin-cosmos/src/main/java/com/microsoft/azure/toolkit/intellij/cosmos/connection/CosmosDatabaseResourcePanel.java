@@ -1,15 +1,24 @@
 package com.microsoft.azure.toolkit.intellij.cosmos.connection;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.ui.HyperlinkLabel;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox;
 import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
-import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.cosmos.AzureCosmosService;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.ICosmosDatabase;
 
@@ -22,10 +31,11 @@ import java.util.Optional;
 import java.util.function.Function;
 
 public class CosmosDatabaseResourcePanel<T extends ICosmosDatabase, E extends CosmosDBAccount> implements AzureFormJPanel<Resource<T>> {
-    private JPanel pnlRoot;
+    private JPanel contentPanel;
     private CosmosDBAccountComboBox<E> cbAccount;
     private CosmosDatabaseComboBox<T, E> cbDatabase;
     private SubscriptionComboBox cbSubscription;
+    private HyperlinkLabel lblCreate;
 
     private final Function<Subscription, ? extends List<? extends E>> accountLoader;
     private final Function<E, ? extends List<? extends T>> databaseLoader;
@@ -42,6 +52,18 @@ public class CosmosDatabaseResourcePanel<T extends ICosmosDatabase, E extends Co
         this.cbDatabase.setRequired(true);
         this.cbSubscription.addItemListener(this::onSubscriptionChanged);
         this.cbAccount.addItemListener(this::onAccountChanged);
+
+        this.lblCreate.setHtmlText("<html><a href=\"\">Create new Cosmos DB account</a> in Azure.</html>");
+        this.lblCreate.addHyperlinkListener(e -> {
+            final DataContext context = DataManager.getInstance().getDataContext(this.lblCreate);
+            final AnActionEvent event = AnActionEvent.createFromInputEvent(e.getInputEvent(), "CosmosDatabaseResourcePanel", new Presentation(), context);
+            final DialogWrapper dialog = DialogWrapper.findInstance(this.contentPanel);
+            if (dialog != null) {
+                dialog.close(DialogWrapper.CLOSE_EXIT_CODE);
+                final AzureCosmosService service = Azure.az(AzureCosmosService.class);
+                AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.CREATE).bind(service).handle(service, event);
+            }
+        });
     }
 
     private void onSubscriptionChanged(ItemEvent e) {
@@ -64,7 +86,7 @@ public class CosmosDatabaseResourcePanel<T extends ICosmosDatabase, E extends Co
 
     @Override
     public JPanel getContentPanel() {
-        return pnlRoot;
+        return contentPanel;
     }
 
     @Override

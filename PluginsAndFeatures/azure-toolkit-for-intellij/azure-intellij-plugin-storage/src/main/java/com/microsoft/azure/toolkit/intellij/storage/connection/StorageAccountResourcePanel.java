@@ -5,12 +5,19 @@
 
 package com.microsoft.azure.toolkit.intellij.storage.connection;
 
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.ui.HyperlinkLabel;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
-import com.microsoft.azure.toolkit.intellij.common.AzureComboBox.ItemReference;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox;
 import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
@@ -43,6 +50,7 @@ public class StorageAccountResourcePanel implements AzureFormJPanel<Resource<Sto
     private JLabel lblSubScription;
     private JLabel lblEnvironment;
     private JLabel lblAccount;
+    private HyperlinkLabel lblCreate;
 //    private AzureEventBus.EventListener signInOutListener;
 
     public StorageAccountResourcePanel() {
@@ -70,6 +78,18 @@ public class StorageAccountResourcePanel implements AzureFormJPanel<Resource<Sto
         lblSubScription.setLabelFor(subscriptionComboBox);
         lblEnvironment.setLabelFor(btnAzure);
         lblAccount.setLabelFor(accountComboBox);
+
+        lblCreate.setHtmlText("<html><a href=\"\">Create new Storage account</a> in Azure.</html>");
+        lblCreate.addHyperlinkListener(e -> {
+            final DataContext context = DataManager.getInstance().getDataContext(lblCreate);
+            final AnActionEvent event = AnActionEvent.createFromInputEvent(e.getInputEvent(), "StorageAccountResourcePanel", new Presentation(), context);
+            final DialogWrapper dialog = DialogWrapper.findInstance(this.contentPanel);
+            if (dialog != null) {
+                dialog.close(DialogWrapper.CLOSE_EXIT_CODE);
+                final AzureStorageAccount service = Azure.az(AzureStorageAccount.class);
+                AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.CREATE).bind(service).handle(service, event);
+            }
+        });
     }
 
     private void onSelectEnvironment() {
