@@ -15,6 +15,7 @@ import com.intellij.util.IconUtil;
 import lombok.Getter;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
 
 public class UserMessagePane {
     public static final JBColor BACKGROUND_COLOR =
@@ -30,9 +31,9 @@ public class UserMessagePane {
     }
 
     public UserMessagePane(MarkdownText markdown) {
-//        final JBColor borderColor = new JBColor(12895428, 6185056);
-//        final CompoundBorder border = BorderFactory.createCompoundBorder(this.messageContainer.getBorder(), BorderFactory.createLineBorder(borderColor, 1, true));
-//        this.messageContainer.setBorder(border);
+        final JBColor borderColor = new JBColor(12895428, 6185056);
+        final CompoundBorder border = BorderFactory.createCompoundBorder(this.messageContainer.getBorder(), BorderFactory.createLineBorder(borderColor, 1, true));
+        this.messageContainer.setBorder(border);
         this.avatar.setIcon(IconUtil.scale(AllIcons.General.User, this.avatar, 1.5f));
         this.setValue(markdown);
     }
@@ -46,10 +47,8 @@ public class UserMessagePane {
     }
 
     private void createUIComponents() {
-        final int arc = NotificationBalloonRoundShadowBorderProvider.CORNER_RADIUS.get();
+        // final int arc = NotificationBalloonRoundShadowBorderProvider.CORNER_RADIUS.get();
         //noinspection UnstableApiUsage
         this.messageContainer = new RoundedPanel(new GridLayoutManager(1, 1), 5);
-        this.messageContainer.setBackground(BACKGROUND_COLOR);
-        this.messageContainer.setBorder(BorderFactory.createEmptyBorder());
     }
 }
