@@ -12,6 +12,8 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.NotificationBalloonRoundShadowBorderProvider;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.IconUtil;
+import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
+import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import lombok.Getter;
 
 import javax.swing.*;
@@ -34,7 +36,8 @@ public class UserMessagePane {
         final JBColor borderColor = new JBColor(12895428, 6185056);
         final CompoundBorder border = BorderFactory.createCompoundBorder(this.messageContainer.getBorder(), BorderFactory.createLineBorder(borderColor, 1, true));
         this.messageContainer.setBorder(border);
-        this.avatar.setIcon(IconUtil.scale(AllIcons.General.User, this.avatar, 1.5f));
+        final Icon userIcon = IntelliJAzureIcons.getIcon(AzureIcons.Common.USER);
+        this.avatar.setIcon(IconUtil.scale(userIcon, this.avatar, 1.5f));
         this.setValue(markdown);
     }
 

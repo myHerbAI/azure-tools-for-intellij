@@ -31,6 +31,7 @@ public final class AzureIcons {
         public static final AzureIcon VARIABLE = AzureIcon.builder().iconPath("icons/Common/variable.svg").build();
         public static final AzureIcon HIDE = AzureIcon.builder().iconPath("icons/Common/hide").build();
         public static final AzureIcon CHATBOT = AzureIcon.builder().iconPath("/icons/Common/chatbot.svg").build();
+        public static final AzureIcon USER = AzureIcon.builder().iconPath("/icons/Common/user.svg").build();
     }
 
     public static final class Action {
