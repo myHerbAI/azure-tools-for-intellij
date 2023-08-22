@@ -71,7 +71,7 @@ public class ChatBox {
         final Icon botIcon = IntelliJAzureIcons.getIcon(AzureIcons.Common.CHATBOT);
         final Icon sendIcon = IntelliJAzureIcons.getIcon(AzureIcons.Action.SEND);
         this.clearBtn.setEnabled(false);
-        this.clearBtn.addActionListener(e -> clearSession());
+        this.clearBtn.addActionListener(e -> Optional.ofNullable(this.chatBot).ifPresent((c) -> clearSession()));
 
         this.messageBox.setVisible(false);
         this.placeholder.setVisible(true);
@@ -103,7 +103,7 @@ public class ChatBox {
         this.promptInput.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "send");
         this.promptInput.getActionMap().put("send", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
-                send();
+                Optional.ofNullable(chatBot).ifPresent((c) -> send());
             }
         });
 
@@ -113,7 +113,7 @@ public class ChatBox {
         this.sendBtn.setBackground(JBUI.CurrentTheme.EditorTabs.background());
         this.sendBtn.addMouseListener(new MouseAdapter() {
             public void mouseClicked(final MouseEvent e) {
-                send();
+                Optional.ofNullable(chatBot).ifPresent((c) -> send());
             }
         });
         this.contentPanel.repaint();
