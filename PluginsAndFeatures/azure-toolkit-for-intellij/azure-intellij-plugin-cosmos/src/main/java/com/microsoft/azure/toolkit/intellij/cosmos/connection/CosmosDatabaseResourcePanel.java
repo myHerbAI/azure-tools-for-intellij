@@ -53,7 +53,8 @@ public class CosmosDatabaseResourcePanel<T extends ICosmosDatabase, E extends Co
         this.cbSubscription.addItemListener(this::onSubscriptionChanged);
         this.cbAccount.addItemListener(this::onAccountChanged);
 
-        this.lblCreate.setHtmlText("<html><a href=\"\">Create new Cosmos DB account</a> in Azure.</html>");
+        //noinspection DialogTitleCapitalization
+        this.lblCreate.setHtmlText("<html><a href=\"\">Create new Cosmos DB Account</a> in Azure.</html>");
         this.lblCreate.addHyperlinkListener(e -> {
             final DataContext context = DataManager.getInstance().getDataContext(this.lblCreate);
             final AnActionEvent event = AnActionEvent.createFromInputEvent(e.getInputEvent(), "CosmosDatabaseResourcePanel", new Presentation(), context);

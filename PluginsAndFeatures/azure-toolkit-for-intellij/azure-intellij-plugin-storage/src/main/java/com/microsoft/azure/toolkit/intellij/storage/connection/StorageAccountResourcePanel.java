@@ -79,7 +79,8 @@ public class StorageAccountResourcePanel implements AzureFormJPanel<Resource<Sto
         lblEnvironment.setLabelFor(btnAzure);
         lblAccount.setLabelFor(accountComboBox);
 
-        lblCreate.setHtmlText("<html><a href=\"\">Create new Storage account</a> in Azure.</html>");
+        //noinspection DialogTitleCapitalization
+        lblCreate.setHtmlText("<html><a href=\"\">Create new Storage Account</a> in Azure.</html>");
         lblCreate.addHyperlinkListener(e -> {
             final DataContext context = DataManager.getInstance().getDataContext(lblCreate);
             final AnActionEvent event = AnActionEvent.createFromInputEvent(e.getInputEvent(), "StorageAccountResourcePanel", new Presentation(), context);
