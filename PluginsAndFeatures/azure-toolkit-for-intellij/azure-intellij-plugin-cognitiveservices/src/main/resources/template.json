@@ -2,6 +2,7 @@
   {
     "name" : "Default",
     "systemMessage" : "You are an AI assistant that helps people find information.",
+    "isDefault" : true,
     "examples" : [
     ]
   },
