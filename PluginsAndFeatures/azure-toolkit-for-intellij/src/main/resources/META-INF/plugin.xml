@@ -95,7 +95,7 @@
           factoryClass="com.microsoft.intellij.ui.ActivityLogToolWindowFactory"
           id="Azure Activity Log"
           canCloseContents="true"
-          icon="/icons/Common/AzureActivityLog.svg"/>
+          icon="`/icons/Common/AzureActivityLog.svg`"/>
     <applicationConfigurable parentId="tools" displayName="Azure"
                          id="com.microsoft.intellij.AzureConfigurable"
                          provider="com.microsoft.intellij.AzureConfigurableProvider"/>

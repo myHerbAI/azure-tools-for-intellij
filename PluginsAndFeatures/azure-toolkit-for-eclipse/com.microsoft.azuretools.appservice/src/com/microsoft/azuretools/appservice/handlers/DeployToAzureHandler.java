@@ -24,7 +24,7 @@ public class DeployToAzureHandler extends AzureAbstractHandler {
         IProject project = PluginUtil.getSelectedProject();
         Shell shell = HandlerUtil.getActiveWorkbenchWindowChecked(ee).getShell();
         String resourceId = ee.getParameter("resourceId");
-        SignInCommandHandler.requireSignedIn(shell, () ->
+        SignInCommandHandler.requireSignedIn(shell, (a) ->
                 DefaultLoader.getIdeHelper().invokeLater(() -> WebAppDeployDialog.go(shell, project, resourceId)));
         return null;
     }

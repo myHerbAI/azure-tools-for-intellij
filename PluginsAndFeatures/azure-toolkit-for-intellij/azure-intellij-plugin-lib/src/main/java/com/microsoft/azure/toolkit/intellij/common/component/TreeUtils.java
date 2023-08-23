@@ -7,7 +7,11 @@ package com.microsoft.azure.toolkit.intellij.common.component;
 
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPopupMenu;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.EmptyAction;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
@@ -26,6 +30,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
@@ -54,6 +59,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.*;
 import java.util.stream.StreamSupport;
@@ -279,7 +285,7 @@ public class TreeUtils {
                 return findResourceTreeNode(tree, Azure.az(AzureResources.class));
             }
             nodeResource = nodeResource.getParent() instanceof AbstractAzServiceSubscription ?
-                    nodeResource.getResourceGroup() : (AbstractAzResource<?, ?, ?>) nodeResource.getParent();
+                nodeResource.getResourceGroup() : (AbstractAzResource<?, ?, ?>) nodeResource.getParent();
             node = Objects.isNull(nodeResource) ? null : findResourceTreeNode(tree, nodeResource);
         }
         return node;
@@ -316,12 +322,12 @@ public class TreeUtils {
             return true;
         }
         if (parent instanceof ResourceGroup && StringUtils.equals(((ResourceGroup) parent).getName(), resource.getResourceGroupName()) &&
-                StringUtils.equals(((ResourceGroup) parent).getSubscriptionId(), resource.getSubscriptionId())) {
+            StringUtils.equals(((ResourceGroup) parent).getSubscriptionId(), resource.getSubscriptionId())) {
             return true;
         }
         return (parent instanceof AbstractAzResource<?, ?, ?> && StringUtils.containsIgnoreCase(resource.getId(), ((AbstractAzResource<?, ?, ?>) parent).getId())) ||
-                (parent instanceof AbstractAzResourceModule<?, ?, ?> && StringUtils.containsIgnoreCase(resource.getId(),
-                        ((AbstractAzResourceModule<?, ?, ?>) parent).toResourceId(resource.getResourceGroupName(), resource.getName())));
+            (parent instanceof AbstractAzResourceModule<?, ?, ?> && StringUtils.containsIgnoreCase(resource.getId(),
+                ((AbstractAzResourceModule<?, ?, ?>) parent).toResourceId(resource.getResourceGroupName(), resource.getName())));
     }
 
     public static void expandTreeNode(@Nonnull JTree tree, @Nonnull DefaultMutableTreeNode node) {
@@ -331,12 +337,44 @@ public class TreeUtils {
     @Nullable
     public static DefaultMutableTreeNode findResourceTreeNode(@Nonnull JTree tree, @Nonnull Object resource) {
         final Condition<DefaultMutableTreeNode> condition = n -> (resource instanceof AzService || isInAppCentricView(n)) &&
-                Objects.equals(n.getUserObject(), resource);
+            Objects.equals(n.getUserObject(), resource);
         return TreeUtil.findNode((DefaultMutableTreeNode) tree.getModel().getRoot(), condition);
     }
 
     public static String getPlace(@Nonnull JTree tree) {
         return StringUtils.firstNonBlank((String) tree.getClientProperty(Action.PLACE), Action.EMPTY_PLACE);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void addClientProperty(@Nonnull JTree tree, String key, Object value) {
+        final Object property = tree.getClientProperty(key);
+        if (property instanceof Set) {
+            ((Set<Object>) property).add(value);
+        } else if (property == null) {
+            final HashSet<Object> propertySet = new HashSet<>();
+            propertySet.add(value);
+            tree.putClientProperty(key, propertySet);
+        } else {
+            throw new AzureToolkitRuntimeException("client property " + key + " is not a set");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void removeClientProperty(@Nonnull JTree tree, String key, Object value) {
+        final Object property = tree.getClientProperty(key);
+        if (property instanceof Set) {
+            ((Set<Object>) property).remove(value);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static boolean hasClientProperty(@Nonnull JTree tree, String key, Object value) {
+        final Object property = tree.getClientProperty(key);
+        if (property instanceof Set) {
+            final Set<Object> propertySet = (Set<Object>) property;
+            return propertySet.contains(value);
+        }
+        return false;
     }
 
     @AllArgsConstructor

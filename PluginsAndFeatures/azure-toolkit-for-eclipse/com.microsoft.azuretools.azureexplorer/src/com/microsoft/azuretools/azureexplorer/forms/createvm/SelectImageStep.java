@@ -5,7 +5,12 @@
 
 package com.microsoft.azuretools.azureexplorer.forms.createvm;
 
-import com.microsoft.azure.management.compute.*;
+import com.azure.resourcemanager.compute.models.KnownLinuxVirtualMachineImage;
+import com.azure.resourcemanager.compute.models.KnownWindowsVirtualMachineImage;
+import com.azure.resourcemanager.compute.models.VirtualMachineImage;
+import com.azure.resourcemanager.compute.models.VirtualMachineOffer;
+import com.azure.resourcemanager.compute.models.VirtualMachinePublisher;
+import com.azure.resourcemanager.compute.models.VirtualMachineSku;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -29,6 +34,7 @@ import org.eclipse.swt.widgets.Label;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SelectImageStep extends WizardPage {
     private static final String LOADING = "<Loading...>";
@@ -299,7 +305,7 @@ public class SelectImageStep extends WizardPage {
         imageLabelList.setEnabled(false);
         AzureTaskManager.getInstance().runOnPooledThread(() -> {
             final List<VirtualMachinePublisher> publishers = wizard.getComputeManager()
-                    .virtualMachineImages().publishers().listByRegion(region);
+                    .virtualMachineImages().publishers().listByRegion(region).stream().collect(Collectors.toList());
             DefaultLoader.getIdeHelper().invokeLater(() -> {
                 for (VirtualMachinePublisher publisher : publishers) {
                     publisherComboBox.add(publisher.name());
@@ -326,7 +332,7 @@ public class SelectImageStep extends WizardPage {
             @Override
             public void run() {
                 try {
-                    final java.util.List<VirtualMachineOffer> offers = publisher.offers().list();
+                    final java.util.List<VirtualMachineOffer> offers = publisher.offers().list().stream().collect(Collectors.toList());
                     DefaultLoader.getIdeHelper().invokeLater(new Runnable() {
                         @Override
                         public void run() {
@@ -359,7 +365,7 @@ public class SelectImageStep extends WizardPage {
                 @Override
                 public void run() {
                     try {
-                        final java.util.List<VirtualMachineSku> skus = offer.skus().list();
+                        final java.util.List<VirtualMachineSku> skus = offer.skus().list().stream().collect(Collectors.toList());
                         DefaultLoader.getIdeHelper().invokeLater(new Runnable() {
                             @Override
                             public void run() {
@@ -394,7 +400,7 @@ public class SelectImageStep extends WizardPage {
             public void run() {
                 final java.util.List<VirtualMachineImage> images = new ArrayList<VirtualMachineImage>();
                 try {
-                    java.util.List<VirtualMachineImage> skuImages = sku.images().list();
+                    java.util.List<VirtualMachineImage> skuImages = sku.images().list().stream().collect(Collectors.toList());
                     images.addAll(skuImages);
                     DefaultLoader.getIdeHelper().invokeLater(new Runnable() {
                         @Override

@@ -18,9 +18,10 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
 
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.genericresource.GenericResourceActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.genericresource.GenericResourceLabelView;
+import com.microsoft.azure.toolkit.ide.common.genericresource.GenericResourceNode;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 
@@ -30,7 +31,7 @@ public class AzureExplorer {
     public static Node<?>[] getModules() {
         return manager.getRoots().stream()
                 .map(r -> manager.createNode(r, null, IExplorerNodeProvider.ViewType.TYPE_CENTRIC))
-                .sorted(Comparator.comparing(Node::order)).toArray(Node<?>[]::new);
+                .toArray(Node<?>[]::new);
     }
 
     private static class AzureExplorerNodeProviderManager implements IExplorerNodeProvider.Manager {
@@ -68,9 +69,10 @@ public class AzureExplorer {
         }
 
         private static <U> U createGenericNode(Object o) {
-            final GenericResourceLabelView<? extends AbstractAzResource<?, ?, ?>> view = new GenericResourceLabelView<>(
-                    ((AbstractAzResource<?, ?, ?>) o));
-            return (U) new Node<>(o).view(view).actions(GenericResourceActionsContributor.GENERIC_RESOURCE_ACTIONS);
+            //noinspection unchecked
+            return (U) new GenericResourceNode((AbstractAzResource<?, ?, ?>) o)
+                .onDoubleClicked(ResourceCommonActionsContributor.OPEN_PORTAL_URL)
+                .withActions(GenericResourceActionsContributor.GENERIC_RESOURCE_ACTIONS);
         }
     }
 }

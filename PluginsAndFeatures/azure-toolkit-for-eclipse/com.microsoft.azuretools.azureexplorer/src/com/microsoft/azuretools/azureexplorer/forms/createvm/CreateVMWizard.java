@@ -22,18 +22,21 @@
 
 package com.microsoft.azuretools.azureexplorer.forms.createvm;
 
-import com.microsoft.azure.management.compute.AvailabilitySet;
-import com.microsoft.azure.management.compute.VirtualMachine;
-import com.microsoft.azure.management.compute.VirtualMachineImage;
-import com.microsoft.azure.management.compute.VirtualMachineSize;
-import com.microsoft.azure.management.compute.implementation.ComputeManager;
-import com.microsoft.azure.management.network.Network;
-import com.microsoft.azure.management.network.NetworkSecurityGroup;
-import com.microsoft.azure.management.network.PublicIPAddress;
-import com.microsoft.azure.management.network.implementation.NetworkManager;
+import com.azure.resourcemanager.compute.ComputeManager;
+import com.azure.resourcemanager.compute.models.AvailabilitySet;
+import com.azure.resourcemanager.compute.models.VirtualMachineImage;
+import com.azure.resourcemanager.compute.models.VirtualMachineSize;
+import com.azure.resourcemanager.network.NetworkManager;
+import com.azure.resourcemanager.network.models.Network;
+import com.azure.resourcemanager.network.models.NetworkSecurityGroup;
+import com.azure.resourcemanager.network.models.PublicIpAddress;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.azure.toolkit.lib.compute.AzureCompute;
+import com.microsoft.azure.toolkit.lib.compute.virtualmachine.VirtualMachine;
+import com.microsoft.azure.toolkit.lib.network.AzureNetwork;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageAccountConfig;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import com.microsoft.azuretools.authmanage.IdeAzureAccount;
@@ -83,7 +86,7 @@ public class CreateVMWizard extends Wizard implements TelemetryProperties {
     private StorageAccount storageAccount;
     private StorageAccountConfig newStorageAccount;
     private boolean withNewStorageAccount;
-    private PublicIPAddress publicIpAddress;
+    private PublicIpAddress publicIpAddress;
     private boolean withNewPip;
     private AvailabilitySet availabilitySet;
     private boolean withNewAvailabilitySet;
@@ -131,34 +134,9 @@ public class CreateVMWizard extends Wizard implements TelemetryProperties {
                     if (Objects.nonNull(newStorageAccount)) {
                         storageAccount = new CreateStorageAccountTask(newStorageAccount).execute();
                     }
-                    VirtualMachine vm = AzureSDKManager.createVirtualMachine(subscription.getId(),
-                            name,
-                            resourceGroupName,
-                            isNewResourceGroup,
-                            size.name(),
-                            region.getName(),
-                            virtualMachineImage,
-                            knownMachineImage,
-                            isKnownMachineImage,
-                            storageAccount,
-                            virtualNetwork,
-                            newNetwork,
-                            isNewNetwork,
-                            subnet,
-                            publicIpAddress,
-                            withNewPip,
-                            availabilitySet,
-                            withNewAvailabilitySet,
-                            userName,
-                            password,
-                            certData.length > 0 ? new String(certData) : null);
-                    // update resource groups cache if new resource group was created when creating storage account
-                    DefaultLoader.getIdeHelper().invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            node.addChildNode(new VMNode(node, subscription.getId(), vm));
-                        }
-                    });
+
+                    //@TODO wangmi create vm
+                    
                 } catch (Exception e) {
                     EventUtil.logError(operation, ErrorType.userError, e, null, null);
                     DefaultLoader.getIdeHelper().invokeLater(new Runnable() {
@@ -191,10 +169,8 @@ public class CreateVMWizard extends Wizard implements TelemetryProperties {
         try {
             this.subscription = subscription;
             final String subscriptionId = subscription.getId();
-            final ComputeManager.Configurable cm = ComputeManager.configure();
-            final NetworkManager.Configurable nm = NetworkManager.configure();
-            computeManager = IdeAzureAccount.getInstance().authenticateForTrack1(subscriptionId, cm, (t, c) -> c.authenticate(t, subscriptionId));
-            networkManager = IdeAzureAccount.getInstance().authenticateForTrack1(subscriptionId, nm, (t, c) -> c.authenticate(t, subscriptionId));
+            computeManager = Azure.az(AzureCompute.class).forSubscription(subscriptionId).getRemote();
+            networkManager = Azure.az(AzureNetwork.class).forSubscription(subscriptionId).getRemote();
         } catch (Exception ex) {
             DefaultLoader.getUIHelper().showException(ex.getMessage(), ex, "Error selecting subscription", true, false);
         }
@@ -340,11 +316,11 @@ public class CreateVMWizard extends Wizard implements TelemetryProperties {
         this.withNewStorageAccount = withNewStorageAccount;
     }
 
-    public PublicIPAddress getPublicIpAddress() {
+    public PublicIpAddress getPublicIpAddress() {
         return publicIpAddress;
     }
 
-    public void setPublicIpAddress(PublicIPAddress publicIpAddress) {
+    public void setPublicIpAddress(PublicIpAddress publicIpAddress) {
         this.publicIpAddress = publicIpAddress;
     }
 
