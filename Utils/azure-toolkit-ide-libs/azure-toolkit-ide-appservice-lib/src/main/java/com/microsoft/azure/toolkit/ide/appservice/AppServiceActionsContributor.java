@@ -28,11 +28,11 @@ import java.util.stream.Collectors;
 public class AppServiceActionsContributor implements IActionsContributor {
 
     public static final int INITIALIZE_ORDER = ResourceCommonActionsContributor.INITIALIZE_ORDER + 1;
-    public static final Action.Id<AppServiceAppBase<?, ?, ?>> START_STREAM_LOG = Action.Id.of("user/$appservice.open_log_stream.app");
+    public static final Action.Id<AppServiceAppBase<?, ?, ?>> START_STREAM_LOG = AppServiceAppBase.START_STREAM_LOG;
     public static final Action.Id<AppServiceAppBase<?, ?, ?>> STOP_STREAM_LOG = Action.Id.of("user/$appservice.close_log_stream.app");
     public static final Action.Id<AppServiceAppBase<?, ?, ?>> OPEN_LOGS_IN_MONITOR = Action.Id.of("user/$appservice.open_azure_monitor.app");
     public static final Action.Id<AppServiceAppBase<?, ?, ?>> REFRESH_DEPLOYMENT_SLOTS = Action.Id.of("user/$appservice.refresh_deployments.app");
-    public static final Action.Id<AppServiceAppBase<?, ?, ?>> OPEN_IN_BROWSER = Action.Id.of("user/webapp.open_in_browser.app");
+    public static final Action.Id<AppServiceAppBase<?, ?, ?>> OPEN_IN_BROWSER = AppServiceAppBase.OPEN_IN_BROWSER;
     public static final Action.Id<AppServiceAppBase<?, ?, ?>> SSH_INTO_WEBAPP = Action.Id.of("user/webapp.connect_ssh.app");
     public static final Action.Id<AppServiceAppBase<?, ?, ?>> PROFILE_FLIGHT_RECORD = Action.Id.of("user/webapp.profile_flight_recorder.app");
     public static final Action.Id<AppServiceAppBase<?, ?, ?>> COPY_FULL_APP_SETTINGS = Action.Id.of("user/$appservice.copy_app_settings.app");

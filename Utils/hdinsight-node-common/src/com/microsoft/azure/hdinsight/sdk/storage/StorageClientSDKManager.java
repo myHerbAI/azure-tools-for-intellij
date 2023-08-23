@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.tooling.msservices.helpers.azure.sdk;
+package com.microsoft.azure.hdinsight.sdk.storage;
 
 import com.azure.core.http.policy.HttpLogDetailLevel;
 import com.azure.core.http.policy.HttpLogOptions;
@@ -24,8 +24,7 @@ import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
 import com.microsoft.azuretools.utils.StorageAccoutUtils;
 import com.microsoft.tooling.msservices.helpers.CallableSingleArg;
-import com.microsoft.tooling.msservices.model.storage.BlobContainer;
-import com.microsoft.tooling.msservices.model.storage.ClientStorageAccount;
+import com.microsoft.azure.hdinsight.sdk.storage.model.ClientStorageAccount;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;

@@ -81,7 +81,7 @@ public class ServerExplorerToolWindowFactory implements ToolWindowFactory, Prope
         final AzureModule azureModule = new AzureModuleImpl(project);
         //HDInsightUtil.setHDInsightRootModule(azureModule);
         azureModule.setSparkServerlessModule(new CosmosSparkClusterRootModuleImpl(azureModule));
-        azureModule.setArcadiaModule(new ArcadiaSparkClusterRootModuleImpl(azureModule));
+        //azureModule.setArcadiaModule(new ArcadiaSparkClusterRootModuleImpl(azureModule));
         // initialize aris service module
         final SqlBigDataClusterModule arisModule = new SqlBigDataClusterModule(project);
 
