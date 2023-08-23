@@ -29,7 +29,7 @@ public class SpringCloudLogStreamingHandler {
                             streamingLogsParamters.put("sinceSeconds", String.valueOf(300));
                             streamingLogsParamters.put("limitBytes", String.valueOf(1024 * 1024));
                             EclipseAzureLogStreamingManager.getInstance().showLogStreaming(instance.name(),
-                                    instance.name(), app.getActiveDeployment().streamingLogs(app.getLogStreamingEndpoint(instance.name()), streamingLogsParamters));
+                                    instance.name(), instance.streamingLogs(true));
                         });
             });
             dialog.open();

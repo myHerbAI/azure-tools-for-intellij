@@ -40,7 +40,7 @@ public class CreateArmStorageAccountAction extends NodeActionListener {
 
     @Override
     public void actionPerformed(NodeActionEvent e) {
-        SignInCommandHandler.requireSignedIn(PluginUtil.getParentShell(), () -> {
+        SignInCommandHandler.requireSignedIn(PluginUtil.getParentShell(), (a) -> {
             CreateArmStorageAccountForm createStorageAccountForm = new CreateArmStorageAccountForm(PluginUtil.getParentShell(), null, null);
             createStorageAccountForm.setOnCreate(() -> {
                 AzureTaskManager.getInstance().runInBackground(

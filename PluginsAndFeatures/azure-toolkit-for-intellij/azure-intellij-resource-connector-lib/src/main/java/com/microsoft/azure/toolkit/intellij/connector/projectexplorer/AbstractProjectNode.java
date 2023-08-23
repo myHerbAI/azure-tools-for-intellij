@@ -25,10 +25,12 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.concurrency.AsyncPromise;
+import org.jetbrains.concurrency.Promise;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -46,7 +48,7 @@ public abstract class AbstractProjectNode<T> extends ProjectViewNode<T> implemen
     private boolean disposed;
     private final AtomicReference<Collection<? extends AbstractAzureFacetNode<?>>> children = new AtomicReference<>();
 
-    protected AbstractProjectNode(Project project, @NotNull T t, ViewSettings viewSettings) {
+    protected AbstractProjectNode(Project project, @Nonnull T t, ViewSettings viewSettings) {
         super(project, t, viewSettings);
         this.createdTime = System.currentTimeMillis();
     }
@@ -100,17 +102,38 @@ public abstract class AbstractProjectNode<T> extends ProjectViewNode<T> implemen
     }
 
     private void rerender(boolean updateStructure) { // `static` to make it available for AzureFacetRootNode
-        if (this.getProject().isDisposed()) {
-            Disposer.dispose(this);
-            return;
-        }
-        final AbstractProjectViewPane pane = ProjectView.getInstance(this.getProject()).getCurrentProjectViewPane();
-        final AsyncTreeModel model = (AsyncTreeModel) pane.getTree().getModel();
-        final DefaultMutableTreeNode node = TreeUtil.findNodeWithObject((DefaultMutableTreeNode) model.getRoot(), this);
-        if (Objects.nonNull(node)) {
-            final TreePath path = TreeUtil.getPath((TreeNode) model.getRoot(), node);
+        final TreePath path = this.getPath();
+        if (Objects.nonNull(path)) {
+            final AbstractProjectViewPane pane = ProjectView.getInstance(this.getProject()).getCurrentProjectViewPane();
             pane.updateFrom(path, false, updateStructure);
         }
+    }
+
+    protected @Nonnull Promise<TreePath> expandNode(TreePath path) {
+        final JTree tree = this.getTree();
+        if (Objects.isNull(path) || Objects.isNull(tree)) {
+            final AsyncPromise<TreePath> promise = new AsyncPromise<>();
+            promise.setError("failure to expand node");
+            return promise;
+        }
+        return TreeUtil.promiseExpand(tree, path);
+    }
+
+    @Nullable
+    public TreePath getPath() {
+        final JTree tree = getTree();
+        if (tree == null) return null;
+        final AsyncTreeModel model = (AsyncTreeModel) tree.getModel();
+        final DefaultMutableTreeNode node = TreeUtil.findNodeWithObject((DefaultMutableTreeNode) model.getRoot(), this);
+        return Objects.isNull(node) ? null : TreeUtil.getPath((TreeNode) model.getRoot(), node);
+    }
+
+    @Nullable
+    public JTree getTree() {
+        final Project p = this.getProject();
+        if (p.isDisposed()) return null;
+        final AbstractProjectViewPane pane = ProjectView.getInstance(p).getCurrentProjectViewPane();
+        return Objects.isNull(pane) ? null : pane.getTree();
     }
 
     private PresentationData buildView() {

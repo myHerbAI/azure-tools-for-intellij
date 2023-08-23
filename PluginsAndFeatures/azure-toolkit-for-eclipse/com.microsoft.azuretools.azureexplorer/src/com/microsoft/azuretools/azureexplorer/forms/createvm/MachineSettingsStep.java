@@ -22,10 +22,11 @@
 
 package com.microsoft.azuretools.azureexplorer.forms.createvm;
 
+import com.azure.core.http.rest.PagedIterable;
+import com.azure.resourcemanager.compute.models.KnownLinuxVirtualMachineImage;
+import com.azure.resourcemanager.compute.models.OperatingSystemTypes;
+import com.azure.resourcemanager.compute.models.VirtualMachineSize;
 import com.microsoft.azure.PagedList;
-import com.microsoft.azure.management.compute.KnownLinuxVirtualMachineImage;
-import com.microsoft.azure.management.compute.OperatingSystemTypes;
-import com.microsoft.azure.management.compute.VirtualMachineSize;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.tooling.msservices.components.DefaultLoader;
 import com.microsoft.azuretools.core.Activator;
@@ -45,6 +46,7 @@ import org.eclipse.ui.PlatformUI;
 
 import java.net.URL;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class MachineSettingsStep extends WizardPage {
@@ -277,8 +279,8 @@ public class MachineSettingsStep extends WizardPage {
             AzureTaskManager.getInstance().runInBackground( "Loading VM sizes...", new Runnable() {
                 @Override
                 public void run() {
-                    PagedList<com.microsoft.azure.management.compute.VirtualMachineSize> sizes = wizard.getComputeManager()
-                            .virtualMachines().sizes().listByRegion(wizard.getRegion().getName());
+                    java.util.List<VirtualMachineSize> sizes = wizard.getComputeManager()
+                            .virtualMachines().sizes().listByRegion(wizard.getRegion().getName()).stream().collect(Collectors.toList());
                     Collections.sort(sizes, new Comparator<VirtualMachineSize>() {
                         @Override
                         public int compare(VirtualMachineSize t0, VirtualMachineSize t1) {
