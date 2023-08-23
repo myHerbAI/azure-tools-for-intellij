@@ -6,24 +6,27 @@
 package com.microsoft.azure.toolkit.intellij.cognitiveservices;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.EmptyAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.ui.content.Content;
-import com.intellij.ui.content.ContentFactory;
-import com.intellij.ui.content.ContentManager;
 import com.microsoft.azure.toolkit.ide.cognitiveservices.CognitiveServicesActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
-import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.ide.guidance.GuidanceConfigManager;
+import com.microsoft.azure.toolkit.ide.guidance.GuidanceViewManager;
+import com.microsoft.azure.toolkit.ide.guidance.config.CourseConfig;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBot;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBox;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.creation.CognitiveAccountCreationDialog;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.creation.CognitiveDeploymentCreationDialog;
 import com.microsoft.azure.toolkit.intellij.common.properties.IntellijShowPropertiesViewAction;
+import com.microsoft.azure.toolkit.intellij.common.settings.IntellijStore;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.cognitiveservices.*;
+import com.microsoft.azure.toolkit.lib.cognitiveservices.AzureCognitiveServices;
+import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccount;
+import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccountDraft;
+import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
+import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeploymentDraft;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
@@ -41,13 +44,32 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
 public class IntelliJCognitiveServicesActionsContributor implements IActionsContributor {
+    public static final Action.Id<Project> TRY_OPENAI = Action.Id.of("user/cognitiveservices.try_openai");
+    public static final Action.Id<CognitiveDeployment> TRY_PLAYGROUND = Action.Id.of("user/cognitiveservices.try_playground");
+
+    @Override
+    public void registerActions(AzureActionManager am) {
+        new Action<>(TRY_OPENAI)
+            .withLabel("Try Azure OpenAI")
+            .withIcon("/icons/Microsoft.CognitiveServices/default.svg")
+            .withHandler((project, e) -> {
+                final CourseConfig course = GuidanceConfigManager.getInstance().getCourse("hello-openai");
+                if (course != null && project != null) {
+                    GuidanceViewManager.getInstance().openCourseView(project, course);
+                    IntellijStore.getInstance().getState().getSuppressedActions().put(TRY_OPENAI.getId(), true);
+                }
+            })
+            .withAuthRequired(false)
+            .register(am);
+    }
+
     @Override
     public void registerHandlers(AzureActionManager am) {
         final BiPredicate<AzureCognitiveServices, AnActionEvent> serviceCondition = (r, e) -> r instanceof AzureCognitiveServices;
         final BiConsumer<AzureCognitiveServices, AnActionEvent> createAccountHandler = (c, e) -> openAccountCreationDialog(e.getProject(), null);
         am.registerHandler(CognitiveServicesActionsContributor.CREATE_ACCOUNT, serviceCondition, createAccountHandler);
         am.registerHandler(CognitiveServicesActionsContributor.GROUP_CREATE_ACCOUNT,
-                (ResourceGroup r, AnActionEvent e) -> openAccountCreationDialog(e.getProject(), r));
+            (ResourceGroup r, AnActionEvent e) -> openAccountCreationDialog(e.getProject(), r));
 
         final BiPredicate<CognitiveAccount, AnActionEvent> accountCondition = (r, e) -> r instanceof CognitiveAccount;
         final BiConsumer<CognitiveAccount, AnActionEvent> openAccountHandler = (c, e) -> IntellijShowPropertiesViewAction.showPropertyView(c, e.getProject());
@@ -65,8 +87,8 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
     private void openPlayGround(CognitiveDeployment c, Project project) {
         final ToolWindowManager manager = ToolWindowManager.getInstance(project);
         final ToolWindow window = manager.getToolWindow("Azure OpenAI ChatBot");
-        AzureTaskManager.getInstance().runLater(()-> Objects.requireNonNull(window).activate(() -> {
-            final ChatBox chatBox = (ChatBox)window.getComponent().getClientProperty("ChatBox");
+        AzureTaskManager.getInstance().runLater(() -> Objects.requireNonNull(window).activate(() -> {
+            final ChatBox chatBox = (ChatBox) window.getComponent().getClientProperty("ChatBox");
             final ChatBot chatBot = new ChatBot(c);
             chatBot.setSystemMessage("you are a java expert.");
             chatBox.setChatBot(chatBot);
@@ -77,21 +99,21 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
         // action is auth required, so skip validation for authentication
         final String account = Utils.generateRandomResourceName("account", 40);
         final String rgName = Optional.ofNullable(resourceGroup).map(AzResource::getName)
-                .orElseGet(() -> String.format("rg-%s", account));
+            .orElseGet(() -> String.format("rg-%s", account));
         final Subscription subscription = Optional.ofNullable(resourceGroup).map(ResourceGroup::getSubscription)
-                .orElseGet(() -> Azure.az(AzureAccount.class).account().getSelectedSubscriptions().get(0));
+            .orElseGet(() -> Azure.az(AzureAccount.class).account().getSelectedSubscriptions().get(0));
         final ResourceGroup group = Optional.ofNullable(resourceGroup)
-                .orElseGet(() -> Azure.az(AzureResources.class).groups(subscription.getId()).create(rgName, rgName));
+            .orElseGet(() -> Azure.az(AzureResources.class).groups(subscription.getId()).create(rgName, rgName));
         final CognitiveAccountDraft accountDraft =
-                Azure.az(AzureCognitiveServices.class).accounts(subscription.getId()).create(account, rgName);
+            Azure.az(AzureCognitiveServices.class).accounts(subscription.getId()).create(account, rgName);
         accountDraft.setConfig(CognitiveAccountDraft.Config.builder().resourceGroup(group).build());
         AzureTaskManager.getInstance().runLater(() -> {
             final CognitiveAccountCreationDialog dialog = new CognitiveAccountCreationDialog(project);
             dialog.setValue(accountDraft);
             dialog.setOkAction(new Action<CognitiveAccountDraft>(Action.Id.of("user/cognitiveservices.create_account"))
-                    .withLabel("Create")
-                    .withAuthRequired(true)
-                    .withHandler(AzResource.Draft::commit));
+                .withLabel("Create")
+                .withAuthRequired(true)
+                .withHandler(AzResource.Draft::commit));
             dialog.show();
         });
     }
@@ -102,10 +124,10 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
         AzureTaskManager.getInstance().runLater(() -> {
             final CognitiveDeploymentCreationDialog dialog = new CognitiveDeploymentCreationDialog(account, project);
             dialog.setOkAction(new Action<CognitiveDeploymentDraft>(Action.Id.of("user/cognitiveservices.create_deployment.account"))
-                    .withLabel("Create")
-                    .withIdParam(account.getName())
-                    .withAuthRequired(true)
-                    .withHandler(AzResource.Draft::commit));
+                .withLabel("Create")
+                .withIdParam(account.getName())
+                .withAuthRequired(true)
+                .withHandler(AzResource.Draft::commit));
             dialog.setValue(draft);
             dialog.show();
         });

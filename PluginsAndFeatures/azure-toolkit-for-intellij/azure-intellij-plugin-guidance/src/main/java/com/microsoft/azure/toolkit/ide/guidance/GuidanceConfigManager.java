@@ -71,6 +71,12 @@ public class GuidanceConfigManager {
         }
     }
 
+    @Nullable
+    public CourseConfig getCourse(final String name) {
+        final List<CourseConfig> courses = this.loadCourses();
+        return courses.stream().filter(course -> course.getName().equals(name)).findFirst().orElse(null);
+    }
+
     @Cacheable(value = "guidance/courses")
     public List<CourseConfig> loadCourses() {
         return Optional.of(new Reflections("guidance", Scanners.Resources))
@@ -82,13 +88,13 @@ public class GuidanceConfigManager {
                     }
                 })
                 .orElse(Collections.emptySet())
-                .stream().map(uri -> GuidanceConfigManager.getCourse("/" + uri))
+                .stream().map(uri -> GuidanceConfigManager.loadCourseByUri("/" + uri))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
     @Nullable
-    private static CourseConfig getCourse(String uri) {
+    private static CourseConfig loadCourseByUri(String uri) {
         try (final InputStream inputStream = GuidanceConfigManager.class.getResourceAsStream(uri)) {
             final CourseConfig courseConfig = JSON_MAPPER.readValue(inputStream, CourseConfig.class);
             courseConfig.setUri(uri);
