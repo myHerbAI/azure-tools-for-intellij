@@ -1,4 +1,4 @@
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner
+package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
 import com.intellij.openapi.project.Project
 import com.intellij.ui.dsl.builder.Align
@@ -7,7 +7,6 @@ import com.intellij.ui.dsl.builder.panel
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig
 import com.microsoft.azure.toolkit.intellij.common.dotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureSettingPanel
-import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput.AzureValueChangeBiListener
 import javax.swing.JPanel
 

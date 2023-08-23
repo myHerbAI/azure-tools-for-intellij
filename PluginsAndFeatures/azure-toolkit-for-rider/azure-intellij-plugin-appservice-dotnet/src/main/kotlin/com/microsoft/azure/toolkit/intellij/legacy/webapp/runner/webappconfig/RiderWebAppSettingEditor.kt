@@ -1,4 +1,4 @@
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner
+package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureSettingsEditor

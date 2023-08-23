@@ -1,5 +1,6 @@
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner
 
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.DotNetWebAppSettingModel
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig

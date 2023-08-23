@@ -1,4 +1,4 @@
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner
+package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
 import com.jetbrains.rider.model.PublishableProjectModel
 import com.microsoft.azuretools.core.mvp.model.webapp.WebAppSettingModel

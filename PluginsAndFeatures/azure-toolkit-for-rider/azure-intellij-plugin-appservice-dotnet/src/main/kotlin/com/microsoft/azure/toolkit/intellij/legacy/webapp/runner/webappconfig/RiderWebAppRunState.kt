@@ -1,8 +1,9 @@
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner
+package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.Constants
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp

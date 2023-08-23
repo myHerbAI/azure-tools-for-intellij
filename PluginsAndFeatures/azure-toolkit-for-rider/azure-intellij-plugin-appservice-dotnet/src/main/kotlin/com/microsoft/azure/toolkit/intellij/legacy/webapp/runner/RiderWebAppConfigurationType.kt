@@ -3,6 +3,7 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner
 import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.RiderWebAppConfigurationFactory
 
 class RiderWebAppConfigurationType : ConfigurationTypeBase(
     "AzureDotNetWebAppPublish",
