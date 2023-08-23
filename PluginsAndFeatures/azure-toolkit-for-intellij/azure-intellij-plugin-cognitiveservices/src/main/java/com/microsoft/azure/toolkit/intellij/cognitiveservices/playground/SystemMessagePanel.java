@@ -19,14 +19,20 @@ import com.microsoft.azure.toolkit.intellij.cognitiveservices.components.OpenAIS
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.model.SystemMessage;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import org.apache.commons.lang.ObjectUtils;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class SystemMessagePanel implements AzureForm<SystemMessage> {
     public static final String SYSTEM_MESSAGE_DESCRIPTION = "Use a template to get started, or just start writing your own system " +
@@ -34,7 +40,6 @@ public class SystemMessagePanel implements AzureForm<SystemMessage> {
     public static final String EXAMPLE_DESCRIPTION = "Add examples to show the chat what responses you want. " +
             "It will try to mimic any responses you add here so make sure they match the rules you laid out in the system message.";
     private JPanel pnlRoot;
-    private JLabel lblSystemTitle;
     private JBLabel lblSystemDescription;
     private JLabel lblTemplate;
     private JLabel lblSystemMessage;
@@ -44,6 +49,9 @@ public class SystemMessagePanel implements AzureForm<SystemMessage> {
     private JPanel pnlExample;
     private JButton btnAddExample;
     private OpenAISystemTemplateComboBox cbSystemTemplate;
+    private JPanel pnlSystemMessageContainer;
+    private JPanel pnlExamplesContainer;
+    private JScrollPane scrollPaneSystemMessage;
 
     private final List<ExamplePanel> panels = new ArrayList<>();
 
@@ -56,8 +64,6 @@ public class SystemMessagePanel implements AzureForm<SystemMessage> {
         this.btnAddExample.setIcon(AllIcons.General.Add);
         this.btnAddExample.addActionListener(this::onAddNewExample);
 
-        this.lblSystemTitle.setFont(JBFont.h3().asBold());
-
         this.lblSystemDescription.setText(SYSTEM_MESSAGE_DESCRIPTION);
         this.lblSystemDescription.setAllowAutoWrapping(true);
         this.lblSystemDescription.setCopyable(true);// this makes label auto wrapping
@@ -69,7 +75,13 @@ public class SystemMessagePanel implements AzureForm<SystemMessage> {
         this.lblExampleDescription.setForeground(UIUtil.getContextHelpForeground());
 
         this.lblSystemMessage.setIcon(AllIcons.General.ContextHelp);
+
         this.scrollPane.setBorder(JBUI.Borders.empty());
+        this.scrollPaneSystemMessage.setBorder(JBUI.Borders.empty());
+        this.lblTemplate.setBorder(JBUI.Borders.empty(6, 0));
+        this.lblSystemMessage.setBorder(JBUI.Borders.empty(6, 0));
+
+        this.cbSystemTemplate.addValueChangedListener(value -> AzureTaskManager.getInstance().runLater(() -> this.setValue(value)));
     }
 
     private void onAddNewExample(final ActionEvent actionEvent) {
@@ -85,6 +97,7 @@ public class SystemMessagePanel implements AzureForm<SystemMessage> {
         this.areaSystemMessage = new JBTextArea();
         this.areaSystemMessage.setBackground(JBColor.background());
         this.areaSystemMessage.setBorder(JBUI.Borders.customLine(JBColor.border().brighter()));
+        this.areaSystemMessage.setFont(JBFont.label());
     }
 
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES
@@ -117,7 +130,13 @@ public class SystemMessagePanel implements AzureForm<SystemMessage> {
         this.pnlExample.setLayout(newLayout);
         for (int i = 0; i < examples.size(); i++) {
             final SystemMessage.Example example = examples.get(i);
-            final ExamplePanel examplePanel = new ExamplePanel();
+            final MouseListener listener = new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    AzureTaskManager.getInstance().runLater(() -> removeExample(example));
+                }
+            };
+            final ExamplePanel examplePanel = new ExamplePanel(listener);
             examplePanel.setValue(example);
             final GridConstraints c = new GridConstraints(i, 0, 1, 1, 1, 1, 3, 3, null, null, null, 0, false);
             this.pnlExample.add(examplePanel.getPanel(), c);
@@ -126,6 +145,15 @@ public class SystemMessagePanel implements AzureForm<SystemMessage> {
         final GridConstraints c = new GridConstraints(examples.size(), 0, 1, 1, 1, 2, 1, 6, null, null, null, 0, false);
         final Spacer spacer = new Spacer();
         this.pnlExample.add(spacer, c);
+    }
+
+    private void removeExample(SystemMessage.Example example) {
+        final SystemMessage value = getValue();
+        final List<SystemMessage.Example> examples = value.getExamples().stream()
+                .filter(e -> !ObjectUtils.equals(e, example))
+                .collect(Collectors.toList());
+        value.setExamples(examples);
+        setValue(value);
     }
 
     @Override

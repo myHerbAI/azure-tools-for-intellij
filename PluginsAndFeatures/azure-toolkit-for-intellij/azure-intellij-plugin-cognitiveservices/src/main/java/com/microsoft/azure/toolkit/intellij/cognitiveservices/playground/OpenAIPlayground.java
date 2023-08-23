@@ -23,7 +23,7 @@ public class OpenAIPlayground extends BaseEditor {
     private JPanel pnlRoot;
     private JPanel pnlTitleBar;
     private JPanel pnlBody;
-    private JPanel pnlConfiguration;
+    private JPanel pnlConfigurationContainer;
     private JPanel pnlSystem;
     private JPanel pnlChat;
     private JTabbedPane pnlAssistantTabPane;
@@ -31,6 +31,7 @@ public class OpenAIPlayground extends BaseEditor {
     private JButton btnExport;
     private JButton btnImport;
     private JPanel pnlSystemMessageContainer;
+    private ConfigurationPanel pnlConfiguration;
     private JPanel pnlExample;
 
     private CognitiveDeployment deployment;

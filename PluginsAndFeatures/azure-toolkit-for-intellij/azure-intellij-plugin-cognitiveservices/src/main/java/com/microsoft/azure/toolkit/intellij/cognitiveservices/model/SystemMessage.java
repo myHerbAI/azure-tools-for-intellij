@@ -5,9 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.cognitiveservices.model;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +13,8 @@ import java.util.List;
 @Data
 @Builder
 @EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
 public class SystemMessage {
     private String name;
     private String systemMessage;
@@ -24,6 +24,8 @@ public class SystemMessage {
     @Data
     @Builder
     @EqualsAndHashCode
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Example {
         private String user;
         private String assistant;

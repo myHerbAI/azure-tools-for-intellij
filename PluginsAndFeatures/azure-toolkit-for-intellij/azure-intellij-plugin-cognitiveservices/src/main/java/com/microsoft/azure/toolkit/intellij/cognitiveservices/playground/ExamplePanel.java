@@ -5,25 +5,22 @@
 
 package com.microsoft.azure.toolkit.intellij.cognitiveservices.playground;
 
-import com.intellij.icons.AllIcons;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBTextArea;
+import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.model.SystemMessage;
+import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import lombok.Getter;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.Arrays;
+import java.awt.event.MouseListener;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 public class ExamplePanel implements AzureForm<SystemMessage.Example> {
     @Getter
@@ -31,14 +28,19 @@ public class ExamplePanel implements AzureForm<SystemMessage.Example> {
     private JLabel lblDeleteIcon;
     private JTextArea areaUser;
     private JTextArea areaAssistant;
+    private JScrollPane scrollPaneUser;
+    private JScrollPane scrollPaneAssistant;
+    private JLabel lblUser;
+    private JLabel lblAssistant;
 
-    public ExamplePanel() {
+    public ExamplePanel(final MouseListener listener) {
         $$$setupUI$$$();
-        this.init();
-    }
-
-    private void init() {
-        this.lblDeleteIcon.setIcon(AllIcons.General.Remove);
+        this.lblDeleteIcon.addMouseListener(listener);
+        this.lblDeleteIcon.setIcon(IntelliJAzureIcons.getIcon("/icons/delete-example.svg"));
+        scrollPaneUser.setBorder(JBUI.Borders.empty());
+        scrollPaneAssistant.setBorder(JBUI.Borders.empty());
+        this.lblUser.setBorder(JBUI.Borders.empty(6, 0));
+        this.lblAssistant.setBorder(JBUI.Borders.empty(6, 0));
     }
 
     @Override
@@ -65,19 +67,12 @@ public class ExamplePanel implements AzureForm<SystemMessage.Example> {
         this.areaUser = new JBTextArea();
         this.areaUser.setBackground(JBColor.background());
         this.areaUser.setBorder(JBUI.Borders.customLine(JBColor.border().brighter()));
+        this.areaUser.setFont(JBFont.label());
+
         this.areaAssistant = new JBTextArea();
         this.areaAssistant.setBackground(JBColor.background());
         this.areaAssistant.setBorder(JBUI.Borders.customLine(JBColor.border().brighter()));
-    }
-
-    private void addRemoveListener(@Nonnull final Consumer<MouseEvent> listener) {
-        Arrays.stream(this.lblDeleteIcon.getMouseListeners()).forEach(lblDeleteIcon::removeMouseListener);
-        this.lblDeleteIcon.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                listener.accept(e);
-            }
-        });
+        this.areaAssistant.setFont(JBFont.label());
     }
 
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES
