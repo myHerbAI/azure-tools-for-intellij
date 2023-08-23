@@ -28,8 +28,8 @@ public class SpringCloudActionsContributor implements IActionsContributor {
     public static final String SERVICE_ACTIONS = "actions.springcloud.service";
     public static final String APP_INSTANCE_ACTIONS = "actions.springcould.appInstance";
     public static final String APP_INSTANCE_MODULE_ACTIONS = "actions.springcould.app_instance_module";
-    public static final Action.Id<SpringCloudApp> OPEN_PUBLIC_URL = Action.Id.of("user/springcloud.open_public_url.app");
-    public static final Action.Id<SpringCloudApp> OPEN_TEST_URL = Action.Id.of("user/springcloud.open_test_url.app");
+    public static final Action.Id<SpringCloudApp> OPEN_PUBLIC_URL = SpringCloudApp.OPEN_PUBLIC_URL;
+    public static final Action.Id<SpringCloudApp> OPEN_TEST_URL = SpringCloudApp.OPEN_TEST_URL;
     public static final Action.Id<SpringCloudApp> STREAM_LOG_APP = Action.Id.of("user/springcloud.open_stream_log.app");
     public static final Action.Id<SpringCloudAppInstance> STREAM_LOG = Action.Id.of("user/springcloud.open_stream_log.instance");
     public static final Action.Id<SpringCloudApp> ENABLE_REMOTE_DEBUGGING = Action.Id.of("user/springcloud.enable_remote_debugging.app");

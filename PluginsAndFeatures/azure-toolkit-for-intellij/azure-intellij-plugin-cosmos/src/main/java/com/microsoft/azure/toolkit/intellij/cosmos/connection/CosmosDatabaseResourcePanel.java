@@ -35,7 +35,8 @@ public class CosmosDatabaseResourcePanel<T extends ICosmosDatabase, E extends Co
     private CosmosDBAccountComboBox<E> cbAccount;
     private CosmosDatabaseComboBox<T, E> cbDatabase;
     private SubscriptionComboBox cbSubscription;
-    private HyperlinkLabel lblCreate;
+    private HyperlinkLabel lblCreateAccount;
+    private HyperlinkLabel lblCreateDatabase;
 
     private final Function<Subscription, ? extends List<? extends E>> accountLoader;
     private final Function<E, ? extends List<? extends T>> databaseLoader;
@@ -54,15 +55,28 @@ public class CosmosDatabaseResourcePanel<T extends ICosmosDatabase, E extends Co
         this.cbAccount.addItemListener(this::onAccountChanged);
 
         //noinspection DialogTitleCapitalization
-        this.lblCreate.setHtmlText("<html><a href=\"\">Create new Cosmos DB Account</a> in Azure.</html>");
-        this.lblCreate.addHyperlinkListener(e -> {
-            final DataContext context = DataManager.getInstance().getDataContext(this.lblCreate);
+        this.lblCreateAccount.setHtmlText("<html><a href=\"\">Create new Cosmos DB Account</a> in Azure.</html>");
+        this.lblCreateDatabase.setHtmlText("<html><a href=\"\">Create new database.</a></html>");
+        this.lblCreateAccount.addHyperlinkListener(e -> {
+            final DataContext context = DataManager.getInstance().getDataContext(this.lblCreateAccount);
             final AnActionEvent event = AnActionEvent.createFromInputEvent(e.getInputEvent(), "CosmosDatabaseResourcePanel", new Presentation(), context);
             final DialogWrapper dialog = DialogWrapper.findInstance(this.contentPanel);
             if (dialog != null) {
                 dialog.close(DialogWrapper.CLOSE_EXIT_CODE);
                 final AzureCosmosService service = Azure.az(AzureCosmosService.class);
                 AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.CREATE).bind(service).handle(service, event);
+            }
+        });
+        this.lblCreateDatabase.addHyperlinkListener(e -> {
+            final DataContext context = DataManager.getInstance().getDataContext(this.lblCreateDatabase);
+            final AnActionEvent event = AnActionEvent.createFromInputEvent(e.getInputEvent(), "CosmosDatabaseResourcePanel", new Presentation(), context);
+            final DialogWrapper dialog = DialogWrapper.findInstance(this.contentPanel);
+            if (dialog != null) {
+                dialog.close(DialogWrapper.CLOSE_EXIT_CODE);
+                final E account = this.cbDatabase.getAccount();
+                if (account != null) {
+                    AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.CREATE).bind(account).handle(account, event);
+                }
             }
         });
     }
@@ -80,8 +94,10 @@ public class CosmosDatabaseResourcePanel<T extends ICosmosDatabase, E extends Co
         if (e.getStateChange() == ItemEvent.SELECTED) {
             final E account = (E) e.getItem();
             this.cbDatabase.setAccount(account);
+            this.lblCreateDatabase.setVisible(account != null);
         } else if (e.getStateChange() == ItemEvent.DESELECTED) {
             this.cbDatabase.setAccount(null);
+            this.lblCreateDatabase.setVisible(false);
         }
     }
 
