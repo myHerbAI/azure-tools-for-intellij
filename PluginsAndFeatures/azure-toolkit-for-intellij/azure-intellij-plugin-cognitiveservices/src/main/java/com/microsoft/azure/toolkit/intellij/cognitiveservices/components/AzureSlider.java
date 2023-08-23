@@ -1,6 +1,5 @@
 package com.microsoft.azure.toolkit.intellij.cognitiveservices.components;
 
-import T.Z.JL;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;

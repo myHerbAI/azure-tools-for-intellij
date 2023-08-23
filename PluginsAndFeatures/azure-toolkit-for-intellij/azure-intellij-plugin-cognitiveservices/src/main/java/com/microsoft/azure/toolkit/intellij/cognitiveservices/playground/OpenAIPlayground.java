@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.cognitiveservices.playground;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBox;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.model.SystemMessage;
 import com.microsoft.azure.toolkit.intellij.common.BaseEditor;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccount;
@@ -32,6 +33,7 @@ public class OpenAIPlayground extends BaseEditor {
     private JButton btnImport;
     private JPanel pnlSystemMessageContainer;
     private ConfigurationPanel pnlConfiguration;
+    private ChatBox chatBox1;
     private JPanel pnlExample;
 
     private CognitiveDeployment deployment;
@@ -52,7 +54,12 @@ public class OpenAIPlayground extends BaseEditor {
         this.account = account;
         this.deployment = deployment;
         $$$setupUI$$$();
-//        this.init();
+        this.init();
+    }
+
+    private void init() {
+        this.pnlConfiguration.addValueChangedListener(null);
+        this.pnlSystemMessage.addValueChangedListener(null);
     }
 
     @Override
