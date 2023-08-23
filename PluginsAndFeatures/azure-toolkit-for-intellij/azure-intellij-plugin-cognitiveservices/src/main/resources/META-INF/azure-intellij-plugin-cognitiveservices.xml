@@ -11,8 +11,4 @@
         <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.playground.CognitiveAccountPlaygroundProvider"/>
         <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.playground.CognitiveDeploymentPlaygroundProvider"/>
     </extensions>
-    <extensions defaultExtensionNs="com.intellij">
-        <toolWindow id="Azure OpenAI ChatBot" secondary="true" icon="/icons/Common/chatbot.svg" anchor="right"
-                    factoryClass="com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBotToolWindowFactory"/>
-    </extensions>
 </idea-plugin>
