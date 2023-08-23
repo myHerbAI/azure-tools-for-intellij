@@ -80,11 +80,11 @@ class RiderAppServiceInfoBasicPanel<T>(
         return result
     }
 
-    override fun setValue(data: T) {
-        config = data
-        textName.value = data.name
-        textName.setSubscription(data.subscription)
-        operatingSystem = data.runtime.operatingSystem
+    override fun setValue(config: T) {
+        this.config = config
+        textName.value = config.name
+        textName.setSubscription(config.subscription)
+        operatingSystem = config.runtime.operatingSystem
     }
 
     override fun getInputs(): List<AzureFormInput<*>> = listOf(textName)

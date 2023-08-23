@@ -7,6 +7,7 @@ import com.microsoft.azure.toolkit.intellij.common.ConfigDialog
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.RiderAppServiceInfoAdvancedPanel
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.RiderAppServiceInfoBasicPanel
 import com.microsoft.azure.toolkit.lib.Azure
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.auth.IAccountActions
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
@@ -32,6 +33,8 @@ class RiderWebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(p
             row { cell(basicForm) }
             row { cell(advancedForm) }
         }
+
+        advancedForm.setValidPricingTier(PricingTier.WEB_APP_PRICING.toList(), WebAppConfig.DEFAULT_PRICING_TIER)
 
         this.init()
 

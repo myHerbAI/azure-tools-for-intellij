@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.intellij.common.component.RegionComboBox
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox
 import com.microsoft.azure.toolkit.intellij.common.component.resourcegroup.ResourceGroupComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.ServicePlanComboBox
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
@@ -20,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.model.Subscription
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig
 import java.awt.event.ItemEvent
@@ -28,6 +30,7 @@ import java.time.format.DateTimeFormatter
 import java.util.function.Supplier
 import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlin.io.path.Path
 
 class RiderAppServiceInfoAdvancedPanel<T>(
         project: Project,
@@ -44,19 +47,19 @@ class RiderAppServiceInfoAdvancedPanel<T>(
         isRequired = true
         value = "app-${project.name}-${LocalDateTime.now().format(formatter)}"
     }
-    private val subscriptionComboBox = SubscriptionComboBox().apply {
+    private val selectorSubscription = SubscriptionComboBox().apply {
         isRequired = true
         addItemListener { onSubscriptionChanged(it) }
     }
-    private val resourceGroupComboBox = ResourceGroupComboBox().apply {
+    private val selectorGroup = ResourceGroupComboBox().apply {
         isRequired = true
         addItemListener { onGroupChanged(it) }
     }
-    private val regionComboBox = RegionComboBox().apply {
+    private val selectorRegion = RegionComboBox().apply {
         isRequired = true
         addItemListener { onRegionChanged(it) }
     }
-    private val servicePlanComboBox = ServicePlanComboBox().apply {
+    private val selectorServicePlan = ServicePlanComboBox().apply {
         isRequired = true
         addItemListener { onServicePlanChanged(it) }
     }
@@ -74,11 +77,11 @@ class RiderAppServiceInfoAdvancedPanel<T>(
         panel = panel {
             group("Project Details") {
                 row("Subscription:") {
-                    cell(subscriptionComboBox)
+                    cell(selectorSubscription)
                             .align(Align.FILL)
                 }
                 row("Resource Group:") {
-                    cell(resourceGroupComboBox)
+                    cell(selectorGroup)
                             .align(Align.FILL)
                 }
             }
@@ -96,13 +99,13 @@ class RiderAppServiceInfoAdvancedPanel<T>(
                     }
                 }.bind(::operatingSystem)
                 row("Region:") {
-                    cell(regionComboBox)
+                    cell(selectorRegion)
                             .align(Align.FILL)
                 }
             }
             group("App Service Plan") {
                 row("Plan:") {
-                    cell(servicePlanComboBox)
+                    cell(selectorServicePlan)
                             .align(Align.FILL)
                 }
                 row("SKU and size:") {
@@ -121,12 +124,12 @@ class RiderAppServiceInfoAdvancedPanel<T>(
     }
 
     override fun getValue(): T {
-        val subscription = subscriptionComboBox.value
-        val resourceGroup = resourceGroupComboBox.value
+        val subscription = selectorSubscription.value
+        val resourceGroup = selectorGroup.value
         val name = textName.value
         val os = operatingSystem
-        val region = regionComboBox.value
-        val servicePlan = servicePlanComboBox.value
+        val region = selectorRegion.value
+        val servicePlan = selectorServicePlan.value
         val project = selectorApplication.value
 
         val config = defaultConfigSupplier.get()
@@ -135,15 +138,40 @@ class RiderAppServiceInfoAdvancedPanel<T>(
         config.name = name
         config.runtime = Runtime(os, null, null)
         config.region = region
-
+        val planConfig = AppServicePlanConfig.fromResource(servicePlan)
+        if (planConfig != null && servicePlan?.isDraftForCreating == true) {
+            planConfig.resourceGroupName = config.resourceGroupName
+            planConfig.region = region
+            planConfig.os = operatingSystem
+        }
+        config.servicePlan = planConfig
+        if (project != null) {
+            config.application = Path(project.projectFilePath)
+        }
 
         return config
     }
 
-    override fun setValue(data: T) {
+    override fun setValue(config: T) {
+        selectorSubscription.value = config.subscription
+        textName.value = config.name
+        AzureTaskManager.getInstance().runOnPooledThread {
+            selectorGroup.value = config.resourceGroup?.toResource()
+            selectorServicePlan.value = config.servicePlan?.toResource()
+            operatingSystem = config.runtime.operatingSystem
+            selectorRegion.value = config.region
+        }
     }
 
-    override fun getInputs(): List<AzureFormInput<*>> = listOf(textName, subscriptionComboBox, resourceGroupComboBox)
+    override fun getInputs(): List<AzureFormInput<*>> = listOf(
+            textName,
+            selectorSubscription,
+            selectorGroup,
+            selectorRegion,
+            selectorApplication,
+            selectorServicePlan
+    )
+
     override fun setVisible(visible: Boolean) {
         panel.isVisible = visible
         super<JPanel>.setVisible(visible)
@@ -167,32 +195,36 @@ class RiderAppServiceInfoAdvancedPanel<T>(
     private fun onSubscriptionChanged(e: ItemEvent) {
         if (e.stateChange == ItemEvent.SELECTED || e.stateChange == ItemEvent.DESELECTED) {
             val subscription = e.item as? Subscription ?: return
-            resourceGroupComboBox.setSubscription(subscription)
+            selectorGroup.setSubscription(subscription)
             textName.setSubscription(subscription)
-            regionComboBox.setSubscription(subscription)
-            servicePlanComboBox.setSubscription(subscription)
+            selectorRegion.setSubscription(subscription)
+            selectorServicePlan.setSubscription(subscription)
         }
     }
 
     private fun onOperatingSystemChanged(e: ItemEvent) {
         if (e.stateChange == ItemEvent.SELECTED) {
-            servicePlanComboBox.setOperatingSystem(OperatingSystem.WINDOWS)
+            selectorServicePlan.setOperatingSystem(OperatingSystem.WINDOWS)
         } else {
-            servicePlanComboBox.setOperatingSystem(OperatingSystem.LINUX)
+            selectorServicePlan.setOperatingSystem(OperatingSystem.LINUX)
         }
     }
 
     private fun onRegionChanged(e: ItemEvent) {
         if (e.stateChange == ItemEvent.SELECTED || e.stateChange == ItemEvent.DESELECTED) {
             val region = e.item as? Region ?: return
-            servicePlanComboBox.setRegion(region)
+            selectorServicePlan.setRegion(region)
         }
     }
 
     private fun onGroupChanged(e: ItemEvent) {
         if (e.stateChange == ItemEvent.SELECTED || e.stateChange == ItemEvent.DESELECTED) {
             val resourceGroup = e.item as? ResourceGroup ?: return
-            servicePlanComboBox.setResourceGroup(resourceGroup)
+            selectorServicePlan.setResourceGroup(resourceGroup)
         }
+    }
+
+    fun setValidPricingTier(pricingTier: List<PricingTier>, defaultPricingTier: PricingTier) {
+        selectorServicePlan.setValidPricingTierList(pricingTier, defaultPricingTier)
     }
 }
