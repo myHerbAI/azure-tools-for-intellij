@@ -29,20 +29,11 @@ public class IntellijShowPropertiesViewAction {
     }
 
     private static String getFileTypeName(@Nonnull AzResource resource) {
-        return getNewFileTypeName(resource);
+        return resource.getFullResourceType().replaceAll("/", ".");
     }
 
     private static Icon getFileTypeIcon(@Nonnull AzResource resource) {
-        return IntelliJAzureIcons.getIcon(getNewFileTypeIcon(resource));
-    }
-
-    @Nonnull
-    private static String getNewFileTypeIcon(AzResource resource) {
-        return String.format("/icons/%s/default.svg", resource.getFullResourceType());
-    }
-
-    @Nonnull
-    private static String getNewFileTypeName(AzResource resource) {
-        return resource.getFullResourceType().replaceAll("/", ".");
+        final String path = String.format("/icons/%s/default.svg", resource.getFullResourceType());
+        return IntelliJAzureIcons.getIcon(path);
     }
 }

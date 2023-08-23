@@ -37,7 +37,7 @@ public class PublishHandler extends AzureAbstractHandler {
             return null;
         }
 
-        SignInCommandHandler.requireSignedIn(PluginUtil.getParentShell(), () -> {
+        SignInCommandHandler.requireSignedIn(PluginUtil.getParentShell(), (a) -> {
             basePath = project.getLocation().toString();
             try {
                 if (MavenUtils.isMavenProject(project)) {

@@ -420,9 +420,6 @@ public class CreateRedisCacheForm extends AzureTitleAreaDialogWrapper {
     @Override
     protected void okPressed() {
         try {
-            RedisCacheUtil.doValidate(currentSub, dnsNameValue, selectedLocationValue, selectedResGrpValue,
-                    selectedPriceTierValue);
-
             if (newResGrp) {
                 for (String resGrp : sortedGroups) {
                     if (selectedResGrpValue.equals(resGrp)) {
@@ -456,8 +453,7 @@ public class CreateRedisCacheForm extends AzureTitleAreaDialogWrapper {
                         dnsNameValue), ex);
             }
         };
-        final String name = com.microsoft.tooling.msservices.serviceexplorer.azure.rediscache.RedisCacheModule.MODULE_NAME;
-        String progressMessage = Node.getProgressMessage(AzureActionEnum.CREATE.getDoingName(), name, config.getName());
+        String progressMessage = Node.getProgressMessage(AzureActionEnum.CREATE.getDoingName(), "Redis", config.getName());
         AzureTaskManager.getInstance().runInBackground(new AzureTask<>(null, progressMessage, false, runnable));
 
         super.okPressed();

@@ -24,7 +24,7 @@ public class CreateArmVMAction extends NodeActionListener {
 
     @Override
     public void actionPerformed(NodeActionEvent e) {
-        SignInCommandHandler.requireSignedIn(PluginUtil.getParentShell(), () -> {
+        SignInCommandHandler.requireSignedIn(PluginUtil.getParentShell(), (a) -> {
             CreateVMWizard createVMWizard = new CreateVMWizard((VMArmModule) e.getAction().getNode());
             WizardDialog dialog = new AzureWizardDialog(PluginUtil.getParentShell(), createVMWizard);
             dialog.setTitle("Create new Virtual Machine");

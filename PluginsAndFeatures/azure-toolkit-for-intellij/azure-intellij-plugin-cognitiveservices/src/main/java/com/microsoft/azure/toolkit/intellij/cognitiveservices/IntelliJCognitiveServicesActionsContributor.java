@@ -6,11 +6,21 @@
 package com.microsoft.azure.toolkit.intellij.cognitiveservices;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.EmptyAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.ui.content.Content;
+import com.intellij.ui.content.ContentFactory;
+import com.intellij.ui.content.ContentManager;
 import com.microsoft.azure.toolkit.ide.cognitiveservices.CognitiveServicesActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBot;
+import com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBox;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.creation.CognitiveAccountCreationDialog;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.creation.CognitiveDeploymentCreationDialog;
+import com.microsoft.azure.toolkit.intellij.common.properties.IntellijShowPropertiesViewAction;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.*;
@@ -25,6 +35,7 @@ import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -39,15 +50,27 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
                 (ResourceGroup r, AnActionEvent e) -> openAccountCreationDialog(e.getProject(), r));
 
         final BiPredicate<CognitiveAccount, AnActionEvent> accountCondition = (r, e) -> r instanceof CognitiveAccount;
-        final BiConsumer<CognitiveAccount, AnActionEvent> openAccountHandler = (c, e) -> System.out.println("CognitiveServicesActionsContributor");
+        final BiConsumer<CognitiveAccount, AnActionEvent> openAccountHandler = (c, e) -> IntellijShowPropertiesViewAction.showPropertyView(c, e.getProject());
         am.registerHandler(CognitiveServicesActionsContributor.OPEN_ACCOUNT_IN_PLAYGROUND, accountCondition, openAccountHandler);
 
         final BiConsumer<CognitiveAccount, AnActionEvent> createDeploymentHandler = (c, e) -> openDeploymentCreationDialog(c, e.getProject());
         am.registerHandler(CognitiveServicesActionsContributor.CREATE_DEPLOYMENT, accountCondition, createDeploymentHandler);
 
         final BiPredicate<CognitiveDeployment, AnActionEvent> deploymentCondition = (r, e) -> r instanceof CognitiveDeployment;
-        final BiConsumer<CognitiveDeployment, AnActionEvent> openDeploymentHandler = (c, e) -> System.out.println("CognitiveServicesActionsContributor");
+        final BiConsumer<CognitiveDeployment, AnActionEvent> openDeploymentHandler = (c, e) -> IntellijShowPropertiesViewAction.showPropertyView(c, e.getProject());
+//        final BiConsumer<CognitiveDeployment, AnActionEvent> openDeploymentHandler = (c, e) -> openPlayGround(c, e.getProject());
         am.registerHandler(CognitiveServicesActionsContributor.OPEN_DEPLOYMENT_IN_PLAYGROUND, deploymentCondition, openDeploymentHandler);
+    }
+
+    private void openPlayGround(CognitiveDeployment c, Project project) {
+        final ToolWindowManager manager = ToolWindowManager.getInstance(project);
+        final ToolWindow window = manager.getToolWindow("Azure OpenAI ChatBot");
+        AzureTaskManager.getInstance().runLater(()-> Objects.requireNonNull(window).activate(() -> {
+            final ChatBox chatBox = (ChatBox)window.getComponent().getClientProperty("ChatBox");
+            final ChatBot chatBot = new ChatBot(c);
+            chatBot.setSystemMessage("you are a java expert.");
+            chatBox.setChatBot(chatBot);
+        }));
     }
 
     public static void openAccountCreationDialog(@Nullable Project project, @Nullable ResourceGroup resourceGroup) {

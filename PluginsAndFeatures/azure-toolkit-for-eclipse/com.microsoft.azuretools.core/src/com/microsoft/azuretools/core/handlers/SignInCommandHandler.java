@@ -6,6 +6,7 @@
 package com.microsoft.azuretools.core.handlers;
 
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.account.IAccount;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AuthConfiguration;
@@ -33,6 +34,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 public class SignInCommandHandler extends AzureAbstractHandler {
 	public static final String MUST_SELECT_SUBSCRIPTION = "Please select at least one subscription first (Tools -> Azure -> Select Subscriptions)";
@@ -46,7 +48,7 @@ public class SignInCommandHandler extends AzureAbstractHandler {
 	}
 
 	public static void doSignIn(Shell shell) {
-		requireSignedIn(shell, () -> {
+		requireSignedIn(shell, (a) -> {
 		});
 	}
 
@@ -70,13 +72,13 @@ public class SignInCommandHandler extends AzureAbstractHandler {
 				az.logout();
 			}
 		} else {
-			login(shell, () -> {
+			login(shell, (a) -> {
 			});
 		}
 	}
 
 	@AzureOperation(name = "internal/account.sign_in")
-	private static void login(Shell shell, Runnable callback) {
+	private static void login(Shell shell, Consumer<IAccount> callback) {
 		final AzureTaskManager manager = AzureTaskManager.getInstance();
 		manager.runLater(() -> {
 			final AuthConfiguration auth = promptForAuthConfiguration(shell);
@@ -93,7 +95,7 @@ public class SignInCommandHandler extends AzureAbstractHandler {
 					final Account account = Azure.az(AzureAccount.class).login(auth, true);
 					if (account.isLoggedIn()) {
 						SelectSubscriptionsCommandHandler.onSelectSubscriptions(shell);
-						manager.runLater(callback);
+                        manager.runOnPooledThread(() -> callback.accept(account));
 					}
 				} catch (final Throwable t) {
 					final Throwable cause = ExceptionUtils.getRootCause(t);
@@ -140,11 +142,12 @@ public class SignInCommandHandler extends AzureAbstractHandler {
 		return config;
 	}
 
-	public static void requireSignedIn(Shell project, Runnable runnable) {
+	public static void requireSignedIn(Shell project, Consumer<IAccount> consumer) {
 		if (IdeAzureAccount.getInstance().isLoggedIn()) {
-			AzureTaskManager.getInstance().runLater(runnable);
+            final Account account = Azure.az(AzureAccount.class).account();
+            AzureTaskManager.getInstance().runOnPooledThread(() -> consumer.accept(account));
 		} else {
-			login(project, runnable);
+			login(project, consumer);
 		}
 	}
 }

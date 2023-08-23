@@ -3,13 +3,13 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.ide.guidance.view.components;
+package com.microsoft.azure.toolkit.intellij.common.component;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 
-class RoundedPanel extends JPanel {
+public class RoundedPanel extends JPanel {
     private int cornerRadius = 5;
 
     public RoundedPanel(LayoutManager layout) {

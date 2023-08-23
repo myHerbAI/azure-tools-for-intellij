@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 public class Connection<R, C> {
     public static final String ENV_PREFIX = "%ENV_PREFIX%";
 
-    @Setter
     @Getter
     @EqualsAndHashCode.Include
     @Nonnull
@@ -43,22 +42,18 @@ public class Connection<R, C> {
 
     @Nonnull
     @Setter
-    @EqualsAndHashCode.Include
     protected Resource<R> resource;
 
     @Nonnull
     @Setter
-    @EqualsAndHashCode.Include
     protected Resource<C> consumer;
 
     @Nonnull
-    @EqualsAndHashCode.Include
     @Setter
     protected ConnectionDefinition<R, C> definition;
 
     @Setter
     @Getter(AccessLevel.NONE)
-    @EqualsAndHashCode.Include
     private String envPrefix;
 
     private Map<String, String> env = new HashMap<>();
@@ -83,7 +78,7 @@ public class Connection<R, C> {
 
     public Map<String, String> getEnvironmentVariables(final Project project) {
         final Map<String, String> result = this.resource.initEnv(project).entrySet().stream()
-                .collect(Collectors.toMap(e -> e.getKey().replaceAll(Connection.ENV_PREFIX, this.getEnvPrefix()), Map.Entry::getValue));
+            .collect(Collectors.toMap(e -> e.getKey().replaceAll(Connection.ENV_PREFIX, this.getEnvPrefix()), Map.Entry::getValue));
         if (this.getResource().getDefinition() instanceof FunctionSupported<R>) {
             result.putAll(((FunctionSupported<R>) this.getResource().getDefinition()).getPropertiesForFunction(this.getResource().getData(), this));
         }
@@ -115,7 +110,7 @@ public class Connection<R, C> {
 
     public String getEnvPrefix() {
         return resource.getDefinition().isEnvPrefixSupported() ?
-                StringUtils.firstNonBlank(this.envPrefix, this.resource.getDefinition().getDefaultEnvPrefix()) : StringUtils.EMPTY;
+            StringUtils.firstNonBlank(this.envPrefix, this.resource.getDefinition().getDefaultEnvPrefix()) : StringUtils.EMPTY;
     }
 
     public void write(Element connectionEle) {

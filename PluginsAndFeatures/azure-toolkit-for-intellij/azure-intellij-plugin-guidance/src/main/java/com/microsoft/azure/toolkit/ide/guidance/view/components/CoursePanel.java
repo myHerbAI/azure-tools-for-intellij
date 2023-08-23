@@ -1,5 +1,6 @@
 package com.microsoft.azure.toolkit.ide.guidance.view.components;
 
+import com.microsoft.azure.toolkit.intellij.common.component.RoundedPanel;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
