@@ -3,14 +3,13 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.tooling.msservices.model.storage;
+package com.microsoft.azure.hdinsight.sdk.storage.model;
 
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.utils.StorageAccoutUtils;
-import com.microsoft.tooling.msservices.helpers.azure.sdk.StorageClientSDKManager;
-import com.microsoft.tooling.msservices.model.ServiceTreeItem;
+import com.microsoft.azure.hdinsight.sdk.storage.StorageClientSDKManager;
 
-public class ClientStorageAccount implements ServiceTreeItem {
+public class ClientStorageAccount {
     public static final String DEFAULT_PROTOCOL = StorageAccoutUtils.DEFAULT_PROTOCOL;
     public static final String DEFAULT_ENDPOINTS_PROTOCOL_KEY = StorageAccoutUtils.DEFAULT_ENDPOINTS_PROTOCOL_KEY;
     public static final String ACCOUNT_NAME_KEY = StorageAccoutUtils.ACCOUNT_NAME_KEY;
@@ -35,16 +34,6 @@ public class ClientStorageAccount implements ServiceTreeItem {
     public ClientStorageAccount(@NotNull String name) {
         this.name = name;
         this.protocol = DEFAULT_PROTOCOL;
-    }
-
-    @Override
-    public boolean isLoading() {
-        return loading;
-    }
-
-    @Override
-    public void setLoading(boolean loading) {
-        this.loading = loading;
     }
 
     @NotNull
