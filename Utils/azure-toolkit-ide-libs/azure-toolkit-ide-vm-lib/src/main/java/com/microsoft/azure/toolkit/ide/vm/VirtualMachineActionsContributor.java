@@ -23,8 +23,8 @@ public class VirtualMachineActionsContributor implements IActionsContributor {
     public static final String VM_ACTIONS = "actions.vm.management";
 
     public static final Action.Id<VirtualMachine> ADD_SSH_CONFIG = Action.Id.of("user/vm.add_ssh_config.vm");
-    public static final Action.Id<VirtualMachine> CONNECT_SSH = Action.Id.of("user/vm.connect_using_ssh.vm");
-    public static final Action.Id<VirtualMachine> SFTP_CONNECTION = Action.Id.of("user/vm.browse_files_sftp.vm");
+    public static final Action.Id<VirtualMachine> CONNECT_SSH = VirtualMachine.CONNECT_SSH;
+    public static final Action.Id<VirtualMachine> SFTP_CONNECTION = VirtualMachine.BROWSE_FILES;
     public static final Action.Id<ResourceGroup> GROUP_CREATE_VM = Action.Id.of("user/vm.create_vm.group");
 
     @Override

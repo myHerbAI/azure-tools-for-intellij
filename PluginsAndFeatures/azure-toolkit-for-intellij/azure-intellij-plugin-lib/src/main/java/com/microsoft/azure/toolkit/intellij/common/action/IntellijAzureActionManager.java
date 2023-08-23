@@ -150,10 +150,8 @@ public class IntellijAzureActionManager extends AzureActionManager {
         public void actionPerformed(@Nonnull AnActionEvent e) {
             final T source = getSource(e);
             final ActionInstance<T> instance = this.action.instantiate(source, e);
-            if (instance != null) {
-                instance.getContext().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(e.getPlace(), EMPTY_PLACE));
-                instance.performAsync();
-            }
+            instance.getContext().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(e.getPlace(), EMPTY_PLACE));
+            instance.performAsync();
         }
 
         @Override
@@ -162,7 +160,7 @@ public class IntellijAzureActionManager extends AzureActionManager {
             final String place = convertToAzureActionPlace(e.getPlace());
             final Presentation presentation = e.getPresentation();
             final ActionInstance<T> instance = action.instantiate(source, e);
-            final IView.Label view = Optional.ofNullable(instance).map(i -> i.getView(place)).orElse(Action.View.INVISIBLE);
+            final IView.Label view = Optional.of(instance).map(i -> i.getView(place)).orElse(Action.View.INVISIBLE);
             final boolean visible;
             final boolean isAbstractAzResource = source instanceof AbstractAzResource;
 

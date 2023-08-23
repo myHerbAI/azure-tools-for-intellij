@@ -83,8 +83,11 @@ public class AzureFacetRootNode extends AbstractProjectNode<AzureModule> impleme
         this.expandNode(this.getPath()).thenAsync(p -> {
             final DefaultMutableTreeNode thisNode = (DefaultMutableTreeNode) p.getLastPathComponent();
             final DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) thisNode.getChildAt(childIndex);
-            final TreePath childNodePath = new TreePath(childNode.getPath());
-            return this.expandNode(childNodePath);
+            if (Objects.nonNull(childNode)) {
+                final TreePath childNodePath = new TreePath(childNode.getPath());
+                return this.expandNode(childNodePath);
+            }
+            return this.expandNode(p);
         });
     }
 
