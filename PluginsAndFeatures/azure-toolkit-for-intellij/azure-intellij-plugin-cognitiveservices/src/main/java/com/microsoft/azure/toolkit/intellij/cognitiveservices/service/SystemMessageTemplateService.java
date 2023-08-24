@@ -31,4 +31,9 @@ public class SystemMessageTemplateService {
             throw new AzureToolkitRuntimeException(message, e);
         }
     }
+
+    public static SystemMessage getDefaultSystemMessage() {
+        final List<SystemMessage> messages = loadTemplates();
+        return messages.stream().filter(SystemMessage::getIsDefault).findFirst().orElseGet(() -> messages.get(0));
+    }
 }

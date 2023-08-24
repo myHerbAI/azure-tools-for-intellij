@@ -1,18 +1,23 @@
 package com.microsoft.azure.toolkit.intellij.cognitiveservices.playground;
 
+import com.intellij.icons.AllIcons;
+import com.intellij.ui.components.ActionLink;
 import com.intellij.util.ui.JBUI;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.components.AzureSlider;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.model.Configuration;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 public class ConfigurationPanel implements AzureForm<Configuration> {
+    public static final String LEARN_MORE_URL = "https://go.microsoft.com/fwlink/?linkid=2189780";
     private JLabel lblMaxResponse;
     private JLabel lblTemperature;
     private JLabel lblStopSequence;
@@ -26,15 +31,31 @@ public class ConfigurationPanel implements AzureForm<Configuration> {
     private JLabel lblTopP;
     private JLabel lblFrequency;
     private JLabel lblPresence;
+    private ActionLink lblLearnMore;
 
     public ConfigurationPanel() {
         $$$setupUI$$$();
+        init();
+    }
+
+    private void init() {
+        this.lblMaxResponse.setIcon(AllIcons.General.ContextHelp);
+        this.lblMaxResponse.setBorder(JBUI.Borders.empty(20, 0, 6, 0));
+        this.lblFrequency.setIcon(AllIcons.General.ContextHelp);
         this.lblFrequency.setBorder(JBUI.Borders.empty(6, 0));
+        this.lblPresence.setIcon(AllIcons.General.ContextHelp);
         this.lblPresence.setBorder(JBUI.Borders.empty(6, 0));
-        this.lblMaxResponse.setBorder(JBUI.Borders.empty(6, 0));
+        this.lblTemperature.setIcon(AllIcons.General.ContextHelp);
         this.lblTemperature.setBorder(JBUI.Borders.empty(6, 0));
+        this.lblTopP.setIcon(AllIcons.General.ContextHelp);
         this.lblTopP.setBorder(JBUI.Borders.empty(6, 0));
+        this.lblStopSequence.setIcon(AllIcons.General.ContextHelp);
         this.lblStopSequence.setBorder(JBUI.Borders.empty(6, 0));
+
+        this.lblLearnMore.setExternalLinkIcon();
+        this.lblLearnMore.addActionListener(ignore ->
+                AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(LEARN_MORE_URL));
+        this.getInputs().forEach(input -> input.addValueChangedListener(ignore -> this.fireValueChangedEvent()));
     }
 
     private void createUIComponents() {
@@ -49,7 +70,7 @@ public class ConfigurationPanel implements AzureForm<Configuration> {
     @Override
     public Configuration getValue() {
         return Configuration.builder()
-                .maxResponse((int) sliderMaxResponse.getValue())
+                .maxResponse((int) Math.round(sliderMaxResponse.getValue()))
                 .temperature(sliderTemperature.getValue())
                 .topP(sliderTopN.getValue())
                 .stopSequences(txtStopSequence.getValue())
@@ -60,7 +81,7 @@ public class ConfigurationPanel implements AzureForm<Configuration> {
 
     @Override
     public void setValue(@Nonnull Configuration data) {
-        this.sliderMaxResponse.setValue(data.getMaxResponse());
+        this.sliderMaxResponse.setValue(Double.valueOf(data.getMaxResponse()));
         this.sliderTemperature.setValue(data.getTemperature());
         this.sliderTopN.setValue(data.getTopP());
         this.txtStopSequence.setValue(data.getStopSequences());
@@ -70,7 +91,7 @@ public class ConfigurationPanel implements AzureForm<Configuration> {
 
     @Override
     public List<AzureFormInput<?>> getInputs() {
-        return Collections.emptyList();
+        return Arrays.asList(this.sliderMaxResponse, this.sliderTemperature, this.sliderTopN, this.txtStopSequence, this.sliderFrequency, this.sliderPresence);
     }
 
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES

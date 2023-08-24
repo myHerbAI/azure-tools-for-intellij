@@ -5,12 +5,10 @@
 
 package com.microsoft.azure.toolkit.intellij.cognitiveservices.playground;
 
-import com.intellij.ui.JBColor;
-import com.intellij.ui.components.JBTextArea;
-import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.model.SystemMessage;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.intellij.common.component.AzureTextArea;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import lombok.Getter;
@@ -18,7 +16,7 @@ import lombok.Getter;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.event.MouseListener;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,14 +31,18 @@ public class ExamplePanel implements AzureForm<SystemMessage.Example> {
     private JLabel lblUser;
     private JLabel lblAssistant;
 
-    public ExamplePanel(final MouseListener listener) {
+    public ExamplePanel() {
         $$$setupUI$$$();
-        this.lblDeleteIcon.addMouseListener(listener);
         this.lblDeleteIcon.setIcon(IntelliJAzureIcons.getIcon("/icons/delete-example.svg"));
         scrollPaneUser.setBorder(JBUI.Borders.empty());
         scrollPaneAssistant.setBorder(JBUI.Borders.empty());
         this.lblUser.setBorder(JBUI.Borders.empty(6, 0));
         this.lblAssistant.setBorder(JBUI.Borders.empty(6, 0));
+        this.getInputs().forEach(input -> input.addValueChangedListener(ignore -> this.fireValueChangedEvent()));
+    }
+
+    public void addDeleteListener(final MouseListener listener) {
+        this.lblDeleteIcon.addMouseListener(listener);
     }
 
     @Override
@@ -59,20 +61,13 @@ public class ExamplePanel implements AzureForm<SystemMessage.Example> {
     @Override
     public List<AzureFormInput<?>> getInputs() {
         // todo: make JTextArea as AzureInput
-        return Collections.emptyList();
+        return Arrays.asList((AzureFormInput<?>) this.areaUser, (AzureFormInput<?>) this.areaAssistant);
     }
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
-        this.areaUser = new JBTextArea();
-        this.areaUser.setBackground(JBColor.background());
-        this.areaUser.setBorder(JBUI.Borders.customLine(JBColor.border().brighter()));
-        this.areaUser.setFont(JBFont.label());
-
-        this.areaAssistant = new JBTextArea();
-        this.areaAssistant.setBackground(JBColor.background());
-        this.areaAssistant.setBorder(JBUI.Borders.customLine(JBColor.border().brighter()));
-        this.areaAssistant.setFont(JBFont.label());
+        this.areaUser = new AzureTextArea();
+        this.areaAssistant = new AzureTextArea();
     }
 
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES

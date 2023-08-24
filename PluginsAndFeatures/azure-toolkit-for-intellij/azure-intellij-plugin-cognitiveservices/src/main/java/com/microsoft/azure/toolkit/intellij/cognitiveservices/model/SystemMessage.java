@@ -16,8 +16,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SystemMessage {
+    @EqualsAndHashCode.Exclude
     private String name;
     private String systemMessage;
+    @EqualsAndHashCode.Exclude
+    private Boolean isDefault;
     @Builder.Default
     private List<Example> examples = new ArrayList<>();
 
