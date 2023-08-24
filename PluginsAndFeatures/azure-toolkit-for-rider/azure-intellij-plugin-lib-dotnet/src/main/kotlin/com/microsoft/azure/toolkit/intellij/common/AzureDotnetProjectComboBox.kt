@@ -28,6 +28,11 @@ class AzureDotnetProjectComboBox(
         renderer = DotnetProjectItemRenderer()
     }
 
+    fun setProject(projectModel: PublishableProjectModel) {
+        reloadItems()
+        setValue { it.projectModelId == projectModel.projectModelId }
+    }
+
     override fun loadItems(): List<PublishableProjectModel> {
         return project.solution.publishableProjectsModel.publishableProjects.values.toList()
     }

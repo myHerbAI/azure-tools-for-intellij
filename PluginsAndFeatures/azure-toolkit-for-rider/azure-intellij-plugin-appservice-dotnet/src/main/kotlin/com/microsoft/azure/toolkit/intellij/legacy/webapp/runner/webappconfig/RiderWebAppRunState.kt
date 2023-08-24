@@ -3,22 +3,24 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState
+import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileState
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.Constants
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel
 import com.microsoft.azuretools.telemetrywrapper.Operation
 import org.apache.commons.lang3.StringUtils
 
 class RiderWebAppRunState(project: Project, webAppConfiguration: RiderWebAppConfiguration)
-    : AzureRunProfileState<WebAppBase<*, *, *>>(project) {
+    : RiderAzureRunProfileState<WebAppBase<*, *, *>>(project) {
 
     private val webAppSettingModel: DotNetWebAppSettingModel = webAppConfiguration.webAppSettingModel
 
-    override fun executeSteps(processHandler: RunProcessHandler, operation: Operation): WebAppBase<*, *, *> {
+//    override fun executeSteps(processHandler: RunProcessHandler, operation: Operation): WebAppBase<*, *, *> {
 //        val publishableProject = webAppSettingModel.publishableProject
 //                ?: throw RuntimeException("Project is not defined")
 //        val artifact = prepareArtifact(project, publishableProject, webAppSettingModel.configuration, webAppSettingModel.platform, processHandler)
@@ -26,24 +28,23 @@ class RiderWebAppRunState(project: Project, webAppConfiguration: RiderWebAppConf
 //        AzureWebAppMvpModel.getInstance().deployArtifactsToWebApp(deployTarget, artifact, webAppSettingModel.isDeployToRoot, processHandler)
 //
 //        return deployTarget
-        throw NotImplementedError()
+//        throw NotImplementedError()
+//    }
+
+    override fun executeSteps(processHandler: RunProcessHandler): WebAppBase<*, *, *> {
+        val publishableProject = webAppSettingModel.publishableProject
+                ?: throw RuntimeException("Project is not defined")
+
+        val deployTarget = getOrCreateDeployTargetFromAppSettingModel(processHandler)
+        val taskManager = AzureTaskManager.getInstance()
+
+        return deployTarget
     }
 
-    override fun createOperation(): Operation {
-        TODO("Not yet implemented")
-    }
-
-    override fun getTelemetryMap(): Map<String, String> {
-        return emptyMap()
-    }
-
-    override fun onSuccess(result: WebAppBase<*, *, *>?, processHandler: RunProcessHandler) {
-        processHandler.notifyComplete()
-    }
 
     private fun getOrCreateDeployTargetFromAppSettingModel(processHandler: RunProcessHandler): WebAppBase<*, *, *> {
         val azureAppService = Azure.az(AzureWebApp::class.java)
-        val webApp = getOrCreateWebappFromAppSettingModel(azureAppService, processHandler)
+        val webApp = getOrCreateWebappFromAppSettingModel(processHandler)
         if (!isDeployToSlot()) return webApp
 
         return if (StringUtils.equals(webAppSettingModel.slotName, Constants.CREATE_NEW_SLOT)) {
@@ -54,7 +55,7 @@ class RiderWebAppRunState(project: Project, webAppConfiguration: RiderWebAppConf
         }
     }
 
-    private fun getOrCreateWebappFromAppSettingModel(azureAppService: AzureAppService, processHandler: RunProcessHandler): WebApp {
+    private fun getOrCreateWebappFromAppSettingModel(processHandler: RunProcessHandler): WebApp {
         val name = webAppSettingModel.webAppName
         val rg = webAppSettingModel.resourceGroup
         val id = webAppSettingModel.webAppId
@@ -72,4 +73,8 @@ class RiderWebAppRunState(project: Project, webAppConfiguration: RiderWebAppConf
     }
 
     private fun isDeployToSlot() = !webAppSettingModel.isCreatingNew && webAppSettingModel.isDeployToSlot
+
+    override fun onSuccess(result: WebAppBase<*, *, *>, processHandler: RunProcessHandler) {
+        processHandler.notifyComplete()
+    }
 }
