@@ -22,10 +22,6 @@ import static com.microsoft.azure.toolkit.intellij.cognitiveservices.IntelliJCog
 import static com.microsoft.azure.toolkit.intellij.cognitiveservices.IntelliJCognitiveServicesActionsContributor.TRY_PLAYGROUND;
 
 public class CognitiveServicesStartupListener implements ProjectActivity {
-    public static final AzureString TRY_OPENAI_MESSAGE = AzureString.format("%s is supported now. " +
-        "You can use Azure OpenAI to build your own \"%s\". " +
-        "<a href='https://docs.microsoft.com/en-us/azure/openai/'>learn more</a> about Azure OpenAI.", "Azure OpenAI", "ChatGPT");
-
     @Override
     public Object execute(@Nonnull Project project, @Nonnull Continuation<? super Unit> continuation) {
         final String tryOpenAIId = TRY_OPENAI.getId();
@@ -36,7 +32,9 @@ public class CognitiveServicesStartupListener implements ProjectActivity {
                 .withLabel("Don't show again")
                 .withHandler((e) -> IntellijStore.getInstance().getState().getSuppressedActions().put(tryOpenAIId, true))
                 .withAuthRequired(false);
-            AzureMessager.getMessager().info(TRY_OPENAI_MESSAGE, tryOpenAI, dismiss);
+            final AzureString msg = AzureString.format("You can use Azure OpenAI to build your own \"%s\" or other models. " +
+                "<a href='https://docs.microsoft.com/en-us/azure/openai/'>learn more</a> about Azure OpenAI.", "ChatGPT");
+            AzureMessager.getMessager().info(msg, "Azure OpenAI is supported!", tryOpenAI, dismiss);
         }
         if (BooleanUtils.isNotTrue(IntellijStore.getInstance().getState().getSuppressedActions().get(tryPlaygroundId))) {
             AzureEventBus.once("account.subscription_changed.account", (_a, _b) -> Azure.az(AzureCognitiveServices.class).list().stream()
@@ -58,9 +56,9 @@ public class CognitiveServicesStartupListener implements ProjectActivity {
                         .withLabel("Don't show again")
                         .withHandler((e) -> IntellijStore.getInstance().getState().getSuppressedActions().put(tryPlaygroundId, true))
                         .withAuthRequired(false);
-                    final AzureString msg = AzureString.format("GPT* model based deployment (%s) detected in your Cognitive Service account (%s). " +
-                        "You can try your own \"%s\" in playground.", d.getName(), d.getParent().getName(), "ChatGPT");
-                    AzureMessager.getMessager().info(msg, tryPlayGround, dismiss);
+                    final AzureString msg = AzureString.format("GPT* model based deployment (%s) is detected in your Azure Cognitive Services account (%s). " +
+                        "You can try your own \"%s\" in AI playground.", d.getName(), d.getParent().getName(), "ChatGPT");
+                    AzureMessager.getMessager().info(msg, "GPT* model is detected!", tryPlayGround, dismiss);
                 }));
         }
         return null;
