@@ -2,11 +2,11 @@
   "$schema": "../flow-schema/Course.json",
   "name": "hello-openai",
   "title": "Try Azure OpenAI",
-  "description": "This tutorial shows how to deploy your own GPT 3.5 model to Azure and try the features in IntelliJ OpenAI playground.",
+  "description": "This tutorial shows how to deploy your own GPT 3.5 model on Azure and explore the features of OpenAI Playground in Azure Toolkit for IntelliJ.",
   "priority" : 5,
   "icon": "/icons/Microsoft.CognitiveServices/default.svg",
   "tags": [
-    "Open AI",
+    "OpenAI",
     "GPT 3.5",
     "Quickstart"
   ],
