@@ -37,7 +37,7 @@ public class AzureSlider implements AzureFormInputComponent<Double> {
     private void init() {
         this.numSlider.setMinimum((int) (this.minimum * this.magnification));
         this.numSlider.setMaximum((int) (this.maximum * this.magnification));
-        this.numSlider.setMinorTickSpacing((int) (maximum - minimum) * magnification / 40);
+        this.numSlider.setMinorTickSpacing((int) (maximum - minimum) * magnification / 20);
         this.numSlider.setMajorTickSpacing((int) (maximum - minimum) * magnification / 4);
         final Hashtable<Integer, JComponent> labels = this.createLabels(numSlider);
         this.numSlider.setLabelTable(labels);
@@ -73,9 +73,10 @@ public class AzureSlider implements AzureFormInputComponent<Double> {
         final Hashtable<Integer, JComponent> result = new Hashtable<>();
         final double step = (this.maximum - this.minimum) / 4;
         for (double value = this.minimum; value <= this.maximum; value += step) {
-            final JLabel label = new JLabel(String.valueOf(value));
+            final String labelValue = magnification == 1 ? String.valueOf((int)value) : String.valueOf(value);
+            final JLabel label = new JLabel(labelValue);
             label.setPreferredSize(new Dimension(50, 24));
-            label.setHorizontalAlignment(SwingConstants.TRAILING);
+            label.setHorizontalAlignment(SwingConstants.CENTER);
             result.put((int) (value * this.magnification), label);
         }
         return result;
