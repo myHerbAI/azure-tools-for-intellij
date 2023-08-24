@@ -24,10 +24,10 @@ public class ApplicationInsightsActionsContributor implements IActionsContributo
     public static final String INSIGHT_ACTIONS = "actions.applicationinsights.management";
 
     public static final Action.Id<ApplicationInsight> OPEN_APPLICATION_MAP = Action.Id.of("user/ai.open_application_map.ai");
-    public static final Action.Id<ApplicationInsight> OPEN_LIVE_METRICS = Action.Id.of("user/ai.open_live_metrics.ai");
+    public static final Action.Id<ApplicationInsight> OPEN_LIVE_METRICS = ApplicationInsight.OPEN_LIVE_METRICS;
     public static final Action.Id<ApplicationInsight> OPEN_TRANSACTION_SEARCH = Action.Id.of("user/ai.open_transaction_search.ai");
     public static final Action.Id<ApplicationInsight> COPY_INSTRUMENTATION_KEY = Action.Id.of("user/ai.copy_instrumentation_key.ai");
-    public static final Action.Id<ApplicationInsight> COPY_CONNECTION_STRING = Action.Id.of("user/ai.copy_connection_string.ai");
+    public static final Action.Id<ApplicationInsight> COPY_CONNECTION_STRING = ApplicationInsight.COPY_CONNECTION_STRING;
     public static final Action.Id<ResourceGroup> GROUP_CREATE_APPLICATIONINSIGHT = Action.Id.of("user/ai.create_ai.group");
     public static final Action.Id<ApplicationInsight> OPEN_LOGS_IN_MONITOR = Action.Id.of("user/ai.open_azure_monitor.ai");
 
