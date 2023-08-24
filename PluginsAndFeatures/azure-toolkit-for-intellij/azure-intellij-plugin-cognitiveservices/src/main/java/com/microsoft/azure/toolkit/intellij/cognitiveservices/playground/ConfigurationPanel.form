@@ -53,7 +53,7 @@
           <toolTipText value="Make the model end its response at a desired point. The model response will end before the specified sequence, so it won't contain the stop sequence text. For ChatGPT, using &lt;|im_end|&gt; ensures that the model response doesn't generate a follow-up user query. You can include as many as four stop sequences."/>
         </properties>
       </component>
-      <component id="cfd60" class="com.microsoft.azure.toolkit.intellij.common.AzureTextInput" binding="txtStopSequence">
+      <component id="cfd60" class="com.microsoft.azure.toolkit.intellij.common.AzureTextInput" binding="txtStopSequence" custom-create="true">
         <constraints>
           <grid row="7" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
