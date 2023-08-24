@@ -33,7 +33,7 @@ public class CognitiveServicesStartupListener implements ProjectActivity {
                 .withHandler((e) -> IntellijStore.getInstance().getState().getSuppressedActions().put(tryOpenAIId, true))
                 .withAuthRequired(false);
             final AzureString msg = AzureString.format("You can use Azure OpenAI to build your own \"%s\" or other models. " +
-                "<a href='https://docs.microsoft.com/en-us/azure/openai/'>learn more</a> about Azure OpenAI.", "ChatGPT");
+                "<a href='https://go.microsoft.com/fwlink/?linkid=2202896'>Learn more</a> about Azure OpenAI.", "Copilot");
             AzureMessager.getMessager().info(msg, "Azure OpenAI is supported!", tryOpenAI, dismiss);
         }
         if (BooleanUtils.isNotTrue(IntellijStore.getInstance().getState().getSuppressedActions().get(tryPlaygroundId))) {
@@ -57,7 +57,7 @@ public class CognitiveServicesStartupListener implements ProjectActivity {
                         .withHandler((e) -> IntellijStore.getInstance().getState().getSuppressedActions().put(tryPlaygroundId, true))
                         .withAuthRequired(false);
                     final AzureString msg = AzureString.format("GPT* model based deployment (%s) is detected in your Azure Cognitive Services account (%s). " +
-                        "You can try your own \"%s\" in AI playground.", d.getName(), d.getParent().getName(), "ChatGPT");
+                        "You can try your own \"%s\" in AI playground.", d.getName(), d.getParent().getName(), "Copilot");
                     AzureMessager.getMessager().info(msg, "GPT* model is detected!", tryPlayGround, dismiss);
                 }));
         }
