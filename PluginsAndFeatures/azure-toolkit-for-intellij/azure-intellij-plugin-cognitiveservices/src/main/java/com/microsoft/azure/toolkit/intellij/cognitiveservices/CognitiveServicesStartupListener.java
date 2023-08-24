@@ -46,6 +46,7 @@ public class CognitiveServicesStartupListener implements ProjectActivity {
                 .findFirst().ifPresent(d -> {
                     final Action<CognitiveDeployment> tryPlayGround =
                         new Action<>(TRY_PLAYGROUND)
+                            .withIdParam(d.getName())
                             .withLabel("Open in AI Playground")
                             .withSource(d)
                             .withHandler((_d, e) -> {

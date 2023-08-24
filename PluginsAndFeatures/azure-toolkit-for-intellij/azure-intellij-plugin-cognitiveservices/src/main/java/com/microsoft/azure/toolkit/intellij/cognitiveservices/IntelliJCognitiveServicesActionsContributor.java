@@ -45,7 +45,7 @@ import java.util.function.BiPredicate;
 
 public class IntelliJCognitiveServicesActionsContributor implements IActionsContributor {
     public static final Action.Id<Project> TRY_OPENAI = Action.Id.of("user/cognitiveservices.try_openai");
-    public static final Action.Id<CognitiveDeployment> TRY_PLAYGROUND = Action.Id.of("user/cognitiveservices.try_playground");
+    public static final Action.Id<CognitiveDeployment> TRY_PLAYGROUND = Action.Id.of("user/cognitiveservices.try_playground.deployment");
 
     @Override
     public void registerActions(AzureActionManager am) {
