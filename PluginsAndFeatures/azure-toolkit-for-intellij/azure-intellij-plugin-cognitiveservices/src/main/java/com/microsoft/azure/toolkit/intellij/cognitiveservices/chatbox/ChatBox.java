@@ -145,8 +145,6 @@ public class ChatBox {
         }
         this.sendBtn.setEnabled(false);
         this.clearBtn.setEnabled(false);
-        final Icon sendIcon = this.sendBtn.getIcon();
-        this.sendBtn.setIcon(AnimatedIcon.Default.INSTANCE);
         this.sendBtn.setToolTipText("Sending...");
         final AzureTaskManager tm = AzureTaskManager.getInstance();
         tm.runOnPooledThread(() -> {
@@ -161,7 +159,6 @@ public class ChatBox {
                 tm.runLater(() -> {
                     this.sendBtn.setEnabled(true);
                     this.clearBtn.setEnabled(true);
-                    this.sendBtn.setIcon(sendIcon);
                     this.sendBtn.setToolTipText("Send");
                 });
             }
