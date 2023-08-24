@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.ide.guidance.Task;
 import com.microsoft.azure.toolkit.ide.guidance.config.TaskConfig;
 import com.microsoft.azure.toolkit.ide.guidance.task.GuidanceTaskProvider;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.tasks.CreateCognitiveDeploymentTask;
+import com.microsoft.azure.toolkit.intellij.cognitiveservices.tasks.OpenPlaygroundTask;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.tasks.SelectSubscriptionTask;
 
 import javax.annotation.Nonnull;
@@ -24,6 +25,7 @@ public class IntelliJCognitiveServicesTaskProvider implements GuidanceTaskProvid
         return switch (config.getName()) {
             case "task.openai.select_subscription" -> new SelectSubscriptionTask(taskContext);
             case "task.openai.create_deployment" -> new CreateCognitiveDeploymentTask(taskContext);
+            case "task.open_ai.open_playground" -> new OpenPlaygroundTask(taskContext);
             default -> null;
         };
     }
