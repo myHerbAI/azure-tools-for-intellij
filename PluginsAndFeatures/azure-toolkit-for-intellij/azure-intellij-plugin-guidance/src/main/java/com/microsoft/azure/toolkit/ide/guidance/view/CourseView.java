@@ -76,7 +76,8 @@ public class CourseView {
             return;
         }
         this.course = course;
-        this.guidanceIcon.setIcon(IntelliJAzureIcons.getIcon(AzureIcons.Common.AZURE));
+        this.guidanceIcon.setIcon(IntelliJAzureIcons.getIcon(StringUtils.isBlank(course.getIcon()) ?
+                AzureIcons.Common.AZURE.getIconPath() : course.getIcon()));
         this.titleLabel.setText(course.getTitle());
         this.setVisible(true);
         AzureTaskManager.getInstance().runOnPooledThread(course::prepare);
