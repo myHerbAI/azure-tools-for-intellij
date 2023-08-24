@@ -31,6 +31,14 @@ public class GuidanceViewManager {
         return instance;
     }
 
+    @AzureOperation(name = "user/guidance.open_course.course", params = {"courseName"})
+    public void openCourseView(@Nonnull final Project project, @Nonnull final String courseName) {
+        final CourseConfig courseByName = GuidanceConfigManager.getInstance().getCourseByName(courseName);
+        if (Objects.nonNull(courseByName)) {
+            openCourseView(project, courseByName);
+        }
+    }
+
     @AzureOperation(name = "user/guidance.open_course.course", params = {"courseConfig.getTitle()"})
     public void openCourseView(@Nonnull final Project project, @Nonnull final CourseConfig courseConfig) {
         final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(GuidanceViewManager.TOOL_WINDOW_ID);

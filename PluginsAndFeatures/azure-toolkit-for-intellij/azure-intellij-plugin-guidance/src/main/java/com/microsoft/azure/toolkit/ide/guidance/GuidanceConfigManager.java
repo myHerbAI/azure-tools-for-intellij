@@ -10,6 +10,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.microsoft.azure.toolkit.ide.guidance.config.CourseConfig;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
+import org.apache.commons.lang.StringUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 
@@ -66,6 +67,11 @@ public class GuidanceConfigManager {
         } catch (final IOException e) {
             return null;
         }
+    }
+
+    public CourseConfig getCourseByName(@Nonnull final String name) {
+        return loadCourses().stream().filter(course -> StringUtils.equalsIgnoreCase(name, course.getName()))
+                .findFirst().orElse(null);
     }
 
     @Cacheable(value = "guidance/courses")
