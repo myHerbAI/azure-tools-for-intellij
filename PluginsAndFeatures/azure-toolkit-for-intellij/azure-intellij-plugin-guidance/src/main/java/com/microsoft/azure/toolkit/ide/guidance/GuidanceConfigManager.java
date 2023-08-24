@@ -21,10 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -84,6 +81,7 @@ public class GuidanceConfigManager {
                 .orElse(Collections.emptySet())
                 .stream().map(uri -> GuidanceConfigManager.getCourse("/" + uri))
                 .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(CourseConfig::getPriority))
                 .collect(Collectors.toList());
     }
 

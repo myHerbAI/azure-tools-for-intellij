@@ -39,6 +39,10 @@ public class Course implements Disposable {
     private final String repository;
     @Nullable
     private final String uri;
+    @Nullable
+    private final String icon;
+    @Nonnull
+    private final Integer priority;
     @Nonnull
     private final List<Phase> phases;
     @Nonnull
@@ -59,6 +63,8 @@ public class Course implements Disposable {
         this.repository = courseConfig.getRepository();
         this.context = new Context(this, courseConfig.getContext());
         this.uri = courseConfig.getUri();
+        this.icon = courseConfig.getIcon();
+        this.priority = courseConfig.getPriority();
         this.phases = courseConfig.getPhases().stream().map(config -> PhaseManager.createPhase(config, this)).collect(Collectors.toList());
         this.initPhaseStatusListener();
     }

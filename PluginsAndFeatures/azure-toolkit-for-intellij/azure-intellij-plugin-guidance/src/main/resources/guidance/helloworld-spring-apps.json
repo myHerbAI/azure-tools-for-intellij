@@ -4,6 +4,8 @@
   "title": "Deploy Your First Spring App to Azure",
   "description": "This tutorial shows how to use the IntelliJ toolkit to deploy a simple todo-app project to Azure Spring Apps.",
   "repository": "https://github.com/Azure-Samples/ASA-Samples-Web-Application.git",
+  "priority" : 10,
+  "icon": "/icons/Microsoft.AppPlatform/default.svg",
   "tags": [
     "Spring Apps",
     "For beginners",
