@@ -70,7 +70,10 @@ public class OpenAIPlayground extends BaseEditor {
 
         final SystemMessage defaultSystemMessage = SystemMessageTemplateService.getDefaultSystemMessage();
         this.pnlSystemMessage.setValue(defaultSystemMessage);
-        this.pnlSystemMessage.setValueChangedListener(chatBot::setSystemMessage);
+        this.pnlSystemMessage.setValueChangedListener((m) -> {
+            this.chatBox.clearSession();
+            this.chatBot.setSystemMessage(m);
+        });
         chatBot.setSystemMessage(defaultSystemMessage);
     }
 

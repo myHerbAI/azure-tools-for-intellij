@@ -121,7 +121,7 @@ public class ChatBox {
 
     @AzureOperation(value = "user/openai.clear_session.deployment",
         params = {"this.chatBot.getDeployment().getName()"}, source = "this.chatBot.getDeployment()")
-    private void clearSession() {
+    public void clearSession() {
         Optional.ofNullable(this.chatBot).ifPresent(ChatBot::reset);
         this.messageBox.removeAll();
         this.messageBox.setVisible(false);
