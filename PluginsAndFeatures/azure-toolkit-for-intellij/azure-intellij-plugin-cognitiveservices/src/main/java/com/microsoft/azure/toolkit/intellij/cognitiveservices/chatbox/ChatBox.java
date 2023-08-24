@@ -5,7 +5,9 @@ package com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox;
 import com.azure.ai.openai.models.ChatChoice;
 import com.azure.ai.openai.models.ChatMessage;
 import com.azure.ai.openai.models.ChatRole;
-import com.intellij.ui.AnimatedIcon;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.ActionLink;
 import com.intellij.ui.components.JBLabel;
@@ -15,6 +17,7 @@ import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
+import com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.sourcecode.ViewCodeDialog;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
@@ -72,6 +75,10 @@ public class ChatBox {
         final Icon sendIcon = IntelliJAzureIcons.getIcon(AzureIcons.Action.SEND);
         this.clearBtn.setEnabled(false);
         this.clearBtn.addActionListener(e -> Optional.ofNullable(this.chatBot).ifPresent((c) -> clearSession()));
+        this.viewCodeBtn.addActionListener(e -> Optional.ofNullable(this.chatBot).ifPresent((c) -> {
+            final Project project = DataManager.getInstance().getDataContext(this.contentPanel).getData(CommonDataKeys.PROJECT);
+            new ViewCodeDialog(project, this.chatBot).show();
+        }));
 
         this.messageBox.setVisible(false);
         this.placeholder.setVisible(true);

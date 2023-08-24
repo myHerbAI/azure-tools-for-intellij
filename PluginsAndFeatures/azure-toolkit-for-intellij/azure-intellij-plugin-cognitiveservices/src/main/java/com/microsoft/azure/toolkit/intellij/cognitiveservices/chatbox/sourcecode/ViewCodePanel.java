@@ -1,0 +1,100 @@
+package com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.sourcecode;
+
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.editor.impl.DocumentImpl;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.ex.FileTypeManagerEx;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.ui.EditorTextField;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.fields.ExtendableTextComponent;
+import com.intellij.ui.components.fields.ExtendableTextField;
+import com.intellij.util.ui.UIUtil;
+import com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBot;
+import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccount;
+import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
+import org.apache.commons.lang.BooleanUtils;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.datatransfer.StringSelection;
+import java.util.Objects;
+
+public class ViewCodePanel {
+    private final ChatBot chatBot;
+
+    private SourceCodeGeneratorComboBox comboLanguage;
+    private JTextPane lblHeadMsg;
+    private JTextPane lblTailMsg;
+    private JBLabel lblKey;
+    private ExtendableTextField txtKey;
+    private ExtendableTextField txtEndpoint;
+    private JBLabel lblEndpoint;
+    private JTextField txtApiBase;
+    private JPanel contentPanel;
+    private JPanel editorContainer;
+
+    public ViewCodePanel(final ChatBot chatBot) {
+        this.chatBot = chatBot;
+        this.init();
+    }
+
+    @SuppressWarnings("deprecation")
+    private void init() {
+        final CognitiveDeployment deployment = this.chatBot.getDeployment();
+        final CognitiveAccount account = deployment.getParent();
+
+        final String key = Objects.requireNonNull(account.getPrimaryKey());
+        final String endpoint = deployment.getEndpoint();
+        this.txtApiBase.setText(account.getEndpoint());
+
+        this.lblEndpoint.setIcon(AllIcons.General.ContextHelp);
+        this.txtEndpoint.setText(endpoint);
+        this.txtEndpoint.addExtension(ExtendableTextComponent.Extension.create(AllIcons.Actions.Copy, "Copy", () -> {
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(endpoint), null);
+        }));
+        this.lblKey.setIcon(AllIcons.General.ContextHelp);
+        this.txtKey.setText("*".repeat(key.length()));
+        this.txtKey.addExtension(ExtendableTextComponent.Extension.create(AllIcons.Actions.Copy, "Copy", () -> {
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(key), null);
+        }));
+        this.txtKey.addExtension(ExtendableTextComponent.Extension.create(AllIcons.General.InspectionsEye, "Show/Hide", () -> {
+            if (BooleanUtils.isTrue((Boolean) this.txtKey.getClientProperty("keyVisible"))) {
+                this.txtKey.putClientProperty("keyVisible", false);
+                this.txtKey.setText("*".repeat(key.length()));
+            } else {
+                this.txtKey.putClientProperty("keyVisible", true);
+                this.txtKey.setText(key);
+            }
+        }));
+
+        this.lblTailMsg.setContentType("text/html");
+        this.lblTailMsg.setEditorKit(new UIUtil.JBWordWrapHtmlEditorKit());
+        Messages.configureMessagePaneUi(this.lblTailMsg, "<html><body>You should use environment variables or a secret management tool " +
+            "like Azure Key Vault to prevent accidental exposure of your key in applications. " +
+            "<a href=\"https://go.microsoft.com/fwlink/?linkid=2189347\">Learn more here</a></body></html");
+        this.comboLanguage.addItemListener(e -> {
+            final ISourceCodeGenerator generator = (ISourceCodeGenerator) e.getItem();
+            this.editorContainer.removeAll();
+            this.editorContainer.add(this.createCodeViewer(generator));
+            this.editorContainer.revalidate();
+            this.editorContainer.repaint();
+        });
+    }
+
+    private EditorTextField createCodeViewer(final ISourceCodeGenerator generator) {
+        final Project project = ProjectManager.getInstance().getOpenProjects()[0];
+        final DocumentImpl document = new DocumentImpl("", true);
+        final FileType fileType = FileTypeManagerEx.getInstance().getFileTypeByExtension(generator.getLanguage());
+        final EditorTextField editor = new EditorTextField(document, project, fileType, true, false);
+        editor.addSettingsProvider(e -> { // add scrolling/line number features
+            e.setHorizontalScrollbarVisible(true);
+            e.setVerticalScrollbarVisible(true);
+            e.getSettings().setLineNumbersShown(true);
+        });
+        editor.setText(generator.generateCode(this.chatBot));
+        return editor;
+    }
+}

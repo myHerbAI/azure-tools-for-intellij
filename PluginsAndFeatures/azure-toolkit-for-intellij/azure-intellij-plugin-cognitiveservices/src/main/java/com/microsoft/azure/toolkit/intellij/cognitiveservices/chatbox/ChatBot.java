@@ -13,6 +13,7 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Stack;
@@ -76,7 +77,7 @@ public class ChatBot {
         Optional.ofNullable(configuration).ifPresent(c -> {
             result.setFrequencyPenalty(c.getFrequencyPenalty());
             result.setPresencePenalty(c.getPresencePenalty());
-            result.setStop(StringUtils.isBlank(c.getStopSequences()) ? null : Arrays.asList(c.getStopSequences()));
+            result.setStop(StringUtils.isBlank(c.getStopSequences()) ? null : Collections.singletonList(c.getStopSequences()));
             result.setTemperature(c.getTemperature());
             result.setTopP(c.getTopP());
             result.setMaxTokens(c.getMaxResponse());
