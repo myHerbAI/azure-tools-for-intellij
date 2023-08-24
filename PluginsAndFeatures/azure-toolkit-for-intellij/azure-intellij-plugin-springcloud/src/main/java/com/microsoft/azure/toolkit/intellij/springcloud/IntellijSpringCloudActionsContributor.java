@@ -9,6 +9,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.ide.guidance.GuidanceViewManager;
 import com.microsoft.azure.toolkit.ide.springcloud.SpringCloudActionsContributor;
 import com.microsoft.azure.toolkit.intellij.springcloud.creation.CreateSpringCloudAppAction;
 import com.microsoft.azure.toolkit.intellij.springcloud.creation.CreateSpringCloudClusterAction;
@@ -18,6 +19,7 @@ import com.microsoft.azure.toolkit.intellij.springcloud.remotedebug.EnableRemote
 import com.microsoft.azure.toolkit.intellij.springcloud.streaminglog.SpringCloudStreamingLogAction;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.springcloud.AzureSpringCloud;
@@ -38,6 +40,7 @@ public class IntellijSpringCloudActionsContributor implements IActionsContributo
 
     @Override
     public void registerHandlers(AzureActionManager am) {
+        this.registerGettingStartActionHandler(am);
         this.registerCreateServiceActionHandler(am);
         this.registerCreateAppActionHandler(am);
         this.registerDeployAppActionHandler(am);
@@ -47,6 +50,11 @@ public class IntellijSpringCloudActionsContributor implements IActionsContributo
         this.registerDisableRemoteDebuggingHandler(am);
         this.registerStartDebuggingHandler(am);
         this.registerStartDebuggingAppHandler(am);
+    }
+
+    private void registerGettingStartActionHandler(AzureActionManager am) {
+        am.registerHandler(ResourceCommonActionsContributor.OPEN_GETTING_START, (r, e) -> r instanceof AzureSpringCloud,
+                (AbstractAzService<?, ?> c, AnActionEvent e) -> GuidanceViewManager.getInstance().openCourseView(e.getProject(), "hello-spring-apps"));
     }
 
     private void registerCreateServiceActionHandler(AzureActionManager am) {

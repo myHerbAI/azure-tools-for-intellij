@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.intellij.common.AzureFormInputComponent;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 
 public class AzureTextArea extends JBTextArea implements AzureFormInputComponent<String> {
@@ -32,7 +33,8 @@ public class AzureTextArea extends JBTextArea implements AzureFormInputComponent
         this.setBackground(JBUI.CurrentTheme.EditorTabs.background());
         this.setLineWrap(true);
         this.setFont(JBUI.Fonts.label());
-        this.setBorder(JBUI.Borders.customLine(borderColor, 1));
+        final Border border = JBUI.Borders.compound(JBUI.Borders.customLine(borderColor, 1), JBUI.Borders.empty(6));
+        this.setBorder(border);
     }
 
     @Override

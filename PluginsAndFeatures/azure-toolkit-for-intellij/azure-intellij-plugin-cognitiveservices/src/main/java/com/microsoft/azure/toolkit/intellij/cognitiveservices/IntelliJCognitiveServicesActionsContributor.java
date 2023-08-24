@@ -11,15 +11,13 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.microsoft.azure.toolkit.ide.cognitiveservices.CognitiveServicesActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
-import com.microsoft.azure.toolkit.ide.guidance.GuidanceConfigManager;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.guidance.GuidanceViewManager;
-import com.microsoft.azure.toolkit.ide.guidance.config.CourseConfig;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBot;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBox;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.creation.CognitiveAccountCreationDialog;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.creation.CognitiveDeploymentCreationDialog;
 import com.microsoft.azure.toolkit.intellij.common.properties.IntellijShowPropertiesViewAction;
-import com.microsoft.azure.toolkit.intellij.common.settings.IntellijStore;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.AzureCognitiveServices;
@@ -29,6 +27,7 @@ import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeploymentDraft;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -48,23 +47,11 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
     public static final Action.Id<CognitiveDeployment> TRY_PLAYGROUND = Action.Id.of("user/cognitiveservices.try_playground.deployment");
 
     @Override
-    public void registerActions(AzureActionManager am) {
-        new Action<>(TRY_OPENAI)
-            .withLabel("Try Azure OpenAI")
-            .withIcon("/icons/Microsoft.CognitiveServices/default.svg")
-            .withHandler((project, e) -> {
-                final CourseConfig course = GuidanceConfigManager.getInstance().getCourse("hello-openai");
-                if (course != null && project != null) {
-                    GuidanceViewManager.getInstance().openCourseView(project, course);
-                    IntellijStore.getInstance().getState().getSuppressedActions().put(TRY_OPENAI.getId(), true);
-                }
-            })
-            .withAuthRequired(false)
-            .register(am);
-    }
-
-    @Override
     public void registerHandlers(AzureActionManager am) {
+        final BiPredicate<AbstractAzService<?, ?>, AnActionEvent> gettingStartCondition = (r, e) -> r instanceof AzureCognitiveServices;
+        am.registerHandler(ResourceCommonActionsContributor.OPEN_GETTING_START, gettingStartCondition,
+            (AbstractAzService<?, ?> c, AnActionEvent e) -> GuidanceViewManager.getInstance().openCourseView(e.getProject(), "hello-openai"));
+
         final BiPredicate<AzureCognitiveServices, AnActionEvent> serviceCondition = (r, e) -> r instanceof AzureCognitiveServices;
         final BiConsumer<AzureCognitiveServices, AnActionEvent> createAccountHandler = (c, e) -> openAccountCreationDialog(e.getProject(), null);
         am.registerHandler(CognitiveServicesActionsContributor.CREATE_ACCOUNT, serviceCondition, createAccountHandler);

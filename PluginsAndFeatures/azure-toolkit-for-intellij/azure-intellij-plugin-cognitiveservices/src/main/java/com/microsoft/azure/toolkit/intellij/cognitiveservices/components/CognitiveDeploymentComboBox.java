@@ -13,6 +13,7 @@ import org.apache.commons.collections.ListUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CognitiveDeploymentComboBox extends AzureComboBox<CognitiveDeployment> {
     private CognitiveAccount account;
@@ -47,7 +48,11 @@ public class CognitiveDeploymentComboBox extends AzureComboBox<CognitiveDeployme
     @Nonnull
     @Override
     protected List<? extends CognitiveDeployment> loadItems() {
-        return Optional.ofNullable(account).map(s -> ListUtils.union(draftItems, s.deployments().list())).orElse(Collections.emptyList());
+        final List<CognitiveDeployment> cognitiveDeployments = Optional.ofNullable(account)
+                .map(s -> s.deployments().list().stream()
+                        .filter(deployment -> deployment.getModel().isGPTModel()).collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
+        return ListUtils.union(draftItems, cognitiveDeployments);
     }
 
     @Nonnull

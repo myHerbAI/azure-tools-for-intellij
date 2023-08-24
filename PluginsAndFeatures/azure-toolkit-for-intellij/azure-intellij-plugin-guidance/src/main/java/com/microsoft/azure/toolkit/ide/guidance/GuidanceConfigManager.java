@@ -10,6 +10,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.microsoft.azure.toolkit.ide.guidance.config.CourseConfig;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
+import org.apache.commons.lang.StringUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 
@@ -21,7 +22,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -68,10 +73,9 @@ public class GuidanceConfigManager {
         }
     }
 
-    @Nullable
-    public CourseConfig getCourse(final String name) {
-        final List<CourseConfig> courses = this.loadCourses();
-        return courses.stream().filter(course -> course.getName().equals(name)).findFirst().orElse(null);
+    public CourseConfig getCourseByName(@Nonnull final String name) {
+        return loadCourses().stream().filter(course -> StringUtils.equalsIgnoreCase(name, course.getName()))
+            .findFirst().orElse(null);
     }
 
     @Cacheable(value = "guidance/courses")

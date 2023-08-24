@@ -2,6 +2,7 @@ package com.microsoft.azure.toolkit.intellij.cognitiveservices;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.ProjectActivity;
+import com.microsoft.azure.toolkit.ide.guidance.GuidanceViewManager;
 import com.microsoft.azure.toolkit.intellij.common.settings.IntellijStore;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.AzureCognitiveServices;
@@ -27,7 +28,14 @@ public class CognitiveServicesStartupListener implements ProjectActivity {
         final String tryOpenAIId = TRY_OPENAI.getId();
         final String tryPlaygroundId = TRY_PLAYGROUND.getId();
         if (BooleanUtils.isNotTrue(IntellijStore.getInstance().getState().getSuppressedActions().get(tryOpenAIId))) {
-            final Action<Project> tryOpenAI = AzureActionManager.getInstance().getAction(TRY_OPENAI).bind(project);
+            final Action<Project> tryOpenAI = new Action<>(TRY_OPENAI)
+                .withLabel("Try Azure OpenAI")
+                .withHandler((_d, e) -> {
+                    GuidanceViewManager.getInstance().openCourseView(project, "hello-openai");
+                    IntellijStore.getInstance().getState().getSuppressedActions().put(tryOpenAIId, true);
+                })
+                .withAuthRequired(true);
+            ;
             final Action<Object> dismiss = new Action<>(Action.Id.of("user/common.never_show_again"))
                 .withLabel("Don't show again")
                 .withHandler((e) -> IntellijStore.getInstance().getState().getSuppressedActions().put(tryOpenAIId, true))
