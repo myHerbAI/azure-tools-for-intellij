@@ -39,89 +39,89 @@ public class CognitiveServicesActionsContributor implements IActionsContributor 
     @Override
     public void registerActions(AzureActionManager am) {
         new Action<>(CREATE_ACCOUNT)
-                .withLabel("Create Azure OpenAI Account")
-                .withIcon(AzureIcons.Action.CREATE.getIconPath())
-                .withShortcut(am.getIDEDefaultShortcuts().add())
-                .register(am);
+            .withLabel("Create Azure OpenAI Account")
+            .withIcon(AzureIcons.Action.CREATE.getIconPath())
+            .withShortcut(am.getIDEDefaultShortcuts().add())
+            .register(am);
 
         new Action<>(CREATE_DEPLOYMENT)
-                .withLabel("Create Deployment")
-                .withIcon(AzureIcons.Action.CREATE.getIconPath())
-                .withIdParam(AbstractAzResource::getName)
-                .visibleWhen(s -> s instanceof CognitiveAccount)
-                .enableWhen(s -> s.getFormalStatus().isConnected())
-                .register(am);
+            .withLabel("Create Deployment")
+            .withIcon(AzureIcons.Action.CREATE.getIconPath())
+            .withIdParam(AbstractAzResource::getName)
+            .visibleWhen(s -> s instanceof CognitiveAccount)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .register(am);
 
         new Action<>(COPY_PRIMARY_KEY)
-                .withLabel("Copy Primary Key")
-                .withIcon(AzureIcons.Action.LOG.getIconPath())
-                .withIdParam(AbstractAzResource::getName)
-                .visibleWhen(s -> s instanceof CognitiveAccount)
-                .enableWhen(s -> s.getFormalStatus().isConnected())
-                .withHandler(resource -> {
-                    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(resource.getPrimaryKey()), null);
-                    AzureMessager.getMessager().info("Primary key copied");
-                })
-                .register(am);
+            .withLabel("Copy Primary Key")
+            .withIcon(AzureIcons.Action.LOG.getIconPath())
+            .withIdParam(AbstractAzResource::getName)
+            .visibleWhen(s -> s instanceof CognitiveAccount)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .withHandler(resource -> {
+                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(resource.getPrimaryKey()), null);
+                AzureMessager.getMessager().info("Primary key copied");
+            })
+            .register(am);
 
         new Action<>(OPEN_ACCOUNT_IN_PLAYGROUND)
-                .withLabel("Open In AI Playground")
-                .withIcon(AzureIcons.CognitiveServices.PLAYGROUND.getIconPath())
-                .visibleWhen(s -> s instanceof CognitiveAccount)
-                .enableWhen(s -> s.getFormalStatus().isConnected())
-                .register(am);
+            .withLabel("Open In AI Playground")
+            .withIcon(AzureIcons.CognitiveServices.PLAYGROUND.getIconPath())
+            .visibleWhen(s -> s instanceof CognitiveAccount)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .register(am);
 
         new Action<>(OPEN_DEPLOYMENT_IN_PLAYGROUND)
-                .withLabel("Open In AI Playground")
-                .withIcon(AzureIcons.CognitiveServices.PLAYGROUND.getIconPath())
-                .visibleWhen(s -> s instanceof CognitiveDeployment && ((CognitiveDeployment) s).getModel().isGPTModel())
-                .enableWhen(s -> s.getFormalStatus().isConnected())
-                .register(am);
+            .withLabel("Open In AI Playground")
+            .withIcon(AzureIcons.CognitiveServices.PLAYGROUND.getIconPath())
+            .visibleWhen(s -> s instanceof CognitiveDeployment && ((CognitiveDeployment) s).getModel().isGPTModel())
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .register(am);
 
         new Action<>(GROUP_CREATE_ACCOUNT)
-                .withLabel("Azure OpenAI Account")
-                .withIdParam(AzResource::getName)
-                .visibleWhen(s -> s instanceof ResourceGroup)
-                .enableWhen(s -> s.getFormalStatus().isConnected())
-                .register(am);
+            .withLabel("Azure OpenAI Account")
+            .withIdParam(AzResource::getName)
+            .visibleWhen(s -> s instanceof ResourceGroup)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .register(am);
     }
 
     @Override
     public void registerGroups(AzureActionManager am) {
         final ActionGroup serviceActionGroup = new ActionGroup(
-                ResourceCommonActionsContributor.REFRESH,
-                "---",
-                ResourceCommonActionsContributor.OPEN_GETTING_START,
-                ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
-                "---",
-                CognitiveServicesActionsContributor.CREATE_ACCOUNT
+            ResourceCommonActionsContributor.REFRESH,
+            "---",
+            ResourceCommonActionsContributor.OPEN_GETTING_START,
+            ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            "---",
+            CognitiveServicesActionsContributor.CREATE_ACCOUNT
         );
         am.registerGroup(SERVICE_ACTIONS, serviceActionGroup);
 
         final ActionGroup accountActionGroup = new ActionGroup(
-                ResourceCommonActionsContributor.PIN,
-                "---",
-                ResourceCommonActionsContributor.REFRESH,
-                ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
-                ResourceCommonActionsContributor.OPEN_PORTAL_URL,
-                "---",
-                ResourceCommonActionsContributor.DELETE,
-                "---",
-                CognitiveServicesActionsContributor.CREATE_DEPLOYMENT,
-                "---",
-                CognitiveServicesActionsContributor.COPY_PRIMARY_KEY
+            ResourceCommonActionsContributor.PIN,
+            "---",
+            ResourceCommonActionsContributor.REFRESH,
+            ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.OPEN_PORTAL_URL,
+            "---",
+            CognitiveServicesActionsContributor.COPY_PRIMARY_KEY,
+            CognitiveServicesActionsContributor.OPEN_ACCOUNT_IN_PLAYGROUND,
+            "---",
+            CognitiveServicesActionsContributor.CREATE_DEPLOYMENT,
+            ResourceCommonActionsContributor.DELETE
         );
         am.registerGroup(ACCOUNT_ACTIONS, accountActionGroup);
 
         final ActionGroup deploymentAction = new ActionGroup(
-                ResourceCommonActionsContributor.PIN,
-                "---",
-                ResourceCommonActionsContributor.REFRESH,
-                ResourceCommonActionsContributor.OPEN_PORTAL_URL,
-                "---",
-                ResourceCommonActionsContributor.DELETE,
-                "---",
-                CognitiveServicesActionsContributor.OPEN_DEPLOYMENT_IN_PLAYGROUND
+            ResourceCommonActionsContributor.PIN,
+            "---",
+            ResourceCommonActionsContributor.REFRESH,
+            ResourceCommonActionsContributor.OPEN_PORTAL_URL,
+            "---",
+            CognitiveServicesActionsContributor.OPEN_DEPLOYMENT_IN_PLAYGROUND,
+            "---",
+            ResourceCommonActionsContributor.DELETE
         );
         am.registerGroup(DEPLOYMENT_ACTIONS, deploymentAction);
 

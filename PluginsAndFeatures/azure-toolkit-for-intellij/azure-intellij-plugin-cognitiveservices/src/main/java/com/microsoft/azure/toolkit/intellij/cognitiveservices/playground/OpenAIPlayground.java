@@ -16,16 +16,21 @@ import com.microsoft.azure.toolkit.intellij.cognitiveservices.service.SystemMess
 import com.microsoft.azure.toolkit.intellij.common.BaseEditor;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccount;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.Objects;
+import java.util.Optional;
 
 public class OpenAIPlayground extends BaseEditor {
 
-    private final Project project;
+    @Nonnull
     private final CognitiveAccount account;
+    @Nullable
+    private final CognitiveDeployment deployment;
+
     private JPanel pnlRoot;
     private JPanel pnlTitleBar;
     private JPanel pnlBody;
@@ -42,9 +47,6 @@ public class OpenAIPlayground extends BaseEditor {
     private GPTDeploymentComboBox cbDeployment;
     private JPanel pnlExample;
 
-    private CognitiveDeployment deployment;
-    private ChatBot chatBot;
-
     public OpenAIPlayground(@Nonnull final Project project, @Nonnull final CognitiveAccount account, @Nonnull final VirtualFile virtualFile) {
         this(project, account, null, virtualFile);
     }
@@ -56,40 +58,43 @@ public class OpenAIPlayground extends BaseEditor {
     public OpenAIPlayground(@Nonnull final Project project, @Nonnull final CognitiveAccount account,
                             @Nullable final CognitiveDeployment deployment, @Nonnull final VirtualFile virtualFile) {
         super(virtualFile);
-        this.project = project;
         this.account = account;
         this.deployment = deployment;
-        this.chatBot = new ChatBot(deployment);
         $$$setupUI$$$();
         this.init();
     }
 
     private void init() {
-        this.chatBox.setChatBot(chatBot);
         final Configuration defaultConfiguration = Configuration.DEFAULT;
         this.pnlConfiguration.setValue(defaultConfiguration);
-        this.pnlConfiguration.addValueChangedListener(chatBot::setConfiguration);
-        chatBot.setConfiguration(defaultConfiguration);
+        this.pnlConfiguration.addValueChangedListener(v -> Optional.ofNullable(this.chatBox.getChatBot()).ifPresent(b -> b.setConfiguration(v)));
 
         final SystemMessage defaultSystemMessage = SystemMessageTemplateService.getDefaultSystemMessage();
         this.pnlSystemMessage.setValue(defaultSystemMessage);
         this.pnlSystemMessage.setValueChangedListener((m) -> {
             this.chatBox.clearSession();
-            this.chatBot.setSystemMessage(m);
+            Optional.ofNullable(this.chatBox.getChatBot()).ifPresent(b -> b.setSystemMessage(m));
         });
-        chatBot.setSystemMessage(defaultSystemMessage);
 
-        cbDeployment.setAccount(deployment.getParent());
+        cbDeployment.setAccount(this.account);
         cbDeployment.setValue(deployment);
         cbDeployment.addValueChangedListener(this::onDeploymentChanged);
+
+        Optional.ofNullable(this.deployment).ifPresent(this::onDeploymentChanged);
     }
 
     private void onDeploymentChanged(@Nonnull final CognitiveDeployment deployment) {
-        if (!Objects.equals(chatBox.getChatBot().getDeployment(), deployment)) {
-            final ChatBot chatBot = new ChatBot(deployment);
-            chatBot.setConfiguration(pnlConfiguration.getValue());
-            chatBot.setSystemMessage(pnlSystemMessage.getValue());
-            this.chatBox.setChatBot(chatBot);
+        if (Objects.isNull(chatBox.getChatBot())
+            || Objects.isNull(chatBox.getChatBot().getDeployment())
+            || !Objects.equals(chatBox.getChatBot().getDeployment(), deployment)) {
+            AzureTaskManager.getInstance().runOnPooledThread(() -> {
+                final ChatBot chatBot = new ChatBot(deployment);
+                AzureTaskManager.getInstance().runLater(() -> {
+                    chatBot.setConfiguration(pnlConfiguration.getValue());
+                    chatBot.setSystemMessage(pnlSystemMessage.getValue());
+                    this.chatBox.setChatBot(chatBot);
+                });
+            });
         }
     }
 

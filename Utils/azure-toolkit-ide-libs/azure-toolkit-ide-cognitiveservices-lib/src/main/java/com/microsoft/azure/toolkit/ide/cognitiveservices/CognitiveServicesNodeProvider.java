@@ -60,6 +60,7 @@ public class CognitiveServicesNodeProvider implements IExplorerNodeProvider {
             return new AzResourceNode<>((CognitiveDeployment) data)
                     .withDescription(deployment -> String.format("%s (version: %s)", deployment.getModel().getName(), deployment.getModel().getVersion()))
                     .addInlineAction(ResourceCommonActionsContributor.PIN)
+                    .onDoubleClicked(CognitiveServicesActionsContributor.OPEN_DEPLOYMENT_IN_PLAYGROUND)
                     .withActions(CognitiveServicesActionsContributor.DEPLOYMENT_ACTIONS);
         }
         return null;

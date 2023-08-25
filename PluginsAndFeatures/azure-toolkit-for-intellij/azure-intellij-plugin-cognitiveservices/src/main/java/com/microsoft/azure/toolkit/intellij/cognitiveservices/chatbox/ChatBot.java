@@ -64,7 +64,6 @@ public class ChatBot {
 
     public void setConfiguration(@Nonnull final Configuration configuration) {
         this.configuration = configuration;
-        this.refreshClient();
     }
 
     public ChatChoice send(String message) {
