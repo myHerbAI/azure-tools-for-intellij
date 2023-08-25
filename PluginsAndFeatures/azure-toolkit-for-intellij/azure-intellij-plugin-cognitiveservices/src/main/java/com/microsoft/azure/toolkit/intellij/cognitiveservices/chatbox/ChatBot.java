@@ -19,10 +19,12 @@ import java.util.Optional;
 import java.util.Stack;
 
 public class ChatBot {
+    @Getter
     private final Stack<ChatMessage> chatMessages = new Stack<>();
     @Getter
     private final CognitiveDeployment deployment;
     private SystemMessage systemMessage;
+    @Getter
     private Configuration configuration;
     private OpenAIClient client;
 
