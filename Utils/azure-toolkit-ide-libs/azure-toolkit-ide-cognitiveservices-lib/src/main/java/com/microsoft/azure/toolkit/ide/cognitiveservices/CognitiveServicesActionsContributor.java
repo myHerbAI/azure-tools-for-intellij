@@ -74,7 +74,7 @@ public class CognitiveServicesActionsContributor implements IActionsContributor 
         new Action<>(OPEN_DEPLOYMENT_IN_PLAYGROUND)
                 .withLabel("Open In AI Playground")
                 .withIcon(AzureIcons.CognitiveServices.PLAYGROUND.getIconPath())
-                .visibleWhen(s -> s instanceof CognitiveDeployment)
+                .visibleWhen(s -> s instanceof CognitiveDeployment && ((CognitiveDeployment) s).getModel().isGPTModel())
                 .enableWhen(s -> s.getFormalStatus().isConnected())
                 .register(am);
 
@@ -90,6 +90,8 @@ public class CognitiveServicesActionsContributor implements IActionsContributor 
     public void registerGroups(AzureActionManager am) {
         final ActionGroup serviceActionGroup = new ActionGroup(
                 ResourceCommonActionsContributor.REFRESH,
+                "---",
+                ResourceCommonActionsContributor.OPEN_GETTING_START,
                 ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
                 "---",
                 CognitiveServicesActionsContributor.CREATE_ACCOUNT
@@ -107,8 +109,7 @@ public class CognitiveServicesActionsContributor implements IActionsContributor 
                 "---",
                 CognitiveServicesActionsContributor.CREATE_DEPLOYMENT,
                 "---",
-                CognitiveServicesActionsContributor.COPY_PRIMARY_KEY,
-                CognitiveServicesActionsContributor.OPEN_ACCOUNT_IN_PLAYGROUND
+                CognitiveServicesActionsContributor.COPY_PRIMARY_KEY
         );
         am.registerGroup(ACCOUNT_ACTIONS, accountActionGroup);
 

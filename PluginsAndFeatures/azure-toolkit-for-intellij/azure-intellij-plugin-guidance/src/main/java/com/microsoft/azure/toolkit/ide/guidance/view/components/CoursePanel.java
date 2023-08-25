@@ -1,16 +1,16 @@
 package com.microsoft.azure.toolkit.ide.guidance.view.components;
 
-import com.microsoft.azure.toolkit.intellij.common.component.RoundedPanel;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import com.microsoft.azure.toolkit.ide.common.experiment.ExperimentationClient;
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
 import com.microsoft.azure.toolkit.ide.guidance.GuidanceViewManager;
 import com.microsoft.azure.toolkit.ide.guidance.action.ShowGettingStartAction;
 import com.microsoft.azure.toolkit.ide.guidance.config.CourseConfig;
+import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.intellij.common.component.RoundedPanel;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import lombok.Getter;
@@ -42,8 +42,9 @@ public class CoursePanel {
 
     public CoursePanel(@Nonnull final CourseConfig course, @Nonnull final Project project) {
         super();
-        this.showNewUIFlag = Boolean.parseBoolean(Optional.ofNullable(ExperimentationClient.getExperimentationService())
-                .map(service -> service.getFeatureVariable(ExperimentationClient.FeatureFlag.GETTING_STARTED_UI.getFlagName())).orElse("false"));
+        // this.showNewUIFlag = Boolean.parseBoolean(Optional.ofNullable(ExperimentationClient.getExperimentationService())
+        //         .map(service -> service.getFeatureVariable(ExperimentationClient.FeatureFlag.GETTING_STARTED_UI.getFlagName())).orElse("false"));
+        this.showNewUIFlag = true;
         this.course = course;
         this.project = project;
         $$$setupUI$$$();
@@ -56,6 +57,10 @@ public class CoursePanel {
         // this.lblIcon.setIcon(IntelliJAzureIcons.getIcon(AzureIcons.Common.AZURE));
         this.lblTitle.setText(course.getTitle());
         this.lblTitle.setPreferredSize(new Dimension(-1, startButton.getPreferredSize().height));
+        final Icon icon = Optional.ofNullable(course.getIcon()).map(IntelliJAzureIcons::getIcon).orElse(null);
+        if (icon != null) {
+            this.lblTitle.setIcon(icon);
+        }
         this.startButton.setVisible(false);
         this.startButton.addActionListener(e -> openGuidance());
         this.areaDescription.setFont(JBFont.medium());

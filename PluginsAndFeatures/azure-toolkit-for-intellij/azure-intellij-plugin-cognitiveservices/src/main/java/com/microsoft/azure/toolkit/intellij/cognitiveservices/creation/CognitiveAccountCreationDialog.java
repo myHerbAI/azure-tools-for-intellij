@@ -2,11 +2,8 @@ package com.microsoft.azure.toolkit.intellij.cognitiveservices.creation;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBFont;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UI;
 import com.intellij.util.ui.UIUtil;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.components.CognitiveAccountRegionComboBox;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.components.CognitiveAccountSkuComboBox;
@@ -34,7 +31,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class CognitiveAccountCreationDialog extends AzureDialog<CognitiveAccountDraft> implements AzureForm<CognitiveAccountDraft> {
-    public static final String REGISTER_SUBSCRIPTION_TEXT = "The selected subscription has not been enabled for use of the service and does not have quota for any pricing tiers. " +
+    public static final String REGISTER_SUBSCRIPTION_TEXT = "Azure OpenAI Service is currently available to customers via an application form. The selected subscription has not been enabled for use of the service and does not have quota for any pricing tiers. " +
             "<a href = \"https://aka.ms/oai/access\">Click here to request access to Azure OpenAI service</a>.\u2197";
     private JLabel lblSubscription;
     private CognitiveSubscriptionComboBox cbSubscription;

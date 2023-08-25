@@ -35,6 +35,7 @@ import java.awt.event.MouseEvent;
 import java.util.Optional;
 
 public class ChatBox {
+    @Getter
     private ChatBot chatBot;
     private JLabel sendBtn;
     @Getter

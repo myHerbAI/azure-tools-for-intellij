@@ -10,6 +10,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.microsoft.azure.toolkit.ide.guidance.config.CourseConfig;
 import com.microsoft.azure.toolkit.lib.common.cache.Cacheable;
+import org.apache.commons.lang.StringUtils;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 
@@ -21,10 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -71,6 +69,11 @@ public class GuidanceConfigManager {
         }
     }
 
+    public CourseConfig getCourseByName(@Nonnull final String name) {
+        return loadCourses().stream().filter(course -> StringUtils.equalsIgnoreCase(name, course.getName()))
+                .findFirst().orElse(null);
+    }
+
     @Cacheable(value = "guidance/courses")
     public List<CourseConfig> loadCourses() {
         return Optional.of(new Reflections("guidance", Scanners.Resources))
@@ -84,6 +87,7 @@ public class GuidanceConfigManager {
                 .orElse(Collections.emptySet())
                 .stream().map(uri -> GuidanceConfigManager.getCourse("/" + uri))
                 .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(CourseConfig::getPriority))
                 .collect(Collectors.toList());
     }
 

@@ -7,8 +7,12 @@ package com.microsoft.azure.toolkit.intellij.cognitiveservices.playground;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBot;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBox;
+import com.microsoft.azure.toolkit.intellij.cognitiveservices.components.GPTDeploymentComboBox;
+import com.microsoft.azure.toolkit.intellij.cognitiveservices.model.Configuration;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.model.SystemMessage;
+import com.microsoft.azure.toolkit.intellij.cognitiveservices.service.SystemMessageTemplateService;
 import com.microsoft.azure.toolkit.intellij.common.BaseEditor;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccount;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
@@ -16,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
+import java.util.Objects;
 
 public class OpenAIPlayground extends BaseEditor {
 
@@ -33,11 +38,12 @@ public class OpenAIPlayground extends BaseEditor {
     private JButton btnImport;
     private JPanel pnlSystemMessageContainer;
     private ConfigurationPanel pnlConfiguration;
-    private ChatBox chatBox1;
+    private ChatBox chatBox;
+    private GPTDeploymentComboBox cbDeployment;
     private JPanel pnlExample;
 
     private CognitiveDeployment deployment;
-    private SystemMessage message;
+    private ChatBot chatBot;
 
     public OpenAIPlayground(@Nonnull final Project project, @Nonnull final CognitiveAccount account, @Nonnull final VirtualFile virtualFile) {
         this(project, account, null, virtualFile);
@@ -53,13 +59,35 @@ public class OpenAIPlayground extends BaseEditor {
         this.project = project;
         this.account = account;
         this.deployment = deployment;
+        this.chatBot = new ChatBot(deployment);
         $$$setupUI$$$();
         this.init();
     }
 
     private void init() {
-        this.pnlConfiguration.addValueChangedListener(null);
-        this.pnlSystemMessage.addValueChangedListener(null);
+        this.chatBox.setChatBot(chatBot);
+        final Configuration defaultConfiguration = Configuration.DEFAULT;
+        this.pnlConfiguration.setValue(defaultConfiguration);
+        this.pnlConfiguration.addValueChangedListener(chatBot::setConfiguration);
+        chatBot.setConfiguration(defaultConfiguration);
+
+        final SystemMessage defaultSystemMessage = SystemMessageTemplateService.getDefaultSystemMessage();
+        this.pnlSystemMessage.setValue(defaultSystemMessage);
+        this.pnlSystemMessage.setValueChangedListener(chatBot::setSystemMessage);
+        chatBot.setSystemMessage(defaultSystemMessage);
+
+        cbDeployment.setAccount(deployment.getParent());
+        cbDeployment.setValue(deployment);
+        cbDeployment.addValueChangedListener(this::onDeploymentChanged);
+    }
+
+    private void onDeploymentChanged(@Nonnull final CognitiveDeployment deployment) {
+        if (!Objects.equals(chatBox.getChatBot().getDeployment(), deployment)) {
+            final ChatBot chatBot = new ChatBot(deployment);
+            chatBot.setConfiguration(pnlConfiguration.getValue());
+            chatBot.setSystemMessage(pnlSystemMessage.getValue());
+            this.chatBox.setChatBot(chatBot);
+        }
     }
 
     @Override

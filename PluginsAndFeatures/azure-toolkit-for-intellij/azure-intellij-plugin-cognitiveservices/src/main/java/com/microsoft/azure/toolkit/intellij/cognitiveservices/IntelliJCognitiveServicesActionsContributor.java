@@ -16,6 +16,9 @@ import com.intellij.ui.content.ContentManager;
 import com.microsoft.azure.toolkit.ide.cognitiveservices.CognitiveServicesActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.ide.guidance.GuidanceConfigManager;
+import com.microsoft.azure.toolkit.ide.guidance.GuidanceViewManager;
+import com.microsoft.azure.toolkit.ide.guidance.config.CourseConfig;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBot;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBox;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.creation.CognitiveAccountCreationDialog;
@@ -26,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.*;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -43,6 +47,10 @@ import java.util.function.BiPredicate;
 public class IntelliJCognitiveServicesActionsContributor implements IActionsContributor {
     @Override
     public void registerHandlers(AzureActionManager am) {
+        final BiPredicate<AbstractAzService<?, ?>, AnActionEvent> gettingStartCondition = (r, e) -> r instanceof AzureCognitiveServices;
+        am.registerHandler(ResourceCommonActionsContributor.OPEN_GETTING_START, gettingStartCondition,
+                (AbstractAzService<?, ?> c, AnActionEvent e) -> GuidanceViewManager.getInstance().openCourseView(e.getProject(), "hello-openai"));
+
         final BiPredicate<AzureCognitiveServices, AnActionEvent> serviceCondition = (r, e) -> r instanceof AzureCognitiveServices;
         final BiConsumer<AzureCognitiveServices, AnActionEvent> createAccountHandler = (c, e) -> openAccountCreationDialog(e.getProject(), null);
         am.registerHandler(CognitiveServicesActionsContributor.CREATE_ACCOUNT, serviceCondition, createAccountHandler);
@@ -65,8 +73,8 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
     private void openPlayGround(CognitiveDeployment c, Project project) {
         final ToolWindowManager manager = ToolWindowManager.getInstance(project);
         final ToolWindow window = manager.getToolWindow("Azure OpenAI ChatBot");
-        AzureTaskManager.getInstance().runLater(()-> Objects.requireNonNull(window).activate(() -> {
-            final ChatBox chatBox = (ChatBox)window.getComponent().getClientProperty("ChatBox");
+        AzureTaskManager.getInstance().runLater(() -> Objects.requireNonNull(window).activate(() -> {
+            final ChatBox chatBox = (ChatBox) window.getComponent().getClientProperty("ChatBox");
             final ChatBot chatBot = new ChatBot(c);
             chatBot.setSystemMessage("you are a java expert.");
             chatBox.setChatBot(chatBot);

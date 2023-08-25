@@ -28,6 +28,8 @@ import javax.annotation.Nonnull;
 public class CreateCognitiveDeploymentTask implements Task {
     public static final String DEFAULT_COGNITIVE_DEPLOYMENT = "default_cognitive_deployment";
     public static final String GETTING_START_OPENAI = "getting-start-openai";
+    public static final String ACCOUNT = "cognitive_account";
+    public static final String DEPLOYMENT = "cognitive_deployment";
     private final ComponentContext context;
 
     public CreateCognitiveDeploymentTask(ComponentContext taskContext) {
@@ -62,6 +64,8 @@ public class CreateCognitiveDeploymentTask implements Task {
             AzureMessager.getMessager().info(String.format("Cognitive deployment %s already exists.", deployment.getName()));
         }
         context.applyResult("resourceId", account.getId());
+        context.applyResult(ACCOUNT, account);
+        context.applyResult(DEPLOYMENT, deployment);
     }
 
     @Nonnull
