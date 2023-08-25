@@ -45,6 +45,6 @@ public class JsonSourceCodeGenerator implements ISourceCodeGenerator {
             config.getFrequencyPenalty(),
             config.getPresencePenalty(),
             config.getMaxResponse(),
-            config.getStopSequences());
+            mapper.writeValueAsString(config.getStopSequences()));
     }
 }

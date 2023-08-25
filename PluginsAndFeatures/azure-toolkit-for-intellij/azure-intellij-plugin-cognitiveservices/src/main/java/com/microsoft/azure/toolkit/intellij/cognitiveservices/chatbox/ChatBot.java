@@ -79,7 +79,7 @@ public class ChatBot {
         Optional.ofNullable(configuration).ifPresent(c -> {
             result.setFrequencyPenalty(c.getFrequencyPenalty());
             result.setPresencePenalty(c.getPresencePenalty());
-            result.setStop(StringUtils.isBlank(c.getStopSequences()) ? null : Collections.singletonList(c.getStopSequences()));
+            result.setStop(c.getStopSequences());
             result.setTemperature(c.getTemperature());
             result.setTopP(c.getTopP());
             result.setMaxTokens(c.getMaxResponse());

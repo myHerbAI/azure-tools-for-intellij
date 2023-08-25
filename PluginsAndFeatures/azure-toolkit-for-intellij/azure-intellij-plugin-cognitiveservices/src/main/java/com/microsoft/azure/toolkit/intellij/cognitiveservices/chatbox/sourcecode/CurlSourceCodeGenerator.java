@@ -51,6 +51,7 @@ public class CurlSourceCodeGenerator implements ISourceCodeGenerator {
             config.getTemperature(),
             config.getFrequencyPenalty(),
             config.getPresencePenalty(),
-            config.getTopP(), config.getStopSequences());
+            config.getTopP(),
+            mapper.writeValueAsString(config.getStopSequences()));
     }
 }

@@ -6,6 +6,7 @@ import com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBot;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.model.Configuration;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.util.Stack;
@@ -16,6 +17,8 @@ public class JavaSourceCodeGenerator implements ISourceCodeGenerator {
     private final String name = "Java";
     private final String language = "java";
 
+    @SneakyThrows
+    @SuppressWarnings("deprecation")
     @Override
     public String generateCode(final ChatBot chatBot) {
         final CognitiveDeployment deployment = chatBot.getDeployment();
@@ -25,7 +28,7 @@ public class JavaSourceCodeGenerator implements ISourceCodeGenerator {
         final ObjectMapper mapper = new ObjectMapper();
         //noinspection deprecation
         final String msgs = messages.stream()
-            .map(m -> String.format("chatMessages.add(new ChatMessage(ChatRole.%s, \"%s\"));",
+            .map(m -> String.format("        chatMessages.add(new ChatMessage(ChatRole.%s, \"%s\"));",
                 m.getRole().toString().toUpperCase(), StringEscapeUtils.escapeJava(m.getContent())))
             .collect(Collectors.joining("\n"));
 
@@ -39,8 +42,8 @@ public class JavaSourceCodeGenerator implements ISourceCodeGenerator {
                 import com.azure.ai.openai.models.ChatRole;
                 import com.azure.core.credential.AzureKeyCredential;
                             
+                import java.util.Arrays;
                 import java.util.ArrayList;
-                import java.util.Collections;
                 import java.util.List;
                             
                 public class Example {
@@ -55,7 +58,7 @@ public class JavaSourceCodeGenerator implements ISourceCodeGenerator {
                             .buildClient();
                             
                         List<ChatMessage> chatMessages = new ArrayList<>();
-                        %s
+                %s
 
                         final ChatCompletionsOptions options = new ChatCompletionsOptions(chatMessages);
                         options.setMaxTokens(%d);
@@ -63,7 +66,7 @@ public class JavaSourceCodeGenerator implements ISourceCodeGenerator {
                         options.setFrequencyPenalty(%.1f);
                         options.setPresencePenalty(%.1f);
                         options.setTopP(%.2f);
-                        options.setStop(Collections.singletonList(%s));
+                        options.setStop(Arrays.asList(%s));
                         ChatCompletions chatCompletions = client.getChatCompletions(deploymentOrModelId, options);
                             
                         for (ChatChoice choice : chatCompletions.getChoices()) {
@@ -78,6 +81,8 @@ public class JavaSourceCodeGenerator implements ISourceCodeGenerator {
             config.getTemperature(),
             config.getFrequencyPenalty(),
             config.getPresencePenalty(),
-            config.getTopP(), config.getStopSequences());
+            config.getTopP(),
+            config.getStopSequences().stream().map(s -> "\"" + StringEscapeUtils.escapeJava(s) + "\"")
+                .collect(Collectors.joining(",")));
     }
 }
