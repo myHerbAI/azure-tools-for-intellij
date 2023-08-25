@@ -6,8 +6,10 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.ex.FileTypeManagerEx;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.EditorTextField;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.intellij.ui.components.fields.ExtendableTextField;
@@ -17,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccount;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
 import org.apache.commons.lang.BooleanUtils;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
@@ -25,16 +28,16 @@ import java.util.Objects;
 public class ViewCodePanel {
     private final ChatBot chatBot;
 
-    private SourceCodeGeneratorComboBox comboLanguage;
     private JTextPane lblHeadMsg;
     private JTextPane lblTailMsg;
     private JBLabel lblKey;
+    private ExtendableTextField txtApiBase;
     private ExtendableTextField txtKey;
     private ExtendableTextField txtEndpoint;
     private JBLabel lblEndpoint;
-    private JTextField txtApiBase;
     private JPanel contentPanel;
     private JPanel editorContainer;
+    private JComboBox<?> comboLanguage;
 
     public ViewCodePanel(final ChatBot chatBot) {
         this.chatBot = chatBot;
@@ -48,7 +51,11 @@ public class ViewCodePanel {
 
         final String key = Objects.requireNonNull(account.getPrimaryKey());
         final String endpoint = deployment.getEndpoint();
-        this.txtApiBase.setText(account.getEndpoint());
+        final String apiBase = account.getEndpoint();
+        this.txtApiBase.setText(apiBase);
+        this.txtApiBase.addExtension(ExtendableTextComponent.Extension.create(AllIcons.Actions.Copy, "Copy", () -> {
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(apiBase), null);
+        }));
 
         this.lblEndpoint.setIcon(AllIcons.General.ContextHelp);
         this.txtEndpoint.setText(endpoint);
@@ -78,10 +85,17 @@ public class ViewCodePanel {
         this.comboLanguage.addItemListener(e -> {
             final ISourceCodeGenerator generator = (ISourceCodeGenerator) e.getItem();
             this.editorContainer.removeAll();
-            this.editorContainer.add(this.createCodeViewer(generator));
+            this.editorContainer.add(this.createCodeViewer(generator), BorderLayout.CENTER);
             this.editorContainer.revalidate();
             this.editorContainer.repaint();
         });
+        this.editorContainer.add(this.createCodeViewer((ISourceCodeGenerator) this.comboLanguage.getItemAt(0)));
+    }
+
+    @Nonnull
+    public String getCode() {
+        final ISourceCodeGenerator generator = (ISourceCodeGenerator) this.comboLanguage.getSelectedItem();
+        return Objects.nonNull(generator) ? generator.generateCode(this.chatBot) : "";
     }
 
     private EditorTextField createCodeViewer(final ISourceCodeGenerator generator) {
@@ -96,5 +110,20 @@ public class ViewCodePanel {
         });
         editor.setText(generator.generateCode(this.chatBot));
         return editor;
+    }
+
+    private void createUIComponents() {
+        this.comboLanguage = new ComboBox<ISourceCodeGenerator>() {
+            {
+                this.setRenderer(new SimpleListCellRenderer<>() {
+                    public void customize(@Nonnull JList<? extends ISourceCodeGenerator> l, ISourceCodeGenerator v, int i, boolean b, boolean b1) {
+                        this.setText(v.getName());
+                    }
+                });
+                this.addItem(new JavaSourceCodeGenerator());
+                this.addItem(new JsonSourceCodeGenerator());
+                this.addItem(new CurlSourceCodeGenerator());
+            }
+        };
     }
 }
