@@ -1,7 +1,7 @@
 package com.microsoft.azure.toolkit.intellij.cognitiveservices.input;
 
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.components.CognitiveAccountComboBox;
-import com.microsoft.azure.toolkit.intellij.cognitiveservices.components.CognitiveDeploymentComboBox;
+import com.microsoft.azure.toolkit.intellij.cognitiveservices.components.GPTDeploymentComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccount;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
@@ -12,7 +12,7 @@ import java.util.Optional;
 
 public class CognitiveDeploymentInputPanel implements AzureFormJPanel<CognitiveDeployment> {
     private JLabel lblSubscription;
-    private CognitiveDeploymentComboBox cbDeployment;
+    private GPTDeploymentComboBox cbDeployment;
     private JPanel pnlRoot;
     private CognitiveAccountComboBox cbAccount;
 
@@ -33,7 +33,7 @@ public class CognitiveDeploymentInputPanel implements AzureFormJPanel<CognitiveD
         // TODO: place custom component creation code here
         this.cbAccount = new CognitiveAccountComboBox();
         this.cbAccount.setUsePreferredSizeAsMinimum(false);
-        this.cbDeployment = new CognitiveDeploymentComboBox();
+        this.cbDeployment = new GPTDeploymentComboBox();
         this.cbDeployment.setUsePreferredSizeAsMinimum(false);
     }
 

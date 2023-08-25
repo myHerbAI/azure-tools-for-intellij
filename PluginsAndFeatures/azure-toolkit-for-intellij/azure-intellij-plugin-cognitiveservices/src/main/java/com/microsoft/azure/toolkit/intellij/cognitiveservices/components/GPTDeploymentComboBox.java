@@ -15,11 +15,11 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class CognitiveDeploymentComboBox extends AzureComboBox<CognitiveDeployment> {
+public class GPTDeploymentComboBox extends AzureComboBox<CognitiveDeployment> {
     private CognitiveAccount account;
     private final List<CognitiveDeployment> draftItems = new LinkedList<>();
 
-    public CognitiveDeploymentComboBox() {
+    public GPTDeploymentComboBox() {
         super(false);
     }
 

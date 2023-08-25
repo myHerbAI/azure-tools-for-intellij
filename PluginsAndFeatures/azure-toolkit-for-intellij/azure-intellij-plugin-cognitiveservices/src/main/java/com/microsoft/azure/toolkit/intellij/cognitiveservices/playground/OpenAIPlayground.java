@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBot;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBox;
+import com.microsoft.azure.toolkit.intellij.cognitiveservices.components.GPTDeploymentComboBox;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.model.Configuration;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.model.SystemMessage;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.service.SystemMessageTemplateService;
@@ -19,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
+import java.util.Objects;
 
 public class OpenAIPlayground extends BaseEditor {
 
@@ -37,6 +39,7 @@ public class OpenAIPlayground extends BaseEditor {
     private JPanel pnlSystemMessageContainer;
     private ConfigurationPanel pnlConfiguration;
     private ChatBox chatBox;
+    private GPTDeploymentComboBox cbDeployment;
     private JPanel pnlExample;
 
     private CognitiveDeployment deployment;
@@ -72,6 +75,19 @@ public class OpenAIPlayground extends BaseEditor {
         this.pnlSystemMessage.setValue(defaultSystemMessage);
         this.pnlSystemMessage.setValueChangedListener(chatBot::setSystemMessage);
         chatBot.setSystemMessage(defaultSystemMessage);
+
+        cbDeployment.setAccount(deployment.getParent());
+        cbDeployment.setValue(deployment);
+        cbDeployment.addValueChangedListener(this::onDeploymentChanged);
+    }
+
+    private void onDeploymentChanged(@Nonnull final CognitiveDeployment deployment) {
+        if (!Objects.equals(chatBox.getChatBot().getDeployment(), deployment)) {
+            final ChatBot chatBot = new ChatBot(deployment);
+            chatBot.setConfiguration(pnlConfiguration.getValue());
+            chatBot.setSystemMessage(pnlSystemMessage.getValue());
+            this.chatBox.setChatBot(chatBot);
+        }
     }
 
     @Override
