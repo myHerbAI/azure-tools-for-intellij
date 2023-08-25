@@ -2,18 +2,19 @@ package com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox;
 
 import com.azure.ai.openai.OpenAIClient;
 import com.azure.ai.openai.OpenAIClientBuilder;
-import com.azure.ai.openai.models.*;
+import com.azure.ai.openai.models.ChatChoice;
+import com.azure.ai.openai.models.ChatCompletions;
+import com.azure.ai.openai.models.ChatCompletionsOptions;
+import com.azure.ai.openai.models.ChatMessage;
+import com.azure.ai.openai.models.ChatRole;
 import com.azure.core.credential.AzureKeyCredential;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.model.Configuration;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.model.SystemMessage;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccount;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
 import lombok.Getter;
-import org.apache.commons.lang.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Stack;
@@ -27,21 +28,22 @@ public class ChatBot {
     @Getter
     private Configuration configuration;
     private OpenAIClient client;
+    @Getter
+    private String primaryKey;
 
     public ChatBot(final CognitiveDeployment deployment) {
         this.deployment = deployment;
         this.refreshClient();
     }
 
-    private OpenAIClient refreshClient() {
+    private void refreshClient() {
         final CognitiveAccount account = this.deployment.getParent();
         final String endpoint = account.getEndpoint();
-        final String primaryKey = Objects.requireNonNull(account.getPrimaryKey());
+        this.primaryKey = Objects.requireNonNull(account.getPrimaryKey());
         this.client = new OpenAIClientBuilder()
-                .endpoint(endpoint)
-                .credential(new AzureKeyCredential(primaryKey))
-                .buildClient();
-        return this.client;
+            .endpoint(endpoint)
+            .credential(new AzureKeyCredential(primaryKey))
+            .buildClient();
     }
 
     public void setSystemMessage(@Nonnull final String systemMessage) {

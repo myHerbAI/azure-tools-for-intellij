@@ -49,7 +49,7 @@ public class ViewCodePanel {
         final CognitiveDeployment deployment = this.chatBot.getDeployment();
         final CognitiveAccount account = deployment.getParent();
 
-        final String key = Objects.requireNonNull(account.getPrimaryKey());
+        final String key = Objects.requireNonNull(this.chatBot.getPrimaryKey());
         final String endpoint = deployment.getEndpoint();
         final String apiBase = account.getEndpoint();
         this.txtApiBase.setText(apiBase);
