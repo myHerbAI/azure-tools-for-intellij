@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
@@ -66,6 +67,12 @@ public class ConfigurationPanel implements AzureForm<Configuration> {
         this.sliderTopN = new AzureSlider(0.95, 0, 1, 0.01, 100);
         this.sliderFrequency = new AzureSlider(0, 0, 2, 0.01, 100);
         this.sliderPresence = new AzureSlider(0, 0, 2, 0.01, 100);
+        this.txtStopSequence = new AzureTextInput() {
+            @Override
+            protected synchronized void setValidationExtension(@Nullable Extension extension) {
+                // do nothing here
+            }
+        };
     }
 
     @Override
