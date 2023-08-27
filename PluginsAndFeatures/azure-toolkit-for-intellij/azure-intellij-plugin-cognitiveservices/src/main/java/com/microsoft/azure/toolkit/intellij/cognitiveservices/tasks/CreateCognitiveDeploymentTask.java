@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.lib.cognitiveservices.model.AccountModel;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.model.AccountSku;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.model.DeploymentModel;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.model.DeploymentSku;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -27,7 +28,8 @@ import javax.annotation.Nonnull;
 
 public class CreateCognitiveDeploymentTask implements Task {
     public static final String DEFAULT_COGNITIVE_DEPLOYMENT = "default_cognitive_deployment";
-    public static final String GETTING_START_OPENAI = "getting-start-openai";
+    public static final String GETTING_START_ACCOUNT = "getting-start-account";
+    public static final String GETTING_START_DEPLOYMENT = "getting-start-deployment";
     public static final String ACCOUNT = "cognitive_account";
     public static final String DEPLOYMENT = "cognitive_deployment";
     private final ComponentContext context;
@@ -55,7 +57,8 @@ public class CreateCognitiveDeploymentTask implements Task {
         if (deployment.isDraftForCreating()) {
             final CognitiveDeploymentDraft draft = (CognitiveDeploymentDraft) deployment;
             final CognitiveDeploymentDraft.Config config = new CognitiveDeploymentDraft.Config();
-            final AccountModel model = account.listModels().get(0);
+            final AccountModel model = account.listModels().stream().filter(AccountModel::isGPTModel).findFirst()
+                    .orElseThrow(() -> new AzureToolkitRuntimeException(String.format("GPT model is not supported in account %s, please try with another one.", account.getName())));
             config.setSku(DeploymentSku.fromModelSku(model.getSkus().get(0)));
             config.setModel(DeploymentModel.fromAccountModel(model));
             draft.setConfig(config);
@@ -78,23 +81,23 @@ public class CreateCognitiveDeploymentTask implements Task {
         final Subscription subscription = (Subscription) context.getParameter(SelectSubscriptionTask.SUBSCRIPTION);
         final CognitiveAccountModule module = Azure.az(AzureCognitiveServices.class).forSubscription(subscription.getId()).accounts();
         final CognitiveAccount cognitiveAccount = module.list().stream()
-                .filter(account -> StringUtils.startsWith(account.getName(), GETTING_START_OPENAI))
+                .filter(account -> StringUtils.startsWith(account.getName(), GETTING_START_ACCOUNT))
                 .findFirst().orElseGet(() -> createAccountDraft(subscription));
         final CognitiveDeployment draft = cognitiveAccount.deployments().list().stream()
-                .filter(deployment -> StringUtils.startsWith(deployment.getName(), GETTING_START_OPENAI))
+                .filter(deployment -> StringUtils.startsWith(deployment.getName(), GETTING_START_DEPLOYMENT))
                 .findFirst().orElseGet(() -> createDeploymentDraft(cognitiveAccount));
         context.applyResult(DEFAULT_COGNITIVE_DEPLOYMENT, draft);
     }
 
     protected CognitiveDeploymentDraft createDeploymentDraft(final CognitiveAccount account) {
-        final String name = Utils.generateRandomResourceName(GETTING_START_OPENAI, 40);
+        final String name = Utils.generateRandomResourceName(GETTING_START_DEPLOYMENT, 40);
         final CognitiveDeploymentDraft draft = account.deployments().create(name, account.getResourceGroupName());
         draft.setConfig(new CognitiveDeploymentDraft.Config());
         return draft;
     }
 
     protected CognitiveAccountDraft createAccountDraft(final Subscription subscription) {
-        final String account = Utils.generateRandomResourceName(GETTING_START_OPENAI, 40);
+        final String account = Utils.generateRandomResourceName(GETTING_START_ACCOUNT, 40);
         final String rgName = String.format("rg-%s", account);
         final ResourceGroup group = Azure.az(AzureResources.class).groups(subscription.getId()).create(rgName, rgName);
         final CognitiveAccountModule accounts = Azure.az(AzureCognitiveServices.class).accounts(subscription.getId());
