@@ -1,6 +1,6 @@
 plugins{
     id "java"
-    id "org.jetbrains.kotlin.jvm" version "1.7.20"
+    id "org.jetbrains.kotlin.jvm"
 }
 
 intellij {
@@ -8,7 +8,7 @@ intellij {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.22")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10")
     implementation project(path: ':azure-intellij-plugin-lib', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-lib-java', configuration: 'instrumentedJar')
     implementation 'com.microsoft.azure:azure-toolkit-ide-common-lib'

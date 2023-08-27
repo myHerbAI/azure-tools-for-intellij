@@ -64,16 +64,6 @@
                             <goal>test-compile</goal>
                         </goals>
                     </execution>
-                    <execution>
-                        <id>clone-winutils</id>
-                        <phase>generate-test-resources</phase>
-                        <goals>
-                            <goal>script</goal>
-                        </goals>
-                        <configuration>
-                            <scriptFile>./build-tools/cloneWinutils.kts</scriptFile>
-                        </configuration>
-                    </execution>
                 </executions>
                 <configuration>
                     <jvmTarget>${kotlin.jvmTargetVersion}</jvmTarget>
