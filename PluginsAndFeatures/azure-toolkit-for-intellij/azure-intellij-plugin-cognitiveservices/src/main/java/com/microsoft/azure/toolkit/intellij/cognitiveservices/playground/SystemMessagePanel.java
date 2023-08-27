@@ -167,6 +167,7 @@ public class SystemMessagePanel implements AzureForm<SystemMessage> {
     @Override
     public void setValue(@Nonnull final SystemMessage data) {
         this.systemMessage = data;
+        this.cbSystemTemplate.setValue(data);
         renderValue(data);
     }
 
