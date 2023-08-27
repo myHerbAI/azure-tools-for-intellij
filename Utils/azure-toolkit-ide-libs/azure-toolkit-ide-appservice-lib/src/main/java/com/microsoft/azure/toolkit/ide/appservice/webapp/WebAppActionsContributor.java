@@ -36,7 +36,7 @@ public class WebAppActionsContributor implements IActionsContributor {
         final ActionGroup serviceActionGroup = new ActionGroup(
             ResourceCommonActionsContributor.REFRESH,
             "---",
-            ResourceCommonActionsContributor.OPEN_GETTING_START,
+            ResourceCommonActionsContributor.GETTING_STARTED,
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
             "---",
             ResourceCommonActionsContributor.CREATE
