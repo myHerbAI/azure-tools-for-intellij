@@ -165,7 +165,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withLabel("Connect to Project")
             .withIcon(AzureIcons.Connector.CONNECT.getIconPath())
             .withIdParam(AzResource::getName)
-            .visibleWhen((s, place) -> !StringUtils.startsWithIgnoreCase(place, "ProjectViewPopup") && s instanceof AzResource)
+            .visibleWhen((s, place) -> !StringUtils.startsWithAny(place.toLowerCase(), "projectviewpopup", "project.view") && s instanceof AzResource)
             .enableWhen(s -> s.getFormalStatus().isRunning())
             .withAuthRequired(false)
             .register(am);
