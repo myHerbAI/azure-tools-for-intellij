@@ -27,19 +27,10 @@
   <change-notes>
     <![CDATA[
     <html>
-      <h3 id="added">Added</h3>
-      <ul>
-      <li>Support for creating Azure Spring apps/services of Enterprise/Standard/Basic tier in IDE.    </li>
-      <li>Support for managing deployment target services directly in Project Explorer.    </li>
-      </ul>
       <h3 id="fixed">Fixed</h3>
       <ul>
-      <li>status shows inactive after creating/refreshing spring app.</li>
-      <li>error may occur when importing document into SQL container.</li>
-      <li>error may occur when connecting to the storage emulator and running locally.</li>
-      <li>error may occur when deploy function app.</li>
-      <li>HDInsight Job view nodes are displayed as 'folder icon + cluster name'.</li>
-      <li>HDInsight Linked cluster cannot display in Azure Explorer when not signed in.</li>
+        <li>Fix: Code navigation was not working for bicep files.</li>
+        <li>Fix: Textmate rendering was not functioning for bicep files in IntelliJ 2023.2.</li>
       </ul>
       <p>You may get the full change log <a href="https://github.com/Microsoft/azure-tools-for-java/blob/develop/CHANGELOG.md">here</a></p>
     </html>
