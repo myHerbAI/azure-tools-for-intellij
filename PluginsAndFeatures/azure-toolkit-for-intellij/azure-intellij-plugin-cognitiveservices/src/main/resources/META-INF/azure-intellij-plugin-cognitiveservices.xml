@@ -8,11 +8,7 @@
         <guidanceInputProvider implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.IntelliJCognitiveServicesInputProvider"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
-        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.playground.CognitiveAccountPlaygroundProvider"/>
+        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.CognitiveServicesStartupListener"/>
         <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.playground.CognitiveDeploymentPlaygroundProvider"/>
-    </extensions>
-    <extensions defaultExtensionNs="com.intellij">
-        <toolWindow id="Azure OpenAI ChatBot" secondary="true" icon="/icons/Common/chatbot.svg" anchor="right"
-                    factoryClass="com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBotToolWindowFactory"/>
     </extensions>
 </idea-plugin>

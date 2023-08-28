@@ -22,7 +22,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -71,7 +75,7 @@ public class GuidanceConfigManager {
 
     public CourseConfig getCourseByName(@Nonnull final String name) {
         return loadCourses().stream().filter(course -> StringUtils.equalsIgnoreCase(name, course.getName()))
-                .findFirst().orElse(null);
+            .findFirst().orElse(null);
     }
 
     @Cacheable(value = "guidance/courses")
@@ -85,14 +89,14 @@ public class GuidanceConfigManager {
                     }
                 })
                 .orElse(Collections.emptySet())
-                .stream().map(uri -> GuidanceConfigManager.getCourse("/" + uri))
+                .stream().map(uri -> GuidanceConfigManager.loadCourseByUri("/" + uri))
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(CourseConfig::getPriority))
                 .collect(Collectors.toList());
     }
 
     @Nullable
-    private static CourseConfig getCourse(String uri) {
+    private static CourseConfig loadCourseByUri(String uri) {
         try (final InputStream inputStream = GuidanceConfigManager.class.getResourceAsStream(uri)) {
             final CourseConfig courseConfig = JSON_MAPPER.readValue(inputStream, CourseConfig.class);
             courseConfig.setUri(uri);

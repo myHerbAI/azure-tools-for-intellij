@@ -64,7 +64,6 @@ public class MarkdownPane {
                 final JTextPane pane = new JTextPane();
                 pane.setContentType("text/html");
                 pane.setEditorKit(new UIUtil.JBWordWrapHtmlEditorKit());
-                Messages.installHyperlinkSupport(pane);
                 Messages.configureMessagePaneUi(pane, String.format("<html><body>%s</body></html", html));
                 Optional.ofNullable(container).map(Component::getBackground).ifPresent(pane::setBackground);
                 this.contentPanel.add(pane, constraints);

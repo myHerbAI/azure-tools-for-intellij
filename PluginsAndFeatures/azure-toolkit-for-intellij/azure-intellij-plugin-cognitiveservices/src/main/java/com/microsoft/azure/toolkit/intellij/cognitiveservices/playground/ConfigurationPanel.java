@@ -10,6 +10,7 @@ import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -55,7 +56,7 @@ public class ConfigurationPanel implements AzureForm<Configuration> {
 
         this.lblLearnMore.setExternalLinkIcon();
         this.lblLearnMore.addActionListener(ignore ->
-                AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(LEARN_MORE_URL));
+            AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(LEARN_MORE_URL));
         this.getInputs().forEach(input -> input.addValueChangedListener(ignore -> this.fireValueChangedEvent()));
     }
 
@@ -77,13 +78,13 @@ public class ConfigurationPanel implements AzureForm<Configuration> {
     @Override
     public Configuration getValue() {
         return Configuration.builder()
-                .maxResponse((int) Math.round(sliderMaxResponse.getValue()))
-                .temperature(sliderTemperature.getValue())
-                .topP(sliderTopN.getValue())
-                .stopSequences(txtStopSequence.getValue())
-                .frequencyPenalty(sliderFrequency.getValue())
-                .presencePenalty(sliderPresence.getValue())
-                .build();
+            .maxResponse((int) Math.round(sliderMaxResponse.getValue()))
+            .temperature(sliderTemperature.getValue())
+            .topP(sliderTopN.getValue())
+            .stopSequences(Arrays.stream(txtStopSequence.getValue().split(";")).filter(StringUtils::isNotBlank).toList())
+            .frequencyPenalty(sliderFrequency.getValue())
+            .presencePenalty(sliderPresence.getValue())
+            .build();
     }
 
     @Override
@@ -91,7 +92,7 @@ public class ConfigurationPanel implements AzureForm<Configuration> {
         this.sliderMaxResponse.setValue(Double.valueOf(data.getMaxResponse()));
         this.sliderTemperature.setValue(data.getTemperature());
         this.sliderTopN.setValue(data.getTopP());
-        this.txtStopSequence.setValue(data.getStopSequences());
+        this.txtStopSequence.setValue(String.join(";", data.getStopSequences()));
         this.sliderFrequency.setValue(data.getFrequencyPenalty());
         this.sliderPresence.setValue(data.getPresencePenalty());
     }
