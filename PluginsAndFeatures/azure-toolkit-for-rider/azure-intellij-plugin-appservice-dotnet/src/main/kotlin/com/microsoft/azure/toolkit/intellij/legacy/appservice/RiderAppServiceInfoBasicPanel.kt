@@ -1,15 +1,14 @@
 package com.microsoft.azure.toolkit.intellij.legacy.appservice
 
 import com.intellij.openapi.project.Project
-import com.intellij.ui.dsl.builder.Align
-import com.intellij.ui.dsl.builder.Row
-import com.intellij.ui.dsl.builder.bind
-import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.components.JBRadioButton
+import com.intellij.ui.dsl.builder.*
 import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig
 import com.microsoft.azure.toolkit.intellij.common.AzureDotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput
 import com.microsoft.azure.toolkit.lib.common.model.Subscription
 import java.util.function.Supplier
@@ -31,11 +30,16 @@ class RiderAppServiceInfoBasicPanel<T>(
     }
     private val selectorApplication = AzureDotnetProjectComboBox(project) { _ -> true }
 
-    private var operatingSystem = OperatingSystem.WINDOWS
+    private var operatingSystem: OperatingSystem
+    private lateinit var windowsRadioButton: Cell<JBRadioButton>
+    private lateinit var linuxRadioButton: Cell<JBRadioButton>
+
     private lateinit var deploymentGroup: Row
 
 
     init {
+        operatingSystem = OperatingSystem.WINDOWS
+
         panel = panel {
             group("Instance Details") {
                 row("Name:") {
@@ -44,8 +48,8 @@ class RiderAppServiceInfoBasicPanel<T>(
                 }
                 buttonsGroup {
                     row("Operating System:") {
-                        radioButton("Windows", OperatingSystem.WINDOWS)
-                        radioButton("Linux", OperatingSystem.LINUX)
+                        windowsRadioButton = radioButton("Windows", OperatingSystem.WINDOWS)
+                        linuxRadioButton = radioButton("Linux", OperatingSystem.LINUX)
                     }
                 }.bind(::operatingSystem)
             }
@@ -65,12 +69,12 @@ class RiderAppServiceInfoBasicPanel<T>(
 
     override fun getValue(): T {
         val name = textName.value
-        val os = operatingSystem
+        val os = if (windowsRadioButton.component.isSelected) OperatingSystem.WINDOWS else OperatingSystem.LINUX
         val project = selectorApplication.value
 
         val result = config ?: defaultConfigSupplier.get()
         result.name = name
-        result.runtime = Runtime(os, null, null)
+        result.runtime = Runtime(os, WebContainer("DOTNETCORE 7.0"), null)
         if (project != null) {
             result.application = Path(project.projectFilePath)
         }
@@ -84,7 +88,11 @@ class RiderAppServiceInfoBasicPanel<T>(
         this.config = config
         textName.value = config.name
         textName.setSubscription(config.subscription)
-        operatingSystem = config.runtime.operatingSystem
+        if (config.runtime.operatingSystem == OperatingSystem.WINDOWS) {
+            windowsRadioButton.component.isSelected = true
+        } else {
+            linuxRadioButton.component.isSelected = true
+        }
     }
 
     override fun getInputs(): List<AzureFormInput<*>> = listOf(textName)

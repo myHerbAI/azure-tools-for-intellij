@@ -10,6 +10,8 @@ abstract class RiderAzureRunConfigurationBase<T : Any>(project: Project, factory
         LocatableConfigurationBase<T>(project, factory, name) {
     abstract fun getModel(): T
 
+    abstract fun validate()
+
     override fun readExternal(element: Element) {
         super.readExternal(element)
         XmlSerializer.deserializeInto(getModel(), element)

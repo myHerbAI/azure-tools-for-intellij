@@ -2,23 +2,25 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.LabeledComponent
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.*
 import com.intellij.ui.layout.and
-import com.intellij.ui.layout.selected
 import com.intellij.ui.layout.selectedValueMatches
 import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
+import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
 import com.microsoft.azure.toolkit.ide.appservice.model.AzureArtifactConfig
 import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppDeployRunConfigurationModel
 import com.microsoft.azure.toolkit.intellij.common.AzureDotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel
+import com.microsoft.azure.toolkit.intellij.common.configurationAndPlatformComboBox
 import com.microsoft.azure.toolkit.intellij.common.dotnetProjectComboBox
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput.AzureValueChangeBiListener
 import java.time.LocalDateTime
@@ -35,6 +37,7 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
     val panel: JPanel
 
     private lateinit var webAppComboBox: Cell<WebAppComboBox>
+    private lateinit var configurationAndPlatformComboBox: Cell<LabeledComponent<ComboBox<PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform?>>>
     private lateinit var dotnetProjectComboBox: Cell<AzureDotnetProjectComboBox>
     private lateinit var deploymentSlotGroup: CollapsibleRow
     private lateinit var deployToSlotCheckBox: Cell<JBCheckBox>
@@ -54,6 +57,10 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
             }
             row("Web App:") {
                 webAppComboBox = webAppComboBox(project)
+                        .align(Align.FILL)
+            }
+            row("Configuration:") {
+                configurationAndPlatformComboBox = configurationAndPlatformComboBox(project)
                         .align(Align.FILL)
             }
             deploymentSlotGroup = collapsibleGroup("Deployment Slot") {
@@ -140,6 +147,16 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
         deploymentSlotGroup.expanded = data.isSlotPanelVisible
     }
 
+    fun setConfigurationAndPlatform(configuration: String, platform: String) {
+        for (i in 0 until configurationAndPlatformComboBox.component.component.model.size) {
+            val item = configurationAndPlatformComboBox.component.component.model.getElementAt(i)
+            if (item?.configuration == configuration && item.platform == platform) {
+                configurationAndPlatformComboBox.component.component.selectedItem = item
+                break
+            }
+        }
+    }
+
     override fun getValue(): WebAppDeployRunConfigurationModel {
         val project = dotnetProjectComboBox.component.value
         val artifactConfig = project?.let {
@@ -159,6 +176,11 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
                 .slotPanelVisible(deploymentSlotGroup.expanded)
                 .build()
     }
+
+    fun getSelectedConfiguration() = getSelectedConfigurationAndPlatform()?.configuration ?: ""
+    fun getSelectedPlatform() = getSelectedConfigurationAndPlatform()?.platform ?: ""
+    private fun getSelectedConfigurationAndPlatform(): PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform? =
+            configurationAndPlatformComboBox.component.component.selectedItem as? PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform
 
     override fun getInputs() = listOf(webAppComboBox.component, dotnetProjectComboBox.component)
 

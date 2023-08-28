@@ -9,17 +9,18 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.jetbrains.rider.model.PublishableProjectModel
+import com.jetbrains.rider.model.publishableProjectsModel
+import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.intellij.common.runconfig.IWebAppRunConfiguration
 import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunConfigurationBase
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
-import org.jdom.Element
 
 
 class RiderWebAppConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
-    RiderAzureRunConfigurationBase<DotNetWebAppSettingModel>(project, factory, name), IWebAppRunConfiguration,
-    IConnectionAware {
+        RiderAzureRunConfigurationBase<DotNetWebAppSettingModel>(project, factory, name), IWebAppRunConfiguration,
+        IConnectionAware {
 
     val webAppSettingModel = DotNetWebAppSettingModel()
 
@@ -75,8 +76,6 @@ class RiderWebAppConfiguration(private val project: Project, factory: Configurat
         set(value) {
             webAppSettingModel.isCreatingNew = value
         }
-    val artifactIdentifier: String
-        get() = webAppSettingModel.artifactIdentifier
     var isOpenBrowserAfterDeployment: Boolean
         get() = webAppSettingModel.isOpenBrowserAfterDeployment
         set(value) {
@@ -92,13 +91,35 @@ class RiderWebAppConfiguration(private val project: Project, factory: Configurat
         set(value) {
             webAppSettingModel.appSettingsKey = value
         }
+    var projectConfiguration: String
+        get() = webAppSettingModel.projectConfiguration
+        set(value) {
+            webAppSettingModel.projectConfiguration = value
+        }
+    var projectPlatform: String
+        get() = webAppSettingModel.projectPlatform
+        set(value) {
+            webAppSettingModel.projectPlatform = value
+        }
+
+    fun saveRuntime(runtime: Runtime?) {
+        webAppSettingModel.saveRuntime(runtime)
+    }
+
+    fun getProjectId(): Int? = project.solution.publishableProjectsModel.publishableProjects.values
+            .firstOrNull { p -> p.projectFilePath == webAppSettingModel.projectPath }
+            ?.projectModelId
+
+    fun saveProject(projectModel: PublishableProjectModel) {
+        webAppSettingModel.projectPath = projectModel.projectFilePath
+    }
 
     override fun getState(executor: Executor, executionEnvironment: ExecutionEnvironment): RunProfileState {
         return RiderWebAppRunState(project, this)
     }
 
     override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> =
-        RiderWebAppSettingEditor(project, this)
+            RiderWebAppSettingEditor(project, this)
 
     override fun getModel() = webAppSettingModel
 
@@ -110,16 +131,6 @@ class RiderWebAppConfiguration(private val project: Project, factory: Configurat
 
     override fun getModule(): Module? = null
 
-    fun saveRuntime(runtime: Runtime?) {
-        webAppSettingModel.saveRuntime(runtime)
-    }
-
-    fun saveProject(project: PublishableProjectModel) {
-        webAppSettingModel.publishableProject = project
-        webAppSettingModel.artifactIdentifier = project.projectModelId.toString()
-    }
-
-    override fun readExternal(element: Element) {
-        super<RiderAzureRunConfigurationBase>.readExternal(element)
+    override fun validate() {
     }
 }

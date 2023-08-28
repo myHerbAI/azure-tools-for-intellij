@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureSettingPanel
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.model.Subscription
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig
@@ -36,6 +37,9 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
 
     override fun apply(configuration: RiderWebAppConfiguration) {
         val runConfigurationModel = webAppPanel.value
+        val projectConfiguration = webAppPanel.getSelectedConfiguration()
+        val projectPlatform = webAppPanel.getSelectedPlatform()
+
         configuration.appSettingsKey = appSettingsKey
         runConfigurationModel.webAppConfig?.let {
             configuration.webAppId = it.resourceId
@@ -67,6 +71,8 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
         }
         configuration.isSlotPanelVisible = runConfigurationModel.isSlotPanelVisible
         configuration.isOpenBrowserAfterDeployment = runConfigurationModel.isOpenBrowserAfterDeployment
+        configuration.projectConfiguration = projectConfiguration
+        configuration.projectPlatform = projectPlatform
     }
 
     override fun reset(configuration: RiderWebAppConfiguration) {
@@ -83,7 +89,7 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
                 .region(region)
                 .build()
         val pricingTier = if (configuration.pricing.isNotEmpty()) PricingTier.fromString(configuration.pricing) else null
-        val runtime = configuration.operatingSystem?.let { Runtime(it, null, null) }
+        val runtime = configuration.operatingSystem?.let { Runtime(it, WebContainer("DOTNETCORE 7.0"), null) }
         val plan = AppServicePlanConfig
                 .builder()
                 .subscriptionId(subscription.id)
@@ -108,7 +114,7 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
                 else configBuilder.build()
         val artifactConfig = AzureArtifactConfig
                 .builder()
-                .artifactIdentifier(configuration.artifactIdentifier)
+                .artifactIdentifier(configuration.getProjectId()?.toString() ?: "")
                 .build()
         val runConfigurationModel = WebAppDeployRunConfigurationModel
                 .builder()
@@ -117,6 +123,7 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
                 .openBrowserAfterDeployment(configuration.isOpenBrowserAfterDeployment)
                 .build()
         webAppPanel.value = runConfigurationModel
+        webAppPanel.setConfigurationAndPlatform(configuration.projectConfiguration, configuration.projectPlatform)
     }
 
     override fun disposeEditor() {

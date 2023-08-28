@@ -1,10 +1,8 @@
 package com.microsoft.azure.toolkit.intellij.legacy.appservice
 
 import com.intellij.openapi.project.Project
-import com.intellij.ui.dsl.builder.Align
-import com.intellij.ui.dsl.builder.Row
-import com.intellij.ui.dsl.builder.bind
-import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.components.JBRadioButton
+import com.intellij.ui.dsl.builder.*
 import com.intellij.util.ui.JBUI
 import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig
 import com.microsoft.azure.toolkit.intellij.common.AzureDotnetProjectComboBox
@@ -14,9 +12,7 @@ import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBo
 import com.microsoft.azure.toolkit.intellij.common.component.resourcegroup.ResourceGroupComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.ServicePlanComboBox
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
-import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
-import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
+import com.microsoft.azure.toolkit.lib.appservice.model.*
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput
 import com.microsoft.azure.toolkit.lib.common.model.Region
@@ -70,10 +66,15 @@ class RiderAppServiceInfoAdvancedPanel<T>(
 
     private val selectorApplication = AzureDotnetProjectComboBox(project) { _ -> true }
 
-    private var operatingSystem = OperatingSystem.WINDOWS
+    private var operatingSystem: OperatingSystem
+    private lateinit var windowsRadioButton: Cell<JBRadioButton>
+    private lateinit var linuxRadioButton: Cell<JBRadioButton>
+
     private lateinit var deploymentGroup: Row
 
     init {
+        operatingSystem = OperatingSystem.WINDOWS
+
         panel = panel {
             group("Project Details") {
                 row("Subscription:") {
@@ -92,10 +93,9 @@ class RiderAppServiceInfoAdvancedPanel<T>(
                 }
                 buttonsGroup {
                     row("Operating System:") {
-                        radioButton("Windows", OperatingSystem.WINDOWS)
-                                .component
-                                .addItemListener { onOperatingSystemChanged(it) }
-                        radioButton("Linux", OperatingSystem.LINUX)
+                        windowsRadioButton = radioButton("Windows", OperatingSystem.WINDOWS)
+                        windowsRadioButton.component.addItemListener { onOperatingSystemChanged(it) }
+                        linuxRadioButton = radioButton("Linux", OperatingSystem.LINUX)
                     }
                 }.bind(::operatingSystem)
                 row("Region:") {
@@ -127,7 +127,7 @@ class RiderAppServiceInfoAdvancedPanel<T>(
         val subscription = selectorSubscription.value
         val resourceGroup = selectorGroup.value
         val name = textName.value
-        val os = operatingSystem
+        val os = if (windowsRadioButton.component.isSelected) OperatingSystem.WINDOWS else OperatingSystem.LINUX
         val region = selectorRegion.value
         val servicePlan = selectorServicePlan.value
         val project = selectorApplication.value
@@ -136,13 +136,13 @@ class RiderAppServiceInfoAdvancedPanel<T>(
         config.subscription = subscription
         config.resourceGroup = ResourceGroupConfig.fromResource(resourceGroup)
         config.name = name
-        config.runtime = Runtime(os, null, null)
+        config.runtime = Runtime(os, WebContainer("DOTNETCORE 7.0"), null)
         config.region = region
         val planConfig = AppServicePlanConfig.fromResource(servicePlan)
         if (planConfig != null && servicePlan?.isDraftForCreating == true) {
             planConfig.resourceGroupName = config.resourceGroupName
             planConfig.region = region
-            planConfig.os = operatingSystem
+            planConfig.os = os
         }
         config.servicePlan = planConfig
         if (project != null) {
@@ -155,10 +155,14 @@ class RiderAppServiceInfoAdvancedPanel<T>(
     override fun setValue(config: T) {
         selectorSubscription.value = config.subscription
         textName.value = config.name
+        if (config.runtime.operatingSystem == OperatingSystem.WINDOWS) {
+            windowsRadioButton.component.isSelected = true
+        } else {
+            linuxRadioButton.component.isSelected = true
+        }
         AzureTaskManager.getInstance().runOnPooledThread {
             selectorGroup.value = config.resourceGroup?.toResource()
             selectorServicePlan.value = config.servicePlan?.toResource()
-            operatingSystem = config.runtime.operatingSystem
             selectorRegion.value = config.region
         }
     }

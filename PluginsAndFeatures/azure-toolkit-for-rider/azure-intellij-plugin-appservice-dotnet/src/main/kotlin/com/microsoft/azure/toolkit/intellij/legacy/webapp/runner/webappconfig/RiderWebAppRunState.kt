@@ -1,18 +1,18 @@
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
+import com.azure.resourcemanager.appservice.models.RuntimeStack
 import com.intellij.openapi.project.Project
+import com.jetbrains.rider.model.publishableProjectsModel
+import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
-import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileState
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.Constants
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.WebAppArtifactService
 import com.microsoft.azure.toolkit.lib.Azure
-import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel
-import com.microsoft.azuretools.telemetrywrapper.Operation
 import org.apache.commons.lang3.StringUtils
 
 class RiderWebAppRunState(project: Project, webAppConfiguration: RiderWebAppConfiguration)
@@ -20,30 +20,19 @@ class RiderWebAppRunState(project: Project, webAppConfiguration: RiderWebAppConf
 
     private val webAppSettingModel: DotNetWebAppSettingModel = webAppConfiguration.webAppSettingModel
 
-//    override fun executeSteps(processHandler: RunProcessHandler, operation: Operation): WebAppBase<*, *, *> {
-//        val publishableProject = webAppSettingModel.publishableProject
-//                ?: throw RuntimeException("Project is not defined")
-//        val artifact = prepareArtifact(project, publishableProject, webAppSettingModel.configuration, webAppSettingModel.platform, processHandler)
-//        val deployTarget = getOrCreateDeployTargetFromAppSettingModel(processHandler)
-//        AzureWebAppMvpModel.getInstance().deployArtifactsToWebApp(deployTarget, artifact, webAppSettingModel.isDeployToRoot, processHandler)
-//
-//        return deployTarget
-//        throw NotImplementedError()
-//    }
-
     override fun executeSteps(processHandler: RunProcessHandler): WebAppBase<*, *, *> {
-        val publishableProject = webAppSettingModel.publishableProject
+        val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
+                .firstOrNull { it.projectFilePath == webAppSettingModel.projectPath }
                 ?: throw RuntimeException("Project is not defined")
-
+        val artifact = WebAppArtifactService.getInstance(project)
+                .prepareArtifact(publishableProject, webAppSettingModel.projectConfiguration, webAppSettingModel.projectPlatform, processHandler)
         val deployTarget = getOrCreateDeployTargetFromAppSettingModel(processHandler)
-        val taskManager = AzureTaskManager.getInstance()
+        AzureWebAppMvpModel.getInstance().deployArtifactsToWebApp(deployTarget, artifact, webAppSettingModel.isDeployToRoot, processHandler)
 
         return deployTarget
     }
 
-
     private fun getOrCreateDeployTargetFromAppSettingModel(processHandler: RunProcessHandler): WebAppBase<*, *, *> {
-        val azureAppService = Azure.az(AzureWebApp::class.java)
         val webApp = getOrCreateWebappFromAppSettingModel(processHandler)
         if (!isDeployToSlot()) return webApp
 
