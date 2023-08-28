@@ -20,12 +20,17 @@ import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.containerregistry.ContainerRegistryActionsContributor;
+import com.microsoft.azure.toolkit.ide.guidance.GuidanceViewManager;
 import com.microsoft.azure.toolkit.intellij.appservice.actions.AppServiceFileAction;
 import com.microsoft.azure.toolkit.intellij.appservice.actions.OpenAppServicePropertyViewAction;
 import com.microsoft.azure.toolkit.intellij.containerregistry.pushimage.PushImageAction;
 import com.microsoft.azure.toolkit.intellij.function.remotedebug.FunctionEnableRemoteDebuggingAction;
 import com.microsoft.azure.toolkit.intellij.function.remotedebug.FunctionRemoteDebuggingAction;
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.action.*;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.action.OpenLogsInMonitorAction;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.action.ProfileFlightRecordAction;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.action.SSHIntoWebAppAction;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.action.StartStreamingLogsAction;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.action.StopStreamingLogsAction;
 import com.microsoft.azure.toolkit.intellij.legacy.function.action.CreateFunctionAppAction;
 import com.microsoft.azure.toolkit.intellij.legacy.function.action.DeployFunctionAppAction;
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.action.CreateWebAppAction;
@@ -46,8 +51,8 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
@@ -76,6 +81,7 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
             .withLabel("Open File")
             .withIdParam(AppServiceFile::getName)
             .visibleWhen(s -> s instanceof AppServiceFile)
+            .withSource(AppServiceFile::getApp)
             .withHandler((file, e) -> tm.runLater(() -> new AppServiceFileAction().openAppServiceFile(file, ((AnActionEvent) e).getProject())))
             .withShortcut(am.getIDEDefaultShortcuts().edit())
             .register(am);
@@ -84,12 +90,18 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
             .withLabel("Download")
             .withIdParam(AppServiceFile::getName)
             .visibleWhen(s -> s instanceof AppServiceFile)
+            .withSource(AppServiceFile::getApp)
             .withHandler((file, e) -> tm.runLater(() -> new AppServiceFileAction().saveAppServiceFile(file, ((AnActionEvent) e).getProject(), null)))
             .register(am);
     }
 
     @Override
     public void registerHandlers(AzureActionManager am) {
+        am.registerHandler(ResourceCommonActionsContributor.GETTING_STARTED, (r, e) -> r instanceof AzureFunctions,
+                (AbstractAzService<?, ?> c, AnActionEvent e) -> GuidanceViewManager.getInstance().openCourseView(e.getProject(), "hello-function"));
+        am.registerHandler(ResourceCommonActionsContributor.GETTING_STARTED, (r, e) -> r instanceof AzureWebApp,
+                (AbstractAzService<?, ?> c, AnActionEvent e) -> GuidanceViewManager.getInstance().openCourseView(e.getProject(), "hello-webapp"));
+
         final BiPredicate<AppServiceAppBase<?, ?, ?>, AnActionEvent> isAppService = (r, e) -> r instanceof AppServiceAppBase<?, ?, ?>;
         final BiPredicate<AppServiceAppBase<?, ?, ?>, AnActionEvent> nonLinuxFunction = (r, e) -> Objects.nonNull(r) &&
             !(r instanceof FunctionApp && Optional.ofNullable(r.getRuntime()).map(Runtime::isLinux).orElse(Boolean.FALSE));
@@ -154,8 +166,8 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
             if (StringUtils.equalsIgnoreCase(triggerType, "timertrigger")) {
                 request = new Object();
             } else {
-                final String input = tm.runAndWaitAsObservable(new AzureTask<>(() -> Messages.showInputDialog(e.getProject(), "Please set the input value: ",
-                    String.format("Trigger function %s", entity.getName()), null))).toBlocking().single();
+                final String input = tm.runAndWait(() -> Messages.showInputDialog(e.getProject(), "Please set the input value: ",
+                    String.format("Trigger function %s", entity.getName()), null)).join();
                 if (input == null) {
                     return;
                 }

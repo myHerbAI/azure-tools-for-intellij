@@ -10,10 +10,8 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsightDraft;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
@@ -31,18 +29,15 @@ public class CreateApplicationInsightsAction {
             if (Objects.nonNull(data)) {
                 dialog.getForm().setValue(data);
             }
-            dialog.setOkActionListener((config) -> {
-                dialog.close();
-                create(config);
-            });
+            final Action.Id<ApplicationInsightDraft> actionId = Action.Id.of("user/ai.create_ai.ai");
+            dialog.setOkAction(new Action<>(actionId)
+                .withLabel("Create")
+                .withIdParam(ApplicationInsightDraft::getName)
+                .withSource(s -> s)
+                .withAuthRequired(true)
+                .withHandler(CreateApplicationInsightsAction::createApplicationInsights));
             dialog.show();
         });
-    }
-
-    @AzureOperation(name = "user/ai.create_ai.ai", params = {"config.getName()"})
-    public static void create(final ApplicationInsightDraft config) {
-        final AzureString title = OperationBundle.description("user/ai.create_ai.ai", config.getName());
-        AzureTaskManager.getInstance().runInBackground(title, () -> createApplicationInsights(config));
     }
 
     public static ApplicationInsight createApplicationInsights(ApplicationInsightDraft draft) {
@@ -50,7 +45,7 @@ public class CreateApplicationInsightsAction {
         OperationContext.action().setTelemetryProperty("subscriptionId", subscriptionId);
         if (draft.getResourceGroup() == null) { // create resource group if necessary.
             final ResourceGroup newResourceGroup = Azure.az(AzureResources.class)
-                    .groups(subscriptionId).createResourceGroupIfNotExist(draft.getResourceGroupName(), draft.getRegion());
+                .groups(subscriptionId).createResourceGroupIfNotExist(draft.getResourceGroupName(), draft.getRegion());
         }
         final ApplicationInsight resource = draft.commit();
         CacheManager.getUsageHistory(ApplicationInsight.class).push(draft);

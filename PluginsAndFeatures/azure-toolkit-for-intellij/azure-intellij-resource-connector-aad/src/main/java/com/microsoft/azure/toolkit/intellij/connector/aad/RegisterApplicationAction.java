@@ -138,7 +138,7 @@ public class RegisterApplicationAction extends AnAction {
             showApplicationTemplateDialog(subscription, application);
         }
 
-        @AzureOperation(name = "to_user/aad.show_application_template")
+        @AzureOperation(name = "boundary/aad.show_application_template")
         private void showApplicationTemplateDialog(@Nonnull Subscription subscription, @Nonnull Application application) {
             AzureTaskManager.getInstance().runLater(() ->
                     new AzureApplicationTemplateDialog(project, new SubscriptionApplicationPair(subscription, application)).show());

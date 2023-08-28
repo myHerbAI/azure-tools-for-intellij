@@ -97,6 +97,6 @@ public class AzureRunConfigurationTab<T extends BaseRunConfiguration> extends Ab
         }
         // todo: make the validation async
         panel.validateAllInputsAsync()
-                .subscribe(ignore -> AzureTaskManager.getInstance().runLater(this::updateLaunchConfigurationDialog));
+                .subscribe(ignore -> AzureTaskManager.getInstance().runLater((Runnable)this::updateLaunchConfigurationDialog));
     }
 }

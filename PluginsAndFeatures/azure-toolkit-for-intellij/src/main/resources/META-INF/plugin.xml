@@ -2,7 +2,7 @@
              xmlns:xi="http://www.w3.org/2001/XInclude">
   <id>com.microsoft.tooling.msservices.intellij.azure</id>
   <name>Azure Toolkit for IntelliJ</name>
-  <version>3.80.0-SNAPSHOT</version>
+  <version>3.80.0</version>
   <vendor email="java@microsoft.com" url="http://www.microsoft.com">Microsoft</vendor>
 
   <description><![CDATA[
@@ -27,19 +27,10 @@
   <change-notes>
     <![CDATA[
     <html>
-      <h3 id="added">Added</h3>
-      <ul>
-      <li>Support for creating Azure Spring apps/services of Enterprise/Standard/Basic tier in IDE.    </li>
-      <li>Support for managing deployment target services directly in Project Explorer.    </li>
-      </ul>
       <h3 id="fixed">Fixed</h3>
       <ul>
-      <li>status shows inactive after creating/refreshing spring app.</li>
-      <li>error may occur when importing document into SQL container.</li>
-      <li>error may occur when connecting to the storage emulator and running locally.</li>
-      <li>error may occur when deploy function app.</li>
-      <li>HDInsight Job view nodes are displayed as 'folder icon + cluster name'.</li>
-      <li>HDInsight Linked cluster cannot display in Azure Explorer when not signed in.</li>
+        <li>Fix: Code navigation was not working for bicep files.</li>
+        <li>Fix: Textmate rendering was not functioning for bicep files in IntelliJ 2023.2.</li>
       </ul>
       <p>You may get the full change log <a href="https://github.com/Microsoft/azure-tools-for-java/blob/develop/CHANGELOG.md">here</a></p>
     </html>
@@ -56,12 +47,13 @@
   <depends>com.intellij.gradle</depends>
   <depends>org.jetbrains.plugins.gradle</depends>
   <depends optional="true" config-file="azure-intellij-plugin-scala.xml">org.intellij.scala</depends>
-  <xi:include href="/META-INF/azure-intellij-plugin-lib.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/azure-intellij-plugin-lib-java.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-service-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-sdk-reference-book.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-resource-connector-lib-java.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-springcloud.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-hdinsight.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/azure-intellij-plugin-synapse.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-storage.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-vm.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-redis.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -79,6 +71,7 @@
   <xi:include href="/META-INF/azure-intellij-plugin-containerapps.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-eventhubs.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-servicebus.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/azure-intellij-plugin-cognitiveservices.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <!-- please see https://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
        on how to target different products -->
   <!-- uncomment to enable plugin in all products
@@ -94,7 +87,7 @@
           factoryClass="com.microsoft.intellij.ui.ActivityLogToolWindowFactory"
           id="Azure Activity Log"
           canCloseContents="true"
-          icon="/icons/Common/AzureActivityLog.svg"/>
+          icon="`/icons/Common/AzureActivityLog.svg`"/>
     <applicationConfigurable parentId="tools" displayName="Azure"
                          id="com.microsoft.intellij.AzureConfigurable"
                          provider="com.microsoft.intellij.AzureConfigurableProvider"/>
@@ -231,7 +224,7 @@
       <separator/>
       <reference ref="AzureToolkit.ValidateCertificate"/>
       <separator/>
-      <reference ref="user/AzureToolkit.OpenSdkReferenceBook"/>
+      <reference ref="user/sdk.OpenSdkReferenceBook"/>
       <separator/>
       <reference ref="AzureToolkit.ViewDevBlogs"/>
       <reference ref="AzureToolkit.ViewToolingDocument"/>

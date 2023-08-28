@@ -12,6 +12,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.tree.LeafState;
 import com.microsoft.azure.toolkit.intellij.common.action.IntellijAzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.ActionInstance;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 public class ActionNode<T> extends AbstractAzureFacetNode<Action<T>> {
@@ -62,16 +64,15 @@ public class ActionNode<T> extends AbstractAzureFacetNode<Action<T>> {
     }
 
     @Override
-    public void onClicked(Object event) {
-        final IView.Label view = this.getValue().getView(this.source);
+    public void onClicked(AnActionEvent event) {
+        final Action<T> value = getValue();
+        final ActionInstance<T> instance = value.instantiate(this.source, event);
+        final IView.Label view = instance.getView();
         if (!view.isVisible() || !view.isEnabled()) {
             return;
         }
-        final Action<T> value = getValue();
-        if (event instanceof AnActionEvent) {
-            value.getContext().setTelemetryProperty(Action.PLACE, ((AnActionEvent) event).getPlace());
-        }
-        this.getValue().handle(this.source, event);
+        instance.getContext().setTelemetryProperty(Action.PLACE, event.getPlace());
+        instance.performAsync();
     }
 
     @Nullable

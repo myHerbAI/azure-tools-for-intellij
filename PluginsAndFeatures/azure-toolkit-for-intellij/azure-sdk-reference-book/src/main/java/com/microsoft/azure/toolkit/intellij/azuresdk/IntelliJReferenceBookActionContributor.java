@@ -58,6 +58,8 @@ public class IntelliJReferenceBookActionContributor implements IActionsContribut
             put("Microsoft.EventHub/namespaces", "Event Hubs");
             put("Microsoft.ServiceBus", "Service Bus");
             put("Microsoft.ServiceBus/namespaces", "Service Bus");
+            put("Microsoft.CognitiveServices", "OpenAI");
+            put("Microsoft.CognitiveServices/accounts", "OpenAI");
         }
     };
 

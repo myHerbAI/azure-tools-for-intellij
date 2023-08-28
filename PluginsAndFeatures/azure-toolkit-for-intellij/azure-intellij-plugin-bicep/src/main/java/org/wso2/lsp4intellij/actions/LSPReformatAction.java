@@ -25,6 +25,7 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
+import org.apache.commons.lang3.ObjectUtils;
 import org.wso2.lsp4intellij.IntellijLanguageClient;
 import org.wso2.lsp4intellij.requests.ReformatHandler;
 
@@ -37,23 +38,22 @@ public class LSPReformatAction extends ReformatCodeAction implements DumbAware {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-        Project project = e.getData(CommonDataKeys.PROJECT);
-        Editor editor = e.getData(CommonDataKeys.EDITOR);
-        if (editor == null || project == null) {
-            return;
-        }
-        PsiFile file = PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
-        if (LanguageFormatting.INSTANCE.allForLanguage(file.getLanguage()).isEmpty() && IntellijLanguageClient
-                .isExtensionSupported(file.getVirtualFile())) {
-            // if editor hasSelection, only reformat selection, not reformat the whole file
-            if (editor.getSelectionModel().hasSelection()) {
-                ReformatHandler.reformatSelection(editor);
-            } else {
-                ReformatHandler.reformatFile(editor);
+        final Project project = e.getData(CommonDataKeys.PROJECT);
+        final Editor editor = e.getData(CommonDataKeys.EDITOR);
+        if (ObjectUtils.allNotNull(project, editor)) {
+            final PsiFile file = PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
+            if (LanguageFormatting.INSTANCE.allForLanguage(file.getLanguage()).isEmpty() && IntellijLanguageClient
+                    .isExtensionSupported(file.getVirtualFile())) {
+                // if editor hasSelection, only reformat selection, not reformat the whole file
+                if (editor.getSelectionModel().hasSelection()) {
+                    ReformatHandler.reformatSelection(editor);
+                } else {
+                    ReformatHandler.reformatFile(editor);
+                }
+                return;
             }
-        } else {
-            super.actionPerformed(e);
         }
+        super.actionPerformed(e);
     }
 
     @Override

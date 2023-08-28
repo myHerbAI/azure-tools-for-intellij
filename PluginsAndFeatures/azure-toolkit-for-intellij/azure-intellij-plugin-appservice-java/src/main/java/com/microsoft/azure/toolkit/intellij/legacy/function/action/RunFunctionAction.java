@@ -13,10 +13,12 @@ import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.impl.RunDialog;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.microsoft.azure.toolkit.intellij.common.runconfig.RunConfigurationUtils;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.AzureFunctionSupportConfigurationType;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localrun.FunctionRunConfiguration;
@@ -24,27 +26,22 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localrun.Func
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azuretools.telemetrywrapper.Operation;
-import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction;
-import com.microsoft.azure.toolkit.intellij.common.runconfig.RunConfigurationUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 
-public class RunFunctionAction extends AzureAnAction {
+public class RunFunctionAction extends AnAction {
 
     private final AzureFunctionSupportConfigurationType configType = AzureFunctionSupportConfigurationType.getInstance();
 
     @Override
-    public boolean onActionPerformed(@NotNull AnActionEvent anActionEvent, @Nullable Operation operation) {
+    public void actionPerformed(@Nonnull AnActionEvent anActionEvent) {
         final Module module = LangDataKeys.MODULE.getData(anActionEvent.getDataContext());
         AzureTaskManager.getInstance().runLater(() -> runConfiguration(module));
-        return true;
     }
 
     @Override

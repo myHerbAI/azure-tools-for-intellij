@@ -4,7 +4,7 @@
         <relativePath>../pom.xml</relativePath>
         <groupId>com.microsoft.azuretools</groupId>
         <artifactId>utils</artifactId>
-        <version>3.80.0-SNAPSHOT</version>
+        <version>3.80.0</version>
     </parent>
     <groupId>com.microsoft.azuretools</groupId>
     <artifactId>spark-localrun-mock</artifactId>
@@ -63,16 +63,6 @@
                         <goals>
                             <goal>test-compile</goal>
                         </goals>
-                    </execution>
-                    <execution>
-                        <id>clone-winutils</id>
-                        <phase>generate-test-resources</phase>
-                        <goals>
-                            <goal>script</goal>
-                        </goals>
-                        <configuration>
-                            <scriptFile>./build-tools/cloneWinutils.kts</scriptFile>
-                        </configuration>
                     </execution>
                 </executions>
                 <configuration>

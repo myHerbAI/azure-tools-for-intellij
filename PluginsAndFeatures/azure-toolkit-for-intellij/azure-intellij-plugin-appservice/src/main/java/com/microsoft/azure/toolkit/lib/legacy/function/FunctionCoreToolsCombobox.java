@@ -25,6 +25,7 @@ import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.utils.FunctionCliResolver;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
+import com.microsoft.azure.toolkit.lib.common.action.ActionInstance;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -35,7 +36,9 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
-import java.awt.event.*;
+import java.awt.event.InputEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -105,7 +108,8 @@ public class FunctionCoreToolsCombobox extends AzureComboBox<String> {
     private void openAzureSettingsPanel() {
         final Action<Object> openSettingsAction = AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS);
         final AnActionEvent event = AnActionEvent.createFromInputEvent(null, ActionPlaces.UNKNOWN, null, DataManager.getInstance().getDataContext(FunctionCoreToolsCombobox.this));
-        openSettingsAction.getHandler(null, event).accept(null, event); // Open Azure Settings Panel sync
+        final ActionInstance<Object> instance = openSettingsAction.instantiate(null, event);
+        instance.perform(); // Open Azure Settings Panel sync
     }
 
     @Nullable
@@ -142,7 +146,7 @@ public class FunctionCoreToolsCombobox extends AzureComboBox<String> {
         result.add(getDefaultFuncPath());
         if (result.stream().noneMatch(Objects::nonNull)) {
             this.setValidationInfo(includeSettings ? AzureValidationInfo.error(FUNCTIONS_CORE_TOOLS_NOT_FOUND, this)
-                    :  AzureValidationInfo.warning(FUNCTIONS_CORE_TOOLS_NOT_FOUND, this));
+                : AzureValidationInfo.warning(FUNCTIONS_CORE_TOOLS_NOT_FOUND, this));
         }
         result.add(includeSettings ? OPEN_AZURE_SETTINGS : null);
         return result.stream().filter(Objects::nonNull).distinct().sorted().collect(Collectors.toList());

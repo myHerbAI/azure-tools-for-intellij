@@ -1,0 +1,14 @@
+<idea-plugin>
+    <depends>org.intellij.plugins.markdown</depends>
+    <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
+        <explorerNodeProvider implementation="com.microsoft.azure.toolkit.ide.cognitiveservices.CognitiveServicesNodeProvider"/>
+        <actions implementation="com.microsoft.azure.toolkit.ide.cognitiveservices.CognitiveServicesActionsContributor"/>
+        <actions implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.IntelliJCognitiveServicesActionsContributor"/>
+        <guidanceTaskProvider implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.IntelliJCognitiveServicesTaskProvider"/>
+        <guidanceInputProvider implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.IntelliJCognitiveServicesInputProvider"/>
+    </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.CognitiveServicesStartupListener"/>
+        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.playground.CognitiveDeploymentPlaygroundProvider"/>
+    </extensions>
+</idea-plugin>

@@ -11,8 +11,8 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -36,10 +36,13 @@ public class CreateVirtualMachineAction {
 
     private static void openDialog(final Project project, final VirtualMachineDraft draft) {
         final VMCreationDialog dialog = new VMCreationDialog(project);
-        dialog.setOkActionListener((config) -> {
-            dialog.close();
-            doCreateVirtualMachine(project, config);
-        });
+        final Action.Id<VirtualMachineDraft> actionId = Action.Id.of("user/vm.create_vm.vm");
+        dialog.setOkAction(new Action<>(actionId)
+            .withLabel("Create")
+            .withIdParam(AbstractAzResource::getName)
+            .withSource(s -> s)
+            .withAuthRequired(true)
+            .withHandler(d -> doCreateVirtualMachine(project, d)));
         AzureTaskManager.getInstance().runOnPooledThread(() -> {
             final VirtualMachineDraft defaultData = Optional.ofNullable(draft).orElseGet(() -> {
                 final List<Subscription> subs = Azure.az(AzureAccount.class).account().getSelectedSubscriptions();
@@ -56,17 +59,15 @@ public class CreateVirtualMachineAction {
 
     private static void doCreateVirtualMachine(final Project project, final VirtualMachineDraft draft) {
         final AzureTaskManager tm = AzureTaskManager.getInstance();
-        tm.runInBackground(OperationBundle.description("internal/vm.create_vm.vm", draft.getName()), () -> {
-            OperationContext.action().setTelemetryProperty("subscriptionId", draft.getSubscriptionId());
-            try {
-                new CreateVirtualMachineTask(draft).execute();
-                CacheManager.getUsageHistory(VirtualMachine.class).push(draft);
-            } catch (final Exception e) {
-                final Action<?> action = new Action<>(Action.Id.of("user/vm.reopen_creation_dialog"))
-                    .withLabel(REOPEN_CREATION_DIALOG)
-                    .withHandler(t -> tm.runLater(() -> openDialog(project, draft)));
-                AzureMessager.getMessager().error(e, null, action);
-            }
-        });
+        OperationContext.action().setTelemetryProperty("subscriptionId", draft.getSubscriptionId());
+        try {
+            new CreateVirtualMachineTask(draft).execute();
+            CacheManager.getUsageHistory(VirtualMachine.class).push(draft);
+        } catch (final Exception e) {
+            final Action<?> action = new Action<>(Action.Id.of("user/vm.reopen_creation_dialog"))
+                .withLabel(REOPEN_CREATION_DIALOG)
+                .withHandler(t -> tm.runLater(() -> openDialog(project, draft)));
+            AzureMessager.getMessager().error(e, null, action);
+        }
     }
 }

@@ -5,26 +5,24 @@
 
 package com.microsoft.intellij.actions;
 
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleTypeId;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
-import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction;
-import com.microsoft.azuretools.telemetrywrapper.Operation;
 import com.microsoft.intellij.ui.components.DefaultDialogWrapper;
 import com.microsoft.intellij.ui.libraries.ApplicationInsightsPanel;
 import com.microsoft.intellij.util.MavenUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class ApplicationInsightsAction extends AzureAnAction {
+import javax.annotation.Nonnull;
+
+public class ApplicationInsightsAction extends AnAction {
     @Override
-    public boolean onActionPerformed(@NotNull AnActionEvent event, @Nullable Operation operation) {
+    public void actionPerformed(@Nonnull AnActionEvent event) {
         final Module module = event.getData(LangDataKeys.MODULE);
         DefaultDialogWrapper dialog = new DefaultDialogWrapper(module.getProject(), new ApplicationInsightsPanel(module));
         dialog.show();
-        return true;
     }
 
     @Override

@@ -30,6 +30,10 @@ import java.util.TreeMap;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
+import com.azure.resourcemanager.compute.models.AvailabilitySet;
+import com.azure.resourcemanager.network.models.Network;
+import com.azure.resourcemanager.network.models.NetworkSecurityGroup;
+import com.azure.resourcemanager.network.models.PublicIpAddress;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
@@ -56,12 +60,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-import com.microsoft.azure.management.compute.AvailabilitySet;
-import com.microsoft.azure.management.network.Network;
 import com.microsoft.tooling.msservices.components.DefaultLoader;
 import com.microsoft.tooling.msservices.model.vm.VirtualNetwork;
-import com.microsoft.azure.management.network.NetworkSecurityGroup;
-import com.microsoft.azure.management.network.PublicIPAddress;
 
 import com.microsoft.azuretools.azureexplorer.forms.CreateArmStorageAccountForm;
 import com.microsoft.azuretools.core.Activator;
@@ -99,7 +99,7 @@ public class SettingsStep extends WizardPage {
     private List<Network> virtualNetworks;
 
     private Map<String, StorageAccount> storageAccounts;
-    private List<PublicIPAddress> publicIpAddresses;
+    private List<PublicIpAddress> publicIpAddresses;
     private List<NetworkSecurityGroup> networkSecurityGroups;
     private List<AvailabilitySet> availabilitySets;
 
@@ -293,7 +293,7 @@ public class SettingsStep extends WizardPage {
                     @Override
                     public void run() {
                         if (virtualNetworks == null) {
-                            virtualNetworks = wizard.getNetworkManager().networks().list();
+                            virtualNetworks = wizard.getNetworkManager().networks().list().stream().collect(Collectors.toList());
                         }
                         DefaultLoader.getIdeHelper().invokeLater(new Runnable() {
                             @Override
@@ -428,7 +428,7 @@ public class SettingsStep extends WizardPage {
             @Override
             public void run() {
                 if (publicIpAddresses == null) {
-                    publicIpAddresses = wizard.getNetworkManager().publicIPAddresses().list();
+                    publicIpAddresses = wizard.getNetworkManager().publicIpAddresses().list().stream().collect(Collectors.toList());
                 }
                 DefaultLoader.getIdeHelper().invokeLater(new Runnable() {
                     @Override
@@ -436,7 +436,7 @@ public class SettingsStep extends WizardPage {
                         pipCombo.removeAll();
                         pipCombo.add(NONE);
                         pipCombo.add(CREATE_NEW);
-                        for (PublicIPAddress pip : filterPip()) {
+                        for (PublicIpAddress pip : filterPip()) {
                             pipCombo.add(pip.name());
                             pipCombo.setData(pip.name(), pip);
                         }
@@ -455,8 +455,8 @@ public class SettingsStep extends WizardPage {
                     wizard.setWithNewPip(true);
                     wizard.setPublicIpAddress(null);
 //                    showNewPipForm();
-                } else if (pipCombo.getData(pipCombo.getText()) instanceof PublicIPAddress) {
-                    wizard.setPublicIpAddress((PublicIPAddress) pipCombo.getData(pipCombo.getText()));
+                } else if (pipCombo.getData(pipCombo.getText()) instanceof PublicIpAddress) {
+                    wizard.setPublicIpAddress((PublicIpAddress) pipCombo.getData(pipCombo.getText()));
                     wizard.setWithNewPip(false);
                 }
             }
@@ -474,10 +474,10 @@ public class SettingsStep extends WizardPage {
         }
     }
 
-    private Vector<PublicIPAddress> filterPip() {
-        Vector<PublicIPAddress> filteredPips = new Vector<>();
+    private Vector<PublicIpAddress> filterPip() {
+        Vector<PublicIpAddress> filteredPips = new Vector<>();
 
-        for (PublicIPAddress publicIpAddress : publicIpAddresses) {
+        for (PublicIpAddress publicIpAddress : publicIpAddresses) {
             // VM and public ip address need to be in the same region
             if (publicIpAddress.regionName().equals(wizard.getRegion().getName())) {
                 filteredPips.add(publicIpAddress);
@@ -492,7 +492,7 @@ public class SettingsStep extends WizardPage {
             @Override
             public void run() {
                 if (networkSecurityGroups == null) {
-                    networkSecurityGroups = wizard.getNetworkManager().networkSecurityGroups().list();
+                    networkSecurityGroups = wizard.getNetworkManager().networkSecurityGroups().list().stream().collect(Collectors.toList());
                 }
                 DefaultLoader.getIdeHelper().invokeLater(new Runnable() {
                     @Override
@@ -535,7 +535,7 @@ public class SettingsStep extends WizardPage {
             @Override
             public void run() {
                 if (availabilitySets == null) {
-                    availabilitySets = wizard.getComputeManager().availabilitySets().list();
+                    availabilitySets = wizard.getComputeManager().availabilitySets().list().stream().collect(Collectors.toList());
                 }
                 DefaultLoader.getIdeHelper().invokeLater(new Runnable() {
                     @Override

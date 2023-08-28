@@ -6,7 +6,7 @@
 package com.microsoft.azure.hdinsight.common;
 
 import com.microsoft.azure.hdinsight.sdk.common.HttpResponse;
-import com.microsoft.azure.hdinsight.sdk.storage.IHDIStorageAccount;
+import com.microsoft.azure.hdinsight.sdk.storage.model.IHDIStorageAccount;
 import com.microsoft.azure.hdinsight.sdk.storage.adls.WebHDFSUtils;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import org.apache.http.HttpEntity;

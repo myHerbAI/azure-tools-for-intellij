@@ -22,9 +22,9 @@ public class OpenResourceInAzureTask implements Task {
     }
 
     @Override
-    @AzureOperation(name = "internal/guidance.open_resource_in_portal")
+    @AzureOperation(name = "user/guidance.open_resource_in_portal")
     public void execute() {
-        final String id = (String) taskContext.getParameter("webappId");
+        final String id = (String) taskContext.getParameter("resourceId");
         final ResourceId resourceId = ResourceId.fromString(id);
         final IAccount account = Azure.az(IAzureAccount.class).account();
         final Subscription subscription = account.getSubscription(resourceId.subscriptionId());

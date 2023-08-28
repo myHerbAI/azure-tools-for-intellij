@@ -55,7 +55,6 @@ public class CreateNewDocumentAction {
         return DEFAULT_TEMPLATE;
     }
 
-    @AzureOperation(name = "user/cosmos.create_document.container", params = {"container.getName()"})
     @SneakyThrows
     public static void create(@Nonnull final ICosmosDocumentContainer<?> container, @Nonnull final Project project, @Nonnull final String template) {
         final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);

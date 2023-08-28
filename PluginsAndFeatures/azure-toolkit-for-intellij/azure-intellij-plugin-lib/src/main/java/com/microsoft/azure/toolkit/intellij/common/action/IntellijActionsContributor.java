@@ -32,7 +32,7 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 
 public class IntellijActionsContributor implements IActionsContributor {
-    public static final Action.Id<Object> TRY_ULTIMATE = Action.Id.of("user/database.try_ultimate");
+    public static final Action.Id<Object> TRY_ULTIMATE = Action.Id.of("user/$database.try_ultimate");
     private static final String IDE_DOWNLOAD_URL = "https://www.jetbrains.com/idea/download/";
     public static final String ACTIONS_DEPLOY_TO_AZURE = "actions.common.deploy_to_azure";
 
@@ -56,7 +56,7 @@ public class IntellijActionsContributor implements IActionsContributor {
         }));
     }
 
-    @AzureOperation(name = "boundary/resource.open_url.url", params = {"u"})
+    @AzureOperation(name = "boundary/$resource.open_url.url", params = {"u"})
     private static void browseUrl(String u) {
         BrowserUtil.browse(u);
     }

@@ -1,0 +1,87 @@
+{
+  "$schema": "../flow-schema/Course.json",
+  "name": "hello-openai",
+  "title": "Try Azure OpenAI",
+  "description": "This tutorial shows how to deploy your own GPT 3.5 model on Azure and explore the features of OpenAI Playground in Azure Toolkit for IntelliJ.",
+  "priority" : 5,
+  "icon": "/icons/Microsoft.CognitiveServices/default.svg",
+  "tags": [
+    "OpenAI",
+    "GPT 3.5",
+    "Quickstart"
+  ],
+  "context": {
+  },
+  "phases": [
+    {
+      "title": "Sign-in",
+      "description": "Sign in with your Azure account",
+      "steps": [
+        {
+          "title": "Sign-in",
+          "description": null,
+          "task": {
+            "name": "task.signin"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Select Subscription",
+      "description": "Select the subscription to deploy your GPT 3.5 model",
+      "steps": [
+        {
+          "title": "Select Subscription",
+          "description": null,
+          "task": {
+            "name": "task.openai.select_subscription"
+          },
+          "inputs": [
+            {
+              "name": "input.openai.subscription"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Prepare Resources",
+      "description": "Initialize OpenAI deployment with GPT 3.5 model or select an existing one",
+      "steps": [
+        {
+          "title": "Prepare GPT 3.5 deployment",
+          "description": "Create GPT 3.5 deployment and related account or select an existing one",
+          "task": {
+            "name": "task.openai.create_deployment"
+          },
+          "inputs": [
+            {
+              "name": "input.openai.deployment"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Congratulations!",
+      "type": "summary",
+      "description": "Your GPT 3.5 model has been deployed to Azure, enjoy your Azure OpenAI experience!",
+      "steps": [
+        {
+          "title": "Try with AI Playground",
+          "description": null,
+          "task": {
+            "name": "task.open_ai.open_playground"
+          }
+        },
+        {
+          "title": "Open in Portal",
+          "description": null,
+          "task": {
+            "name": "task.resource.open_in_portal"
+          }
+        }
+      ]
+    }
+  ]
+}

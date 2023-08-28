@@ -24,7 +24,7 @@ import static com.microsoft.azure.toolkit.lib.common.action.Action.EMPTY_PLACE;
 import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
 
 public class OpenReferenceBookAction extends AnAction implements DumbAware {
-    public static final String ID = "user/AzureToolkit.OpenSdkReferenceBook";
+    public static final String ID = "user/sdk.OpenSdkReferenceBook";
 
     @Override
     @ExceptionNotification

@@ -81,7 +81,7 @@ public class ServerExplorerToolWindowFactory implements ToolWindowFactory, Prope
         final AzureModule azureModule = new AzureModuleImpl(project);
         //HDInsightUtil.setHDInsightRootModule(azureModule);
         azureModule.setSparkServerlessModule(new CosmosSparkClusterRootModuleImpl(azureModule));
-        azureModule.setArcadiaModule(new ArcadiaSparkClusterRootModuleImpl(azureModule));
+        //azureModule.setArcadiaModule(new ArcadiaSparkClusterRootModuleImpl(azureModule));
         // initialize aris service module
         final SqlBigDataClusterModule arisModule = new SqlBigDataClusterModule(project);
 
@@ -459,7 +459,7 @@ public class ServerExplorerToolWindowFactory implements ToolWindowFactory, Prope
             final AnAction whatsNewAction = ActionManager.getInstance().getAction("Actions.WhatsNew");
             final AnAction reportIssueAction = ActionManager.getInstance().getAction("AzureToolkit.GithubIssue");
             final AnAction featureRequestAction = ActionManager.getInstance().getAction("AzureToolkit.FeatureRequest");
-            final AnAction openSdkReferenceBookAction = ActionManager.getInstance().getAction("user/AzureToolkit.OpenSdkReferenceBook");
+            final AnAction openSdkReferenceBookAction = ActionManager.getInstance().getAction("user/sdk.OpenSdkReferenceBook");
             final AnAction openResourceConnectionExplorerAction = ActionManager.getInstance().getAction("AzureToolkit.OpenResourceConnectionExplorerAction");
             final AnAction openAzureSettingsAction = ActionManager.getInstance().getAction(OPEN_AZURE_SETTINGS.getId());
             (toolWindow).setAdditionalGearActions(new DefaultActionGroup(openSdkReferenceBookAction, openAzureSettingsAction, openResourceConnectionExplorerAction,

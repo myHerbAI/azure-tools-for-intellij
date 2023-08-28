@@ -23,8 +23,8 @@ public class ContainerServiceActionsContributor implements IActionsContributor {
 
     public static final String AGENT_POOL_ACTIONS = "actions.kubernetes.agent_pool";
 
-    public static final Action.Id<KubernetesCluster> DOWNLOAD_CONFIG_ADMIN = Action.Id.of("user/kubernetes.kubu_config_admin.kubernetes");
-    public static final Action.Id<KubernetesCluster> DOWNLOAD_CONFIG_USER = Action.Id.of("user/kubernetes.kubu_config_user.kubernetes");
+    public static final Action.Id<KubernetesCluster> DOWNLOAD_CONFIG_ADMIN = KubernetesCluster.DOWNLOAD_CONFIG_ADMIN;
+    public static final Action.Id<KubernetesCluster> DOWNLOAD_CONFIG_USER = KubernetesCluster.DOWNLOAD_CONFIG_USER;
     public static final Action.Id<KubernetesCluster> GET_CREDENTIAL_ADMIN = Action.Id.of("user/kubernetes.get_credential_admin.kubernetes");
     public static final Action.Id<KubernetesCluster> GET_CREDENTIAL_USER = Action.Id.of("user/kubernetes.get_credential_user.kubernetes");
     public static final Action.Id<ResourceGroup> GROUP_CREATE_KUBERNETES_SERVICE = Action.Id.of("user/kubernetes.create_kubernetes.group");

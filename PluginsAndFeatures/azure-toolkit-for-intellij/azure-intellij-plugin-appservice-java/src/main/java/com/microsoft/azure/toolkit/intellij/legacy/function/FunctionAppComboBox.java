@@ -10,8 +10,8 @@ import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -32,12 +32,15 @@ public class FunctionAppComboBox extends AppServiceComboBox<FunctionAppConfig> {
 
     @Override
     protected void createResource() {
-        final FunctionAppCreationDialog functionAppCreationDialog = new FunctionAppCreationDialog(project);
-        functionAppCreationDialog.setOkActionListener(functionAppConfig -> {
-            FunctionAppComboBox.this.setValue(functionAppConfig);
-            AzureTaskManager.getInstance().runLater(functionAppCreationDialog::close);
-        });
-        functionAppCreationDialog.showAndGet();
+        final FunctionAppCreationDialog dialog = new FunctionAppCreationDialog(project);
+        final Action.Id<FunctionAppConfig> actionId = Action.Id.of("user/function.create_app.app");
+        dialog.setOkAction(new Action<>(actionId)
+            .withLabel("Create")
+            .withIdParam(FunctionAppConfig::getName)
+            .withSource(s -> s)
+            .withAuthRequired(false)
+            .withHandler(draft -> this.setValue(draft)));
+        dialog.show();
     }
 
     @Nonnull

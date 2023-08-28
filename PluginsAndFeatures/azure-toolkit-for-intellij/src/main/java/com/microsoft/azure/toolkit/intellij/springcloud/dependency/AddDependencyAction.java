@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.springcloud.dependency;
 
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -26,23 +27,21 @@ import com.intellij.openapi.vfs.newvfs.RefreshQueue;
 import com.intellij.psi.PsiFile;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction;
-import com.microsoft.azuretools.telemetry.TelemetryConstants;
-import com.microsoft.azuretools.telemetrywrapper.Operation;
 import com.microsoft.intellij.util.MavenUtils;
 import com.microsoft.intellij.util.PluginUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.DocumentException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.maven.model.MavenArtifact;
 import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
 import org.jetbrains.idea.maven.utils.MavenProcessCanceledException;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-public class AddDependencyAction extends AzureAnAction {
+public class AddDependencyAction extends AnAction {
     public static final String SPRING_CLOUD_GROUP_ID = "org.springframework.cloud";
     public static final String SPRING_BOOT_GROUP_ID = "org.springframework.boot";
     private static final String GROUP_ID = "com.microsoft.azure";
@@ -59,29 +58,28 @@ public class AddDependencyAction extends AzureAnAction {
     private static final String SPRING_CLOUD_COMMONS_KEY = "org.springframework.cloud:spring-cloud-commons";
 
     @Override
-    public boolean onActionPerformed(@NotNull AnActionEvent event, @Nullable Operation operation) {
+    public void actionPerformed(@Nonnull AnActionEvent event) {
         final Module module = event.getData(LangDataKeys.MODULE);
         final Project project = module.getProject();
         final MavenProjectsManager projectsManager = MavenProjectsManager.getInstance(project);
         final MavenProject mavenProject = projectsManager.findProject(module);
+        final IAzureMessager messager = AzureMessager.getMessager();
         if (mavenProject == null) {
-            PluginUtil.showErrorNotificationProject(project, "Error",
-                    String.format("Project '%s' is not a maven project.",
-                            project.getName()));
-            return true;
+            messager.error(AzureString.format("Module %s is not a maven module.", module.getName()));
+            return;
         }
 
         final AzureString title = OperationBundle.description("boundary/springcloud.update_dependency.project", project.getName());
         AzureTaskManager.getInstance().runInBackground(new AzureTask(project, title, true, () -> {
-            ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
+            final ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
             progressIndicator.setText("Syncing maven project " + project.getName());
             final SettableFuture<Boolean> isDirty = SettableFuture.create();
 
             AzureTaskManager.getInstance().runAndWait(() -> {
-                ProjectNotificationAware notificationAware = ProjectNotificationAware.getInstance(project);
+                final ProjectNotificationAware notificationAware = ProjectNotificationAware.getInstance(project);
                 isDirty.set(notificationAware.isNotificationVisible());
                 if (notificationAware.isNotificationVisible()) {
-                    ExternalSystemProjectTracker projectTracker = ExternalSystemProjectTracker.getInstance(project);
+                    final ExternalSystemProjectTracker projectTracker = ExternalSystemProjectTracker.getInstance(project);
                     projectTracker.scheduleProjectRefresh();
                 }
             });
@@ -89,7 +87,7 @@ public class AddDependencyAction extends AzureAnAction {
                 if (isDirty.get().booleanValue()) {
                     projectsManager.forceUpdateProjects(Collections.singletonList(mavenProject)).get();
                 }
-            } catch (InterruptedException | ExecutionException e) {
+            } catch (final InterruptedException | ExecutionException e) {
                 PluginUtil.showErrorNotification("Error",
                                                  "Failed to update project due to error: "
                                                      + e.getMessage());
@@ -109,13 +107,13 @@ public class AddDependencyAction extends AzureAnAction {
                     throw new AzureExecutionException(String.format("Module %s is not a spring-boot application.", module.getName()));
                 }
                 progressIndicator.setText("Get latest versions ...");
-                SpringCloudDependencyManager dependencyManager = new SpringCloudDependencyManager(evaluateEffectivePom);
-                Map<String, DependencyArtifact> versionMaps = dependencyManager.getDependencyVersions();
-                Map<String, DependencyArtifact> managerDependencyVersionsMaps = dependencyManager.getDependencyManagementVersions();
+                final SpringCloudDependencyManager dependencyManager = new SpringCloudDependencyManager(evaluateEffectivePom);
+                final Map<String, DependencyArtifact> versionMaps = dependencyManager.getDependencyVersions();
+                final Map<String, DependencyArtifact> managerDependencyVersionsMaps = dependencyManager.getDependencyManagementVersions();
 
                 // given the spring-cloud-commons is greater or equal to 2.2.5.RELEASE, we should not add spring-cloud-starter-azure-spring-cloud-client
                 // because the code is already merged into spring repo: https://github.com/spring-cloud/spring-cloud-commons/pull/803
-                boolean noAzureSpringCloudClientDependency = shouldNotAddAzureSpringCloudClientDependency(versionMaps) ||
+                final boolean noAzureSpringCloudClientDependency = shouldNotAddAzureSpringCloudClientDependency(versionMaps) ||
                     shouldNotAddAzureSpringCloudClientDependency(managerDependencyVersionsMaps);
 
                 ProgressManager.checkCanceled();
@@ -133,20 +131,18 @@ public class AddDependencyAction extends AzureAnAction {
                 } else {
                     PluginUtil.showInfoNotificationProject(project, "Your project is update-to-date.", "No updates are needed.");
                 }
-            } catch (DocumentException | IOException | AzureExecutionException | MavenProcessCanceledException e) {
+            } catch (final DocumentException | IOException | AzureExecutionException | MavenProcessCanceledException e) {
                 PluginUtil.showErrorNotification("Error",
                                                  "Failed to update Azure Spring Cloud dependencies due to error: "
                                                      + e.getMessage());
             }
         }));
-
-        return false;
     }
 
-    public void update(@NotNull AnActionEvent event) {
+    public void update(@Nonnull AnActionEvent event) {
         final Presentation presentation = event.getPresentation();
         final Module module = event.getData(LangDataKeys.MODULE);
-        boolean isMaven = module != null && MavenUtils.isMavenProject(module.getProject());
+        final boolean isMaven = module != null && MavenUtils.isMavenProject(module.getProject());
         if (isMaven && StringUtils.equals(event.getPlace(), "EditorPopup")) {
             presentation.setEnabledAndVisible(isEditingMavenPomXml(module, event));
         } else {
@@ -154,23 +150,13 @@ public class AddDependencyAction extends AzureAnAction {
         }
     }
 
-    @Override
-    protected String getServiceName(AnActionEvent event) {
-        return TelemetryConstants.SPRING_CLOUD;
-    }
-
-    @Override
-    protected String getOperationName(AnActionEvent event) {
-        return TelemetryConstants.ADD_DEPENDENCY_SPRING_CLOUD_APP;
-    }
-
     protected static boolean isEditingMavenPomXml(Module module, AnActionEvent event) {
-        Editor editor = event.getData(CommonDataKeys.EDITOR);
+        final Editor editor = event.getData(CommonDataKeys.EDITOR);
         if (editor == null) {
             return false;
         }
-        PsiFile psiFile = event.getData(CommonDataKeys.PSI_FILE);
-        boolean isMaven = module != null && MavenUtils.isMavenProject(module.getProject());
+        final PsiFile psiFile = event.getData(CommonDataKeys.PSI_FILE);
+        final boolean isMaven = module != null && MavenUtils.isMavenProject(module.getProject());
         if (!isMaven) {
             return false;
         }
@@ -182,9 +168,9 @@ public class AddDependencyAction extends AzureAnAction {
     }
 
     private static String summaryVersionChanges(List<DependencyArtifact> changes) {
-        StringBuilder builder = new StringBuilder();
-        for (DependencyArtifact change : changes) {
-            boolean isUpdate = StringUtils.isNotEmpty(change.getCurrentVersion());
+        final StringBuilder builder = new StringBuilder();
+        for (final DependencyArtifact change : changes) {
+            final boolean isUpdate = StringUtils.isNotEmpty(change.getCurrentVersion());
             builder.append(String.format("%s dependency: Group: %s, Artifact: %s, Version: %s%s \n",
                     isUpdate ? "Update" : "Add ",
                     change.getGroupId(),
@@ -201,7 +187,7 @@ public class AddDependencyAction extends AzureAnAction {
     }
 
     private static String getMavenLibraryVersion(MavenProject project, String groupId, String artifactId) {
-        MavenArtifact lib = project.getDependencies().stream().filter(dep -> !StringUtils.equals(dep.getScope(), "test")
+        final MavenArtifact lib = project.getDependencies().stream().filter(dep -> !StringUtils.equals(dep.getScope(), "test")
                 && isMatch(dep, groupId, artifactId)).findFirst().orElse(null);
         return lib != null ? lib.getVersion() : null;
     }
@@ -212,7 +198,7 @@ public class AddDependencyAction extends AzureAnAction {
 
     private static boolean shouldNotAddAzureSpringCloudClientDependency(Map<String, DependencyArtifact> versionMaps) {
         if (versionMaps.containsKey(SPRING_CLOUD_COMMONS_KEY)) {
-            String version = versionMaps.get(SPRING_CLOUD_COMMONS_KEY).getCurrentVersion();
+            final String version = versionMaps.get(SPRING_CLOUD_COMMONS_KEY).getCurrentVersion();
             return SpringCloudDependencyManager.isGreaterOrEqualVersion(version, "2.2.5.RELEASE");
         }
         return false;
@@ -222,7 +208,7 @@ public class AddDependencyAction extends AzureAnAction {
                                                                     boolean noAzureSpringCloudClientDependency,
                                                                     Map<String, DependencyArtifact> versionMaps)
             throws AzureExecutionException, DocumentException, IOException {
-        List<DependencyArtifact> dep = new ArrayList<>();
+        final List<DependencyArtifact> dep = new ArrayList<>();
         if (!noAzureSpringCloudClientDependency) {
             dep.add(getDependencyArtifact(GROUP_ID, ARTIFACT_ID, versionMaps));
         }
@@ -241,7 +227,7 @@ public class AddDependencyAction extends AzureAnAction {
                                                Map<String, DependencyArtifact> managerDependencyVersionsMaps,
                                                List<DependencyArtifact> versionChanges) throws IOException, DocumentException {
         versionChanges.stream().filter(change -> managerDependencyVersionsMaps.containsKey(change.getKey())).forEach(change -> {
-            String managementVersion = managerDependencyVersionsMaps.get(change.getKey()).getCurrentVersion();
+            final String managementVersion = managerDependencyVersionsMaps.get(change.getKey()).getCurrentVersion();
             if (StringUtils.equals(change.getCompatibleVersion(), managementVersion)
                     || SpringCloudDependencyManager.isCompatibleVersion(managementVersion, springBootVer)) {
                 change.setCompatibleVersion("");
@@ -253,7 +239,7 @@ public class AddDependencyAction extends AzureAnAction {
 
     private static void noticeUserVersionChanges(Project project, File pomFile, List<DependencyArtifact> versionChanges) {
         final VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(pomFile);
-        RefreshQueue.getInstance().refresh(true, false, null, new VirtualFile[]{vf});
+        RefreshQueue.getInstance().refresh(true, false, null, vf);
         AzureTaskManager.getInstance().runLater(() -> {
             FileEditorManager.getInstance(project).closeFile(vf);
             FileEditorManager.getInstance(project).openFile(vf, true, true);

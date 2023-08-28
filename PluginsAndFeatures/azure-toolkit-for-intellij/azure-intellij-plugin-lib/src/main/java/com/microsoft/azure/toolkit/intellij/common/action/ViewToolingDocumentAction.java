@@ -28,7 +28,7 @@ public class ViewToolingDocumentAction extends AnAction implements DumbAware {
     }
 
     @Override
-    @AzureOperation(name = "user/view_tooling_documents")
+    @AzureOperation(name = "user/common.view_tooling_documents")
     public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
         OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(anActionEvent.getPlace(), EMPTY_PLACE));
         AzureActionManager.getInstance().getAction(OPEN_URL).handle(DOC_URL);

@@ -50,8 +50,8 @@ public class IntellijAzureMessage extends AzureHtmlMessage {
     }
 
     protected String getValueColor() {
-        final Color color = UIUtil.isUnderDarcula() ? JBColor.CYAN : JBColor.CYAN.darker();
-        return "#" + Integer.toHexString(color.getRGB()).substring(2);
+        // color from compile_dark.svg and compile.svg
+        return UIUtil.isUnderDarcula() ? "#499C54" : "#59A869";
     }
 }
 

@@ -1,0 +1,13 @@
+intellij {
+    plugins = ['org.intellij.plugins.markdown']
+}
+
+dependencies {
+    implementation project(path: ':azure-intellij-plugin-lib', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-guidance', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-resource-connector-lib', configuration: 'instrumentedJar')
+    implementation 'com.microsoft.azure:azure-toolkit-common-lib'
+    implementation 'com.microsoft.azure:azure-toolkit-ide-common-lib'
+    implementation 'com.microsoft.azure:azure-toolkit-ide-cognitiveservices-lib'
+    implementation 'com.azure:azure-ai-openai'
+}

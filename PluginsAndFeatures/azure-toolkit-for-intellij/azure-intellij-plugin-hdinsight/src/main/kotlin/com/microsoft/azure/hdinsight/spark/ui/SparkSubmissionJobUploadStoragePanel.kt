@@ -37,8 +37,8 @@ import com.microsoft.azure.hdinsight.sdk.cluster.AzureAdAccountDetail
 import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail
 import com.microsoft.azure.hdinsight.sdk.common.ADLSGen2OAuthHttpObservable
 import com.microsoft.azure.hdinsight.sdk.common.SharedKeyHttpObservable
-import com.microsoft.azure.hdinsight.sdk.storage.ADLSGen2StorageAccount
-import com.microsoft.azure.hdinsight.sdk.storage.IHDIStorageAccount
+import com.microsoft.azure.hdinsight.sdk.storage.implementation.ADLSGen2StorageAccount
+import com.microsoft.azure.hdinsight.sdk.storage.model.IHDIStorageAccount
 import com.microsoft.azure.hdinsight.spark.common.SparkSubmitJobUploadStorageModel
 import com.microsoft.azure.hdinsight.spark.common.SparkSubmitStorageType
 import com.microsoft.azure.hdinsight.spark.common.SparkSubmitStorageType.*

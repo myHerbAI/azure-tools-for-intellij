@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContri
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
+import com.microsoft.azure.toolkit.lib.common.action.ActionInstance;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessageBundle;
@@ -61,9 +62,10 @@ public class IntellijAzureActionManager extends AzureActionManager {
 
     public <D> void registerAction(Action<D> action) {
         final ActionManager manager = ActionManager.getInstance();
-        if (Objects.isNull(manager.getAction(action.getId()))) {
+        final String id = action.getId().toString();
+        if (Objects.isNull(manager.getAction(id))) {
             final AnActionWrapper<D> wrapper = new AnActionWrapper<>(action);
-            manager.registerAction(action.getId(), wrapper);
+            manager.registerAction(id, wrapper);
         }
     }
 
@@ -147,8 +149,9 @@ public class IntellijAzureActionManager extends AzureActionManager {
         @Override
         public void actionPerformed(@Nonnull AnActionEvent e) {
             final T source = getSource(e);
-            this.action.getContext().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(e.getPlace(), EMPTY_PLACE));
-            this.action.handle(source, e);
+            final ActionInstance<T> instance = this.action.instantiate(source, e);
+            instance.getContext().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(e.getPlace(), EMPTY_PLACE));
+            instance.performAsync();
         }
 
         @Override
@@ -156,23 +159,23 @@ public class IntellijAzureActionManager extends AzureActionManager {
             final T source = getSource(e);
             final String place = convertToAzureActionPlace(e.getPlace());
             final Presentation presentation = e.getPresentation();
-            final IView.Label view = this.action.getView(source, place);
+            final ActionInstance<T> instance = action.instantiate(source, e);
+            final IView.Label view = Optional.of(instance).map(i -> i.getView(place)).orElse(Action.View.INVISIBLE);
             final boolean visible;
             final boolean isAbstractAzResource = source instanceof AbstractAzResource;
 
             if (source instanceof Emulatable && ((Emulatable) source).isEmulatorResource()) {
-                visible = view.isVisible() && Objects.nonNull(action.getHandler(source, e));
+                visible = view.isVisible();
             } else if (isAbstractAzResource && "[LinkedCluster]".equals(((AbstractAzResource<?, ?, ?>) source).getSubscription().getId())) {
                 visible = true;
             } else {
                 final boolean isResourceInOtherSubs = isAbstractAzResource && !((AbstractAzResource<?, ?, ?>) source).getSubscription().isSelected();
-                visible = !isResourceInOtherSubs && view.isVisible() && Objects.nonNull(action.getHandler(source, e));
+                visible = !isResourceInOtherSubs && view.isVisible();
             }
 
             presentation.setVisible(visible);
             if (visible) {
-                final boolean enabled = view.isEnabled() && Objects.nonNull(action.getHandler(source, e));
-                presentation.setEnabled(enabled);
+                presentation.setEnabled(view.isEnabled());
                 presentation.setIcon(Optional.ofNullable(view.getIconPath()).map(IntelliJAzureIcons::getIcon).orElse(null));
                 presentation.setText(view.getLabel());
                 presentation.setDescription(view.getDescription());
@@ -295,6 +298,7 @@ public class IntellijAzureActionManager extends AzureActionManager {
     }
 
     @Override
+    @SuppressWarnings("UnresolvedPropertyKey")
     public Shortcuts getIDEDefaultShortcuts() {
         return new Shortcuts() {
             @Override

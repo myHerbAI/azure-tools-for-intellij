@@ -42,9 +42,9 @@ allprojects {
     }
 
     ext {
-        azureToolkitLibsVersion = "0.36.0-SNAPSHOT"
-        azureToolkitIdeLibsVersion = "0.36.0-SNAPSHOT"
-        azureToolkitUtilsVersion = "3.80.0-SNAPSHOT"
+        azureToolkitLibsVersion = "0.36.0"
+        azureToolkitIdeLibsVersion = "0.36.0"
+        azureToolkitUtilsVersion = "3.80.0"
     }
 
     dependencyManagement {
@@ -106,6 +106,7 @@ dependencies {
     implementation 'com.microsoft.azure:azure-toolkit-ide-common-lib'
 
     implementation project(path: ':azure-intellij-plugin-lib', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-lib-java', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-service-explorer', configuration: 'instrumentedJar')
 
     def modules = IntellijPluginModules.split(",")

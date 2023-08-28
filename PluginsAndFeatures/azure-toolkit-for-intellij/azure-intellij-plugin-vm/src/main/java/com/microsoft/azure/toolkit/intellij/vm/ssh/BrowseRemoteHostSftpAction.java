@@ -40,7 +40,6 @@ import java.util.concurrent.TimeUnit;
 
 public class BrowseRemoteHostSftpAction {
 
-    @AzureOperation(name = "user/vm.browse_files_sftp.vm", params = "vm.getName()")
     public static void browseRemoteHost(VirtualMachine vm, @Nonnull Project project) {
         final SshConfig curSshConfig = AddSshConfigAction.getOrCreateSshConfig(vm, project);
         final SshConfig sshConfig = validateSshConfig(curSshConfig);

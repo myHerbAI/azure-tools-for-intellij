@@ -52,7 +52,7 @@ public class Tree extends SimpleTree implements DataProvider {
     }
 
     protected void init(@Nonnull Node<?> root) {
-        ComponentUtil.putClientProperty(this, ANIMATION_IN_RENDERER_ALLOWED, true);
+        this.putClientProperty(ANIMATION_IN_RENDERER_ALLOWED, true);
         this.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         TreeUtil.installActions(this);
         TreeUIHelper.getInstance().installTreeSpeedSearch(this);
@@ -151,7 +151,7 @@ public class Tree extends SimpleTree implements DataProvider {
         }
 
         @Override
-        @AzureOperation(name = "user/common.load_children.node", params = "this.getLabel()")
+        @AzureOperation(name = "internal/common.load_children.node", params = "this.getLabel()")
         public void updateChildren(boolean... incremental) {
             AzureTaskManager.getInstance().runLater(() -> {
                 if (this.getAllowsChildren() && BooleanUtils.isNotFalse(this.loaded)) {

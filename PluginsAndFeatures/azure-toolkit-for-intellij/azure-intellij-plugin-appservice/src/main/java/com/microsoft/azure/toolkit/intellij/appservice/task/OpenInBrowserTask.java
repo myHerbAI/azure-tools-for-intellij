@@ -23,7 +23,7 @@ public class OpenInBrowserTask implements Task {
     }
 
     @Override
-    @AzureOperation(name = "internal/guidance.open_in_browser")
+    @AzureOperation(name = "user/guidance.open_in_browser")
     public void execute() throws Exception {
         final String webAppId = Objects.requireNonNull((String) context.getParameter("webappId"), "Failed to get the web app id created in tasks");
         final WebApp webApp = Objects.requireNonNull(Azure.az(AzureWebApp.class).webApp(webAppId), String.format("failed to find web app with id (%s) in Azure", webAppId));

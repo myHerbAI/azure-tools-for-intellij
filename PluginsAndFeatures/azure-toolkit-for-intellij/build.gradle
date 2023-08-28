@@ -1,6 +1,6 @@
 plugins {
     id "org.jetbrains.intellij" version "1.13.3"
-    id "org.jetbrains.kotlin.jvm" version "1.7.20"
+    id "org.jetbrains.kotlin.jvm" version "1.9.10"
     id "de.undercouch.download" version "4.1.1"
     id "com.github.ben-manes.versions" version "0.39.0"
     id "io.freefair.aspectj.post-compile-weaving" version "6.5.1"
@@ -64,9 +64,9 @@ allprojects {
     }
 
     ext {
-        azureToolkitLibsVersion = "0.36.0-SNAPSHOT"
-        azureToolkitIdeLibsVersion = "0.36.0-SNAPSHOT"
-        azureToolkitUtilsVersion = "3.80.0-SNAPSHOT"
+        azureToolkitLibsVersion = "0.36.0"
+        azureToolkitIdeLibsVersion = "0.36.0"
+        azureToolkitUtilsVersion = "3.80.0"
         azureToolkitHDInsightVersion = "0.1.0"
     }
 
@@ -126,7 +126,7 @@ intellij {
     pluginName = 'azure-toolkit-for-intellij'
     version = intellij_version
     updateSinceUntilBuild = Boolean.valueOf(updateVersionRange)
-    plugins = ['java', 'maven', 'maven-model', 'gradle', dep_plugins, "properties", 'terminal', 'gradle-java']
+    plugins = ['java', 'maven', 'maven-model', 'gradle', dep_plugins, "properties", 'terminal', 'gradle-java', 'org.intellij.plugins.markdown']
     downloadSources = Boolean.valueOf(sources)
 }
 
@@ -176,9 +176,12 @@ dependencies {
     implementation project(path: ':azure-intellij-plugin-containerapps', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-monitor', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-hdinsight', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-synapse', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-eventhubs', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-servicebus', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-cognitiveservices', configuration: 'instrumentedJar')
     implementation 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-spark-lib'
+    implementation 'com.microsoft.hdinsight:azure-toolkit-ide-synapse-spark-lib'
     implementation 'com.microsoft.azure:azure-toolkit-ide-appservice-lib'
     implementation 'com.microsoft.azure:azure-toolkit-applicationinsights-lib'
     implementation 'com.microsoft.azure:azure-toolkit-storage-lib'
@@ -209,7 +212,7 @@ dependencies {
     }
     implementation group: 'jaxen', name: 'jaxen', version: '1.2.0'
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.22")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10")
     testImplementation 'io.cucumber:cucumber-java:7.0.0'
     testImplementation 'io.cucumber:cucumber-junit:7.0.0'
     testImplementation 'org.assertj:assertj-core:3.19.0'

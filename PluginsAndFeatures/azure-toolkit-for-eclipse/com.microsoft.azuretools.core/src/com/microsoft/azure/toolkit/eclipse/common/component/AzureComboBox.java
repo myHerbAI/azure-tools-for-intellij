@@ -122,8 +122,8 @@ public class AzureComboBox<T> extends Composite implements AzureFormInputControl
     @Override
     public T getValue() {
         return AzureTaskManager.getInstance()
-            .runAndWaitAsObservable(new AzureTask<>(() -> (T) this.viewer.getStructuredSelection().getFirstElement()))
-            .toBlocking().first();
+            .runAndWait(new AzureTask<>(() -> (T) this.viewer.getStructuredSelection().getFirstElement()))
+            .join();
     }
 
     @Override

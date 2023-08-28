@@ -98,8 +98,7 @@ public class SpringCloudAppConfigPanel extends Composite implements AzureFormPan
 	}
 
 	public synchronized void updateForm(@Nonnull SpringCloudApp app) {
-		final String sku = app.getParent().getSku();
-		final boolean enterprise = sku.toLowerCase().startsWith("e");
+		final boolean enterprise = app.getParent().isEnterpriseTier();
 		this.lblDisk.setVisible(!enterprise);
 		this.toggleStorage.setVisible(!enterprise);
 		this.useJava8.setVisible(!enterprise);
@@ -112,7 +111,7 @@ public class SpringCloudAppConfigPanel extends Composite implements AzureFormPan
 		((GridData) this.useJava11.getLayoutData()).exclude = enterprise;
 		((GridData) this.useJava17.getLayoutData()).exclude = enterprise;
 		((GridData) this.lblRuntime.getLayoutData()).exclude = enterprise;
-		final boolean basic = sku.toLowerCase().startsWith("b");
+		final boolean basic = app.getParent().isBasicTier();
 		final Double cpu = numCpu.getItemCount() < 1 || numCpu.getSelectionIndex() < 0 ? 1
 				: Double.valueOf(numCpu.getItem(numCpu.getSelectionIndex()));
 		final Double mem = numMemory.getItemCount() < 1 || numMemory.getSelectionIndex() < 0 ? 1
@@ -149,7 +148,7 @@ public class SpringCloudAppConfigPanel extends Composite implements AzureFormPan
 		appConfig.setIsPublic(this.toggleEndpoint.getSelection());
 		deploymentConfig.setCpu(Double.valueOf(numCpu.getItem(numCpu.getSelectionIndex())));
 		deploymentConfig.setMemoryInGB(Double.valueOf(numMemory.getItem(numMemory.getSelectionIndex())));
-		deploymentConfig.setInstanceCount(numInstance.getValue());
+		deploymentConfig.setCapacity(numInstance.getValue());
 		deploymentConfig.setJvmOptions(Optional.ofNullable(this.txtJvmOptions.getText()).map(String::trim).orElse(""));
 		deploymentConfig.setEnvironment(getEnvironmentVariables());
 		return appConfig;
@@ -179,7 +178,7 @@ public class SpringCloudAppConfigPanel extends Composite implements AzureFormPan
 
 		Optional.ofNullable(deployment.getCpu()).ifPresent(c -> this.numCpu.setText(c < 1 ? "0.5" : "1"));
 		Optional.ofNullable(deployment.getMemoryInGB()).ifPresent(c -> this.numMemory.setText(c < 1 ? "0.5" : "1"));
-		this.numInstance.setValue(Optional.ofNullable(deployment.getInstanceCount()).orElse(1));
+		this.numInstance.setValue(Optional.ofNullable(deployment.getCapacity()).orElse(1));
 	}
 
 	@Nonnull
