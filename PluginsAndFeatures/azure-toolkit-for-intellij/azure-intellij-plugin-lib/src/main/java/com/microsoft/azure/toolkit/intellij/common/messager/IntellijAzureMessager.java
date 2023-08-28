@@ -41,7 +41,7 @@ public class IntellijAzureMessager implements IAzureMessager {
     );
 
     private Notification createNotification(@Nonnull String title, @Nonnull String content, NotificationType type) {
-        return new Notification(NOTIFICATION_GROUP_ID, title, content, type, new NotificationListener.UrlOpeningListener(true));
+        return new Notification(NOTIFICATION_GROUP_ID, title, content, type, new NotificationListener.UrlOpeningListener(false));
     }
 
     @Override
