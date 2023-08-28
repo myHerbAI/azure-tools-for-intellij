@@ -36,7 +36,7 @@ public class MySqlDatabaseResourceDefinition extends SqlDatabaseResourceDefiniti
 
     @Override
     public AzureFormJPanel<Resource<MySqlDatabase>> getResourcePanel(Project project) {
-        return new SqlDatabaseResourcePanel<>(this, Azure.az(AzureMySql.class)) {
+        return new SqlDatabaseResourcePanel<>(this) {
             @Override
             protected ServerComboBox<IDatabaseServer<MySqlDatabase>> initServerComboBox() {
                 return new ServerComboBox<>() {
