@@ -67,7 +67,8 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
     public static final Action.Id<File> OPEN_FILE = Action.Id.of("user/common.open_file_in_editor");
     public static final Action.Id<ServiceLinker> FOCUS_ON_CONNECTED_SERVICE = Action.Id.of("user/common.focus_on_connected_service");
     public static final Action.Id<ServiceLinkerModule> CREATE_SERVICE_LINKER_IN_PORTAL = Action.Id.of("user/$resource.create_service_linker_in_portal");
-    public static final Action.Id<AbstractAzService<?,?>> GETTING_STARTED = Action.Id.of("user/$resource.open_getting_start.service");
+    public static final Action.Id<AbstractAzService<?, ?>> GETTING_STARTED = Action.Id.of("user/$resource.open_getting_start.service");
+    public static final Action.Id<Action.Id<?>> SUPPRESS_ACTION = Action.Id.of("user/common.never_show_again");
 
     public static final String SERVICE_LINKER_ACTIONS = "actions.resource.service_linker";
     public static final String SERVICE_LINKER_MODULE_ACTIONS = "actions.resource.service_linker_module";
@@ -263,60 +264,65 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .register(am);
 
         new Action<>(FOCUS_ON_CONNECTED_SERVICE)
-                .withLabel(s -> "Focus on Connected Resource")
-                .withIcon(s -> AzureIcons.Connector.FOCUS_ON_CONNECTED_SERVICE.getIconPath())
-                .visibleWhen(s -> s instanceof ServiceLinker)
-                .withHandler((r) -> {
-                    final AzResource resource = Azure.az().getById(r.getTargetServiceId());
-                    if (Objects.isNull(resource)) {
-                        final String serviceName = ResourceId.fromString(r.getTargetServiceId()).name();
-                        AzureMessager.getMessager().info(AzureString.format("Cannot find connected service(%s) in Azure Explorer.", serviceName));
-                        return;
-                    }
-                    AzureEventBus.emit("azure.explorer.focus_resource", resource);
-                })
-                .withAuthRequired(false)
-                .register(am);
+            .withLabel(s -> "Focus on Connected Resource")
+            .withIcon(s -> AzureIcons.Connector.FOCUS_ON_CONNECTED_SERVICE.getIconPath())
+            .visibleWhen(s -> s instanceof ServiceLinker)
+            .withHandler((r) -> {
+                final AzResource resource = Azure.az().getById(r.getTargetServiceId());
+                if (Objects.isNull(resource)) {
+                    final String serviceName = ResourceId.fromString(r.getTargetServiceId()).name();
+                    AzureMessager.getMessager().info(AzureString.format("Cannot find connected service(%s) in Azure Explorer.", serviceName));
+                    return;
+                }
+                AzureEventBus.emit("azure.explorer.focus_resource", resource);
+            })
+            .withAuthRequired(false)
+            .register(am);
 
         new Action<>(CREATE_SERVICE_LINKER_IN_PORTAL)
-                .withLabel(s -> "Create In Azure Portal")
-                .withIcon(AzureIcons.Action.CREATE.getIconPath())
-                .visibleWhen(s -> s instanceof ServiceLinkerModule)
-                .withHandler((r) -> {
-                    if (r.getParent() instanceof SpringCloudDeployment) {
-                        final SpringCloudApp app = ((SpringCloudDeployment) r.getParent()).getParent();
-                        final String appUrl = app.getParent().getPortalUrl();
-                        final String message = String.format("Please create Service Connector from {0} in <a href=\"%s\">Azure portal</a>.", appUrl);
-                        AzureMessager.getMessager().info(AzureString.format(message, String.format("apps/%s/settings/Service Connector", app.getName())));
-                        return;
-                    }
-                    final String parentUrl = r.getParent().getPortalUrl();
-                    am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(String.format("%s/serviceConnector", parentUrl));
-                })
-                .register(am);
+            .withLabel(s -> "Create In Azure Portal")
+            .withIcon(AzureIcons.Action.CREATE.getIconPath())
+            .visibleWhen(s -> s instanceof ServiceLinkerModule)
+            .withHandler((r) -> {
+                if (r.getParent() instanceof SpringCloudDeployment) {
+                    final SpringCloudApp app = ((SpringCloudDeployment) r.getParent()).getParent();
+                    final String appUrl = app.getParent().getPortalUrl();
+                    final String message = String.format("Please create Service Connector from {0} in <a href=\"%s\">Azure portal</a>.", appUrl);
+                    AzureMessager.getMessager().info(AzureString.format(message, String.format("apps/%s/settings/Service Connector", app.getName())));
+                    return;
+                }
+                final String parentUrl = r.getParent().getPortalUrl();
+                am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(String.format("%s/serviceConnector", parentUrl));
+            })
+            .register(am);
 
         new Action<>(Action.DISABLE_AUTH_CACHE)
-                .withLabel("Disable Auth Cache")
-                .visibleWhen(s -> Azure.az().config().isAuthPersistenceEnabled())
-                .withHandler((s) -> {
-                    Azure.az().config().setAuthPersistenceEnabled(false);
-                    AzureConfigInitializer.saveAzConfig();
-                    final AzureAccount az = Azure.az(AzureAccount.class);
-                    if (az.isLoggedIn()) {
-                        az.logout();
-                    }
-                    final Action<Object> signIn = am.getAction(Action.AUTHENTICATE);
-                    AzureMessager.getMessager().info("Auth cache disabled, please re-signin to take effect.", signIn);
-                })
-                .withAuthRequired(false)
-                .register(am);
+            .withLabel("Disable Auth Cache")
+            .visibleWhen(s -> Azure.az().config().isAuthPersistenceEnabled())
+            .withHandler((s) -> {
+                Azure.az().config().setAuthPersistenceEnabled(false);
+                AzureConfigInitializer.saveAzConfig();
+                final AzureAccount az = Azure.az(AzureAccount.class);
+                if (az.isLoggedIn()) {
+                    az.logout();
+                }
+                final Action<Object> signIn = am.getAction(Action.AUTHENTICATE);
+                AzureMessager.getMessager().info("Auth cache disabled, please re-signin to take effect.", signIn);
+            })
+            .withAuthRequired(false)
+            .register(am);
 
         new Action<>(GETTING_STARTED)
-                .withLabel("Getting Started")
-                .withIdParam(s -> s.getClass().getSimpleName())
-                .withIcon(AzureIcons.Common.GET_START.getIconPath())
-                .withAuthRequired(false)
-                .register(am);
+            .withLabel("Getting Started")
+            .withIdParam(s -> s.getClass().getSimpleName())
+            .withIcon(AzureIcons.Common.GET_START.getIconPath())
+            .withAuthRequired(false)
+            .register(am);
+
+        new Action<>(SUPPRESS_ACTION)
+            .withLabel("Don't show again")
+            .withAuthRequired(false)
+            .register(am);
     }
 
     @AzureOperation(name = "boundary/common.copy_string.string", params = {"s"})
@@ -330,13 +336,13 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
         final ActionGroup resourceGroupCreateActions = new ActionGroup(new ArrayList<>(), view);
         am.registerGroup(RESOURCE_GROUP_CREATE_ACTIONS, resourceGroupCreateActions);
         am.registerGroup(SERVICE_LINKER_ACTIONS, new ActionGroup(
-                ResourceCommonActionsContributor.OPEN_PORTAL_URL,
-                ResourceCommonActionsContributor.FOCUS_ON_CONNECTED_SERVICE,
-                ResourceCommonActionsContributor.DELETE
+            ResourceCommonActionsContributor.OPEN_PORTAL_URL,
+            ResourceCommonActionsContributor.FOCUS_ON_CONNECTED_SERVICE,
+            ResourceCommonActionsContributor.DELETE
         ));
         am.registerGroup(SERVICE_LINKER_MODULE_ACTIONS, new ActionGroup(
-                ResourceCommonActionsContributor.REFRESH,
-                ResourceCommonActionsContributor.CREATE_SERVICE_LINKER_IN_PORTAL
+            ResourceCommonActionsContributor.REFRESH,
+            ResourceCommonActionsContributor.CREATE_SERVICE_LINKER_IN_PORTAL
         ));
     }
 
