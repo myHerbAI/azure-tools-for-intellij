@@ -44,7 +44,7 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
     @Override
     public void registerHandlers(AzureActionManager am) {
         final BiPredicate<AbstractAzService<?, ?>, AnActionEvent> gettingStartCondition = (r, e) -> r instanceof AzureCognitiveServices;
-        am.registerHandler(ResourceCommonActionsContributor.OPEN_GETTING_START, gettingStartCondition,
+        am.registerHandler(ResourceCommonActionsContributor.GETTING_STARTED, gettingStartCondition,
             (AbstractAzService<?, ?> c, AnActionEvent e) -> GuidanceViewManager.getInstance().openCourseView(e.getProject(), "hello-openai"));
 
         final BiPredicate<AzureCognitiveServices, AnActionEvent> serviceCondition = (r, e) -> r instanceof AzureCognitiveServices;

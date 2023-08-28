@@ -53,7 +53,7 @@ public class IntellijSpringCloudActionsContributor implements IActionsContributo
     }
 
     private void registerGettingStartActionHandler(AzureActionManager am) {
-        am.registerHandler(ResourceCommonActionsContributor.OPEN_GETTING_START, (r, e) -> r instanceof AzureSpringCloud,
+        am.registerHandler(ResourceCommonActionsContributor.GETTING_STARTED, (r, e) -> r instanceof AzureSpringCloud,
                 (AbstractAzService<?, ?> c, AnActionEvent e) -> GuidanceViewManager.getInstance().openCourseView(e.getProject(), "hello-spring-apps"));
     }
 

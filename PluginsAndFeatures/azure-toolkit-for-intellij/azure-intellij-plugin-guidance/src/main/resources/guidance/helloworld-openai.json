@@ -68,14 +68,14 @@
       "description": "Your GPT 3.5 model has been deployed to Azure, enjoy your Azure OpenAI experience!",
       "steps": [
         {
-          "title": "Try with OpenAI playground",
+          "title": "Try with AI Playground",
           "description": null,
           "task": {
             "name": "task.open_ai.open_playground"
           }
         },
         {
-          "title": "Open in portal",
+          "title": "Open in Portal",
           "description": null,
           "task": {
             "name": "task.resource.open_in_portal"

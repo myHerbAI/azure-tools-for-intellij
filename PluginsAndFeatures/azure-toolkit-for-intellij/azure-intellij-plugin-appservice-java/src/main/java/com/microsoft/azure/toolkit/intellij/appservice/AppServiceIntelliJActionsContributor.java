@@ -97,9 +97,9 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
 
     @Override
     public void registerHandlers(AzureActionManager am) {
-        am.registerHandler(ResourceCommonActionsContributor.OPEN_GETTING_START, (r, e) -> r instanceof AzureFunctions,
+        am.registerHandler(ResourceCommonActionsContributor.GETTING_STARTED, (r, e) -> r instanceof AzureFunctions,
                 (AbstractAzService<?, ?> c, AnActionEvent e) -> GuidanceViewManager.getInstance().openCourseView(e.getProject(), "hello-function"));
-        am.registerHandler(ResourceCommonActionsContributor.OPEN_GETTING_START, (r, e) -> r instanceof AzureWebApp,
+        am.registerHandler(ResourceCommonActionsContributor.GETTING_STARTED, (r, e) -> r instanceof AzureWebApp,
                 (AbstractAzService<?, ?> c, AnActionEvent e) -> GuidanceViewManager.getInstance().openCourseView(e.getProject(), "hello-webapp"));
 
         final BiPredicate<AppServiceAppBase<?, ?, ?>, AnActionEvent> isAppService = (r, e) -> r instanceof AppServiceAppBase<?, ?, ?>;

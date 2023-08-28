@@ -42,14 +42,14 @@ public class AzureSlider implements AzureFormInputComponent<Double> {
         final Hashtable<Integer, JComponent> labels = this.createLabels(numSlider);
         this.numSlider.setLabelTable(labels);
         this.numSlider.addChangeListener(e -> {
-            this.setValue(this.numSlider.getValue() * 1.0 / this.magnification);
+            this.numValue.setValue(this.numSlider.getValue() * 1.0 / this.magnification);
             validateValueAsync();
             debouncer.debounce();
         });
 
         this.numValue.setModel(new SpinnerNumberModel(defaultValue, minimum, maximum, stepSize));
         this.numValue.addChangeListener(e -> {
-            this.setValue((double) this.numValue.getValue());
+            this.numSlider.setValue((int) ((double) this.numValue.getValue() * this.magnification));
             validateValueAsync();
             debouncer.debounce();
         });

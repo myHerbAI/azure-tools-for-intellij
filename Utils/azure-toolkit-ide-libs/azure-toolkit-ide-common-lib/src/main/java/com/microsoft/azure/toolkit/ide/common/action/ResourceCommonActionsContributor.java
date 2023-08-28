@@ -67,7 +67,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
     public static final Action.Id<File> OPEN_FILE = Action.Id.of("user/common.open_file_in_editor");
     public static final Action.Id<ServiceLinker> FOCUS_ON_CONNECTED_SERVICE = Action.Id.of("user/common.focus_on_connected_service");
     public static final Action.Id<ServiceLinkerModule> CREATE_SERVICE_LINKER_IN_PORTAL = Action.Id.of("user/$resource.create_service_linker_in_portal");
-    public static final Action.Id<AbstractAzService<?,?>> OPEN_GETTING_START = Action.Id.of("user/$resource.open_getting_start.service");
+    public static final Action.Id<AbstractAzService<?,?>> GETTING_STARTED = Action.Id.of("user/$resource.open_getting_start.service");
 
     public static final String SERVICE_LINKER_ACTIONS = "actions.resource.service_linker";
     public static final String SERVICE_LINKER_MODULE_ACTIONS = "actions.resource.service_linker_module";
@@ -311,8 +311,8 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
                 .withAuthRequired(false)
                 .register(am);
 
-        new Action<>(OPEN_GETTING_START)
-                .withLabel("Open Getting Start")
+        new Action<>(GETTING_STARTED)
+                .withLabel("Getting Started")
                 .withIdParam(s -> s.getClass().getSimpleName())
                 .withIcon(AzureIcons.Common.GET_START.getIconPath())
                 .withAuthRequired(false)
