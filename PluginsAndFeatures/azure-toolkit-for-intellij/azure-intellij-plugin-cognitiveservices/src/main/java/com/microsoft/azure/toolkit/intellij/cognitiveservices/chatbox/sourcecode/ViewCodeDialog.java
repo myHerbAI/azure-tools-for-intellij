@@ -30,7 +30,7 @@ public class ViewCodeDialog extends DialogWrapper {
     }
 
     @Override
-    @AzureOperation(value = "user/cognitiveservices.copy_code", source = "this.chatBot.getDeployment()")
+    @AzureOperation(value = "user/openai.copy_code", source = "this.chatBot.getDeployment()")
     protected void doOKAction() {
         final String code = this.viewCodePanel.getCode();
         super.doOKAction();

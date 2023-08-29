@@ -124,7 +124,7 @@ public class ChatBox {
         this.contentPanel.repaint();
     }
 
-    @AzureOperation(value = "user/cognitiveservices.view_code", source = "this.chatBot.getDeployment()")
+    @AzureOperation(value = "user/openai.view_code", source = "this.chatBot.getDeployment()")
     private void viewCode() {
         Optional.ofNullable(this.chatBot).ifPresent((c) -> {
             final Project project = DataManager.getInstance().getDataContext(this.contentPanel).getData(CommonDataKeys.PROJECT);
@@ -132,7 +132,7 @@ public class ChatBox {
         });
     }
 
-    @AzureOperation(value = "user/cognitiveservices.clear_session.deployment",
+    @AzureOperation(value = "user/openai.clear_session.deployment",
         params = {"this.chatBot.getDeployment().getName()"}, source = "this.chatBot.getDeployment()")
     public void clearSession() {
         Optional.ofNullable(this.chatBot).ifPresent(ChatBot::reset);
@@ -143,7 +143,7 @@ public class ChatBox {
         this.contentPanel.repaint();
     }
 
-    @AzureOperation(value = "user/cognitiveservices.send_message.deployment",
+    @AzureOperation(value = "user/openai.send_message.deployment",
         params = {"this.chatBot.getDeployment().getName()"}, source = "this.chatBot.getDeployment()")
     public void send() {
         final String prompt = this.promptInput.getText();

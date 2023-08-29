@@ -81,13 +81,13 @@ public class OpenAIPlayground extends BaseEditor {
         Optional.ofNullable(this.deployment).ifPresent(this::onDeploymentChanged);
     }
 
-    @AzureOperation(value = "user/cognitiveservices.update_system_message", source = "this.account")
+    @AzureOperation(value = "user/openai.update_system_message", source = "this.account")
     private void updateSystemMessage(final SystemMessage m) {
         this.chatBox.clearSession();
         Optional.ofNullable(this.chatBox.getChatBot()).ifPresent(b -> b.setSystemMessage(m));
     }
 
-    @AzureOperation(value = "user/cognitiveservices.update_configuration", source = "this.account")
+    @AzureOperation(value = "user/openai.update_configuration", source = "this.account")
     private void updateConfiguration(final Configuration v) {
         Optional.ofNullable(this.chatBox.getChatBot()).ifPresent(b -> b.setConfiguration(v));
     }

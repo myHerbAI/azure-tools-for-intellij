@@ -38,8 +38,8 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
 public class IntelliJCognitiveServicesActionsContributor implements IActionsContributor {
-    public static final Action.Id<Project> TRY_OPENAI = Action.Id.of("user/cognitiveservices.try_openai");
-    public static final Action.Id<CognitiveDeployment> TRY_PLAYGROUND = Action.Id.of("user/cognitiveservices.try_playground.deployment");
+    public static final Action.Id<Project> TRY_OPENAI = Action.Id.of("user/openai.try_openai");
+    public static final Action.Id<CognitiveDeployment> TRY_PLAYGROUND = Action.Id.of("user/openai.try_playground.deployment");
 
     @Override
     public void registerHandlers(AzureActionManager am) {
@@ -80,7 +80,7 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
         AzureTaskManager.getInstance().runLater(() -> {
             final CognitiveAccountCreationDialog dialog = new CognitiveAccountCreationDialog(project);
             dialog.setValue(accountDraft);
-            dialog.setOkAction(new Action<CognitiveAccountDraft>(Action.Id.of("user/cognitiveservices.create_account.account"))
+            dialog.setOkAction(new Action<CognitiveAccountDraft>(Action.Id.of("user/openai.create_account.account"))
                 .withIdParam(accountDraft.getName())
                 .withLabel("Create")
                 .withAuthRequired(true)
@@ -94,7 +94,7 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
         final CognitiveDeploymentDraft draft = account.deployments().create(name, account.getResourceGroupName());
         AzureTaskManager.getInstance().runLater(() -> {
             final CognitiveDeploymentCreationDialog dialog = new CognitiveDeploymentCreationDialog(account, project);
-            dialog.setOkAction(new Action<CognitiveDeploymentDraft>(Action.Id.of("user/cognitiveservices.create_deployment.deployment|account"))
+            dialog.setOkAction(new Action<CognitiveDeploymentDraft>(Action.Id.of("user/openai.create_deployment.deployment|account"))
                 .withLabel("Create")
                 .withIdParam(draft.getName())
                 .withIdParam(account.getName())

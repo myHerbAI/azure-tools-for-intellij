@@ -88,17 +88,17 @@ public class ViewCodePanel {
         this.editorContainer.add(this.createCodeViewer((ISourceCodeGenerator) this.comboLanguage.getItemAt(0)));
     }
 
-    @AzureOperation(value = "user/cognitiveservices.copy_key", source = "this.chatBot.getDeployment()")
+    @AzureOperation(value = "user/openai.copy_key", source = "this.chatBot.getDeployment()")
     private static void copyKey(final String key) {
         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(key), null);
     }
 
-    @AzureOperation(value = "user/cognitiveservices.copy_endpoint", source = "this.chatBot.getDeployment()")
+    @AzureOperation(value = "user/openai.copy_endpoint", source = "this.chatBot.getDeployment()")
     private static void copyEndpoint(final String endpoint) {
         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(endpoint), null);
     }
 
-    @AzureOperation(value = "user/cognitiveservices.copy_apibase", source = "this.chatBot.getDeployment()")
+    @AzureOperation(value = "user/openai.copy_apibase", source = "this.chatBot.getDeployment()")
     private static void copyApiBase(final String apiBase) {
         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(apiBase), null);
     }
