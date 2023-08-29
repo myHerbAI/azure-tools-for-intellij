@@ -6,12 +6,12 @@
 package com.microsoft.azure.toolkit.intellij.azuresdk.enforcer;
 
 import com.intellij.openapi.project.Project;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.azuresdk.model.AzureJavaSdkEntity;
 import com.microsoft.azure.toolkit.intellij.azuresdk.referencebook.OpenReferenceBookAction;
 import com.microsoft.azure.toolkit.intellij.azuresdk.service.AzureSdkLibraryService;
 import com.microsoft.azure.toolkit.intellij.azuresdk.service.ProjectLibraryService;
 import com.microsoft.azure.toolkit.intellij.azuresdk.service.ProjectLibraryService.ProjectLibEntity;
-import com.microsoft.azure.toolkit.intellij.common.messager.IntellijNeverShowAgainAction;
 import com.microsoft.azure.toolkit.intellij.common.settings.IntellijStore;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
@@ -39,10 +39,10 @@ public class AzureSdkEnforcer {
 
     public static void enforce(Project project) {
         final Map<String, AzureJavaSdkEntity> allDeprecatedAzureLibs = AzureSdkLibraryService.getDeprecatedAzureSDKEntities().stream()
-                .collect(Collectors.toMap(AzureJavaSdkEntity::getPackageName, e -> e));
+            .collect(Collectors.toMap(AzureJavaSdkEntity::getPackageName, e -> e));
         final Set<String> allDeprecatedAzureLibNames = allDeprecatedAzureLibs.keySet();
         final Set<String> projectLibPackageNames = ProjectLibraryService.getProjectLibraries(project).stream()
-                .map(ProjectLibEntity::getPackageName).collect(Collectors.toSet());
+            .map(ProjectLibEntity::getPackageName).collect(Collectors.toSet());
         final SetUtils.SetView<String> deprecatedProjectLibNames = SetUtils.intersection(projectLibPackageNames, allDeprecatedAzureLibNames);
         final String neverShowGainActionId = "user/common.never_show_again";
         if (Boolean.TRUE.equals(IntellijStore.getInstance().getState().getSuppressedActions().get(neverShowGainActionId))) {
@@ -58,10 +58,11 @@ public class AzureSdkEnforcer {
     private static void warnDeprecatedLibs(@AzureTelemetry.Property List<? extends AzureJavaSdkEntity> deprecatedLibs) {
         final String message = buildMessage(deprecatedLibs);
         final AzureActionManager am = AzureActionManager.getInstance();
-        final Action<?> referenceBook = Optional.ofNullable(am).map(manager -> manager.getAction(Action.Id.of(OpenReferenceBookAction.ID))).orElse(null);
-        final Action<?> neverShowAgain = Optional.ofNullable(am).map(manager -> manager.getAction(Action.Id.of(IntellijNeverShowAgainAction.ID))).orElse(null);
+        final Action.Id<Object> actionId = Action.Id.of(OpenReferenceBookAction.ID);
+        final Action<?> referenceBook = Optional.ofNullable(am).map(m -> m.getAction(actionId)).orElse(null);
+        final Action<?> neverShowAgain = Optional.ofNullable(am).map(m -> m.getAction(ResourceCommonActionsContributor.SUPPRESS_ACTION).bind(actionId)).orElse(null);
         final Action<?>[] actions = Stream.of(referenceBook, neverShowAgain).filter(Objects::nonNull).toArray(Action[]::new);
-        AzureMessager.getMessager().warning(message, "Deprecated Azure SDK libraries Detected", actions);
+        AzureMessager.getMessager().warning(message, "Deprecated Azure SDK libraries Detected", (Object[]) actions);
     }
 
     private static String buildMessage(@Nonnull List<? extends AzureJavaSdkEntity> libs) {
@@ -81,10 +82,10 @@ public class AzureSdkEnforcer {
             }
         }).collect(Collectors.joining(""));
         return "<html>" +
-                "Deprecated Azure SDK libraries are detected in your project, " +
-                "refer to <a href='https://azure.github.io/azure-sdk/releases/latest/java.html'>Azure SDK Releases</a> for the latest releases." +
-                "<ul style='margin-top:2px'>" + liPackages + "</ul>" +
-                "</html>";
+            "Deprecated Azure SDK libraries are detected in your project, " +
+            "refer to <a href='https://azure.github.io/azure-sdk/releases/latest/java.html'>Azure SDK Releases</a> for the latest releases." +
+            "<ul style='margin-top:2px'>" + liPackages + "</ul>" +
+            "</html>";
     }
 
     public static String getMavenArtifactUrl(String pkgName) {
