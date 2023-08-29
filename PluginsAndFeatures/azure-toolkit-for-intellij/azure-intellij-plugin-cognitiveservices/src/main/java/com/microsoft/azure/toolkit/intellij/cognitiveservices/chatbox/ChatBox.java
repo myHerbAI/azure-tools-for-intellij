@@ -76,10 +76,7 @@ public class ChatBox {
         final Icon sendIcon = IntelliJAzureIcons.getIcon(AzureIcons.Action.SEND);
         this.clearBtn.setEnabled(false);
         this.clearBtn.addActionListener(e -> Optional.ofNullable(this.chatBot).ifPresent((c) -> clearSession()));
-        this.viewCodeBtn.addActionListener(e -> Optional.ofNullable(this.chatBot).ifPresent((c) -> {
-            final Project project = DataManager.getInstance().getDataContext(this.contentPanel).getData(CommonDataKeys.PROJECT);
-            new ViewCodeDialog(project, this.chatBot).show();
-        }));
+        this.viewCodeBtn.addActionListener(e -> viewCode());
 
         this.messageBox.setVisible(false);
         this.placeholder.setVisible(true);
@@ -125,6 +122,14 @@ public class ChatBox {
             }
         });
         this.contentPanel.repaint();
+    }
+
+    @AzureOperation(value = "user/cognitiveservices.view_code", source = "this.chatBot.getDeployment()")
+    private void viewCode() {
+        Optional.ofNullable(this.chatBot).ifPresent((c) -> {
+            final Project project = DataManager.getInstance().getDataContext(this.contentPanel).getData(CommonDataKeys.PROJECT);
+            new ViewCodeDialog(project, c).show();
+        });
     }
 
     @AzureOperation(value = "user/cognitiveservices.clear_session.deployment",

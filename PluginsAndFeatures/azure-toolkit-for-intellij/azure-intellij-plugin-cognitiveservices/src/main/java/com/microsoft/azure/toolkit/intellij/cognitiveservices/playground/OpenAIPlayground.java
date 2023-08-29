@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.intellij.cognitiveservices.service.SystemMess
 import com.microsoft.azure.toolkit.intellij.common.BaseEditor;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccount;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 
 import javax.annotation.Nonnull;
@@ -67,20 +68,28 @@ public class OpenAIPlayground extends BaseEditor {
     private void init() {
         final Configuration defaultConfiguration = Configuration.DEFAULT;
         this.pnlConfiguration.setValue(defaultConfiguration);
-        this.pnlConfiguration.addValueChangedListener(v -> Optional.ofNullable(this.chatBox.getChatBot()).ifPresent(b -> b.setConfiguration(v)));
+        this.pnlConfiguration.addValueChangedListener(this::updateConfiguration);
 
         final SystemMessage defaultSystemMessage = SystemMessageTemplateService.getDefaultSystemMessage();
         this.pnlSystemMessage.setValue(defaultSystemMessage);
-        this.pnlSystemMessage.setValueChangedListener((m) -> {
-            this.chatBox.clearSession();
-            Optional.ofNullable(this.chatBox.getChatBot()).ifPresent(b -> b.setSystemMessage(m));
-        });
+        this.pnlSystemMessage.setValueChangedListener(this::updateSystemMessage);
 
         cbDeployment.setAccount(this.account);
         cbDeployment.setValue(deployment);
         cbDeployment.addValueChangedListener(this::onDeploymentChanged);
 
         Optional.ofNullable(this.deployment).ifPresent(this::onDeploymentChanged);
+    }
+
+    @AzureOperation(value = "user/cognitiveservices.update_system_message", source = "this.account")
+    private void updateSystemMessage(final SystemMessage m) {
+        this.chatBox.clearSession();
+        Optional.ofNullable(this.chatBox.getChatBot()).ifPresent(b -> b.setSystemMessage(m));
+    }
+
+    @AzureOperation(value = "user/cognitiveservices.update_configuration", source = "this.account")
+    private void updateConfiguration(final Configuration v) {
+        Optional.ofNullable(this.chatBox.getChatBot()).ifPresent(b -> b.setConfiguration(v));
     }
 
     private void onDeploymentChanged(@Nonnull final CognitiveDeployment deployment) {
@@ -105,7 +114,7 @@ public class OpenAIPlayground extends BaseEditor {
 
     @Override
     public String getName() {
-        return String.format("OpenAI Playground (%s)", account.getName());
+        return String.format("Azure OpenAI Playground (%s)", account.getName());
     }
 
     @Override
