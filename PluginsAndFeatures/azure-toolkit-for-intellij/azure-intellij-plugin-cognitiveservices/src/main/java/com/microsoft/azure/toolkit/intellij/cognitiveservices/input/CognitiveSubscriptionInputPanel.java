@@ -39,6 +39,7 @@ public class CognitiveSubscriptionInputPanel implements AzureFormJPanel<Subscrip
         this.lblRegister.setForeground(UIUtil.getContextHelpForeground());
 
         this.cbSubscription.setUsePreferredSizeAsMinimum(false);
+        this.cbSubscription.setRequired(true);
         this.cbSubscription.addItemListener(e -> {
             final Subscription subscription = (Subscription) e.getItem();
             final boolean openAIEnabled = Optional.ofNullable(subscription)
@@ -62,5 +63,10 @@ public class CognitiveSubscriptionInputPanel implements AzureFormJPanel<Subscrip
     @Override
     public Subscription getValue() {
         return cbSubscription.getValue();
+    }
+
+    private void createUIComponents() {
+        // TODO: place custom component creation code here
+        this.cbSubscription = new CognitiveSubscriptionComboBox(true);
     }
 }
