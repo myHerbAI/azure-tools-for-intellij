@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.AzureCognitiveServices;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccount;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -43,25 +44,32 @@ public class CognitiveServicesNodeProvider implements IExplorerNodeProvider {
     public Node<?> createNode(@Nonnull Object data, @Nullable Node<?> parent, @Nonnull IExplorerNodeProvider.Manager manager) {
         if (data instanceof AzureCognitiveServices) {
             final Function<AzureCognitiveServices, List<CognitiveAccount>> accountsFunction = asc -> asc.list().stream()
-                    .flatMap(m -> m.accounts().list().stream())
-                    .collect(Collectors.toList());
+                .flatMap(m -> m.accounts().list().stream())
+                .collect(Collectors.toList());
             return new AzServiceNode<>((AzureCognitiveServices) data)
-                    .withIcon(ICON)
-                    .withLabel(NAME)
-                    .withActions(CognitiveServicesActionsContributor.SERVICE_ACTIONS)
-                    .addChildren(accountsFunction, (server, serviceNode) -> this.createNode(server, serviceNode, manager));
+                .withIcon(ICON)
+                .withLabel(NAME)
+                .withActions(CognitiveServicesActionsContributor.SERVICE_ACTIONS)
+                .addChildren(accountsFunction, (server, serviceNode) -> this.createNode(server, serviceNode, manager));
         } else if (data instanceof CognitiveAccount) {
             return new AzResourceNode<>((CognitiveAccount) data)
-                    .addInlineAction(ResourceCommonActionsContributor.PIN)
-                    .addChildren(account -> account.deployments().list(), (deployment, accountNode) -> this.createNode(deployment, accountNode, manager))
-                    .withActions(CognitiveServicesActionsContributor.ACCOUNT_ACTIONS)
-                    .withMoreChildren(a -> a.deployments().hasMoreResources(), a -> a.deployments().loadMoreResources());
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
+                .addChildren(account -> account.deployments().list(), (deployment, accountNode) -> this.createNode(deployment, accountNode, manager))
+                .withActions(CognitiveServicesActionsContributor.ACCOUNT_ACTIONS)
+                .withMoreChildren(a -> a.deployments().hasMoreResources(), a -> a.deployments().loadMoreResources());
         } else if (data instanceof CognitiveDeployment) {
             return new AzResourceNode<>((CognitiveDeployment) data)
-                    .withDescription(deployment -> String.format("%s (version: %s)", deployment.getModel().getName(), deployment.getModel().getVersion()))
-                    .addInlineAction(ResourceCommonActionsContributor.PIN)
-                    .onDoubleClicked(CognitiveServicesActionsContributor.OPEN_DEPLOYMENT_IN_PLAYGROUND)
-                    .withActions(CognitiveServicesActionsContributor.DEPLOYMENT_ACTIONS);
+                .withDescription(deployment -> String.format("%s (version: %s)", deployment.getModel().getName(), deployment.getModel().getVersion()))
+                .addInlineAction(ResourceCommonActionsContributor.PIN)
+                .onDoubleClicked((d, e) -> {
+                    final AzureActionManager am = AzureActionManager.getInstance();
+                    if (d.getModel().isGPTModel()) {
+                        am.getAction(CognitiveServicesActionsContributor.OPEN_DEPLOYMENT_IN_PLAYGROUND).handle(d, e);
+                    } else {
+                        am.getAction(ResourceCommonActionsContributor.OPEN_PORTAL_URL).handle(d, e);
+                    }
+                })
+                .withActions(CognitiveServicesActionsContributor.DEPLOYMENT_ACTIONS);
         }
         return null;
     }
