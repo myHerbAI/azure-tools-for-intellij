@@ -33,7 +33,7 @@ public class CognitiveServicesStartupListener implements ProjectActivity {
                     GuidanceViewManager.getInstance().openCourseView(project, "hello-openai");
                     IntellijAzureActionManager.suppress(TRY_OPENAI);
                 })
-                .withAuthRequired(true);
+                .withAuthRequired(false);
             final Action<Action.Id<?>> suppress = am.getAction(ResourceCommonActionsContributor.SUPPRESS_ACTION).bind(TRY_OPENAI);
             final AzureString msg = AzureString.format("You can use Azure OpenAI to build your own \"%s\" or other models. " +
                 "<a href='https://go.microsoft.com/fwlink/?linkid=2202896'>Learn more</a> about Azure OpenAI.", "Copilot");
