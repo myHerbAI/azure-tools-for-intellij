@@ -25,8 +25,7 @@ class RiderWebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(p
             throw AzureToolkitRuntimeException("there are no subscriptions selected in your account.", IAccountActions.SELECT_SUBS)
         }
 
-        basicForm = RiderAppServiceInfoBasicPanel(project, selectedSubscriptions[0]) { WebAppConfig.getWebAppDefaultConfig(project.name) }
-        basicForm.setDeploymentVisible(false)
+        basicForm = RiderAppServiceInfoBasicPanel(selectedSubscriptions[0]) { WebAppConfig.getWebAppDefaultConfig(project.name) }
         advancedForm = RiderAppServiceInfoAdvancedPanel(project) { WebAppConfig.getWebAppDefaultConfig(project.name) }
 
         panel = panel {
@@ -39,12 +38,6 @@ class RiderWebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(p
         this.init()
 
         setFrontPanel(basicFormPanel)
-    }
-
-    fun setDeploymentVisible(visible: Boolean) {
-        basicForm.setDeploymentVisible(visible)
-        advancedForm.setDeploymentVisible(visible)
-        pack()
     }
 
     override fun createCenterPanel() = panel

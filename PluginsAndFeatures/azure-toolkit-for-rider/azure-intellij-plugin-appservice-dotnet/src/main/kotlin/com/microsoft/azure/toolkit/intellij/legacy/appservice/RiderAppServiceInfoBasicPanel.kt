@@ -1,10 +1,10 @@
 package com.microsoft.azure.toolkit.intellij.legacy.appservice
 
-import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBRadioButton
-import com.intellij.ui.dsl.builder.*
+import com.intellij.ui.dsl.builder.Cell
+import com.intellij.ui.dsl.builder.bind
+import com.intellij.ui.dsl.builder.panel
 import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig
-import com.microsoft.azure.toolkit.intellij.common.AzureDotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
@@ -13,10 +13,8 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput
 import com.microsoft.azure.toolkit.lib.common.model.Subscription
 import java.util.function.Supplier
 import javax.swing.JPanel
-import kotlin.io.path.Path
 
 class RiderAppServiceInfoBasicPanel<T>(
-        project: Project,
         private val subscription: Subscription,
         private val defaultConfigSupplier: Supplier<T>
 ) : JPanel(), AzureFormPanel<T> where T : AppServiceConfig {
@@ -28,14 +26,10 @@ class RiderAppServiceInfoBasicPanel<T>(
         isRequired = true
         setSubscription(subscription)
     }
-    private val selectorApplication = AzureDotnetProjectComboBox(project) { _ -> true }
 
     private var operatingSystem: OperatingSystem
     private lateinit var windowsRadioButton: Cell<JBRadioButton>
     private lateinit var linuxRadioButton: Cell<JBRadioButton>
-
-    private lateinit var deploymentGroup: Row
-
 
     init {
         operatingSystem = OperatingSystem.WINDOWS
@@ -53,31 +47,20 @@ class RiderAppServiceInfoBasicPanel<T>(
                     }
                 }.bind(::operatingSystem)
             }
-            deploymentGroup = group("Deployment") {
-                row("Project:") {
-                    cell(selectorApplication)
-                            .align(Align.FILL)
-                }
-            }
         }
 
         add(panel)
 
-        setDeploymentVisible(false)
         config = defaultConfigSupplier.get().also { setValue(it) }
     }
 
     override fun getValue(): T {
         val name = textName.value
         val os = if (windowsRadioButton.component.isSelected) OperatingSystem.WINDOWS else OperatingSystem.LINUX
-        val project = selectorApplication.value
 
         val result = config ?: defaultConfigSupplier.get()
         result.name = name
         result.runtime = Runtime(os, WebContainer("DOTNETCORE 7.0"), null)
-        if (project != null) {
-            result.application = Path(project.projectFilePath)
-        }
 
         config = result
 
@@ -100,9 +83,5 @@ class RiderAppServiceInfoBasicPanel<T>(
     override fun setVisible(visible: Boolean) {
         panel.isVisible = visible
         super<JPanel>.setVisible(visible)
-    }
-
-    fun setDeploymentVisible(visible: Boolean) {
-        deploymentGroup.visible(visible)
     }
 }

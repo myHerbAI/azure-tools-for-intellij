@@ -2,17 +2,22 @@ package com.microsoft.azure.toolkit.intellij.legacy.appservice
 
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBRadioButton
-import com.intellij.ui.dsl.builder.*
+import com.intellij.ui.dsl.builder.Align
+import com.intellij.ui.dsl.builder.Cell
+import com.intellij.ui.dsl.builder.bind
+import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI
 import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig
-import com.microsoft.azure.toolkit.intellij.common.AzureDotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel
 import com.microsoft.azure.toolkit.intellij.common.component.RegionComboBox
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox
 import com.microsoft.azure.toolkit.intellij.common.component.resourcegroup.ResourceGroupComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.ServicePlanComboBox
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
-import com.microsoft.azure.toolkit.lib.appservice.model.*
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
+import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput
 import com.microsoft.azure.toolkit.lib.common.model.Region
@@ -26,7 +31,6 @@ import java.time.format.DateTimeFormatter
 import java.util.function.Supplier
 import javax.swing.JLabel
 import javax.swing.JPanel
-import kotlin.io.path.Path
 
 class RiderAppServiceInfoAdvancedPanel<T>(
         project: Project,
@@ -64,13 +68,9 @@ class RiderAppServiceInfoAdvancedPanel<T>(
         border = JBUI.Borders.emptyLeft(5)
     }
 
-    private val selectorApplication = AzureDotnetProjectComboBox(project) { _ -> true }
-
     private var operatingSystem: OperatingSystem
     private lateinit var windowsRadioButton: Cell<JBRadioButton>
     private lateinit var linuxRadioButton: Cell<JBRadioButton>
-
-    private lateinit var deploymentGroup: Row
 
     init {
         operatingSystem = OperatingSystem.WINDOWS
@@ -112,12 +112,6 @@ class RiderAppServiceInfoAdvancedPanel<T>(
                     cell(textSku)
                 }
             }
-            deploymentGroup = group("Deployment") {
-                row("Project:") {
-                    cell(selectorApplication)
-                            .align(Align.FILL)
-                }
-            }
         }
 
         add(panel)
@@ -130,7 +124,6 @@ class RiderAppServiceInfoAdvancedPanel<T>(
         val os = if (windowsRadioButton.component.isSelected) OperatingSystem.WINDOWS else OperatingSystem.LINUX
         val region = selectorRegion.value
         val servicePlan = selectorServicePlan.value
-        val project = selectorApplication.value
 
         val config = defaultConfigSupplier.get()
         config.subscription = subscription
@@ -145,9 +138,6 @@ class RiderAppServiceInfoAdvancedPanel<T>(
             planConfig.os = os
         }
         config.servicePlan = planConfig
-        if (project != null) {
-            config.application = Path(project.projectFilePath)
-        }
 
         return config
     }
@@ -172,17 +162,12 @@ class RiderAppServiceInfoAdvancedPanel<T>(
             selectorSubscription,
             selectorGroup,
             selectorRegion,
-            selectorApplication,
             selectorServicePlan
     )
 
     override fun setVisible(visible: Boolean) {
         panel.isVisible = visible
         super<JPanel>.setVisible(visible)
-    }
-
-    fun setDeploymentVisible(visible: Boolean) {
-        deploymentGroup.visible(visible)
     }
 
     private fun onServicePlanChanged(e: ItemEvent) {
