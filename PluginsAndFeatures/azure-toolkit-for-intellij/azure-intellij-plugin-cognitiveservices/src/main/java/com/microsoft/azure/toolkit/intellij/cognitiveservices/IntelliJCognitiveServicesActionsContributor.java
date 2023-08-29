@@ -23,6 +23,7 @@ import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeploymentDraft;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -36,6 +37,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
+import java.util.function.Supplier;
 
 public class IntelliJCognitiveServicesActionsContributor implements IActionsContributor {
     public static final Action.Id<Project> TRY_OPENAI = Action.Id.of("user/cognitiveservices.try_openai");
@@ -70,8 +72,10 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
         final String account = Utils.generateRandomResourceName("account", 40);
         final String rgName = Optional.ofNullable(resourceGroup).map(AzResource::getName)
             .orElseGet(() -> String.format("rg-%s", account));
+        final Supplier<Subscription> supplier = () -> Azure.az(AzureAccount.class).account().getSelectedSubscriptions()
+                .stream().findFirst().orElseThrow(() -> new AzureToolkitRuntimeException("there are no subscription selected in your account"));
         final Subscription subscription = Optional.ofNullable(resourceGroup).map(ResourceGroup::getSubscription)
-            .orElseGet(() -> Azure.az(AzureAccount.class).account().getSelectedSubscriptions().get(0));
+            .orElseGet(supplier);
         final ResourceGroup group = Optional.ofNullable(resourceGroup)
             .orElseGet(() -> Azure.az(AzureResources.class).groups(subscription.getId()).create(rgName, rgName));
         final CognitiveAccountDraft accountDraft =
