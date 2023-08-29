@@ -65,14 +65,14 @@ public class CognitiveServicesActionsContributor implements IActionsContributor 
             .register(am);
 
         new Action<>(OPEN_ACCOUNT_IN_PLAYGROUND)
-            .withLabel("Open In AI Playground")
+            .withLabel("Open in AI Playground")
             .withIcon(AzureIcons.CognitiveServices.PLAYGROUND.getIconPath())
             .visibleWhen(s -> s instanceof CognitiveAccount)
             .enableWhen(s -> s.getFormalStatus().isConnected())
             .register(am);
 
         new Action<>(OPEN_DEPLOYMENT_IN_PLAYGROUND)
-            .withLabel("Open In AI Playground")
+            .withLabel("Open in AI Playground")
             .withIcon(AzureIcons.CognitiveServices.PLAYGROUND.getIconPath())
             .visibleWhen(s -> s instanceof CognitiveDeployment && ((CognitiveDeployment) s).getModel().isGPTModel())
             .enableWhen(s -> s.getFormalStatus().isConnected())

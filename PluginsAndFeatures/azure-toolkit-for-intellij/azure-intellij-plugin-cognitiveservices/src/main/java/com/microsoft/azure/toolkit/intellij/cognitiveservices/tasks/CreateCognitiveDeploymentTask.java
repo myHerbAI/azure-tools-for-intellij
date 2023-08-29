@@ -28,8 +28,8 @@ import javax.annotation.Nonnull;
 
 public class CreateCognitiveDeploymentTask implements Task {
     public static final String DEFAULT_COGNITIVE_DEPLOYMENT = "default_cognitive_deployment";
-    public static final String GETTING_START_ACCOUNT = "getting-start-account";
-    public static final String GETTING_START_DEPLOYMENT = "getting-start-deployment";
+    public static final String GETTING_START_ACCOUNT = "getting-started-account";
+    public static final String GETTING_START_DEPLOYMENT = "getting-started-deployment";
     public static final String ACCOUNT = "cognitive_account";
     public static final String DEPLOYMENT = "cognitive_deployment";
     private final ComponentContext context;
