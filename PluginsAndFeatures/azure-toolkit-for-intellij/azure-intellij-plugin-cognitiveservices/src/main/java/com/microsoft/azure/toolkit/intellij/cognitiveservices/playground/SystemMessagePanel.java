@@ -88,7 +88,8 @@ public class SystemMessagePanel implements AzureForm<SystemMessage> {
         this.lblSystemMessage.setIcon(AllIcons.General.ContextHelp);
 
         this.scrollPane.setBorder(JBUI.Borders.empty());
-        this.scrollPaneSystemMessage.setBorder(JBUI.Borders.empty());
+        this.scrollPaneSystemMessage.setBorder(AzureTextArea.DEFAULT_BORDER);
+        this.areaSystemMessage.setBorder(JBUI.Borders.empty());
         this.lblTemplate.setBorder(JBUI.Borders.empty(6, 0));
         this.lblSystemMessage.setBorder(JBUI.Borders.empty(6, 0));
 
