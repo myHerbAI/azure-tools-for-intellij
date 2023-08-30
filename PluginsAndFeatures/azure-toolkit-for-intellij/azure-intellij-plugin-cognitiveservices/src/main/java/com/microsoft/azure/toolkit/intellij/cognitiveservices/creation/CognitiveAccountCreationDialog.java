@@ -100,7 +100,7 @@ public class CognitiveAccountCreationDialog extends AzureDialog<CognitiveAccount
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
-        this.cbSubscription = new CognitiveSubscriptionComboBox();
+        this.cbSubscription = new CognitiveSubscriptionComboBox(false);
         this.cbRegion = new CognitiveAccountRegionComboBox();
         this.cbSku = new CognitiveAccountSkuComboBox();
     }

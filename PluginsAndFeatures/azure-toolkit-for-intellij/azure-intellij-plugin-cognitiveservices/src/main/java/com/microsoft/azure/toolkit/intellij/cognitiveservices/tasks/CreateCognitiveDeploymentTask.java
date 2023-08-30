@@ -49,12 +49,12 @@ public class CreateCognitiveDeploymentTask implements Task {
     public void execute() {
         final CognitiveAccount account = (CognitiveAccount) context.getParameter(CognitiveDeploymentInput.COGNITIVE_ACCOUNT);
         final CognitiveDeployment deployment = (CognitiveDeployment) context.getParameter(CognitiveDeploymentInput.COGNITIVE_DEPLOYMENT);
-        if (account.isDraftForCreating()) {
+        if (!account.exists()) {
             ((CognitiveAccountDraft) account).commit();
         } else {
             AzureMessager.getMessager().info(String.format("Cognitive account %s already exists.", account.getName()));
         }
-        if (deployment.isDraftForCreating()) {
+        if (!deployment.exists()) {
             final CognitiveDeploymentDraft draft = (CognitiveDeploymentDraft) deployment;
             final CognitiveDeploymentDraft.Config config = new CognitiveDeploymentDraft.Config();
             final AccountModel model = account.listModels().stream().filter(AccountModel::isGPTModel).findFirst()

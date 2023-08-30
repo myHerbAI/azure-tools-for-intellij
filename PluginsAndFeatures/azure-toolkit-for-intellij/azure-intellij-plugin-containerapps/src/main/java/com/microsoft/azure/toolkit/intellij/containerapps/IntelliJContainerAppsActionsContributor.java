@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -41,6 +42,7 @@ import com.microsoft.azure.toolkit.lib.monitor.AzureLogAnalyticsWorkspace;
 import com.microsoft.azure.toolkit.lib.monitor.LogAnalyticsWorkspace;
 import com.microsoft.azure.toolkit.lib.containerregistry.Tag;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
@@ -120,6 +122,9 @@ public class IntelliJContainerAppsActionsContributor implements IActionsContribu
         final ContainerAppDraft.Config result = new ContainerAppDraft.Config();
         result.setName(Utils.generateRandomResourceName("aca", 32));
         final List<Subscription> subs = Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();
+        if (CollectionUtils.isEmpty(subs)) {
+            throw new AzureToolkitRuntimeException("there are no subscription selected in your account");
+        }
         final Subscription historySub = CacheManager.getUsageHistory(Subscription.class).peek(subs::contains);
         final Subscription sub = Optional.ofNullable(historySub).orElseGet(() -> subs.get(0));
         result.setSubscription(sub);
@@ -142,6 +147,9 @@ public class IntelliJContainerAppsActionsContributor implements IActionsContribu
         final ContainerAppsEnvironmentDraft.Config result = new ContainerAppsEnvironmentDraft.Config();
         result.setName(Utils.generateRandomResourceName("cae", 32));
         final List<Subscription> subs = Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();
+        if (CollectionUtils.isEmpty(subs)) {
+            throw new AzureToolkitRuntimeException("there are no subscription selected in your account");
+        }
         final Subscription historySub = CacheManager.getUsageHistory(Subscription.class).peek(subs::contains);
         final Subscription sub = Optional.ofNullable(historySub).orElseGet(() -> subs.get(0));
         result.setSubscription(sub);
