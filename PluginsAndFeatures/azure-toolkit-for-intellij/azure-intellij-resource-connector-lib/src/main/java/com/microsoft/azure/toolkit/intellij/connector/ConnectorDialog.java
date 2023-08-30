@@ -104,10 +104,7 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
             .withSource(c -> c.resource.getData())
             .withAuthRequired(false)
             .withHandler(c -> {
-                if (c == null) {
-                    return;
-                }
-                if (c.validate(this.project)) {
+                if (c != null && c.validate(this.project)) {
                     saveConnectionToDotAzure(c);
                 }
             }));

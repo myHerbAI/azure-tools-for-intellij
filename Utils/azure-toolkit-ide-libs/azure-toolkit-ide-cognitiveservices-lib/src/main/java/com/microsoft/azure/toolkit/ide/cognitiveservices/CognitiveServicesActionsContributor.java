@@ -29,12 +29,12 @@ public class CognitiveServicesActionsContributor implements IActionsContributor 
     public static final String SERVICE_ACTIONS = "actions.cognitiveservices.service";
     public static final String ACCOUNT_ACTIONS = "actions.cognitiveservices.account";
     public static final String DEPLOYMENT_ACTIONS = "actions.cognitiveservices.deployment";
-    public static final Action.Id<AzureCognitiveServices> CREATE_ACCOUNT = Action.Id.of("user/cognitiveservices.create_account");
+    public static final Action.Id<AzureCognitiveServices> CREATE_ACCOUNT = Action.Id.of("user/openai.create_account");
     public static final Action.Id<CognitiveAccount> CREATE_DEPLOYMENT = CognitiveAccount.CREATE_DEPLOYMENT;
-    public static final Action.Id<CognitiveAccount> COPY_PRIMARY_KEY = Action.Id.of("user/cognitiveservices.copy_primary_key.account");
-    public static final Action.Id<CognitiveAccount> OPEN_ACCOUNT_IN_PLAYGROUND = Action.Id.of("user/cognitiveservices.open_playground.account");
+    public static final Action.Id<CognitiveAccount> COPY_PRIMARY_KEY = Action.Id.of("user/openai.copy_primary_key.account");
+    public static final Action.Id<CognitiveAccount> OPEN_ACCOUNT_IN_PLAYGROUND = Action.Id.of("user/openai.open_playground.account");
     public static final Action.Id<CognitiveDeployment> OPEN_DEPLOYMENT_IN_PLAYGROUND = CognitiveDeployment.OPEN_DEPLOYMENT_IN_PLAYGROUND;
-    public static final Action.Id<ResourceGroup> GROUP_CREATE_ACCOUNT = Action.Id.of("user/cognitiveservices.create_account.group");
+    public static final Action.Id<ResourceGroup> GROUP_CREATE_ACCOUNT = Action.Id.of("user/openai.create_account.group");
 
     @Override
     public void registerActions(AzureActionManager am) {

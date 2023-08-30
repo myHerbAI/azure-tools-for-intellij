@@ -17,6 +17,7 @@ import com.intellij.util.ui.UIUtil;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox.ChatBot;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccount;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.lang.BooleanUtils;
 
 import javax.annotation.Nonnull;
@@ -26,6 +27,7 @@ import java.awt.datatransfer.StringSelection;
 import java.util.Objects;
 
 public class ViewCodePanel {
+    @Nonnull
     private final ChatBot chatBot;
 
     private JTextPane lblHeadMsg;
@@ -39,7 +41,7 @@ public class ViewCodePanel {
     private JPanel editorContainer;
     private JComboBox<?> comboLanguage;
 
-    public ViewCodePanel(final ChatBot chatBot) {
+    public ViewCodePanel(@Nonnull final ChatBot chatBot) {
         this.chatBot = chatBot;
         this.init();
     }
@@ -53,20 +55,14 @@ public class ViewCodePanel {
         final String endpoint = deployment.getEndpoint();
         final String apiBase = account.getEndpoint();
         this.txtApiBase.setText(apiBase);
-        this.txtApiBase.addExtension(ExtendableTextComponent.Extension.create(AllIcons.Actions.Copy, "Copy", () -> {
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(apiBase), null);
-        }));
+        this.txtApiBase.addExtension(ExtendableTextComponent.Extension.create(AllIcons.Actions.Copy, "Copy Api base", () -> copyApiBase(apiBase)));
 
         this.lblEndpoint.setIcon(AllIcons.General.ContextHelp);
         this.txtEndpoint.setText(endpoint);
-        this.txtEndpoint.addExtension(ExtendableTextComponent.Extension.create(AllIcons.Actions.Copy, "Copy", () -> {
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(endpoint), null);
-        }));
+        this.txtEndpoint.addExtension(ExtendableTextComponent.Extension.create(AllIcons.Actions.Copy, "Copy endpoint", () -> copyEndpoint(endpoint)));
         this.lblKey.setIcon(AllIcons.General.ContextHelp);
         this.txtKey.setText("*".repeat(key.length()));
-        this.txtKey.addExtension(ExtendableTextComponent.Extension.create(AllIcons.Actions.Copy, "Copy", () -> {
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(key), null);
-        }));
+        this.txtKey.addExtension(ExtendableTextComponent.Extension.create(AllIcons.Actions.Copy, "Copy key", () -> copyKey(key)));
         this.txtKey.addExtension(ExtendableTextComponent.Extension.create(AllIcons.General.InspectionsEye, "Show/Hide", () -> {
             if (BooleanUtils.isTrue((Boolean) this.txtKey.getClientProperty("keyVisible"))) {
                 this.txtKey.putClientProperty("keyVisible", false);
@@ -90,6 +86,21 @@ public class ViewCodePanel {
             this.editorContainer.repaint();
         });
         this.editorContainer.add(this.createCodeViewer((ISourceCodeGenerator) this.comboLanguage.getItemAt(0)));
+    }
+
+    @AzureOperation(value = "user/openai.copy_key", source = "this.chatBot.getDeployment()")
+    private static void copyKey(final String key) {
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(key), null);
+    }
+
+    @AzureOperation(value = "user/openai.copy_endpoint", source = "this.chatBot.getDeployment()")
+    private static void copyEndpoint(final String endpoint) {
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(endpoint), null);
+    }
+
+    @AzureOperation(value = "user/openai.copy_apibase", source = "this.chatBot.getDeployment()")
+    private static void copyApiBase(final String apiBase) {
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(apiBase), null);
     }
 
     @Nonnull

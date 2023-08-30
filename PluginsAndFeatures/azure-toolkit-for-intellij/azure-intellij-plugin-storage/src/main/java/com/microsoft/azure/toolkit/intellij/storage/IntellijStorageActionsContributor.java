@@ -95,7 +95,7 @@ public class IntellijStorageActionsContributor implements IActionsContributor {
                 .withLabel("Create")
                 .withIdParam(n -> n)
                 .withSource(module)
-                .withAuthRequired(true)
+                .withAuthRequired(n -> !module.getParent().isEmulatorResource())
                 .withHandler(c -> module.create(c, "").createIfNotExist()));
             dialog.show();
         });
