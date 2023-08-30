@@ -17,6 +17,7 @@ import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 
 public class AzureTextArea extends JBTextArea implements AzureFormInputComponent<String> {
+    public static final Border DEFAULT_BORDER = JBUI.Borders.compound(JBUI.Borders.customLine(new JBColor(12895428, 6185056), 1), JBUI.Borders.empty(6));
     private static final int DEBOUNCE_DELAY = 200;
     private final TailingDebouncer debouncer = new TailingDebouncer(this::fireValueChangedEvent, DEBOUNCE_DELAY);
 
@@ -33,8 +34,7 @@ public class AzureTextArea extends JBTextArea implements AzureFormInputComponent
         this.setBackground(JBUI.CurrentTheme.EditorTabs.background());
         this.setLineWrap(true);
         this.setFont(JBUI.Fonts.label());
-        final Border border = JBUI.Borders.compound(JBUI.Borders.customLine(borderColor, 1), JBUI.Borders.empty(6));
-        this.setBorder(border);
+        this.setBorder(DEFAULT_BORDER);
     }
 
     @Override

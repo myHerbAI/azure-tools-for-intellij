@@ -8,9 +8,6 @@ package com.microsoft.azure.toolkit.intellij.cognitiveservices.playground;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.components.ActionLink;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.components.OpenAISystemTemplateComboBox;
@@ -38,7 +35,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class SystemMessagePanel implements AzureForm<SystemMessage> {
     private static final int DEBOUNCE_DELAY = 200;
@@ -92,7 +88,8 @@ public class SystemMessagePanel implements AzureForm<SystemMessage> {
         this.lblSystemMessage.setIcon(AllIcons.General.ContextHelp);
 
         this.scrollPane.setBorder(JBUI.Borders.empty());
-        this.scrollPaneSystemMessage.setBorder(JBUI.Borders.empty());
+        this.scrollPaneSystemMessage.setBorder(AzureTextArea.DEFAULT_BORDER);
+        this.areaSystemMessage.setBorder(JBUI.Borders.empty());
         this.lblTemplate.setBorder(JBUI.Borders.empty(6, 0));
         this.lblSystemMessage.setBorder(JBUI.Borders.empty(6, 0));
 
@@ -136,16 +133,15 @@ public class SystemMessagePanel implements AzureForm<SystemMessage> {
     }
 
     private void onAddNewExample(final ActionEvent actionEvent) {
-        final SystemMessage value = getValue();
-        value.getExamples().add(SystemMessage.Example.builder().build());
-        renderValue(value);
+        addExamplePanel(SystemMessage.Example.builder().build());
     }
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
         this.cbSystemTemplate = new OpenAISystemTemplateComboBox();
-
         this.areaSystemMessage = new AzureTextArea();
+        this.pnlExample = new JPanel();
+        this.pnlExample.setLayout(new BoxLayout(pnlExample, BoxLayout.Y_AXIS));
     }
 
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES
@@ -183,38 +179,27 @@ public class SystemMessagePanel implements AzureForm<SystemMessage> {
     private void renderExamples(@Nonnull final List<SystemMessage.Example> examples) {
         panels.clear();
         pnlExample.removeAll();
-        final GridLayoutManager layout = ((GridLayoutManager) this.pnlExample.getLayout());
-        final GridLayoutManager newLayout = new GridLayoutManager(examples.size() + 1, 1, layout.getMargin(), -1, -1);
-        this.pnlExample.setLayout(newLayout);
-        for (int i = 0; i < examples.size(); i++) {
-            final SystemMessage.Example example = examples.get(i);
-            final ExamplePanel panel = new ExamplePanel();
-            panel.setValue(example);
-            panel.addDeleteListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    panels.remove(panel);
-                    pnlExample.remove(panel.getPanel());
-                    onValueChanged();
-                }
-            });
-            panel.addValueChangedListener(ignore -> debouncer.debounce());
-            final GridConstraints c = new GridConstraints(i, 0, 1, 1, 1, 1, 3, 3, null, null, null, 0, false);
-            this.pnlExample.add(panel.getPanel(), c);
-            panels.add(panel);
-        }
-        final GridConstraints c = new GridConstraints(examples.size(), 0, 1, 1, 1, 2, 1, 6, null, null, null, 0, false);
-        final Spacer spacer = new Spacer();
-        this.pnlExample.add(spacer, c);
+        examples.forEach(this::addExamplePanel);
     }
 
-    private void removeExample(SystemMessage.Example example) {
-        final SystemMessage value = getValue();
-        final List<SystemMessage.Example> examples = value.getExamples().stream()
-                .filter(e -> !ObjectUtils.equals(e, example))
-                .collect(Collectors.toList());
-        value.setExamples(examples);
-        renderValue(value);
+    public void addExamplePanel(final SystemMessage.Example example) {
+        final ExamplePanel panel = new ExamplePanel();
+        panel.setValue(example);
+        panel.addDeleteListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                removeExamplePanel(panel);
+            }
+        });
+        panel.addValueChangedListener(ignore -> debouncer.debounce());
+        this.pnlExample.add(panel.getPanel());
+        panels.add(panel);
+    }
+
+    private void removeExamplePanel(final ExamplePanel panel) {
+        panels.remove(panel);
+        pnlExample.remove(panel.getPanel());
+        onValueChanged();
     }
 
     @Override

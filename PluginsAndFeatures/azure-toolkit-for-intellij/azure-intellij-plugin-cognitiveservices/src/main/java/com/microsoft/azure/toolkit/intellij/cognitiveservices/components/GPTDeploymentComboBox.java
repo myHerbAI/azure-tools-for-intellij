@@ -8,6 +8,7 @@ import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccount;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
+import com.microsoft.azure.toolkit.lib.cognitiveservices.model.DeploymentModel;
 import org.apache.commons.collections.ListUtils;
 
 import javax.annotation.Nonnull;
@@ -65,8 +66,9 @@ public class GPTDeploymentComboBox extends AzureComboBox<CognitiveDeployment> {
     protected String getItemText(Object item) {
         if (item instanceof CognitiveDeployment) {
             final CognitiveDeployment deployment = (CognitiveDeployment) item;
+            final DeploymentModel model = deployment.getModel();
             return deployment.isDraftForCreating() ? String.format("(New) %s", deployment.getName()) :
-                    String.format("%s (%s %s)", deployment.getName(), deployment.getModel().getName(), deployment.getModel().getVersion());
+                    Objects.isNull(model) ? deployment.getName() : String.format("%s (%s %s)", deployment.getName(), model.getName(), model.getVersion());
         }
         return super.getItemText(item);
     }

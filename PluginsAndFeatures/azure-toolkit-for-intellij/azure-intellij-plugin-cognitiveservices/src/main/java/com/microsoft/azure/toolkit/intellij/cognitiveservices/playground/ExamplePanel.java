@@ -34,8 +34,10 @@ public class ExamplePanel implements AzureForm<SystemMessage.Example> {
     public ExamplePanel() {
         $$$setupUI$$$();
         this.lblDeleteIcon.setIcon(IntelliJAzureIcons.getIcon("/icons/delete-example.svg"));
-        scrollPaneUser.setBorder(JBUI.Borders.empty());
-        scrollPaneAssistant.setBorder(JBUI.Borders.empty());
+        areaUser.setBorder(JBUI.Borders.empty());
+        scrollPaneUser.setBorder(AzureTextArea.DEFAULT_BORDER);
+        areaAssistant.setBorder(JBUI.Borders.empty());
+        scrollPaneAssistant.setBorder(AzureTextArea.DEFAULT_BORDER);
         this.lblUser.setBorder(JBUI.Borders.empty(6, 0));
         this.lblAssistant.setBorder(JBUI.Borders.empty(6, 0));
         this.getInputs().forEach(input -> input.addValueChangedListener(ignore -> this.fireValueChangedEvent()));

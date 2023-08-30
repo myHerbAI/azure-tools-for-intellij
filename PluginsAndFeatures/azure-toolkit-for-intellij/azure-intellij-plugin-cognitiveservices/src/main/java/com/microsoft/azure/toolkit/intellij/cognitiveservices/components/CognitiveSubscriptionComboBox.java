@@ -10,15 +10,46 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.AzureCognitiveServices;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.BooleanUtils;
+
+import javax.annotation.Nonnull;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class CognitiveSubscriptionComboBox extends SubscriptionComboBox {
+    private boolean listUnselectedSubscriptions = false;
+    private Map<Subscription, Boolean> status = new HashMap<>();
+
+    public CognitiveSubscriptionComboBox(boolean listUnselectedSubscriptions) {
+        this.listUnselectedSubscriptions = listUnselectedSubscriptions;
+    }
+
+    @Nonnull
+    @Override
+    protected List<Subscription> loadItems() {
+        final List<Subscription> subscriptions = Optional.of(super.loadItems()).filter(CollectionUtils::isNotEmpty)
+                .orElseGet(this::getValidSubscriptions);
+        this.status = subscriptions.stream().collect(Collectors.toMap(subscription -> subscription,
+                subscription -> Azure.az(AzureCognitiveServices.class).isOpenAIEnabled(subscription.getId())));
+        return subscriptions;
+    }
+
+    private List<Subscription> getValidSubscriptions() {
+        if (listUnselectedSubscriptions && Azure.az(AzureAccount.class).isLoggedIn()) {
+            return Azure.az(AzureAccount.class).getAccount().getSubscriptions()
+                    .stream().filter(subscription -> Azure.az(AzureCognitiveServices.class).isOpenAIEnabled(subscription.getId()))
+                    .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
+    }
+
     @Override
     protected String getItemText(Object item) {
         if (item instanceof Subscription) {
             final Subscription subscription = (Subscription) item;
-            final boolean openAIEnabled = Azure.az(AzureAccount.class).isLoggedIn() &&
-                    Azure.az(AzureCognitiveServices.class).isOpenAIEnabled((subscription).getId());
-            return openAIEnabled ? subscription.getName() : String.format("%s (Not Available)", subscription.getName());
+            final String name = subscription.getName();
+            return BooleanUtils.isTrue(status.get(subscription)) ? name : String.format("%s (Not Available)", name);
         }
         return super.getItemText(item);
     }

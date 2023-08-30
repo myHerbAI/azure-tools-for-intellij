@@ -14,11 +14,13 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.AzureCognitiveServices;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccount;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
+import com.microsoft.azure.toolkit.lib.cognitiveservices.model.DeploymentModel;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -59,7 +61,7 @@ public class CognitiveServicesNodeProvider implements IExplorerNodeProvider {
                 .withMoreChildren(a -> a.deployments().hasMoreResources(), a -> a.deployments().loadMoreResources());
         } else if (data instanceof CognitiveDeployment) {
             return new AzResourceNode<>((CognitiveDeployment) data)
-                .withDescription(deployment -> String.format("%s (version: %s)", deployment.getModel().getName(), deployment.getModel().getVersion()))
+                .withDescription(this::getDeploymentDescription)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .onDoubleClicked((d, e) -> {
                     final AzureActionManager am = AzureActionManager.getInstance();
@@ -72,5 +74,10 @@ public class CognitiveServicesNodeProvider implements IExplorerNodeProvider {
                 .withActions(CognitiveServicesActionsContributor.DEPLOYMENT_ACTIONS);
         }
         return null;
+    }
+
+    private String getDeploymentDescription(@Nonnull final CognitiveDeployment deployment) {
+        final DeploymentModel model = deployment.getModel();
+        return Objects.isNull(model) ? "Unknown" : String.format("%s (version: %s)", model.getName(), model.getVersion());
     }
 }

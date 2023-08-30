@@ -39,7 +39,11 @@ public class SubscriptionComboBox extends AzureComboBox<Subscription> {
     @Override
     @AzureOperation(name = "internal/account.list_subscriptions")
     protected List<Subscription> loadItems() {
-        return az(AzureAccount.class).account().getSelectedSubscriptions().stream()
+        final AzureAccount az = az(AzureAccount.class);
+        if (!az.isLoggedIn()) {
+            return Collections.emptyList();
+        }
+        return az.account().getSelectedSubscriptions().stream()
             .sorted(Comparator.comparing(Subscription::getName))
             .collect(Collectors.toList());
     }
