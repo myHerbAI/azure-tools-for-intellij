@@ -25,6 +25,7 @@ import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 public class CreateCognitiveDeploymentTask implements Task {
     public static final String DEFAULT_COGNITIVE_DEPLOYMENT = "default_cognitive_deployment";
@@ -47,8 +48,10 @@ public class CreateCognitiveDeploymentTask implements Task {
 
     @Override
     public void execute() {
-        final CognitiveAccount account = (CognitiveAccount) context.getParameter(CognitiveDeploymentInput.COGNITIVE_ACCOUNT);
-        final CognitiveDeployment deployment = (CognitiveDeployment) context.getParameter(CognitiveDeploymentInput.COGNITIVE_DEPLOYMENT);
+        final CognitiveAccount account = (CognitiveAccount) Objects.requireNonNull(context.getParameter(CognitiveDeploymentInput.COGNITIVE_ACCOUNT),
+                "Please select your ai account in the combo box.");
+        final CognitiveDeployment deployment = (CognitiveDeployment) Objects.requireNonNull(context.getParameter(CognitiveDeploymentInput.COGNITIVE_DEPLOYMENT),
+                "Please select your deployment in the combo box.");
         if (!account.exists()) {
             ((CognitiveAccountDraft) account).commit();
         } else {
