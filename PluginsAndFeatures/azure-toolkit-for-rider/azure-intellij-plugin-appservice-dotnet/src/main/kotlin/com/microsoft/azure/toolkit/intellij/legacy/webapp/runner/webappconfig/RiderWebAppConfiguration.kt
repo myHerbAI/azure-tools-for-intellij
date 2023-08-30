@@ -86,6 +86,26 @@ class RiderWebAppConfiguration(private val project: Project, factory: Configurat
         set(value) {
             webAppSettingModel.slotPanelVisible = value
         }
+    var isDeployToSlot: Boolean
+        get() = webAppSettingModel.isDeployToSlot
+        set(value) {
+            webAppSettingModel.isDeployToSlot = value
+        }
+    var newSlotConfigurationSource: String
+        get() = webAppSettingModel.newSlotConfigurationSource
+        set(value) {
+            webAppSettingModel.newSlotConfigurationSource = value
+        }
+    var slotName: String?
+        get() = webAppSettingModel.slotName
+        set(value) {
+            webAppSettingModel.slotName = value
+        }
+    var newSlotName: String
+        get() = webAppSettingModel.newSlotName
+        set(value) {
+            webAppSettingModel.newSlotName = value
+        }
     var appSettingsKey: String
         get() = webAppSettingModel.appSettingsKey
         set(value) {

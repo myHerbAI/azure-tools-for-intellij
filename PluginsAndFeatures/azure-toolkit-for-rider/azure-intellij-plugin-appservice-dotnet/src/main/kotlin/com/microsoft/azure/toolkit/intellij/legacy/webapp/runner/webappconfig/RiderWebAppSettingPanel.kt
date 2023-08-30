@@ -10,6 +10,7 @@ import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppDeployRunConfigurationModel
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureSettingPanel
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.Constants
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
@@ -60,6 +61,16 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
                 configuration.appServicePlanName = it.servicePlan?.name
                 configuration.appServicePlanResourceGroupName = it.servicePlan?.resourceGroupName
             }
+
+            configuration.isDeployToSlot = it.deploymentSlot != null
+            it.deploymentSlot?.let { slot ->
+                configuration.slotName = slot.name
+                if (slot.isNewCreate) {
+                    configuration.slotName = Constants.CREATE_NEW_SLOT
+                    configuration.newSlotName = slot.name
+                    configuration.newSlotConfigurationSource = slot.configurationSource
+                }
+            }
         }
         runConfigurationModel.artifactConfig?.let {
             val artifactId = it.artifactIdentifier.toIntOrNull()
@@ -99,7 +110,20 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
                 .os(configuration.operatingSystem)
                 .pricingTier(pricingTier)
                 .build()
-        val slotConfig: DeploymentSlotConfig? = null
+        val slotConfig = if (configuration.isDeployToSlot) {
+            if (configuration.slotName == Constants.CREATE_NEW_SLOT)
+                DeploymentSlotConfig
+                        .builder()
+                        .newCreate(true)
+                        .name(configuration.newSlotName)
+                        .configurationSource(configuration.newSlotConfigurationSource)
+                        .build()
+            else DeploymentSlotConfig
+                    .builder()
+                    .newCreate(false)
+                    .name(configuration.slotName)
+                    .build()
+        } else null
         val configBuilder = WebAppConfig
                 .builder()
                 .name(configuration.webAppName)
@@ -120,6 +144,7 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
                 .builder()
                 .webAppConfig(webAppConfig)
                 .artifactConfig(artifactConfig)
+                .slotPanelVisible(configuration.isSlotPanelVisible)
                 .openBrowserAfterDeployment(configuration.isOpenBrowserAfterDeployment)
                 .build()
         webAppPanel.value = runConfigurationModel
