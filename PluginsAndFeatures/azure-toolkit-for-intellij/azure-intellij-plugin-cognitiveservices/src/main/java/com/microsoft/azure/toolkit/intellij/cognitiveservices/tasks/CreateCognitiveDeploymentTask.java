@@ -25,6 +25,7 @@ import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.Objects;
 
 public class CreateCognitiveDeploymentTask implements Task {
@@ -105,7 +106,8 @@ public class CreateCognitiveDeploymentTask implements Task {
         final ResourceGroup group = Azure.az(AzureResources.class).groups(subscription.getId()).create(rgName, rgName);
         final CognitiveAccountModule accounts = Azure.az(AzureCognitiveServices.class).accounts(subscription.getId());
         final AccountSku accountSku = accounts.listSkus(null).get(0);
-        final Region region = accounts.listRegion(accountSku).get(0);
+        final List<Region> regions = accounts.listRegion(accountSku);
+        final Region region = regions.contains(Region.US_EAST) ? Region.US_EAST : regions.get(0);
         CognitiveAccountDraft draft = accounts.create(account, rgName);
         draft.setConfig(CognitiveAccountDraft.Config.builder().resourceGroup(group).sku(accountSku).region(region).build());
         return draft;
