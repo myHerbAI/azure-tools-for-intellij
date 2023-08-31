@@ -2,12 +2,13 @@
   "$schema": "../flow-schema/Course.json",
   "name": "hello-openai",
   "title": "Try Azure OpenAI",
-  "description": "This tutorial shows how to deploy your own GPT 3.5 model on Azure and explore the features of OpenAI Playground in Azure Toolkit for IntelliJ.",
-  "priority" : 5,
+  "description": "This tutorial shows how to build your Azure OpenAI Copilot and explore the features of OpenAI Playground in Azure Toolkit for IntelliJ.",
+  "priority": 5,
   "icon": "/icons/Microsoft.CognitiveServices/default.svg",
   "tags": [
-    "OpenAI",
-    "GPT 3.5",
+    "Azure OpenAI",
+    "Copilot",
+    "GPT Model",
     "Quickstart"
   ],
   "context": {
@@ -28,7 +29,7 @@
     },
     {
       "title": "Select Subscription",
-      "description": "Select the subscription to deploy your GPT 3.5 model",
+      "description": "Select the subscription for Azure OpenAI Service",
       "steps": [
         {
           "title": "Select Subscription",
@@ -46,11 +47,11 @@
     },
     {
       "title": "Prepare Resources",
-      "description": "Initialize OpenAI deployment with GPT 3.5 model or select an existing one",
+      "description": "Initialize OpenAI deployment with GPT model or select an existing one",
       "steps": [
         {
-          "title": "Prepare GPT 3.5 deployment",
-          "description": "Create GPT 3.5 deployment and related account or select an existing one",
+          "title": "Prepare GPT Deployment",
+          "description": "Create new deployment with a GPT model or select an existing one",
           "task": {
             "name": "task.openai.create_deployment"
           },
@@ -65,7 +66,7 @@
     {
       "title": "Congratulations!",
       "type": "summary",
-      "description": "Your GPT 3.5 model has been deployed to Azure, enjoy your Azure OpenAI experience!",
+      "description": "Your GPT model has been deployed to Azure, enjoy your Azure OpenAI experience!",
       "steps": [
         {
           "title": "Try with AI Playground",

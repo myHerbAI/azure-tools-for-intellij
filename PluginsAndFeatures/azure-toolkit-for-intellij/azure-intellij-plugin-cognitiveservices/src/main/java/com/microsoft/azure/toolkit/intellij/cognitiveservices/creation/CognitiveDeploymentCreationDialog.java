@@ -52,7 +52,7 @@ public class CognitiveDeploymentCreationDialog extends AzureDialog<CognitiveDepl
 
     @Override
     protected String getDialogTitle() {
-        return "Create Deployment";
+        return "Create Azure OpenAI Deployment";
     }
 
     @Override

@@ -112,7 +112,7 @@ public class CognitiveAccountCreationDialog extends AzureDialog<CognitiveAccount
 
     @Override
     protected String getDialogTitle() {
-        return "Create Azure OpenAI Account";
+        return "Create Azure OpenAI Service";
     }
 
     @Override

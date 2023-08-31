@@ -39,13 +39,13 @@ public class CognitiveServicesActionsContributor implements IActionsContributor 
     @Override
     public void registerActions(AzureActionManager am) {
         new Action<>(CREATE_ACCOUNT)
-            .withLabel("Create Azure OpenAI Account")
+            .withLabel("Create Azure OpenAI Service")
             .withIcon(AzureIcons.Action.CREATE.getIconPath())
             .withShortcut(am.getIDEDefaultShortcuts().add())
             .register(am);
 
         new Action<>(CREATE_DEPLOYMENT)
-            .withLabel("Create Deployment")
+            .withLabel("Create New Deployment")
             .withIcon(AzureIcons.Action.CREATE.getIconPath())
             .withIdParam(AbstractAzResource::getName)
             .visibleWhen(s -> s instanceof CognitiveAccount)
@@ -79,7 +79,7 @@ public class CognitiveServicesActionsContributor implements IActionsContributor 
             .register(am);
 
         new Action<>(GROUP_CREATE_ACCOUNT)
-            .withLabel("Azure OpenAI Account")
+            .withLabel("Azure OpenAI service")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ResourceGroup)
             .enableWhen(s -> s.getFormalStatus().isConnected())

@@ -15,9 +15,12 @@ import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.AzureCognitiveServices;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 
 import javax.swing.*;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 public class CognitiveSubscriptionInputPanel implements AzureFormJPanel<Subscription> {
@@ -46,6 +49,7 @@ public class CognitiveSubscriptionInputPanel implements AzureFormJPanel<Subscrip
                     .map(s -> Azure.az(AzureCognitiveServices.class).isOpenAIEnabled(s.getId())).orElse(false);
             lblRegister.setVisible(!openAIEnabled);
         });
+        this.lblSubscription.setLabelFor(this.cbSubscription);
         this.eventListener = new AzureEventBus.EventListener(ignore -> this.cbSubscription.reloadItems());
         AzureEventBus.on("account.logged_in.account", eventListener);
     }
@@ -68,5 +72,10 @@ public class CognitiveSubscriptionInputPanel implements AzureFormJPanel<Subscrip
     private void createUIComponents() {
         // TODO: place custom component creation code here
         this.cbSubscription = new CognitiveSubscriptionComboBox(true);
+    }
+
+    @Override
+    public List<AzureFormInput<?>> getInputs() {
+        return Arrays.asList(this.cbSubscription);
     }
 }
