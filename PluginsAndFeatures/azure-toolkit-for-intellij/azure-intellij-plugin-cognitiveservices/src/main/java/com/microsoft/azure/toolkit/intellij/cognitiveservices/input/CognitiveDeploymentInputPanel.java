@@ -31,6 +31,8 @@ public class CognitiveDeploymentInputPanel implements AzureFormJPanel<CognitiveD
                 this.cbDeployment.setAccount((CognitiveAccount) e.getItem());
             }
         });
+        this.lblAccount.setLabelFor(this.cbAccount);
+        this.lblDeployment.setLabelFor(this.cbDeployment);
     }
 
     private void createUIComponents() {
@@ -38,11 +40,9 @@ public class CognitiveDeploymentInputPanel implements AzureFormJPanel<CognitiveD
         this.cbAccount = new CognitiveAccountComboBox();
         this.cbAccount.setUsePreferredSizeAsMinimum(false);
         this.cbAccount.setRequired(true);
-        this.lblAccount.setLabelFor(this.cbAccount);
         this.cbDeployment = new GPTDeploymentComboBox();
         this.cbDeployment.setUsePreferredSizeAsMinimum(false);
         this.cbDeployment.setRequired(true);
-        this.lblDeployment.setLabelFor(this.cbDeployment);
     }
 
     @Override
