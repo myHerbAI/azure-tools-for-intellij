@@ -25,6 +25,8 @@ import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.util.List;
+import java.util.Objects;
 
 public class CreateCognitiveDeploymentTask implements Task {
     public static final String DEFAULT_COGNITIVE_DEPLOYMENT = "default_cognitive_deployment";
@@ -47,12 +49,14 @@ public class CreateCognitiveDeploymentTask implements Task {
 
     @Override
     public void execute() {
-        final CognitiveAccount account = (CognitiveAccount) context.getParameter(CognitiveDeploymentInput.COGNITIVE_ACCOUNT);
-        final CognitiveDeployment deployment = (CognitiveDeployment) context.getParameter(CognitiveDeploymentInput.COGNITIVE_DEPLOYMENT);
+        final CognitiveAccount account = (CognitiveAccount) Objects.requireNonNull(context.getParameter(CognitiveDeploymentInput.COGNITIVE_ACCOUNT),
+                "Please select your Azure OpenAI service in the combo box.");
+        final CognitiveDeployment deployment = (CognitiveDeployment) Objects.requireNonNull(context.getParameter(CognitiveDeploymentInput.COGNITIVE_DEPLOYMENT),
+                "Please select your Azure OpenAI deployment in the combo box.");
         if (!account.exists()) {
             ((CognitiveAccountDraft) account).commit();
         } else {
-            AzureMessager.getMessager().info(String.format("Cognitive account %s already exists.", account.getName()));
+            AzureMessager.getMessager().info(String.format("Using existing Azure OpenAI service %s.", account.getName()));
         }
         if (!deployment.exists()) {
             final CognitiveDeploymentDraft draft = (CognitiveDeploymentDraft) deployment;
@@ -64,7 +68,7 @@ public class CreateCognitiveDeploymentTask implements Task {
             draft.setConfig(config);
             (draft).commit();
         } else {
-            AzureMessager.getMessager().info(String.format("Cognitive deployment %s already exists.", deployment.getName()));
+            AzureMessager.getMessager().info(String.format("Using existing Azure OpenAI deployment %s.", deployment.getName()));
         }
         context.applyResult("resourceId", account.getId());
         context.applyResult(ACCOUNT, account);
@@ -102,7 +106,8 @@ public class CreateCognitiveDeploymentTask implements Task {
         final ResourceGroup group = Azure.az(AzureResources.class).groups(subscription.getId()).create(rgName, rgName);
         final CognitiveAccountModule accounts = Azure.az(AzureCognitiveServices.class).accounts(subscription.getId());
         final AccountSku accountSku = accounts.listSkus(null).get(0);
-        final Region region = accounts.listRegion(accountSku).get(0);
+        final List<Region> regions = accounts.listRegion(accountSku);
+        final Region region = regions.contains(Region.US_EAST) ? Region.US_EAST : regions.get(0);
         CognitiveAccountDraft draft = accounts.create(account, rgName);
         draft.setConfig(CognitiveAccountDraft.Config.builder().resourceGroup(group).sku(accountSku).region(region).build());
         return draft;
