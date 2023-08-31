@@ -6,6 +6,7 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.jetbrains.rider.model.PublishableProjectModel
@@ -14,6 +15,7 @@ import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.intellij.common.runconfig.IWebAppRunConfiguration
 import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunConfigurationBase
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.Constants
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
 
@@ -21,8 +23,13 @@ import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
 class RiderWebAppConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
         RiderAzureRunConfigurationBase<DotNetWebAppSettingModel>(project, factory, name), IWebAppRunConfiguration,
         IConnectionAware {
+    companion object {
+        private const val SLOT_NAME_REGEX_PATTERN = "[a-zA-Z0-9-]{1,60}"
+    }
 
     val webAppSettingModel = DotNetWebAppSettingModel()
+
+    private val slotNameRegex = Regex(SLOT_NAME_REGEX_PATTERN)
 
     var webAppId: String?
         get() = webAppSettingModel.webAppId
@@ -121,6 +128,11 @@ class RiderWebAppConfiguration(private val project: Project, factory: Configurat
         set(value) {
             webAppSettingModel.projectPlatform = value
         }
+    var appSettingsToRemove: Set<String>
+        get() = webAppSettingModel.appSettingsToRemove
+        set(value) {
+            webAppSettingModel.appSettingsToRemove = value
+        }
 
     fun saveRuntime(runtime: Runtime?) {
         webAppSettingModel.saveRuntime(runtime)
@@ -152,5 +164,29 @@ class RiderWebAppConfiguration(private val project: Project, factory: Configurat
     override fun getModule(): Module? = null
 
     override fun validate() {
+        with(webAppSettingModel) {
+            if (isCreatingNew) {
+                if (webAppName.isNullOrEmpty()) throw ConfigurationException("Web App name not provided.")
+                if (subscriptionId.isNullOrEmpty()) throw ConfigurationException("Subscription not provided.")
+                if (resourceGroup.isNullOrEmpty()) throw ConfigurationException("Resource Group not provided.")
+                if (isCreatingAppServicePlan) {
+                    if (region.isNullOrEmpty()) throw ConfigurationException("Location not provided.")
+                    if (pricing.isNullOrEmpty()) throw ConfigurationException("Pricing Tier not provided.")
+                }
+                if (appServicePlanName.isNullOrEmpty()) throw ConfigurationException("App Service Plan not provided.")
+            } else {
+                if (webAppId.isNullOrEmpty()) throw ConfigurationException("Choose a web app to deploy.")
+                if (appServicePlanName.isNullOrEmpty()) throw ConfigurationException("Meta-data of target webapp is still loading...")
+                if (isDeployToSlot) {
+                    if (slotName == Constants.CREATE_NEW_SLOT) {
+                        if (newSlotName.isNullOrEmpty()) throw ConfigurationException("The deployment slot name is not provided.")
+                        if (!slotNameRegex.matches(newSlotName)) throw ConfigurationException("The slot name is invalid.")
+                    } else if (slotName.isNullOrEmpty()) throw ConfigurationException("The deployment slot name is not provided.")
+                }
+            }
+
+            if (OperatingSystem.fromString(operatingSystem) == OperatingSystem.DOCKER) throw ConfigurationException("Invalid target, please change to use `Deploy Image to Web App` for docker web app.")
+            if (projectPath.isEmpty()) throw ConfigurationException("Choose a project to deploy")
+        }
     }
 }

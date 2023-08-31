@@ -1,7 +1,8 @@
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
-import com.azure.resourcemanager.appservice.models.RuntimeStack
+import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtil
 import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
@@ -9,13 +10,15 @@ import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileSt
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.Constants
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.WebAppArtifactService
 import com.microsoft.azure.toolkit.lib.Azure
-import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase
+import com.microsoft.azure.toolkit.lib.appservice.webapp.*
 import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel
 import org.apache.commons.lang3.StringUtils
+import java.awt.Desktop
+import java.io.IOException
+import java.net.URISyntaxException
+import java.net.URL
 
-class RiderWebAppRunState(project: Project, webAppConfiguration: RiderWebAppConfiguration)
+class RiderWebAppRunState(project: Project, private val webAppConfiguration: RiderWebAppConfiguration)
     : RiderAzureRunProfileState<WebAppBase<*, *, *>>(project) {
 
     private val webAppSettingModel: DotNetWebAppSettingModel = webAppConfiguration.webAppSettingModel
@@ -27,8 +30,9 @@ class RiderWebAppRunState(project: Project, webAppConfiguration: RiderWebAppConf
         val artifact = WebAppArtifactService.getInstance(project)
                 .prepareArtifact(publishableProject, webAppSettingModel.projectConfiguration, webAppSettingModel.projectPlatform, processHandler)
         val deployTarget = getOrCreateDeployTargetFromAppSettingModel(processHandler)
+        updateApplicationSettings(deployTarget, processHandler)
         AzureWebAppMvpModel.getInstance().deployArtifactsToWebApp(deployTarget, artifact, webAppSettingModel.isDeployToRoot, processHandler)
-
+        FileUtil.delete(artifact)
         return deployTarget
     }
 
@@ -63,7 +67,75 @@ class RiderWebAppRunState(project: Project, webAppConfiguration: RiderWebAppConf
 
     private fun isDeployToSlot() = !webAppSettingModel.isCreatingNew && webAppSettingModel.isDeployToSlot
 
+    private fun updateApplicationSettings(deployTarget: WebAppBase<*, *, *>, processHandler: RunProcessHandler) {
+        val applicationSettings = webAppConfiguration.applicationSettings.toMutableMap()
+        val appSettingsToRemove =
+                if (webAppConfiguration.isCreatingNew) emptySet()
+                else getAppSettingsToRemove(deployTarget, applicationSettings)
+        if (applicationSettings.isEmpty()) return
+
+        if (deployTarget is WebApp) {
+            processHandler.setText("Updating application settings...")
+            val draft = deployTarget.update() as? WebAppDraft ?: return
+            appSettingsToRemove.forEach { draft.removeAppSetting(it) }
+            draft.appSettings = applicationSettings
+            draft.updateIfExist()
+            processHandler.setText("Update application settings successfully.")
+        } else if (deployTarget is WebAppDeploymentSlot) {
+            processHandler.setText("Updating deployment slot application settings...")
+            val draft = deployTarget.update() as? WebAppDeploymentSlotDraft ?: return
+            appSettingsToRemove.forEach { draft.removeAppSetting(it) }
+            draft.appSettings = applicationSettings
+            draft.updateIfExist()
+            processHandler.setText("Update deployment slot application settings successfully.")
+        }
+    }
+
+    private fun getAppSettingsToRemove(target: WebAppBase<*, *, *>, applicationSettings: Map<String, String>) =
+            target.appSettings
+                    ?.keys
+                    ?.asSequence()
+                    ?.filter { !applicationSettings.containsKey(it) }
+                    ?.toSet()
+                    ?: emptySet()
+
     override fun onSuccess(result: WebAppBase<*, *, *>, processHandler: RunProcessHandler) {
+        updateConfigurationDataModel(result)
+        processHandler.setText("Deployment was successful but the app may still be starting.")
+        val url = "https://${result.hostName}"
+        processHandler.setText("URL: $url")
+        if (webAppSettingModel.isOpenBrowserAfterDeployment) {
+            openWebAppInBrowser(url, processHandler)
+        }
         processHandler.notifyComplete()
+    }
+
+    private fun updateConfigurationDataModel(app: WebAppBase<*, *, *>) {
+        webAppConfiguration.isCreatingNew = false
+        if (app is WebAppDeploymentSlot) {
+            webAppConfiguration.slotName = app.name
+            webAppConfiguration.newSlotConfigurationSource = AzureWebAppMvpModel.DO_NOT_CLONE_SLOT_CONFIGURATION
+            webAppConfiguration.newSlotName = ""
+            webAppConfiguration.webAppId = app.parent.id
+        } else {
+            webAppConfiguration.webAppId = app.id
+        }
+        webAppConfiguration.applicationSettings = app.appSettings ?: emptyMap()
+        webAppConfiguration.webAppName = app.name
+        webAppConfiguration.resourceGroup = ""
+        webAppConfiguration.appServicePlanName = ""
+        webAppConfiguration.appServicePlanResourceGroupName = ""
+    }
+
+    private fun openWebAppInBrowser(url: String, processHandler: RunProcessHandler) {
+        try {
+            Desktop.getDesktop().browse(URL(url).toURI())
+        } catch (ex: Exception) {
+            when (ex) {
+                is IOException,
+                is URISyntaxException -> processHandler.println(ex.message, ProcessOutputTypes.STDERR)
+                else -> throw ex
+            }
+        }
     }
 }

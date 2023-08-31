@@ -48,6 +48,8 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
             configuration.resourceGroup = it.resourceGroupName
             configuration.webAppName = it.name
             configuration.saveRuntime(it.runtime)
+            configuration.applicationSettings = it.appSettings
+            configuration.appSettingsToRemove = it.appSettingsToRemove
             configuration.isCreatingNew = it.resourceId.isNullOrEmpty()
 
             if (configuration.isCreatingNew) {
@@ -133,6 +135,8 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
                 .runtime(runtime)
                 .servicePlan(plan)
                 .deploymentSlot(slotConfig)
+                .appSettings(configuration.applicationSettings)
+                .appSettingsToRemove(configuration.appSettingsToRemove)
         val webAppConfig =
                 if (configuration.isCreatingNew) configBuilder.region(region).pricingTier(pricingTier).build()
                 else configBuilder.build()

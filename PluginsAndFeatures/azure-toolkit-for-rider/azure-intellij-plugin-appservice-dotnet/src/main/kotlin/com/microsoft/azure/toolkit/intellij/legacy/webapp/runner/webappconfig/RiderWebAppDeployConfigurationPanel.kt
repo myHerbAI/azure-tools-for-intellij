@@ -24,6 +24,8 @@ import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel
 import com.microsoft.azure.toolkit.intellij.common.component.UIUtils
 import com.microsoft.azure.toolkit.intellij.common.configurationAndPlatformComboBox
 import com.microsoft.azure.toolkit.intellij.common.dotnetProjectComboBox
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot
@@ -31,6 +33,7 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput.AzureValueChan
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel
+import org.apache.commons.collections4.MapUtils
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import java.time.LocalDateTime
@@ -50,6 +53,7 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
     private lateinit var webAppComboBox: Cell<WebAppComboBox>
     private lateinit var configurationAndPlatformComboBox: Cell<LabeledComponent<ComboBox<PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform?>>>
     private lateinit var dotnetProjectComboBox: Cell<AzureDotnetProjectComboBox>
+    private lateinit var appSettingsTable: AppSettingsTable
     private lateinit var deploymentSlotGroup: CollapsibleRow
     private lateinit var deployToSlotCheckBox: Cell<JBCheckBox>
     private lateinit var newSlotRadioButton: Cell<JBRadioButton>
@@ -75,6 +79,11 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
             }
             row("Configuration:") {
                 configurationAndPlatformComboBox = configurationAndPlatformComboBox(project)
+                        .align(Align.FILL)
+            }
+            row("App Settings:") {
+                appSettingsTable = AppSettingsTable()
+                cell(AppSettingsTableUtils.createAppSettingPanel(appSettingsTable))
                         .align(Align.FILL)
             }
             deploymentSlotGroup = collapsibleGroup("Deployment Slot") {
@@ -173,7 +182,25 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
     }
 
     private fun loadAppSettings(value: WebAppConfig, before: WebAppConfig?) {
+        val rawValue = if (webAppComboBox.component.rawValue is WebAppConfig) webAppComboBox.component.rawValue as WebAppConfig else value
+        if (before == null && value != rawValue) {
+            if (rawValue.resourceId.isNullOrEmpty() && !value.resourceId.isNullOrEmpty()) {
+                appSettingsTable.loadAppSettings { loadDraftAppSettings(rawValue) }
+            }
+        } else if (value != before) {
+            appSettingsTable.loadAppSettings {
+                if (value.resourceId.isNullOrEmpty()) value.appSettings
+                else Azure.az(AzureWebApp::class.java).webApp(value.resourceId)?.appSettings
+            }
+        }
+    }
 
+    private fun loadDraftAppSettings(value: WebAppConfig): Map<String, String> {
+        val webApp = Azure.az(AzureWebApp::class.java).webApps(value.subscriptionId).get(value.name, value.resourceGroupName)
+        return if (webApp != null && webApp.exists())
+            MapUtils.putAll(webApp.appSettings, value.appSettings.entries.toTypedArray())
+        else
+            value.appSettings
     }
 
     override fun setValue(data: WebAppDeployRunConfigurationModel) {
@@ -189,6 +216,7 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
         data.webAppConfig?.let { webApp ->
             webAppComboBox.component.setConfigModel(webApp)
             webAppComboBox.component.value = webApp
+            appSettingsTable.setAppSettings(webApp.appSettings)
 
             webApp.deploymentSlot?.let { slot ->
                 deployToSlotCheckBox.component.isSelected = true
@@ -244,6 +272,7 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
 
         val webAppConfig = webAppComboBox.component.value
                 ?.toBuilder()
+                ?.appSettings(appSettingsTable.appSettings)
                 ?.deploymentSlot(slotConfig)
                 ?.build()
 
