@@ -16,11 +16,8 @@ import com.microsoft.azure.toolkit.intellij.cognitiveservices.creation.Cognitive
 import com.microsoft.azure.toolkit.intellij.common.properties.IntellijShowPropertiesViewAction;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.cognitiveservices.AzureCognitiveServices;
-import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccount;
-import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccountDraft;
-import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
-import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeploymentDraft;
+import com.microsoft.azure.toolkit.lib.cognitiveservices.*;
+import com.microsoft.azure.toolkit.lib.cognitiveservices.model.DeploymentModel;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -56,8 +53,7 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
             (ResourceGroup r, AnActionEvent e) -> openAccountCreationDialog(e.getProject(), r));
 
         final BiPredicate<CognitiveAccount, AnActionEvent> accountCondition = (r, e) -> r instanceof CognitiveAccount;
-        final BiConsumer<CognitiveAccount, AnActionEvent> openAccountHandler = (c, e) -> IntellijShowPropertiesViewAction.showPropertyView(c, e.getProject());
-        am.registerHandler(CognitiveServicesActionsContributor.OPEN_ACCOUNT_IN_PLAYGROUND, accountCondition, openAccountHandler);
+        am.registerHandler(CognitiveServicesActionsContributor.OPEN_ACCOUNT_IN_PLAYGROUND, accountCondition, this::openAccountInAIPlayground);
 
         final BiConsumer<CognitiveAccount, AnActionEvent> createDeploymentHandler = (c, e) -> openDeploymentCreationDialog(c, e.getProject());
         am.registerHandler(CognitiveServicesActionsContributor.CREATE_DEPLOYMENT, accountCondition, createDeploymentHandler);
@@ -65,6 +61,17 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
         final BiPredicate<CognitiveDeployment, AnActionEvent> deploymentCondition = (r, e) -> r instanceof CognitiveDeployment;
         final BiConsumer<CognitiveDeployment, AnActionEvent> openDeploymentHandler = (c, e) -> IntellijShowPropertiesViewAction.showPropertyView(c, e.getProject());
         am.registerHandler(CognitiveServicesActionsContributor.OPEN_DEPLOYMENT_IN_PLAYGROUND, deploymentCondition, openDeploymentHandler);
+    }
+
+    private void openAccountInAIPlayground(@Nonnull final CognitiveAccount account, @Nonnull final AnActionEvent event) {
+        final boolean isGPTDeploymentExists = account.deployments().list().stream()
+                .anyMatch(deployment -> Optional.ofNullable(deployment.getModel()).map(DeploymentModel::isGPTModel).orElse(false));
+        if (!isGPTDeploymentExists) {
+            final String errorMessage = String.format("There is no GPT model in current Azure OpenAI service %s", account.getName());
+            final Action<CognitiveAccount> errorAction = AzureActionManager.getInstance().getAction(CognitiveServicesActionsContributor.CREATE_DEPLOYMENT).bind(account);
+            throw new AzureToolkitRuntimeException(errorMessage, errorAction);
+        }
+        IntellijShowPropertiesViewAction.showPropertyView(account, event.getProject());
     }
 
     public static void openAccountCreationDialog(@Nullable Project project, @Nullable ResourceGroup resourceGroup) {
