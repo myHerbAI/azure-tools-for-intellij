@@ -76,7 +76,7 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
 
     public static void openAccountCreationDialog(@Nullable Project project, @Nullable ResourceGroup resourceGroup) {
         // action is auth required, so skip validation for authentication
-        final String account = Utils.generateRandomResourceName("account", 40);
+        final String account = Utils.generateRandomResourceName("service", 40);
         final String rgName = Optional.ofNullable(resourceGroup).map(AzResource::getName)
             .orElseGet(() -> String.format("rg-%s", account));
         final Supplier<Subscription> supplier = () -> Azure.az(AzureAccount.class).account().getSelectedSubscriptions()
