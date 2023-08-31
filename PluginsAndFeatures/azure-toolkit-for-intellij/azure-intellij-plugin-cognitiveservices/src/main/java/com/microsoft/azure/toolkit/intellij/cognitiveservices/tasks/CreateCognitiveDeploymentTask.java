@@ -49,13 +49,13 @@ public class CreateCognitiveDeploymentTask implements Task {
     @Override
     public void execute() {
         final CognitiveAccount account = (CognitiveAccount) Objects.requireNonNull(context.getParameter(CognitiveDeploymentInput.COGNITIVE_ACCOUNT),
-                "Please select your ai account in the combo box.");
+                "Please select your Azure OpenAI service in the combo box.");
         final CognitiveDeployment deployment = (CognitiveDeployment) Objects.requireNonNull(context.getParameter(CognitiveDeploymentInput.COGNITIVE_DEPLOYMENT),
-                "Please select your deployment in the combo box.");
+                "Please select your Azure OpenAI deployment in the combo box.");
         if (!account.exists()) {
             ((CognitiveAccountDraft) account).commit();
         } else {
-            AzureMessager.getMessager().info(String.format("Cognitive account %s already exists.", account.getName()));
+            AzureMessager.getMessager().info(String.format("Using existing Azure OpenAI service %s.", account.getName()));
         }
         if (!deployment.exists()) {
             final CognitiveDeploymentDraft draft = (CognitiveDeploymentDraft) deployment;
@@ -67,7 +67,7 @@ public class CreateCognitiveDeploymentTask implements Task {
             draft.setConfig(config);
             (draft).commit();
         } else {
-            AzureMessager.getMessager().info(String.format("Cognitive deployment %s already exists.", deployment.getName()));
+            AzureMessager.getMessager().info(String.format("Using existing Azure OpenAI deployment %s.", deployment.getName()));
         }
         context.applyResult("resourceId", account.getId());
         context.applyResult(ACCOUNT, account);

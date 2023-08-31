@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.ide.guidance.Status;
 import com.microsoft.azure.toolkit.ide.guidance.Step;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -125,6 +126,9 @@ public class SummaryPanel extends JPanel {
 
     @AzureOperation(name = "user/guidance.execute_summary_step.step", params = {"this.step.getTitle()"})
     private void executeStep(final Step step) {
+        OperationContext.current().setTelemetryProperty("step", step.getTitle());
+        OperationContext.current().setTelemetryProperty("phase", phase.getTitle());
+        OperationContext.current().setTelemetryProperty("course", phase.getCourse().getTitle());
         step.execute();
     }
 
