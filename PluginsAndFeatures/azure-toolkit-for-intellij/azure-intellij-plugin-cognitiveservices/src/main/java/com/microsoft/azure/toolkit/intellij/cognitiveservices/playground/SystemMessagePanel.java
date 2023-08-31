@@ -94,7 +94,6 @@ public class SystemMessagePanel implements AzureForm<SystemMessage> {
         this.lblSystemMessage.setBorder(JBUI.Borders.empty(6, 0));
 
         this.lblSaveChanges.setBorder(JBUI.Borders.emptyTop(20));
-        this.lblSaveChanges.setExternalLinkIcon();
         this.lblSaveChanges.addActionListener(ignore -> this.onSaveChange());
 
         this.cbSystemTemplate.addItemListener(this::onSelectTemplate);
