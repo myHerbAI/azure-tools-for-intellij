@@ -48,8 +48,8 @@ public class SparkOnCosmosNodeProvider implements IExplorerNodeProvider {
             final SparkOnCosmosADLAccountNode adlAccountNode = (SparkOnCosmosADLAccountNode) data;
 
             return new AzResourceNode<>(adlAccountNode)
-                    .withIcon(AzureIcon.builder().iconPath("/icons/AzureServerlessSparkAccount.png").build());
-//                    .withActions(SynapseActionsContributor.WORKSPACES_NODE_ACTIONS)
+                    .withIcon(AzureIcon.builder().iconPath("/icons/AzureServerlessSparkAccount.png").build())
+                    .withActions(SparkOnCosmosActionsContributor.ADLA_NODE_ACTIONS);
 //                    .withChildrenLoadLazily(false)
 //                    .addChildren(s->s.getArcadiaSparkComputeModule().list(), (d, mn) -> this.createNode(d, mn, manager));
 

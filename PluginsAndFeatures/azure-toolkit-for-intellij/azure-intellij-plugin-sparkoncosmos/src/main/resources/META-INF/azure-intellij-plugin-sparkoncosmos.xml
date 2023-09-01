@@ -2,5 +2,6 @@
     <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
         <explorerNodeProvider implementation="com.microsoft.azure.toolkit.ide.cosmos.spark.SparkOnCosmosNodeProvider"/>
         <actions implementation="com.microsoft.azure.toolkit.ide.cosmos.spark.SparkOnCosmosActionsContributor"/>
+        <actions implementation="com.microsoft.azure.toolkit.intellij.sparkoncosmos.IntellijSOCActionsContributor"/>
     </extensions>
 </idea-plugin>

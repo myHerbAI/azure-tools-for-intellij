@@ -6,12 +6,12 @@
 package com.microsoft.azure.cosmosserverlessspark.spark.ui;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.microsoft.azure.hdinsight.common.CommonConst;
 import com.microsoft.azure.hdinsight.common.IconPathBuilder;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
-import com.microsoft.intellij.util.PluginUtil;
 
 public class CosmosServerlessSparkJobsToolWindowFactory implements ToolWindowFactory {
 
@@ -28,7 +28,7 @@ public class CosmosServerlessSparkJobsToolWindowFactory implements ToolWindowFac
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         toolWindow.setIcon(
-                PluginUtil.getIcon(IconPathBuilder
+                IconLoader.getIcon(IconPathBuilder
                         .custom(CommonConst.CosmosServerlessToolWindowIconName)
                         .build()));
     }
