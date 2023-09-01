@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunConfigura
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.Constants
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
 
 
 class RiderWebAppConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
@@ -191,5 +192,18 @@ class RiderWebAppConfiguration(private val project: Project, factory: Configurat
             if (OperatingSystem.fromString(operatingSystem) == OperatingSystem.DOCKER) throw ConfigurationException("Invalid target, please change to use `Deploy Image to Web App` for docker web app.")
             if (projectPath.isEmpty()) throw ConfigurationException("Choose a project to deploy")
         }
+    }
+
+    fun setWebApp(webApp: WebApp) {
+        webAppId = webApp.id
+        webAppName = webApp.name
+        subscriptionId = webApp.subscriptionId
+        resourceGroup = webApp.resourceGroupName
+        webApp.appServicePlan?.let {
+            appServicePlanName = it.name
+            appServicePlanResourceGroupName = it.resourceGroupName
+        }
+        webApp.region?.let { region = it.name }
+        webApp.appSettings?.let { applicationSettings = it }
     }
 }

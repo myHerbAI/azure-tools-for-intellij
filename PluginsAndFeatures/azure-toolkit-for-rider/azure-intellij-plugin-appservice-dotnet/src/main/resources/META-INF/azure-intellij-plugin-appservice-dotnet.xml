@@ -8,4 +8,11 @@
     <extensions defaultExtensionNs="com.intellij">
         <configurationType implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.RiderWebAppConfigurationType"/>
     </extensions>
+
+    <actions>
+        <action id="Actions.WebDeployAction" class="com.microsoft.azure.toolkit.intellij.legacy.webapp.action.DeployWebAppAction"
+                text="Deploy to Azure Web Apps..." description="Deploy selected module to Azure WebApp"
+                icon="/icons/WebApp/Deploy.svg">
+        </action>
+    </actions>
 </idea-plugin>

@@ -8,8 +8,10 @@ import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContri
 import com.microsoft.azure.toolkit.ide.containerregistry.ContainerRegistryActionsContributor
 import com.microsoft.azure.toolkit.intellij.appservice.actions.AppServiceFileAction
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.action.CreateWebAppAction
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.action.DeployWebAppAction
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
 import com.microsoft.azure.toolkit.lib.common.action.Action
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
@@ -50,7 +52,7 @@ class AppServiceRiderActionsContributor : IActionsContributor {
     }
 
     override fun registerHandlers(am: AzureActionManager) {
-
         am.registerHandler(ResourceCommonActionsContributor.CREATE, { r, _ -> r is AzureWebApp }, { _, e: AnActionEvent -> e.project?.let { CreateWebAppAction.openDialog(it, null) } })
+        am.registerHandler(ResourceCommonActionsContributor.DEPLOY, { r, _ -> r is WebApp }, { c, e: AnActionEvent -> DeployWebAppAction.deploy(c as? WebApp, e.project) })
     }
 }
