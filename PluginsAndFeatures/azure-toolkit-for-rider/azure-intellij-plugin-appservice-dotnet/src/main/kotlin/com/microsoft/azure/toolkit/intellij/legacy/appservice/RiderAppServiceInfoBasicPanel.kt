@@ -14,9 +14,9 @@ import com.microsoft.azure.toolkit.intellij.common.dotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.canBePublishedToAzure
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.toRuntime
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput
 import com.microsoft.azure.toolkit.lib.common.model.Subscription
 import java.util.function.Supplier
@@ -86,7 +86,9 @@ class RiderAppServiceInfoBasicPanel<T>(
 
         val result = config ?: defaultConfigSupplier.get()
         result.name = name
-        result.runtime = Runtime(os, WebContainer("DOTNETCORE 7.0"), null)
+        result.runtime =
+                if (projectModel != null) projectModel.toRuntime(project, os)
+                else Runtime(os, null, null)
 
         if (projectModel != null) {
             result.application = Path(projectModel.projectFilePath)

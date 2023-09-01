@@ -133,9 +133,12 @@ class RiderWebAppConfiguration(private val project: Project, factory: Configurat
         set(value) {
             webAppSettingModel.appSettingsToRemove = value
         }
+    val getRuntime: Runtime?
+        get() = webAppSettingModel.runtime
 
-    fun saveRuntime(runtime: Runtime?) {
-        webAppSettingModel.saveRuntime(runtime)
+    fun saveRuntime(runtime: Runtime?, projectModel: PublishableProjectModel?) {
+        if (runtime == null || projectModel == null) webAppSettingModel.saveRuntime(null)
+        else webAppSettingModel.saveRuntime(projectModel.toRuntime(project, runtime.operatingSystem))
     }
 
     fun getProjectId(): Int? = project.solution.publishableProjectsModel.publishableProjects.values

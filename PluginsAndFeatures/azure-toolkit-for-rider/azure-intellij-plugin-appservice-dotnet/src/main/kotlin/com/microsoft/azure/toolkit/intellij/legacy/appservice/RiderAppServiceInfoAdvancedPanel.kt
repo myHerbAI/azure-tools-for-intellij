@@ -19,11 +19,11 @@ import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.Servic
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.canBePublishedToAzure
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.toRuntime
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput
 import com.microsoft.azure.toolkit.lib.common.model.Region
@@ -40,7 +40,7 @@ import javax.swing.JPanel
 import kotlin.io.path.Path
 
 class RiderAppServiceInfoAdvancedPanel<T>(
-        project: Project,
+        private val project: Project,
         private val defaultConfigSupplier: Supplier<T>
 ) : JPanel(), AzureFormPanel<T> where T : AppServiceConfig {
     companion object {
@@ -152,7 +152,9 @@ class RiderAppServiceInfoAdvancedPanel<T>(
         config.subscription = subscription
         config.resourceGroup = ResourceGroupConfig.fromResource(resourceGroup)
         config.name = name
-        config.runtime = Runtime(os, WebContainer("DOTNETCORE 7.0"), null)
+        config.runtime =
+                if (projectModel != null) projectModel.toRuntime(project, os)
+                else Runtime(os, null, null)
         config.region = region
         val planConfig = AppServicePlanConfig.fromResource(servicePlan)
         if (planConfig != null && servicePlan?.isDraftForCreating == true) {

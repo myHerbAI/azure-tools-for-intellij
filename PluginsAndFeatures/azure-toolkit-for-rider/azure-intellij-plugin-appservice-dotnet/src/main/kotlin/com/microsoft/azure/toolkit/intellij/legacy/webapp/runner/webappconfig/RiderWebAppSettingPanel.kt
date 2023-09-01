@@ -13,15 +13,12 @@ import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureSettingPanel
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.Constants
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.model.Subscription
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig
 import javax.swing.JPanel
 
 class RiderWebAppSettingPanel(private val project: Project, configuration: RiderWebAppConfiguration) : RiderAzureSettingPanel<RiderWebAppConfiguration>() {
-
     private val panel: JPanel
     private val webAppPanel = RiderWebAppDeployConfigurationPanel(project)
     private var appSettingsKey: String = configuration.appSettingsKey
@@ -40,6 +37,12 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
         val runConfigurationModel = webAppPanel.value
         val projectConfiguration = webAppPanel.getSelectedConfiguration()
         val projectPlatform = webAppPanel.getSelectedPlatform()
+        val projectModel = runConfigurationModel.artifactConfig?.let {
+            val artifactId = it.artifactIdentifier.toIntOrNull() ?: return@let null
+            project.solution.publishableProjectsModel.publishableProjects.values
+                    .firstOrNull { p -> p.projectModelId == artifactId }
+                    ?.also { p -> configuration.saveProject(p) }
+        }
 
         configuration.appSettingsKey = appSettingsKey
         runConfigurationModel.webAppConfig?.let {
@@ -47,7 +50,7 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
             configuration.subscriptionId = it.subscriptionId
             configuration.resourceGroup = it.resourceGroupName
             configuration.webAppName = it.name
-            configuration.saveRuntime(it.runtime)
+            configuration.saveRuntime(it.runtime, projectModel)
             configuration.applicationSettings = it.appSettings
             configuration.appSettingsToRemove = it.appSettingsToRemove
             configuration.isCreatingNew = it.resourceId.isNullOrEmpty()
@@ -74,14 +77,7 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
                 }
             }
         }
-        runConfigurationModel.artifactConfig?.let {
-            val artifactId = it.artifactIdentifier.toIntOrNull()
-            if (artifactId != null) {
-                project.solution.publishableProjectsModel.publishableProjects.values
-                        .firstOrNull { p -> p.projectModelId == artifactId }
-                        ?.let { p -> configuration.saveProject(p) }
-            }
-        }
+
         configuration.isSlotPanelVisible = runConfigurationModel.isSlotPanelVisible
         configuration.isOpenBrowserAfterDeployment = runConfigurationModel.isOpenBrowserAfterDeployment
         configuration.projectConfiguration = projectConfiguration
@@ -102,7 +98,7 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
                 .region(region)
                 .build()
         val pricingTier = if (configuration.pricing.isNotEmpty()) PricingTier.fromString(configuration.pricing) else null
-        val runtime = configuration.operatingSystem?.let { Runtime(it, WebContainer("DOTNETCORE 7.0"), null) }
+        val runtime = configuration.getRuntime
         val plan = AppServicePlanConfig
                 .builder()
                 .subscriptionId(subscription.id)
