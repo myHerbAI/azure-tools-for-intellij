@@ -18,6 +18,11 @@ class RiderWebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(p
     private val advancedForm: RiderAppServiceInfoAdvancedPanel<WebAppConfig>
     private val panel: JPanel
 
+    companion object {
+        const val RIDER_PROJECT_CONFIGURATION = "RIDER_PROJECT_CONFIGURATION"
+        const val RIDER_PROJECT_PLATFORM = "RIDER_PROJECT_CONFIGURATION"
+    }
+
     init {
         val selectedSubscriptions = Azure.az(AzureAccount::class.java).account().selectedSubscriptions
         if (selectedSubscriptions.isEmpty()) {
@@ -25,7 +30,7 @@ class RiderWebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(p
             throw AzureToolkitRuntimeException("there are no subscriptions selected in your account.", IAccountActions.SELECT_SUBS)
         }
 
-        basicForm = RiderAppServiceInfoBasicPanel(selectedSubscriptions[0]) { WebAppConfig.getWebAppDefaultConfig(project.name) }
+        basicForm = RiderAppServiceInfoBasicPanel(project, selectedSubscriptions[0]) { WebAppConfig.getWebAppDefaultConfig(project.name) }
         advancedForm = RiderAppServiceInfoAdvancedPanel(project) { WebAppConfig.getWebAppDefaultConfig(project.name) }
 
         panel = panel {
@@ -47,4 +52,10 @@ class RiderWebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(p
     override fun getBasicFormPanel() = basicForm
 
     override fun getAdvancedFormPanel() = advancedForm
+
+    fun setDeploymentVisible(visible: Boolean) {
+        basicForm.setDeploymentVisible(visible)
+        advancedForm.setDeploymentVisible(visible)
+        pack()
+    }
 }

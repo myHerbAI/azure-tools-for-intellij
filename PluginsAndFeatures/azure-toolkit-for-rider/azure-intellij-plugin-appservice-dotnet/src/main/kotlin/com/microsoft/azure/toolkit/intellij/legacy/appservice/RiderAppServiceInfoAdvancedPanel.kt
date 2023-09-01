@@ -1,18 +1,24 @@
 package com.microsoft.azure.toolkit.intellij.legacy.appservice
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.LabeledComponent
 import com.intellij.ui.components.JBRadioButton
-import com.intellij.ui.dsl.builder.Align
-import com.intellij.ui.dsl.builder.Cell
-import com.intellij.ui.dsl.builder.bind
-import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.*
 import com.intellij.util.ui.JBUI
+import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
 import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig
+import com.microsoft.azure.toolkit.intellij.common.AzureDotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel
 import com.microsoft.azure.toolkit.intellij.common.component.RegionComboBox
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox
 import com.microsoft.azure.toolkit.intellij.common.component.resourcegroup.ResourceGroupComboBox
+import com.microsoft.azure.toolkit.intellij.common.configurationAndPlatformComboBox
+import com.microsoft.azure.toolkit.intellij.common.dotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.ServicePlanComboBox
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.canBePublishedToAzure
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
@@ -31,6 +37,7 @@ import java.time.format.DateTimeFormatter
 import java.util.function.Supplier
 import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlin.io.path.Path
 
 class RiderAppServiceInfoAdvancedPanel<T>(
         project: Project,
@@ -71,6 +78,9 @@ class RiderAppServiceInfoAdvancedPanel<T>(
     private var operatingSystem: OperatingSystem
     private lateinit var windowsRadioButton: Cell<JBRadioButton>
     private lateinit var linuxRadioButton: Cell<JBRadioButton>
+    private lateinit var deploymentGroup: Row
+    private lateinit var dotnetProjectComboBox: Cell<AzureDotnetProjectComboBox>
+    private lateinit var configurationAndPlatformComboBox: Cell<LabeledComponent<ComboBox<PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform?>>>
 
     init {
         operatingSystem = OperatingSystem.WINDOWS
@@ -112,7 +122,18 @@ class RiderAppServiceInfoAdvancedPanel<T>(
                     cell(textSku)
                 }
             }
+            deploymentGroup = group("Deployment") {
+                row("Project:") {
+                    dotnetProjectComboBox = dotnetProjectComboBox(project) { it.canBePublishedToAzure() }
+                            .align(Align.FILL)
+                }
+                row("Configuration:") {
+                    configurationAndPlatformComboBox = configurationAndPlatformComboBox(project)
+                            .align(Align.FILL)
+                }
+            }
         }
+        dotnetProjectComboBox.component.reloadItems()
 
         add(panel)
     }
@@ -124,6 +145,8 @@ class RiderAppServiceInfoAdvancedPanel<T>(
         val os = if (windowsRadioButton.component.isSelected) OperatingSystem.WINDOWS else OperatingSystem.LINUX
         val region = selectorRegion.value
         val servicePlan = selectorServicePlan.value
+        val projectModel = dotnetProjectComboBox.component.value
+        val configurationAndPlatform = getSelectedConfigurationAndPlatform()
 
         val config = defaultConfigSupplier.get()
         config.subscription = subscription
@@ -138,6 +161,14 @@ class RiderAppServiceInfoAdvancedPanel<T>(
             planConfig.os = os
         }
         config.servicePlan = planConfig
+
+        if (projectModel != null) {
+            config.application = Path(projectModel.projectFilePath)
+        }
+        if (configurationAndPlatform != null) {
+            config.appSettings[RIDER_PROJECT_CONFIGURATION] = configurationAndPlatform.configuration
+            config.appSettings[RIDER_PROJECT_PLATFORM] = configurationAndPlatform.platform
+        }
 
         return config
     }
@@ -216,4 +247,11 @@ class RiderAppServiceInfoAdvancedPanel<T>(
     fun setValidPricingTier(pricingTier: List<PricingTier>, defaultPricingTier: PricingTier) {
         selectorServicePlan.setValidPricingTierList(pricingTier, defaultPricingTier)
     }
+
+    fun setDeploymentVisible(visible: Boolean) {
+        deploymentGroup.visible(visible)
+    }
+
+    private fun getSelectedConfigurationAndPlatform(): PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform? =
+            configurationAndPlatformComboBox.component.component.selectedItem as? PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform
 }

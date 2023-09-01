@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.Constants
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.WebAppArtifactService
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.webapp.*
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
 import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel
 import org.apache.commons.lang3.StringUtils
 import java.awt.Desktop
@@ -24,6 +25,7 @@ class RiderWebAppRunState(project: Project, private val webAppConfiguration: Rid
     private val webAppSettingModel: DotNetWebAppSettingModel = webAppConfiguration.webAppSettingModel
 
     override fun executeSteps(processHandler: RunProcessHandler): WebAppBase<*, *, *> {
+        OperationContext.current().setMessager(processHandlerMessenger)
         val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
                 .firstOrNull { it.projectFilePath == webAppSettingModel.projectPath }
                 ?: throw RuntimeException("Project is not defined")

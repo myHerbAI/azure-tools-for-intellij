@@ -3,7 +3,6 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.LabeledComponent
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBRadioButton
@@ -11,7 +10,6 @@ import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.*
 import com.intellij.ui.layout.and
 import com.intellij.ui.layout.selectedValueMatches
-import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
@@ -26,6 +24,8 @@ import com.microsoft.azure.toolkit.intellij.common.configurationAndPlatformCombo
 import com.microsoft.azure.toolkit.intellij.common.dotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot
@@ -69,7 +69,7 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
     init {
         panel = panel {
             row("Project:") {
-                dotnetProjectComboBox = dotnetProjectComboBox(project, ::canBePublishedToAzure)
+                dotnetProjectComboBox = dotnetProjectComboBox(project) { it.canBePublishedToAzure() }
                         .align(Align.FILL)
                         .resizableColumn()
             }
@@ -270,6 +270,11 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
                     }
                 } else null
 
+        if (webAppComboBox.component.value?.appSettings?.containsKey(RIDER_PROJECT_CONFIGURATION) == true)
+            webAppComboBox.component.value?.appSettings?.remove(RIDER_PROJECT_CONFIGURATION)
+        if (webAppComboBox.component.value?.appSettings?.containsKey(RIDER_PROJECT_PLATFORM) == true)
+            webAppComboBox.component.value?.appSettings?.remove(RIDER_PROJECT_PLATFORM)
+
         val webAppConfig = webAppComboBox.component.value
                 ?.toBuilder()
                 ?.appSettings(appSettingsTable.appSettings)
@@ -291,9 +296,6 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
             configurationAndPlatformComboBox.component.component.selectedItem as? PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform
 
     override fun getInputs() = listOf(webAppComboBox.component, dotnetProjectComboBox.component)
-
-    private fun canBePublishedToAzure(publishableProject: PublishableProjectModel) =
-            publishableProject.isWeb && (publishableProject.isDotNetCore || SystemInfo.isWindows)
 
     private fun setComboBoxDefaultValue(comboBox: JComboBox<*>, value: Any?) {
         UIUtils.listComboBoxItems(comboBox).stream().filter { it == value }.findFirst().ifPresent { comboBox.selectedItem = value }

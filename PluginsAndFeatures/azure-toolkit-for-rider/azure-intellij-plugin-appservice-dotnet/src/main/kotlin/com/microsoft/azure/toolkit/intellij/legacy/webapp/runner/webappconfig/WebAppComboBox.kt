@@ -28,6 +28,7 @@ class WebAppComboBox(project: Project) : AppServiceComboBox<WebAppConfig>(projec
 
     override fun createResource() {
         val dialog = RiderWebAppCreationDialog(project)
+        dialog.setDeploymentVisible(false)
         val actionId: Action.Id<WebAppConfig> = Action.Id.of("user/webapp.create_app.app")
         dialog.setOkAction(Action(actionId)
                 .withLabel("Create")
