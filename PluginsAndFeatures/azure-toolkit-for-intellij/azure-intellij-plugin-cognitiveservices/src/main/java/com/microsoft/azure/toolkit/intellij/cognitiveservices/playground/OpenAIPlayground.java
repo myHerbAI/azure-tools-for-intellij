@@ -75,10 +75,11 @@ public class OpenAIPlayground extends BaseEditor {
         this.pnlSystemMessage.setValueChangedListener(this::updateSystemMessage);
 
         cbDeployment.setAccount(this.account);
-        cbDeployment.setValue(deployment);
         cbDeployment.addValueChangedListener(this::onDeploymentChanged);
-
-        Optional.ofNullable(this.deployment).ifPresent(this::onDeploymentChanged);
+        Optional.ofNullable(this.deployment).ifPresent(deployment -> {
+            cbDeployment.setValue(deployment);
+            this.onDeploymentChanged(deployment);
+        });
     }
 
     @AzureOperation(value = "user/openai.update_system_message", source = "this.account")

@@ -4,11 +4,14 @@
  */
 package com.microsoft.azure.toolkit.intellij.cognitiveservices.components;
 
+import com.azure.resourcemanager.cognitiveservices.models.Deployment;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccount;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
+import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeploymentDraft;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.model.DeploymentModel;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import org.apache.commons.collections.ListUtils;
 
 import javax.annotation.Nonnull;
@@ -53,7 +56,8 @@ public class GPTDeploymentComboBox extends AzureComboBox<CognitiveDeployment> {
                 .map(s -> s.deployments().list().stream()
                         .filter(deployment -> deployment.getModel().isGPTModel()).collect(Collectors.toList()))
                 .orElse(Collections.emptyList());
-        return ListUtils.union(draftItems, cognitiveDeployments);
+        final List<CognitiveDeployment> union = ListUtils.union(draftItems, cognitiveDeployments);
+        return union.stream().filter(deployment -> Objects.equals(deployment.getParent(), account)).collect(Collectors.toList());
     }
 
     @Nonnull
@@ -67,7 +71,7 @@ public class GPTDeploymentComboBox extends AzureComboBox<CognitiveDeployment> {
         if (item instanceof CognitiveDeployment) {
             final CognitiveDeployment deployment = (CognitiveDeployment) item;
             final DeploymentModel model = deployment.getModel();
-            return deployment.isDraftForCreating() ? String.format("(New) %s", deployment.getName()) :
+            return (deployment instanceof CognitiveDeploymentDraft && !deployment.exists()) ? String.format("(New) %s", deployment.getName()) :
                     Objects.isNull(model) ? deployment.getName() : String.format("%s (%s %s)", deployment.getName(), model.getName(), model.getVersion());
         }
         return super.getItemText(item);
