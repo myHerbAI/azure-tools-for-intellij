@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.facet;
 
 import com.intellij.ide.projectView.ProjectView;
+import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -25,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.lib.common.action.Action.EMPTY_PLACE;
 import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
@@ -39,7 +41,10 @@ public class ToggleAzureFacetNodeAction extends AnAction {
             final Project project = Objects.requireNonNull(event.getProject());
             final PropertiesComponent properties = PropertiesComponent.getInstance(project);
             properties.setValue(module.getName() + ".azure", isAzureNodeShown(module) ? "hide" : "show");
-            ProjectView.getInstance(module.getProject()).getCurrentProjectViewPane().updateFromRoot(true);
+            Optional.of(module.getProject())
+                .map(ProjectView::getInstance)
+                .map(ProjectView::getCurrentProjectViewPane)
+                .ifPresent(p -> p.updateFromRoot(true));
         }
     }
 

@@ -56,7 +56,7 @@ public class CognitiveServicesStartupListener implements ProjectActivity {
                             })
                             .withAuthRequired(true);
                     final Action<Action.Id<?>> suppress = am.getAction(ResourceCommonActionsContributor.SUPPRESS_ACTION).bind(TRY_PLAYGROUND);
-                    final AzureString msg = AzureString.format("GPT* model based deployment (%s) is detected in your Azure Cognitive Services account (%s). " +
+                    final AzureString msg = AzureString.format("GPT* model based deployment (%s) is detected in your Azure OpenAI service (%s). " +
                         "You can try your own \"%s\" in AI playground.", d.getName(), d.getParent().getName(), "Copilot");
                     AzureMessager.getMessager().info(msg, "GPT* model is detected!", tryPlayGround, suppress);
                 }));

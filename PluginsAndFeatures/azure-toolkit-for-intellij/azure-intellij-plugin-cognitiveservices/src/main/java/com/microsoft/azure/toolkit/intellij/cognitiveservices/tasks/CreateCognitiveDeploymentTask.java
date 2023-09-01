@@ -30,7 +30,7 @@ import java.util.Objects;
 
 public class CreateCognitiveDeploymentTask implements Task {
     public static final String DEFAULT_COGNITIVE_DEPLOYMENT = "default_cognitive_deployment";
-    public static final String GETTING_START_ACCOUNT = "getting-started-account";
+    public static final String GETTING_START_ACCOUNT = "getting-started-service";
     public static final String GETTING_START_DEPLOYMENT = "getting-started-deployment";
     public static final String ACCOUNT = "cognitive_account";
     public static final String DEPLOYMENT = "cognitive_deployment";
@@ -62,7 +62,7 @@ public class CreateCognitiveDeploymentTask implements Task {
             final CognitiveDeploymentDraft draft = (CognitiveDeploymentDraft) deployment;
             final CognitiveDeploymentDraft.Config config = new CognitiveDeploymentDraft.Config();
             final AccountModel model = account.listModels().stream().filter(AccountModel::isGPTModel).findFirst()
-                    .orElseThrow(() -> new AzureToolkitRuntimeException(String.format("GPT model is not supported in account %s, please try with another one.", account.getName())));
+                    .orElseThrow(() -> new AzureToolkitRuntimeException(String.format("GPT model is not supported in service %s, please try with another one.", account.getName())));
             config.setSku(DeploymentSku.fromModelSku(model.getSkus().get(0)));
             config.setModel(DeploymentModel.fromAccountModel(model));
             draft.setConfig(config);
