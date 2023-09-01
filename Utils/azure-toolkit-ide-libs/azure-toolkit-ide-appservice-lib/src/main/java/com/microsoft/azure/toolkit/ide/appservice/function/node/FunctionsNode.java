@@ -5,12 +5,12 @@
 
 package com.microsoft.azure.toolkit.ide.appservice.function.node;
 
-import com.azure.resourcemanager.appservice.models.FunctionEnvelope;
 import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEvent;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -47,7 +47,7 @@ public class FunctionsNode extends Node<FunctionApp> {
         try {
             return functionApp.listFunctions().stream().sorted(Comparator.comparing(FunctionEntity::getName)).collect(Collectors.toList());
         } catch (final Exception e) {
-            AzureMessager.getMessager().error(String.format("failed to list triggers in function app %s : %s", functionApp.getName()), e.getMessage(), e);
+            AzureMessager.getMessager().error(AzureString.format("failed to list triggers in function app %s : %s", functionApp.getName(), e.getMessage()), e);
             return Collections.emptyList();
         }
     }
