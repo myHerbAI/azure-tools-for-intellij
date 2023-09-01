@@ -1,0 +1,18 @@
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+    <xi:include href="/META-INF/azure-intellij-plugin-appservice.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+    <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
+        <actions implementation="com.microsoft.azure.toolkit.intellij.appservice.AppServiceRiderActionsContributor"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <configurationType implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.RiderWebAppConfigurationType"/>
+    </extensions>
+
+    <actions>
+        <action id="Actions.WebDeployAction" class="com.microsoft.azure.toolkit.intellij.legacy.webapp.action.DeployWebAppAction"
+                text="Deploy to Azure Web Apps..." description="Deploy selected module to Azure WebApp"
+                icon="/icons/WebApp/Deploy.svg">
+        </action>
+    </actions>
+</idea-plugin>
