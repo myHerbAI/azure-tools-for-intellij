@@ -1,10 +1,13 @@
 package com.microsoft.azure.toolkit.ide.cosmos.spark;
 
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
+import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
 import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
+import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.sparkoncosmos.AzureSparkOnCosmosService;
+import com.microsoft.azure.toolkit.lib.sparkoncosmos.SparkOnCosmosADLAccountNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,20 +29,30 @@ public class SparkOnCosmosNodeProvider implements IExplorerNodeProvider {
     }
     @Override
     public boolean accept(@NotNull Object data, @Nullable Node<?> parent, ViewType type) {
-        return data instanceof AzureSparkOnCosmosService;
+        return data instanceof AzureSparkOnCosmosService
+                || data instanceof SparkOnCosmosADLAccountNode;
     }
 
     @Nullable
     @Override
     public Node<?> createNode(@NotNull Object data, @Nullable Node<?> parent, @NotNull IExplorerNodeProvider.Manager manager) {
         if (data instanceof AzureSparkOnCosmosService) {
-//            final Function<AzureSynapseService, List<WorkspaceNode>> workspaces = s -> s.list().stream()
-//                    .flatMap(m -> m.workspaces().list().stream()).collect(Collectors.toList());
+            final Function<AzureSparkOnCosmosService, List<SparkOnCosmosADLAccountNode>> adlas = s -> s.list().stream()
+                    .flatMap(m -> m.adlas().list().stream()).collect(Collectors.toList());
             return new AzServiceNode<>((AzureSparkOnCosmosService) data)
                     .withIcon(ICON)
                     .withLabel("Apache Spark on Cosmos")
-                    .withActions(SparkOnCosmosActionsContributor.SERVICE_ACTIONS);
-//                    .addChildren(workspaces, (workspace, serviceNode) -> this.createNode(workspace, serviceNode, manager));
+                    .withActions(SparkOnCosmosActionsContributor.SERVICE_ACTIONS)
+                    .addChildren(adlas, (adla, serviceNode) -> this.createNode(adla, serviceNode, manager));
+        } else if(data instanceof SparkOnCosmosADLAccountNode) {
+            final SparkOnCosmosADLAccountNode adlAccountNode = (SparkOnCosmosADLAccountNode) data;
+
+            return new AzResourceNode<>(adlAccountNode)
+                    .withIcon(AzureIcon.builder().iconPath("/icons/AzureServerlessSparkAccount.png").build());
+//                    .withActions(SynapseActionsContributor.WORKSPACES_NODE_ACTIONS)
+//                    .withChildrenLoadLazily(false)
+//                    .addChildren(s->s.getArcadiaSparkComputeModule().list(), (d, mn) -> this.createNode(d, mn, manager));
+
         } else {
             return null;
         }

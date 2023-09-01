@@ -7,19 +7,29 @@ import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscriptio
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 public class SparkOnCosmosServiceSubscription extends AbstractAzServiceSubscription<SparkOnCosmosServiceSubscription, CosmosManager> {
     @Nonnull
     private final String subscriptionId;
+    @Nonnull
+    private final SparkOnCosmosADLAccountModule sparkOnCosmosADLAccountModule;
+
     protected SparkOnCosmosServiceSubscription(@Nonnull String subscriptionId, @Nonnull AzureSparkOnCosmosService service) {
         super(subscriptionId, service);
         this.subscriptionId = subscriptionId;
+        this.sparkOnCosmosADLAccountModule = new SparkOnCosmosADLAccountModule(this);
     }
 
     protected SparkOnCosmosServiceSubscription(@Nonnull CosmosManager manager, @Nonnull AzureSparkOnCosmosService service) {
         this(manager.serviceClient().getSubscriptionId(), service);
+    }
+
+    @Nonnull
+    public SparkOnCosmosADLAccountModule adlas() {
+        return this.sparkOnCosmosADLAccountModule;
     }
 
     @Override
@@ -30,7 +40,7 @@ public class SparkOnCosmosServiceSubscription extends AbstractAzServiceSubscript
     @NotNull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
-        return null;
+        return Collections.singletonList(sparkOnCosmosADLAccountModule);
     }
 
     @Override
