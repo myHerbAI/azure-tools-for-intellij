@@ -36,7 +36,7 @@ public class SqlServerDatabaseResourceDefinition extends SqlDatabaseResourceDefi
 
     @Override
     public AzureFormJPanel<Resource<MicrosoftSqlDatabase>> getResourcePanel(Project project) {
-        return new SqlDatabaseResourcePanel<>(this, Azure.az(AzureSqlServer.class)) {
+        return new SqlDatabaseResourcePanel<>(this) {
             @Override
             protected ServerComboBox<IDatabaseServer<MicrosoftSqlDatabase>> initServerComboBox() {
                 return new ServerComboBox<>() {

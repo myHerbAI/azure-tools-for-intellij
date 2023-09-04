@@ -16,13 +16,11 @@ import com.microsoft.azure.toolkit.intellij.cognitiveservices.creation.Cognitive
 import com.microsoft.azure.toolkit.intellij.common.properties.IntellijShowPropertiesViewAction;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.cognitiveservices.AzureCognitiveServices;
-import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccount;
-import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveAccountDraft;
-import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeployment;
-import com.microsoft.azure.toolkit.lib.cognitiveservices.CognitiveDeploymentDraft;
+import com.microsoft.azure.toolkit.lib.cognitiveservices.*;
+import com.microsoft.azure.toolkit.lib.cognitiveservices.model.DeploymentModel;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -36,10 +34,11 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
+import java.util.function.Supplier;
 
 public class IntelliJCognitiveServicesActionsContributor implements IActionsContributor {
-    public static final Action.Id<Project> TRY_OPENAI = Action.Id.of("user/cognitiveservices.try_openai");
-    public static final Action.Id<CognitiveDeployment> TRY_PLAYGROUND = Action.Id.of("user/cognitiveservices.try_playground.deployment");
+    public static final Action.Id<Project> TRY_OPENAI = Action.Id.of("user/openai.try_openai");
+    public static final Action.Id<CognitiveDeployment> TRY_PLAYGROUND = Action.Id.of("user/openai.try_playground.deployment");
 
     @Override
     public void registerHandlers(AzureActionManager am) {
@@ -54,8 +53,7 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
             (ResourceGroup r, AnActionEvent e) -> openAccountCreationDialog(e.getProject(), r));
 
         final BiPredicate<CognitiveAccount, AnActionEvent> accountCondition = (r, e) -> r instanceof CognitiveAccount;
-        final BiConsumer<CognitiveAccount, AnActionEvent> openAccountHandler = (c, e) -> IntellijShowPropertiesViewAction.showPropertyView(c, e.getProject());
-        am.registerHandler(CognitiveServicesActionsContributor.OPEN_ACCOUNT_IN_PLAYGROUND, accountCondition, openAccountHandler);
+        am.registerHandler(CognitiveServicesActionsContributor.OPEN_ACCOUNT_IN_PLAYGROUND, accountCondition, this::openAccountInAIPlayground);
 
         final BiConsumer<CognitiveAccount, AnActionEvent> createDeploymentHandler = (c, e) -> openDeploymentCreationDialog(c, e.getProject());
         am.registerHandler(CognitiveServicesActionsContributor.CREATE_DEPLOYMENT, accountCondition, createDeploymentHandler);
@@ -65,13 +63,26 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
         am.registerHandler(CognitiveServicesActionsContributor.OPEN_DEPLOYMENT_IN_PLAYGROUND, deploymentCondition, openDeploymentHandler);
     }
 
+    private void openAccountInAIPlayground(@Nonnull final CognitiveAccount account, @Nonnull final AnActionEvent event) {
+        final boolean isGPTDeploymentExists = account.deployments().list().stream()
+                .anyMatch(deployment -> Optional.ofNullable(deployment.getModel()).map(DeploymentModel::isGPTModel).orElse(false));
+        if (!isGPTDeploymentExists) {
+            final String errorMessage = String.format("There is no GPT model in current Azure OpenAI service %s", account.getName());
+            final Action<CognitiveAccount> errorAction = AzureActionManager.getInstance().getAction(CognitiveServicesActionsContributor.CREATE_DEPLOYMENT).bind(account);
+            throw new AzureToolkitRuntimeException(errorMessage, errorAction);
+        }
+        IntellijShowPropertiesViewAction.showPropertyView(account, event.getProject());
+    }
+
     public static void openAccountCreationDialog(@Nullable Project project, @Nullable ResourceGroup resourceGroup) {
         // action is auth required, so skip validation for authentication
-        final String account = Utils.generateRandomResourceName("account", 40);
+        final String account = Utils.generateRandomResourceName("service", 40);
         final String rgName = Optional.ofNullable(resourceGroup).map(AzResource::getName)
             .orElseGet(() -> String.format("rg-%s", account));
+        final Supplier<Subscription> supplier = () -> Azure.az(AzureAccount.class).account().getSelectedSubscriptions()
+                .stream().findFirst().orElseThrow(() -> new AzureToolkitRuntimeException("there are no subscription selected in your account"));
         final Subscription subscription = Optional.ofNullable(resourceGroup).map(ResourceGroup::getSubscription)
-            .orElseGet(() -> Azure.az(AzureAccount.class).account().getSelectedSubscriptions().get(0));
+            .orElseGet(supplier);
         final ResourceGroup group = Optional.ofNullable(resourceGroup)
             .orElseGet(() -> Azure.az(AzureResources.class).groups(subscription.getId()).create(rgName, rgName));
         final CognitiveAccountDraft accountDraft =
@@ -80,7 +91,8 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
         AzureTaskManager.getInstance().runLater(() -> {
             final CognitiveAccountCreationDialog dialog = new CognitiveAccountCreationDialog(project);
             dialog.setValue(accountDraft);
-            dialog.setOkAction(new Action<CognitiveAccountDraft>(Action.Id.of("user/cognitiveservices.create_account"))
+            dialog.setOkAction(new Action<CognitiveAccountDraft>(Action.Id.of("user/openai.create_account.account"))
+                .withIdParam(accountDraft.getName())
                 .withLabel("Create")
                 .withAuthRequired(true)
                 .withHandler(AzResource.Draft::commit));
@@ -93,8 +105,9 @@ public class IntelliJCognitiveServicesActionsContributor implements IActionsCont
         final CognitiveDeploymentDraft draft = account.deployments().create(name, account.getResourceGroupName());
         AzureTaskManager.getInstance().runLater(() -> {
             final CognitiveDeploymentCreationDialog dialog = new CognitiveDeploymentCreationDialog(account, project);
-            dialog.setOkAction(new Action<CognitiveDeploymentDraft>(Action.Id.of("user/cognitiveservices.create_deployment.account"))
+            dialog.setOkAction(new Action<CognitiveDeploymentDraft>(Action.Id.of("user/openai.create_deployment.deployment|account"))
                 .withLabel("Create")
+                .withIdParam(draft.getName())
                 .withIdParam(account.getName())
                 .withAuthRequired(true)
                 .withHandler(AzResource.Draft::commit));

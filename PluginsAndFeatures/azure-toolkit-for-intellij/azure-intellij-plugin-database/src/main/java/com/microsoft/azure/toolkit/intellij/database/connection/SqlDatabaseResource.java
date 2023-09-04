@@ -100,6 +100,7 @@ public class SqlDatabaseResource<T extends IDatabase> extends AzureServiceResour
                 .withSource(this.database)
                 .withAuthRequired(false)
                 .withHandler(passwordRef::set));
+            dialog.show();
         });
         return Optional.ofNullable(passwordRef.get()).map(String::valueOf).orElse(null);
     }

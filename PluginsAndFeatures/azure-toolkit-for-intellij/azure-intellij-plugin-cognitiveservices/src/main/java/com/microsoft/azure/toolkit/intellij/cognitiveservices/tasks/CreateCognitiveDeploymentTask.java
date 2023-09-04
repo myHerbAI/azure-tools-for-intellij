@@ -25,11 +25,13 @@ import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.util.List;
+import java.util.Objects;
 
 public class CreateCognitiveDeploymentTask implements Task {
     public static final String DEFAULT_COGNITIVE_DEPLOYMENT = "default_cognitive_deployment";
-    public static final String GETTING_START_ACCOUNT = "getting-start-account";
-    public static final String GETTING_START_DEPLOYMENT = "getting-start-deployment";
+    public static final String GETTING_START_ACCOUNT = "getting-started-service";
+    public static final String GETTING_START_DEPLOYMENT = "getting-started-deployment";
     public static final String ACCOUNT = "cognitive_account";
     public static final String DEPLOYMENT = "cognitive_deployment";
     private final ComponentContext context;
@@ -47,24 +49,26 @@ public class CreateCognitiveDeploymentTask implements Task {
 
     @Override
     public void execute() {
-        final CognitiveAccount account = (CognitiveAccount) context.getParameter(CognitiveDeploymentInput.COGNITIVE_ACCOUNT);
-        final CognitiveDeployment deployment = (CognitiveDeployment) context.getParameter(CognitiveDeploymentInput.COGNITIVE_DEPLOYMENT);
-        if (account.isDraftForCreating()) {
+        final CognitiveAccount account = (CognitiveAccount) Objects.requireNonNull(context.getParameter(CognitiveDeploymentInput.COGNITIVE_ACCOUNT),
+                "Please select your Azure OpenAI service in the combo box.");
+        final CognitiveDeployment deployment = (CognitiveDeployment) Objects.requireNonNull(context.getParameter(CognitiveDeploymentInput.COGNITIVE_DEPLOYMENT),
+                "Please select your Azure OpenAI deployment in the combo box.");
+        if (!account.exists()) {
             ((CognitiveAccountDraft) account).commit();
         } else {
-            AzureMessager.getMessager().info(String.format("Cognitive account %s already exists.", account.getName()));
+            AzureMessager.getMessager().info(String.format("Using existing Azure OpenAI service %s.", account.getName()));
         }
-        if (deployment.isDraftForCreating()) {
+        if (!deployment.exists()) {
             final CognitiveDeploymentDraft draft = (CognitiveDeploymentDraft) deployment;
             final CognitiveDeploymentDraft.Config config = new CognitiveDeploymentDraft.Config();
             final AccountModel model = account.listModels().stream().filter(AccountModel::isGPTModel).findFirst()
-                    .orElseThrow(() -> new AzureToolkitRuntimeException(String.format("GPT model is not supported in account %s, please try with another one.", account.getName())));
+                    .orElseThrow(() -> new AzureToolkitRuntimeException(String.format("GPT model is not supported in service %s, please try with another one.", account.getName())));
             config.setSku(DeploymentSku.fromModelSku(model.getSkus().get(0)));
             config.setModel(DeploymentModel.fromAccountModel(model));
             draft.setConfig(config);
             (draft).commit();
         } else {
-            AzureMessager.getMessager().info(String.format("Cognitive deployment %s already exists.", deployment.getName()));
+            AzureMessager.getMessager().info(String.format("Using existing Azure OpenAI deployment %s.", deployment.getName()));
         }
         context.applyResult("resourceId", account.getId());
         context.applyResult(ACCOUNT, account);
@@ -102,7 +106,8 @@ public class CreateCognitiveDeploymentTask implements Task {
         final ResourceGroup group = Azure.az(AzureResources.class).groups(subscription.getId()).create(rgName, rgName);
         final CognitiveAccountModule accounts = Azure.az(AzureCognitiveServices.class).accounts(subscription.getId());
         final AccountSku accountSku = accounts.listSkus(null).get(0);
-        final Region region = accounts.listRegion(accountSku).get(0);
+        final List<Region> regions = accounts.listRegion(accountSku);
+        final Region region = regions.contains(Region.US_EAST) ? Region.US_EAST : regions.get(0);
         CognitiveAccountDraft draft = accounts.create(account, rgName);
         draft.setConfig(CognitiveAccountDraft.Config.builder().resourceGroup(group).sku(accountSku).region(region).build());
         return draft;

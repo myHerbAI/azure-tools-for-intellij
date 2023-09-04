@@ -116,7 +116,10 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
                 }
                 final PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
                 properties.setValue(module.getModule().getName() + ".azure", "hide");
-                ProjectView.getInstance(module.getProject()).getCurrentProjectViewPane().updateFromRoot(true);
+                Optional.of(module.getProject())
+                    .map(ProjectView::getInstance)
+                    .map(ProjectView::getCurrentProjectViewPane)
+                    .ifPresent(p -> p.updateFromRoot(true));
             })
             .withAuthRequired(false)
             .register(am);

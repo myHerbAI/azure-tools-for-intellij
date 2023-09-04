@@ -26,25 +26,24 @@ public class IntellijDeploymentActionsContributor implements IActionsContributor
             DeploymentActions.createDeployment((Objects.requireNonNull(e.getProject())), ((ResourceDeploymentModule) c).getParent());
         am.registerHandler(ResourceCommonActionsContributor.CREATE, createCondition, createHandler);
 
-        final BiPredicate<ResourceDeployment, AnActionEvent> editCondition = (r, e) -> r instanceof ResourceDeployment;
         final BiConsumer<ResourceDeployment, AnActionEvent> editHandler = (c, e) ->
             DeploymentActions.openTemplateView(Objects.requireNonNull(e.getProject()), c);
-        am.registerHandler(DeploymentActionsContributor.EDIT, editCondition, editHandler);
+        am.registerHandler(DeploymentActionsContributor.EDIT, editHandler);
 
-        final BiPredicate<ResourceDeployment, AnActionEvent> updateCondition = (r, e) -> r instanceof ResourceDeployment;
         final BiConsumer<ResourceDeployment, AnActionEvent> updateHandler = (c, e) ->
             DeploymentActions.updateDeployment(Objects.requireNonNull(e.getProject()), c);
-        am.registerHandler(DeploymentActionsContributor.UPDATE, updateCondition, updateHandler);
+        am.registerHandler(DeploymentActionsContributor.UPDATE, updateHandler);
 
-        final BiPredicate<ResourceDeployment, AnActionEvent> exportParameterCondition = (r, e) -> r instanceof ResourceDeployment;
         final BiConsumer<ResourceDeployment, AnActionEvent> exportParameterHandler = (c, e) ->
             DeploymentActions.exportParameters(Objects.requireNonNull(e.getProject()), c);
-        am.registerHandler(DeploymentActionsContributor.EXPORT_PARAMETER, exportParameterCondition, exportParameterHandler);
+        am.registerHandler(DeploymentActionsContributor.EXPORT_PARAMETER, exportParameterHandler);
 
-        final BiPredicate<ResourceDeployment, AnActionEvent> exportTemplateCondition = (r, e) -> r instanceof ResourceDeployment;
         final BiConsumer<ResourceDeployment, AnActionEvent> exportTemplateHandler = (c, e) ->
             DeploymentActions.exportTemplate(Objects.requireNonNull(e.getProject()), c);
-        am.registerHandler(DeploymentActionsContributor.EXPORT_TEMPLATE, exportTemplateCondition, exportTemplateHandler);
+        am.registerHandler(DeploymentActionsContributor.EXPORT_TEMPLATE, exportTemplateHandler);
+
+        am.registerHandler(DeploymentActionsContributor.GROUP_CREATE_DEPLOYMENT,
+            (r, e) -> DeploymentActions.createDeployment(Objects.requireNonNull(((AnActionEvent) e).getProject()), r));
     }
 
     @Override
