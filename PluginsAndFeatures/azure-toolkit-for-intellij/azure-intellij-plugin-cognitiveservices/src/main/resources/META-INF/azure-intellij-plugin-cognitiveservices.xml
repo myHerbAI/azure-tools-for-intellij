@@ -10,5 +10,6 @@
     <extensions defaultExtensionNs="com.intellij">
         <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.CognitiveServicesStartupListener"/>
         <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.playground.CognitiveDeploymentPlaygroundProvider"/>
+        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.cognitiveservices.playground.CognitiveAccountPlaygroundProvider"/>
     </extensions>
 </idea-plugin>

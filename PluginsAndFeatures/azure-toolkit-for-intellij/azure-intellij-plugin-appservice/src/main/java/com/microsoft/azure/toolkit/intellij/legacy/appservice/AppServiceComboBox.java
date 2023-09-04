@@ -50,8 +50,8 @@ public abstract class AppServiceComboBox<T extends AppServiceConfig> extends Azu
     @Override
     public void setValue(T val, Boolean fixed) {
         if (isDraftResource(val)) {
-            this.draftItems.remove(val);
-            this.draftItems.add(0, val);
+            this.draftItems.clear();
+            this.draftItems.add(val);
             this.reloadItems();
         }
         super.setValue(val, fixed);
@@ -146,7 +146,7 @@ public abstract class AppServiceComboBox<T extends AppServiceConfig> extends Azu
                     .map(AppServiceConfig::getRuntime).map(Runtime::getJavaVersion)
                     .map(javaVersion -> !Objects.equals(javaVersion, JavaVersion.OFF)).orElse(false);
                 final boolean isDocker = Optional.of(app).filter(a -> Objects.nonNull(a.getSubscription()))
-                        .map(AppServiceConfig::getRuntime).map(Runtime::isDocker).orElse(false);
+                    .map(AppServiceConfig::getRuntime).map(Runtime::isDocker).orElse(false);
                 setEnabled(isJavaApp || (isDocker && enableDocker));
                 setFocusable(isJavaApp);
 

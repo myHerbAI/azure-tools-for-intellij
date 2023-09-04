@@ -12,9 +12,11 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppInstance;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 
@@ -42,12 +44,22 @@ public class SpringCloudActionsContributor implements IActionsContributor {
     public void registerActions(AzureActionManager am) {
         new Action<>(OPEN_PUBLIC_URL)
             .visibleWhen(s -> s instanceof SpringCloudApp)
-            .enableWhen(s -> s.getFormalStatus().isRunning() && s.isPublicEndpointEnabled())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .withLabel("Access Public Endpoint")
             .withIcon(AzureIcons.Action.BROWSER.getIconPath())
             .withIdParam(AbstractAzResource::getName)
             .withShortcut("control alt P")
-            .withHandler(s -> am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(s.getApplicationUrl()))
+            .withHandler(s -> {
+                final String msg = String.format("App \"%s\" is not publicly accessible. Do you want to assign it a public endpoint?", s.getName());
+                if (!s.isPublicEndpointEnabled() && AzureMessager.getMessager().confirm(msg)) {
+                    final SpringCloudAppDraft update = (SpringCloudAppDraft) s.update();
+                    update.setPublicEndpointEnabled(true);
+                    update.commit();
+                }
+                if (s.isPublicEndpointEnabled()) {
+                    am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(s.getApplicationUrl());
+                }
+            })
             .register(am);
 
         new Action<>(OPEN_TEST_URL)
@@ -165,7 +177,7 @@ public class SpringCloudActionsContributor implements IActionsContributor {
         am.registerGroup(APP_ACTIONS, appActionGroup);
 
         final ActionGroup appInstanceModuleGroup = new ActionGroup(
-                ResourceCommonActionsContributor.REFRESH
+            ResourceCommonActionsContributor.REFRESH
         );
         am.registerGroup(APP_INSTANCE_MODULE_ACTIONS, appInstanceModuleGroup);
 

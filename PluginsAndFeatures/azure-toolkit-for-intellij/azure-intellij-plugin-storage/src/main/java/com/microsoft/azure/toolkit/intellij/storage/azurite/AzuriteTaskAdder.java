@@ -89,7 +89,7 @@ public class AzuriteTaskAdder implements RunManagerListener, ConnectionTopics.Co
     // workaround to filter out deployment tasks
     private static boolean isDeploymentTask(@Nonnull final RunConfiguration config) {
         final String configuration = config.getClass().getSimpleName();
-        return StringUtils.equalsAnyIgnoreCase(configuration, "WebAppConfiguration", "FunctionDeployConfiguration");
+        return StringUtils.equalsAnyIgnoreCase(configuration, "WebAppConfiguration", "FunctionDeployConfiguration", "SpringCloudDeploymentConfiguration");
     }
 
     private static boolean isConfigurationContainsAzuriteTask(@Nonnull final RunConfiguration config) {

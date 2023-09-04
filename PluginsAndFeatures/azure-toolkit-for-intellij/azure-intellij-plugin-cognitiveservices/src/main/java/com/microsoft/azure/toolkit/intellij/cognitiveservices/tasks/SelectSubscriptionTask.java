@@ -46,9 +46,9 @@ public class SelectSubscriptionTask implements Task {
     @Override
     public void execute() {
         final Subscription subscription = Optional.ofNullable((Subscription) context.getParameter(CognitiveSubscriptionInput.SUBSCRIPTION))
-                .orElseThrow(() -> new AzureToolkitRuntimeException("'subscription' is required to create cognitive service."));
+                .orElseThrow(() -> new AzureToolkitRuntimeException("Please select your subscription in the combo box."));
         if (!Azure.az(AzureCognitiveServices.class).isOpenAIEnabled(subscription.getId())) {
-            throw new AzureToolkitRuntimeException("The selected subscription is already enabled for OpenAI. " +
+            throw new AzureToolkitRuntimeException("OpenAI is not enabled for current subscription. " +
                     "Please visit https://aka.ms/oai/access to request access to Azure OpenAI service");
         }
         final Account account = Azure.az(AzureAccount.class).account();

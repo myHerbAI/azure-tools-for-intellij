@@ -54,6 +54,8 @@ public class IntellijActionsContributor implements IActionsContributor {
             final ApplicationEx app = ApplicationManagerEx.getApplicationEx();
             app.restart();
         }));
+
+        am.registerHandler(ResourceCommonActionsContributor.SUPPRESS_ACTION, (id, e) -> IntellijAzureActionManager.suppress(id));
     }
 
     @AzureOperation(name = "boundary/$resource.open_url.url", params = {"u"})

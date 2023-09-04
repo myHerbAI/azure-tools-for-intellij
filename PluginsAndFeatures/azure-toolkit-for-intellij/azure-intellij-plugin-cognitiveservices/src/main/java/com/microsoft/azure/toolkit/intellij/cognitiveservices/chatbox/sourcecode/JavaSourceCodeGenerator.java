@@ -46,6 +46,17 @@ public class JavaSourceCodeGenerator implements ISourceCodeGenerator {
                 import java.util.ArrayList;
                 import java.util.List;
                             
+                /**
+                 * Note: The Azure OpenAI client library for Java is in preview.
+                 * Add the library dependency in Maven:
+                 * <pre>
+                 * &lt;dependency&gt;
+                 *     &lt;groupId&gt;com.azure&lt;/groupId&gt;
+                 *     &lt;artifactId&gt;azure-ai-openai&lt;/artifactId&gt;
+                 *     &lt;version&gt;1.0.0-beta.3&lt;/version&gt;
+                 * &lt;/dependency&gt;
+                 * </pre>
+                 */
                 public class Example {
                     public static void main(String[] args) {
                         String endpoint = "%s";

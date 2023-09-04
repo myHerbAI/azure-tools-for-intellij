@@ -29,23 +29,23 @@ public class CognitiveServicesActionsContributor implements IActionsContributor 
     public static final String SERVICE_ACTIONS = "actions.cognitiveservices.service";
     public static final String ACCOUNT_ACTIONS = "actions.cognitiveservices.account";
     public static final String DEPLOYMENT_ACTIONS = "actions.cognitiveservices.deployment";
-    public static final Action.Id<AzureCognitiveServices> CREATE_ACCOUNT = Action.Id.of("user/cognitiveservices.create_account");
+    public static final Action.Id<AzureCognitiveServices> CREATE_ACCOUNT = Action.Id.of("user/openai.create_account");
     public static final Action.Id<CognitiveAccount> CREATE_DEPLOYMENT = CognitiveAccount.CREATE_DEPLOYMENT;
-    public static final Action.Id<CognitiveAccount> COPY_PRIMARY_KEY = Action.Id.of("user/cognitiveservices.copy_primary_key.account");
-    public static final Action.Id<CognitiveAccount> OPEN_ACCOUNT_IN_PLAYGROUND = Action.Id.of("user/cognitiveservices.open_playground.account");
+    public static final Action.Id<CognitiveAccount> COPY_PRIMARY_KEY = Action.Id.of("user/openai.copy_primary_key.account");
+    public static final Action.Id<CognitiveAccount> OPEN_ACCOUNT_IN_PLAYGROUND = Action.Id.of("user/openai.open_playground.account");
     public static final Action.Id<CognitiveDeployment> OPEN_DEPLOYMENT_IN_PLAYGROUND = CognitiveDeployment.OPEN_DEPLOYMENT_IN_PLAYGROUND;
-    public static final Action.Id<ResourceGroup> GROUP_CREATE_ACCOUNT = Action.Id.of("user/cognitiveservices.create_account.group");
+    public static final Action.Id<ResourceGroup> GROUP_CREATE_ACCOUNT = Action.Id.of("user/openai.create_account.group");
 
     @Override
     public void registerActions(AzureActionManager am) {
         new Action<>(CREATE_ACCOUNT)
-            .withLabel("Create Azure OpenAI Account")
+            .withLabel("Create Azure OpenAI Service")
             .withIcon(AzureIcons.Action.CREATE.getIconPath())
             .withShortcut(am.getIDEDefaultShortcuts().add())
             .register(am);
 
         new Action<>(CREATE_DEPLOYMENT)
-            .withLabel("Create Deployment")
+            .withLabel("Create New Deployment")
             .withIcon(AzureIcons.Action.CREATE.getIconPath())
             .withIdParam(AbstractAzResource::getName)
             .visibleWhen(s -> s instanceof CognitiveAccount)
@@ -65,21 +65,23 @@ public class CognitiveServicesActionsContributor implements IActionsContributor 
             .register(am);
 
         new Action<>(OPEN_ACCOUNT_IN_PLAYGROUND)
-            .withLabel("Open In AI Playground")
+            .withLabel("Open in AI Playground")
+            .withIdParam(AbstractAzResource::getName)
             .withIcon(AzureIcons.CognitiveServices.PLAYGROUND.getIconPath())
             .visibleWhen(s -> s instanceof CognitiveAccount)
             .enableWhen(s -> s.getFormalStatus().isConnected())
             .register(am);
 
         new Action<>(OPEN_DEPLOYMENT_IN_PLAYGROUND)
-            .withLabel("Open In AI Playground")
+            .withLabel("Open in AI Playground")
+            .withIdParam(AbstractAzResource::getName)
             .withIcon(AzureIcons.CognitiveServices.PLAYGROUND.getIconPath())
             .visibleWhen(s -> s instanceof CognitiveDeployment && ((CognitiveDeployment) s).getModel().isGPTModel())
             .enableWhen(s -> s.getFormalStatus().isConnected())
             .register(am);
 
         new Action<>(GROUP_CREATE_ACCOUNT)
-            .withLabel("Azure OpenAI Account")
+            .withLabel("Azure OpenAI service")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ResourceGroup)
             .enableWhen(s -> s.getFormalStatus().isConnected())

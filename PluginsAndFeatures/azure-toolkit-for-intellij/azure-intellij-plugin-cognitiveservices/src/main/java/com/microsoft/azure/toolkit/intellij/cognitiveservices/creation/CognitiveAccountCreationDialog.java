@@ -100,7 +100,7 @@ public class CognitiveAccountCreationDialog extends AzureDialog<CognitiveAccount
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
-        this.cbSubscription = new CognitiveSubscriptionComboBox();
+        this.cbSubscription = new CognitiveSubscriptionComboBox(false);
         this.cbRegion = new CognitiveAccountRegionComboBox();
         this.cbSku = new CognitiveAccountSkuComboBox();
     }
@@ -112,7 +112,7 @@ public class CognitiveAccountCreationDialog extends AzureDialog<CognitiveAccount
 
     @Override
     protected String getDialogTitle() {
-        return "Create Azure OpenAI Account";
+        return "Create Azure OpenAI Service";
     }
 
     @Override
