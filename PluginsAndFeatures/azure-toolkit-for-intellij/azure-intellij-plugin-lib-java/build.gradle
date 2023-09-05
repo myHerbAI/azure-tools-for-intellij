@@ -6,6 +6,7 @@ sourceSets {
     main {
         resources {
             srcDir 'src/main/resources'
+            exclude 'whatsnew.assets/**'
         }
     }
     test {
