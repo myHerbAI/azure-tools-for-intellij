@@ -303,6 +303,10 @@ task prepareBicepBinariesForSandbox(type: Copy) {
     from("$projectDir/azure-intellij-plugin-bicep/binaries") into("$projectDir/build/idea-sandbox/plugins/azure-toolkit-for-intellij/")
 }
 
+task prepareJobViewResourceForSandbox(type: Copy) {
+    from("$projectDir/azure-intellij-plugin-hdinsight/hdinsight_jobview_html") into("$projectDir/build/idea-sandbox/plugins/azure-toolkit-for-intellij/")
+}
+
 task downloadBicepLanguageServer(type: Copy) {
     def langServerDir = file('azure-intellij-plugin-bicep/binaries/bicep/bicep-langserver')
     if (!langServerDir.exists()) {
@@ -315,7 +319,6 @@ task downloadBicepLanguageServer(type: Copy) {
 }
 
 buildPlugin {
-    dependsOn(prepareBicepBinariesForSandbox)
     archiveVersion = getPatchedVersion()
     from("$projectDir/NOTICE")
     // buildPlugin zips result of `prepareSandbox`, so no need to copy again?
@@ -325,10 +328,10 @@ buildPlugin {
 
 prepareSandbox {
     dependsOn(downloadBicepLanguageServer)
+    finalizedBy(prepareJobViewResourceForSandbox)
     finalizedBy(prepareBicepBinariesForSandbox)
 }
 
 runIde{
-    dependsOn(prepareBicepBinariesForSandbox)
     jvmArgs("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005")
 }
