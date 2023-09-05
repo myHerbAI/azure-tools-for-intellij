@@ -7,7 +7,7 @@ package com.microsoft.intellij.ui.libraries;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.microsoft.intellij.AzurePlugin;
+import com.microsoft.azure.toolkit.intellij.common.CommonConst;
 import com.microsoft.intellij.ui.AzureAbstractPanel;
 import com.microsoft.intellij.util.PluginHelper;
 import com.microsoft.intellij.util.PluginUtil;
@@ -51,7 +51,7 @@ class LibraryPropertiesPanel implements AzureAbstractPanel {
         try {
             // if there is no specific location, files are on plugin classpath
             locationText = azureLibrary.getLocation() == null ?
-                    PluginHelper.getAzureLibLocation() : String.format("%s%s%s", AzurePlugin.pluginFolder, File.separator, azureLibrary.getLocation());
+                    PluginHelper.getAzureLibLocation() : String.format("%s%s%s", CommonConst.PLUGIN_PATH, File.separator, azureLibrary.getLocation());
         } catch (WACommonException ex) {
             PluginUtil.displayErrorDialogAndLog(message("error"), ex.getMessage(), ex);
         }

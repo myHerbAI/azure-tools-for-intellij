@@ -12,6 +12,7 @@ import com.intellij.openapi.extensions.PluginId;
 import java.util.Objects;
 
 public class CommonConst {
+    public static final String USER_AGENT = "Azure Toolkit for IntelliJ, v%s, machineid:%s";
     public static final String SPARK_SUBMISSION_WINDOW_ID = "HDInsight Spark Submission";
     public static final String DEBUG_SPARK_JOB_WINDOW_ID = "Debug Remote Spark Job in Cluster";
     public static final String REMOTE_SPARK_JOB_WINDOW_ID = "Remote Spark Job in Cluster";

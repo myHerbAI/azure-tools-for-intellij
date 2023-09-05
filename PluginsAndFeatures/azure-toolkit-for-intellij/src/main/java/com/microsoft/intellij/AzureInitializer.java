@@ -40,7 +40,7 @@ public class AzureInitializer {
         if (StringUtils.isBlank(oldVersion)) {
             AppInsightsClient.createByType(AppInsightsClient.EventType.Plugin, "", AppInsightsConstants.Install, null, true);
             EventUtil.logEvent(EventType.info, SYSTEM, PLUGIN_INSTALL, null, null);
-        } else if (StringUtils.isNotBlank(oldVersion) && !AzurePlugin.PLUGIN_VERSION.equalsIgnoreCase(oldVersion)) {
+        } else if (StringUtils.isNotBlank(oldVersion) && !com.microsoft.azure.toolkit.intellij.common.CommonConst.PLUGIN_VERSION.equalsIgnoreCase(oldVersion)) {
             AppInsightsClient.createByType(AppInsightsClient.EventType.Plugin, "", AppInsightsConstants.Upgrade, null, true);
             EventUtil.logEvent(EventType.info, SYSTEM, PLUGIN_UPGRADE, null, null);
         }

@@ -3,20 +3,27 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.intellij.azuresdk.dependencesurvey.activity;
+package com.microsoft.azure.toolkit.intellij.azuresdk;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.ProjectActivity;
+import com.microsoft.azure.toolkit.intellij.azuresdk.enforcer.AzureSdkEnforcer;
 import com.microsoft.azure.toolkit.intellij.azuresdk.service.ProjectLibraryService;
 import com.microsoft.azure.toolkit.intellij.azuresdk.service.WorkspaceTaggingService;
 import com.microsoft.azure.toolkit.intellij.common.survey.CustomerSurvey;
 import com.microsoft.azure.toolkit.intellij.common.survey.CustomerSurveyManager;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +31,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class WorkspaceTaggingActivity {
+public class ProjectSdkIntrospectionStartupActivity implements ProjectActivity {
 
     private static final String WORKSPACE_TAGGING = "workspace-tagging";
     private static final String WORKSPACE_TAGGING_FAILURE = "workspace-tagging-failure";
@@ -36,8 +43,20 @@ public class WorkspaceTaggingActivity {
     private static final String MGMT = "mgmt";
     private static final String SPRING = "spring";
 
-    public static void runActivity(@Nonnull final Project project) {
+    @Nullable
+    @Override
+    public Object execute(@Nonnull final Project project, @Nonnull final Continuation<? super Unit> continuation) {
+        Mono.delay(Duration.ofSeconds(30)).subscribe(next -> {
+            if (project.isDisposed()) {
+                return;
+            }
+            AzureSdkEnforcer.enforce(project);
+            ProjectSdkIntrospectionStartupActivity.runActivity(project);
+        }, error -> log.warn("error occurs in WorkspaceTaggingActivity.", error));
+        return null;
+    }
 
+    public static void runActivity(@Nonnull final Project project) {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
             try {
                 final Set<String> workspaceTags = getWorkspaceTags(project);

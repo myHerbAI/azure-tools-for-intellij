@@ -148,19 +148,17 @@ public class AzureActionsListener implements AppLifecycleListener, PluginCompone
             } catch (final IOException e) {
                 PluginUtil.displayErrorDialogAndLog("Error", "An error occurred while attempting to load settings", e);
             }
-            if (!AzurePlugin.IS_ANDROID_STUDIO) {
-                // enable spark serverless node subscribe actions
-                ServiceManager.setServiceProvider(CosmosSparkClusterOpsCtrl.class,
-                    new CosmosSparkClusterOpsCtrl(CosmosSparkClusterOps.getInstance()));
+            // enable spark serverless node subscribe actions
+            ServiceManager.setServiceProvider(CosmosSparkClusterOpsCtrl.class,
+                new CosmosSparkClusterOpsCtrl(CosmosSparkClusterOps.getInstance()));
 
-                ServiceManager.setServiceProvider(TrustStrategy.class, IdeaTrustStrategy.INSTANCE);
-                initAuthManage();
-                final ActionManager am = ActionManager.getInstance();
-                final DefaultActionGroup toolbarGroup = (DefaultActionGroup) am.getAction(IdeActions.GROUP_MAIN_TOOLBAR);
-                toolbarGroup.addAll((DefaultActionGroup) am.getAction("AzureToolbarGroup"));
-                final DefaultActionGroup popupGroup = (DefaultActionGroup) am.getAction(IdeActions.GROUP_PROJECT_VIEW_POPUP);
-                popupGroup.add(am.getAction("AzurePopupGroup"));
-            }
+            ServiceManager.setServiceProvider(TrustStrategy.class, IdeaTrustStrategy.INSTANCE);
+            initAuthManage();
+            final ActionManager am = ActionManager.getInstance();
+            final DefaultActionGroup toolbarGroup = (DefaultActionGroup) am.getAction(IdeActions.GROUP_MAIN_TOOLBAR);
+            toolbarGroup.addAll((DefaultActionGroup) am.getAction("AzureToolbarGroup"));
+            final DefaultActionGroup popupGroup = (DefaultActionGroup) am.getAction(IdeActions.GROUP_PROJECT_VIEW_POPUP);
+            popupGroup.add(am.getAction("AzurePopupGroup"));
         } catch (final Throwable t) {
             log.error(t.getMessage(), t);
         }

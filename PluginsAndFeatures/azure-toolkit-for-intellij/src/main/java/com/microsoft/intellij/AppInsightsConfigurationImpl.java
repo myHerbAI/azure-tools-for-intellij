@@ -6,6 +6,7 @@
 package com.microsoft.intellij;
 
 import com.intellij.openapi.application.ApplicationInfo;
+import com.microsoft.azure.toolkit.intellij.common.CommonConst;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azuretools.telemetry.AppInsightsConfiguration;
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +32,7 @@ public class AppInsightsConfigurationImpl implements AppInsightsConfiguration {
 
     @Override
     public String pluginVersion() {
-        return AzurePlugin.PLUGIN_VERSION;
+        return CommonConst.PLUGIN_VERSION;
     }
 
     @Override

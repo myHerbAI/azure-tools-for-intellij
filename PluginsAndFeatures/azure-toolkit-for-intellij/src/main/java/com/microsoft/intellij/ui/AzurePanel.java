@@ -22,6 +22,7 @@ import com.intellij.util.ui.UIUtil;
 import com.microsoft.azure.toolkit.ide.common.dotnet.DotnetRuntimeHandler;
 import com.microsoft.azure.toolkit.ide.common.store.AzureConfigInitializer;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
+import com.microsoft.azure.toolkit.intellij.common.CommonConst;
 import com.microsoft.azure.toolkit.intellij.common.component.AzureFileInput;
 import com.microsoft.azure.toolkit.intellij.storage.component.AzuriteWorkspaceComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -36,7 +37,6 @@ import com.microsoft.azure.toolkit.lib.legacy.function.FunctionCoreToolsCombobox
 import com.microsoft.azuretools.authmanage.CommonSettings;
 import com.microsoft.azuretools.authmanage.IdeAzureAccount;
 import com.microsoft.azuretools.telemetrywrapper.EventUtil;
-import com.microsoft.intellij.AzurePlugin;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -91,9 +91,6 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
 
     @Override
     public void init() {
-        if (AzurePlugin.IS_ANDROID_STUDIO) {
-            return;
-        }
         Messages.configureMessagePaneUi(allowTelemetryComment, message("settings.root.telemetry.notice"));
         allowTelemetryComment.setForeground(UIUtil.getContextHelpForeground());
         final ComboBoxModel<AzureEnvironment> envModel = new DefaultComboBoxModel<>(Azure.az(AzureCloud.class).list().toArray(new AzureEnvironment[0]));
@@ -256,7 +253,7 @@ public class AzurePanel implements AzureAbstractConfigurablePanel {
         this.originalConfig.setAuthPersistenceEnabled(newConfig.isAuthPersistenceEnabled());
         this.originalConfig.setDatabasePasswordSaveType(newConfig.getDatabasePasswordSaveType());
         this.originalConfig.setFunctionCoreToolsPath(newConfig.getFunctionCoreToolsPath());
-        final String userAgent = String.format(AzurePlugin.USER_AGENT, AzurePlugin.PLUGIN_VERSION,
+        final String userAgent = String.format(CommonConst.USER_AGENT, CommonConst.PLUGIN_VERSION,
             this.originalConfig.getTelemetryEnabled() ? this.originalConfig.getMachineId() : StringUtils.EMPTY);
         this.originalConfig.setUserAgent(userAgent);
         this.originalConfig.setStorageExplorerPath(newConfig.getStorageExplorerPath());

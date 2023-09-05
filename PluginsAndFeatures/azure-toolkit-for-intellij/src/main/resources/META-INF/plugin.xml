@@ -140,8 +140,6 @@
     <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.ArisSparkBatchRunner" />
     <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.ArcadiaSparkBatchRunner" />
     <errorHandler implementation="com.microsoft.intellij.feedback.MSErrorReportHandler" />
-
-    <postStartupActivity implementation="com.microsoft.intellij.AzurePlugin"/>
   </extensions>
 
   <applicationListeners>
@@ -149,12 +147,6 @@
   </applicationListeners>
 
   <actions>
-    <action id="Actions.LibraryConfigurationAction"
-            class="com.microsoft.intellij.actions.LibraryConfigurationAction" text="Libraries Configuration"
-            description="Libraries Configuration"/>
-    <action id="Actions.ApplicationInsightsAction"
-            class="com.microsoft.intellij.actions.ApplicationInsightsAction" text="Configure Application Insights..."
-            description="Configure Application Insights..." icon="/icons/ApplicationInsights_16.png"/>
     <action class="com.microsoft.intellij.actions.AzureExplorerOpenAction" id="Actions.AzureExplorerOpenAction"
             text="Show Azure Explorer" description="Show Azure Explorer" icon="/icons/Common/Azure.svg"/>
     <action id="Actions.AzureCodeSamples"
@@ -204,9 +196,6 @@
       <reference ref="Actions.RunOnDockerHost"/>
       <reference ref="Actions.PushImage"/>
       <reference ref="Actions.WebAppOnLinux"/>
-      <separator/>
-      <reference ref="Actions.ApplicationInsightsAction"/>
-      <reference ref="Actions.LibraryConfigurationAction"/>
     </group>
 
     <group id="AzureToolbarGroup" text="Azure" description="Azure">

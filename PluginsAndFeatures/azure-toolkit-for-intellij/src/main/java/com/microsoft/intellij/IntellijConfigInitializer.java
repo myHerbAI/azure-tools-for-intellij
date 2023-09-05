@@ -10,6 +10,7 @@ import com.microsoft.azure.toolkit.ide.common.store.AzureConfigInitializer;
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
 import com.microsoft.azure.toolkit.ide.common.store.IIdeStore;
 import com.microsoft.azure.toolkit.ide.common.util.ParserXMLUtility;
+import com.microsoft.azure.toolkit.intellij.common.CommonConst;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
@@ -49,7 +50,7 @@ public class IntellijConfigInitializer {
         migrateLegacySetting(FUNCTION, FUNCTION_CORE_TOOLS_PATH, "");
         migrateLegacySetting(TELEMETRY, TELEMETRY_PLUGIN_VERSION, "");
 
-        AzureConfigInitializer.initialize(installId, "Azure Toolkit for IntelliJ", AzurePlugin.PLUGIN_VERSION);
+        AzureConfigInitializer.initialize(installId, "Azure Toolkit for IntelliJ", CommonConst.PLUGIN_VERSION);
         CommonSettings.setUserAgent(Azure.az().config().getUserAgent());
         if (StringUtils.isNotBlank(Azure.az().config().getCloud())) {
             Azure.az(AzureCloud.class).setByName(Azure.az().config().getCloud());
