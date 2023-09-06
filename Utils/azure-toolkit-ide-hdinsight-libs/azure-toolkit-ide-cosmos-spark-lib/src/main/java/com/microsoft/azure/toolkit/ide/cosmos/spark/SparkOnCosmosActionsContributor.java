@@ -22,7 +22,7 @@ public class SparkOnCosmosActionsContributor implements IActionsContributor {
     public static final String ADLA_NODE_ACTIONS = "actions.sparkoncosmos.adla";
 
     public static final Action.Id<Object> PROVISION_CLUSTER = Action.Id.of("user/sparkoncosmos.provision_cluster.spark");
-
+    public static final Action.Id<Object> SUBMIT_SOC_SERVERLESS_JOB = Action.Id.of("user/sparkoncosmos.submit_serverlessjob.spark");
     public static final Action.Id<AzResource> OPEN_SPARK_HISTORY_UI = Action.Id.of("user/hdinsight.open_history_ui.spark");
 
     public static final Action.Id<Object> OPEN_NOTEBOOK = Action.Id.of("user/sparkoncosmos.open_notebook.spark");
@@ -48,6 +48,13 @@ public class SparkOnCosmosActionsContributor implements IActionsContributor {
                 .withAuthRequired(false)
                 .withShortcut(am.getIDEDefaultShortcuts().edit())
                 .register(am);
+
+        new Action<>(SUBMIT_SOC_SERVERLESS_JOB)
+                .withLabel("Submit Apache Spark on Cosmos Serverless Job")
+                .enableWhen(s -> true)
+                .withAuthRequired(false)
+                .withShortcut(am.getIDEDefaultShortcuts().edit())
+                .register(am);
     }
 
     @Override
@@ -60,7 +67,8 @@ public class SparkOnCosmosActionsContributor implements IActionsContributor {
 
         final ActionGroup adlaActionGroup = new ActionGroup(
                 ResourceCommonActionsContributor.REFRESH,
-                this.PROVISION_CLUSTER
+                this.PROVISION_CLUSTER,
+                this.SUBMIT_SOC_SERVERLESS_JOB
         );
         am.registerGroup(ADLA_NODE_ACTIONS, adlaActionGroup);
 
