@@ -8,6 +8,7 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.sparkoncosmos.AzureSparkOnCosmosService;
 import com.microsoft.azure.toolkit.lib.sparkoncosmos.SparkOnCosmosADLAccountNode;
+import com.microsoft.azure.toolkit.lib.sparkoncosmos.SparkOnCosmosClusterNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +31,8 @@ public class SparkOnCosmosNodeProvider implements IExplorerNodeProvider {
     @Override
     public boolean accept(@NotNull Object data, @Nullable Node<?> parent, ViewType type) {
         return data instanceof AzureSparkOnCosmosService
-                || data instanceof SparkOnCosmosADLAccountNode;
+                || data instanceof SparkOnCosmosADLAccountNode
+                || data instanceof SparkOnCosmosClusterNode;
     }
 
     @Nullable
@@ -49,10 +51,13 @@ public class SparkOnCosmosNodeProvider implements IExplorerNodeProvider {
 
             return new AzResourceNode<>(adlAccountNode)
                     .withIcon(AzureIcon.builder().iconPath("/icons/AzureServerlessSparkAccount.png").build())
-                    .withActions(SparkOnCosmosActionsContributor.ADLA_NODE_ACTIONS);
-//                    .withChildrenLoadLazily(false)
-//                    .addChildren(s->s.getArcadiaSparkComputeModule().list(), (d, mn) -> this.createNode(d, mn, manager));
+                    .withActions(SparkOnCosmosActionsContributor.ADLA_NODE_ACTIONS)
+                    .addChildren(s -> s.getSparkOnCosmosClusterModule().list(), (d, mn) -> this.createNode(d, mn, manager));
+        } else if(data instanceof SparkOnCosmosClusterNode) {
+            final SparkOnCosmosClusterNode clusterNode = (SparkOnCosmosClusterNode) data;
 
+            return new AzResourceNode<>(clusterNode)
+                    .withIcon(AzureIcon.builder().iconPath("/icons/Cluster.png").build());
         } else {
             return null;
         }

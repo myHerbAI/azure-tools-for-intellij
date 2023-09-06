@@ -21,37 +21,37 @@ import java.util.List;
 
 public class SparkOnCosmosADLAccountNode extends AbstractAzResource<SparkOnCosmosADLAccountNode, SparkOnCosmosServiceSubscription, AzureSparkServerlessAccount> {
 
-//    private final ArcadiaSparkComputeModule arcadiaSparkComputeModule;
+    private final SparkOnCosmosClusterModule sparkOnCosmosClusterModule;
     /**
      * copy constructor
      */
     protected SparkOnCosmosADLAccountNode(@Nonnull SparkOnCosmosADLAccountNode origin) {
         super(origin);
-//        this.arcadiaSparkComputeModule = new ArcadiaSparkComputeModule(this);
+        this.sparkOnCosmosClusterModule = new SparkOnCosmosClusterModule(this);
     }
 
 
     protected SparkOnCosmosADLAccountNode(@Nonnull String name, @Nonnull String resourceGroup, @Nonnull SparkOnCosmosADLAccountModule module) {
         super(name, resourceGroup, module);
-//        this.arcadiaSparkComputeModule = new ArcadiaSparkComputeModule(this);
+        this.sparkOnCosmosClusterModule = new SparkOnCosmosClusterModule(this);
     }
 
     protected SparkOnCosmosADLAccountNode(@Nonnull AzureSparkServerlessAccount remote, @Nonnull SparkOnCosmosADLAccountModule module) {
         super(remote.getName(), ResourceId.fromString(remote.getId()).resourceGroupName(), module);
-//        this.arcadiaSparkComputeModule = new ArcadiaSparkComputeModule(this);
+        this.sparkOnCosmosClusterModule = new SparkOnCosmosClusterModule(this);
     }
 
     @Nonnull
     @Override
     public List<AbstractAzResourceModule<?, ?, ?>> getSubModules() {
         final ArrayList<AbstractAzResourceModule<?, ?, ?>> modules = new ArrayList<>();
-//        modules.add(this.arcadiaSparkComputeModule);
+        modules.add(this.sparkOnCosmosClusterModule);
         return modules;
     }
 
-//    public ArcadiaSparkComputeModule getArcadiaSparkComputeModule() {
-//        return arcadiaSparkComputeModule;
-//    }
+    public SparkOnCosmosClusterModule getSparkOnCosmosClusterModule() {
+        return sparkOnCosmosClusterModule;
+    }
 
     @Override
     public String getStatus() {
