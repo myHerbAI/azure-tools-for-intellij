@@ -13,6 +13,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class SparkOnCosmosClusterNode extends AbstractAzResource<SparkOnCosmosClusterNode, SparkOnCosmosADLAccountNode, AzureSparkCosmosCluster> {
     protected SparkOnCosmosClusterNode(@NotNull String name, @NotNull String resourceGroupName, @NotNull AbstractAzResourceModule<SparkOnCosmosClusterNode, SparkOnCosmosADLAccountNode, AzureSparkCosmosCluster> module) {
@@ -25,7 +26,8 @@ public class SparkOnCosmosClusterNode extends AbstractAzResource<SparkOnCosmosCl
     @NotNull
     @Override
     protected String loadStatus(@NotNull AzureSparkCosmosCluster remote) {
-        return remote.getState().toUpperCase();
+        return "[" + Optional.ofNullable(remote.getMasterState().toUpperCase())
+                .orElse(remote.getState().toUpperCase()) + "]";
     }
 
     @Nullable
