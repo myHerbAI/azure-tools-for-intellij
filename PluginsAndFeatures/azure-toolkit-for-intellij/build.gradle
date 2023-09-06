@@ -66,7 +66,6 @@ allprojects {
     ext {
         azureToolkitLibsVersion = "0.37.0-SNAPSHOT"
         azureToolkitIdeLibsVersion = "0.37.0-SNAPSHOT"
-        azureToolkitUtilsVersion = "3.81.0-SNAPSHOT"
         azureToolkitHDInsightVersion = "0.1.0"
     }
 
@@ -75,7 +74,6 @@ allprojects {
             mavenBom 'com.microsoft.azure:azure-toolkit-libs:' + azureToolkitLibsVersion
             mavenBom 'com.microsoft.azure:azure-toolkit-ide-libs:' + azureToolkitIdeLibsVersion
             mavenBom 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-libs:' + azureToolkitHDInsightVersion
-            mavenBom 'com.microsoft.azuretools:utils:' + azureToolkitUtilsVersion
         }
     }
 
@@ -194,13 +192,13 @@ dependencies {
     implementation 'commons-io:commons-io'
     implementation 'org.apache.commons:commons-lang3'
 
-    implementation 'com.microsoft.azuretools:azuretools-core', {
+    implementation 'com.microsoft.hdinsight:azuretools-core', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
-    implementation 'com.microsoft.azuretools:azure-explorer-common', {
+    implementation 'com.microsoft.hdinsight:azure-explorer-common', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
-    implementation 'com.microsoft.azuretools:hdinsight-node-common', {
+    implementation 'com.microsoft.hdinsight:hdinsight-node-common', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
     }
 
