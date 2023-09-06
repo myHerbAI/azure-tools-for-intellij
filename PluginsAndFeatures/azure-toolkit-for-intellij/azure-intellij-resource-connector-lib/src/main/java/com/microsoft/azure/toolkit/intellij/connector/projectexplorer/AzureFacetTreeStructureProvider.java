@@ -190,9 +190,8 @@ public final class AzureFacetTreeStructureProvider implements TreeStructureProvi
             return;
         }
         final AbstractProjectViewPane currentProjectViewPane = ProjectView.getInstance(project).getCurrentProjectViewPane();
-        final JTree tree = currentProjectViewPane.getTree();
-        final boolean exists = Arrays.stream(tree.getMouseListeners()).anyMatch(listener -> listener instanceof AzureProjectExplorerMouseListener);
-        if (!exists) {
+        final JTree tree = Optional.of(currentProjectViewPane).map(AbstractProjectViewPane::getTree).orElse(null);
+        if (Objects.nonNull(tree) && Arrays.stream(tree.getMouseListeners()).noneMatch(listener -> listener instanceof AzureProjectExplorerMouseListener)) {
             final MouseListener[] mouseListeners = tree.getMouseListeners();
             Arrays.stream(mouseListeners).forEach(tree::removeMouseListener);
             tree.addMouseListener(new AzureProjectExplorerMouseListener(tree));

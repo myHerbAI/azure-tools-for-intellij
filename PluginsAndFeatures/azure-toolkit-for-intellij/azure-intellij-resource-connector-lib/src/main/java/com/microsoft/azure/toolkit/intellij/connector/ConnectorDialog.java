@@ -16,12 +16,9 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.TitledSeparator;
-import com.intellij.ui.components.DialogManager;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
-import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.util.ui.JBUI;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox.ItemReference;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
@@ -56,7 +53,7 @@ import static com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition.
 import static com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition.RESOURCE;
 
 public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements AzureForm<Connection<?, ?>> {
-    public static final String NOT_SIGNIN_TIPS = "<html><a href=\"\">Sign in</a> to connect Azure resources.</html>";
+    public static final String NOT_SIGNIN_TIPS = "<html><a href=\"\">Sign in</a> to select an existing Azure resource.</html>";
     private final Project project;
     private JPanel contentPane;
     @SuppressWarnings("rawtypes")
@@ -72,6 +69,7 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     private TitledSeparator resourceTitle;
     private TitledSeparator consumerTitle;
     protected JTextField envPrefixTextField;
+    private HyperlinkLabel lblSignIn;
     private JPanel descriptionContainer;
     private JTextPane descriptionPane;
     private JPanel pnlEnvPrefix;
@@ -97,6 +95,7 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     @Override
     protected void init() {
         super.init();
+        this.lblSignIn.setVisible(!Azure.az(AzureAccount.class).isLoggedIn());
         final Action.Id<Connection<?, ?>> actionId = Action.Id.of("user/connector.create_or_update_connection.consumer|resource");
         this.setOkAction(new Action<>(actionId)
             .withLabel("Save")
@@ -105,10 +104,7 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
             .withSource(c -> c.resource.getData())
             .withAuthRequired(false)
             .withHandler(c -> {
-                if (c == null) {
-                    return;
-                }
-                if (c.validate(this.project)) {
+                if (c != null && c.validate(this.project)) {
                     saveConnectionToDotAzure(c);
                 }
             }));
@@ -192,24 +188,6 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     @Nullable
     protected JComponent createCenterPanel() {
         return this.contentPane;
-    }
-
-    protected JPanel createSouthAdditionalPanel() {
-        final HyperlinkLabel lblSignIn = new HyperlinkLabel();
-        lblSignIn.setHtmlText(NOT_SIGNIN_TIPS);
-        lblSignIn.setIcon(AllIcons.General.Information);
-        lblSignIn.setAlignmentX(Component.LEFT_ALIGNMENT);
-        lblSignIn.setVisible(!Azure.az(AzureAccount.class).isLoggedIn());
-        lblSignIn.addHyperlinkListener(e -> {
-            final DataContext context = DataManager.getInstance().getDataContext(lblSignIn);
-            final AnActionEvent event = AnActionEvent.createFromInputEvent(e.getInputEvent(), "ConnectorDialog", new Presentation(), context);
-            AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH)
-                .handle((a) -> lblSignIn.setVisible(!Azure.az(AzureAccount.class).isLoggedIn()), event);
-        });
-        final JPanel panel = new NonOpaquePanel(new BorderLayout());
-        panel.setBorder(JBUI.Borders.emptyLeft(10));
-        panel.add(lblSignIn);
-        return panel;
     }
 
     @Nullable
@@ -336,6 +314,17 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
                 return Collections.emptyList();
             }
         };
+
+        this.lblSignIn = new HyperlinkLabel();
+        this.lblSignIn.setHtmlText(NOT_SIGNIN_TIPS);
+        this.lblSignIn.setIcon(AllIcons.General.Information);
+        this.lblSignIn.setAlignmentX(Component.LEFT_ALIGNMENT);
+        this.lblSignIn.addHyperlinkListener(e -> {
+            final DataContext context = DataManager.getInstance().getDataContext(this.lblSignIn);
+            final AnActionEvent event = AnActionEvent.createFromInputEvent(e.getInputEvent(), "ConnectorDialog", new Presentation(), context);
+            AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH)
+                .handle((a) -> this.lblSignIn.setVisible(!Azure.az(AzureAccount.class).isLoggedIn()), event);
+        });
     }
 
     public void setDescription(@Nonnull final String description) {

@@ -51,8 +51,8 @@ public class AzureSignInAction extends AnAction implements DumbAware {
 
     public AzureSignInAction(@Nullable String title) {
         super(title, title, IntelliJAzureIcons.getIcon(Azure.az(AzureAccount.class).isLoggedIn()
-                ? com.microsoft.azure.toolkit.ide.common.icon.AzureIcons.Common.SIGN_OUT
-                : com.microsoft.azure.toolkit.ide.common.icon.AzureIcons.Common.SIGN_IN));
+            ? com.microsoft.azure.toolkit.ide.common.icon.AzureIcons.Common.SIGN_OUT
+            : com.microsoft.azure.toolkit.ide.common.icon.AzureIcons.Common.SIGN_IN));
     }
 
     @AzureOperation(name = "user/account.authenticate")
@@ -75,8 +75,8 @@ public class AzureSignInAction extends AnAction implements DumbAware {
             e.getPresentation().setText(isSignIn ? SIGN_OUT : SIGN_IN);
             e.getPresentation().setDescription(isSignIn ? SIGN_IN : SIGN_OUT);
             e.getPresentation().setIcon(IntelliJAzureIcons.getIcon(isSignIn
-                    ? com.microsoft.azure.toolkit.ide.common.icon.AzureIcons.Common.SIGN_OUT
-                    : com.microsoft.azure.toolkit.ide.common.icon.AzureIcons.Common.SIGN_IN));
+                ? com.microsoft.azure.toolkit.ide.common.icon.AzureIcons.Common.SIGN_OUT
+                : com.microsoft.azure.toolkit.ide.common.icon.AzureIcons.Common.SIGN_IN));
         } catch (final Exception ex) {
             ex.printStackTrace();
             log.error("update", ex);
@@ -93,7 +93,7 @@ public class AzureSignInAction extends AnAction implements DumbAware {
             final String additionalMsg = authType == AuthType.AZURE_CLI ? "(This will not sign you out from Azure CLI)" : "";
             final String msg = String.format("%s\nDo you really want to sign out? %s", warningMessage, additionalMsg);
             final boolean toLogout = Messages.showYesNoDialog(null, msg, "Azure Sign Out", "Yes", "No",
-                    IntelliJAzureIcons.getIcon(AzureIcons.Common.AZURE)) == 0;
+                IntelliJAzureIcons.getIcon(AzureIcons.Common.AZURE)) == 0;
             if (toLogout) {
                 az.logout();
             }
@@ -109,6 +109,7 @@ public class AzureSignInAction extends AnAction implements DumbAware {
         manager.runLater(() -> {
             final AuthConfiguration auth = promptForAuthConfiguration(project);
             if (Objects.isNull(auth)) {
+                manager.runOnPooledThread(() -> callback.accept(null));
                 return;
             }
             final DeviceLoginWindow[] dcWindow = new DeviceLoginWindow[1];

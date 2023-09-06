@@ -6,15 +6,8 @@ package com.microsoft.azure.toolkit.intellij.database.connection;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.DataManager;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.ide.CopyPasteManager;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.AnimatedIcon;
-import com.intellij.ui.HyperlinkLabel;
-import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.intellij.common.TextDocumentListenerAdapter;
@@ -27,10 +20,8 @@ import com.microsoft.azure.toolkit.intellij.database.component.TestConnectionAct
 import com.microsoft.azure.toolkit.intellij.database.component.UsernameComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -44,16 +35,11 @@ import javax.swing.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public abstract class SqlDatabaseResourcePanel<T extends IDatabase> implements AzureFormJPanel<Resource<T>> {
     private final SqlDatabaseResourceDefinition<T> definition;
     private final TailingDebouncer debouncer;
-    private final AbstractAzService<?, ?> service;
     private JPanel contentPanel;
     private SubscriptionComboBox subscriptionComboBox;
     private ServerComboBox<IDatabaseServer<T>> serverComboBox;
@@ -64,14 +50,12 @@ public abstract class SqlDatabaseResourcePanel<T extends IDatabase> implements A
     private JButton testConnectionButton;
     private TestConnectionActionPanel testConnectionActionPanel;
     private JTextPane testResultTextPane;
-    private HyperlinkLabel lblCreate;
 
     private JdbcUrl jdbcUrl;
 
-    public SqlDatabaseResourcePanel(final SqlDatabaseResourceDefinition<T> definition, final AbstractAzService<?, ?> service) {
+    public SqlDatabaseResourcePanel(final SqlDatabaseResourceDefinition<T> definition) {
         super();
         this.definition = definition;
-        this.service = service;
         init();
         this.debouncer = new TailingDebouncer(this::onUrlEdited, 500);
         initListeners();
@@ -90,17 +74,6 @@ public abstract class SqlDatabaseResourcePanel<T extends IDatabase> implements A
         // username loader
         this.usernameComboBox.setItemsLoader(() -> Objects.isNull(this.databaseComboBox.getServer()) ? Collections.emptyList() :
             Collections.singletonList(this.databaseComboBox.getServer().getFullAdminName()));
-
-        this.lblCreate.setHtmlText("<html><a href=\"\">Create new sever</a> in Azure.</html>");
-        this.lblCreate.addHyperlinkListener(e -> {
-            final DataContext context = DataManager.getInstance().getDataContext(this.lblCreate);
-            final AnActionEvent event = AnActionEvent.createFromInputEvent(e.getInputEvent(), "SqlDatabaseResourcePanel", new Presentation(), context);
-            final DialogWrapper dialog = DialogWrapper.findInstance(this.contentPanel);
-            if (dialog != null) {
-                dialog.close(DialogWrapper.CLOSE_EXIT_CODE);
-                AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.CREATE).bind(this.service).handle(this.service, event);
-            }
-        });
     }
 
     protected void initListeners() {
