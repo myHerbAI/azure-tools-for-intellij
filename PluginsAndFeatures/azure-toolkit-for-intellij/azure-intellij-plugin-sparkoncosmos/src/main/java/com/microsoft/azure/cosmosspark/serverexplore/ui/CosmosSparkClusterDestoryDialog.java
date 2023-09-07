@@ -13,6 +13,10 @@ import com.microsoft.azure.cosmosspark.serverexplore.cosmossparknode.CosmosSpark
 import com.microsoft.azure.hdinsight.common.mvc.SettableControl;
 import com.microsoft.azure.hdinsight.sdk.common.azure.serverless.AzureSparkCosmosCluster;
 import com.microsoft.azure.rxjava.IdeaSchedulers;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.sparkoncosmos.SparkOnCosmosADLAccountNode;
+import com.microsoft.azure.toolkit.lib.sparkoncosmos.SparkOnCosmosClusterModule;
+import com.microsoft.azure.toolkit.lib.sparkoncosmos.SparkOnCosmosClusterNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,7 +29,7 @@ public class CosmosSparkClusterDestoryDialog extends DialogWrapper
     private CosmosSparkClusterDestoryCtrlProvider ctrlProvider;
 
     @NotNull
-    private CosmosSparkClusterNode clusterNode;
+    private Object clusterNode;
 
     @NotNull
     private AzureSparkCosmosCluster cluster;
@@ -46,6 +50,23 @@ public class CosmosSparkClusterDestoryDialog extends DialogWrapper
         init();
         this.setTitle("Delete Spark Cluster");
         confimMessageLabel.setText(String.format("%s %s?", confimMessageLabel.getText(), clusterNode.getClusterName()));
+        errorMessageField.setBackground(this.destroyDialogPanel.getBackground());
+        errorMessageField.setBorder(BorderFactory.createEmptyBorder());
+        this.setModal(true);
+    }
+
+    public CosmosSparkClusterDestoryDialog(@NotNull SparkOnCosmosClusterNode clusterNode,
+                                           Project project,
+                                           @NotNull AzureSparkCosmosCluster cluster) {
+        super(project, true);
+        this.ctrlProvider = new CosmosSparkClusterDestoryCtrlProvider(
+                this, new IdeaSchedulers(project), cluster);
+        this.clusterNode = clusterNode;
+        this.cluster = cluster;
+
+        init();
+        this.setTitle("Delete Spark Cluster");
+        confimMessageLabel.setText(String.format("%s %s?", confimMessageLabel.getText(), cluster.getName()));
         errorMessageField.setBackground(this.destroyDialogPanel.getBackground());
         errorMessageField.setBorder(BorderFactory.createEmptyBorder());
         this.setModal(true);
@@ -72,10 +93,17 @@ public class CosmosSparkClusterDestoryDialog extends DialogWrapper
         getOKAction().setEnabled(false);
 
         ctrlProvider
-                .validateAndDestroy(clusterNode.getClusterName())
+                .validateAndDestroy(cluster.getName())
                 .doOnEach(notification -> getOKAction().setEnabled(true))
                 .subscribe(toUpdate -> {
-                    clusterNode.getParent().removeDirectChildNode(clusterNode);
+                    if (this.clusterNode instanceof SparkOnCosmosClusterNode) {
+                        SparkOnCosmosClusterNode cn = (SparkOnCosmosClusterNode) clusterNode;
+                        SparkOnCosmosClusterModule module = (SparkOnCosmosClusterModule) cn.getModule();
+                        module.getAdlAccountNode().refresh();
+                    } else {
+                        CosmosSparkClusterNode cn = (CosmosSparkClusterNode)clusterNode;
+                        cn.getParent().removeDirectChildNode(cn);
+                    }
                     super.doOKAction();
                 });
     }

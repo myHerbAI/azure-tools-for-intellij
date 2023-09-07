@@ -57,7 +57,8 @@ public class SparkOnCosmosNodeProvider implements IExplorerNodeProvider {
             final SparkOnCosmosClusterNode clusterNode = (SparkOnCosmosClusterNode) data;
 
             return new AzResourceNode<>(clusterNode)
-                    .withIcon(AzureIcon.builder().iconPath("/icons/Cluster.png").build());
+                    .withIcon(AzureIcon.builder().iconPath("/icons/Cluster.png").build())
+                    .withActions(SparkOnCosmosActionsContributor.CLUSTER_NODE_ACTIONS);
         } else {
             return null;
         }
