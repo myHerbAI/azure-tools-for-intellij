@@ -25,6 +25,10 @@ public class IntellijSOCActionsContributor implements IActionsContributor {
         final BiConsumer<Object, AnActionEvent> submitSOCServerlessJobHandler = (c, e) -> SubmitSOCServerlessJob.submit((SparkOnCosmosADLAccountNode)c, e);
         am.registerHandler(SparkOnCosmosActionsContributor.SUBMIT_SOC_SERVERLESS_JOB, submitSOCServerlessJobCondition, submitSOCServerlessJobHandler);
 
+        final BiPredicate<Object, AnActionEvent> viewSOCServerlessJobCondition = (r, e) -> r instanceof Object;
+        final BiConsumer<Object, AnActionEvent> viewSOCServerlessJobHandler = (c, e) -> ViewSOCServerlessJobsAction.view((SparkOnCosmosADLAccountNode)c, e);
+        am.registerHandler(SparkOnCosmosActionsContributor.SUBMIT_SOC_SERVERLESS_JOB, viewSOCServerlessJobCondition, viewSOCServerlessJobHandler);
+
         final BiPredicate<SparkOnCosmosClusterNode, AnActionEvent> deleteClusterCondition = (r, e) -> r instanceof Object;
         final BiConsumer<SparkOnCosmosClusterNode, AnActionEvent> deleteClusterHandler = (c, e) -> DeleteCusterAction.delete(c, e);
         am.registerHandler(SparkOnCosmosActionsContributor.DELETE_CLUSTER, deleteClusterCondition, deleteClusterHandler);
@@ -36,5 +40,9 @@ public class IntellijSOCActionsContributor implements IActionsContributor {
         final BiPredicate<SparkOnCosmosClusterNode, AnActionEvent> updateClusterCondition = (r, e) -> r instanceof Object;
         final BiConsumer<SparkOnCosmosClusterNode, AnActionEvent> updateClusterHandler = (c, e) -> UpdateClusterAction.update(c, e);
         am.registerHandler(SparkOnCosmosActionsContributor.UPDATE_CLUSTER, updateClusterCondition, updateClusterHandler);
+
+        final BiPredicate<SparkOnCosmosClusterNode, AnActionEvent> submitClusterJobCondition = (r, e) -> r instanceof Object;
+        final BiConsumer<SparkOnCosmosClusterNode, AnActionEvent> submitClusterJobHandler = (c, e) -> SubmitClusterJobAction.submit(c, e);
+        am.registerHandler(SparkOnCosmosActionsContributor.SUBMIT_CLUSTER_JOB, submitClusterJobCondition, submitClusterJobHandler);
     }
 }

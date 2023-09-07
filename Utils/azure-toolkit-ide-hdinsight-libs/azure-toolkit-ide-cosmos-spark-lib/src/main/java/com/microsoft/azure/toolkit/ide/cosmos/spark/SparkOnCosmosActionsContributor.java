@@ -29,11 +29,13 @@ public class SparkOnCosmosActionsContributor implements IActionsContributor {
     public static final String CLUSTER_NODE_ACTIONS = "actions.sparkoncosmos.cluster";
     public static final Action.Id<Object> PROVISION_CLUSTER = Action.Id.of("user/sparkoncosmos.provision_cluster.spark");
     public static final Action.Id<Object> SUBMIT_SOC_SERVERLESS_JOB = Action.Id.of("user/sparkoncosmos.submit_serverlessjob.spark");
+    public static final Action.Id<Object> VIEW_SOC_SERVERLESS_JOB = Action.Id.of("user/sparkoncosmos.view_serverlessjob.spark");
     public static final Action.Id<SparkOnCosmosClusterNode> DELETE_CLUSTER = Action.Id.of("user/sparkoncosmos.delete_cluster.spark");
     public static final Action.Id<SparkOnCosmosClusterNode> OPEN_SPARK_HISTORY_UI = Action.Id.of("user/sparkoncosmos.open_history_ui.spark");
     public static final Action.Id<SparkOnCosmosClusterNode> OPEN_SPARK_MASTER_UI = Action.Id.of("user/sparkoncosmos.open_master_ui.spark");
     public static final Action.Id<SparkOnCosmosClusterNode> VIEW_CLUSTER_STATUS = Action.Id.of("user/sparkoncosmos.view_cluster_status.spark");
     public static final Action.Id<SparkOnCosmosClusterNode> UPDATE_CLUSTER = Action.Id.of("user/sparkoncosmos.update_cluster.spark");
+    public static final Action.Id<SparkOnCosmosClusterNode> SUBMIT_CLUSTER_JOB = Action.Id.of("user/sparkoncosmos.submit_cluster_job.spark");
 
 
     public static final Action.Id<Object> OPEN_NOTEBOOK = Action.Id.of("user/sparkoncosmos.open_notebook.spark");
@@ -60,6 +62,12 @@ public class SparkOnCosmosActionsContributor implements IActionsContributor {
 
         new Action<>(SUBMIT_SOC_SERVERLESS_JOB)
                 .withLabel("Submit Apache Spark on Cosmos Serverless Job")
+                .enableWhen(s -> true)
+                .withAuthRequired(false)
+                .register(am);
+
+        new Action<>(VIEW_SOC_SERVERLESS_JOB)
+                .withLabel("View Apache Spark on Cosmos Serverless Jobs")
                 .enableWhen(s -> true)
                 .withAuthRequired(false)
                 .register(am);
@@ -112,6 +120,13 @@ public class SparkOnCosmosActionsContributor implements IActionsContributor {
                 .withHandler(r->{})
                 .register(am);
 
+        new Action<>(SUBMIT_CLUSTER_JOB)
+                .withLabel("Submit Job")
+                .enableWhen(s -> s.getRemote().isStable())
+                .withAuthRequired(false)
+                .withHandler(r->{})
+                .register(am);
+
         new Action<>(UPDATE_CLUSTER)
                 .withLabel("Update")
                 .enableWhen(s -> s.getRemote().isStable())
@@ -131,7 +146,8 @@ public class SparkOnCosmosActionsContributor implements IActionsContributor {
         final ActionGroup adlaActionGroup = new ActionGroup(
                 ResourceCommonActionsContributor.REFRESH,
                 this.PROVISION_CLUSTER,
-                this.SUBMIT_SOC_SERVERLESS_JOB
+                this.SUBMIT_SOC_SERVERLESS_JOB,
+                this.VIEW_SOC_SERVERLESS_JOB
         );
         am.registerGroup(ADLA_NODE_ACTIONS, adlaActionGroup);
 
@@ -140,6 +156,7 @@ public class SparkOnCosmosActionsContributor implements IActionsContributor {
                 this.DELETE_CLUSTER,
                 this.OPEN_SPARK_HISTORY_UI,
                 this.OPEN_SPARK_MASTER_UI,
+                this.SUBMIT_CLUSTER_JOB,
                 this.UPDATE_CLUSTER,
                 this.VIEW_CLUSTER_STATUS
         );
