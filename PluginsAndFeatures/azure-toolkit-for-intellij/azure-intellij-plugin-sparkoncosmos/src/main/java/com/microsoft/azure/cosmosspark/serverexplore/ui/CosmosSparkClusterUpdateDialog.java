@@ -14,6 +14,7 @@ import com.microsoft.azure.hdinsight.common.logger.ILogger;
 import com.microsoft.azure.hdinsight.sdk.common.azure.serverless.AzureSparkCosmosCluster;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.azure.toolkit.lib.sparkoncosmos.SparkOnCosmosClusterNode;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azure.rxjava.IdeaSchedulers;
 import rx.functions.Action1;
@@ -39,6 +40,30 @@ public class CosmosSparkClusterUpdateDialog extends CosmosSparkProvisionDialog i
         extendedPropertiesLabel.setVisible(false);
         extendedPropertiesField.setVisible(false);
         ctrlProvider = new CosmosSparkClusterUpdateCtrlProvider(this, new IdeaSchedulers((Project) clusterNode.getProject()), cluster);
+        this.getWindow().addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+                final Action1<CosmosSparkClusterProvisionSettingsModel> onNext = complete -> {
+                };
+                final Action1<Throwable> onError = err -> log().warn("Error initialize update dialog. " + err.toString());
+                ctrlProvider.initialize().subscribe(onNext, onError);
+                super.windowOpened(e);
+            }
+        });
+    }
+
+    public CosmosSparkClusterUpdateDialog(SparkOnCosmosClusterNode clusterNode,
+                                          Project project,
+                                          AzureSparkCosmosCluster cluster) {
+        super(project,clusterNode.getParent(), cluster.getAccount());
+        this.setTitle("Update Cluster");
+        this.auWarningLabel.setToolTipText(AU_WARNING_TIP);
+        disableUneditableFields();
+
+        // Hide extended properties field
+        extendedPropertiesLabel.setVisible(false);
+        extendedPropertiesField.setVisible(false);
+        ctrlProvider = new CosmosSparkClusterUpdateCtrlProvider(this, new IdeaSchedulers(project), cluster);
         this.getWindow().addWindowListener(new WindowAdapter() {
             @Override
             public void windowOpened(WindowEvent e) {

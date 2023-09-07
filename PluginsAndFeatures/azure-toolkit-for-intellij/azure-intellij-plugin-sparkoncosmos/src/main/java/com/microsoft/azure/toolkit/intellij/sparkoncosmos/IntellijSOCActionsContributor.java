@@ -3,9 +3,7 @@ package com.microsoft.azure.toolkit.intellij.sparkoncosmos;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.cosmos.spark.SparkOnCosmosActionsContributor;
-import com.microsoft.azure.toolkit.intellij.sparkoncosmos.actions.DeleteCusterAction;
-import com.microsoft.azure.toolkit.intellij.sparkoncosmos.actions.ProvisionClusterAction;
-import com.microsoft.azure.toolkit.intellij.sparkoncosmos.actions.SubmitSOCServerlessJob;
+import com.microsoft.azure.toolkit.intellij.sparkoncosmos.actions.*;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
@@ -28,7 +26,15 @@ public class IntellijSOCActionsContributor implements IActionsContributor {
         am.registerHandler(SparkOnCosmosActionsContributor.SUBMIT_SOC_SERVERLESS_JOB, submitSOCServerlessJobCondition, submitSOCServerlessJobHandler);
 
         final BiPredicate<SparkOnCosmosClusterNode, AnActionEvent> deleteClusterCondition = (r, e) -> r instanceof Object;
-        final BiConsumer<SparkOnCosmosClusterNode, AnActionEvent> deleteClusterHandler = (c, e) -> DeleteCusterAction.delete((SparkOnCosmosClusterNode)c, e);
+        final BiConsumer<SparkOnCosmosClusterNode, AnActionEvent> deleteClusterHandler = (c, e) -> DeleteCusterAction.delete(c, e);
         am.registerHandler(SparkOnCosmosActionsContributor.DELETE_CLUSTER, deleteClusterCondition, deleteClusterHandler);
+
+        final BiPredicate<SparkOnCosmosClusterNode, AnActionEvent> viewClusterStatusCondition = (r, e) -> r instanceof Object;
+        final BiConsumer<SparkOnCosmosClusterNode, AnActionEvent> viewClusterStatusHandler = (c, e) -> ViewClusterStatusAction.view(c, e);
+        am.registerHandler(SparkOnCosmosActionsContributor.VIEW_CLUSTER_STATUS, viewClusterStatusCondition, viewClusterStatusHandler);
+
+        final BiPredicate<SparkOnCosmosClusterNode, AnActionEvent> updateClusterCondition = (r, e) -> r instanceof Object;
+        final BiConsumer<SparkOnCosmosClusterNode, AnActionEvent> updateClusterHandler = (c, e) -> UpdateClusterAction.update(c, e);
+        am.registerHandler(SparkOnCosmosActionsContributor.UPDATE_CLUSTER, updateClusterCondition, updateClusterHandler);
     }
 }

@@ -1,13 +1,18 @@
 package com.microsoft.azure.toolkit.ide.cosmos.spark;
 
+import com.microsoft.azure.hdinsight.sdk.common.azure.serverless.AzureSparkCosmosCluster;
+import com.microsoft.azure.hdinsight.sdk.common.azure.serverless.AzureSparkServerlessAccount;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
+import com.microsoft.azure.toolkit.lib.sparkoncosmos.SparkOnCosmosADLAccountNode;
+import com.microsoft.azure.toolkit.lib.sparkoncosmos.SparkOnCosmosClusterModule;
 import com.microsoft.azure.toolkit.lib.sparkoncosmos.SparkOnCosmosClusterNode;
 import com.microsoft.tooling.msservices.components.DefaultLoader;
 
@@ -25,7 +30,11 @@ public class SparkOnCosmosActionsContributor implements IActionsContributor {
     public static final Action.Id<Object> PROVISION_CLUSTER = Action.Id.of("user/sparkoncosmos.provision_cluster.spark");
     public static final Action.Id<Object> SUBMIT_SOC_SERVERLESS_JOB = Action.Id.of("user/sparkoncosmos.submit_serverlessjob.spark");
     public static final Action.Id<SparkOnCosmosClusterNode> DELETE_CLUSTER = Action.Id.of("user/sparkoncosmos.delete_cluster.spark");
-    public static final Action.Id<AzResource> OPEN_SPARK_HISTORY_UI = Action.Id.of("user/hdinsight.open_history_ui.spark");
+    public static final Action.Id<SparkOnCosmosClusterNode> OPEN_SPARK_HISTORY_UI = Action.Id.of("user/sparkoncosmos.open_history_ui.spark");
+    public static final Action.Id<SparkOnCosmosClusterNode> OPEN_SPARK_MASTER_UI = Action.Id.of("user/sparkoncosmos.open_master_ui.spark");
+    public static final Action.Id<SparkOnCosmosClusterNode> VIEW_CLUSTER_STATUS = Action.Id.of("user/sparkoncosmos.view_cluster_status.spark");
+    public static final Action.Id<SparkOnCosmosClusterNode> UPDATE_CLUSTER = Action.Id.of("user/sparkoncosmos.update_cluster.spark");
+
 
     public static final Action.Id<Object> OPEN_NOTEBOOK = Action.Id.of("user/sparkoncosmos.open_notebook.spark");
 
@@ -41,21 +50,18 @@ public class SparkOnCosmosActionsContributor implements IActionsContributor {
                     } catch (IOException ignore) {
                     }
                 })
-                .withShortcut(am.getIDEDefaultShortcuts().edit())
                 .register(am);
 
         new Action<>(PROVISION_CLUSTER)
                 .withLabel("Provision Spark Cluster")
                 .enableWhen(s -> true)
                 .withAuthRequired(false)
-                .withShortcut(am.getIDEDefaultShortcuts().edit())
                 .register(am);
 
         new Action<>(SUBMIT_SOC_SERVERLESS_JOB)
                 .withLabel("Submit Apache Spark on Cosmos Serverless Job")
                 .enableWhen(s -> true)
                 .withAuthRequired(false)
-                .withShortcut(am.getIDEDefaultShortcuts().edit())
                 .register(am);
 
         new Action<>(DELETE_CLUSTER)
@@ -63,7 +69,54 @@ public class SparkOnCosmosActionsContributor implements IActionsContributor {
                 .enableWhen(s -> s.getRemote().isRunning())
                 .withAuthRequired(false)
                 .withHandler(r->{})
-                .withShortcut(am.getIDEDefaultShortcuts().edit())
+                .register(am);
+
+        new Action<>(OPEN_SPARK_HISTORY_UI)
+                .withLabel("Open Spark History UI")
+                .enableWhen(s -> true)
+                .withAuthRequired(false)
+                .withHandler(r->{
+                    try {
+                        AzureSparkCosmosCluster remote = r.getRemote();
+                        SparkOnCosmosClusterModule module = (SparkOnCosmosClusterModule) r.getModule();
+                        SparkOnCosmosADLAccountNode adlAccountNode = module.getAdlAccountNode();
+                        AzureSparkServerlessAccount adlAccount = adlAccountNode.getRemote();
+                        String suffix = "/?adlaAccountName=" + adlAccount.getName();
+                        Desktop.getDesktop().browse(URI.create(String.valueOf(remote.getSparkHistoryUiUri() + suffix)));
+                    } catch (IOException ignore) {
+                    }
+                })
+                .register(am);
+
+        new Action<>(OPEN_SPARK_MASTER_UI)
+                .withLabel("Open Spark Master UI")
+                .enableWhen(s -> true)
+                .withAuthRequired(false)
+                .withHandler(r->{
+                    try {
+                        AzureSparkCosmosCluster remote = r.getRemote();
+                        SparkOnCosmosClusterModule module = (SparkOnCosmosClusterModule) r.getModule();
+                        SparkOnCosmosADLAccountNode adlAccountNode = module.getAdlAccountNode();
+                        AzureSparkServerlessAccount adlAccount = adlAccountNode.getRemote();
+                        String suffix = "/?adlaAccountName=" + adlAccount.getName();
+                        Desktop.getDesktop().browse(URI.create(String.valueOf(remote.getSparkMasterUiUri() + suffix)));
+                    } catch (IOException ignore) {
+                    }
+                })
+                .register(am);
+
+        new Action<>(VIEW_CLUSTER_STATUS)
+                .withLabel("View Cluster Status")
+                .enableWhen(s -> s.getRemote().isRunning())
+                .withAuthRequired(false)
+                .withHandler(r->{})
+                .register(am);
+
+        new Action<>(UPDATE_CLUSTER)
+                .withLabel("Update")
+                .enableWhen(s -> s.getRemote().isStable())
+                .withAuthRequired(false)
+                .withHandler(r->{})
                 .register(am);
     }
 
@@ -84,7 +137,11 @@ public class SparkOnCosmosActionsContributor implements IActionsContributor {
 
         final ActionGroup clusterActionGroup = new ActionGroup(
                 ResourceCommonActionsContributor.REFRESH,
-                this.DELETE_CLUSTER
+                this.DELETE_CLUSTER,
+                this.OPEN_SPARK_HISTORY_UI,
+                this.OPEN_SPARK_MASTER_UI,
+                this.UPDATE_CLUSTER,
+                this.VIEW_CLUSTER_STATUS
         );
         am.registerGroup(CLUSTER_NODE_ACTIONS, clusterActionGroup);
 

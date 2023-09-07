@@ -79,6 +79,35 @@ public class CosmosSparkClusterMonitorDialog extends DialogWrapper
         });
     }
 
+    public CosmosSparkClusterMonitorDialog(@NotNull final Project project,
+                                           @NotNull final AzureSparkCosmosCluster cluster) {
+        super(project, true);
+        this.ctrlProvider = new CosmosSparkClusterStatesCtrlProvider(
+                this, new IdeaSchedulers(project), cluster);
+
+        init();
+        this.setTitle(String.format("Cluster Status(%s)", cluster.getName()));
+        this.setModal(true);
+        this.getWindow().addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowOpened(final WindowEvent e) {
+                refreshSub = ctrlProvider.updateAll()
+                        .retryWhen(ob -> ob.delay(REFRESH_INTERVAL, TimeUnit.SECONDS))
+                        .repeatWhen(ob -> ob.delay(REFRESH_INTERVAL, TimeUnit.SECONDS))
+                        .subscribe();
+                super.windowOpened(e);
+            }
+
+            @Override
+            public void windowClosing(final WindowEvent e) {
+                if (refreshSub != null) {
+                    refreshSub.unsubscribe();
+                }
+                super.windowClosing(e);
+            }
+        });
+    }
+
     @Nullable
     @Override
     public JComponent getPreferredFocusedComponent() {
