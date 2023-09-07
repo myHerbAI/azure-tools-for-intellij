@@ -27,7 +27,7 @@ public class IntellijSOCActionsContributor implements IActionsContributor {
 
         final BiPredicate<Object, AnActionEvent> viewSOCServerlessJobCondition = (r, e) -> r instanceof Object;
         final BiConsumer<Object, AnActionEvent> viewSOCServerlessJobHandler = (c, e) -> ViewSOCServerlessJobsAction.view((SparkOnCosmosADLAccountNode)c, e);
-        am.registerHandler(SparkOnCosmosActionsContributor.SUBMIT_SOC_SERVERLESS_JOB, viewSOCServerlessJobCondition, viewSOCServerlessJobHandler);
+        am.registerHandler(SparkOnCosmosActionsContributor.VIEW_SOC_SERVERLESS_JOB, viewSOCServerlessJobCondition, viewSOCServerlessJobHandler);
 
         final BiPredicate<SparkOnCosmosClusterNode, AnActionEvent> deleteClusterCondition = (r, e) -> r instanceof Object;
         final BiConsumer<SparkOnCosmosClusterNode, AnActionEvent> deleteClusterHandler = (c, e) -> DeleteCusterAction.delete(c, e);
