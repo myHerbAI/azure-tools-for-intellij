@@ -56,7 +56,6 @@ public class AppGroupedServicesRootNode extends AzServiceNode<AzureResources> {
             this.withTips("Your resource groups.");
         } else {
             desc = "Not Signed In";
-            this.withTips("Click to Sign In.");
         }
         this.withDescription(" " + desc);
         this.refreshViewLater();
