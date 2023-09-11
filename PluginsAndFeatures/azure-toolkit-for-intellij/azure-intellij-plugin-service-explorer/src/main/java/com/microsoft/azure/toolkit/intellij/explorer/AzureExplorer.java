@@ -30,8 +30,10 @@ import com.microsoft.azure.toolkit.ide.common.genericresource.GenericResourceAct
 import com.microsoft.azure.toolkit.ide.common.genericresource.GenericResourceNode;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.component.Tree;
+import com.microsoft.azure.toolkit.intellij.common.component.TreeUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
@@ -70,6 +72,17 @@ public class AzureExplorer extends Tree {
         //noinspection UnstableApiUsage
         TreeHoverListener.DEFAULT.addTo(this);
         this.setCellRenderer(new InlineActionSupportedNodeRenderer());
+        AzureEventBus.on("azure.explorer.highlight_resource", new AzureEventBus.EventListener(e -> TreeUtils.highlightResource(this, e.getSource())));
+        AzureEventBus.on("resource.creation_started.resource", new AzureEventBus.EventListener(e -> {
+            if (e.getSource() instanceof AbstractAzResource<?, ?, ?>) {
+                TreeUtils.focusResource(this, (AbstractAzResource<?, ?, ?>) e.getSource());
+            }
+        }));
+        AzureEventBus.on("azure.explorer.focus_resource", new AzureEventBus.EventListener(e -> {
+            if (e.getSource() instanceof AbstractAzResource<?, ?, ?>) {
+                TreeUtils.focusResource(this, (AbstractAzResource<?, ?, ?>) e.getSource());
+            }
+        }));
     }
 
     private Node<Azure> buildAzureRoot() {

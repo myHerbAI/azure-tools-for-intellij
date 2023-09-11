@@ -9,7 +9,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ComponentValidator;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.AncestorListenerAdapter;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
@@ -19,11 +18,13 @@ import org.apache.commons.lang3.StringUtils;
 import javax.accessibility.AccessibleRelation;
 import javax.annotation.Nullable;
 import javax.swing.*;
-import javax.swing.event.AncestorEvent;
+import java.awt.event.HierarchyEvent;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo.Type.*;
+import static com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo.Type.PENDING;
+import static com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo.Type.SUCCESS;
+import static com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo.Type.WARNING;
 
 public interface AzureFormInputComponent<T> extends AzureFormInput<T>, Disposable {
     default JComponent getInputComponent() {
@@ -46,9 +47,9 @@ public interface AzureFormInputComponent<T> extends AzureFormInput<T>, Disposabl
         input.putClientProperty("JComponent.outline", state);
         input.revalidate();
         input.repaint();
-        input.addAncestorListener(new AncestorListenerAdapter() {
-            @Override
-            public void ancestorRemoved(AncestorEvent event) {
+        input.addHierarchyListener(e -> {
+            if (e.getID() == HierarchyEvent.HIERARCHY_CHANGED
+                && (e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
                 Disposer.dispose(AzureFormInputComponent.this);
             }
         });
