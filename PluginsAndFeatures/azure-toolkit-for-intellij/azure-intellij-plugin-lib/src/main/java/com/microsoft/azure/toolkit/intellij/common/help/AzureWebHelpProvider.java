@@ -6,15 +6,14 @@
 package com.microsoft.azure.toolkit.intellij.common.help;
 
 import com.intellij.openapi.help.WebHelpProvider;
-import com.microsoft.azure.toolkit.intellij.AzurePlugin;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
 
 public class AzureWebHelpProvider extends WebHelpProvider {
-    public static final String HELP_SIGN_IN = AzurePlugin.PLUGIN_ID + "." + "sign_in";
-    public static final String HELP_AZURE_WEB_JOBS_STORAGE = AzurePlugin.PLUGIN_ID + "." + "azure_web_jobs_storage";
+    public static final String HELP_SIGN_IN = "com.microsoft.tooling.msservices.intellij.azure.sign_in";
+    public static final String HELP_AZURE_WEB_JOBS_STORAGE = "com.microsoft.tooling.msservices.intellij.azure.azure_web_jobs_storage";
 
     private static final Map<String, String> HELP_URLS = Map.of(
         AzureWebHelpProvider.HELP_SIGN_IN, "https://docs.microsoft.com/en-us/azure/azure-toolkit-for-intellij-sign-in-instructions",

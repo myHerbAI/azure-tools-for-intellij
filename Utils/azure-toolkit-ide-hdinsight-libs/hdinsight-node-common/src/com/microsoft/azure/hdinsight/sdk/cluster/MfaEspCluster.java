@@ -8,7 +8,7 @@ package com.microsoft.azure.hdinsight.sdk.cluster;
 import com.microsoft.azure.hdinsight.common.logger.ILogger;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azuretools.authmanage.IdeAzureAccount;
+import com.microsoft.azure.toolkit.ide.common.auth.IdeAzureAccount;
 
 public interface MfaEspCluster extends AzureAdAccountDetail, ILogger {
     // get path suffix user/<user_name>

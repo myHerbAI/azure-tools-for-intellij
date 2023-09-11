@@ -1,7 +1,6 @@
 plugins {
     id "org.jetbrains.intellij" version "1.13.3"
     id "org.jetbrains.kotlin.jvm" version "1.9.10"
-    id "de.undercouch.download" version "4.1.1"
     id "com.github.ben-manes.versions" version "0.39.0"
     id "io.freefair.aspectj.post-compile-weaving" version "6.5.1"
     id "io.spring.dependency-management" version "1.0.11.RELEASE"
@@ -174,12 +173,11 @@ dependencies {
     implementation project(path: ':azure-intellij-plugin-containerapps', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-monitor', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-hdinsight', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-hdinsight-base', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-synapse', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-eventhubs', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-servicebus', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-cognitiveservices', configuration: 'instrumentedJar')
-    implementation 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-spark-lib'
-    implementation 'com.microsoft.hdinsight:azure-toolkit-ide-synapse-spark-lib'
     implementation 'com.microsoft.azure:azure-toolkit-ide-appservice-lib'
     implementation 'com.microsoft.azure:azure-toolkit-applicationinsights-lib'
     implementation 'com.microsoft.azure:azure-toolkit-storage-lib'
@@ -191,16 +189,6 @@ dependencies {
     }
     implementation 'commons-io:commons-io'
     implementation 'org.apache.commons:commons-lang3'
-
-    implementation 'com.microsoft.hdinsight:azuretools-core', {
-        exclude group: "javax.xml.bind", module: "jaxb-api"
-    }
-    implementation 'com.microsoft.hdinsight:azure-explorer-common', {
-        exclude group: "javax.xml.bind", module: "jaxb-api"
-    }
-    implementation 'com.microsoft.hdinsight:hdinsight-node-common', {
-        exclude group: "javax.xml.bind", module: "jaxb-api"
-    }
 
     implementation group: 'org.dom4j', name: 'dom4j', {
         exclude group: "javax.xml.stream", module: "stax-api"
@@ -233,37 +221,7 @@ test {
     }
 }
 
-task cucumberPackJar(type: Jar) {
-    appendix = 'pathing'
-
-    doFirst {
-        manifest {
-            attributes "Class-Path": configurations.cucumberRuntime.files.collect {
-                it.toURI().toString().replaceFirst(/file:\/+/, '/')
-            }.join(' ')
-        }
-    }
-}
-
 buildSearchableOptions.onlyIf { false }
-
-task cucumber() {
-    dependsOn assemble, testClasses, compileTestJava, cucumberPackJar
-    doLast {
-        javaexec {
-            main = "io.cucumber.core.cli.Main"
-            classpath = files(sourceSets.main.output, sourceSets.test.output, cucumberPackJar.archivePath)
-            args = [
-                    '--plugin', 'progress',
-                    '--glue', 'com.microsoft.azure.hdinsight.spark.common',
-                    '-m',
-                    'Test/resources']
-        }
-    }
-}
-
-test.dependsOn cucumber
-// buildPlugin.dependsOn test
 
 defaultTasks 'buildPlugin'
 

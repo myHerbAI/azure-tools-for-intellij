@@ -13,7 +13,7 @@ import com.azure.storage.blob.sas.BlobSasPermission;
 import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
-import com.microsoft.azuretools.authmanage.IdeAzureAccount;
+import com.microsoft.azure.toolkit.ide.common.auth.IdeAzureAccount;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 
 import java.net.MalformedURLException;

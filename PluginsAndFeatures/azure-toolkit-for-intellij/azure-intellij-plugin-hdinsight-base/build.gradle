@@ -1,0 +1,66 @@
+plugins {
+    id 'java'
+    id "org.jetbrains.kotlin.jvm"
+}
+
+intellij {
+    plugins = ['java','maven',dep_plugins]
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'com.microsoft.azure:azure-toolkit-libs:' + azureToolkitLibsVersion
+        mavenBom 'com.microsoft.azure:azure-toolkit-ide-libs:' + azureToolkitIdeLibsVersion
+        mavenBom 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-libs:' + azureToolkitHDInsightVersion
+    }
+}
+
+dependencies {
+    implementation project(path: ':azure-intellij-plugin-lib', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-lib-java', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-hdinsight', configuration: 'instrumentedJar')
+
+    implementation 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-spark-lib'
+    implementation 'com.microsoft.hdinsight:azure-toolkit-ide-synapse-spark-lib'
+
+    implementation 'com.microsoft.hdinsight:azuretools-core', {
+        exclude group: "javax.xml.bind", module: "jaxb-api"
+    }
+    implementation 'com.microsoft.hdinsight:azure-explorer-common', {
+        exclude group: "javax.xml.bind", module: "jaxb-api"
+    }
+    implementation 'com.microsoft.hdinsight:hdinsight-node-common', {
+        exclude group: "javax.xml.bind", module: "jaxb-api"
+    }
+
+}
+
+task cucumberPackJar(type: Jar) {
+    appendix = 'pathing'
+
+    doFirst {
+        manifest {
+            attributes "Class-Path": configurations.cucumberRuntime.files.collect {
+                it.toURI().toString().replaceFirst(/file:\/+/, '/')
+            }.join(' ')
+        }
+    }
+}
+
+task cucumber() {
+    dependsOn assemble, testClasses, compileTestJava, cucumberPackJar
+    doLast {
+        javaexec {
+            main = "io.cucumber.core.cli.Main"
+            classpath = files(sourceSets.main.output, sourceSets.test.output, cucumberPackJar.archivePath)
+            args = [
+                    '--plugin', 'progress',
+                    '--glue', 'com.microsoft.azure.hdinsight.spark.common',
+                    '-m',
+                    'Test/resources']
+        }
+    }
+}
+
+test.dependsOn cucumber
+// buildPlugin.dependsOn test

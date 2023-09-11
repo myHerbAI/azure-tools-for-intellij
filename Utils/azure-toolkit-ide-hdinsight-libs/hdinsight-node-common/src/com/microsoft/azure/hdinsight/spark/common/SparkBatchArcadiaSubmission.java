@@ -8,7 +8,7 @@ package com.microsoft.azure.hdinsight.spark.common;
 import com.microsoft.azure.hdinsight.common.UriUtil;
 import com.microsoft.azure.projectarcadia.common.ArcadiaSparkComputeManager;
 import com.microsoft.azure.projectarcadia.common.ArcadiaWorkSpace;
-import com.microsoft.azuretools.authmanage.IdeAzureAccount;
+import com.microsoft.azure.toolkit.ide.common.auth.IdeAzureAccount;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
 import org.apache.http.client.utils.URIBuilder;

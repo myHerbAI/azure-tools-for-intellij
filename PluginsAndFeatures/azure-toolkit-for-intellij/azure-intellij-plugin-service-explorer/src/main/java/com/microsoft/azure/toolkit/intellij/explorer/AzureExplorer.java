@@ -5,12 +5,23 @@
 
 package com.microsoft.azure.toolkit.intellij.explorer;
 
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ex.ToolWindowEx;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import com.intellij.ui.hover.TreeHoverListener;
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
@@ -20,24 +31,28 @@ import com.microsoft.azure.toolkit.ide.common.genericresource.GenericResourceNod
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.component.Tree;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
-import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS;
+import static com.microsoft.azure.toolkit.intellij.common.component.TreeUtils.KEY_SCROLL_PANE;
 import static com.microsoft.azure.toolkit.lib.common.action.Action.PLACE;
 
 public class AzureExplorer extends Tree {
+    public static final String TOOLWINDOW_ID = "Azure Explorer";
     @Getter
     public static final AzureExplorerNodeProviderManager manager = new AzureExplorerNodeProviderManager();
     public static final String AZURE_ICON = AzureIcons.Common.AZURE.getIconPath();
@@ -45,61 +60,92 @@ public class AzureExplorer extends Tree {
     private AzureExplorer() {
         super();
         this.putClientProperty(PLACE, ResourceCommonActionsContributor.AZURE_EXPLORER);
-        this.root = buildAzureRoot();
-        this.init(this.root);
-    }
-
-    private static Node<Azure> buildAzureRoot() {
-        final List<Node<?>> modules = getModules();
-        return new Node<>(Azure.az())
-            .withIcon(AZURE_ICON)
-            .withLabel(getTitle())
+        this.root = new Node<>("Azure")
             .withChildrenLoadLazily(false)
-            .addChildren(modules);
+            .addChild(buildFavoriteRoot())
+            .addChild(buildAppCentricViewRoot())
+            .addChild(buildAzureRoot());
+        this.init(this.root);
+        this.setRootVisible(false);
+        //noinspection UnstableApiUsage
+        TreeHoverListener.DEFAULT.addTo(this);
+        this.setCellRenderer(new InlineActionSupportedNodeRenderer());
     }
 
-    public static Node<?> buildAppCentricViewRoot() {
+    private Node<Azure> buildAzureRoot() {
+        return new TypeGroupedServicesRootNode().addChildren((a) -> getModules());
+    }
+
+    public Node<?> buildAppCentricViewRoot() {
         final AzureResources resources = Azure.az(AzureResources.class);
         return manager.createNode(resources, null, IExplorerNodeProvider.ViewType.APP_CENTRIC);
     }
 
-    public static Node<?> buildFavoriteRoot() {
+    public Node<?> buildFavoriteRoot() {
         return Favorites.buildFavoriteRoot(manager);
     }
 
-    private static String getTitle() {
-        try {
-            final AzureAccount az = Azure.az(AzureAccount.class);
-            final Account account = az.account();
-            final List<Subscription> subscriptions = account.getSelectedSubscriptions();
-            if (subscriptions.size() == 1) {
-                return String.format("Azure(%s)", subscriptions.get(0).getName());
-            }
-        } catch (final Exception ignored) {
-        }
-        return "Azure";
-    }
-
     @Nonnull
-    public static List<Node<?>> getModules() {
+    public List<Node<?>> getModules() {
         return manager.getRoots().stream()
             .map(r -> manager.createNode(r, null, IExplorerNodeProvider.ViewType.TYPE_CENTRIC))
+            .sorted(Comparator.comparing(Node::getLabel))
             .collect(Collectors.toList());
     }
 
-    public static void refreshAll() {
-        AzureExplorer.manager.getRoots().stream().filter(r -> r instanceof AbstractAzResourceModule)
+    public void refreshAll() {
+        manager.getRoots().stream().filter(r -> r instanceof AbstractAzResourceModule)
             .forEach(r -> ((AbstractAzResourceModule<?, ?, ?>) r).refresh());
         Favorites.getInstance().refresh();
     }
 
-    public static class ToolWindowFactory implements com.intellij.openapi.wm.ToolWindowFactory {
+    public static class ToolWindowFactory implements com.intellij.openapi.wm.ToolWindowFactory, DumbAware {
         public void createToolWindowContent(@Nonnull Project project, @Nonnull ToolWindow toolWindow) {
             final SimpleToolWindowPanel windowPanel = new SimpleToolWindowPanel(true, true);
-            windowPanel.setContent(new AzureExplorer());
+            final AzureExplorer explorer = new AzureExplorer();
+            final JBScrollPane scrollPane = new JBScrollPane(explorer);
+            explorer.putClientProperty(KEY_SCROLL_PANE, scrollPane);
+            windowPanel.setContent(scrollPane);
+            this.addToolbarActions(toolWindow, project, explorer);
             final ContentFactory contentFactory = ContentFactory.getInstance();
             final Content content = contentFactory.createContent(windowPanel, null, false);
             toolWindow.getContentManager().addContent(content);
+        }
+
+        private void addToolbarActions(ToolWindow toolWindow, final Project project, AzureExplorer explorer) {
+            final AnAction refreshAction = new AnAction("Refresh All", "Refresh Azure nodes list", AllIcons.Actions.Refresh) {
+                @Override
+                public void actionPerformed(@NotNull final AnActionEvent e) {
+                    explorer.refreshAll();
+                }
+
+                @Override
+                public void update(@NotNull final AnActionEvent e) {
+                    e.getPresentation().setEnabled(Azure.az(AzureAccount.class).isLoggedIn());
+                }
+
+                @Override
+                public ActionUpdateThread getActionUpdateThread() {
+                    return ActionUpdateThread.BGT;
+                }
+            };
+            final AnAction feedbackAction = ActionManager.getInstance().getAction("Actions.ProvideFeedback");
+            final AnAction getStartAction = ActionManager.getInstance().getAction("Actions.GettingStart");
+            final AnAction signInAction = ActionManager.getInstance().getAction("AzureToolkit.AzureSignIn");
+            final AnAction selectSubscriptionsAction = ActionManager.getInstance().getAction("AzureToolkit.SelectSubscriptions");
+            toolWindow.setTitleActions(Arrays.asList(getStartAction, refreshAction, selectSubscriptionsAction, signInAction, Separator.create(), feedbackAction));
+            if (toolWindow instanceof ToolWindowEx) {
+                final AnAction devBlogsAction = ActionManager.getInstance().getAction("AzureToolkit.ViewDevBlogs");
+                final AnAction documentAction = ActionManager.getInstance().getAction("AzureToolkit.ViewToolingDocument");
+                final AnAction whatsNewAction = ActionManager.getInstance().getAction("Actions.WhatsNew");
+                final AnAction reportIssueAction = ActionManager.getInstance().getAction("AzureToolkit.GithubIssue");
+                final AnAction featureRequestAction = ActionManager.getInstance().getAction("AzureToolkit.FeatureRequest");
+                final AnAction openSdkReferenceBookAction = ActionManager.getInstance().getAction("user/sdk.OpenSdkReferenceBook");
+                final AnAction openResourceConnectionExplorerAction = ActionManager.getInstance().getAction("AzureToolkit.OpenResourceConnectionExplorerAction");
+                final AnAction openAzureSettingsAction = ActionManager.getInstance().getAction(OPEN_AZURE_SETTINGS.getId());
+                (toolWindow).setAdditionalGearActions(new DefaultActionGroup(openSdkReferenceBookAction, openAzureSettingsAction, openResourceConnectionExplorerAction,
+                    Separator.create(), reportIssueAction, featureRequestAction, feedbackAction, Separator.create(), devBlogsAction, documentAction));
+            }
         }
     }
 

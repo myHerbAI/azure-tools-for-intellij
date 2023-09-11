@@ -1,4 +1,8 @@
 <idea-plugin>
+    <depends>com.intellij.modules.java</depends>
+    <depends>org.jetbrains.idea.maven</depends>
+    <depends>com.intellij.gradle</depends>
+    <depends>org.jetbrains.plugins.gradle</depends>
     <extensions defaultExtensionNs="com.intellij">
         <!-- `displayName` is currently not used for bug: https://youtrack.jetbrains.com/issue/IDEA-275873 -->
         <dependencySupport displayName="Azure SDK client libraries(Track 2)" coordinate="com.azure:azure-core" kind="java"/>

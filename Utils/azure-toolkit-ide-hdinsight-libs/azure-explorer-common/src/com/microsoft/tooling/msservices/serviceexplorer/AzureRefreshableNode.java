@@ -5,7 +5,7 @@
 
 package com.microsoft.tooling.msservices.serviceexplorer;
 
-import com.microsoft.azuretools.authmanage.IdeAzureAccount;
+import com.microsoft.azure.toolkit.ide.common.auth.IdeAzureAccount;
 import com.microsoft.tooling.msservices.components.DefaultLoader;
 
 public abstract class AzureRefreshableNode extends RefreshableNode {
