@@ -1,3 +1,5 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 plugins {
     id "org.jetbrains.intellij" version "1.13.3"
     id "org.jetbrains.kotlin.jvm" version "1.9.10"
@@ -8,7 +10,35 @@ plugins {
 
 processResources {
     filesMatching('ApplicationInsights.xml') {
-        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: ["applicationinsights.key": project.property("applicationinsights.key")])
+        filter(ReplaceTokens, tokens: ["applicationinsights.key": project.property("applicationinsights.key")])
+    }
+}
+
+intellij {
+    pluginName = 'azure-toolkit-for-intellij'
+    version = intellij_version
+    updateSinceUntilBuild = Boolean.valueOf(updateVersionRange)
+    plugins = ['java', 'maven', 'maven-model', 'gradle', dep_plugins, "properties", 'terminal', 'gradle-java', 'org.intellij.plugins.markdown']
+    downloadSources = Boolean.valueOf(sources)
+}
+
+sourceSets {
+    main {
+        java.srcDirs 'src/main/java'
+        kotlin.srcDirs 'src/main/kotlin'
+        resources {
+            srcDir 'src/main/resources'
+            exclude 'bundle/**'
+        }
+    }
+    test {
+        java {
+            srcDir 'src/test/java'
+        }
+        kotlin.srcDirs 'src/test/kotlin'
+        resources {
+            srcDir 'src/test/resources'
+        }
     }
 }
 
@@ -62,17 +92,11 @@ allprojects {
         mavenCentral()
     }
 
-    ext {
-        azureToolkitLibsVersion = "0.37.0-SNAPSHOT"
-        azureToolkitIdeLibsVersion = "0.37.0-SNAPSHOT"
-        azureToolkitHDInsightVersion = "0.1.0"
-    }
-
     dependencyManagement {
         imports {
-            mavenBom 'com.microsoft.azure:azure-toolkit-libs:' + azureToolkitLibsVersion
-            mavenBom 'com.microsoft.azure:azure-toolkit-ide-libs:' + azureToolkitIdeLibsVersion
-            mavenBom 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-libs:' + azureToolkitHDInsightVersion
+            mavenBom 'com.microsoft.azure:azure-toolkit-libs:0.37.0-SNAPSHOT'
+            mavenBom 'com.microsoft.azure:azure-toolkit-ide-libs:0.37.0-SNAPSHOT'
+            mavenBom 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-libs:0.1.0'
         }
     }
 
@@ -81,11 +105,7 @@ allprojects {
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
         implementation 'com.microsoft.azure:azure-toolkit-common-lib'
-        aspect "com.microsoft.azure:azure-toolkit-common-lib", {
-            exclude group: "com.squareup.okhttp3", module: "okhttp"
-            exclude group: "com.squareup.okhttp3", module: "okhttp-urlconnection"
-            exclude group: "com.squareup.okhttp3", module: "logging-interceptor"
-        }
+        aspect "com.microsoft.azure:azure-toolkit-common-lib"
         compileOnly 'org.jetbrains:annotations'
     }
 
@@ -103,47 +123,6 @@ allprojects {
 
     intellij {
         version = intellij_version
-    }
-}
-
-subprojects {
-    buildPlugin { enabled = false }
-    runIde { enabled = false }
-    prepareSandbox { enabled = false }
-    prepareTestingSandbox { enabled = false }
-    buildSearchableOptions { enabled = false }
-    patchPluginXml { enabled = false }
-    publishPlugin { enabled = false }
-    verifyPlugin { enabled = false }
-
-    buildSearchableOptions.onlyIf { false }
-}
-
-intellij {
-    pluginName = 'azure-toolkit-for-intellij'
-    version = intellij_version
-    updateSinceUntilBuild = Boolean.valueOf(updateVersionRange)
-    plugins = ['java', 'maven', 'maven-model', 'gradle', dep_plugins, "properties", 'terminal', 'gradle-java', 'org.intellij.plugins.markdown']
-    downloadSources = Boolean.valueOf(sources)
-}
-
-sourceSets {
-    main {
-        java.srcDirs 'src/main/java'
-        kotlin.srcDirs 'src/main/kotlin'
-        resources {
-            srcDir 'src/main/resources'
-            exclude 'bundle/**'
-        }
-    }
-    test {
-        java {
-            srcDir 'src/test/java'
-        }
-        kotlin.srcDirs 'src/test/kotlin'
-        resources {
-            srcDir 'src/test/resources'
-        }
     }
 }
 
@@ -178,47 +157,22 @@ dependencies {
     implementation project(path: ':azure-intellij-plugin-eventhubs', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-servicebus', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-cognitiveservices', configuration: 'instrumentedJar')
-    implementation 'com.microsoft.azure:azure-toolkit-ide-appservice-lib'
-    implementation 'com.microsoft.azure:azure-toolkit-applicationinsights-lib'
-    implementation 'com.microsoft.azure:azure-toolkit-storage-lib'
 
-    implementation 'com.microsoft.azure:azure-client-runtime', {
-        exclude group: "com.squareup.okhttp3", module: "okhttp"
-        exclude group: "com.squareup.okhttp3", module: "okhttp-urlconnection"
-        exclude group: "com.squareup.okhttp3", module: "logging-interceptor"
-    }
     implementation 'commons-io:commons-io'
     implementation 'org.apache.commons:commons-lang3'
-
-    implementation group: 'org.dom4j', name: 'dom4j', {
-        exclude group: "javax.xml.stream", module: "stax-api"
-        exclude group: "xpp3", module: "xpp3"
-        exclude group: "pull-parser", module: "pull-parser"
-        exclude group: "net.java.dev.msv", module: "xsdlib"
-    }
-    implementation group: 'jaxen', name: 'jaxen', version: '1.2.0'
-
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10")
-    testImplementation 'io.cucumber:cucumber-java:7.0.0'
-    testImplementation 'io.cucumber:cucumber-junit:7.0.0'
-    testImplementation 'org.assertj:assertj-core:3.19.0'
-    testImplementation 'junit:junit'
-    testImplementation 'org.mockito:mockito-core'
-
-    testImplementation 'org.powermock:powermock-module-junit4:1.7.0RC4'
-    testImplementation 'org.powermock:powermock-api-mockito2:1.7.0RC4'
-    testImplementation 'javax.servlet:javax.servlet-api:4.0.1'
-
-    testImplementation "org.jetbrains.kotlin:kotlin-stdlib"
-    testImplementation "org.jetbrains.kotlin:kotlin-test"
-    testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
 }
 
-test {
-    testLogging.showStandardStreams = true
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
+subprojects {
+    buildPlugin { enabled = false }
+    runIde { enabled = false }
+    prepareSandbox { enabled = false }
+    prepareTestingSandbox { enabled = false }
+    buildSearchableOptions { enabled = false }
+    patchPluginXml { enabled = false }
+    publishPlugin { enabled = false }
+    verifyPlugin { enabled = false }
+
+    buildSearchableOptions.onlyIf { false }
 }
 
 buildSearchableOptions.onlyIf { false }
@@ -288,6 +242,6 @@ prepareSandbox {
     finalizedBy(prepareBicepBinariesForSandbox)
 }
 
-runIde{
+runIde {
     jvmArgs("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005")
 }
