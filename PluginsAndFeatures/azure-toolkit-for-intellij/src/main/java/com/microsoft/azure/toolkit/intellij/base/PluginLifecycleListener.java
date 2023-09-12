@@ -13,6 +13,8 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.PermanentInstallationID;
 import com.intellij.util.EnvironmentUtil;
+import com.intellij.util.net.HttpConfigurable;
+import com.intellij.util.net.ssl.CertificateManager;
 import com.microsoft.azure.toolkit.ide.common.auth.IdeAzureAccount;
 import com.microsoft.azure.toolkit.ide.common.store.AzureConfigInitializer;
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
@@ -25,39 +27,41 @@ import com.microsoft.azure.toolkit.intellij.common.settings.IntellijStore;
 import com.microsoft.azure.toolkit.intellij.common.task.IntellijAzureTaskManager;
 import com.microsoft.azure.toolkit.intellij.containerregistry.AzureDockerSupportConfigurationType;
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapponlinux.DeprecatedWebAppOnLinuxDeployConfigurationFactory;
-import com.microsoft.azure.toolkit.intellij.network.NetworkDiagnose;
-import com.microsoft.azure.toolkit.intellij.network.ProxyUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.proxy.ProxyInfo;
+import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureRxTaskManager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.common.utils.CommandUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
-import com.microsoft.azuretools.authmanage.CommonSettings;
-import com.microsoft.azuretools.core.mvp.ui.base.AppSchedulerProvider;
-import com.microsoft.azuretools.core.mvp.ui.base.SchedulerProviderFactory;
-import com.microsoft.azuretools.telemetry.AppInsightsClient;
-import com.microsoft.azuretools.telemetry.AppInsightsConstants;
 import com.microsoft.azuretools.telemetrywrapper.EventType;
 import com.microsoft.azuretools.telemetrywrapper.EventUtil;
-import com.microsoft.intellij.util.PluginUtil;
-import com.microsoft.tooling.msservices.components.PluginSettings;
 import lombok.Lombok;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Hooks;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import javax.annotation.Nonnull;
+import javax.net.ssl.HttpsURLConnection;
 import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.URI;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,8 +86,6 @@ public class PluginLifecycleListener implements AppLifecycleListener {
     private static final String AZURE_TOOLS_FOLDER_DEPRECATED = "AzureToolsForIntelliJ";
     private static final FileHandler logFileHandler = null;
 
-    private PluginSettings settings;
-
     static {
         // fix the class load problem for intellij plugin
         final ClassLoader current = Thread.currentThread().getContextClassLoader();
@@ -96,7 +98,7 @@ public class PluginLifecycleListener implements AppLifecycleListener {
                 if (cause instanceof InterruptedException) {
                     log.info(ex.getMessage());
                 } else if (cause instanceof UnknownHostException) {
-                    NetworkDiagnose.checkAzure(AzureEnvironment.AZURE).publishOn(Schedulers.parallel()).subscribe(sites -> {
+                    PluginLifecycleListener.checkAzure(AzureEnvironment.AZURE).publishOn(Schedulers.parallel()).subscribe(sites -> {
                         final Map<String, String> properties = new HashMap<>();
                         properties.put(SERVICE_NAME, SYSTEM);
                         properties.put(OPERATION_NAME, "network_diagnose");
@@ -122,15 +124,14 @@ public class PluginLifecycleListener implements AppLifecycleListener {
         try {
             AzureTaskManager.register(new IntellijAzureTaskManager());
             AzureRxTaskManager.register();
-            final String azureJson = String.format("%s%s%s", PluginUtil.getPluginRootDirectory(), File.separator, "azure.json");
+            final String azureJson = String.format("%s%s%s", CommonConst.PLUGIN_PATH, File.separator, "azure.json");
             AzureStoreManager.register(new DefaultMachineStore(azureJson),
                 IntellijStore.getInstance(), IntelliJSecureStore.getInstance());
-            ProxyUtils.initProxy();
+            initProxy();
             initializeConfig();
             initializeTelemetry();
             AzureMessager.setDefaultMessager(new IntellijAzureMessager());
             IntellijAzureActionManager.register();
-            SchedulerProviderFactory.getInstance().init(new AppSchedulerProvider());
             CommandUtils.setEnv(EnvironmentUtil.getEnvironmentMap());
             // workaround fixes for web app on linux run configuration
             AzureDockerSupportConfigurationType.registerConfigurationFactory("Web App for Containers", DeprecatedWebAppOnLinuxDeployConfigurationFactory::new);
@@ -148,13 +149,10 @@ public class PluginLifecycleListener implements AppLifecycleListener {
     private static void initializeTelemetry() {
         final String oldVersion = AzureStoreManager.getInstance().getIdeStore().getProperty(TELEMETRY, TELEMETRY_PLUGIN_VERSION);
         if (StringUtils.isBlank(oldVersion)) {
-            AppInsightsClient.createByType(AppInsightsClient.EventType.Plugin, "", AppInsightsConstants.Install, null, true);
             EventUtil.logEvent(EventType.info, SYSTEM, PLUGIN_INSTALL, null, null);
         } else if (StringUtils.isNotBlank(oldVersion) && !com.microsoft.azure.toolkit.intellij.common.CommonConst.PLUGIN_VERSION.equalsIgnoreCase(oldVersion)) {
-            AppInsightsClient.createByType(AppInsightsClient.EventType.Plugin, "", AppInsightsConstants.Upgrade, null, true);
             EventUtil.logEvent(EventType.info, SYSTEM, PLUGIN_UPGRADE, null, null);
         }
-        AppInsightsClient.createByType(AppInsightsClient.EventType.Plugin, "", AppInsightsConstants.Load, null, true);
         EventUtil.logEvent(EventType.info, SYSTEM, PLUGIN_LOAD, null, null);
         if (StringUtils.isNotBlank(Azure.az().config().getProxySource())) {
             final Map<String, String> map = Optional.ofNullable(AzureTelemeter.getCommonProperties()).map(HashMap::new).orElse(new HashMap<>());
@@ -163,7 +161,7 @@ public class PluginLifecycleListener implements AppLifecycleListener {
         }
     }
 
-    public static void initializeConfig() {
+    private static void initializeConfig() {
         String installId = AzureStoreManager.getInstance().getIdeStore().getProperty(null, TELEMETRY_INSTALLATION_ID);
 
         if (StringUtils.isBlank(installId) || !InstallationIdUtils.isValidHashMac(installId)) {
@@ -174,9 +172,60 @@ public class PluginLifecycleListener implements AppLifecycleListener {
         }
 
         AzureConfigInitializer.initialize(installId, "Azure Toolkit for IntelliJ", CommonConst.PLUGIN_VERSION);
-        CommonSettings.setUserAgent(Azure.az().config().getUserAgent());
         if (StringUtils.isNotBlank(Azure.az().config().getCloud())) {
             Azure.az(AzureCloud.class).setByName(Azure.az().config().getCloud());
         }
+    }
+
+    private static Mono<String> checkAzure(AzureEnvironment env) {
+        final List<String> urls = new ArrayList<>();
+        urls.add("https://www.microsoft.com");
+        urls.add(env.getActiveDirectoryEndpoint());
+        urls.add(env.getManagementEndpoint());
+
+        return Flux.fromIterable(urls).map(PluginLifecycleListener::getDomainName)
+            .map(PluginLifecycleListener::isHostAvailable).filter(StringUtils::isNotBlank)
+            .onErrorContinue((throwable, o) -> {
+                System.out.println("Cannot check host for:" + o);
+            })
+            .collectList().map(res -> StringUtils.join(res, ";"));
+    }
+
+    @SneakyThrows
+    private static String getDomainName(String url) {
+        final URI uri = new URI(url);
+        return uri.getHost();
+    }
+
+    private static String isHostAvailable(String hostName) {
+        try (final Socket socket = new Socket()) {
+            final InetSocketAddress socketAddress = new InetSocketAddress(hostName, 443);
+            socket.connect(socketAddress, 2000);
+            return hostName;
+        } catch (final IOException e) {
+            return StringUtils.EMPTY;
+        }
+    }
+
+    private static void initProxy() {
+        final HttpConfigurable instance = HttpConfigurable.getInstance();
+        if (instance != null && instance.USE_HTTP_PROXY) {
+            final ProxyInfo proxy = ProxyInfo.builder()
+                .source("intellij")
+                .host(instance.PROXY_HOST)
+                .port(instance.PROXY_PORT)
+                .username(instance.getProxyLogin())
+                .password(instance.getPlainProxyPassword())
+                .build();
+            Azure.az().config().setProxyInfo(proxy);
+            ProxyManager.getInstance().applyProxy();
+        }
+        setSslContext();
+    }
+
+    private static void setSslContext() {
+        final CertificateManager certificateManager = CertificateManager.getInstance();
+        Azure.az().config().setSslContext(certificateManager.getSslContext());
+        HttpsURLConnection.setDefaultSSLSocketFactory(certificateManager.getSslContext().getSocketFactory());
     }
 }

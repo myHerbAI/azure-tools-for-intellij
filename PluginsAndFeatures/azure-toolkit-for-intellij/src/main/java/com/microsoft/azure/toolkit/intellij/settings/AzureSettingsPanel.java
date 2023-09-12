@@ -34,7 +34,6 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.legacy.function.FunctionCoreToolsCombobox;
-import com.microsoft.azuretools.authmanage.CommonSettings;
 import com.microsoft.azure.toolkit.ide.common.auth.IdeAzureAccount;
 import com.microsoft.azuretools.telemetrywrapper.EventUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -261,7 +260,6 @@ public class AzureSettingsPanel {
         this.originalConfig.setAzuritePath(newConfig.getAzuritePath());
         this.originalConfig.setAzuriteWorkspace(newConfig.getAzuriteWorkspace());
         this.originalConfig.setEnableLeaseMode(newConfig.getEnableLeaseMode());
-        CommonSettings.setUserAgent(newConfig.getUserAgent());
 
         if (StringUtils.isNotBlank(newConfig.getCloud())) {
             Azure.az(AzureCloud.class).setByName(newConfig.getCloud());
