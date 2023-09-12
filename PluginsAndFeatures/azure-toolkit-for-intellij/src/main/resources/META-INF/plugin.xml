@@ -83,17 +83,17 @@
   <depends>com.intellij.modules.lang</depends>
   -->
   <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
-    <actions implementation="com.microsoft.azure.toolkit.intellij.common.action.IntellijCommonActionsContributor"/>
+    <actions implementation="com.microsoft.azure.toolkit.intellij.feedback.IntellijCommonActionsContributor"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
     <applicationConfigurable parentId="tools" displayName="Azure"
-                         id="com.microsoft.azure.toolkit.intellij.settings.AzureSettingsConfigurable"
-                         provider="com.microsoft.azure.toolkit.intellij.settings.AzureSettingsConfigurableProvider"/>
+                             id="com.microsoft.azure.toolkit.intellij.settings.AzureSettingsConfigurable"
+                             provider="com.microsoft.azure.toolkit.intellij.settings.AzureSettingsConfigurableProvider"/>
     <projectConfigurable parentId="root" instance="com.microsoft.azure.toolkit.intellij.settings.DeprecatedAzureSettingsConfigurable"
                          id="com.microsoft.azure.toolkit.intellij.settings.DeprecatedAzureSettingsConfigurable" displayName="Microsoft Tools"/>
 
-    <errorHandler implementation="com.microsoft.intellij.feedback.MSErrorReportHandler" />
+    <errorHandler implementation="com.microsfot.azure.toolkit.intellij.feedback.MSErrorReportHandler"/>
   </extensions>
 
   <applicationListeners>
@@ -101,8 +101,9 @@
   </applicationListeners>
 
   <actions>
-    <action class="com.microsoft.azure.toolkit.intellij.common.action.NewCustomerIssueFeedbackAction" id="AzureToolkit.GithubIssue" text="Report an Issue" />
-    <action class="com.microsoft.azure.toolkit.intellij.common.action.NewFeatureRequestFeedbackAction" id="AzureToolkit.FeatureRequest" text="Request a Feature" />
+    <action class="com.microsoft.azure.toolkit.intellij.feedback.NewCustomerIssueFeedbackAction" id="AzureToolkit.GithubIssue" text="Report an Issue"/>
+    <action class="com.microsoft.azure.toolkit.intellij.feedback.NewFeatureRequestFeedbackAction" id="AzureToolkit.FeatureRequest"
+            text="Request a Feature"/>
 
     <group id="AzurePopupGroup" text="Azure" description="Azure" icon="/icons/Common/Azure.svg" popup="true">
       <reference ref="Connector.ShowAzureNode"/>
