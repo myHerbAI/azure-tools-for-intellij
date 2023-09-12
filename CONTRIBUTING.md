@@ -1,11 +1,10 @@
 ## Azure Toolkit for Rider
 ### Prerequisites
 - Install [Corretto JDK 8](https://docs.aws.amazon.com/corretto/latest/corretto-8-ug/downloads-list.html)
-- Install [Corretto JDK 11](https://docs.aws.amazon.com/corretto/latest/corretto-11-ug/downloads-list.html)
+- Install [Corretto JDK 17](https://docs.aws.amazon.com/corretto/latest/corretto-17-ug/downloads-list.html)
 
 #### Windows
-- Make sure to install [Visual Studio 2010 C++ Redistributable](https://learn.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?
-  view=msvc-170#visual-studio-2010-vc-100-sp1-no-longer-supported).
+- Make sure to install [Visual Studio 2010 C++ Redistributable](https://learn.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2010-vc-100-sp1-no-longer-supported).
 
   Otherwise, you'll get errors related to exit code -1073741515 during the Utils project installation.
 
@@ -22,45 +21,18 @@
     $ git clone https://github.com/JetBrains/azure-tools-for-intellij.git
     $ cd azure-tools-for-intellij
     ```
-* **Using JDK 11**, run the following command under the project base path:
+* **Using JDK 17**, run the following command under the project base path:
     ```
-    $ ./mvnw clean install -f Utils/pom.xml
+    $ ./mvnw clean install -DskipTests -f Utils/pom.xml
     ```
-  * If you have problems, make sure `JAVA_HOME` environment variable points to `<JDK11>/bin`.
-  * If you don't want to run tests, you can use the `-DskipTests` flag.
-* **Using JDK 11**, use Gradle to build the plugin
+  * If you have problems, make sure `JAVA_HOME` environment variable points to `<JDK17>/bin`.
+
+* **Using JDK 17**, use Gradle to build the plugin
     ```
-    $ ./gradlew -b PluginsAndFeatures/azure-toolkit-for-intellij/build.gradle buildPlugin
+    $ ./gradlew -b PluginsAndFeatures/azure-toolkit-for-rider/build.gradle buildPlugin
     ```
-    You can find the outputs under ```PluginsAndFeatures/azure-toolkit-for-intellij/build/distributions```
+    You can find the outputs under ```PluginsAndFeatures/azure-toolkit-for-rider/build/distributions```
     
 ### Run/Debug
-* Open IntelliJ, open PluginsAndFeatures/azure-toolkit-for-intellij.
-* Run/Debug the plugin by triggering the Gradle task as following:
-    ![intellij_run_debug](docs/resources/intellij_run_debug.png)
-
-## Azure Toolkit for Eclipse
-### Building
-* Clone the repository with HTTPS or SSH:
-    ```
-    $ git clone https://github.com/Microsoft/azure-tools-for-java.git
-    $ cd azure-tools-for-java
-    ```
-* Run the following command under the project base path:
-    ```
-    $ mvn clean install -f Utils/pom.xml
-    $ mvn clean install -f PluginsAndFeatures/AddLibrary/AzureLibraries/pom.xml
-    ```
-* Use Maven to build the plugin
-    ```
-    mvn clean install -f PluginsAndFeatures/azure-toolkit-for-eclipse/pom.xml
-    ```
-    You can find the outputs under ```PluginsAndFeatures/azure-toolkit-for-eclipse/WindowsAzurePlugin4EJ/target```
-
-### Run/Debug
-* Open Eclipse, select ```import > Maven > Existing Maven Projects```:
-    ![eclipse_import_step1](docs/resources/eclipse_import_step1.png)
-* Import all the modules under ```PluginsAndFeatures/azure-toolkit-for-eclipse```:
-    ![eclipse_import_step2](docs/resources/eclipse_import_step2.png)
-* New a run/debug configuration and click Run/Debug:
-    ![eclipse_debug](docs/resources/eclipse_debug.png)
+* Open IntelliJ, open `PluginsAndFeatures/azure-toolkit-for-rider`.
+* Run/Debug the plugin by using `Run Plugin` run configuration.
