@@ -82,9 +82,6 @@
   <!-- uncomment to enable plugin in all products
   <depends>com.intellij.modules.lang</depends>
   -->
-  <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
-    <actions implementation="com.microsoft.azure.toolkit.intellij.feedback.IntellijCommonActionsContributor"/>
-  </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
     <applicationConfigurable parentId="tools" displayName="Azure"
@@ -92,19 +89,17 @@
                              provider="com.microsoft.azure.toolkit.intellij.settings.AzureSettingsConfigurableProvider"/>
     <projectConfigurable parentId="root" instance="com.microsoft.azure.toolkit.intellij.settings.DeprecatedAzureSettingsConfigurable"
                          id="com.microsoft.azure.toolkit.intellij.settings.DeprecatedAzureSettingsConfigurable" displayName="Microsoft Tools"/>
-
-    <errorHandler implementation="com.microsfot.azure.toolkit.intellij.feedback.MSErrorReportHandler"/>
   </extensions>
 
   <applicationListeners>
     <listener class="com.microsoft.azure.toolkit.intellij.base.PluginLifecycleListener" topic="com.intellij.ide.AppLifecycleListener"/>
   </applicationListeners>
 
-  <actions>
-    <action class="com.microsoft.azure.toolkit.intellij.feedback.NewCustomerIssueFeedbackAction" id="AzureToolkit.GithubIssue" text="Report an Issue"/>
-    <action class="com.microsoft.azure.toolkit.intellij.feedback.NewFeatureRequestFeedbackAction" id="AzureToolkit.FeatureRequest"
-            text="Request a Feature"/>
+  <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
+    <actions implementation="com.microsoft.azure.toolkit.intellij.settings.IntellijCommonActionsContributor"/>
+  </extensions>
 
+  <actions>
     <group id="AzurePopupGroup" text="Azure" description="Azure" icon="/icons/Common/Azure.svg" popup="true">
       <reference ref="Connector.ShowAzureNode"/>
       <reference ref="AzureToolkit.ConnectToAzureResource"/>
