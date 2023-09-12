@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @ToString(onlyExplicitlyIncluded = true)
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public abstract class AbstractProjectNode<T> extends ProjectViewNode<T> implements IAzureFacetNode {
     private final long createdTime;
     private long disposedTime;
