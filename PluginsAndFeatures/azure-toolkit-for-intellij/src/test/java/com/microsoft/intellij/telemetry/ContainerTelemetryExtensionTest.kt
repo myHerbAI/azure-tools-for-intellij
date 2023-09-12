@@ -57,7 +57,8 @@ class FormBuilderPanel {
         comboBox.name = "storageContainerUICombo"
         button.name = "storageContainerUIButton"
     }
-    private val linkClusterHyperLink = JXHyperLinkWithUri().apply { text = "Link the cluster"; name = "linkClusterLink" }
+    private val linkClusterHyperLink = JXHyperLinkWithUri()
+        .apply { text = "Link the cluster"; name = "linkClusterLink" }
     private val extendedPropertiesField = JsonEnvPropertiesField().apply { name = "extendedPropertiesField" }
     private val enableRemoteDebugCheckBox = JCheckBox("Enable remote debug", true).apply { name = "enableRemoteDebugCheckBox" }
     private val helpButton = InplaceButton(IconButton("Help", AllIcons.Actions.Help)) {}.apply { name = "remoteDebugHelpButton" }

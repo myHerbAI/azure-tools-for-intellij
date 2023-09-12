@@ -32,6 +32,7 @@
     <modules>
         <module>azure-toolkit-ide-hdinsight-spark-lib</module>
         <module>azure-toolkit-ide-synapse-spark-lib</module>
+        <module>azure-toolkit-ide-cosmos-spark-lib</module>
     </modules>
 
     <dependencyManagement>

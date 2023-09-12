@@ -14,7 +14,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.util.EnvironmentUtil;
 import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.exception.ExceptionUtils;
-import com.microsoft.azure.cosmosspark.CosmosSparkClusterOpsCtrl;
+//import com.microsoft.azure.cosmosspark.CosmosSparkClusterOpsCtrl;
 import com.microsoft.azure.cosmosspark.serverexplore.cosmossparknode.CosmosSparkClusterOps;
 import com.microsoft.azure.hdinsight.common.HDInsightHelperImpl;
 import com.microsoft.azure.hdinsight.common.HDInsightLoader;
@@ -28,7 +28,6 @@ import com.microsoft.azure.toolkit.intellij.common.settings.IntellijStore;
 import com.microsoft.azure.toolkit.intellij.common.task.IntellijAzureTaskManager;
 import com.microsoft.azure.toolkit.intellij.containerregistry.AzureDockerSupportConfigurationType;
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapponlinux.DeprecatedWebAppOnLinuxDeployConfigurationFactory;
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapponlinux.WebAppOnLinuxDeployConfigurationFactory;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -150,8 +149,8 @@ public class AzureActionsListener implements AppLifecycleListener, PluginCompone
             }
             if (!AzurePlugin.IS_ANDROID_STUDIO) {
                 // enable spark serverless node subscribe actions
-                ServiceManager.setServiceProvider(CosmosSparkClusterOpsCtrl.class,
-                    new CosmosSparkClusterOpsCtrl(CosmosSparkClusterOps.getInstance()));
+//                ServiceManager.setServiceProvider(CosmosSparkClusterOpsCtrl.class,
+//                    new CosmosSparkClusterOpsCtrl(CosmosSparkClusterOps.getInstance()));
 
                 ServiceManager.setServiceProvider(TrustStrategy.class, IdeaTrustStrategy.INSTANCE);
                 initAuthManage();

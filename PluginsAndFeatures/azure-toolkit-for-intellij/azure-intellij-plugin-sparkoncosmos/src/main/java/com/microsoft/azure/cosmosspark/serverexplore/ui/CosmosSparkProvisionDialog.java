@@ -27,10 +27,11 @@ import com.microsoft.azure.hdinsight.common.mvc.SettableControl;
 import com.microsoft.azure.hdinsight.sdk.common.azure.serverless.AzureSparkServerlessAccount;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.azure.toolkit.lib.sparkoncosmos.SparkOnCosmosADLAccountNode;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
-import com.microsoft.intellij.rxjava.IdeaSchedulers;
-import com.microsoft.intellij.ui.components.JsonEnvPropertiesField;
+import com.microsoft.azure.rxjava.IdeaSchedulers;
+import com.microsoft.azure.ui.components.JsonEnvPropertiesField;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -51,8 +52,7 @@ public class CosmosSparkProvisionDialog extends DialogWrapper
         implements SettableControl<CosmosSparkClusterProvisionSettingsModel>, ILogger {
     @NotNull
     private final CosmosSparkClusterProvisionCtrlProvider ctrlProvider;
-    @NotNull
-    private final CosmosSparkADLAccountNode adlAccountNode;
+    private final Object adlAccountNode;
 
     protected TextWithErrorHintedField clusterNameField;
     protected JTextField adlAccountField;
@@ -178,6 +178,86 @@ public class CosmosSparkProvisionDialog extends DialogWrapper
         refreshButton.setIcon(AllIcons.Actions.Refresh);
     }
 
+    public CosmosSparkProvisionDialog(@NotNull final Project project,
+                                      @NotNull final SparkOnCosmosADLAccountNode node,
+                                      @NotNull final AzureSparkServerlessAccount account) {
+        // TODO: refactor the design of getProject Method for Node Class
+        // TODO: get project through ProjectUtils.theProject()
+        super(project, true);
+        this.ctrlProvider = new CosmosSparkClusterProvisionCtrlProvider(
+                this, new IdeaSchedulers(project), account);
+        this.adlAccountNode = node;
+
+        init();
+        this.setTitle("Provision Spark Cluster");
+        this.setModal(true);
+
+        // make error message widget hideable
+        errorMessagePanel.setBorder(BorderFactory.createEmptyBorder());
+        errorMessageDecorator = new HideableDecorator(errorMessagePanelHolder, "Log", true);
+        errorMessageDecorator.setContentComponent(errorMessagePanel);
+        errorMessageDecorator.setOn(false);
+
+        // add console view panel to error message panel
+        consoleViewPanel = new ConsoleViewImpl(project, false);
+        errorMessagePanel.add(consoleViewPanel.getComponent(), BorderLayout.CENTER);
+        final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(
+                "provisionLog",
+                new DefaultActionGroup(consoleViewPanel.createConsoleActions()),
+                false);
+        errorMessagePanel.add(toolbar.getComponent(), BorderLayout.WEST);
+
+        this.jobQueueHyperLink.setURI(account.getJobManagementURI());
+
+        this.enableClusterNameUniquenessCheck();
+        // We can determine the ADL account since we provision on a specific ADL account Node
+        this.adlAccountField.setText(account.getName());
+        this.storageRootPathLabel.setText(Optional.ofNullable(account.getStorageRootPath()).orElse(""));
+
+        refreshButton.addActionListener(event -> ctrlProvider.updateAvailableAU().subscribe(
+                data -> {
+                },
+                err -> log().warn("Update available AU in provision cluster dialog get exceptions. Error: "
+                        + ExceptionUtils.getStackTrace(err))));
+
+        allAURelatedFields.forEach(comp -> comp.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(final FocusEvent e) {
+                if (isAllAURelatedFieldsLegal()) {
+                    ctrlProvider.updateCalculatedAU().subscribe(
+                            data -> {
+                            },
+                            err -> log().warn(
+                                    "Update AU Required in provision cluster dialog get exceptions. Error: "
+                                            + ExceptionUtils.getStackTrace(err)));
+                }
+                super.focusLost(e);
+            }
+        }));
+        // These action listeners promise that Ok button can only be clicked until all the fields are legal
+        Stream.concat(allTextFields.stream(), allAURelatedFields.stream()).forEach(
+                comp -> comp.getDocument().addDocumentListener(new DocumentAdapter() {
+                    @Override
+                    protected void textChanged(@NotNull final DocumentEvent e) {
+                        getOKAction().setEnabled(isAllFieldsLegal());
+                    }
+                }));
+        getOKAction().setEnabled(false);
+        this.getWindow().addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowOpened(final WindowEvent e) {
+                ctrlProvider.updateAvailableAUAndTotalAU().subscribe(
+                        data -> {
+                        },
+                        err -> log().warn("Update available AU, total AU and calculated AU in provision cluster dialog"
+                                + " get exceptions. Error: " + ExceptionUtils.getStackTrace(err)));
+                super.windowOpened(e);
+            }
+        });
+        refreshButton.setIcon(AllIcons.Actions.Refresh);
+    }
+
+
     @Override
     protected void dispose() {
         Disposer.dispose(consoleViewPanel);
@@ -272,7 +352,13 @@ public class CosmosSparkProvisionDialog extends DialogWrapper
                 .validateAndProvision()
                 .doOnEach(notification -> getOKAction().setEnabled(true))
                 .subscribe(toUpdate -> {
-                    adlAccountNode.load(false);
+                    if(adlAccountNode instanceof CosmosSparkADLAccountNode) {
+                        CosmosSparkADLAccountNode node = (CosmosSparkADLAccountNode)adlAccountNode;
+                        node.load(false);
+                    } else {
+                        SparkOnCosmosADLAccountNode node = (SparkOnCosmosADLAccountNode)adlAccountNode;
+                        node.refresh();
+                    }
                     super.doOKAction();
                 }, err -> log().warn("Error provision a cluster. " + err.toString()));
     }
