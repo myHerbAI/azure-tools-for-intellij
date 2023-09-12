@@ -22,9 +22,8 @@
 
 package com.microsoft.azuretools.azureexplorer.views;
 
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azuretools.core.mvp.ui.rediscache.RedisCacheProperty;
-import com.microsoft.tooling.msservices.serviceexplorer.azure.rediscache.RedisPropertyMvpView;
-import com.microsoft.tooling.msservices.serviceexplorer.azure.rediscache.RedisPropertyViewPresenter;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -49,7 +48,7 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 
-public class RedisPropertyView extends ViewPart implements RedisPropertyMvpView {
+public class RedisPropertyView extends ViewPart {
 
     public static final String ID = "com.microsoft.azuretools.azureexplorer.views.RedisPropertyView";
 
@@ -73,8 +72,6 @@ public class RedisPropertyView extends ViewPart implements RedisPropertyMvpView 
     private static final String COPY_TO_CLIPBOARD = "<a>Copy to Clipboard</a>";
     private static final String COPY_FAIL = "Cannot copy to system clipboard.";
 
-    private final RedisPropertyViewPresenter<RedisPropertyView> redisPropertyViewPresenter;
-
     //widget
     private ScrolledComposite scrolledComposite;
     private Composite container;
@@ -95,8 +92,6 @@ public class RedisPropertyView extends ViewPart implements RedisPropertyMvpView 
     private String secondaryKey = "";
 
     public RedisPropertyView() {
-        this.redisPropertyViewPresenter = new RedisPropertyViewPresenter<RedisPropertyView>();
-        this.redisPropertyViewPresenter.onAttachView(this);
     }
 
     /**
@@ -220,18 +215,7 @@ public class RedisPropertyView extends ViewPart implements RedisPropertyMvpView 
         });
     }
 
-    @Override
-    public void dispose() {
-        this.redisPropertyViewPresenter.onDetachView();
-        super.dispose();
-    }
 
-    @Override
-    public void onReadProperty(String sid, String id) {
-        redisPropertyViewPresenter.onGetRedisProperty(sid, id);
-    }
-
-    @Override
     public void showProperty(RedisCacheProperty property) {
         primaryKey = property.getPrimaryKey();
         secondaryKey = property.getSecondaryKey();
@@ -274,7 +258,7 @@ public class RedisPropertyView extends ViewPart implements RedisPropertyMvpView 
         StringSelection stringSelection = new StringSelection(key);
         Toolkit toolKit = Toolkit.getDefaultToolkit();
         if (toolKit == null) {
-            onError(COPY_FAIL);
+        	AzureMessager.getMessager().error(COPY_FAIL);
             return;
         }
         Clipboard clipboard = toolKit.getSystemClipboard();

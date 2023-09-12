@@ -46,7 +46,6 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azuretools.azureexplorer.helpers.EditorType;
 
@@ -66,8 +65,8 @@ public class EclipseWebAppActionsContributor implements IActionsContributor {
 
 	@Override
 	public void registerHandlers(AzureActionManager am) {
-		final BiPredicate<AzResourceBase, Object> isWebApp = (r, e) -> r instanceof WebApp;
-		final BiConsumer<AzResourceBase, Object> openWebAppPropertyViewHandler = (c, e) -> AzureTaskManager
+		final BiPredicate<AzResource, Object> isWebApp = (r, e) -> r instanceof WebApp;
+		final BiConsumer<AzResource, Object> openWebAppPropertyViewHandler = (c, e) -> AzureTaskManager
 				.getInstance().runLater(() -> {
 					IWorkbench workbench = PlatformUI.getWorkbench();
 					AppServicePropertyEditorInput input = new AppServicePropertyEditorInput(c.getId());
@@ -76,8 +75,8 @@ public class EclipseWebAppActionsContributor implements IActionsContributor {
 				});
 		am.registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES, isWebApp, openWebAppPropertyViewHandler);
 
-		final BiPredicate<AzResourceBase, Object> isWebAppSlot = (r, e) -> r instanceof WebAppDeploymentSlot;
-		final BiConsumer<AzResourceBase, Object> openWebAppSlotPropertyViewHandler = (c, e) -> AzureTaskManager
+		final BiPredicate<AzResource, Object> isWebAppSlot = (r, e) -> r instanceof WebAppDeploymentSlot;
+		final BiConsumer<AzResource, Object> openWebAppSlotPropertyViewHandler = (c, e) -> AzureTaskManager
 				.getInstance().runLater(() -> {
 					IWorkbench workbench = PlatformUI.getWorkbench();
 					AppServicePropertyEditorInput input = new AppServicePropertyEditorInput(c.getId());

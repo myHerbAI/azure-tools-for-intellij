@@ -12,9 +12,11 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudApp;
+import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppDraft;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudAppInstance;
 import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudDeployment;
 
@@ -28,8 +30,8 @@ public class SpringCloudActionsContributor implements IActionsContributor {
     public static final String SERVICE_ACTIONS = "actions.springcloud.service";
     public static final String APP_INSTANCE_ACTIONS = "actions.springcould.appInstance";
     public static final String APP_INSTANCE_MODULE_ACTIONS = "actions.springcould.app_instance_module";
-    public static final Action.Id<SpringCloudApp> OPEN_PUBLIC_URL = Action.Id.of("user/springcloud.open_public_url.app");
-    public static final Action.Id<SpringCloudApp> OPEN_TEST_URL = Action.Id.of("user/springcloud.open_test_url.app");
+    public static final Action.Id<SpringCloudApp> OPEN_PUBLIC_URL = SpringCloudApp.OPEN_PUBLIC_URL;
+    public static final Action.Id<SpringCloudApp> OPEN_TEST_URL = SpringCloudApp.OPEN_TEST_URL;
     public static final Action.Id<SpringCloudApp> STREAM_LOG_APP = Action.Id.of("user/springcloud.open_stream_log.app");
     public static final Action.Id<SpringCloudAppInstance> STREAM_LOG = Action.Id.of("user/springcloud.open_stream_log.instance");
     public static final Action.Id<SpringCloudApp> ENABLE_REMOTE_DEBUGGING = Action.Id.of("user/springcloud.enable_remote_debugging.app");
@@ -42,12 +44,22 @@ public class SpringCloudActionsContributor implements IActionsContributor {
     public void registerActions(AzureActionManager am) {
         new Action<>(OPEN_PUBLIC_URL)
             .visibleWhen(s -> s instanceof SpringCloudApp)
-            .enableWhen(s -> s.getFormalStatus().isRunning() && s.isPublicEndpointEnabled())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .withLabel("Access Public Endpoint")
             .withIcon(AzureIcons.Action.BROWSER.getIconPath())
             .withIdParam(AbstractAzResource::getName)
             .withShortcut("control alt P")
-            .withHandler(s -> am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(s.getApplicationUrl()))
+            .withHandler(s -> {
+                final String msg = String.format("App \"%s\" is not publicly accessible. Do you want to assign it a public endpoint?", s.getName());
+                if (!s.isPublicEndpointEnabled() && AzureMessager.getMessager().confirm(msg)) {
+                    final SpringCloudAppDraft update = (SpringCloudAppDraft) s.update();
+                    update.setPublicEndpointEnabled(true);
+                    update.commit();
+                }
+                if (s.isPublicEndpointEnabled()) {
+                    am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(s.getApplicationUrl());
+                }
+            })
             .register(am);
 
         new Action<>(OPEN_TEST_URL)
@@ -119,6 +131,8 @@ public class SpringCloudActionsContributor implements IActionsContributor {
     public void registerGroups(AzureActionManager am) {
         final ActionGroup serviceActionGroup = new ActionGroup(
             ResourceCommonActionsContributor.REFRESH,
+            "---",
+            ResourceCommonActionsContributor.GETTING_STARTED,
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
             "---",
             ResourceCommonActionsContributor.CREATE
@@ -163,7 +177,7 @@ public class SpringCloudActionsContributor implements IActionsContributor {
         am.registerGroup(APP_ACTIONS, appActionGroup);
 
         final ActionGroup appInstanceModuleGroup = new ActionGroup(
-                ResourceCommonActionsContributor.REFRESH
+            ResourceCommonActionsContributor.REFRESH
         );
         am.registerGroup(APP_INSTANCE_MODULE_ACTIONS, appInstanceModuleGroup);
 

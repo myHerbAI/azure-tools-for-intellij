@@ -43,35 +43,32 @@ public class SparkClusterModule extends AbstractAzResourceModule<SparkClusterNod
     @Nonnull
     @AzureOperation(name = "resource.load_resources_in_azure.type", params = {"this.getResourceTypeName()"})
     protected Stream<Cluster> loadResourcesFromAzure() {
-        //log.debug("[{}]:loadResourcesFromAzure()", this.getName());
         return Optional.ofNullable( this.getClient()).map((c) -> {
-            if (JobViewManager.REGISTERED_JOBVIEW_MAP>=0)
-                    try {
-                        JobViewManager.REGISTERED_JOBVIEW_MAP = -1;
-                        ClusterManagerEx clusterManagerEx = ClusterManagerEx.getInstance();
-                        ImmutableList<IClusterDetail> clusterDetails = clusterManagerEx.getClusterDetails();
-                        for (IClusterDetail detail : clusterDetails) {
-                            JobViewManager.registerJovViewNode(detail.getName(), detail);
-                        }
-                    } finally {
-                        JobViewManager.REGISTERED_JOBVIEW_MAP = 1;
-                    }
-
+            // remote SDK request
             List<Cluster> sourceList = c.list().iterableByPage().iterator().next().getValue();
             List<Cluster> resultList = new ArrayList<Cluster>();
+            if(sourceList.size() == 0) {
+                return resultList.stream();
+            }
+
+            // local SDK request
+            ClusterManagerEx clusterManagerEx = ClusterManagerEx.getInstance();
+            ImmutableList<IClusterDetail> clusterDetails = clusterManagerEx.getClusterDetails();
+            for (IClusterDetail detail : clusterDetails) {
+                JobViewManager.registerJovViewNode(detail.getName(), detail);
+            }
 
             // Remove duplicate clusters that share the same cluster name
             List<IClusterDetail> additionalClusterDetails = ClusterManagerEx.getInstance().getAdditionalClusterDetails();
             HashSet<String> clusterIdSet = new HashSet<>();
+            for (IClusterDetail additionalCluster : additionalClusterDetails) {
+                clusterIdSet.add(additionalCluster.getName());
+            }
             for (Cluster cluster : sourceList) {
-                boolean isLinkedCluster = false;
-                for (IClusterDetail additionalCluster : additionalClusterDetails) {
-                    if (additionalCluster.getName().equals(cluster.name()))
-                        isLinkedCluster = true;
-                }
-                if ((!isLinkedCluster) && (clusterIdSet.add(cluster.id()) && isSparkCluster(cluster.properties().clusterDefinition().kind())))
+                if (clusterIdSet.add(cluster.id()) && isSparkCluster(cluster.properties().clusterDefinition().kind()))
                     resultList.add(cluster);
             }
+
             return resultList.stream();
         }).orElse(Stream.empty());
     }

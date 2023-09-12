@@ -20,7 +20,7 @@ public class RedisActionsContributor implements IActionsContributor {
 
     public static final String SERVICE_ACTIONS = "actions.redis.service";
     public static final String REDIS_ACTIONS = "actions.redis.instance";
-    public static final Action.Id<AzResource> OPEN_EXPLORER = Action.Id.of("user/redis.open_redis_explorer.redis");
+    public static final Action.Id<AzResource> OPEN_EXPLORER = RedisCache.OPEN_EXPLORER;
     public static final Action.Id<ResourceGroup> GROUP_CREATE_REDIS = Action.Id.of("user/redis.create_redis.group");
 
     @Override

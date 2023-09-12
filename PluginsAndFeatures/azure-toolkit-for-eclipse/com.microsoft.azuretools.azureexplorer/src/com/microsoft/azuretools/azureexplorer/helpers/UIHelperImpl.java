@@ -36,7 +36,6 @@ import com.microsoft.azuretools.telemetrywrapper.EventUtil;
 import com.microsoft.tooling.msservices.helpers.UIHelper;
 import com.microsoft.tooling.msservices.serviceexplorer.Node;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.container.ContainerRegistryNode;
-import com.microsoft.tooling.msservices.serviceexplorer.azure.rediscache.RedisCacheNode;
 
 public class UIHelperImpl implements UIHelper {
 
@@ -125,27 +124,6 @@ public class UIHelperImpl implements UIHelper {
     }
 
     @Override
-    public void openRedisPropertyView(RedisCacheNode node) {
-        EventUtil.executeWithLog(TelemetryConstants.REDIS, TelemetryConstants.REDIS_READPROP, (operation) -> {
-            String sid = node.getSubscriptionId();
-            String resId = node.getResourceId();
-            if (sid == null || resId == null) {
-                return;
-            }
-            openView(RedisPropertyView.ID, sid, resId);
-        });
-    }
-
-    @Override
-    public void openRedisExplorer(@NotNull RedisCacheNode node) {
-        IWorkbench workbench = PlatformUI.getWorkbench();
-        RedisExplorerEditorInput input = new RedisExplorerEditorInput(node.getSubscriptionId(),
-                node.getResourceId(), node.getName());
-        IEditorDescriptor descriptor = workbench.getEditorRegistry().findEditor(RedisExplorerEditor.ID);
-        openEditor(EditorType.REDIS_EXPLORER, input, descriptor);
-    }
-
-    @Override
     public void openContainerRegistryPropertyView(@NotNull ContainerRegistryNode node) {
         String sid = node.getSubscriptionId();
         String resId = node.getResourceId();
@@ -213,7 +191,6 @@ public class UIHelperImpl implements UIHelper {
                 case RedisPropertyView.ID:
                     final RedisPropertyView redisPropertyView = (RedisPropertyView) page.showView(RedisPropertyView.ID,
                             resId, IWorkbenchPage.VIEW_ACTIVATE);
-                    redisPropertyView.onReadProperty(sid, resId);
                     break;
                 default:
                     break;

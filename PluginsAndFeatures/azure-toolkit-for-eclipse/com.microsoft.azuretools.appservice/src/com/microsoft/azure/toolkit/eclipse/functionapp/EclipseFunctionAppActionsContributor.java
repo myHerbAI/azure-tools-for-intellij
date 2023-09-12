@@ -25,7 +25,6 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceBase;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azuretools.core.utils.PluginUtil;
@@ -54,8 +53,8 @@ public class EclipseFunctionAppActionsContributor implements IActionsContributor
                 .runLater(() -> CreateFunctionAppHandler.create());
         am.registerHandler(ResourceCommonActionsContributor.CREATE, createCondition, createHandler);
 
-        final BiPredicate<AzResourceBase, Object> isFunctionApp = (r, e) -> r instanceof FunctionApp;
-        final BiConsumer<AzResourceBase, Object> openWebAppPropertyViewHandler = (c, e) -> AzureTaskManager
+        final BiPredicate<AzResource, Object> isFunctionApp = (r, e) -> r instanceof FunctionApp;
+        final BiConsumer<AzResource, Object> openWebAppPropertyViewHandler = (c, e) -> AzureTaskManager
                 .getInstance().runLater(() -> {
                     IWorkbench workbench = PlatformUI.getWorkbench();
                     AppServicePropertyEditorInput input = new AppServicePropertyEditorInput(c.getId());
@@ -96,11 +95,11 @@ public class EclipseFunctionAppActionsContributor implements IActionsContributor
             if (StringUtils.equalsIgnoreCase(triggerType, "timertrigger")) {
                 functionApp.triggerFunction(entity.getName(), new Object());
             } else {
-                final String input = AzureTaskManager.getInstance().runAndWaitAsObservable(new AzureTask<>(() -> {
+                final String input = AzureTaskManager.getInstance().runAndWait(() -> {
                     final InputDialog inputDialog = new InputDialog(PluginUtil.getParentShell(), String.format("Trigger function %s", entity.getName()),
                             "Please set the input value: ", null, null);
                     return inputDialog.open() == Window.OK ? inputDialog.getValue() : null;
-                })).toBlocking().single();
+                }).join();
                 if (input != null) {
                     functionApp.triggerFunction(entity.getName(), new TriggerRequest(input));
                 }

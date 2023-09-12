@@ -3,6 +3,8 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.80.0](#3800)
+  - [3.79.1](#3791)
   - [3.79.0](#3790)
   - [3.78.1](#3781)
   - [3.78.0](#3780)
@@ -99,6 +101,25 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.8](#308)
   - [3.0.7](#307)
   - [3.0.6](#306)
+
+## 3.80.0
+### Added
+- Azure OpenAI (chat) playground for GTP* models.
+- Guidance (Getting started course) to try Azure OpenAI and its playground (chat) in IntelliJ IDEA.    
+- Azure OpenAI resource management.
+
+### Changed
+- some useful subsequent actions are added onto the resource creation/update success notifications.
+- newly added resources connections/deployments will be automatically highlighted in Project Explorer.
+
+### Fixed
+- Fix: reset/save doesn't show/enable when removing existing values of jvm options and env var in spring app properties editor.
+- Fix: the default runtime version of new spring apps doesn't match the version of current project/selected module.
+
+## 3.79.1
+### Fixed
+- Fix: Code navigation was not working for bicep files.
+- Fix: Textmate rendering was not functioning for bicep files in IntelliJ 2023.2.
 
 ## 3.79.0
 ### Added

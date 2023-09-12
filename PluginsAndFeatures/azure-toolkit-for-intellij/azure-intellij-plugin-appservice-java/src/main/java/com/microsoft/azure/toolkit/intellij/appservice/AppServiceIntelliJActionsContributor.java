@@ -20,6 +20,7 @@ import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.containerregistry.ContainerRegistryActionsContributor;
+import com.microsoft.azure.toolkit.ide.guidance.GuidanceViewManager;
 import com.microsoft.azure.toolkit.intellij.appservice.actions.AppServiceFileAction;
 import com.microsoft.azure.toolkit.intellij.appservice.actions.OpenAppServicePropertyViewAction;
 import com.microsoft.azure.toolkit.intellij.containerregistry.pushimage.PushImageAction;
@@ -50,6 +51,7 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzService;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
@@ -95,6 +97,11 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
 
     @Override
     public void registerHandlers(AzureActionManager am) {
+        am.registerHandler(ResourceCommonActionsContributor.GETTING_STARTED, (r, e) -> r instanceof AzureFunctions,
+                (AbstractAzService<?, ?> c, AnActionEvent e) -> GuidanceViewManager.getInstance().openCourseView(e.getProject(), "hello-function"));
+        am.registerHandler(ResourceCommonActionsContributor.GETTING_STARTED, (r, e) -> r instanceof AzureWebApp,
+                (AbstractAzService<?, ?> c, AnActionEvent e) -> GuidanceViewManager.getInstance().openCourseView(e.getProject(), "hello-webapp"));
+
         final BiPredicate<AppServiceAppBase<?, ?, ?>, AnActionEvent> isAppService = (r, e) -> r instanceof AppServiceAppBase<?, ?, ?>;
         final BiPredicate<AppServiceAppBase<?, ?, ?>, AnActionEvent> nonLinuxFunction = (r, e) -> Objects.nonNull(r) &&
             !(r instanceof FunctionApp && Optional.ofNullable(r.getRuntime()).map(Runtime::isLinux).orElse(Boolean.FALSE));

@@ -43,6 +43,7 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.CommandUtils;
 import com.microsoft.azure.toolkit.lib.storage.AzuriteStorageAccount;
 import org.apache.commons.io.FilenameUtils;
@@ -109,7 +110,10 @@ public class AzuriteService {
             consoleView.attachToProcess(processHandler);
             this.processHandler.startNotify();
         } catch (final ExecutionException e) {
-            AzureMessager.getMessager().error("Failed to run azurite, " + ExceptionUtils.getRootCauseMessage(e), (Object[]) getAzuriteFailureActions(project));
+            AzureTaskManager.getInstance().runInBackground("Diagnose Azurite issues", () -> {
+                final Action<?>[] azuriteFailureActions = getAzuriteFailureActions(project);
+                AzureMessager.getMessager().error("Failed to run azurite, " + ExceptionUtils.getRootCauseMessage(e), azuriteFailureActions);
+            });
             return false;
         }
         return true;

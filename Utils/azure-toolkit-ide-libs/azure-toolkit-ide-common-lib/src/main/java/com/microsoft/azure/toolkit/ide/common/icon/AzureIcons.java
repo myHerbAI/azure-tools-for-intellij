@@ -30,6 +30,8 @@ public final class AzureIcons {
         public static final AzureIcon AZURE_MONITOR_NEW = AzureIcon.builder().iconPath("icons/Common/log_analytics_workspace_bluedot.svg").build();
         public static final AzureIcon VARIABLE = AzureIcon.builder().iconPath("icons/Common/variable.svg").build();
         public static final AzureIcon HIDE = AzureIcon.builder().iconPath("icons/Common/hide").build();
+        public static final AzureIcon CHATBOT = AzureIcon.builder().iconPath("/icons/Common/chatbot.svg").build();
+        public static final AzureIcon USER = AzureIcon.builder().iconPath("/icons/Common/user.svg").build();
     }
 
     public static final class Action {
@@ -61,6 +63,7 @@ public final class AzureIcons {
         public static final AzureIcon ATTACH_DEBUGGER = AzureIcon.builder().iconPath("icons/action/attachDebugger").build();
         public static final AzureIcon REMOTE_DEBUG = AzureIcon.builder().iconPath("icons/action/remoteDebug").build();
         public static final AzureIcon SEARCH = AzureIcon.builder().iconPath("icons/action/search").build();
+        public static final AzureIcon SEND = AzureIcon.builder().iconPath("icons/action/send.svg").build();
     }
 
     public static final class MySQL {
@@ -215,7 +218,7 @@ public final class AzureIcons {
 
     public static final class CognitiveServices {
         public static final AzureIcon MODULE = AzureIcon.builder().iconPath("/icons/Microsoft.CognitiveServices/default.svg").build();
-        public static final AzureIcon PLAYGROUND = AzureIcon.builder().iconPath("/icons/Microsoft.CognitiveServices/Chat.svg").build();
+        public static final AzureIcon PLAYGROUND = AzureIcon.builder().iconPath("/icons/Microsoft.CognitiveServices/chat.svg").build();
     }
 
     public static final class Cosmos {

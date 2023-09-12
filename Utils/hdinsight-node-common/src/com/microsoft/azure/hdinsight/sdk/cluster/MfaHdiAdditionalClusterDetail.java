@@ -8,7 +8,7 @@ package com.microsoft.azure.hdinsight.sdk.cluster;
 import org.apache.commons.lang3.StringUtils;
 
 import com.microsoft.azure.hdinsight.common.logger.ILogger;
-import com.microsoft.azure.hdinsight.sdk.storage.HDStorageAccount;
+import com.microsoft.azure.hdinsight.sdk.storage.implementation.HDStorageAccount;
 import com.microsoft.azure.hdinsight.spark.common.SparkBatchSubmission;
 import com.microsoft.azure.hdinsight.spark.common.SparkSubmitStorageTypeOptionsForCluster;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;

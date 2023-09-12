@@ -50,18 +50,18 @@ public class StorageActionsContributor implements IActionsContributor {
     public static final Action.Id<AzuriteStorageAccount> STOP_AZURITE = Action.Id.of("user/storage.stop_azurite");
     public static final Action.Id<AzuriteStorageAccount> COPY_CONNECTION_STRING_AZURITE = Action.Id.of("user/storage.copy_connection_string_azurite");
     public static final Action.Id<AzuriteStorageAccount> COPY_PRIMARY_KEY_AZURITE = Action.Id.of("user/storage.copy_primary_key_azurite");
-    public static final Action.Id<IBlobFile> CREATE_BLOB = Action.Id.of("user/storage.create_blob.blob");
-    public static final Action.Id<StorageFile> OPEN_FILE = Action.Id.of("user/storage.open_file.file");
-    public static final Action.Id<StorageFile> CREATE_FILE = Action.Id.of("user/storage.create_file.file");
-    public static final Action.Id<StorageFile> CREATE_DIRECTORY = Action.Id.of("user/storage.create_directory.dir");
+    public static final Action.Id<IBlobFile> CREATE_BLOB = IBlobFile.CREATE_BLOB;
+    public static final Action.Id<StorageFile> OPEN_FILE = StorageFile.OPEN_FILE;
+    public static final Action.Id<StorageFile> CREATE_FILE = StorageFile.CREATE_FILE;
+    public static final Action.Id<StorageFile> CREATE_DIRECTORY = StorageFile.CREATE_DIRECTORY;
     public static final Action.Id<StorageFile> DOWNLOAD_FILE = Action.Id.of("user/storage.download_file.file");
-    public static final Action.Id<StorageFile> UPLOAD_FILES = Action.Id.of("user/storage.upload_files.dir");
+    public static final Action.Id<StorageFile> UPLOAD_FILES = StorageFile.UPLOAD_FILES;
     public static final Action.Id<StorageFile> UPLOAD_FILE = Action.Id.of("user/storage.upload_file.file");
     public static final Action.Id<StorageFile> UPLOAD_FOLDER = Action.Id.of("user/storage.upload_folder.dir");
     public static final Action.Id<StorageFile> COPY_FILE_URL = Action.Id.of("user/storage.copy_file_url.file");
     public static final Action.Id<StorageFile> COPY_FILE_SAS_URL = Action.Id.of("user/storage.copy_file_sas_url.file");
     public static final Action.Id<StorageFile> DELETE_DIRECTORY = Action.Id.of("user/storage.delete_directory.dir");
-    
+
     @Override
     public void registerActions(AzureActionManager am) {
         new Action<>(OPEN_AZURE_STORAGE_EXPLORER)

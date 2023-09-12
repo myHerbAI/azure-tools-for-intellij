@@ -15,6 +15,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.util.ui.UIUtil;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessage;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +41,7 @@ public class IntellijAzureMessager implements IAzureMessager {
     );
 
     private Notification createNotification(@Nonnull String title, @Nonnull String content, NotificationType type) {
-        return new Notification(NOTIFICATION_GROUP_ID, title, content, type, new NotificationListener.UrlOpeningListener(true));
+        return new Notification(NOTIFICATION_GROUP_ID, title, content, type, new NotificationListener.UrlOpeningListener(false));
     }
 
     @Override
@@ -87,11 +89,15 @@ public class IntellijAzureMessager implements IAzureMessager {
         final Notification notification = this.createNotification(message.getTitle(), content, type);
         final Collection<NotificationAction> actions = Arrays.stream(message.getActions())
             .map(a -> ImmutablePair.of(a, a.getView(null)))
-            .filter(p -> p.getValue().isVisible() && p.getValue().isEnabled())
+            .filter(p -> p.getValue().isVisible())
             .map(p -> new NotificationAction(p.getValue().getLabel()) {
                 @Override
                 public void actionPerformed(@Nonnull AnActionEvent e, @Nonnull Notification notification) {
-                    p.getKey().handle(null, e);
+                    final Action<?> action = p.getKey();
+                    action.handle(null, e);
+                    if (action.getId().equals(ResourceCommonActionsContributor.SUPPRESS_ACTION)) {
+                        notification.expire();
+                    }
                 }
             }).collect(Collectors.toList());
         notification.addActions(actions);

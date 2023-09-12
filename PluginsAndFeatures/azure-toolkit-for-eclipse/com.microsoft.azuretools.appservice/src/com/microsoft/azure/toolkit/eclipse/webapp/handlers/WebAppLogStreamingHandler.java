@@ -41,7 +41,7 @@ public class WebAppLogStreamingHandler {
                 return;
             }
         }
-        final Flux<String> log = webApp.streamingLogs(null, null);
+        final Flux<String> log = webApp.streamingLogs(true, null);
         if (log == null) {
             return;
         }

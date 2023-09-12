@@ -13,6 +13,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.intellij.common.settings.IntellijStore;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.ActionInstance;
@@ -24,6 +25,7 @@ import com.microsoft.azure.toolkit.lib.common.model.Emulatable;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import lombok.Getter;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 
@@ -104,6 +106,14 @@ public class IntellijAzureActionManager extends AzureActionManager {
             ? ResourceCommonActionsContributor.PROJECT_VIEW : place;
     }
 
+    public static boolean isSuppressed(Action.Id<?> actionId) {
+        return BooleanUtils.isTrue(IntellijStore.getInstance().getState().getSuppressedActions().get(actionId.toString()));
+    }
+
+    public static void suppress(Action.Id<?> actionId) {
+        IntellijStore.getInstance().getState().getSuppressedActions().put(actionId.toString(), true);
+    }
+
     @Getter
     public static class AnActionWrapper<T> extends AnAction implements DumbAware {
         @Nonnull
@@ -150,10 +160,8 @@ public class IntellijAzureActionManager extends AzureActionManager {
         public void actionPerformed(@Nonnull AnActionEvent e) {
             final T source = getSource(e);
             final ActionInstance<T> instance = this.action.instantiate(source, e);
-            if (instance != null) {
-                instance.getContext().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(e.getPlace(), EMPTY_PLACE));
-                instance.performAsync();
-            }
+            instance.getContext().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(e.getPlace(), EMPTY_PLACE));
+            instance.performAsync();
         }
 
         @Override
@@ -162,7 +170,7 @@ public class IntellijAzureActionManager extends AzureActionManager {
             final String place = convertToAzureActionPlace(e.getPlace());
             final Presentation presentation = e.getPresentation();
             final ActionInstance<T> instance = action.instantiate(source, e);
-            final IView.Label view = Optional.ofNullable(instance).map(i -> i.getView(place)).orElse(Action.View.INVISIBLE);
+            final IView.Label view = Optional.of(instance).map(i -> i.getView(place)).orElse(Action.View.INVISIBLE);
             final boolean visible;
             final boolean isAbstractAzResource = source instanceof AbstractAzResource;
 

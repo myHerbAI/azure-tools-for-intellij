@@ -1,5 +1,26 @@
-<!-- Version: 3.78.0 -->
+<!-- Version: 3.80.0 -->
 # What's new in Azure Toolkit for IntelliJ
+
+## 3.80.0
+### Added
+- Azure OpenAI (chat) playground for GTP* models.    
+  <img alt="azure openai playground" src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202308/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib-java/src/main/resources/whatsnew.assets/202308.openai-playground.gif" width="1000"/>
+- Guidance (Getting started course) to try Azure OpenAI and its playground (chat) in IntelliJ IDEA.    
+  <img alt="getting started with azure openai" src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202308/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib-java/src/main/resources/whatsnew.assets/202308.openai-getting-started.gif" width="1000"/>
+- Azure OpenAI resource management.
+
+### Changed
+- some useful subsequent actions are added onto the resource creation/update success notifications.
+- newly added resources connections/deployments will be automatically highlighted in Project Explorer.
+
+### Fixed
+- Fix: reset/save doesn't show/enable when removing existing values of jvm options and env var in spring app properties editor.
+- Fix: the default runtime version of new spring apps doesn't match the version of current project/selected module.
+
+## 3.79.1
+### Fixed
+- Fix: Code navigation was not working for bicep files.
+- Fix: Textmate rendering was not functioning for bicep files in IntelliJ 2023.2.
 
 ## 3.79.0
 ### Added

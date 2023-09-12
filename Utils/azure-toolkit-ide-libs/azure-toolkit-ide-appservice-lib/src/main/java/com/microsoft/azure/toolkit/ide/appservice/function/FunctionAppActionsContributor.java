@@ -40,8 +40,8 @@ public class FunctionAppActionsContributor implements IActionsContributor {
     public static final Action.Id<FunctionAppBase<?, ?, ?>> REMOTE_DEBUGGING = Action.Id.of("user/function.start_remote_debugging.app");
     public static final Action.Id<FunctionAppDeploymentSlot> SWAP_DEPLOYMENT_SLOT = Action.Id.of("user/function.swap_deployment.deployment|app");
     public static final Action.Id<FunctionApp> REFRESH_FUNCTIONS = Action.Id.of("user/function.refresh_functions.app");
-    public static final Action.Id<FunctionEntity> TRIGGER_FUNCTION = Action.Id.of("user/function.trigger_func.trigger");
-    public static final Action.Id<FunctionEntity> TRIGGER_FUNCTION_IN_BROWSER = Action.Id.of("user/function.trigger_func_in_browser.trigger");
+    public static final Action.Id<FunctionEntity> TRIGGER_FUNCTION = FunctionEntity.TRIGGER_FUNCTION;
+    public static final Action.Id<FunctionEntity> TRIGGER_FUNCTION_IN_BROWSER = FunctionEntity.TRIGGER_FUNCTION_IN_BROWSER;
     public static final Action.Id<FunctionEntity> TRIGGER_FUNCTION_WITH_HTTP_CLIENT = Action.Id.of("user/function.trigger_function_with_http_client.trigger");
     public static final Action.Id<Object> DOWNLOAD_CORE_TOOLS = Action.Id.of("user/function.download_core_tools");
     public static final Action.Id<Object> CONFIG_CORE_TOOLS = Action.Id.of("user/function.config_core_tools");
@@ -53,6 +53,8 @@ public class FunctionAppActionsContributor implements IActionsContributor {
     public void registerGroups(AzureActionManager am) {
         final ActionGroup serviceActionGroup = new ActionGroup(
             ResourceCommonActionsContributor.REFRESH,
+            "---",
+            ResourceCommonActionsContributor.GETTING_STARTED,
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
             "---",
             ResourceCommonActionsContributor.CREATE
@@ -133,15 +135,13 @@ public class FunctionAppActionsContributor implements IActionsContributor {
         new Action<>(TRIGGER_FUNCTION)
             .withLabel("Trigger Function")
             .withIdParam(FunctionEntity::getName)
-            .visibleWhen(s -> s instanceof FunctionEntity)
-            .enableWhen(s -> !AzureFunctionsUtils.isHttpTrigger(s))
+            .visibleWhen(s -> s instanceof FunctionEntity && !AzureFunctionsUtils.isHttpTrigger((FunctionEntity) s))
             .register(am);
 
         new Action<>(TRIGGER_FUNCTION_IN_BROWSER)
             .withLabel("Trigger Function In Browser")
             .withIdParam(FunctionEntity::getName)
-            .visibleWhen(s -> s instanceof FunctionEntity)
-            .enableWhen(s -> AzureFunctionsUtils.isHttpTrigger(s))
+            .visibleWhen(s -> s instanceof FunctionEntity && AzureFunctionsUtils.isHttpTrigger((FunctionEntity) s))
             .withHandler(s -> new TriggerFunctionInBrowserAction(s).trigger())
             .register(am);
 

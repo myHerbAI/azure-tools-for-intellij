@@ -17,6 +17,8 @@ public class CourseConfig {
     private String title;
     private String description;
     private String repository;
+    private String icon;
+    private Integer priority = 10;
     private List<String> tags;
     private List<PhaseConfig> phases;
     private Map<String, Object> context;

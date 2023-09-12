@@ -16,9 +16,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class JobViewManager {
-
-    //0: First access 1: Successfully obtained data -1: Started to obtain data
-    public static byte REGISTERED_JOBVIEW_MAP = 0;
     private static Map<String, IClusterDetail> jobViewPanelMap = new ConcurrentHashMap<>();
     private static Map<String, List<Application>> sparkApplicationMap = new ConcurrentHashMap<>();
 

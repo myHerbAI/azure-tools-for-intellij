@@ -5,6 +5,8 @@
   "description": "This tutorial shows how to use the IntelliJ toolkit to deploy a spring boot project to Azure and connect the app service with Application Insights.",
   "repository": "https://github.com/spring-guides/gs-spring-boot.git",
   "tags": ["Web App", "For beginners","Quickstart"],
+  "priority" : 10,
+  "icon": "/icons/Microsoft.Web/webapps.svg",
   "context": {
     "repository": "https://github.com/spring-projects/spring-petclinic.git",
     "branch": "main"

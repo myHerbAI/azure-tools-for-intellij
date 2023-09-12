@@ -29,6 +29,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -40,6 +41,8 @@ import java.util.concurrent.atomic.AtomicReference;
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> implements IAzureFacetNode {
+    public static final String FOCUS_KEY = "focuses";
+
     private final long createdTime;
     private long disposedTime;
     @Getter
@@ -116,6 +119,14 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
             final TreePath path = TreeUtil.getPath((TreeNode) model.getRoot(), node);
             pane.updateFrom(path, false, updateStructure);
         }
+    }
+
+    @Nullable
+    public JTree getTree() {
+        final Project p = this.getProject();
+        if (p.isDisposed()) return null;
+        final AbstractProjectViewPane pane = ProjectView.getInstance(p).getCurrentProjectViewPane();
+        return Objects.isNull(pane) ? null : pane.getTree();
     }
 
     @Nonnull

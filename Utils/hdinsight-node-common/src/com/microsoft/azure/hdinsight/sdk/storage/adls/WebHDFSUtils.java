@@ -12,6 +12,8 @@ import com.microsoft.azure.datalake.store.IfExists;
 import com.microsoft.azure.hdinsight.common.HDInsightLoader;
 import com.microsoft.azure.hdinsight.sdk.common.HDIException;
 import com.microsoft.azure.hdinsight.sdk.storage.*;
+import com.microsoft.azure.hdinsight.sdk.storage.implementation.ADLSStorageAccount;
+import com.microsoft.azure.hdinsight.sdk.storage.model.IHDIStorageAccount;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import org.apache.commons.io.IOUtils;
 
@@ -22,7 +24,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 public class WebHDFSUtils {
     private static final String STORAGE_RESOURCEID = "https://storage.azure.com/";

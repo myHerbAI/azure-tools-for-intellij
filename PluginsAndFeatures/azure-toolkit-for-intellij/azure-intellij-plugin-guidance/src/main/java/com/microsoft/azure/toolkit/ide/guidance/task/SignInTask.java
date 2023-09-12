@@ -54,6 +54,11 @@ public class SignInTask implements Task {
         AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_AZURE_EXPLORER).handle(null, event);
     }
 
+    @Override
+    public boolean isDone() {
+        return Azure.az(AzureAccount.class).isLoggedIn();
+    }
+
     @Nonnull
     @Override
     public String getName() {

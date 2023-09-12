@@ -21,11 +21,6 @@
         <registryKey key="azure.toolkit.feedback.score.threshold" description="Score threshold to popup for rating" restartRequired="false" defaultValue="20"/>
     </extensions>
     <actions>
-        <action id="user/common.never_show_again"
-                class="com.microsoft.azure.toolkit.intellij.common.messager.IntellijNeverShowAgainAction"
-                text="Never Show Again"
-                description="Never show again">
-        </action>
         <action id="Actions.ProvideFeedback" class="com.microsoft.azure.toolkit.intellij.common.feedback.ProvideFeedbackAction"
                 text="Provide Feedback" icon="/icons/Common/feedback.svg"/>
         <action id="AzureToolkit.ViewToolingDocument" class="com.microsoft.azure.toolkit.intellij.common.action.ViewToolingDocumentAction"

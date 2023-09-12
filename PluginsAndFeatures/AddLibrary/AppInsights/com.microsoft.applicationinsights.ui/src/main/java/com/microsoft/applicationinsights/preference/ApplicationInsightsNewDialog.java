@@ -5,6 +5,7 @@
 
 package com.microsoft.applicationinsights.preference;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -121,7 +122,7 @@ public class ApplicationInsightsNewDialog extends TitleAreaDialog {
 
                 populateResourceGroupValues(currentSub.getId(), "");
 
-                List<String> regionList = AzureSDKManager.getLocationsForInsights(currentSub.getId());
+                List<String> regionList = Collections.emptyList();
                 String[] regionArray = regionList.toArray(new String[regionList.size()]);
                 region.setItems(regionArray);
                 region.setText(regionArray[0]);

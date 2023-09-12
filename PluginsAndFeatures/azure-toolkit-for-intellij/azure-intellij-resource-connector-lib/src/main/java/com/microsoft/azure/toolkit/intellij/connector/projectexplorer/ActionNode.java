@@ -67,14 +67,12 @@ public class ActionNode<T> extends AbstractAzureFacetNode<Action<T>> {
     public void onClicked(AnActionEvent event) {
         final Action<T> value = getValue();
         final ActionInstance<T> instance = value.instantiate(this.source, event);
-        if (Objects.nonNull(instance)) {
-            final IView.Label view = instance.getView();
-            if (!view.isVisible() || !view.isEnabled()) {
-                return;
-            }
-            instance.getContext().setTelemetryProperty(Action.PLACE, event.getPlace());
-            instance.performAsync();
+        final IView.Label view = instance.getView();
+        if (!view.isVisible() || !view.isEnabled()) {
+            return;
         }
+        instance.getContext().setTelemetryProperty(Action.PLACE, event.getPlace());
+        instance.performAsync();
     }
 
     @Nullable

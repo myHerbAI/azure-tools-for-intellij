@@ -34,7 +34,11 @@ public abstract class SqlDatabaseResourceDefinition<T extends IDatabase> extends
         final HashMap<String, String> env = new HashMap<>();
         env.put(String.format("%s_URL", Connection.ENV_PREFIX), resource.getJdbcUrl().toString());
         env.put(String.format("%s_USERNAME", Connection.ENV_PREFIX), resource.getUsername());
-        env.put(String.format("%s_PASSWORD", Connection.ENV_PREFIX), Optional.ofNullable(resource.loadPassword()).or(() -> Optional.ofNullable(resource.inputPassword(project))).orElse(""));
+        env.put(String.format("%s_PASSWORD", Connection.ENV_PREFIX), Optional.ofNullable(resource.loadPassword())
+            .filter(StringUtils::isNotBlank)
+            .or(() -> Optional.ofNullable(resource.inputPassword(project)))
+            .filter(StringUtils::isNotBlank)
+            .orElse("<YOUR_PASSWORD>"));
         return env;
     }
 

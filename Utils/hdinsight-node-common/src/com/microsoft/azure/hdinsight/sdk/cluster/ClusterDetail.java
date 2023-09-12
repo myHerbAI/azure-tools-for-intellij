@@ -13,6 +13,10 @@ import com.microsoft.azure.hdinsight.sdk.cluster.HDInsightNewAPI.ClusterOperatio
 import com.microsoft.azure.hdinsight.sdk.cluster.HDInsightNewAPI.HDInsightUserRoleType;
 import com.microsoft.azure.hdinsight.sdk.common.HDIException;
 import com.microsoft.azure.hdinsight.sdk.storage.*;
+import com.microsoft.azure.hdinsight.sdk.storage.implementation.ADLSGen2StorageAccount;
+import com.microsoft.azure.hdinsight.sdk.storage.implementation.ADLSStorageAccount;
+import com.microsoft.azure.hdinsight.sdk.storage.implementation.HDStorageAccount;
+import com.microsoft.azure.hdinsight.sdk.storage.model.IHDIStorageAccount;
 import com.microsoft.azure.hdinsight.spark.common.SparkSubmitStorageType;
 import com.microsoft.azure.hdinsight.spark.common.SparkSubmitStorageTypeOptionsForCluster;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
