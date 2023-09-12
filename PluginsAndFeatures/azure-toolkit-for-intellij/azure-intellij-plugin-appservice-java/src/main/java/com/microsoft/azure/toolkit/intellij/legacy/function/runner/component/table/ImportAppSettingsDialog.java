@@ -15,14 +15,13 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.ToolbarDecorator;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
-import com.microsoft.azure.toolkit.intellij.common.ProjectUtils;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.intellij.common.ProjectUtils;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import rx.Observable;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
@@ -31,6 +30,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -118,10 +118,11 @@ public class ImportAppSettingsDialog extends JDialog implements ImportAppSetting
 
     // todo: migrate to AzureComboBox framework
     private void loadAppSettingSources() {
-        final Project project = Optional.ofNullable(this.project).orElseGet(() -> ProjectUtils.getProject());
-        Observable.fromCallable(() -> ReadAction.compute(()-> FilenameIndex.getVirtualFilesByName("local.settings.json", GlobalSearchScope.projectScope(project))))
-                .subscribeOn(presenter.getSchedulerProvider().io())
-                .subscribe(files -> AzureTaskManager.getInstance().runLater(() -> files.forEach(ImportAppSettingsDialog.this.cbAppSettingsSource::addItem), AzureTask.Modality.ANY));
+        final Project project = Optional.ofNullable(this.project).orElseGet(ProjectUtils::getProject);
+        AzureTaskManager.getInstance().runOnPooledThread(() -> {
+            final Collection<VirtualFile> files = ReadAction.compute(() -> FilenameIndex.getVirtualFilesByName("local.settings.json", GlobalSearchScope.projectScope(project)));
+            AzureTaskManager.getInstance().runLater(() -> files.forEach(ImportAppSettingsDialog.this.cbAppSettingsSource::addItem), AzureTask.Modality.ANY);
+        });
         presenter.onLoadFunctionApps();
     }
 

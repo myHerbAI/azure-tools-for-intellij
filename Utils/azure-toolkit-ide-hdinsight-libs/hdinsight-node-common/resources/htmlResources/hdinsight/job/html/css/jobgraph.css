@@ -1,0 +1,27 @@
+g.sparkJob-success > rect {
+    fill: var(--Job-s-color);
+}
+
+g.sparkJob-error > rect {
+    fill:red;
+}
+
+text {
+    fill: var(--text-color);
+    font-weight: 300;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serf;
+    font-size: 14px;
+}
+
+.node rect {
+    stroke: var(--edge-color);
+    fill: var(--bg-color);
+    stroke-width: 1.5px;
+    margin: 10px;
+}
+
+.edgePath path {
+    fill: var(--arrow-color);
+    stroke: var(--arrow-color);
+    stroke-width: 1.5px;
+}

@@ -20,7 +20,6 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo.Type;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessageBundle;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.lang3.StringUtils;
-import rx.Subscription;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,7 +41,6 @@ public class AzureArtifactComboBox extends AzureComboBox<AzureArtifact> {
     private Predicate<? super VirtualFile> fileFilter = artifact -> true;
     @Nonnull
     private Predicate<? super AzureArtifact> artifactFilter = artifact -> true;
-    private Subscription subscription;
     private AzureArtifact cachedArtifact;
 
     public AzureArtifactComboBox(Project project) {

@@ -1,4 +1,8 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+    <depends>com.intellij.modules.java</depends>
+    <depends>org.jetbrains.idea.maven</depends>
+    <depends>com.intellij.gradle</depends>
+    <depends>org.jetbrains.plugins.gradle</depends>
 
     <xi:include href="/META-INF/azure-intellij-plugin-lib.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
@@ -7,4 +11,7 @@
                 class="com.microsoft.azure.toolkit.intellij.common.action.WhatsNewAction" text="What's New in Azure Toolkit"
                 description="Show new features of Azure Toolkit for Java"/>
     </actions>
+    <extensions defaultExtensionNs="com.intellij">
+        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.common.action.WhatsNewStartupActivity"/>
+    </extensions>
 </idea-plugin>

@@ -25,7 +25,7 @@ package com.microsoft.azure.hdinsight.spark.ui
 import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST
 import com.microsoft.azure.cosmosspark.common.JXHyperLinkWithUri
 import com.microsoft.azure.hdinsight.sdk.common.AzureSparkClusterManager
-import com.microsoft.azure.toolkit.intellij.common.auth.AzureSignInAction
+import com.microsoft.azure.toolkit.intellij.common.auth.SignInAction
 import com.microsoft.intellij.forms.dsl.panel
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -38,7 +38,7 @@ class SparkSubmissionJobUploadStorageAdlsSignOutCard: JPanel() {
     val signOutLink = JXHyperLinkWithUri().apply {
         name = "adlsCardSignOutHyperLink"
         text = "Sign Out"
-        addActionListener { AzureSignInAction.authActionPerformed(null) }
+        addActionListener { SignInAction.authActionPerformed(null) }
     }
 
     init {

@@ -51,20 +51,13 @@
 
   <!-- please see https://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
   <idea-version since-build="231.6471.13" until-build="231.*"/>
-  <resource-bundle>com.microsoft.intellij.ui.messages.messages</resource-bundle>
-  <resource-bundle>com.microsoft.intellij.hdinsight.messages.messages</resource-bundle>
-  <depends>org.jetbrains.idea.maven</depends>
-  <depends>com.intellij.modules.java</depends>
-  <depends>org.jetbrains.plugins.terminal</depends>
-  <depends>com.intellij.gradle</depends>
-  <depends>org.jetbrains.plugins.gradle</depends>
-  <depends optional="true" config-file="azure-intellij-plugin-scala.xml">org.intellij.scala</depends>
   <xi:include href="/META-INF/azure-intellij-plugin-lib-java.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-service-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-sdk-reference-book.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-resource-connector-lib-java.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-springcloud.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-hdinsight.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/azure-intellij-plugin-hdinsight-base.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-synapse.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-sparkoncosmos.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-storage.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -91,108 +84,28 @@
   <depends>com.intellij.modules.lang</depends>
   -->
   <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
-    <actions implementation="com.microsoft.azure.toolkit.intellij.common.action.LegacyIntellijAccountActionsContributor"/>
+    <actions implementation="com.microsoft.azure.toolkit.intellij.common.action.IntellijCommonActionsContributor"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <toolWindow
-          anchor="bottom"
-          factoryClass="com.microsoft.intellij.ui.ActivityLogToolWindowFactory"
-          id="Azure Activity Log"
-          canCloseContents="true"
-          icon="`/icons/Common/AzureActivityLog.svg`"/>
     <applicationConfigurable parentId="tools" displayName="Azure"
-                         id="com.microsoft.intellij.AzureConfigurable"
-                         provider="com.microsoft.intellij.AzureConfigurableProvider"/>
-    <projectConfigurable parentId="root" instance="com.microsoft.intellij.DeprecatedAzureConfigurable"
-                             id="com.microsoft.intellij.DeprecatedAzureConfigurable" displayName="Microsoft Tools"/>
-    <applicationService serviceImplementation="com.microsoft.intellij.ApplicationSettings"/>
-    <fileEditorProvider implementation="com.microsoft.azure.hdinsight.jobs.framework.JobViewEditorProvider" />
-    <toolWindow
-            anchor="left"
-            factoryClass="com.microsoft.intellij.ui.ServerExplorerToolWindowFactory"
-            id="Azure Explorer"
-            canCloseContents="false"
-            icon="/icons/Common/Azure.svg"/>
+                         id="com.microsoft.azure.toolkit.intellij.settings.AzureSettingsConfigurable"
+                         provider="com.microsoft.azure.toolkit.intellij.settings.AzureSettingsConfigurableProvider"/>
+    <projectConfigurable parentId="root" instance="com.microsoft.azure.toolkit.intellij.settings.DeprecatedAzureSettingsConfigurable"
+                         id="com.microsoft.azure.toolkit.intellij.settings.DeprecatedAzureSettingsConfigurable" displayName="Microsoft Tools"/>
 
-    <moduleBuilder builderClass="com.microsoft.azure.hdinsight.projects.HDInsightModuleBuilder"/>
-
-    <toolWindow
-            anchor="bottom"
-            factoryClass="com.microsoft.azure.cosmosserverlessspark.spark.ui.CosmosServerlessSparkJobsToolWindowFactory"
-            id="Cosmos Serverless Spark Jobs"
-            canCloseContents="true"/>
-
-    <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.CosmosSparkConfigurationType"/>
-    <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.CosmosServerlessSparkConfigurationType"/>
-    <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.ArisSparkConfigurationType"/>
-    <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.ArcadiaSparkConfigurationType"/>
-    <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.SparkFailureTaskDebugConfigurationType"/>
-
-
-    <runConfigurationProducer implementation="com.microsoft.azure.hdinsight.spark.run.CosmosSparkRunConfigurationProducer"/>
-    <runConfigurationProducer implementation="com.microsoft.azure.hdinsight.spark.run.CosmosServerlessRunConfigurationProducer"/>
-    <runConfigurationProducer implementation="com.microsoft.azure.hdinsight.spark.run.ArisSparkRunConfigurationProducer"/>
-    <runConfigurationProducer implementation="com.microsoft.azure.hdinsight.spark.run.ArcadiaSparkRunConfigurationProducer"/>
-
-    <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.CosmosSparkBatchRunner" />
-
-    <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.CosmosServerlessSparkBatchRunner" />
-    <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.ArisSparkBatchRunner" />
-    <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.ArcadiaSparkBatchRunner" />
     <errorHandler implementation="com.microsoft.intellij.feedback.MSErrorReportHandler" />
-
-    <postStartupActivity implementation="com.microsoft.intellij.AzurePlugin"/>
   </extensions>
 
   <applicationListeners>
-    <listener class="com.microsoft.intellij.AzureActionsListener" topic="com.intellij.ide.AppLifecycleListener"/>
+    <listener class="com.microsoft.azure.toolkit.intellij.base.PluginLifecycleListener" topic="com.intellij.ide.AppLifecycleListener"/>
   </applicationListeners>
 
   <actions>
-    <action id="Actions.LibraryConfigurationAction"
-            class="com.microsoft.intellij.actions.LibraryConfigurationAction" text="Libraries Configuration"
-            description="Libraries Configuration"/>
-    <action id="Actions.ApplicationInsightsAction"
-            class="com.microsoft.intellij.actions.ApplicationInsightsAction" text="Configure Application Insights..."
-            description="Configure Application Insights..." icon="/icons/ApplicationInsights_16.png"/>
-    <action class="com.microsoft.intellij.actions.AzureExplorerOpenAction" id="Actions.AzureExplorerOpenAction"
-            text="Show Azure Explorer" description="Show Azure Explorer" icon="/icons/Common/Azure.svg"/>
-    <action id="Actions.AzureCodeSamples"
-            class="com.microsoft.intellij.actions.AzureCodeSamples"
-            text="Azure Code Samples"
-            description="Opens an Azure Code Samples page in your default browser"
-            icon="/icons/CodeSamples_16.png">
-    </action>
+    <action class="com.microsoft.azure.toolkit.intellij.common.action.NewCustomerIssueFeedbackAction" id="AzureToolkit.GithubIssue" text="Report an Issue" />
+    <action class="com.microsoft.azure.toolkit.intellij.common.action.NewFeatureRequestFeedbackAction" id="AzureToolkit.FeatureRequest" text="Request a Feature" />
 
-    <action id="Actions.SubmitCosmosSparkApplicationAction"
-            class="com.microsoft.azure.hdinsight.spark.actions.CosmosSparkSelectAndSubmitAction"
-            text="Apache Spark on Cosmos"
-            description="Submit Apache Spark on Cosmos Application" icon="/icons/Spark.png"/>
-    <action id="Actions.SubmitCosmosServerlessSparkApplicationAction"
-            class="com.microsoft.azure.hdinsight.spark.actions.CosmosServerlessSparkSelectAndSubmitAction" text="Apache Spark on Cosmos Serverless"
-            description="Submit Apache Spark on Cosmos Serverless Application" icon="/icons/Spark.png"/>
-    <action id="Actions.SubmitArisSparkApplicationAction"
-            class="com.microsoft.azure.hdinsight.spark.actions.ArisSparkSelectAndSubmitAction"
-            text="Apache Spark on SQL Server Big Data Cluster"
-            description="Submit Apache Spark on SQL Server Big Data Cluster Application" icon="/icons/Spark.png"/>
-    <action id="Actions.SubmitArcadiaSparkApplicationAction"
-            class="com.microsoft.azure.hdinsight.spark.actions.ArcadiaSparkSelectAndSubmitAction"
-            text="Apache Spark on Azure Synapse"
-            description="Submit Apache Spark on Azure Synapse Application" icon="/icons/Spark.png"/>
-
-    <action id="AzureToolkit.AzureSignIn" class="com.microsoft.azure.toolkit.intellij.common.auth.AzureSignInAction" text="Azure Sign In..." />
-    <action id="AzureToolkit.SelectSubscriptions" class="com.microsoft.azure.toolkit.intellij.common.subscription.SelectSubscriptionsAction" text="Select Subscriptions..."
-            description="ShowSubscriptionsAction" icon="AllIcons.General.Filter" />
-    <group id="AzureToolkit.ValidateCertificate" text="Validate Spark Cluster SSL Certificate" popup="true">
-      <action id="AzureToolkit.DisableSSLCertificateValidation"
-              class="com.microsoft.intellij.actions.DisableSslCertificateValidationAction"
-              text="Disable"/>
-    </group>
-    <action class="com.microsoft.intellij.actions.NewCustomerIssueFeedbackAction" id="AzureToolkit.GithubIssue" text="Report an Issue" />
-    <action class="com.microsoft.intellij.actions.NewFeatureRequestFeedbackAction" id="AzureToolkit.FeatureRequest" text="Request a Feature" />
-
-    <group id="AzurePopupGroup" text="Azure" description="Azure" icon="/icons/Common/Azure.svg" popup="true" class="com.microsoft.intellij.actions.AzurePopupGroup">
+    <group id="AzurePopupGroup" text="Azure" description="Azure" icon="/icons/Common/Azure.svg" popup="true">
       <reference ref="Connector.ShowAzureNode"/>
       <reference ref="AzureToolkit.ConnectToAzureResource"/>
       <separator/>
@@ -205,9 +118,6 @@
       <reference ref="Actions.RunOnDockerHost"/>
       <reference ref="Actions.PushImage"/>
       <reference ref="Actions.WebAppOnLinux"/>
-      <separator/>
-      <reference ref="Actions.ApplicationInsightsAction"/>
-      <reference ref="Actions.LibraryConfigurationAction"/>
     </group>
 
     <group id="AzureToolbarGroup" text="Azure" description="Azure">
@@ -217,7 +127,6 @@
       </group>
       <reference ref="Actions.AzureExplorerOpenAction"/>
       <reference ref="AzureToolkit.OpenResourceConnectionExplorerAction"/>
-      <reference ref="Actions.AzureCodeSamples"/>
     </group>
 
     <group id="AzureToolkit.AzureActionGroup"
@@ -247,60 +156,7 @@
       <reference ref="Actions.WhatsNew"/>
       <reference ref="Actions.GettingStart"/>
     </group>
-
-
-    <group id="Actions.SelectDefaultSparkApplicationTypeActionGroup" text="Default Spark Application Type" description="Select default spark application type" popup="true">
-      <add-to-group group-id="ToolsMenu" anchor="last"/>
-      <add-to-group group-id="RunContextPopupGroup" anchor="after" relative-to-action="SparkJobDebug"/>
-      <action id="Actions.SelectNoneSparkType"
-              class="com.microsoft.azure.hdinsight.spark.run.action.SelectNoneSparkTypeAction" text="None" >
-      </action>
-      <action id="Actions.SelectCosmosSparkType"
-              class="com.microsoft.azure.hdinsight.spark.run.action.SelectCosmosSparkTypeAction" text="Apache Spark on Cosmos" >
-      </action>
-      <action id="Actions.SelectCosmosServerlessSparkType"
-              class="com.microsoft.azure.hdinsight.spark.run.action.SelectCosmosServerlessSparkTypeAction" text="Apache Spark on Cosmos Serverless" >
-      </action>
-      <action id="Actions.SelectHDInsightSparkType"
-              class="com.microsoft.azure.hdinsight.spark.run.action.SelectHDInsightSparkTypeAction" text="Apache Spark on HDInsight" >
-      </action>
-      <action id="Actions.SelectArisSparkType"
-              class="com.microsoft.azure.hdinsight.spark.run.action.SelectArisSparkTypeAction"
-              text="Apache Spark on SQL Server Big Data Cluster" >
-      </action>
-      <action id="Actions.SelectArcadiaSparkType"
-              class="com.microsoft.azure.hdinsight.spark.run.action.SelectArcadiaSparkTypeAction"
-              text="Apache Spark on Azure Synapse" >
-      </action>
-    </group>
-
-    <action id="Actions.RunArcadiaSparkConsoleAction"
-            class="com.microsoft.azure.hdinsight.spark.console.SelectArcadiaSparkTypeThenRunLivyConsoleAction"
-            text="Apache Spark on Azure Synapse"
-            description="Start an interactive console for Apache Spark on Azure Synapse Application" icon="/icons/Spark.png"/>
-
-    <action id="Actions.RunCosmosSparkConsoleAction"
-            class="com.microsoft.azure.hdinsight.spark.console.SelectCosmosSparkTypeThenRunLivyConsoleAction" text="Apache Spark on Cosmos"
-            description="Start an interactive console for Apache Spark on Cosmos Application" icon="/icons/Spark.png"/>
-    <action id="Actions.RunArisSparkConsoleAction"
-            class="com.microsoft.azure.hdinsight.spark.console.SelectArisSparkTypeThenRunLivyConsoleAction"
-            text="Apache Spark on SQL Server Big Data Cluster"
-            description="Start an interactive console for Apache Spark on SQL Server Big Data Cluster Application" icon="/icons/Spark.png"/>
-
-    <action id="Actions.RunArcadiaSparkLocalConsoleAction"
-            class="com.microsoft.azure.hdinsight.spark.console.SelectArcadiaSparkTypeThenRunLocalConsoleAction" text="Apache Spark on Azure Synapse"
-            description="Start a Apache Spark local console for Apache Spark on Azure Synapse Application" icon="/icons/Spark.png"/>
-
-    <action id="Actions.RunCosmosSparkLocalConsoleAction"
-            class="com.microsoft.azure.hdinsight.spark.console.SelectCosmosSparkTypeThenRunLocalConsoleAction" text="Apache Spark on Cosmos"
-            description="Start a Apache Spark local console for Apache Spark on Cosmos Application" icon="/icons/Spark.png"/>
-    <action id="Actions.RunArisSparkLocalConsoleAction"
-            class="com.microsoft.azure.hdinsight.spark.console.SelectArisSparkTypeThenRunLocalConsoleAction"
-            text="Apache Spark on SQL Server Big Data Cluster"
-            description="Start a Apache Spark local console for Apache Spark on SQL Server Big Data Cluster Application" icon="/icons/Spark.png"/>
   </actions>
-
-  <helpset file="azure-toolkit-for-intellij-help.jar" path="/helpset.hs"/>
 
   <!-- Last, because it references action group "AzureToolkit.AzureActionGroup" -->
   <xi:include href="/META-INF/azure-intellij-resource-connector-aad.xml" xpointer="xpointer(/idea-plugin/*)"/>

@@ -40,7 +40,7 @@ gen-external-apklibs/
 # Prevent IDEA from showing dialogs on project open
 !.idea/vcs.xml
 !.idea/gradle.xml
-!resources/**
+!azure-intellij-plugin-hdinsight-base/resources/**
 
 # Jar dependencies generated in build
 **/resources/spark/spark-tools-*.jar

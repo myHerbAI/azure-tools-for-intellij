@@ -1,4 +1,9 @@
 <idea-plugin>
+    <depends>com.intellij.modules.java</depends>
+    <depends>org.jetbrains.idea.maven</depends>
+    <depends>com.intellij.gradle</depends>
+    <depends>org.jetbrains.plugins.gradle</depends>
+
     <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
         <explorerNodeProvider implementation="com.microsoft.azure.toolkit.ide.containerapps.ContainerAppsNodeProvider"/>
         <dockerfileActionsProvider implementation="com.microsoft.azure.toolkit.intellij.containerapps.AzureContainerAppsDockerfileActionsProvider"/>

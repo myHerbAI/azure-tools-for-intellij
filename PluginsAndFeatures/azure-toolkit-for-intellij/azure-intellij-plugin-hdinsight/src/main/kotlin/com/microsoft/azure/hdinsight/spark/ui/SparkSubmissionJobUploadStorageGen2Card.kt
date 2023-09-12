@@ -34,7 +34,7 @@ import com.microsoft.azure.hdinsight.spark.common.getSecureStoreServiceOf
 import com.microsoft.azure.hdinsight.spark.ui.SparkSubmissionJobUploadStorageBasicCard.StorageCheckEvent.PathInputFocusLostEvent
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager
 import com.microsoft.azure.toolkit.ide.common.store.ISecureStore
-import com.microsoft.azuretools.authmanage.IdeAzureAccount
+import com.microsoft.azure.toolkit.ide.common.auth.IdeAzureAccount
 import com.microsoft.intellij.ui.HintTextField
 import com.microsoft.intellij.forms.dsl.panel
 import com.microsoft.intellij.rxjava.IdeaSchedulers

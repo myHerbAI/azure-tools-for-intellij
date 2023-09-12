@@ -1,9 +1,14 @@
 <idea-plugin>
+    <depends>com.intellij.modules.java</depends>
+    <depends>org.jetbrains.idea.maven</depends>
+    <depends>com.intellij.gradle</depends>
+    <depends>org.jetbrains.plugins.gradle</depends>
     <extensions defaultExtensionNs="com.intellij">
         <!-- `displayName` is currently not used for bug: https://youtrack.jetbrains.com/issue/IDEA-275873 -->
         <dependencySupport displayName="Azure SDK client libraries(Track 2)" coordinate="com.azure:azure-core" kind="java"/>
         <dependencySupport displayName="Azure SDK client libraries" coordinate="com.microsoft.azure:azure-client-runtime" kind="java"/>
         <dependencySupport displayName="Library for Azure Java Functions" coordinate="com.microsoft.azure.functions:azure-functions-java-library" kind="java"/>
+        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.azuresdk.ProjectSdkIntrospectionStartupActivity"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">

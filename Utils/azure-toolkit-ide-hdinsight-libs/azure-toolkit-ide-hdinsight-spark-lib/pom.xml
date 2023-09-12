@@ -31,7 +31,7 @@
             <artifactId>azure-toolkit-ide-storage-lib</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.microsoft.azuretools</groupId>
+            <groupId>com.microsoft.hdinsight</groupId>
             <artifactId>hdinsight-node-common</artifactId>
         </dependency>
         <dependency>

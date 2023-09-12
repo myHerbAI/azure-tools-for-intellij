@@ -33,14 +33,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.concurrency.AsyncPromise;
 import org.jetbrains.concurrency.Promise;
-import rx.Completable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import java.nio.file.Path;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @see "org.jetbrains.idea.maven.tasks.MavenBeforeRunTasksProvider"
