@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package com.microsoft.intellij.feedback
+package com.microsfot.azure.toolkit.intellij.feedback
 
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.application.ApplicationInfo
@@ -34,10 +34,10 @@ open class Reportable(private val shortMessage: String) : DumbAware {
     private val appInfo = ApplicationInfo.getInstance()
 
     private val platformInfo = mutableMapOf<String, String>(
-            "IntelliJ build version" to "${appInfo.fullVersion} ${appInfo.build}",
-            "OS" to System.getProperty("os.name"),
-            "JDK" to "${System.getProperty("java.vendor")} ${System.getProperty("java.version")}",
-            "Plugin version" to plugin.version
+        "IntelliJ build version" to "${appInfo.fullVersion} ${appInfo.build}",
+        "OS" to System.getProperty("os.name"),
+        "JDK" to "${System.getProperty("java.vendor")} ${System.getProperty("java.version")}",
+        "Plugin version" to plugin.version
     )
 
     protected open val detailInfo get() = mapOf<String, String>()
@@ -50,16 +50,16 @@ open class Reportable(private val shortMessage: String) : DumbAware {
 
     open fun getTitle(): String {
         val tags = getTitleTags()
-                .map { "[$it]" }
-                .reduce { l, r -> "$l$r"}     // Output as: [Tag1][Tag2]
+            .map { "[$it]" }
+            .reduce { l, r -> "$l$r" }     // Output as: [Tag1][Tag2]
 
         return "$tags $shortMessage"
     }
 
     open fun getBody(): String {
         return (platformInfo + additionalInfo + detailInfo)
-                .map { "${it.key}: ${it.value}" }
-                .reduce { l, r -> "$l\n$r"}
+            .map { "${it.key}: ${it.value}" }
+            .reduce { l, r -> "$l\n$r" }
     }
 
     open fun with(key: String, value: String): Reportable {

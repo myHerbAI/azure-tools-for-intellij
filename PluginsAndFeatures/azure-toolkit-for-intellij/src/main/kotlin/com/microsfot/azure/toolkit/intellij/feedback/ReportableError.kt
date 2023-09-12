@@ -19,24 +19,12 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.microsoft.intellij.feedback
 
-class ReportableIssue(shortMessage: String) : Reportable(shortMessage) {
+package com.microsfot.azure.toolkit.intellij.feedback
 
-    private val template = listOf(
-            "#### Setup",
-            "%s",
-            "####  Describe the bug",
-            "A clear and concise description of what the bug is, including expected behavior and actual behavior",
-            "####  To Reproduce",
-            "Steps to reproduce the bug",
-            "#### Exception or Stack Trace",
-            "Add the exception log and stack trace if available.",
-            "#### Screenshots",
-            "Add screenshots to help explain your problem if available."
-    )
-
-    override fun getBody(): String {
-        return String.format(template.joinToString("\n\n"), super.getBody());
-    }
+class ReportableError(shortMessage: String, private val detailMessage: String) : Reportable(shortMessage) {
+    override val detailInfo
+        get() = mapOf(
+            "Error message" to GithubMarkdownFormat.toCode(detailMessage)
+        )
 }

@@ -19,16 +19,16 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.microsoft.intellij.feedback
+package com.microsfot.azure.toolkit.intellij.feedback
 
 class ReportableFeatureRequest(shortMessage: String) : Reportable(shortMessage) {
     private val template = listOf(
-            "####  Is your feature request related to a problem? Please describe",
-            "A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]",
-            "####  Describe the solution you'd like",
-            "A clear and concise description of what you want to happen.",
-            "#### Additional context",
-            "Add any other context or screenshots about the feature request here."
+        "####  Is your feature request related to a problem? Please describe",
+        "A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]",
+        "####  Describe the solution you'd like",
+        "A clear and concise description of what you want to happen.",
+        "#### Additional context",
+        "Add any other context or screenshots about the feature request here."
     )
 
     override fun getTitleTags(): Set<String> {
