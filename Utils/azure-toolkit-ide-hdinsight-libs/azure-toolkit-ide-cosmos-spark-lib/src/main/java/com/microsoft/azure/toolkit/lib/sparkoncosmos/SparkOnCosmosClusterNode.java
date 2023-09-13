@@ -26,8 +26,8 @@ public class SparkOnCosmosClusterNode extends AbstractAzResource<SparkOnCosmosCl
     @NotNull
     @Override
     protected String loadStatus(@NotNull AzureSparkCosmosCluster remote) {
-        return "[" + Optional.ofNullable(remote.getMasterState().toUpperCase())
-                .orElse(remote.getState().toUpperCase()) + "]";
+        return "[" + Optional.ofNullable(remote.getMasterState())
+                .orElse(remote.getState()).toUpperCase() + "]";
     }
 
     @Nullable

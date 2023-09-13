@@ -12,6 +12,7 @@ import com.microsoft.azure.projectarcadia.common.ArcadiaWorkSpace;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -99,6 +100,10 @@ public class SparkOnCosmosClusterModule extends AbstractAzResourceModule<SparkOn
             return this.list().stream().filter(c -> StringUtils.equalsIgnoreCase(name, c.getName())).findAny().orElse(null);
         }
         return super.get(name, resourceGroup);
+    }
+
+    public AzureSparkCosmosCluster getClient() {
+        return null;
     }
 
 }

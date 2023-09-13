@@ -19,9 +19,11 @@ dependencies {
     implementation project(path: ':azure-intellij-plugin-lib', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-lib-java', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-hdinsight', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-sparkoncosmos', configuration: 'instrumentedJar')
 
     implementation 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-spark-lib'
     implementation 'com.microsoft.hdinsight:azure-toolkit-ide-synapse-spark-lib'
+    implementation 'com.microsoft.hdinsight:azure-toolkit-ide-cosmos-spark-lib'
 
     implementation 'com.microsoft.hdinsight:azuretools-core', {
         exclude group: "javax.xml.bind", module: "jaxb-api"
