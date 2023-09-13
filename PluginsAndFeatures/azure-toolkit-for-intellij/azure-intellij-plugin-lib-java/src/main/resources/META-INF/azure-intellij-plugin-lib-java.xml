@@ -4,8 +4,6 @@
     <depends>com.intellij.gradle</depends>
     <depends>org.jetbrains.plugins.gradle</depends>
 
-    <xi:include href="/META-INF/azure-intellij-plugin-lib.xml" xpointer="xpointer(/idea-plugin/*)"/>
-
     <actions>
         <action id="Actions.WhatsNew"
                 class="com.microsoft.azure.toolkit.intellij.common.action.WhatsNewAction"

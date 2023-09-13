@@ -8,6 +8,8 @@ package com.microsoft.azure.toolkit.intellij.base;
 import com.azure.core.implementation.http.HttpClientProviders;
 import com.azure.core.management.AzureEnvironment;
 import com.intellij.ide.AppLifecycleListener;
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginStateListener;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
@@ -33,6 +35,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyInfo;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureRxTaskManager;
@@ -41,8 +44,6 @@ import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.common.utils.CommandUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
-import com.microsoft.azuretools.telemetrywrapper.EventType;
-import com.microsoft.azuretools.telemetrywrapper.EventUtil;
 import lombok.Lombok;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -73,14 +74,11 @@ import static com.microsoft.azure.toolkit.ide.common.store.AzureConfigInitialize
 import static com.microsoft.azure.toolkit.ide.common.store.AzureConfigInitializer.TELEMETRY_PLUGIN_VERSION;
 import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.OPERATION_NAME;
 import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.SERVICE_NAME;
-import static com.microsoft.azuretools.telemetry.TelemetryConstants.PLUGIN_INSTALL;
-import static com.microsoft.azuretools.telemetry.TelemetryConstants.PLUGIN_LOAD;
-import static com.microsoft.azuretools.telemetry.TelemetryConstants.PLUGIN_UPGRADE;
 import static com.microsoft.azuretools.telemetry.TelemetryConstants.PROXY;
 import static com.microsoft.azuretools.telemetry.TelemetryConstants.SYSTEM;
 
 @Slf4j
-public class PluginLifecycleListener implements AppLifecycleListener {
+public class PluginLifecycleListener implements AppLifecycleListener, PluginStateListener {
     public static final String PLUGIN_ID = CommonConst.PLUGIN_ID;
     private static final String AZURE_TOOLS_FOLDER = ".AzureToolsForIntelliJ";
     private static final String AZURE_TOOLS_FOLDER_DEPRECATED = "AzureToolsForIntelliJ";
@@ -148,12 +146,13 @@ public class PluginLifecycleListener implements AppLifecycleListener {
 
     private static void initializeTelemetry() {
         final String oldVersion = AzureStoreManager.getInstance().getIdeStore().getProperty(TELEMETRY, TELEMETRY_PLUGIN_VERSION);
+        final String newVersion = CommonConst.PLUGIN_VERSION;
         if (StringUtils.isBlank(oldVersion)) {
-            EventUtil.logEvent(EventType.info, SYSTEM, PLUGIN_INSTALL, null, null);
-        } else if (StringUtils.isNotBlank(oldVersion) && !com.microsoft.azure.toolkit.intellij.common.CommonConst.PLUGIN_VERSION.equalsIgnoreCase(oldVersion)) {
-            EventUtil.logEvent(EventType.info, SYSTEM, PLUGIN_UPGRADE, null, null);
+            AzureTelemeter.log(AzureTelemetry.Type.INFO, OperationBundle.description("user/system.install-plugin.version", newVersion));
+        } else if (StringUtils.isNotBlank(oldVersion) && !newVersion.equalsIgnoreCase(oldVersion)) {
+            AzureTelemeter.log(AzureTelemetry.Type.INFO, OperationBundle.description("user/system.upgrade-plugin.from|to", oldVersion, newVersion));
         }
-        EventUtil.logEvent(EventType.info, SYSTEM, PLUGIN_LOAD, null, null);
+        AzureTelemeter.log(AzureTelemetry.Type.INFO, OperationBundle.description("user/system.load-plugin.version", newVersion));
         if (StringUtils.isNotBlank(Azure.az().config().getProxySource())) {
             final Map<String, String> map = Optional.ofNullable(AzureTelemeter.getCommonProperties()).map(HashMap::new).orElse(new HashMap<>());
             map.put(PROXY, "true");
@@ -227,5 +226,19 @@ public class PluginLifecycleListener implements AppLifecycleListener {
         final CertificateManager certificateManager = CertificateManager.getInstance();
         Azure.az().config().setSslContext(certificateManager.getSslContext());
         HttpsURLConnection.setDefaultSSLSocketFactory(certificateManager.getSslContext().getSocketFactory());
+    }
+
+    @Override
+    public void install(@Nonnull IdeaPluginDescriptor ideaPluginDescriptor) {
+        if (ideaPluginDescriptor.getPluginId().getIdString().equalsIgnoreCase(CommonConst.PLUGIN_ID)) {
+            AzureTelemeter.log(AzureTelemetry.Type.INFO, OperationBundle.description("user/system.install-plugin.version", CommonConst.PLUGIN_VERSION));
+        }
+    }
+
+    @Override
+    public void uninstall(@Nonnull IdeaPluginDescriptor ideaPluginDescriptor) {
+        if (ideaPluginDescriptor.getPluginId().getIdString().equalsIgnoreCase(CommonConst.PLUGIN_ID)) {
+            AzureTelemeter.log(AzureTelemetry.Type.INFO, OperationBundle.description("user/system.uninstall-plugin.version", CommonConst.PLUGIN_VERSION));
+        }
     }
 }
