@@ -4,8 +4,6 @@
     <depends>com.intellij.gradle</depends>
     <depends>org.jetbrains.plugins.gradle</depends>
 
-    <xi:include href="/META-INF/azure-intellij-plugin-appservice.xml" xpointer="xpointer(/idea-plugin/*)"/>
-
     <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
         <actions implementation="com.microsoft.azure.toolkit.intellij.appservice.AppServiceIntelliJActionsContributor"/>
         <guidanceTaskProvider implementation="com.microsoft.azure.toolkit.intellij.appservice.AppServiceTaskProvider"/>

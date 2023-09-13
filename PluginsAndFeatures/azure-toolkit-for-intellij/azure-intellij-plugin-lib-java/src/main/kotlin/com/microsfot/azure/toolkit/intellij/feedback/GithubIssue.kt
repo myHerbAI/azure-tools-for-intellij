@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package com.microsoft.intellij.feedback
+package com.microsfot.azure.toolkit.intellij.feedback
 
 import com.intellij.ide.BrowserUtil
 import org.apache.commons.lang3.StringUtils
@@ -36,7 +36,7 @@ class GithubIssue<T : Reportable>(private val reportable: T) {
 
     private val pluginRepo: URI
         get() {
-            val url = if ( plugin.url!!.endsWith("/")) plugin.url else plugin.url + "/"
+            val url = if (plugin.url!!.endsWith("/")) plugin.url else plugin.url + "/"
 
             return URI.create(url)
         }
@@ -54,17 +54,22 @@ class GithubIssue<T : Reportable>(private val reportable: T) {
         // version request.
 
         // Limit the URL length with double encoding by Github login redirection prefix
-        val newIssueUrlEncoded = pluginRepo.resolve("issues/new?" + URLEncodedUtils.format(listOf(
-                BasicNameValuePair("title", reportable.getTitle()),
-                BasicNameValuePair("labels", labels.joinToString(",")),
-                BasicNameValuePair("body", reportable.getBody())
-        ), StandardCharsets.UTF_8))
+        val newIssueUrlEncoded = pluginRepo.resolve(
+            "issues/new?" + URLEncodedUtils.format(
+                listOf(
+                    BasicNameValuePair("title", reportable.getTitle()),
+                    BasicNameValuePair("labels", labels.joinToString(",")),
+                    BasicNameValuePair("body", reportable.getBody())
+                ), StandardCharsets.UTF_8
+            )
+        )
 
         val loginRedirectParam = URLEncodedUtils.format(
-                listOf(BasicNameValuePair("return_to", "$newIssueUrlEncoded")), StandardCharsets.UTF_8)
+            listOf(BasicNameValuePair("return_to", "$newIssueUrlEncoded")), StandardCharsets.UTF_8
+        )
 
         return StringUtils.left("$loginPrefix?$loginRedirectParam", 2083)   // 2083 URL max length
-                .replace(urlEncoderEndingRegex, "")                   // remove ending uncompleted escaped chars, %25 is % encoded
+            .replace(urlEncoderEndingRegex, "")                   // remove ending uncompleted escaped chars, %25 is % encoded
     }
 
     fun report() {

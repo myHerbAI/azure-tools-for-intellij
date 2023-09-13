@@ -7,12 +7,12 @@
         <actions implementation="com.microsoft.azure.toolkit.intellij.hdinsight.IntellijHDInsightActionsContributor"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
-        <executor implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobRunExecutor" id="SparkJobRun" />
-        <executor implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobDebugExecutor" id="SparkJobDebug" />
+        <executor implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobRunExecutor" id="SparkJobRun"/>
+        <executor implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobDebugExecutor" id="SparkJobDebug"/>
         <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.LivySparkBatchJobRunConfigurationType"/>
         <runConfigurationProducer implementation="com.microsoft.azure.hdinsight.spark.run.LivySparkRunConfigurationProducer"/>
-        <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobRunner" />
-        <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobDebuggerRunner" />
+        <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobRunner"/>
+        <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.SparkBatchJobDebuggerRunner"/>
         <actionPromoter implementation="com.microsoft.azure.hdinsight.spark.console.SparkExecuteInConsoleActionPromoter"/>
     </extensions>
     <applicationListeners>
@@ -32,7 +32,8 @@
                 text="Run Apache Spark Local Console(Scala)" description="Run Apache Spark Local Console (Scala language)">
         </action>
         <action id="Spark.RunScalaLivyConsole" class="com.microsoft.azure.hdinsight.spark.console.RunSparkLivyConsoleActionDelegate"
-                text="Run Apache Spark Livy Interactive Session Console(Scala)" description="Run Apache Spark Livy Interactive Session Console (Scala language)">
+                text="Run Apache Spark Livy Interactive Session Console(Scala)"
+                description="Run Apache Spark Livy Interactive Session Console (Scala language)">
         </action>
         <action id="SparkConsole.Execute" class="com.microsoft.azure.hdinsight.spark.console.SparkConsoleExecuteAction" text="Execute Spark Console Statement">
             <keyboard-shortcut first-keystroke="control ENTER" keymap="$default"/>
@@ -58,11 +59,14 @@
             <reference ref="Spark.RunScalaLivyConsole"/>
         </group>
 
-        <action id="Actions.SparkSubmitJobActionGroups" class="com.microsoft.azure.hdinsight.spark.run.action.SparkSubmitJobActionGroups" text="Submit Apache Spark Application"/>
+        <action id="Actions.SparkSubmitJobActionGroups" class="com.microsoft.azure.hdinsight.spark.run.action.SparkSubmitJobActionGroups"
+                text="Submit Apache Spark Application"/>
 
-        <action id="Actions.SparkRunLivyConsoleActionGroups" class="com.microsoft.azure.hdinsight.spark.console.SparkRunLivyConsoleActionGroups" text="Run Apache Spark Console"/>
+        <action id="Actions.SparkRunLivyConsoleActionGroups" class="com.microsoft.azure.hdinsight.spark.console.SparkRunLivyConsoleActionGroups"
+                text="Run Apache Spark Console"/>
 
-        <action id="Actions.SparkRunLocalConsoleActionGroups" class="com.microsoft.azure.hdinsight.spark.console.SparkRunLocalConsoleActionGroups" text="Run Apache Spark Local Console"/>
+        <action id="Actions.SparkRunLocalConsoleActionGroups" class="com.microsoft.azure.hdinsight.spark.console.SparkRunLocalConsoleActionGroups"
+                text="Run Apache Spark Local Console"/>
 
         <action id="Actions.RunLivySparkConsoleAction"
                 class="com.microsoft.azure.hdinsight.spark.console.SelectLivySparkTypeThenRunLivyConsoleAction" text="Apache Spark on HDInsight"

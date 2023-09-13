@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package com.microsoft.intellij.feedback
+package com.microsfot.azure.toolkit.intellij.feedback
 
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent
@@ -37,18 +37,23 @@ class MSErrorReportHandler : ErrorReportSubmitter() {
         return "Report to Microsoft"
     }
 
-    override fun submit(events: Array<out IdeaLoggingEvent>,
-                        additionalInfo: String?,
-                        parentComponent: Component,
-                        callback: Consumer<in SubmittedReportInfo>): Boolean {
+    override fun submit(
+        events: Array<out IdeaLoggingEvent>,
+        additionalInfo: String?,
+        parentComponent: Component,
+        callback: Consumer<in SubmittedReportInfo>
+    ): Boolean {
         val event = events[0]
 
         val githubIssue = GithubIssue(
-                ReportableError("Uncaught Exception ${event.message ?: ""} ${event.throwableText.split("\n").first()}",
-                                filterMSCallStacks(event.toString()))
-                        .with("Additional Info", additionalInfo ?: "None")
-                        .with("Parent component", GithubMarkdownFormat.toCode(parentComponent.toString())))
-                .withLabel("bug")
+            ReportableError(
+                "Uncaught Exception ${event.message ?: ""} ${event.throwableText.split("\n").first()}",
+                filterMSCallStacks(event.toString())
+            )
+                .with("Additional Info", additionalInfo ?: "None")
+                .with("Parent component", GithubMarkdownFormat.toCode(parentComponent.toString()))
+        )
+            .withLabel("bug")
 
         githubIssue.report()
 
@@ -110,25 +115,25 @@ fun filterMSCallStacks(callStacks: String): String {
     // Ignore the beginning 2 lines and `Caused by` line, only filter lines starting with `at`.
 
     return callStacks.splitToSequence("\n", "\r")
-            .filter { it.isNotBlank() }
-            .filterIndexed { index, line ->
-                // The First and second non-blank lines
-                if (index <= 1) {
-                    return@filterIndexed true
-                }
-
-                // `Caused by` line
-                if (line.matches("""^\s*Caused by:.*""".toRegex())) {
-                    return@filterIndexed true
-                }
-
-                // `at` line
-                if (line.matches("""^\s*at .*microsoft.*""".toRegex(RegexOption.IGNORE_CASE))) {
-                    return@filterIndexed true
-                }
-
-                false
+        .filter { it.isNotBlank() }
+        .filterIndexed { index, line ->
+            // The First and second non-blank lines
+            if (index <= 1) {
+                return@filterIndexed true
             }
-            .map { line -> AzureTelemetryClient.anonymizePiiData(line) }
-            .joinToString("\n")
+
+            // `Caused by` line
+            if (line.matches("""^\s*Caused by:.*""".toRegex())) {
+                return@filterIndexed true
+            }
+
+            // `at` line
+            if (line.matches("""^\s*at .*microsoft.*""".toRegex(RegexOption.IGNORE_CASE))) {
+                return@filterIndexed true
+            }
+
+            false
+        }
+        .map { line -> AzureTelemetryClient.anonymizePiiData(line) }
+        .joinToString("\n")
 }

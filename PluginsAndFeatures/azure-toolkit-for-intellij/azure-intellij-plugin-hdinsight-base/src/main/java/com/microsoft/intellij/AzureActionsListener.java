@@ -11,6 +11,7 @@ import com.microsoft.azure.cosmosspark.serverexplore.cosmossparknode.CosmosSpark
 import com.microsoft.azure.hdinsight.common.HDInsightHelperImpl;
 import com.microsoft.azure.hdinsight.common.HDInsightLoader;
 import com.microsoft.azure.toolkit.intellij.common.CommonConst;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azuretools.authmanage.CommonSettings;
@@ -65,6 +66,7 @@ public class AzureActionsListener implements AppLifecycleListener, PluginCompone
             }
 
             ServiceManager.setServiceProvider(TrustStrategy.class, IdeaTrustStrategy.INSTANCE);
+            CommonSettings.setUserAgent(Azure.az().config().getUserAgent());
             initAuthManage();
         } catch (final Throwable t) {
             log.error(t.getMessage(), t);

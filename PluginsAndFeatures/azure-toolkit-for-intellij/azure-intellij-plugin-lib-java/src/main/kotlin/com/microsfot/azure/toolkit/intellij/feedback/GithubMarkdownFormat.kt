@@ -20,16 +20,14 @@
  * SOFTWARE.
  */
 
-package com.microsoft.intellij.feedback
+package com.microsfot.azure.toolkit.intellij.feedback
 
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction
-import com.microsoft.azuretools.telemetrywrapper.Operation
+object GithubMarkdownFormat {
+    fun toCode(value: String): String {
+        return "\n```\n$value\n```"
+    }
 
-open class NewGithubIssueAction(private val issue: GithubIssue<out Reportable>, actionTitle: String)
-        : AzureAnAction(actionTitle) {
-    override fun onActionPerformed(anActionEvent: AnActionEvent, operation: Operation?): Boolean {
-        issue.report()
-        return true
+    fun toInlineCode(value: String): String {
+        return "`$value`"
     }
 }

@@ -19,17 +19,24 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.microsfot.azure.toolkit.intellij.feedback
 
-package com.microsoft.intellij.feedback
+class ReportableIssue(shortMessage: String) : Reportable(shortMessage) {
 
-class ReportableSurvey(shortMessage: String) : Reportable(shortMessage) {
-    private val questions = listOf(
-                "#### 1. Are you satisfied with the Apache Spark development functionalities & experiences offered in Azure Toolkit for IntelliJ? Please rate us from 1 (poor) to 10 (excellent).",
-                "#### 2. What did you like or dislike about Azure Toolkit for IntelliJ?",
-                "#### 3. What enhancements would you like Azure Toolkit for IntelliJ to implement?"
+    private val template = listOf(
+        "#### Setup",
+        "%s",
+        "####  Describe the bug",
+        "A clear and concise description of what the bug is, including expected behavior and actual behavior",
+        "####  To Reproduce",
+        "Steps to reproduce the bug",
+        "#### Exception or Stack Trace",
+        "Add the exception log and stack trace if available.",
+        "#### Screenshots",
+        "Add screenshots to help explain your problem if available."
     )
 
     override fun getBody(): String {
-        return super.getBody() + "\n\n" + questions.joinToString("\n\n") + "\n\n"
+        return String.format(template.joinToString("\n\n"), super.getBody());
     }
 }

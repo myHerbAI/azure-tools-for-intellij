@@ -42,6 +42,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import javax.swing.tree.DefaultTreeModel;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -65,8 +66,8 @@ public class AzureExplorer extends Tree {
         this.root = new Node<>("Azure")
             .withChildrenLoadLazily(false)
             .addChild(buildFavoriteRoot())
-            .addChild(buildAppCentricViewRoot())
-            .addChild(buildAzureRoot());
+            .addChild(buildAppGroupedResourcesRoot())
+            .addChild(buildTypeGroupedResourcesRoot());
         this.init(this.root);
         this.setRootVisible(false);
         //noinspection UnstableApiUsage
@@ -83,13 +84,21 @@ public class AzureExplorer extends Tree {
                 TreeUtils.focusResource(this, (AbstractAzResource<?, ?, ?>) e.getSource());
             }
         }));
+        AzureEventBus.on("account.logged_out.account", new AzureEventBus.EventListener(e -> {
+            final DefaultTreeModel model = (DefaultTreeModel) this.getModel();
+            final TreeNode<?> root = (TreeNode<?>) model.getRoot();
+            final TreeNode<?> appGroupedResourcesRoot = (TreeNode<?>) root.getChildAt(1);
+            final TreeNode<?> typeGroupedResourcesRoot = (TreeNode<?>) root.getChildAt(2);
+            appGroupedResourcesRoot.clearChildren();
+            typeGroupedResourcesRoot.clearChildren();
+        }));
     }
 
-    private Node<Azure> buildAzureRoot() {
+    private Node<Azure> buildTypeGroupedResourcesRoot() {
         return new TypeGroupedServicesRootNode().addChildren((a) -> getModules());
     }
 
-    public Node<?> buildAppCentricViewRoot() {
+    public Node<?> buildAppGroupedResourcesRoot() {
         final AzureResources resources = Azure.az(AzureResources.class);
         return manager.createNode(resources, null, IExplorerNodeProvider.ViewType.APP_CENTRIC);
     }
