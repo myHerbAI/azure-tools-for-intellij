@@ -44,7 +44,7 @@ public class ViewSOCServerlessJobsAction {
             } else {
                 // create a new tab if the requested job list tab does not exists
                 account.getSparkBatchJobList()
-                        .doOnNext(sparkBatchJobList -> {
+                        .subscribe(sparkBatchJobList -> {
                             // show serverless spark job list
                             CosmosServerlessSparkBatchJobsViewer jobView = new CosmosServerlessSparkBatchJobsViewer(account) {
                                 @Override
