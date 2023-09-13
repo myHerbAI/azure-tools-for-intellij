@@ -13,6 +13,8 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.tree.AsyncTreeModel;
 import com.intellij.util.ui.tree.TreeUtil;
@@ -24,8 +26,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.jetbrains.concurrency.AsyncPromise;
+import org.jetbrains.concurrency.Promise;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -36,6 +41,7 @@ import javax.swing.tree.TreePath;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 
 @Slf4j
 @ToString(onlyExplicitlyIncluded = true)
@@ -175,5 +181,28 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
             children.add(toExceptionNode(e, project));
             return children;
         }
+    }
+
+    public static void focusNode(@Nonnull Project project, @Nonnull Predicate<DefaultMutableTreeNode>... predicates) {
+        final JTree tree = Optional.ofNullable(ProjectView.getInstance(project).getCurrentProjectViewPane())
+                .map(AbstractProjectViewPane::getTree).orElse(null);
+        if (Objects.isNull(tree)) {
+            return;
+        }
+        final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Project");
+        toolWindow.show();
+        final Stack<Predicate<DefaultMutableTreeNode>> stack = new Stack<>();
+        Arrays.stream(predicates).forEach(stack::push);
+        expandNode(tree, stack);
+    }
+
+    @Nullable
+    public static Promise<TreePath> expandNode(@Nonnull final JTree tree, @Nonnull Stack<Predicate<DefaultMutableTreeNode>> stack) {
+        final Predicate<DefaultMutableTreeNode> predicate = stack.pop();
+        final DefaultMutableTreeNode node = TreeUtil.findNode((DefaultMutableTreeNode) tree.getModel().getRoot(), n -> predicate.test(n));
+        if (Objects.nonNull(node)) {
+            TreeUtil.selectPath(tree, new TreePath(node.getPath()));
+        }
+        return CollectionUtils.isEmpty(stack) ? new AsyncPromise<>() : TreeUtil.promiseExpand(tree, new TreePath(node.getPath())).thenAsync(path -> expandNode(tree, stack));
     }
 }
