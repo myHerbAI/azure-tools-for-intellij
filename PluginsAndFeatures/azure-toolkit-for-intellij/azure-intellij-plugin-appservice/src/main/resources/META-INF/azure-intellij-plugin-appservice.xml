@@ -1,4 +1,5 @@
 <idea-plugin>
+    <depends>org.jetbrains.plugins.terminal</depends>
     <depends optional="true" config-file="azure-intellij-plugin-appservice-ultimate.xml">com.jetbrains.restClient</depends>
     <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
         <explorerNodeProvider implementation="com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppNodeProvider"/>

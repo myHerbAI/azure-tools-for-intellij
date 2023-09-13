@@ -29,7 +29,7 @@ import com.microsoft.azure.hdinsight.common.AbfsUri
 import com.microsoft.azure.hdinsight.sdk.cluster.MfaEspCluster
 import com.microsoft.azure.hdinsight.spark.common.SparkSubmitStorageType.ADLS_GEN2_FOR_OAUTH
 import com.microsoft.azure.hdinsight.spark.ui.SparkSubmissionJobUploadStorageBasicCard.StorageCheckEvent.PathInputFocusLostEvent
-import com.microsoft.azuretools.authmanage.IdeAzureAccount
+import com.microsoft.azure.toolkit.ide.common.auth.IdeAzureAccount
 import com.microsoft.intellij.ui.HintTextField
 import com.microsoft.intellij.forms.dsl.panel
 import com.microsoft.azure.toolkit.intellij.common.component.UIUtils

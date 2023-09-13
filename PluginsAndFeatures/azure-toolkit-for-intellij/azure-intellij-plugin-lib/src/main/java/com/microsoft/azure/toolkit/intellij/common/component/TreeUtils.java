@@ -41,10 +41,10 @@ import com.microsoft.azure.toolkit.lib.common.view.IView;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.resource.ResourcesServiceSubscription;
-import lombok.AllArgsConstructor;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -61,7 +61,11 @@ import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.stream.StreamSupport;
 
 public class TreeUtils {
@@ -377,38 +381,37 @@ public class TreeUtils {
         return false;
     }
 
-    @AllArgsConstructor
-    public static class FocusResourceListener extends TreeModelAdapter {
-        private final JTree tree;
-
-        @Override
-        protected void process(@Nonnull TreeModelEvent event, @Nonnull EventType type) {
-            final Object[] path = event.getPath();
-            final Object sourceNode = ArrayUtils.isEmpty(path) ? null : path[path.length - 1];
-            if (type == EventType.StructureChanged && sourceNode instanceof Tree.TreeNode<?> && isInAppCentricView((DefaultMutableTreeNode) sourceNode)) {
-                final Tree.TreeNode<?> source = (Tree.TreeNode<?>) sourceNode;
-                final List<AbstractAzResource<?, ?, ?>> resourcesToShow = getResourcesToFocus(tree);
-                final List<AbstractAzResource<?, ?, ?>> targetResources = resourcesToShow.stream()
-                    .filter(resource -> isParentResource(source.getUserObject(), resource)).toList();
-                for (final AbstractAzResource<?, ?, ?> targetResource : targetResources) {
-                    final Tree.TreeNode<?> treeNode = Objects.equals(source.getUserObject(), targetResource) ? source :
-                        StreamSupport.stream(Spliterators.spliteratorUnknownSize(source.children().asIterator(), Spliterator.ORDERED), false)
-                            .filter(node -> node instanceof Tree.TreeNode<?>)
-                            .map(node -> (Tree.TreeNode<?>) node)
-                            .filter(node -> node.getUserObject() != null && isParentResource(node.getUserObject(), targetResource))
-                            .findFirst().orElse(null);
-                    if (Objects.isNull(treeNode)) {
-                        // remove resource from list if its parent was not found
-                        resourcesToShow.remove(targetResource);
-                    } else if (Objects.equals(treeNode.getUserObject(), targetResource)) {
-                        // remove resource from list if it was founded
-                        resourcesToShow.remove(targetResource);
-                        focusResource(tree, targetResource);
-                    } else {
-                        expandTreeNode(tree, treeNode);
+    public static void installFocusListener(final Tree tree) {
+        tree.getModel().addTreeModelListener(new TreeModelAdapter() {
+            @Override
+            protected void process(@NotNull final TreeModelEvent event, @NotNull final EventType type) {
+                final Object[] path = event.getPath();
+                final Object sourceNode = ArrayUtils.isEmpty(path) ? null : path[path.length - 1];
+                if (type == EventType.StructureChanged && sourceNode instanceof Tree.TreeNode<?> && isInAppCentricView((DefaultMutableTreeNode) sourceNode)) {
+                    final Tree.TreeNode<?> source = (Tree.TreeNode<?>) sourceNode;
+                    final List<AbstractAzResource<?, ?, ?>> resourcesToShow = getResourcesToFocus(tree);
+                    final List<AbstractAzResource<?, ?, ?>> targetResources = resourcesToShow.stream()
+                        .filter(resource -> isParentResource(source.getUserObject(), resource)).toList();
+                    for (final AbstractAzResource<?, ?, ?> targetResource : targetResources) {
+                        final Tree.TreeNode<?> treeNode = Objects.equals(source.getUserObject(), targetResource) ? source :
+                            StreamSupport.stream(Spliterators.spliteratorUnknownSize(source.children().asIterator(), Spliterator.ORDERED), false)
+                                .filter(node -> node instanceof Tree.TreeNode<?>)
+                                .map(node -> (Tree.TreeNode<?>) node)
+                                .filter(node -> node.getUserObject() != null && isParentResource(node.getUserObject(), targetResource))
+                                .findFirst().orElse(null);
+                        if (Objects.isNull(treeNode)) {
+                            // remove resource from list if its parent was not found
+                            resourcesToShow.remove(targetResource);
+                        } else if (Objects.equals(treeNode.getUserObject(), targetResource)) {
+                            // remove resource from list if it was founded
+                            resourcesToShow.remove(targetResource);
+                            focusResource(tree, targetResource);
+                        } else {
+                            expandTreeNode(tree, treeNode);
+                        }
                     }
                 }
             }
-        }
+        });
     }
 }

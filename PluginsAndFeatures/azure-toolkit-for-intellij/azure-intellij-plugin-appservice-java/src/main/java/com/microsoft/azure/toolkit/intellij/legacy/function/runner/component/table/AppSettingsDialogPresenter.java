@@ -11,34 +11,35 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azuretools.core.mvp.ui.base.MvpPresenter;
-import rx.Observable;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 public class AppSettingsDialogPresenter<V extends ImportAppSettingsView> extends MvpPresenter<V> {
     public void onLoadFunctionApps() {
-        Observable.fromCallable(() -> Azure.az(AzureFunctions.class).functionApps())
-                .subscribeOn(getSchedulerProvider().io())
-                .subscribe(functionApps -> AzureTaskManager.getInstance().runLater(() -> {
-                    if (isViewDetached()) {
-                        return;
-                    }
-                    getMvpView().fillFunctionApps(functionApps);
-                }));
+        AzureTaskManager.getInstance().runOnPooledThread(() -> {
+            final List<FunctionApp> functionApps = Azure.az(AzureFunctions.class).functionApps();
+            AzureTaskManager.getInstance().runLater(() -> {
+                if (isViewDetached()) {
+                    return;
+                }
+                getMvpView().fillFunctionApps(functionApps);
+            });
+        });
     }
 
     public void onLoadFunctionAppSettings(FunctionApp functionApp) {
-        Observable.fromCallable(() -> {
+        AzureTaskManager.getInstance().runOnPooledThread(() -> {
             getMvpView().beforeFillAppSettings();
-            return functionApp.getAppSettings();
-        }).subscribeOn(getSchedulerProvider().io())
-                .subscribe(appSettings -> AzureTaskManager.getInstance().runLater(() -> {
-                    if (isViewDetached()) {
-                        return;
-                    }
-                    getMvpView().fillFunctionAppSettings(appSettings);
-                }));
+            final Map<String, String> appSettings = functionApp.getAppSettings();
+            AzureTaskManager.getInstance().runLater(() -> {
+                if (isViewDetached()) {
+                    return;
+                }
+                getMvpView().fillFunctionAppSettings(appSettings);
+            });
+        });
     }
 
     public void onLoadLocalSettings(Path localSettingsJsonPath) {

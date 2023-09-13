@@ -5,13 +5,11 @@
     <action id="AzureToolkit.AD.AzureRegisterApp"
             icon="/icons/WebApp/WebApp.svg"
             class="com.microsoft.azure.toolkit.intellij.connector.aad.RegisterApplicationAction">
-      <add-to-group group-id="AzureToolkit.AzureActionGroup" anchor="before" relative-to-action="AzureToolkit.AzureSignIn"/>
     </action>
 
     <action id="AzureToolkit.AD.AzureAppTemplates"
             icon="/icons/WebApp/WebApp.svg"
             class="com.microsoft.azure.toolkit.intellij.connector.aad.ShowApplicationTemplatesAction">
-      <add-to-group group-id="AzureToolkit.AzureActionGroup" anchor="before" relative-to-action="AzureToolkit.AzureSignIn"/>
     </action>
   </actions>
 </idea-plugin>

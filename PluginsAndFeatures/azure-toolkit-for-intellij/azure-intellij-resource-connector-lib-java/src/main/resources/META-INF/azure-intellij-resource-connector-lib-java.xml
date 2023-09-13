@@ -1,6 +1,5 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-
-    <xi:include href="/META-INF/azure-intellij-resource-connector-lib.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <depends>com.intellij.modules.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <runConfigurationExtension implementation="com.microsoft.azure.toolkit.intellij.connector.dotazure.DotEnvRunConfigurationExtension"/>

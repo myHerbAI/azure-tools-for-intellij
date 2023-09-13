@@ -50,7 +50,7 @@
 ### Fixed
 - Fix: System environment variables may be missed during function run/deployment
 - [#7651](https://github.com/microsoft/azure-tools-for-java/issues/7651): Uncaught Exception DeployFunctionAppAction#update, check if project is a valid function project.
-- [#7653](https://github.com/microsoft/azure-tools-for-java/issues/7653): Uncaught Exception com.intellij.diagnostic.PluginException: No display name is specified for configurable com.microsoft.intellij.AzureConfigurable in xml file.
+- [#7653](https://github.com/microsoft/azure-tools-for-java/issues/7653): Uncaught Exception com.intellij.diagnostic.PluginException: No display name is specified for configurable com.microsoft.azure.toolkit.intellij.settings.AzureSettingsConfigurable in xml file.
 - [#7619](https://github.com/microsoft/azure-tools-for-java/issues/7619): Uncaught Exception Uncaught Exception java.lang.IllegalArgumentException: invalid arguments id/nameId.
 
 ## 3.77.0
@@ -68,7 +68,7 @@
 ### Fixed
 - [#7564](https://github.com/microsoft/azure-tools-for-java/issues/7564): Uncaught Exception java.lang.NullPointerException: Cannot invoke "com.microsoft.azure.toolkit.ide.common.store.IIdeStore.getProperty(String, String)" because "store" is null.
 - [#7561](https://github.com/microsoft/azure-tools-for-java/issues/7561): Uncaught Exception com.intellij.diagnostic.PluginException: 644 ms to call on EDT DeployFunctionAppAction#update@MainMenu (com.microsoft.azure.toolkit.intellij.legacy.function.action.DeployFunctionAppAction).
-- [#7421](https://github.com/microsoft/azure-tools-for-java/issues/7421): Uncaught Exception com.intellij.diagnostic.PluginException: 303 ms to call on EDT ServerExplorerToolWindowFactory$RefreshAllAction#update@ToolwindowTitle (com.microsoft.intellij.ui.ServerExplorerToolWindowFactory$RefreshAllAction).
+- [#7421](https://github.com/microsoft/azure-tools-for-java/issues/7421): Uncaught Exception com.intellij.diagnostic.PluginException: 303 ms to call on EDT ServerExplorerToolWindowFactory$RefreshAllAction#update@ToolwindowTitle (com.microsoft.azure.toolkit.intellij.explorer.ServerExplorerToolWindowFactory$RefreshAllAction).
 - [#7411](https://github.com/microsoft/azure-tools-for-java/issues/7411): Uncaught Exception com.intellij.diagnostic.PluginException: 338 ms to call on EDT RunFunctionAction#update@GoToAction (com.microsoft.azure.toolkit.intellij.legacy.function.action.RunFunctionAction).
 - [#7185](https://github.com/microsoft/azure-tools-for-java/issues/7185): Uncaught Exception com.intellij.diagnostic.PluginException: 446 ms to call on EDT AzureSignInAction#update@ToolwindowTitle (com.microsoft.intellij.actions.AzureSignInAction).
 - [#7143](https://github.com/microsoft/azure-tools-for-java/issues/7143): Uncaught Exception com.intellij.diagnostic.PluginException: 403 ms to call on EDT ShowGettingStartAction#update@GoToAction (com.microsoft.azure.toolkit.ide.guidance.action.ShowGettingStartAction).
