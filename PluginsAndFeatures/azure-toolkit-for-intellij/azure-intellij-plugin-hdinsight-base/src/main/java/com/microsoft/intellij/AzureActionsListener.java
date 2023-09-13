@@ -52,7 +52,6 @@ public class AzureActionsListener implements AppLifecycleListener, PluginCompone
 
     @Override
     @ExceptionNotification
-    @AzureOperation(name = "platform/hdinsight.init_plugin")
     public void appFrameCreated(@Nonnull List<String> commandLineArgs) {
         try {
             DefaultLoader.setPluginComponent(this);
