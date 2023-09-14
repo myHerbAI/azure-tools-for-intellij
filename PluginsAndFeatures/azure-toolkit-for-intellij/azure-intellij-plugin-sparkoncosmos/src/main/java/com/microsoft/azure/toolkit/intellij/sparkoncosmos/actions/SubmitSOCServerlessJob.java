@@ -6,13 +6,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.cosmos.spark.actions.CosmosServerlessSparkSelectAndSubmitAction;
-import com.microsoft.azure.cosmosspark.serverexplore.ui.CosmosSparkProvisionDialog;
-import com.microsoft.azure.hdinsight.sdk.common.azure.serverless.AzureSparkCosmosCluster;
 import com.microsoft.azure.hdinsight.sdk.common.azure.serverless.AzureSparkServerlessAccount;
-import com.microsoft.azure.hdinsight.spark.actions.SparkAppSubmitContext;
+import com.microsoft.azure.cosmos.spark.actions.SparkAppSubmitContext;
 import com.microsoft.azure.hdinsight.spark.run.configuration.CosmosServerlessSparkConfigurationFactory;
 import com.microsoft.azure.hdinsight.spark.run.configuration.CosmosServerlessSparkConfigurationType;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.sparkoncosmos.SparkOnCosmosADLAccountNode;
 
 import java.util.List;

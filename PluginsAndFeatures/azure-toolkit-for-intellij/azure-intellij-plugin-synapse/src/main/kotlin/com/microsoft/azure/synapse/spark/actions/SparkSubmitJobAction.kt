@@ -20,8 +20,25 @@
  * SOFTWARE.
  */
 
-package com.microsoft.azure.hdinsight.spark.actions
-import com.microsoft.azure.hdinsight.spark.run.action.SeqActions
+package com.microsoft.azure.synapse.spark.actions
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ex.ActionManagerEx
+import com.microsoft.azure.hdinsight.common.logger.ILogger
+import com.microsoft.azure.toolkit.intellij.common.action.AzureAnAction
+import com.microsoft.azuretools.telemetrywrapper.Operation
 
+open class SeqActions(private vararg val actionIds: String): AzureAnAction(), ILogger {
+    override fun onActionPerformed(anActionEvent: AnActionEvent, operation: Operation?): Boolean {
+        try {
+            for (actiondId: String in actionIds) {
+                val action = ActionManagerEx.getInstanceEx().getAction(actiondId)
+                action?.actionPerformed(anActionEvent)
+                    ?: log().error("Can't perform the action with id $actiondId")
+            }
+        } catch (ignored: RuntimeException) {
+        }
 
-class ArisSparkSelectAndSubmitAction : SeqActions("Actions.SelectArisSparkType", "Actions.SubmitSparkApplicationAction")
+        return true
+    }
+}
+class ArcadiaSparkSelectAndSubmitAction : SeqActions("Actions.SelectArcadiaSparkType", "Actions.SubmitSparkApplicationAction")
