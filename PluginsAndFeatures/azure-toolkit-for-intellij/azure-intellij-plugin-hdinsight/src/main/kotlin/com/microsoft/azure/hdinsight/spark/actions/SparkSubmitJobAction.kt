@@ -21,18 +21,6 @@
  */
 
 package com.microsoft.azure.hdinsight.spark.actions
+import com.microsoft.azure.hdinsight.spark.run.action.SeqActions
 
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataKey
-
-class SparkAppSubmitContext : DataContext {
-    private val dataStore = mutableMapOf<String, Any>()
-
-    override fun getData(key: String): Any? {
-        return dataStore[key]
-    }
-
-    fun <T> putData(key: DataKey<T>, value: T): SparkAppSubmitContext = apply {
-        dataStore[key.name] = value as Any
-    }
-}
+class LivySparkSelectAndSubmitAction : SeqActions("Actions.SelectHDInsightSparkType", "Actions.SubmitSparkApplicationAction")
