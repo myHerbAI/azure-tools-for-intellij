@@ -12,7 +12,7 @@ import com.microsoft.azure.cosmosspark.serverexplore.CosmosSparkClusterDestoryMo
 import com.microsoft.azure.cosmosspark.serverexplore.cosmossparknode.CosmosSparkClusterNode;
 import com.microsoft.azure.hdinsight.common.mvc.SettableControl;
 import com.microsoft.azure.hdinsight.sdk.common.azure.serverless.AzureSparkCosmosCluster;
-import com.microsoft.azure.rxjava.IdeaSchedulers;
+import com.microsoft.intellij.rxjava.IdeaSchedulers;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.sparkoncosmos.SparkOnCosmosADLAccountNode;
 import com.microsoft.azure.toolkit.lib.sparkoncosmos.SparkOnCosmosClusterModule;
