@@ -16,7 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.sparkoncosmos.SparkOnCosmosClusterNode;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
-import com.microsoft.azure.rxjava.IdeaSchedulers;
+import com.microsoft.intellij.rxjava.IdeaSchedulers;
 import rx.functions.Action1;
 
 import java.awt.event.WindowAdapter;

@@ -112,21 +112,13 @@ public class SparkBatchJobDebuggerRunner extends GenericDebuggerRunner implement
         return sparkJobUrl;
     }
 
-    /**
-     * Execute Spark remote debugging action, refer to {@link GenericDebuggerRunner#execute(ExecutionEnvironment)}
-     * implementations, some internal API leveraged.
-     *
-     * @param environment the execution environment
-     * @throws ExecutionException the exception in execution
-     */
     @Override
-    public void execute(final ExecutionEnvironment environment) throws ExecutionException {
-        final RunProfileState state = environment.getState();
+    protected RunContentDescriptor doExecute(@org.jetbrains.annotations.NotNull RunProfileState state, @org.jetbrains.annotations.NotNull ExecutionEnvironment env) throws ExecutionException {
         if (state == null) {
-            return;
+            return super.doExecute(state,env);
         }
 
-        final Operation operation = environment.getUserData(TelemetryKeys.OPERATION);
+        final Operation operation = env.getUserData(TelemetryKeys.OPERATION);
         final AsyncPromise<ExecutionEnvironment> jobDriverEnvReady = new AsyncPromise<>();
         final SparkBatchRemoteDebugState submissionState = (SparkBatchRemoteDebugState) state;
 
@@ -176,7 +168,7 @@ public class SparkBatchJobDebuggerRunner extends GenericDebuggerRunner implement
                               submitModel.getSubmissionParameter().getClusterName()));
 
         // Show the submission console view
-        ExecutionManager.getInstance(project).getContentManager().showRunContent(environment.getExecutor(),
+        ExecutionManager.getInstance(project).getContentManager().showRunContent(env.getExecutor(),
                                                                                  submissionDesc);
 
         // Use the submission console to display the deployment ctrl message
@@ -235,7 +227,7 @@ public class SparkBatchJobDebuggerRunner extends GenericDebuggerRunner implement
                     final int localPort = jdbReadyEvent.getLocalJdbForwardedPort().get();
 
                     final ExecutionEnvironment forkEnv = forkEnvironment(
-                            environment, jdbReadyEvent.getRemoteHost().orElse("unknown"), jdbReadyEvent.isDriver());
+                            env, jdbReadyEvent.getRemoteHost().orElse("unknown"), jdbReadyEvent.isDriver());
 
                     final RunProfile runProfile = forkEnv.getRunProfile();
                     if (!(runProfile instanceof LivySparkBatchJobRunConfiguration)) {
@@ -342,8 +334,9 @@ public class SparkBatchJobDebuggerRunner extends GenericDebuggerRunner implement
         driverDebugHandler.getRemoteDebugProcess().start();
 
         // Driver side execute, leverage Intellij Async Promise, to wait for the Spark app deployed
-        executionManager.startRunProfile(environment, () -> jobDriverEnvReady.thenAsync(driverEnv ->
+        executionManager.startRunProfile(env, () -> jobDriverEnvReady.thenAsync(driverEnv ->
                 toIdeaPromise(attachAndDebug(driverEnv, state))));
+        return super.doExecute(state,env);
     }
 
     private Observable<RunContentDescriptor> attachAndDebug(final ExecutionEnvironment environment,
@@ -354,7 +347,7 @@ public class SparkBatchJobDebuggerRunner extends GenericDebuggerRunner implement
 
         return Observable.fromCallable(() -> {
             // Invoke GenericDebuggerRunner#doExecute to start real VM attach and debugging
-            return doExecute(state, environment);
+            return super.doExecute(state, environment);
         }).subscribeOn(new IdeaSchedulers(project).dispatchUIThread(ideModalityState));
     }
 
