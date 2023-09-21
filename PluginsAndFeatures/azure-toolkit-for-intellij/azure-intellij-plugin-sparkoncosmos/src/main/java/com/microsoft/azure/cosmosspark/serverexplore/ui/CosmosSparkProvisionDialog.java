@@ -30,7 +30,7 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.sparkoncosmos.SparkOnCosmosADLAccountNode;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
-import com.microsoft.azure.rxjava.IdeaSchedulers;
+import com.microsoft.intellij.rxjava.IdeaSchedulers;
 import com.microsoft.azure.ui.components.JsonEnvPropertiesField;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;

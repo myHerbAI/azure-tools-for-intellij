@@ -42,6 +42,13 @@ public class SparkOnCosmosActionsContributor implements IActionsContributor {
 
     @Override
     public void registerActions(AzureActionManager am) {
+        new Action<>(GROUP_CREATE_SOC_SERVICE)
+                .withLabel("Apache Spark on Cosmos")
+                .withIdParam(AzResource::getName)
+                .visibleWhen(s -> s instanceof ResourceGroup)
+                .enableWhen(s -> true)
+                .register(am);
+
         new Action<>(OPEN_NOTEBOOK)
                 .withLabel("Open Notebook")
                 .enableWhen(s -> true)

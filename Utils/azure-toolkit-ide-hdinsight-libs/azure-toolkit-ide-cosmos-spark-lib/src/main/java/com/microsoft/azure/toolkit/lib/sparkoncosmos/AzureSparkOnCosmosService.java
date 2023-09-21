@@ -47,4 +47,9 @@ public class AzureSparkOnCosmosService extends AbstractAzService<SparkOnCosmosSe
         return "sparkoncosmosclusters";
     }
 
+    @Override
+    public String getServiceNameForTelemetry() {
+        return "sparkoncosmos";
+    }
+
 }
