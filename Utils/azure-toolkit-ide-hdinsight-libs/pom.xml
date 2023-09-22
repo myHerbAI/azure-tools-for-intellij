@@ -35,6 +35,7 @@
         <module>azure-toolkit-ide-hdinsight-spark-lib</module>
         <module>azure-toolkit-ide-synapse-spark-lib</module>
         <module>azure-toolkit-ide-cosmos-spark-lib</module>
+        <module>azure-toolkit-ide-sqlserver-spark-lib</module>
     </modules>
 
     <dependencyManagement>
@@ -71,6 +72,11 @@
             <dependency>
                 <groupId>com.microsoft.hdinsight</groupId>
                 <artifactId>azure-toolkit-ide-cosmos-spark-lib</artifactId>
+                <version>${hdinsight.toolkit-ide-lib.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.hdinsight</groupId>
+                <artifactId>azure-toolkit-ide-sqlserver-spark-lib</artifactId>
                 <version>${hdinsight.toolkit-ide-lib.version}</version>
             </dependency>
             <dependency>
