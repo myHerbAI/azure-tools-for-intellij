@@ -1,10 +1,23 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-
-    <xi:include href="/META-INF/azure-intellij-plugin-lib.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <depends>com.intellij.modules.java</depends>
+    <depends>org.jetbrains.idea.maven</depends>
+    <depends>com.intellij.gradle</depends>
+    <depends>org.jetbrains.plugins.gradle</depends>
 
     <actions>
         <action id="Actions.WhatsNew"
-                class="com.microsoft.azure.toolkit.intellij.common.action.WhatsNewAction" text="What's New in Azure Toolkit"
+                class="com.microsoft.azure.toolkit.intellij.common.action.WhatsNewAction"
+                text="What's New in Azure Toolkit"
                 description="Show new features of Azure Toolkit for Java"/>
+        <action id="AzureToolkit.GithubIssue"
+                class="com.microsoft.azure.toolkit.intellij.feedback.NewCustomerIssueFeedbackAction"
+                text="Report an Issue"/>
+        <action id="AzureToolkit.FeatureRequest"
+                class="com.microsoft.azure.toolkit.intellij.feedback.NewFeatureRequestFeedbackAction"
+                text="Request a Feature"/>
     </actions>
+    <extensions defaultExtensionNs="com.intellij">
+        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.common.action.WhatsNewStartupActivity"/>
+        <errorHandler implementation="com.microsfot.azure.toolkit.intellij.feedback.MSErrorReportHandler"/>
+    </extensions>
 </idea-plugin>

@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @ToString(onlyExplicitlyIncluded = true)
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> implements IAzureFacetNode {
     public static final String FOCUS_KEY = "focuses";
 

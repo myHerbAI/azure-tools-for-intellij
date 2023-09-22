@@ -51,7 +51,6 @@ public class ConnectionManager {
     private final Set<Connection<?, ?>> connections = new LinkedHashSet<>();
     @Getter
     private final Profile profile;
-    @Getter
     private VirtualFile connectionsFile;
 
     public ConnectionManager(@Nonnull final Profile profile) {
@@ -97,7 +96,7 @@ public class ConnectionManager {
         final List<Connection<?, ?>> connections = AzureModule.createIfSupport(config)
             .map(AzureModule::getDefaultProfile)
             .map(Profile::getConnectionManager)
-                .map(ConnectionManager::getConnections).orElse(Collections.emptyList());
+            .map(ConnectionManager::getConnections).orElse(Collections.emptyList());
         return connections.stream().filter(c -> c.isApplicableFor(config)).collect(Collectors.toList());
     }
 

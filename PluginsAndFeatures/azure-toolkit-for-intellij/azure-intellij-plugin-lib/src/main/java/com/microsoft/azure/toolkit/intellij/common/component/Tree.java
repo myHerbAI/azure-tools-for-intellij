@@ -64,6 +64,7 @@ public class Tree extends SimpleTree implements DataProvider {
         TreeUtils.installExpandListener(this);
         TreeUtils.installSelectionListener(this);
         TreeUtils.installMouseListener(this);
+        TreeUtils.installFocusListener(this);
     }
 
     @Override
