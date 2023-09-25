@@ -18,6 +18,23 @@ plugins {
 group = properties("pluginGroup").get()
 version = properties("pluginVersion").get()
 
+// Configure Gradle IntelliJ Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
+intellij {
+    pluginName = properties("pluginName")
+    version = properties("platformVersion")
+    type = properties("platformType")
+
+    // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
+    plugins = properties("platformPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }
+}
+
+sourceSets {
+    main {
+        kotlin.srcDir("src/main/kotlin")
+        resources.srcDir("src/main/resources")
+    }
+}
+
 val azureToolkitVersion = properties("azureToolkitVersion").get()
 val azureToolkitUtilsVersion = properties("azureToolkitUtilsVersion").get()
 
@@ -60,7 +77,6 @@ allprojects {
         imports {
             mavenBom("com.microsoft.azure:azure-toolkit-libs:$azureToolkitVersion")
             mavenBom("com.microsoft.azure:azure-toolkit-ide-libs:$azureToolkitVersion")
-            mavenBom("com.microsoft.azuretools:utils:$azureToolkitUtilsVersion")
         }
     }
 
@@ -68,11 +84,7 @@ allprojects {
         compileOnly("org.projectlombok:lombok")
         annotationProcessor("org.projectlombok:lombok")
         implementation("com.microsoft.azure:azure-toolkit-common-lib")
-        aspect("com.microsoft.azure:azure-toolkit-common-lib") {
-            exclude("com.squareup.okhttp3", "okhttp")
-            exclude("com.squareup.okhttp3", "okhttp-urlconnection")
-            exclude("com.squareup.okhttp3", "logging-interceptor")
-        }
+        aspect("com.microsoft.azure:azure-toolkit-common-lib")
         compileOnly("org.jetbrains:annotations")
     }
 
@@ -91,6 +103,16 @@ allprojects {
     }
 }
 
+dependencies {
+    implementation(project(path = ":azure-intellij-plugin-lib-dotnet", configuration = "instrumentedJar"))
+    implementation(project(path = ":azure-intellij-resource-connector-lib", configuration = "instrumentedJar"))
+    implementation(project(path = ":azure-intellij-plugin-service-explorer", configuration = "instrumentedJar"))
+    implementation(project(path = ":azure-intellij-plugin-guidance", configuration = "instrumentedJar"))
+    implementation(project(path = ":azure-intellij-plugin-appservice-dotnet", configuration = "instrumentedJar"))
+    implementation(project(path = ":azure-intellij-plugin-arm", configuration = "instrumentedJar"))
+    implementation(project(path = ":azure-intellij-plugin-monitor", configuration = "instrumentedJar"))
+}
+
 subprojects {
     tasks {
         buildPlugin { enabled = false }
@@ -101,48 +123,6 @@ subprojects {
         patchPluginXml { enabled = false }
         publishPlugin { enabled = false }
         verifyPlugin { enabled = false }
-    }
-}
-
-// Configure Gradle IntelliJ Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
-intellij {
-    pluginName = properties("pluginName")
-    version = properties("platformVersion")
-    type = properties("platformType")
-
-    // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
-    plugins = properties("platformPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }
-}
-
-sourceSets {
-    main {
-        kotlin.srcDir("src/main/kotlin")
-        resources.srcDir("src/main/resources")
-    }
-}
-
-dependencies {
-    implementation(project(path = ":azure-intellij-plugin-lib", configuration = "instrumentedJar"))
-    implementation(project(path = ":azure-intellij-plugin-lib-dotnet", configuration = "instrumentedJar"))
-    implementation(project(path = ":azure-intellij-plugin-guidance", configuration = "instrumentedJar"))
-    implementation(project(path = ":azure-intellij-resource-connector-lib", configuration = "instrumentedJar"))
-    implementation(project(path = ":azure-intellij-plugin-service-explorer", configuration = "instrumentedJar"))
-    implementation(project(path = ":azure-intellij-plugin-arm", configuration = "instrumentedJar"))
-    implementation(project(path = ":azure-intellij-plugin-appservice", configuration = "instrumentedJar"))
-    implementation(project(path = ":azure-intellij-plugin-appservice-dotnet", configuration = "instrumentedJar"))
-    implementation(project(path = ":azure-intellij-plugin-monitor", configuration = "instrumentedJar"))
-
-    aspect("com.microsoft.azure:azure-toolkit-common-lib") {
-        exclude("com.squareup.okhttp3", "okhttp")
-        exclude("com.squareup.okhttp3", "okhttp-urlconnection")
-        exclude("com.squareup.okhttp3", "logging-interceptor")
-    }
-
-    implementation("com.microsoft.azuretools:azure-explorer-common") {
-        exclude("javax.xml.bind", "jaxb-api")
-    }
-    implementation("com.microsoft.azuretools:hdinsight-node-common") {
-        exclude("javax.xml.bind", "jaxb-api")
     }
 }
 
@@ -232,10 +212,6 @@ tasks {
             namespace = "JetBrains.Rider.Azure.Model"
             directory = csDaemonGeneratedOutput.canonicalPath
         }
-    }
-
-    processResources {
-        duplicatesStrategy = DuplicatesStrategy.WARN
     }
 
     buildSearchableOptions {
