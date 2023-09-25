@@ -102,7 +102,7 @@ public class AzureExplorer extends Tree {
         return new TypeGroupedServicesRootNode()
             .withActions(new ActionGroup(
                 new Action<>(ResourceCommonActionsContributor.REFRESH)
-                    .withLabel("Refresh ALl")
+                    .withLabel("Refresh All")
                     .withIcon(AzureIcons.Action.REFRESH.getIconPath())
                     .withHandler((e) -> this.refreshAll()),
                 IAccountActions.SELECT_SUBS,
