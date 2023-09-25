@@ -151,6 +151,7 @@ dependencies {
     implementation project(path: ':azure-intellij-plugin-servicebus', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-resource-connector-aad', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-hdinsight-lib', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-sqlserverbigdata', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-hdinsight', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-synapse', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-sparkoncosmos', configuration: 'instrumentedJar')

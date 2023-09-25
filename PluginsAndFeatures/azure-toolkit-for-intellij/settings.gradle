@@ -40,4 +40,5 @@ include 'azure-intellij-plugin-hdinsight'
 include 'azure-intellij-plugin-hdinsight-base'
 include 'azure-intellij-plugin-synapse'
 include 'azure-intellij-plugin-sparkoncosmos'
+include 'azure-intellij-plugin-sqlserverbigdata'
 
