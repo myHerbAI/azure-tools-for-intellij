@@ -28,12 +28,13 @@ import com.microsoft.azure.hdinsight.sdk.common.AuthType
 import com.microsoft.azure.hdinsight.serverexplore.AddNewClusterModel
 import com.microsoft.azure.hdinsight.serverexplore.ui.AddNewClusterForm
 import com.microsoft.azure.sqlbigdata.serverexplore.SqlBigDataClusterModule
+import com.microsoft.azuretools.azurecommons.helpers.Nullable
 import org.apache.commons.lang3.StringUtils.*
 import java.awt.CardLayout
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 
-class AddNewSqlBigDataClusterForm(project: Project, module: SqlBigDataClusterModule): AddNewClusterForm(project, module) {
+class AddNewSqlBigDataClusterForm(project: Project, module: SqlBigDataClusterModule?): AddNewClusterForm(project, module) {
     private val IPV4_ADDRESS_PATTERN = "^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}$"
 
     init {

@@ -4,7 +4,7 @@ plugins {
 }
 
 intellij {
-    plugins = ['java', 'maven', dep_plugins]
+    plugins = ['java']
 }
 
 dependencies {
@@ -17,7 +17,6 @@ dependencies {
     runtimeOnly project(path: ':azure-intellij-plugin-hdinsight-lib', configuration: 'instrumentedJar')
     implementation 'com.microsoft.azure:azure-toolkit-ide-common-lib'
     implementation 'com.microsoft.hdinsight:azure-toolkit-ide-sqlserver-spark-lib'
-    implementation 'org.dom4j:dom4j:2.1.3'
 }
 
 repositories {

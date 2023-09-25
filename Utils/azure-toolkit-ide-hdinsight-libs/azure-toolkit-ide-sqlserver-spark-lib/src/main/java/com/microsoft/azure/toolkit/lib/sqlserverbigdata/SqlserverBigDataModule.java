@@ -1,5 +1,6 @@
 package com.microsoft.azure.toolkit.lib.sqlserverbigdata;
 
+import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;
 import com.microsoft.azure.toolkit.ide.common.favorite.Favorite;
 import com.microsoft.azure.toolkit.ide.common.favorite.Favorites;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -9,7 +10,11 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SqlserverBigDataModule extends AbstractAzResourceModule<SqlserverBigDataNode, AzResource.None, AbstractAzResource<?, ?, ?>> {
+import javax.annotation.Nonnull;
+import java.util.Collections;
+import java.util.List;
+
+public class SqlserverBigDataModule extends AbstractAzResourceModule<SqlserverBigDataNode, SqlserverBigDataServiceSubscription, IClusterDetail> {
 
     public static final String NAME = "sqlserverbigdata";
 
@@ -17,12 +22,13 @@ public class SqlserverBigDataModule extends AbstractAzResourceModule<SqlserverBi
     private static final SqlserverBigDataModule instance = new SqlserverBigDataModule();
 
     private SqlserverBigDataModule() {
-        super(NAME, AzResource.NONE);
+        super(NAME, new SqlserverBigDataServiceSubscription());
     }
+
 
     @NotNull
     @Override
-    protected SqlserverBigDataNode newResource(@NotNull AbstractAzResource<?, ?, ?> abstractAzResource) {
+    protected SqlserverBigDataNode newResource(@NotNull IClusterDetail iClusterDetail) {
         return null;
     }
 
@@ -34,6 +40,17 @@ public class SqlserverBigDataModule extends AbstractAzResourceModule<SqlserverBi
 
     protected boolean isAuthRequiredForListing() {
         return false;
+    }
+
+    @Nonnull
+    @Override
+    public List<SqlserverBigDataNode> list() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public IClusterDetail getClient() {
+        return null;
     }
 
 }
