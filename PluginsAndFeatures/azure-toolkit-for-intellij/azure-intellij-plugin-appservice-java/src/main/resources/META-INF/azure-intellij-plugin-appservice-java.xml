@@ -1,6 +1,8 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-
-    <xi:include href="/META-INF/azure-intellij-plugin-appservice.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <depends>com.intellij.modules.java</depends>
+    <depends>org.jetbrains.idea.maven</depends>
+    <depends>com.intellij.gradle</depends>
+    <depends>org.jetbrains.plugins.gradle</depends>
 
     <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
         <actions implementation="com.microsoft.azure.toolkit.intellij.appservice.AppServiceIntelliJActionsContributor"/>

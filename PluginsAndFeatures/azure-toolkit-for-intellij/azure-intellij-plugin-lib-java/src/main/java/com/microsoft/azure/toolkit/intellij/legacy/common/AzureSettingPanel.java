@@ -10,6 +10,7 @@ import com.intellij.execution.impl.ConfigurationSettingsEditorWrapper;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.impl.run.BuildArtifactsBeforeRunTaskProvider;
@@ -18,8 +19,6 @@ import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
 import com.microsoft.azure.toolkit.ide.common.store.ISecureStore;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifact;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifactManager;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
-import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.intellij.util.BuildArtifactBeforeRunTaskUtils;
 import com.microsoft.intellij.util.MavenRunTaskUtil;
 import com.microsoft.intellij.util.MavenUtils;
@@ -27,26 +26,21 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.idea.maven.project.MavenProject;
 import org.jetbrains.idea.maven.project.MavenProjectsManager;
-import rx.Observable;
-import rx.schedulers.Schedulers;
 
 import javax.swing.*;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 public abstract class AzureSettingPanel<T extends AzureRunConfigurationBase> {
 
     private static final JLabel EMPTY_LABEL = new JLabel();
-    private static final JComboBox EMPTY_COMBO_BOX = new JComboBox();
+    private static final JComboBox<AzureArtifact> EMPTY_COMBO_BOX = new ComboBox<>();
 
     private boolean oldMode = true;
     protected final Project project;
     private boolean isCbArtifactInited;
     private boolean isArtifact;
-    private boolean telemetrySent;
     private Artifact lastSelectedArtifact;
     protected AzureArtifact currentArtifact;
     protected ISecureStore secureStore;
@@ -90,7 +84,6 @@ public abstract class AzureSettingPanel<T extends AzureRunConfigurationBase> {
         this.currentArtifact = AzureArtifactManager.getInstance(project).getAzureArtifactById(configuration.getArtifactIdentifier());
 
         resetFromConfig(configuration);
-        sendTelemetry(configuration.getSubscriptionId(), configuration.getTargetName());
     }
 
     protected boolean isMavenProject() {
@@ -273,26 +266,5 @@ public abstract class AzureSettingPanel<T extends AzureRunConfigurationBase> {
         }
         cbMavenProject.setVisible(true);
         getLblMavenProject().setVisible(true);
-    }
-
-    private void sendTelemetry(String subId, String targetName) {
-        if (telemetrySent) {
-            return;
-        }
-        Observable.fromCallable(() -> {
-            Map<String, String> map = new HashMap<>();
-            map.put("SubscriptionId", subId != null ? subId : "");
-            if (targetName != null) {
-                map.put("FileType", MavenRunTaskUtil.getFileType(targetName));
-            }
-            map.put("eventType", "Dialog");
-            map.put("panelName", getPanelName());
-            map.put("operationName", "Open");
-            AzureTelemeter.log(AzureTelemetry.Type.INFO, map);
-            return true;
-        }).subscribeOn(Schedulers.io()).subscribe(
-            (res) -> telemetrySent = true,
-            (err) -> telemetrySent = true
-        );
     }
 }

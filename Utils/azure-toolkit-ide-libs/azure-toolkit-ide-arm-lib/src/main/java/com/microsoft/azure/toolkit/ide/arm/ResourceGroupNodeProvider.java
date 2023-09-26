@@ -41,7 +41,7 @@ public class ResourceGroupNodeProvider implements IExplorerNodeProvider {
         if (data instanceof AzureResources) {
             final Function<AzureResources, List<ResourceGroup>> groupsLoader = s -> s.list().stream()
                 .flatMap(m -> m.resourceGroups().list().stream()).collect(Collectors.toList());
-            return new AppCentricRootNode((AzureResources) data)
+            return new AppGroupedServicesRootNode((AzureResources) data)
                 .withActions(ResourceGroupActionsContributor.APPCENTRIC_RESOURCE_GROUPS_ACTIONS)
                 .addChildren(groupsLoader, (d, p) -> this.createNode(d, p, manager));
         } else if (data instanceof ResourceGroup) {

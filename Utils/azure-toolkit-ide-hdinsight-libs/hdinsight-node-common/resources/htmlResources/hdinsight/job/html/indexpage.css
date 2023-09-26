@@ -1,0 +1,343 @@
+:root,
+:root.dark-theme-mode {
+    --text-color: white;
+    --bg-color: #2b2b2b;
+    --caret-color:white;
+    --selection-bg-color: #4B77AF;
+    --selection-text-color: white;
+    --edge-color: #828384;
+    --arrow-color: white;
+    --Job-s-color: #4B77AF;
+    --focus-color: #2f65ca;
+}
+:root.light-theme-mode {
+    --text-color: black;
+    --bg-color: white;
+    --caret-color:black;
+    --selection-bg-color: #2675BF;
+    --selection-text-color: white;
+    --edge-color: #828384;
+    --arrow-color: black;
+    --Job-s-color: #2687BF;
+    --focus-color: #2675bf;
+}
+:root.highcontrast-theme-mode {
+    --text-color: white;
+    --bg-color: black;
+    --caret-color:white;
+    --selection-bg-color: #3333FF;
+    --selection-text-color: white;
+    --edge-color: #828384;
+    --arrow-color: white;
+    --Job-s-color: #3333FF;
+    --focus-color: #3333ff;
+}
+
+body {
+    visibility: visible;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+}
+
+#htitle {
+    font-size: 14px;
+    margin: 2px;
+}
+
+#leftDiv {
+    float: left;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-width: 40vw;
+    max-height: 99vh;
+    min-height: 99vh;
+    border-right: 2px solid #185598;
+}
+#rightDiv {
+    max-height: 99vh;
+    min-height: 99vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: 100%;
+}
+
+#jobName {
+    border: none;
+    margin-top: 9px;
+    margin-left:12px;
+    float: left;
+}
+
+#rightButtonPanel{
+    float: right;
+    margin-right: 10px;
+    margin-top: 10px;
+    vertical-align: middle;
+}
+
+#myTable, #taskSummary {
+    font-size: 12px;
+    padding: 8px;
+    margin: 0px 20px 0 0;
+    height: 300px;
+}
+#taskSummaryTable {
+    margin-bottom: 0;
+    overflow:scroll;
+}
+#stageSummaryTable, #executorDetailsTable, #stage_detail_info_message {
+    margin-top: 5px;
+}
+#stage_detail_info_message {
+    width: 300px;
+    font-size: 11px;
+    text-align: left;
+    margin-left: 10px;
+}
+#job-details-info-table > tr {
+    font-size: 6px;
+    text-align: left;
+
+}
+
+#myTable,
+#stageSummaryTable, #taskSummaryTable, #executorDetailsTable > tbody > tr > td,
+#stageSummaryTable, #taskSummaryTable, #executorDetailsTable, #job-details-info-table > thead > tr > th {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 200;
+    align-content: center;
+}
+
+#stageSummaryTable > thead > tr > th,
+#taskSummaryTable > thead > tr > th,
+#executorDetailsTable > thead > tr > th {
+    text-align: center;
+    word-wrap: break-word;
+}
+
+#stored_rdd_info,
+#stage_detail_info,
+#job-details-info-table {
+    margin-left: 10px;
+}
+#stored_rdd_info tr td,
+#stage_detail_info tr td,
+#job-details-info-table tr td
+{
+    text-align: left;
+    font-size: 13px;
+    padding-bottom: 3px;
+}
+#stored_rdd_info tr td:first-child,
+#stage_detail_info tr td:first-child,
+#job-details-info-table tr td:first-child {
+    width: 150px;
+    margin-left: 10px;
+}
+
+#rightButtonPanel a {
+    color: inherit;
+    font-size: 11px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+#basicInformationDIv {
+    margin: 0;
+    padding: 2px;
+}
+
+#basicInformationTable {
+    margin-top: 2px;
+    border-collapse: separate;
+    border-spacing: 0px;
+    margin-bottom: 0px;
+    width: 100%;
+}
+
+#basicInformationTable thead tr td {
+    font-size: 15px;
+    margin-bottom: 8px;
+}
+
+#basicInformationTable tbody {
+    margin: 10px;
+    text-align: left;
+}
+
+#basicInformationTable tbody > tr {
+    margin: 0px;
+    padding: 0px;
+}
+
+#basicInformationTable tbody > tr > td,
+#basicInformationTable tbody > tr > th {
+    padding: 0px;
+    margin: 2px 5px 5px 15px;
+    text-align: left;
+    font-family: inherit;
+    font-size: 12px;
+    float: left;
+}
+#myTabContent {
+    margin: 0;
+    padding: 0;
+}
+
+#jobDetailDiv h2 {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.hdiPanel {
+    margin-top: 10px;
+}
+.hdi-dropdown-btn {
+    width: 160px;
+}
+.panelTitle {
+    font-weight: 200;
+    line-height: 1.4;
+    font-size: 18px;
+    color: #285e8e;
+    margin: 5px 0 5px 0;
+}
+.resultTextArea {
+    width:100%;
+    height:100%;
+    line-height:normal;
+    resize: none;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    font-size: 11px;
+    font-family: consolas,"courier new",monospace;
+    padding: 8px;
+}
+
+.table-bordered:focus {
+    border: 2px solid var(--focus-color)
+}
+
+.btn:focus {
+    border: 2px solid var(--focus-color)
+}
+
+.nav-tabs > li.active > a:focus {
+    border: 2px solid var(--focus-color)
+}
+
+.nav > li > a:focus {
+    border: 2px solid var(--focus-color)
+}
+
+.table-striped#myTable tbody {
+    font-size: 11px;
+    background-color: var(--bg-color);
+}
+
+.table-striped#myTable tbody > tr.selected-hight > td,
+.table-striped tbody > tr.selected-hight > th {
+    background-color: var(--selection-bg-color);
+    color: var(--selection-text-color);
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.table-striped#myTable thead >tr > td,
+.table-striped#myTable thead > tr> th {
+    text-align: center;
+    background-color: var(--bg-color);
+    word-wrap: break-word;
+}
+
+.table-striped#myTable tbody > tr> td:first-child,
+.table-striped.table-striped#myTable tbody > tr > th:first-child {
+    text-align: center;
+}
+
+.table-striped > tbody > tr:nth-child(odd),
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+    background-color: var(--bg-color);
+}
+
+.rightPanelhr {
+    height: 2px;
+    border: none;
+    border-top: 2px solid #185598;
+    margin: 0px;
+}
+
+.vsplitbar {
+    width: 5px;
+    background: #cab;
+}
+
+ul li {
+    font-size: 12px;
+}
+.nav>li>a {
+    padding: 5px 10px;
+}
+#jobDetailsInfo {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#jobDetailsInfo td, th {
+    border: 1px solid #dddddd;
+    padding: 8px;
+}
+
+#jobDetailsInfo tr:nth-child(even) {
+    background-color: #dddddd;
+}
+
+input[type=text] {
+    width: 130px;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    font-size: 12px;
+    background-color: var(--bg-color);
+    color: var(--caret-color);
+    caret-color: var(--caret-color);
+    background-image: url('resources/icons/searchicon.svg');
+    background-position: 3px 3px;
+    background-repeat: no-repeat;
+    padding: 12px 20px 12px 40px;
+    -webkit-transition: width 0.4s ease-in-out;
+    transition: width 0.4s ease-in-out;
+}
+
+input[type=text]:focus {
+    width: 100%;
+}
+
+[role="tablist"] {
+    overflow: visible;
+    margin:5px;
+}
+
+[role="tab"] {
+    position: relative;
+    margin: 0;
+    padding: 0.3em 0.5em 0.4em;
+    border: 1px solid hsl(219, 1%, 72%);
+    border-radius: 0.2em 0.2em 0 0;
+    overflow: visible;
+    font-family: inherit;
+    font-size: inherit;
+    background-color: inherit;
+    color: inherit;
+}
+
+[role="tab"][aria-selected="true"] {
+    background: var(--selection-bg-color);
+    color: var(--selection-text-color);
+}
+
+th, td {
+    word-break: break-all;
+}

@@ -1,0 +1,83 @@
+<idea-plugin url="https://github.com/Microsoft/azure-tools-for-java"
+>
+  <depends optional="true" config-file="azure-intellij-plugin-scala.xml">org.intellij.scala</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceImplementation="com.microsoft.intellij.ApplicationSettings"/>
+    <fileEditorProvider implementation="com.microsoft.azure.hdinsight.jobs.framework.JobViewEditorProvider"/>
+
+    <moduleBuilder builderClass="com.microsoft.azure.hdinsight.projects.HDInsightModuleBuilder"/>
+
+    <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.ArisSparkConfigurationType"/>
+    <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.ArcadiaSparkConfigurationType"/>
+    <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.SparkFailureTaskDebugConfigurationType"/>
+
+    <runConfigurationProducer implementation="com.microsoft.azure.hdinsight.spark.run.ArisSparkRunConfigurationProducer"/>
+    <runConfigurationProducer implementation="com.microsoft.azure.hdinsight.spark.run.ArcadiaSparkRunConfigurationProducer"/>
+
+    <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.ArisSparkBatchRunner"/>
+    <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.ArcadiaSparkBatchRunner"/>
+  </extensions>
+
+  <applicationListeners>
+    <listener class="com.microsoft.intellij.AzureActionsListener" topic="com.intellij.ide.AppLifecycleListener"/>
+  </applicationListeners>
+
+  <actions>
+    <action id="Actions.SubmitArisSparkApplicationAction"
+            class="com.microsoft.azure.hdinsight.spark.actions.ArisSparkSelectAndSubmitAction"
+            text="Apache Spark on SQL Server Big Data Cluster"
+            description="Submit Apache Spark on SQL Server Big Data Cluster Application" icon="/icons/Spark.png"/>
+
+    <group id="AzureToolkit.ValidateCertificate" text="Validate Spark Cluster SSL Certificate" popup="true">
+      <action id="AzureToolkit.DisableSSLCertificateValidation"
+              class="com.microsoft.intellij.actions.DisableSslCertificateValidationAction"
+              text="Disable"/>
+    </group>
+
+    <group id="Actions.SelectDefaultSparkApplicationTypeActionGroup" text="Default Spark Application Type" description="Select default spark application type"
+           popup="true">
+      <add-to-group group-id="ToolsMenu" anchor="last"/>
+      <add-to-group group-id="RunContextPopupGroup" anchor="after" relative-to-action="SparkJobDebug"/>
+      <action id="Actions.SelectNoneSparkType"
+              class="com.microsoft.azure.hdinsight.spark.run.action.SelectNoneSparkTypeAction" text="None">
+      </action>
+      <action id="Actions.SelectCosmosSparkType"
+              class="com.microsoft.azure.hdinsight.spark.run.action.SelectCosmosSparkTypeAction" text="Apache Spark on Cosmos">
+      </action>
+      <action id="Actions.SelectCosmosServerlessSparkType"
+              class="com.microsoft.azure.hdinsight.spark.run.action.SelectCosmosServerlessSparkTypeAction" text="Apache Spark on Cosmos Serverless">
+      </action>
+      <action id="Actions.SelectHDInsightSparkType"
+              class="com.microsoft.azure.hdinsight.spark.run.action.SelectHDInsightSparkTypeAction" text="Apache Spark on HDInsight">
+      </action>
+      <action id="Actions.SelectArisSparkType"
+              class="com.microsoft.azure.hdinsight.spark.run.action.SelectArisSparkTypeAction"
+              text="Apache Spark on SQL Server Big Data Cluster">
+      </action>
+      <action id="Actions.SelectArcadiaSparkType"
+              class="com.microsoft.azure.hdinsight.spark.run.action.SelectArcadiaSparkTypeAction"
+              text="Apache Spark on Azure Synapse">
+      </action>
+    </group>
+
+    <action id="Actions.RunArcadiaSparkConsoleAction"
+            class="com.microsoft.azure.hdinsight.spark.console.SelectArcadiaSparkTypeThenRunLivyConsoleAction"
+            text="Apache Spark on Azure Synapse"
+            description="Start an interactive console for Apache Spark on Azure Synapse Application" icon="/icons/Spark.png"/>
+
+    <action id="Actions.RunArisSparkConsoleAction"
+            class="com.microsoft.azure.hdinsight.spark.console.SelectArisSparkTypeThenRunLivyConsoleAction"
+            text="Apache Spark on SQL Server Big Data Cluster"
+            description="Start an interactive console for Apache Spark on SQL Server Big Data Cluster Application" icon="/icons/Spark.png"/>
+
+    <action id="Actions.RunArcadiaSparkLocalConsoleAction"
+            class="com.microsoft.azure.hdinsight.spark.console.SelectArcadiaSparkTypeThenRunLocalConsoleAction" text="Apache Spark on Azure Synapse"
+            description="Start a Apache Spark local console for Apache Spark on Azure Synapse Application" icon="/icons/Spark.png"/>
+
+    <action id="Actions.RunArisSparkLocalConsoleAction"
+            class="com.microsoft.azure.hdinsight.spark.console.SelectArisSparkTypeThenRunLocalConsoleAction"
+            text="Apache Spark on SQL Server Big Data Cluster"
+            description="Start a Apache Spark local console for Apache Spark on SQL Server Big Data Cluster Application" icon="/icons/Spark.png"/>
+  </actions>
+</idea-plugin>

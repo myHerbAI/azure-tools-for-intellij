@@ -35,12 +35,6 @@ public class AzureFacetConfiguration implements FacetConfiguration, PersistentSt
         this.state = new AzureFacetState(dotAzureFile.toNioPath().toString());
     }
 
-    @Nonnull
-    @Override
-    public AzureFacetState getState() {
-        return state;
-    }
-
     @Override
     public void loadState(@Nonnull AzureFacetState state) {
         this.state = state;

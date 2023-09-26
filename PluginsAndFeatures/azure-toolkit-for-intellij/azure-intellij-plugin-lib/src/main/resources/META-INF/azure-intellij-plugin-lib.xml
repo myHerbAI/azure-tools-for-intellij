@@ -1,4 +1,6 @@
 <idea-plugin>
+    <depends>org.jetbrains.plugins.terminal</depends>
+    <resource-bundle>com.microsoft.intellij.ui.messages.messages</resource-bundle>
     <extensionPoints>
         <extensionPoint qualifiedName="com.microsoft.tooling.msservices.intellij.azure.actions" interface="com.microsoft.azure.toolkit.ide.common.IActionsContributor"/>
     </extensionPoints>
@@ -9,6 +11,12 @@
         <actions implementation="com.microsoft.azure.toolkit.ide.common.genericresource.GenericResourceActionsContributor"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
+        <applicationService serviceInterface="com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager"
+                            serviceImplementation="com.microsoft.azure.toolkit.intellij.common.messager.IntellijAzureMessager"/>
+        <applicationService serviceInterface="com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager"
+                            serviceImplementation="com.microsoft.azure.toolkit.intellij.common.task.IntellijAzureTaskManager"/>
+        <applicationService serviceInterface="com.microsoft.azure.toolkit.lib.common.action.AzureActionManager"
+                            serviceImplementation="com.microsoft.azure.toolkit.intellij.common.action.IntellijAzureActionManager"/>
         <toolWindow anchor="bottom"
                     factoryClass="com.microsoft.azure.toolkit.intellij.common.streaminglog.StreamingLogsToolWindowFactory"
                     icon="AllIcons.Nodes.LogFolder"
@@ -21,6 +29,9 @@
         <registryKey key="azure.toolkit.feedback.score.threshold" description="Score threshold to popup for rating" restartRequired="false" defaultValue="20"/>
     </extensions>
     <actions>
+        <action id="AzureToolkit.AzureSignIn" class="com.microsoft.azure.toolkit.intellij.common.auth.SignInAction" text="Azure Sign In..." />
+        <action id="AzureToolkit.SelectSubscriptions" class="com.microsoft.azure.toolkit.intellij.common.subscription.SelectSubscriptionsAction" text="Select Subscriptions..."
+                description="ShowSubscriptionsAction" icon="AllIcons.General.Filter" />
         <action id="Actions.ProvideFeedback" class="com.microsoft.azure.toolkit.intellij.common.feedback.ProvideFeedbackAction"
                 text="Provide Feedback" icon="/icons/Common/feedback.svg"/>
         <action id="AzureToolkit.ViewToolingDocument" class="com.microsoft.azure.toolkit.intellij.common.action.ViewToolingDocumentAction"

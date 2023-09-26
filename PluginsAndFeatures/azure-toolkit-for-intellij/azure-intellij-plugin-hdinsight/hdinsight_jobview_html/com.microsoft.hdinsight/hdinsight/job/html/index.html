@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, minimum-scale=0.5, user-scalable=no" />
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"
+            integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
+            crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+            integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+            crossorigin="anonymosus"></script>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="https://d3js.org/d3-time.v1.min.js"></script>
+    <script src="https://d3js.org/d3-time-format.v2.min.js"></script>
+    <script src="http://cpettitt.github.io/project/dagre-d3/latest/dagre-d3.min.js"></script>
+
+    <script src="js/sorttable.js"></script>
+    <script src="js/vis.min.js"></script>
+    <script src="js/bootstrap-tooltip.js"></script>
+    <script src="js/initialize-tooltips.js"></script>
+    <script src="js/table.js"></script>
+    <script src="js/additional-metrics.js"></script>
+    <script src="js/timeline-view.js"></script>
+    <script src="js/tipsy.js"></script>
+    <script src="js/colResizable-1.6.min.js"></script>
+    <script src="js/jquery.dragtable.js"></script>
+    <script src="js/jquery.tabbable.js"></script>
+    <script src="js/dataGrid.js"></script>
+    <script src="js/utils.js"></script>
+
+    <script src="common.js"></script>
+    <script src="sparkjobview.js"></script>
+    <script src="jobViewDetails.js"></script>
+    <script src="job_graph.js"></script>
+    <script src="theme-switch.js"></script>
+    <link rel="stylesheet" href="css/tipsy.css"/>
+    <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css"/>
+    <link rel="stylesheet" href="css/vis.min.css" type="text/css"/>
+    <link rel="stylesheet" href="css/webui.css" type="text/css"/>
+    <link rel="stylesheet" href="css/timeline-view.css" type="text/css"/>
+    <!-- <link rel="stylesheet" href="css/jquery-ui.css" /> -->
+    <link rel="stylesheet" href="css/dragtable.css" />
+    <link rel="stylesheet" href="indexpage.css" type="text/css" />
+    <link rel="stylesheet" href="fxs.css" type="text/css" />
+    <link rel="stylesheet" href="css/jobgraph.css" type="text/css">
+    <link rel="stylesheet" href="css/dataGrids.css" type="text/css">
+</head>
+
+<body onfocus="onBodyFocus()">
+    <div id="parent" class="fxs-mainwindow">
+        <div id="leftDiv">
+                <table id="myTable" role="grid" class="data table table-bordered table-condensed table-striped sortable ui-widget-content">
+                    <thead class="ui-widget-content">
+                    <tr align="center" class="ui-widget-content">
+                        <th class="ui-widget-content" style="width:35px;">State</th>
+                        <th class="ui-widget-content">Application ID</th>
+                        <th class="ui-widget-content">Job Name</th>
+                        <th class="ui-widget-content">Start Time</th>
+                        <th class="ui-widget-content" style="width:50px;">Attempt Times</th>
+                        <th class="ui-widget-content">Spark User</th>
+                    </tr>
+                    </thead>
+                    <tbody id="JobHistoryTbody" class="ui-widget-content">
+                    <tr class="ui-widget-content"></tr>
+                    </tbody>
+                </table>
+            </div>
+        <div id="rightDiv" class="fxs-window-content">
+            <div class="main-window">
+                <div class="fxs-startboard-header container">
+                    <div class="row">
+                        <p id="jobName"></p>
+                        <div id="rightButtonPanel">
+                            <!--<button id="refreshButton" type="button" class="btn btn-default"><span class="glyphicon glyphicon-refresh"></span> Refresh</button>-->
+                            <a id="openSparkUIButton" href="#" >Open Spark History UI</a>
+                            <a id="openYarnUIButton" href="#" >Open Yarn UI</a>
+                        </div>
+                    </div>
+                </div>
+                <div  id="sparkDetailsPanel">
+                   <div role="tablist" id="bottomTab" >
+                        <button id="applicationGraphButton"  role="tab" aria-selected="true" tabindex="0" aria-controls="applicationGraph">Application Graph</button>
+                        <button id="stageSummaryButton"  role="tab" aria-selected="false" tabindex="-1" aria-controls="stageSummary">Stage Summary</button>
+                        <button id="executorDetailsDivButton" role="tab"  aria-selected="false" tabindex="-1" aria-controls="executorDetailsDiv">Executors</button>
+                        <button id="taskSummaryButton"  role="tab"  aria-selected="false" tabindex="-1" aria-controls="taskSummary">Task Summary</button>
+                        <button id="myTabContentButton"  role="tab"  aria-selected="false" tabindex="-1" aria-controls="myTabContent">Logs</button>
+                    </div>
+                    <div id="bottomTabContent" class="tab-content" style="width: 100%; height: 100%">
+                        <div id="applicationGraph" role="tabpanel" aria-labelledby="applicationGraphButton" style="width: 100%; height: 100%">
+                            <div id="applicationGraphDiv" style="width: 100%; height: 100%">
+                                <svg id="applicationGraphSvg" width="100%" height="100%"></svg>
+                            </div>
+                            <div id="jobGraphDiv" class="graph-disabled" style="width: 100%; height: 100%">
+                                <button type="button" class="btn btn-default" id="jobGraphBackButton" style="margin-top: 10px" tabindex="0">Back</button>
+                                <svg id="jobGraphSvg" width="100%" height="80%"></svg>
+                            </div>
+                        </div>
+                        <div id="stageSummary" role="tabpanel" aria-labelledby="stageSummaryButton" hidden="" >
+                            <table id="stageSummaryTable" class="table table-bordered table-condensed table-striped sortable ui-widget-content JColResizer">
+                                <thead class="ui-widget-content">
+                                <tr align="center" class="ui-widget-content">
+                                    <th class="ui-widget-content">status</th>
+                                    <th class="ui-widget-content">stageId</th>
+                                    <th class="ui-widget-content">executorRunTime</th>
+                                    <th class="ui-widget-content">inputBytes</th>
+                                    <th class="ui-widget-content">outputBytes</th>
+                                    <th class="ui-widget-content">shuffleReadBytes</th>
+                                    <th class="ui-widget-content">shuffleWriteBytes</th>
+                                </tr>
+                                </thead>
+                                <tbody id="stageSummaryTbody" class="ui-widget-content">
+                                </tbody>
+                            </table>
+                            <p id="stage_detail_info_message"></p>
+                        </div>
+                        <div id="taskSummary" role="tabpanel" aria-labelledby="taskSummaryButton" hidden="">
+                            <input id="filterTableInput" type="text" placeholder="Search.." style="margin-bottom: 5px; height:1.6em; width:350px;font-size:16px;" onkeyup="filterTaskSummaryTable()">
+                            <table id="taskSummaryTable" class="table table-bordered table-condensed table-striped sortable ui-widget-content JColResizer">
+                                <thead class="ui-widget-content">
+                                <tr align="center" class="ui-widget-content">
+                                    <th class="ui-widget-content">taskId</th>
+                                    <th class="ui-widget-content">index</th>
+                                    <th class="ui-widget-content">attempt</th>
+                                    <th class="ui-widget-content">launch Time</th>
+                                    <th class="ui-widget-content">Executor ID</th>
+                                    <th class="ui-widget-content">host</th>
+                                    <th class="ui-widget-content">taskLocality</th>
+                                    <th class="ui-widget-content">speculative</th>
+                                </tr>
+                                </thead>
+                                <tbody id="taskSummaryTbody" class="ui-widget-content">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="executorDetailsDiv" role="tabpanel" aria-labelledby="executorDetailsDivButton" hidden="">
+                            <table id="executorDetailsTable" class="table table-bordered table-condensed table-striped sortable ui-widget-content JColResizer">
+                                <thead class="ui-widget-content">
+                                <tr align="center" class="ui-widget-content">
+                                    <th class="ui-widget-content">id</th>
+                                    <th class="ui-widget-content">hostPort</th>
+                                    <th class="ui-widget-content">rddBlocks</th>
+                                    <th class="ui-widget-content">memoryUsed</th>
+                                    <th class="ui-widget-content">diskUsed</th>
+                                    <th class="ui-widget-content">totalDuration</th>
+                                    <th class="ui-widget-content">totalInputBytes</th>
+                                    <th class="ui-widget-content">totalShuffleRead</th>
+                                    <th class="ui-widget-content">totalShuffleWrite</th>
+                                    <th class="ui-widget-content">maxMemory</th>
+                                </tr>
+                                </thead>
+                                <tbody id="executorDetailsBody" class="ui-widget-content">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="myTabContent" role="tabpanel" aria-labelledby="myTabContentButton" hidden="">
+                            <div id="error">
+                                <label for="driverErrorTextArea">Driver Stderr</label>
+                                <textarea id="driverErrorTextArea" rows="20" readonly="readonly" class="resultTextArea">error Message</textarea>
+                            </div>
+                            <div id="jobOutput">
+                                <label for="jobOutputTextArea">Driver Stdout</label>
+                                <textarea id="jobOutputTextArea" rows="20" readonly="readonly" class="resultTextArea">Out put</textarea>
+                            </div>
+                            <div  id="driverLog">
+                                <label for="directoryInfoTextArea">Directory Info</label>
+                                <textarea id="directoryInfoTextArea" rows="20" readonly="readonly" class="resultTextArea">Driver Log</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/tabs.js"></script>
+</body>
+</html>
