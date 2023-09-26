@@ -12,6 +12,7 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.common.messager.IntellijAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessage;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
@@ -132,7 +133,8 @@ public class SenderReceiverPanel extends JPanel {
             this.view = view;
         }
         @Override
-        public boolean show(IAzureMessage raw) {
+        public boolean show(IAzureMessage msg) {
+            final IAzureMessage raw = msg.getRawMessage();
             if (raw.getType() == IAzureMessage.Type.INFO) {
                 view.print(raw.getMessage().toString(), ConsoleViewContentType.SYSTEM_OUTPUT);
                 return true;
