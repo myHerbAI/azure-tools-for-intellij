@@ -6,15 +6,19 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.util.net.HttpConfigurable
 import com.intellij.util.net.ssl.CertificateManager
 import com.microsoft.azure.toolkit.ide.common.auth.IdeAzureAccount
-import com.microsoft.azure.toolkit.ide.common.store.AzureConfigInitializer
+import com.microsoft.azure.toolkit.ide.common.store.AzureConfigInitializer.*
+import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager
+import com.microsoft.azure.toolkit.ide.common.store.DefaultMachineStore
 import com.microsoft.azure.toolkit.intellij.common.CommonConst
-import com.microsoft.azure.toolkit.intellij.common.action.IntellijAzureActionManager
+import com.microsoft.azure.toolkit.intellij.common.auth.IntelliJSecureStore
+import com.microsoft.azure.toolkit.intellij.common.settings.IntellijStore
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyInfo
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager
 import com.microsoft.azure.toolkit.lib.common.task.AzureRxTaskManager
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils
+import java.io.File
 import javax.net.ssl.HttpsURLConnection
 
 class PluginLifecycleListener : AppLifecycleListener {
@@ -25,9 +29,10 @@ class PluginLifecycleListener : AppLifecycleListener {
     override fun appFrameCreated(commandLineArgs: MutableList<String>) {
         try {
             AzureRxTaskManager.register()
+            val azureJson = String.format("%s%s%s", CommonConst.PLUGIN_PATH, File.separator, "azure.json")
+            AzureStoreManager.register(DefaultMachineStore(azureJson), IntellijStore.getInstance(), IntelliJSecureStore.getInstance())
             initProxy()
             initializeConfig()
-            IntellijAzureActionManager.register()
             IdeAzureAccount.getInstance().restoreSignin()
         } catch (t: Throwable) {
             LOG.error(t)
@@ -35,12 +40,17 @@ class PluginLifecycleListener : AppLifecycleListener {
     }
 
     private fun initializeConfig() {
-        var installId = InstallationIdUtils.getHashMac()
+        var installId = AzureStoreManager.getInstance().ideStore.getProperty(TELEMETRY, TELEMETRY_INSTALLATION_ID)
+
+        if (installId.isNullOrBlank() || !InstallationIdUtils.isValidHashMac(installId)) {
+            installId = InstallationIdUtils.getHashMac()
+        }
+
         if (installId.isNullOrBlank() || !InstallationIdUtils.isValidHashMac(installId)) {
             installId = InstallationIdUtils.hash(PermanentInstallationID.get())
         }
 
-        AzureConfigInitializer.initialize(installId, "Azure Toolkit for IntelliJ", CommonConst.PLUGIN_VERSION)
+        initialize(installId, "Azure Toolkit for IntelliJ", CommonConst.PLUGIN_VERSION)
         val cloud = Azure.az().config().cloud
         if (cloud.isNotBlank()) {
             Azure.az(AzureCloud::class.java).setByName(cloud)

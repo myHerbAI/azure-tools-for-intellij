@@ -36,12 +36,6 @@ sourceSets {
 }
 
 val azureToolkitVersion = properties("azureToolkitVersion").get()
-val azureToolkitUtilsVersion = properties("azureToolkitUtilsVersion").get()
-
-extra.apply {
-    set("azureToolkitVersion", azureToolkitVersion)
-    set("azureToolkitUtilsVersion", azureToolkitUtilsVersion)
-}
 
 allprojects {
     apply {
