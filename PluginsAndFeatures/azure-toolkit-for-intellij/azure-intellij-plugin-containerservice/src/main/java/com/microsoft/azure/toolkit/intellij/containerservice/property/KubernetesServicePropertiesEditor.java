@@ -123,9 +123,10 @@ public class KubernetesServicePropertiesEditor extends AzResourcePropertiesEdito
         TextFieldUtils.makeTextOpaque(resourceGroupTextField, statusTextField, locationTextField, subscriptionTextField,
                 subscriptionIDTextField, txtApiServerAddress, txtDndServiceIp, txtLoadBalancer, txtKubernetesVersion, txtDockerBridgeCidr, txtNetworkPolicy,
                 txtNetworkType, txtNodePools, txtPodCidr, txtServiceCidr);
-        final Action<Void> refreshAction = new com.microsoft.azure.toolkit.lib.common.action.Action<Void>(Action.Id.of("user/kubernetes.refresh_properties_view.kubernetes"))
-                .withAuthRequired(false)
+        final Action<Void> refreshAction = new Action<Void>(Action.Id.of("user/kubernetes.refresh_properties_view.kubernetes"))
+                .withAuthRequired(true)
                 .withSource(this.cluster)
+                .withIdParam(this.cluster.getName())
                 .withHandler(ignore -> {
                     cluster.refresh();
                     rerender();

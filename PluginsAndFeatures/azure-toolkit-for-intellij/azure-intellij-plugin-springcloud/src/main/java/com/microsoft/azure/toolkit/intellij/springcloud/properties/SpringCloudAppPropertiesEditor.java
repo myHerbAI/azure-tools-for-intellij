@@ -93,11 +93,12 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
         final Action<SpringCloudApp> refreshAction = new Action<SpringCloudApp>(Action.Id.of("user/springcloud.refresh_app.app"))
                 .withAuthRequired(true)
                 .withSource(this.app)
+                .withIdParam(this.app.getName())
                 .withHandler(ignore -> this.refresh());
         this.refreshButton.setAction(refreshAction);
         final Action<SpringCloudApp> deleteAction = new Action<SpringCloudApp>(Action.Id.of("user/springcloud.delete_app.app"))
                 .withAuthRequired(true)
-                .withIdParam(this.draft.getName())
+                .withIdParam(this.app.getName())
                 .withSource(this.app)
                 .withHandler(ignore -> {
                     final String message = String.format("Are you sure to delete Spring app(%s)", this.draft.getName());
@@ -109,7 +110,7 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
         this.deleteButton.setAction(deleteAction);
         final Action<SpringCloudApp> startAction = new Action<SpringCloudApp>(Action.Id.of("user/springcloud.start_app.app"))
                 .withAuthRequired(true)
-                .withIdParam(this.draft.getName())
+                .withIdParam(this.app.getName())
                 .withSource(this.app)
                 .withHandler(ignore -> {
                     this.reset();
@@ -118,7 +119,7 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
         this.startButton.setAction(startAction);
         final Action<SpringCloudApp> stopAction = new Action<SpringCloudApp>(Action.Id.of("user/springcloud.stop_app.app"))
                 .withAuthRequired(true)
-                .withIdParam(this.draft.getName())
+                .withIdParam(this.app.getName())
                 .withSource(this.app)
                 .withHandler(ignore -> {
                     this.reset();
@@ -127,7 +128,7 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
         this.stopButton.setAction(stopAction);
         final Action<SpringCloudApp> restartAction = new Action<SpringCloudApp>(Action.Id.of("user/springcloud.restart_app.app"))
                 .withAuthRequired(true)
-                .withIdParam(this.draft.getName())
+                .withIdParam(this.app.getName())
                 .withSource(this.app)
                 .withHandler(ignore -> {
                     this.reset();
@@ -136,7 +137,7 @@ public class SpringCloudAppPropertiesEditor extends AzResourcePropertiesEditor<S
         this.restartButton.setAction(restartAction);
         final Action<SpringCloudApp> saveAction = new Action<SpringCloudApp>(Action.Id.of("user/springcloud.save_app.app"))
                 .withAuthRequired(true)
-                .withIdParam(this.draft.getName())
+                .withIdParam(this.app.getName())
                 .withSource(this.app)
                 .withHandler(ignore -> this.save());
         this.saveButton.setAction(saveAction);

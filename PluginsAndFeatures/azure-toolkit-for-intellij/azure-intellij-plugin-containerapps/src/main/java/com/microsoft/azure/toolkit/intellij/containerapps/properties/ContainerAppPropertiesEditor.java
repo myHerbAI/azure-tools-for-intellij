@@ -149,14 +149,16 @@ public class ContainerAppPropertiesEditor extends AzResourcePropertiesEditor<Con
         this.cbExternalAccess.addValueChangedListener(ignore -> runnable.run());
         this.cbIngress.addValueChangedListener(ignore -> toggleIngress());
         final Action<Void> refreshAction = new Action<Void>(Action.Id.of("user/containerapps.refresh_properties_view.app"))
-                .withAuthRequired(false)
+                .withAuthRequired(true)
                 .withSource(this.containerApp)
+                .withIdParam(this.containerApp.getName())
                 .withHandler(ignore -> this.refresh());
         this.btnRefresh.setAction(refreshAction);
         final AzureString saveTitle = AzureString.format("Saving updates of app(%s)", this.draft.getName());
         final Action<Void> saveAction = new Action<Void>(Action.Id.of("user/containerapps.update_container_app.app"))
-                .withAuthRequired(false)
+                .withAuthRequired(true)
                 .withSource(this.containerApp)
+                .withIdParam(this.containerApp.getName())
                 .withHandler(ignore -> tm.runInBackground(saveTitle, this::save));
         this.saveButton.setAction(saveAction);
     }

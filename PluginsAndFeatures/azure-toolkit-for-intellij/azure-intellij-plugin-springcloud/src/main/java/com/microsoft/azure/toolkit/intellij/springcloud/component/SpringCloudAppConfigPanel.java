@@ -85,7 +85,7 @@ public class SpringCloudAppConfigPanel extends JPanel implements AzureFormPanel<
         final Action<Void> toggleStorageAction = new Action<Void>(Action.Id.of("user/springcloud.toggle_storage"))
                 .withAuthRequired(false)
                 .withHandler((Void ignore, AnActionEvent event) -> {
-                    final ActionEvent e = event instanceof UserDataHolder ? ((UserDataHolder) event).getUserData(AzureActionButton.ACTION_EVENT_KEY) : null;
+                    final ActionEvent e = event.getData(AzureActionButton.ACTION_EVENT_KEY);
                     final String actionCommand = Optional.ofNullable(e).map(ActionEvent::getActionCommand).orElse(StringUtils.EMPTY);
                     toggleStorage("enable".equals(actionCommand));
                     debouncer.debounce();
@@ -95,7 +95,7 @@ public class SpringCloudAppConfigPanel extends JPanel implements AzureFormPanel<
         final Action<Void> toggleEndpointAction = new Action<Void>(Action.Id.of("user/springcloud.toggle_endpoint"))
                 .withAuthRequired(false)
                 .withHandler((Void ignore, AnActionEvent event) -> {
-                    final ActionEvent e = event instanceof UserDataHolder ? ((UserDataHolder) event).getUserData(AzureActionButton.ACTION_EVENT_KEY) : null;
+                    final ActionEvent e = event.getData(AzureActionButton.ACTION_EVENT_KEY);
                     final String actionCommand = Optional.ofNullable(e).map(ActionEvent::getActionCommand).orElse(StringUtils.EMPTY);
                     toggleEndpoint("enable".equals(actionCommand));
                     debouncer.debounce();

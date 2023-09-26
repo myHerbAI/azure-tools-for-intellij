@@ -129,14 +129,16 @@ public class RedisCacheExplorer extends AzResourcePropertiesEditor<RedisCache> {
         });
 
         final Action<RedisCache> searchAction = new Action<RedisCache>(Action.Id.of("user/redis.search.redis"))
-                .withAuthRequired(false)
+                .withAuthRequired(true)
                 .withSource(this.redis)
+                .withIdParam(this.redis.getName())
                 .withHandler(ignore -> RedisCacheExplorer.this.onBtnSearchClick());
         btnSearch.setAction(searchAction);
 
         final Action<RedisCache> scanMoreAction = new Action<RedisCache>(Action.Id.of("user/redis.scan_more.redis"))
-                .withAuthRequired(false)
+                .withAuthRequired(true)
                 .withSource(this.redis)
+                .withIdParam(this.redis.getName())
                 .withHandler(ignore -> {
                     RedisCacheExplorer.this.setWidgetEnableStatus(false);
                     manager.runOnPooledThread(() -> {

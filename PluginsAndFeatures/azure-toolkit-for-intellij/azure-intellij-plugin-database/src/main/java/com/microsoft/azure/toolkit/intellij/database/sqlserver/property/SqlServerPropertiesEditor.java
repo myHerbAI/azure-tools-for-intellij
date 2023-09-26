@@ -118,18 +118,17 @@ public class SqlServerPropertiesEditor extends AzResourcePropertiesEditor<Micros
         connectionSecurity.getAllowAccessFromLocalMachineCheckBox().addItemListener(this::onCheckBoxChanged);
         // save/discard buttons
         final Action<PostgreSqlServer> applyAction = new Action<PostgreSqlServer>(Action.Id.of("user/sqlserver.update_server.server"))
-                .withAuthRequired(false)
+                .withAuthRequired(true)
                 .withSource(this.server)
-                .withHandler(server -> {
-                    server.refresh();
-                    rerender();
-                });
+                .withIdParam(this.server.getName())
+                .withHandler(server -> this.apply());
         propertyActionPanel.getSaveButton().setAction(applyAction);
-        final Action<PostgreSqlServer> refreshAction = new Action<PostgreSqlServer>(Action.Id.of("user/sqlserver.refresh.server"))
-                .withAuthRequired(false)
+        final Action<PostgreSqlServer> resetAction = new Action<PostgreSqlServer>(Action.Id.of("user/sqlserver.refresh.server"))
+                .withAuthRequired(true)
                 .withSource(this.server)
+                .withIdParam(this.server.getName())
                 .withHandler(server -> this.reset());
-        propertyActionPanel.getDiscardButton().setAction(refreshAction);
+        propertyActionPanel.getDiscardButton().setAction(resetAction);
         // database combobox changed
         databaseComboBox.addItemListener(this::onDatabaseComboBoxChanged);
     }

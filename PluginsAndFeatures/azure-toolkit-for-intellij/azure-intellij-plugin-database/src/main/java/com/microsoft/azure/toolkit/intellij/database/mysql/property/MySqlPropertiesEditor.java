@@ -118,18 +118,17 @@ public class MySqlPropertiesEditor extends AzResourcePropertiesEditor<MySqlServe
         connectionSecurity.getAllowAccessFromLocalMachineCheckBox().addItemListener(this::onCheckBoxChanged);
         // save/discard buttons
         final Action<MySqlServer> applyAction = new Action<MySqlServer>(Action.Id.of("user/mysql.update_server.server"))
-                .withAuthRequired(false)
+                .withAuthRequired(true)
                 .withSource(this.server)
-                .withHandler(server -> {
-                    server.refresh();
-                    rerender();
-                });
+                .withIdParam(this.server.getName())
+                .withHandler(server -> this.apply());
         propertyActionPanel.getSaveButton().setAction(applyAction);
-        final Action<MySqlServer> refreshAction = new Action<MySqlServer>(Action.Id.of("user/mysql.refresh.server"))
-                .withAuthRequired(false)
+        final Action<MySqlServer> resetAction = new Action<MySqlServer>(Action.Id.of("user/mysql.refresh.server"))
+                .withAuthRequired(true)
                 .withSource(this.server)
+                .withIdParam(this.server.getName())
                 .withHandler(server -> this.reset());
-        propertyActionPanel.getDiscardButton().setAction(refreshAction);
+        propertyActionPanel.getDiscardButton().setAction(resetAction);
         // database combobox changed
         databaseComboBox.addItemListener(this::onDatabaseComboBoxChanged);
     }

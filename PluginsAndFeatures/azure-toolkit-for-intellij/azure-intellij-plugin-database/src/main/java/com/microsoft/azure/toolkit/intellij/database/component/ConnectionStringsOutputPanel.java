@@ -32,9 +32,9 @@ public class ConnectionStringsOutputPanel extends JPanel {
         $$$setupUI$$$();
         this.lblWarning.setIcon(AllIcons.General.BalloonWarning);
         this.copyButton.setIcon(AllIcons.General.CopyHovered);
-        final Action<IDatabase> copyAction = new Action<IDatabase>(Action.Id.of("user/sql.copy_connection_string"))
-                .withAuthRequired(true)
-                .withHandler(ignore ->  CopyPasteManager.getInstance().setContents(new StringSelection(outputTextPane.getText())));
+        final Action<IDatabase> copyAction = new Action<IDatabase>(Action.Id.of("user/$database.copy_connection_string"))
+                .withAuthRequired(false)
+                .withHandler(ignore -> CopyPasteManager.getInstance().setContents(new StringSelection(outputTextPane.getText())));
         this.copyButton.setAction(copyAction);
     }
 

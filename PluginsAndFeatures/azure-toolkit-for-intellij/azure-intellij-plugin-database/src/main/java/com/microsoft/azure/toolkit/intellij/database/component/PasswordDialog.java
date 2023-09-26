@@ -67,14 +67,17 @@ public class PasswordDialog extends AzureDialog<char[]> implements AzureForm<cha
 
     private void initListener() {
         this.passwordField.addKeyListener(this.onInputPasswordFieldChanged());
-        final Action<Database> testConnectionAction = new Action<Database>(Action.Id.of("user/sql.test_connection.database"))
+        final Action<Database> testConnectionAction = new Action<Database>(Action.Id.of("user/$database.test_connection.database"))
                 .withAuthRequired(false)
                 .withSource(this.database)
+                .withIdParam(this.database.getName())
                 .withHandler(ignore -> this.onTestConnectionButtonClicked());
         this.testConnectionButton.setAction(testConnectionAction);
-        final Action<IDatabase> copyAction = new Action<IDatabase>(Action.Id.of("user/sql.copy_connection_string"))
-                .withAuthRequired(true)
-                .withHandler(ignore ->  onCopyButtonClicked());
+        final Action<IDatabase> copyAction = new Action<IDatabase>(Action.Id.of("user/$database.copy_connection_string.database"))
+                .withAuthRequired(false)
+                .withSource(this.database)
+                .withIdParam(this.database.getName())
+                .withHandler(ignore -> onCopyButtonClicked());
     }
 
     private KeyListener onInputPasswordFieldChanged() {

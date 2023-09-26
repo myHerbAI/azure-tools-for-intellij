@@ -35,7 +35,9 @@ import static com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter.*;
 @Slf4j
 public abstract class AzureDialog<T> extends DialogWrapper {
     public static final String SYSTEM = "system";
-    public static final String CANCEL = "cancel";
+    public static final String CANCEL = "cancel_dialog";
+    public static final String CANCEL_DIALOG = "user/system.cancel_dialog";
+    public static final String DIALOG_TITLE = "DialogTitle";
     @Setter
     protected OkActionListener<T> okActionListener;
     @Setter
@@ -102,7 +104,8 @@ public abstract class AzureDialog<T> extends DialogWrapper {
                 Action.Id::getService).orElse(SYSTEM));
         properties.put(OPERATION_NAME, Optional.ofNullable(id).map(Action.Id::getOperation).map(op -> op + "_" + CANCEL).orElse(SYSTEM));
         properties.put(OP_TYPE, Operation.Type.USER);
-        properties.put(OP_NAME, Optional.ofNullable(okAction).map(Action::getId).map(Action.Id::getId).orElse(StringUtils.EMPTY));
+        properties.put(OP_NAME, Optional.ofNullable(okAction).map(Action::getId).map(Action.Id::getId).orElse(CANCEL_DIALOG));
+        properties.put(DIALOG_TITLE, this.getDialogTitle());
         return properties;
     }
 

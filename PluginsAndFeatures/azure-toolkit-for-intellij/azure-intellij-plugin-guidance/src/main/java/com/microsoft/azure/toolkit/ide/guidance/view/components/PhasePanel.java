@@ -132,7 +132,6 @@ public class PhasePanel extends JPanel {
         }
     }
 
-    @AzureOperation(name = "user/guidance.execute_phase.phase", params = {"this.phase.getTitle()"})
     private void execute() {
         OperationContext.current().setTelemetryProperty("phase", this.phase.getTitle());
         OperationContext.current().setTelemetryProperty("course", this.phase.getCourse().getTitle());

@@ -83,11 +83,11 @@ public abstract class SqlDatabaseResourcePanel<T extends IDatabase> implements A
         this.serverComboBox.addItemListener(this::onServerChanged);
         this.databaseComboBox.addItemListener(this::onDatabaseChanged);
         this.urlTextField.getDocument().addDocumentListener((TextDocumentListenerAdapter) this.debouncer::debounce);
-        final Action<Void> testConnectionAction = new Action<Void>(Action.Id.of("user/sql.test_connection"))
+        final Action<Void> testConnectionAction = new Action<Void>(Action.Id.of("user/$database.test_connection"))
                 .withAuthRequired(false)
                 .withHandler(ignore -> onTestConnectionButtonClicked());
         this.testConnectionButton.setAction(testConnectionAction);
-        final Action<Void> copyAction = new Action<Void>(Action.Id.of("user/sql.copy_connection_string"))
+        final Action<Void> copyAction = new Action<Void>(Action.Id.of("user/$database.copy_connection_string"))
                 .withAuthRequired(false)
                 .withHandler(ignore -> onCopyButtonClicked());
         this.testConnectionActionPanel.getCopyButton().setAction(copyAction);

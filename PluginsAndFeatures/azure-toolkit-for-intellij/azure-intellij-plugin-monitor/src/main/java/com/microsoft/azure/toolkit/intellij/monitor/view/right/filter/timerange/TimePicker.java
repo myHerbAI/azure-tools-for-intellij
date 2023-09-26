@@ -81,8 +81,7 @@ public class TimePicker extends DatePicker {
         final Action<Void> pickAction = new Action<Void>(Action.Id.of("user/monitor.pick_time"))
                 .withAuthRequired(false)
                 .withHandler((Void ignore, AnActionEvent event) -> {
-                    final ActionEvent actionEvent = event instanceof UserDataHolder ?
-                            ((UserDataHolder) event).getUserData(AzureActionButton.ACTION_EVENT_KEY) : null;
+                    final ActionEvent actionEvent = event.getData(AzureActionButton.ACTION_EVENT_KEY);
                     final boolean visible = Objects.nonNull(actionEvent) && actionEvent.getSource() != popupPanel.getCalendarPane();
                     showPopup(visible);
                 });

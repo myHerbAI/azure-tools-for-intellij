@@ -81,6 +81,7 @@ public class ResourceTemplateView extends AzResourcePropertiesEditor<ResourceDep
         exportParameterFileButton.setAction(DeploymentActionsContributor.EXPORT_PARAMETER, this.deployment);
         final Action<Void> updateDeploymentAction = new Action<Void>(Action.Id.of("user/arm.update_deployment.deployment"))
                 .withAuthRequired(true)
+                .withIdParam(deployment.getName())
                 .withSource(deployment)
                 .withHandler((ignore, e) -> AzureTaskManager.getInstance().runLater(this::updateDeployment));
         updateDeploymentButton.setAction(updateDeploymentAction);

@@ -8,12 +8,14 @@ package com.microsoft.azure.toolkit.intellij.common;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.actionSystem.EmptyAction;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolder;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -24,7 +26,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class AzureActionButton<T> extends JButton {
-    public static final Key<ActionEvent> ACTION_EVENT_KEY = new Key<>("AzureActionButton.actionEvent");
+    public static final DataKey<ActionEvent> ACTION_EVENT_KEY = DataKey.create("AzureActionButton.actionEvent");
     private final ActionListener listener = this::onActionPerformed;
     protected Action<T> action;
 
@@ -64,12 +66,10 @@ public class AzureActionButton<T> extends JButton {
     }
 
     private void onActionPerformed(ActionEvent actionEvent) {
-        final DataContext context = DataManager.getInstance().getDataContext(this);
-        if (context instanceof UserDataHolder) {
-            ((UserDataHolder) context).putUserData(ACTION_EVENT_KEY, actionEvent);
-        }
+        final DataContext context = (String key) -> StringUtils.equals(key, ACTION_EVENT_KEY.getName()) ?
+                actionEvent : DataManager.getInstance().getDataContext(this).getData(key);
         // todo: use panel name as the action place
-        final AnActionEvent event = AnActionEvent.createFromAnAction(new EmptyAction(), null, "actionButton", context);
+        final AnActionEvent event = AnActionEvent.createFromDataContext("actionButton", null, context);
         Optional.ofNullable(action).ifPresent(a -> a.handle(null, event));
     }
 }

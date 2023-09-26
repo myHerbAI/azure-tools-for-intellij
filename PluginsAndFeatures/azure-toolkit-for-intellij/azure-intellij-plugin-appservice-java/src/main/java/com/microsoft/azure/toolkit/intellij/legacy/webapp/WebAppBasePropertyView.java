@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -110,15 +111,17 @@ public abstract class WebAppBasePropertyView extends BaseEditor implements WebAp
                 false /*adjustWindow*/);
         appSettingDecorator.setContentComponent(pnlAppSettings);
         appSettingDecorator.setOn(true);
-
-        final Action<Void> getPublishFileAction = new Action<Void>(Action.Id.of("user/webapp.get_publish_profile"))
-                .withAuthRequired(false)
+        final String resourceName = ResourceId.fromString(resourceId).name();
+        final Action<Void> getPublishFileAction = new Action<Void>(Action.Id.of("user/webapp.get_publish_profile.app"))
+                .withAuthRequired(true)
+                .withIdParam(resourceName)
                 .withHandler((ignore, e) -> getPubishProfile(sid, appServiceId, slotName));
         btnGetPublishFile.setIcon(AllIcons.Actions.Download);
         btnGetPublishFile.setAction(getPublishFileAction);
 
-        final Action<Void> discardAction = new Action<Void>(Action.Id.of("user/webapp.discard_property_changes"))
+        final Action<Void> discardAction = new Action<Void>(Action.Id.of("user/webapp.discard_property_changes.app"))
                 .withAuthRequired(false)
+                .withIdParam(resourceName)
                 .withHandler((ignore, e) -> {
                     updateMapStatus(editedAppSettings, cachedAppSettings);
                     tblAppSetting.clear();
@@ -128,6 +131,7 @@ public abstract class WebAppBasePropertyView extends BaseEditor implements WebAp
 
         final Action<Void> saveAction = new Action<Void>(Action.Id.of("user/webapp.save_property_changes"))
                 .withAuthRequired(false)
+                .withIdParam(resourceName)
                 .withHandler((ignore, e) -> {
                     setLoading(true);
                     presenter.onUpdateWebAppProperty(sid, appServiceId, slotName, cachedAppSettings, editedAppSettings);

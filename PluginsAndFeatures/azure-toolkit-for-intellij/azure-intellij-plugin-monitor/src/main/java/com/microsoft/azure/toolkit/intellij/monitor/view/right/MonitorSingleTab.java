@@ -66,7 +66,7 @@ public class MonitorSingleTab {
             this.monitorLogDetailsPanel.setViewText(viewerTitle, viewerText);
         });
         this.monitorLogTablePanel.setRunAction(new Action<Void>(Action.Id.of("user/monitor.execute_query"))
-                .withAuthRequired(false)
+                .withAuthRequired(true)
                 .withHandler(ignore -> Optional.ofNullable(parentView.getSelectedWorkspace())
                         .ifPresentOrElse(t -> loadLogs(), () -> AzureMessager.getMessager().info(message("azure.monitor.info.selectWorkspace"), null, selectWorkspaceAction()))));
         this.monitorLogTablePanel.setSaveAction(new Action<Void>(Action.Id.of("user/monitor.save_filters_as_query"))

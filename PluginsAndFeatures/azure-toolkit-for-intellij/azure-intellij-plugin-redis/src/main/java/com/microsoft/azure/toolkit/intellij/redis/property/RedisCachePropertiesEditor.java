@@ -77,11 +77,13 @@ public class RedisCachePropertiesEditor extends AzResourcePropertiesEditor<Redis
         final Action<RedisCache> copyPrimaryKey = new Action<RedisCache>(Action.Id.of("user/redis.copy_primary_key.redis"))
                 .withAuthRequired(false)
                 .withSource(this.redis)
+                .withIdParam(this.redis.getName())
                 .withHandler(ignore -> CopyPasteManager.getInstance().setContents(new StringSelection(primaryKey)));
         btnPrimaryKey.setAction(copyPrimaryKey);
         final Action<RedisCache> copySecondaryKey = new Action<RedisCache>(Action.Id.of("user/redis.copy_secondary_key.redis"))
                 .withAuthRequired(false)
                 .withSource(this.redis)
+                .withIdParam(this.redis.getName())
                 .withHandler(ignore -> CopyPasteManager.getInstance().setContents(new StringSelection(secondaryKey)));
         btnSecondaryKey.setAction(copySecondaryKey);
     }
