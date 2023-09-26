@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.fields.ExpandableTextField;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.microsoft.azure.toolkit.intellij.common.AzureActionButton;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.common.messager.IntellijAzureMessager;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
@@ -31,7 +32,7 @@ import java.util.Optional;
 public class SenderReceiverPanel extends JPanel {
     @Getter
     private JPanel contentPanel;
-    private JButton sendMessageBtn;
+    private AzureActionButton<Void> sendMessageBtn;
     private ExpandableTextField messageInput;
     private JPanel listenPanel;
     private JPanel sendPanel;
