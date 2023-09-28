@@ -113,12 +113,6 @@ public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputCompo
         if (isFilterable()) {
             this.addPopupMenuListener(new AzureComboBoxPopupMenuListener());
         }
-        this.addItemListener((e) -> {
-            if (e.getStateChange() == ItemEvent.SELECTED) {
-                this.refreshValue();
-            }
-            this.valueDebouncer.debounce();
-        });
         this.trackValidation();
     }
 
