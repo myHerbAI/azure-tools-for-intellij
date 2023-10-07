@@ -5,16 +5,19 @@
 
 package com.microsoft.azure.toolkit.intellij.connector.spring;
 
-import com.intellij.codeInsight.completion.CompletionParameters;
-import com.intellij.codeInsight.completion.CompletionProvider;
-import com.intellij.codeInsight.completion.CompletionResultSet;
+import com.intellij.codeInsight.AutoPopupController;
+import com.intellij.codeInsight.completion.*;
+import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.openapi.editor.CaretModel;
 import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -37,8 +40,22 @@ public class PropertyKeyCompletionProvider extends CompletionProvider<Completion
                 .create(definition.getName(), p.getKey())
                 .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(definition.getIcon(), AzureIcons.Common.AZURE.getIconPath())))
                 .withBoldness(true)
+                .withInsertHandler(new PropertyKeyInsertHandler(p.getKey()))
                 .withTypeText("String")
                 .withTailText(String.format(" (%s)", definition.getTitle())))
         ).forEach(result::addElement);
+    }
+
+    @RequiredArgsConstructor
+    private static class PropertyKeyInsertHandler implements InsertHandler<LookupElement> {
+        private final String key;
+
+        @Override
+        public void handleInsert(@NotNull InsertionContext context, @Nonnull LookupElement item) {
+            final CaretModel caretModel = context.getEditor().getCaretModel();
+            context.getDocument().insertString(caretModel.getOffset(), "=");
+            context.getEditor().getCaretModel().moveToOffset(caretModel.getOffset() + 1);
+            AutoPopupController.getInstance(context.getProject()).scheduleAutoPopup(context.getEditor());
+        }
     }
 }
