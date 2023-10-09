@@ -13,7 +13,7 @@ import com.microsoft.azure.toolkit.lib.auth.IAccountActions
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
 import javax.swing.JPanel
 
-class RiderWebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(project) {
+open class RiderWebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(project) {
     private val basicForm: RiderAppServiceInfoBasicPanel<WebAppConfig>
     private val advancedForm: RiderAppServiceInfoAdvancedPanel<WebAppConfig>
     private val panel: JPanel

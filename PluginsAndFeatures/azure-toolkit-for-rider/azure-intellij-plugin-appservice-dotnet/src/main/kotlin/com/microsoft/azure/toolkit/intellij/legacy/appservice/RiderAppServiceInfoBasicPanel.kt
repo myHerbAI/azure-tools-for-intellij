@@ -38,6 +38,7 @@ class RiderAppServiceInfoBasicPanel<T>(
     }
 
     private var operatingSystem: OperatingSystem
+    private lateinit var operatingSystemGroup: ButtonsGroup
     private lateinit var windowsRadioButton: Cell<JBRadioButton>
     private lateinit var linuxRadioButton: Cell<JBRadioButton>
     private lateinit var deploymentGroup: Row
@@ -53,7 +54,7 @@ class RiderAppServiceInfoBasicPanel<T>(
                     cell(textName)
                     label(".azurewebsites.net")
                 }
-                buttonsGroup {
+                operatingSystemGroup = buttonsGroup {
                     row("Operating System:") {
                         windowsRadioButton = radioButton("Windows", OperatingSystem.WINDOWS)
                         linuxRadioButton = radioButton("Linux", OperatingSystem.LINUX)
@@ -123,6 +124,15 @@ class RiderAppServiceInfoBasicPanel<T>(
 
     fun setDeploymentVisible(visible: Boolean) {
         deploymentGroup.visible(visible)
+    }
+
+    fun setFixedRuntime(runtime: Runtime) {
+        if (runtime.operatingSystem == OperatingSystem.WINDOWS) {
+            windowsRadioButton.component.isSelected = true
+        } else {
+            linuxRadioButton.component.isSelected = true
+        }
+        operatingSystemGroup.visible(false)
     }
 
     private fun getSelectedConfigurationAndPlatform(): PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform? =
