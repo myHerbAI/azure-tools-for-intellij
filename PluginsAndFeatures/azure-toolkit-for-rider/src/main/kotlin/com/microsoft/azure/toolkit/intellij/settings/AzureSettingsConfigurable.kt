@@ -7,7 +7,7 @@ import javax.swing.JComponent
 
 class AzureSettingsConfigurable : SearchableConfigurable, Configurable.NoScroll, OptionsContainingConfigurable {
     companion object {
-        private const val AZURE_CONFIGURABLE_ID = "com.microsoft.intellij.RiderAzureConfigurable"
+        private const val AZURE_CONFIGURABLE_ID = "com.microsoft.intellij.AzureConfigurable"
         private const val DISPLAY_NAME = "Azure"
     }
 

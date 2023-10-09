@@ -89,6 +89,9 @@ allprojects {
         implementation { exclude(module = "groovy-xml") }
         implementation { exclude(module = "groovy-templates") }
         implementation { exclude(module = "jna") }
+        implementation { exclude(module = "xpp3") }
+        implementation { exclude(module = "pull-parser") }
+        implementation { exclude(module = "xsdlib") }
     }
 
     intellij {
