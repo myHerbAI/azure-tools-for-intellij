@@ -2,7 +2,7 @@
              xmlns:xi="http://www.w3.org/2001/XInclude">
   <id>com.microsoft.tooling.msservices.intellij.azure</id>
   <name>Azure Toolkit for IntelliJ</name>
-  <version>3.81.0</version>
+  <version>3.82.0-SNAPSHOT</version>
   <vendor email="java@microsoft.com" url="http://www.microsoft.com">Microsoft</vendor>
 
   <description><![CDATA[
@@ -27,22 +27,10 @@
   <change-notes>
     <![CDATA[
     <html>
-      <h2>3.80.0</h2>
-      <h3 id="added">Added</h3>
-      <ul>
-      <li>Azure OpenAI (chat) playground for GTP* models.    </li>
-      <li>Guidance (Getting started course) to try Azure OpenAI and its playground (chat) in IntelliJ IDEA.    </li>
-      <li>Azure OpenAI resource management.    </li>
-      </ul>
-      <h3 id="changed">Changed</h3>
-      <ul>
-      <li>some useful subsequent actions are added onto the resource creation/update success notifications.</li>
-      <li>newly added resources connections/deployments will be automatically highlighted in Project Explorer.</li>
-      </ul>
+      <h2 id="3-81-1">3.81.1</h2>
       <h3 id="fixed">Fixed</h3>
       <ul>
-      <li>Fix: reset/save doesn&#39;t show/enable when removing existing values of jvm options and env var in spring app properties editor.</li>
-      <li>Fix: the default runtime version of new spring apps doesn&#39;t match the version of current project/selected module.</li>
+      <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/7897">#7897</a>: Uncaught Exception: Error was received while reading the incoming data. The connection will be closed.</li>
       </ul>
       <p>You may get the full change log <a href="https://github.com/Microsoft/azure-tools-for-java/blob/develop/CHANGELOG.md">here</a></p>
     </html>
@@ -91,7 +79,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <applicationConfigurable parentId="tools" displayName="Azure"
-                             id="com.microsoft.azure.toolkit.intellij.settings.AzureSettingsConfigurable"
+                             id="com.microsoft.intellij.AzureConfigurable"
                              provider="com.microsoft.azure.toolkit.intellij.settings.AzureSettingsConfigurableProvider"/>
     <projectConfigurable parentId="root" instance="com.microsoft.azure.toolkit.intellij.settings.DeprecatedAzureSettingsConfigurable"
                          id="com.microsoft.azure.toolkit.intellij.settings.DeprecatedAzureSettingsConfigurable" displayName="Microsoft Tools"/>
