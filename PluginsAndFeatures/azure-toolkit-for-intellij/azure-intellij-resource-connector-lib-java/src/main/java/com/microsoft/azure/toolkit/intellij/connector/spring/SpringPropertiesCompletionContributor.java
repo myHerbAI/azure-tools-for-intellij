@@ -5,30 +5,28 @@
 
 package com.microsoft.azure.toolkit.intellij.connector.spring;
 
-import com.intellij.codeInsight.completion.*;
+import com.intellij.codeInsight.completion.CompletionContributor;
+import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.codeInsight.completion.InsertHandler;
+import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.codeInsight.lookup.LookupElement;
-import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.lang.properties.parsing.PropertiesTokenTypes;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.EditorModificationUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.patterns.PlatformPatterns;
-import com.intellij.util.ProcessingContext;
-import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
-import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.ConnectorDialog;
 import com.microsoft.azure.toolkit.intellij.connector.ModuleResource;
 import com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
-import com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -40,31 +38,13 @@ import java.util.Optional;
 public class SpringPropertiesCompletionContributor extends CompletionContributor {
     public SpringPropertiesCompletionContributor() {
         super();
-        extend(CompletionType.BASIC, PlatformPatterns.psiElement(), new CompletionProvider<>() {
-            @Override
-            public void addCompletions(@Nonnull CompletionParameters parameters, @Nonnull ProcessingContext context, @Nonnull CompletionResultSet resultSet) {
-                final Module module = ModuleUtil.findModuleForFile(parameters.getOriginalFile());
-                if (Objects.isNull(module)) {
-                    return;
-                }
-                ResourceManager.getDefinitions(ResourceDefinition.RESOURCE).stream()
-                        .filter(d -> d instanceof SpringSupported)
-                        .map(d -> (SpringSupported<?>) d)
-                        .filter(d -> CollectionUtils.isNotEmpty(d.getSpringProperties()))
-                        .map(definition -> LookupElementBuilder
-                                .create(definition.getName(), definition.getSpringProperties().get(0).getKey())
-                                .withIcon(IntelliJAzureIcons.getIcon(AzureIcons.Connector.CONNECT))
-                                .withInsertHandler(new MyInsertHandler(definition))
-                                .withBoldness(true)
-                                .withTypeText("String")
-                                .withTailText(String.format(" (%s)", definition.getTitle())))
-                        .forEach(resultSet::addElement);
-            }
-        });
+        extend(CompletionType.BASIC, PlatformPatterns.psiElement(PropertiesTokenTypes.KEY_CHARACTERS), new PropertyKeyCompletionProvider());
+        extend(CompletionType.BASIC, PlatformPatterns.psiElement(PropertiesTokenTypes.KEY_VALUE_SEPARATOR), new PropertyValueCompletionProvider());
+        extend(CompletionType.BASIC, PlatformPatterns.psiElement(PropertiesTokenTypes.VALUE_CHARACTERS), new PropertyValueCompletionProvider());
     }
 
     @RequiredArgsConstructor
-    protected static class MyInsertHandler implements InsertHandler<LookupElement> {
+    protected static class PropertyValueInsertHandler implements InsertHandler<LookupElement> {
 
         private final ResourceDefinition<?> definition;
 
