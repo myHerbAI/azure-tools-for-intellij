@@ -25,11 +25,15 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Getter
 public class StorageAccountResourceDefinition extends AzureServiceResource.Definition<StorageAccount>
-        implements SpringSupported<StorageAccount>, FunctionSupported<StorageAccount> {
+    implements SpringSupported<StorageAccount>, FunctionSupported<StorageAccount> {
     public static final StorageAccountResourceDefinition INSTANCE = new StorageAccountResourceDefinition();
     public static final String LOCAL_STORAGE_CONNECTION_STRING = "UseDevelopmentStorage=true";
     public static final String CONNECTION_STRING_KEY = String.format("%s_CONNECTION_STRING", Connection.ENV_PREFIX);
@@ -70,6 +74,13 @@ public class StorageAccountResourceDefinition extends AzureServiceResource.Defin
             return AzuriteStorageAccount.AZURITE_STORAGE_ACCOUNT;
         }
         return Azure.az(AzureStorageAccount.class).getById(dataId);
+    }
+
+    @Override
+    public List<Resource<StorageAccount>> getResources(Project project) {
+        return Azure.az(AzureStorageAccount.class).list().stream()
+            .flatMap(m -> m.storageAccounts().list().stream())
+            .map(this::define).toList();
     }
 
     @Override
