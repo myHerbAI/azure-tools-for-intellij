@@ -25,7 +25,7 @@ import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
 import kotlin.Unit;
 import kotlin.coroutines.Continuation;
 import lombok.Data;
-import org.apache.commons.lang.time.DateUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
