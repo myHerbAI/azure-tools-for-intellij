@@ -103,6 +103,16 @@ class WebAppContainersConfiguration(private val project: Project, factory: Confi
         set(value) {
             webAppContainersModel.dockerFilePath = value
         }
+    var finalRepositoryName: String?
+        get() = webAppContainersModel.finalRepositoryName
+        set(value) {
+            webAppContainersModel.finalRepositoryName = value
+        }
+    var finalTagName: String?
+        get() = webAppContainersModel.finalTagName
+        set(value) {
+            webAppContainersModel.finalTagName = value
+        }
     var port: Int
         get() = webAppContainersModel.port
         set(value) {
@@ -113,11 +123,12 @@ class WebAppContainersConfiguration(private val project: Project, factory: Confi
             WebAppContainersRunState(project, this)
 
     override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> =
-            WebAppContainersSettingEditor(project, this)
+            WebAppContainersSettingEditor(project)
 
     override fun getModel() = webAppContainersModel
 
     override fun validate() {
+        checkAzurePreconditions()
     }
 
     fun getWebAppConfig(): WebAppConfig {
@@ -150,8 +161,22 @@ class WebAppContainersConfiguration(private val project: Project, factory: Confi
                 .runtime(Runtime.DOCKER)
                 .servicePlan(plan)
 
-        return if (isCreatingNewWebAppOnLinux) configBuilder.build()
-        else configBuilder.region(region).pricingTier(pricingTier).build()
+        return if (isCreatingNewWebAppOnLinux) configBuilder.region(region).pricingTier(pricingTier).build()
+        else configBuilder.build()
+    }
+
+    fun getDockerPushConfiguration(): DockerPushConfiguration {
+        val imageNameParts = finalRepositoryName?.let {
+            val parts = it.split('/', limit = 2)
+            if (parts.count() == 2) parts[0] to parts[1] else null
+        }
+        return DockerPushConfiguration(
+                imageNameParts?.first,
+                imageNameParts?.second,
+                finalTagName,
+                null,
+                null
+        )
     }
 
     fun setWebAppConfig(webAppConfig: WebAppConfig) {
@@ -172,5 +197,10 @@ class WebAppContainersConfiguration(private val project: Project, factory: Confi
             appServicePlanName = webAppConfig.servicePlan?.name
             appServicePlanResourceGroupName = webAppConfig.servicePlan?.resourceGroupName
         }
+    }
+
+    fun setDockerPushConfiguration(configuration: DockerPushConfiguration) {
+        finalRepositoryName = "${configuration.registryAddress}/${configuration.repositoryName}"
+        finalTagName = configuration.tagName
     }
 }

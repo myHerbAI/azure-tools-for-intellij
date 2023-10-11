@@ -8,7 +8,6 @@ import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateWebAppTask
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 import com.microsoft.azure.toolkit.lib.legacy.webapp.WebAppService
 
 class WebAppContainersRunState(project: Project, private val webAppContainersConfiguration: WebAppContainersConfiguration)
@@ -23,19 +22,20 @@ class WebAppContainersRunState(project: Project, private val webAppContainersCon
         OperationContext.current().setMessager(processHandlerMessenger)
         //push image
 
+
         //deploy
         val webAppConfig = webAppContainersConfiguration.getWebAppConfig()
         val appSettings = webAppConfig.appSettings?.toMutableMap() ?: mutableMapOf()
         appSettings[WEBSITES_PORT] = webAppContainersConfiguration.port.toString()
         webAppConfig.appSettings = appSettings
         val appServiceConfig = WebAppService.convertToTaskConfig(webAppConfig)
-        val webapp = Azure.az(AzureWebApp::class.java)
-                .webApps(webAppContainersModel.subscriptionId)
+        Azure.az(AzureWebApp::class.java)
+                .webApps(appServiceConfig.subscriptionId())
                 .getOrDraft(appServiceConfig.appName(), appServiceConfig.resourceGroup())
 
-        val tm = AzureTaskManager.getInstance()
-        tm.runOnPooledThread {
-
+        val runtime = appServiceConfig.runtime()
+        with(runtime) {
+            image("${webAppContainersConfiguration.finalRepositoryName}:${webAppContainersConfiguration.finalTagName}")
         }
 
         val task = CreateOrUpdateWebAppTask(appServiceConfig)
