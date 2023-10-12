@@ -7,33 +7,8 @@ package com.microsoft.azure.toolkit.intellij.connector.spring;
 
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.codeInsight.completion.InsertHandler;
-import com.intellij.codeInsight.completion.InsertionContext;
-import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.lang.properties.parsing.PropertiesTokenTypes;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.EditorModificationUtil;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtil;
-import com.intellij.openapi.project.Project;
 import com.intellij.patterns.PlatformPatterns;
-import com.microsoft.azure.toolkit.intellij.connector.Connection;
-import com.microsoft.azure.toolkit.intellij.connector.ConnectorDialog;
-import com.microsoft.azure.toolkit.intellij.connector.ModuleResource;
-import com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition;
-import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
-import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
-import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-
-import javax.annotation.Nonnull;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 public class SpringPropertiesCompletionContributor extends CompletionContributor {
     public SpringPropertiesCompletionContributor() {
@@ -41,54 +16,5 @@ public class SpringPropertiesCompletionContributor extends CompletionContributor
         extend(CompletionType.BASIC, PlatformPatterns.psiElement(PropertiesTokenTypes.KEY_CHARACTERS), new PropertyKeyCompletionProvider());
         extend(CompletionType.BASIC, PlatformPatterns.psiElement(PropertiesTokenTypes.KEY_VALUE_SEPARATOR), new PropertyValueCompletionProvider());
         extend(CompletionType.BASIC, PlatformPatterns.psiElement(PropertiesTokenTypes.VALUE_CHARACTERS), new PropertyValueCompletionProvider());
-    }
-
-    @RequiredArgsConstructor
-    protected static class PropertyValueInsertHandler implements InsertHandler<LookupElement> {
-
-        private final ResourceDefinition<?> definition;
-
-        @Override
-        @ExceptionNotification
-        @AzureOperation(name = "user/connector.insert_spring_properties")
-        public void handleInsert(@Nonnull InsertionContext context, @Nonnull LookupElement lookupElement) {
-            final Project project = context.getProject();
-            final Module module = ModuleUtil.findModuleForFile(context.getFile().getVirtualFile(), project);
-            AzureTaskManager.getInstance().write(() -> Optional.ofNullable(module).map(AzureModule::from)
-                .map(AzureModule::initializeWithDefaultProfileIfNot).map(Profile::getConnectionManager)
-                .ifPresent(connectionManager -> connectionManager
-                    .getConnectionsByConsumerId(module.getName()).stream()
-                    .filter(c -> Objects.equals(definition, c.getResource().getDefinition())).findAny()
-                    .ifPresentOrElse(c -> this.insert(c, context), () -> this.createAndInsert(module, context))));
-        }
-
-        private void createAndInsert(Module module, @Nonnull InsertionContext context) {
-            final Project project = context.getProject();
-            AzureTaskManager.getInstance().runLater(() -> {
-                final var dialog = new ConnectorDialog(project);
-                dialog.setConsumer(new ModuleResource(module.getName()));
-                dialog.setResourceDefinition(definition);
-                if (dialog.showAndGet()) {
-                    final Connection<?, ?> c = dialog.getValue();
-                    WriteCommandAction.runWriteCommandAction(project, () -> this.insert(c, context));
-                } else {
-                    WriteCommandAction.runWriteCommandAction(project, () -> {
-                        EditorModificationUtil.insertStringAtCaret(context.getEditor(), "=", true);
-                    });
-                }
-            });
-        }
-
-        private void insert(Connection<?, ?> c, @Nonnull InsertionContext context) {
-            final List<Pair<String, String>> properties = SpringSupported.getProperties(c);
-            if (properties.size() < 1) {
-                return;
-            }
-            final StringBuilder result = new StringBuilder("=").append(properties.get(0).getValue()).append(StringUtils.LF);
-            for (int i = 1; i < properties.size(); i++) {
-                result.append(properties.get(i).getKey()).append("=").append(properties.get(i).getValue()).append(StringUtils.LF);
-            }
-            EditorModificationUtil.insertStringAtCaret(context.getEditor(), result.toString(), true);
-        }
     }
 }

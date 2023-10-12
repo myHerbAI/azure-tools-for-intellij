@@ -56,4 +56,8 @@ public interface Resource<T> {
     default boolean isValidResource() {
         return true;
     }
+
+    default boolean canConnectSilently() {
+        return true;
+    }
 }
