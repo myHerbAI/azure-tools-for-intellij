@@ -30,11 +30,6 @@ public class PropertyKeyCompletionProvider extends CompletionProvider<Completion
 
     @Override
     protected void addCompletions(@Nonnull CompletionParameters parameters, @Nonnull ProcessingContext context, @Nonnull CompletionResultSet result) {
-        final String originalPrefix = result.getPrefixMatcher().getPrefix();
-        final String prefix = parameters.getPosition().getParent().getLastChild().getText().replace("IntellijIdeaRulezzz", StringUtils.EMPTY);
-        if (!StringUtils.equals(originalPrefix, prefix)) {
-            result = result.withPrefixMatcher(prefix);
-        }
         definitions.stream().flatMap(definition ->
             definition.getSpringProperties().stream().map(p -> LookupElementBuilder
                 .create(definition.getName(), p.getKey())
