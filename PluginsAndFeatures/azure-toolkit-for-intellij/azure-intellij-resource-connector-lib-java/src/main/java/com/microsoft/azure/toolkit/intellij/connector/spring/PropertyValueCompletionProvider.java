@@ -31,8 +31,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class PropertyValueCompletionProvider extends CompletionProvider<CompletionParameters> {
     @Override
@@ -138,14 +140,20 @@ public class PropertyValueCompletionProvider extends CompletionProvider<Completi
 
         private static void insert(Connection<?, ?> c, @Nonnull InsertionContext context) {
             final PsiElement element = context.getFile().findElementAt(context.getStartOffset());
-            final Map<String, String> properties = SpringSupported.getProperties(c).stream().collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+            final List<Pair<String, String>> properties = SpringSupported.getProperties(c);
             if (properties.size() < 1 || Objects.isNull(element)) {
                 return;
             }
             final String k0 = element.getParent().getFirstChild().getText().trim();
-            final StringBuilder result = new StringBuilder(properties.get(k0)).append(StringUtils.LF);
-            properties.remove(k0);
-            properties.forEach((k, v) -> result.append(k).append("=").append(v).append(StringUtils.LF));
+            properties.stream().filter(p -> p.getKey().equals(k0)).findAny().ifPresent(p -> {
+                properties.remove(p);
+                properties.add(0, p);
+            });
+            final StringBuilder result = new StringBuilder(properties.get(0).getValue()).append(StringUtils.LF);
+            for (int i = 1; i < properties.size(); i++) {
+                final Pair<String, String> p = properties.get(i);
+                result.append(p.getKey()).append("=").append(p.getValue()).append(StringUtils.LF);
+            }
             context.getDocument().replaceString(element.getTextOffset(), element.getTextOffset() + element.getTextLength(), result.toString());
             context.commitDocument();
         }
