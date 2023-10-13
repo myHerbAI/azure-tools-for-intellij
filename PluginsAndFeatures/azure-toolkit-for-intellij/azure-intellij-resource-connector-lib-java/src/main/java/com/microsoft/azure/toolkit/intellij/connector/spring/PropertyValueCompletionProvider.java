@@ -30,10 +30,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class PropertyValueCompletionProvider extends CompletionProvider<CompletionParameters> {
     @Override
@@ -44,9 +42,9 @@ public class PropertyValueCompletionProvider extends CompletionProvider<Completi
         }
         final String key = parameters.getPosition().getParent().getFirstChild().getText();
         final List<? extends SpringSupported<?>> definitions = getSupportedDefinitions(key);
-        definitions.stream().flatMap(d -> d.getResources(module.getProject()).stream())
-            .map(r -> LookupElementBuilder
-                .create(r.getName(), r.getName())
+        definitions.stream()
+            .flatMap(d -> d.getResources(module.getProject()).stream())
+            .map(r -> LookupElementBuilder.create(r.getName(), r.getName())
                 .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(r.getDefinition().getIcon(), AzureIcons.Common.AZURE.getIconPath())))
                 .withBoldness(true)
                 .withLookupStrings(Arrays.asList(r.getName(), ((AzResource) r.getData()).getResourceGroupName()))
@@ -57,7 +55,8 @@ public class PropertyValueCompletionProvider extends CompletionProvider<Completi
     }
 
     private static List<? extends SpringSupported<?>> getSupportedDefinitions(String key) {
-        final List<ResourceDefinition<?>> definitions = ResourceManager.getDefinitions(ResourceDefinition.RESOURCE).stream().filter(d -> d instanceof SpringSupported<?>).toList();
+        final List<ResourceDefinition<?>> definitions = ResourceManager.getDefinitions(ResourceDefinition.RESOURCE).stream()
+            .filter(d -> d instanceof SpringSupported<?>).toList();
         return definitions.stream().map(d -> (SpringSupported<?>) d)
             .filter(d -> d.getSpringProperties().stream().anyMatch(p -> p.getKey().equals(key)))
             .toList();
@@ -129,14 +128,14 @@ public class PropertyValueCompletionProvider extends CompletionProvider<Completi
 
         private static void insert(Connection<?, ?> c, @Nonnull InsertionContext context) {
             final PsiElement element = context.getFile().findElementAt(context.getStartOffset());
-            final List<Pair<String, String>> properties = SpringSupported.getProperties(c);
+            final Map<String, String> properties = SpringSupported.getProperties(c).stream().collect(Collectors.toMap(Pair::getKey, Pair::getValue));
             if (properties.size() < 1 || Objects.isNull(element)) {
                 return;
             }
-            final StringBuilder result = new StringBuilder(properties.get(0).getValue()).append(StringUtils.LF);
-            for (int i = 1; i < properties.size(); i++) {
-                result.append(properties.get(i).getKey()).append("=").append(properties.get(i).getValue()).append(StringUtils.LF);
-            }
+            final String k0 = element.getParent().getFirstChild().getText().trim();
+            final StringBuilder result = new StringBuilder(properties.get(k0)).append(StringUtils.LF);
+            properties.remove(k0);
+            properties.forEach((k, v) -> result.append(k).append("=").append(v).append(StringUtils.LF));
             context.getDocument().replaceString(element.getTextOffset(), element.getTextOffset() + element.getTextLength(), result.toString());
             context.commitDocument();
         }
