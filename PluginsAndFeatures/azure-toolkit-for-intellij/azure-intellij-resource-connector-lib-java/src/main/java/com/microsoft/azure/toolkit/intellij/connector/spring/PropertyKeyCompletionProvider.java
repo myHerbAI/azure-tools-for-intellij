@@ -31,7 +31,7 @@ public class PropertyKeyCompletionProvider extends CompletionProvider<Completion
     @Override
     protected void addCompletions(@Nonnull CompletionParameters parameters, @Nonnull ProcessingContext context, @Nonnull CompletionResultSet result) {
         definitions.stream().flatMap(definition ->
-            definition.getSpringProperties().stream().map(p -> LookupElementBuilder
+            definition.getSpringProperties().stream().filter(p -> !p.getKey().trim().startsWith("#")).map(p -> LookupElementBuilder
                 .create(definition.getName(), p.getKey())
                 .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(definition.getIcon(), AzureIcons.Common.AZURE.getIconPath())))
                 .withBoldness(true)
