@@ -13,6 +13,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiJvmModifiersOwner;
 import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
@@ -44,7 +45,7 @@ public class PropertyValueCompletionProvider extends CompletionProvider<Completi
         final List<? extends SpringSupported<?>> definitions = getSupportedDefinitions(key);
         definitions.stream()
             .flatMap(d -> d.getResources(module.getProject()).stream())
-            .map(r -> LookupElementBuilder.create(r.getName(), r.getName())
+            .map(r -> LookupElementBuilder.create(r, r.getName())
                 .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(r.getDefinition().getIcon(), AzureIcons.Common.AZURE.getIconPath())))
                 .withBoldness(true)
                 .withLookupStrings(Arrays.asList(r.getName(), ((AzResource) r.getData()).getResourceGroupName()))
@@ -52,6 +53,15 @@ public class PropertyValueCompletionProvider extends CompletionProvider<Completi
                 .withTailText(" " + ((AzResource) r.getData()).getResourceTypeName())
                 .withTypeText(((AzResource) r.getData()).getResourceGroupName()))
             .forEach(result::addElement);
+        if (!definitions.isEmpty()) { // filter out un-relevant completion items (known packages)
+            // it's not safe to `stopHere()` immediately considering e.g. other cloud service may also
+            // provide similar completion items for Redis/MongoDB related properties...
+            result.runRemainingContributors(parameters, r -> {
+                if (!(r.getLookupElement().getObject() instanceof PsiJvmModifiersOwner)) {
+                    result.passResult(r);
+                }
+            });
+        }
     }
 
     private static List<? extends SpringSupported<?>> getSupportedDefinitions(String key) {

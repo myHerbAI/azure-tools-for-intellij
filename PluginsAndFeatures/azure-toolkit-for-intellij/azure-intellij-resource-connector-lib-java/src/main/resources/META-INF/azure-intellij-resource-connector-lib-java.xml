@@ -1,4 +1,4 @@
-<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+<idea-plugin>
     <depends>com.intellij.modules.java</depends>
     <depends>com.intellij.properties</depends>
 
@@ -7,7 +7,7 @@
         <annotator language="JAVA" implementationClass="com.microsoft.azure.toolkit.intellij.connector.annotator.ResourceConnectionAnnotator"/>
         <typedHandler implementation="com.microsoft.azure.toolkit.intellij.connector.spring.PropertiesAutoPopupHandler" id="azPropertiesAuto"/>
         <lookup.charFilter implementation="com.microsoft.azure.toolkit.intellij.connector.spring.PropertyCharFilter" id="azProperties"/>
-        <completion.contributor language="Properties" order="first" implementationClass="com.microsoft.azure.toolkit.intellij.connector.spring.SpringPropertiesCompletionContributor"/>
+        <completion.contributor language="Properties" id="azPropertiesCompletion" order="before propertiesCompletion" implementationClass="com.microsoft.azure.toolkit.intellij.connector.spring.SpringPropertiesCompletionContributor"/>
         <completion.contributor language="JAVA" implementationClass="com.microsoft.azure.toolkit.intellij.connector.completion.ResourceConnectionCompletionContributor"/>
         <codeInsight.lineMarkerProvider language="Properties" implementationClass="com.microsoft.azure.toolkit.intellij.connector.spring.SpringPropertiesLineMarkerProvider"/>
         <codeInsight.lineMarkerProvider language="JAVA" implementationClass="com.microsoft.azure.toolkit.intellij.connector.marker.ResourceConnectionLineMarkerProvider"/>
