@@ -13,7 +13,7 @@ import com.intellij.patterns.PlatformPatterns;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 
-public class SpringPropertyCharFilter extends CharFilter {
+public class SpringPropertyKeyCharFilter extends CharFilter {
 
     @Override
     public Result acceptChar(char c, final int prefixLength, final Lookup lookup) {

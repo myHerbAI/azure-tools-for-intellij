@@ -36,7 +36,7 @@ public class SpringPropertyKeyCompletionProvider extends CompletionProvider<Comp
                 .create(definition.getName(), p.getKey())
                 .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(definition.getIcon(), AzureIcons.Common.AZURE.getIconPath())))
                 .withBoldness(true)
-                .withInsertHandler(new PropertyKeyInsertHandler(p.getKey()))
+                .withInsertHandler(new PropertyKeyInsertHandler())
                 .withTypeText("String")
                 .withTailText(String.format(" (%s)", definition.getTitle())))
         ).forEach(result::addElement);
@@ -44,8 +44,6 @@ public class SpringPropertyKeyCompletionProvider extends CompletionProvider<Comp
 
     @RequiredArgsConstructor
     private static class PropertyKeyInsertHandler implements InsertHandler<LookupElement> {
-        private final String key;
-
         @Override
         public void handleInsert(@NotNull InsertionContext context, @Nonnull LookupElement item) {
             final CaretModel caretModel = context.getEditor().getCaretModel();
