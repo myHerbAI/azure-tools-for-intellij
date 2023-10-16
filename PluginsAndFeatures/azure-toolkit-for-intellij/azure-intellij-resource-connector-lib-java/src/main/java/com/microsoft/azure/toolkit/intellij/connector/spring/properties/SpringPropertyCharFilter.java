@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.intellij.connector.spring;
+package com.microsoft.azure.toolkit.intellij.connector.spring.properties;
 
 import com.intellij.codeInsight.lookup.CharFilter;
 import com.intellij.codeInsight.lookup.Lookup;
@@ -13,7 +13,7 @@ import com.intellij.patterns.PlatformPatterns;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 
-public class PropertyCharFilter extends CharFilter {
+public class SpringPropertyCharFilter extends CharFilter {
 
     @Override
     public Result acceptChar(char c, final int prefixLength, final Lookup lookup) {

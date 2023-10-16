@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.intellij.connector.spring;
+package com.microsoft.azure.toolkit.intellij.connector.spring.properties;
 
 import com.intellij.codeInsight.AutoPopupController;
 import com.intellij.codeInsight.completion.*;
@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager;
+import com.microsoft.azure.toolkit.intellij.connector.spring.SpringSupported;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public class PropertyKeyCompletionProvider extends CompletionProvider<CompletionParameters> {
+public class SpringPropertyKeyCompletionProvider extends CompletionProvider<CompletionParameters> {
     private static final List<? extends SpringSupported<?>> definitions = ResourceManager
         .getDefinitions(ResourceDefinition.RESOURCE).stream()
         .filter(d -> d instanceof SpringSupported)
