@@ -26,10 +26,10 @@ import com.intellij.util.IncorrectOperationException;
 import com.microsoft.azure.toolkit.intellij.connector.AzureServiceResource;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor;
+import com.microsoft.azure.toolkit.intellij.connector.Utils;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
-import com.microsoft.azure.toolkit.intellij.connector.marker.JavaResourceConnectionLineMarkerProvider;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import lombok.AllArgsConstructor;
@@ -42,7 +42,6 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Annotator for validations of resource connection variables in String
@@ -58,7 +57,7 @@ public class ResourceConnectionAnnotator implements Annotator {
             final PsiJavaToken token = (PsiJavaToken) element;
             final Module module = ModuleUtil.findModuleForPsiElement(element);
             final String value = StringUtils.strip(element.getText(), "\"");
-            final Connection<AzResource, ?> connection = JavaResourceConnectionLineMarkerProvider.getConnectionWithEnvironmentVariable(module, value);
+            final Connection<? extends AzResource, ?> connection = Utils.getConnectionWithEnvironmentVariable(module, value);
             if (Objects.isNull(connection)) {
                 // validate based on string pattern
                 validateNamePattern(element, holder);
@@ -96,7 +95,7 @@ public class ResourceConnectionAnnotator implements Annotator {
                     .flatMap(c -> profile.getGeneratedEnvironmentVariables(c).stream())
                     .map(Pair::getKey)
                     .filter(key -> StringUtils.isNotBlank(suffix) && StringUtils.endsWith(key, suffix))
-                    .collect(Collectors.toList());
+                    .toList();
             values.forEach(value -> createEnvironmentVariableQuickFix(value, element, builder));
             builder.create();
         }
@@ -130,7 +129,7 @@ public class ResourceConnectionAnnotator implements Annotator {
     }
 
     private void validateConnectionResource(@Nonnull final PsiElement element, @Nonnull final AnnotationHolder holder,
-                                            @Nonnull final Connection<AzResource, ?> connection) {
+                                            @Nonnull final Connection<? extends AzResource, ?> connection) {
         final AzResource data = connection.getResource().getData();
         if (!data.getFormalStatus().isConnected()) {
             holder.newAnnotation(HighlightSeverity.ERROR, "Connected resource is not available")
@@ -143,7 +142,7 @@ public class ResourceConnectionAnnotator implements Annotator {
 
     @AllArgsConstructor
     private static class EditConnectionFix implements IntentionAction {
-        private final Connection<AzResource, ?> connection;
+        private final Connection<? extends AzResource, ?> connection;
 
         @Override
         public @IntentionName @NotNull String getText() {
