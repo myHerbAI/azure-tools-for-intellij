@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.intellij.connector.completion.provider;
+package com.microsoft.azure.toolkit.intellij.connector.spring.properties;
 
 import com.intellij.codeInsight.AutoPopupController;
 import com.intellij.codeInsight.completion.CompletionParameters;
@@ -44,9 +44,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
-public class SpringYAMLCompletionProvider extends CompletionProvider<CompletionParameters> {
-    private static final Key<YAMLFile> YAML_FILE_KEY = Key.create("com.microsoft.azure.SpringYAMLCompletionProvider.YAML_FILE");
-
+public class SpringYamlPropertiesCompletionProvider extends CompletionProvider<CompletionParameters> {
     @Override
     protected void addCompletions(@Nonnull CompletionParameters parameters, @Nonnull ProcessingContext context,
                                   @Nonnull CompletionResultSet result) {
