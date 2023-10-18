@@ -10,9 +10,11 @@
         <lookup.charFilter implementation="com.microsoft.azure.toolkit.intellij.connector.spring.properties.SpringPropertyKeyCharFilter" id="azProperties"/>
         <completion.contributor language="Properties" id="azPropertiesCompletion" order="before propertiesCompletion" implementationClass="com.microsoft.azure.toolkit.intellij.connector.spring.properties.SpringPropertiesCompletionContributor"/>
         <completion.contributor language="JAVA" implementationClass="com.microsoft.azure.toolkit.intellij.connector.completion.ResourceConnectionCompletionContributor"/>
-        <codeInsight.lineMarkerProvider language="Properties" implementationClass="com.microsoft.azure.toolkit.intellij.connector.spring.properties.SpringPropertiesLineMarkerProvider"/>
-        <completion.contributor language="yaml" implementationClass="com.microsoft.azure.toolkit.intellij.connector.completion.YAMLConnectionCompletionContributor"/>
-        <codeInsight.lineMarkerProvider language="JAVA" implementationClass="com.microsoft.azure.toolkit.intellij.connector.marker.ResourceConnectionLineMarkerProvider"/>
+        <completion.contributor language="yaml" implementationClass="com.microsoft.azure.toolkit.intellij.connector.spring.properties.SpringYamlPropertiesCompletionContributor"/>
+        <!--        <codeInsight.lineMarkerProvider language="Properties" implementationClass="com.microsoft.azure.toolkit.intellij.connector.spring.properties.SpringPropertiesLineMarkerProvider"/>-->
+        <codeInsight.lineMarkerProvider language="JAVA" implementationClass="com.microsoft.azure.toolkit.intellij.connector.marker.JavaResourceConnectionLineMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="yaml" implementationClass="com.microsoft.azure.toolkit.intellij.connector.marker.YamlResourceConnectionLineMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="Properties" implementationClass="com.microsoft.azure.toolkit.intellij.connector.marker.PropertiesResourceConnectionLineMarkerProvider"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">

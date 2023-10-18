@@ -18,6 +18,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.EmptyAction;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
@@ -28,7 +29,7 @@ import com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsC
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
-import com.microsoft.azure.toolkit.intellij.connector.marker.ResourceConnectionLineMarkerProvider;
+import com.microsoft.azure.toolkit.intellij.connector.marker.JavaResourceConnectionLineMarkerProvider;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import lombok.AllArgsConstructor;
@@ -55,7 +56,9 @@ public class ResourceConnectionAnnotator implements Annotator {
     public void annotate(@Nonnull PsiElement element, @Nonnull AnnotationHolder holder) {
         if (element instanceof PsiJavaToken && Objects.equals(((PsiJavaToken) element).getTokenType(), JavaTokenType.STRING_LITERAL)) {
             final PsiJavaToken token = (PsiJavaToken) element;
-            final Connection<AzResource, ?> connection = ResourceConnectionLineMarkerProvider.getBindingConnection(token);
+            final Module module = ModuleUtil.findModuleForPsiElement(element);
+            final String value = StringUtils.strip(element.getText(), "\"");
+            final Connection<AzResource, ?> connection = JavaResourceConnectionLineMarkerProvider.getConnectionWithEnvironmentVariable(module, value);
             if (Objects.isNull(connection)) {
                 // validate based on string pattern
                 validateNamePattern(element, holder);
