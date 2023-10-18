@@ -25,11 +25,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 public class StorageAccountResourceDefinition extends AzureServiceResource.Definition<StorageAccount>
@@ -103,10 +99,5 @@ public class StorageAccountResourceDefinition extends AzureServiceResource.Defin
     @Override
     public String getResourceConnectionString(@Nonnull StorageAccount resource) {
         return resource instanceof AzuriteStorageAccount ? LOCAL_STORAGE_CONNECTION_STRING : resource.getConnectionString();
-    }
-
-    @Override
-    public List<StorageAccount> getResources() {
-        return Azure.az(AzureStorageAccount.class).accounts(true);
     }
 }

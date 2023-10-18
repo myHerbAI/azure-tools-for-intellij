@@ -136,10 +136,6 @@ public class AzureServiceResource<T extends AzResource> implements Resource<T> {
 
         public abstract T getResource(String dataId);
 
-        public List<T> getResources() {
-            return Collections.emptyList();
-        }
-
         @Override
         public boolean write(@Nonnull Element ele, @Nonnull Resource<T> resource) {
             ele.setAttribute(new Attribute("id", resource.getId()));

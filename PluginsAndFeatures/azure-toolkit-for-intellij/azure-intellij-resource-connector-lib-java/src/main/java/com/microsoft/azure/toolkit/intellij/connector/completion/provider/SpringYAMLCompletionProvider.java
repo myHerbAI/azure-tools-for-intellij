@@ -28,9 +28,7 @@ import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager;
 import com.microsoft.azure.toolkit.intellij.connector.spring.SpringSupported;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -44,13 +42,10 @@ import org.jetbrains.yaml.psi.YAMLValue;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.print.Doc;
 import java.util.*;
 
-@AllArgsConstructor
 public class SpringYAMLCompletionProvider extends CompletionProvider<CompletionParameters> {
     private static final Key<YAMLFile> YAML_FILE_KEY = Key.create("com.microsoft.azure.SpringYAMLCompletionProvider.YAML_FILE");
-    private final boolean isLeaf;
 
     @Override
     protected void addCompletions(@Nonnull CompletionParameters parameters, @Nonnull ProcessingContext context,
@@ -74,8 +69,7 @@ public class SpringYAMLCompletionProvider extends CompletionProvider<CompletionP
         if (Objects.isNull(module) || Objects.isNull(springSupported)) {
             return;
         }
-        final List<? extends AzResource> resources = (springSupported instanceof AzureServiceResource.Definition) ?
-                ((AzureServiceResource.Definition<?>) springSupported).getResources() : Collections.emptyList();
+        final List<? extends Resource<?>> resources = springSupported.getResources(module.getProject());
         final Pair<String, String> property = springSupported.getSpringProperties().stream()
                 .filter(p -> StringUtils.equals(p.getKey(), key))
                 .findFirst().orElseThrow(() -> new RuntimeException("cannot find property with key " + key));
@@ -86,14 +80,14 @@ public class SpringYAMLCompletionProvider extends CompletionProvider<CompletionP
     }
 
     @Nullable
-    private LookupElement createYamlValueLookupElement(@Nonnull final Module module, @Nonnull final AzResource azResource,
-                                                       @Nonnull final SpringSupported definition, @Nonnull final String template) {
+    private LookupElement createYamlValueLookupElement(@Nonnull final Module module, @Nonnull final Resource<?> azResource,
+                                                       @Nonnull final SpringSupported<?> definition, @Nonnull final String template) {
         final AzureModule azureModule = AzureModule.from(module);
         final Profile defaultProfile = azureModule.getDefaultProfile();
         final List<Connection<?, ?>> connections = Objects.isNull(defaultProfile) ? Collections.emptyList() : defaultProfile.getConnections();
         final Connection<?, ?> connection = connections.stream()
-                .filter(c -> Objects.equals(c.getResource().getData(), azResource)).findFirst()
-                .orElseGet(() -> createConnection(module, azResource, definition));
+                .filter(c -> Objects.equals(c.getResource(), azResource)).findFirst()
+                .orElseGet(() -> createConnection(module, azResource));
         final String elementValue = getPropertiesCompletionValue(template, connection);
         return LookupElementBuilder.create(elementValue)
                 .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(definition.getIcon(), AzureIcons.Common.AZURE.getIconPath())))
@@ -142,14 +136,13 @@ public class SpringYAMLCompletionProvider extends CompletionProvider<CompletionP
         return keys;
     }
 
-    private static Connection<?, ?> createConnection(@Nonnull Module module, @Nonnull AzResource azResource, @Nonnull SpringSupported definition) {
-        final Resource<?> resource = definition.define(azResource);
+    private static Connection<?, ?> createConnection(@Nonnull Module module, @Nonnull Resource<?> resource) {
         final Resource<?> consumer = ModuleResource.Definition.IJ_MODULE.define(module.getName());
         // todo: set connection env prefix
         final ConnectionDefinition connectionDefinition =
                 ConnectionManager.getDefinitionOrDefault(resource.getDefinition(), consumer.getDefinition());
         final Connection<?, ?> result = connectionDefinition.define(resource, consumer);
-        result.setEnvPrefix(StringUtils.upperCase(azResource.getName()));
+        result.setEnvPrefix(StringUtils.upperCase(resource.getName()));
         return result;
     }
 

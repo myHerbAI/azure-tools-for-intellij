@@ -3,7 +3,6 @@ package com.microsoft.azure.toolkit.intellij.connector.completion;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.patterns.PatternCondition;
-import com.intellij.patterns.PsiFilePattern;
 import com.intellij.patterns.PsiJavaElementPattern;
 import com.intellij.patterns.PsiJavaPatterns;
 import com.intellij.psi.PsiElement;
@@ -32,8 +31,8 @@ public class YAMLConnectionCompletionContributor extends CompletionContributor {
                                 return file instanceof YAMLFile && StringUtils.startsWith(file.getName(), APPLICATION);
                             }
                         });
-        extend(CompletionType.BASIC, textPattern.withSuperParent(2, PsiJavaPatterns.psiElement(YAMLKeyValue.class)), new SpringYAMLCompletionProvider(true));
-        extend(CompletionType.BASIC, textPattern.withSuperParent(2, PsiJavaPatterns.psiElement(YAMLMapping.class)), new SpringYAMLCompletionProvider(false));
-        extend(CompletionType.BASIC, textPattern.withSuperParent(2, PsiJavaPatterns.psiElement(YAMLDocument.class)), new SpringYAMLCompletionProvider(true));
+        extend(CompletionType.BASIC, textPattern.withSuperParent(2, PsiJavaPatterns.psiElement(YAMLKeyValue.class)), new SpringYAMLCompletionProvider());
+        extend(CompletionType.BASIC, textPattern.withSuperParent(2, PsiJavaPatterns.psiElement(YAMLMapping.class)), new SpringYAMLCompletionProvider());
+        extend(CompletionType.BASIC, textPattern.withSuperParent(2, PsiJavaPatterns.psiElement(YAMLDocument.class)), new SpringYAMLCompletionProvider());
     }
 }

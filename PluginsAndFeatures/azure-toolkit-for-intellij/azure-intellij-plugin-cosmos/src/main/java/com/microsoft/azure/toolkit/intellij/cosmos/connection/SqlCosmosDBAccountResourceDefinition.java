@@ -12,7 +12,6 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.cosmos.AzureCosmosService;
 import com.microsoft.azure.toolkit.lib.cosmos.CosmosDBAccount;
-import com.microsoft.azure.toolkit.lib.cosmos.mongo.MongoCosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.sql.SqlCosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.sql.SqlDatabase;
 import org.apache.commons.lang3.tuple.Pair;
@@ -89,14 +88,5 @@ public class SqlCosmosDBAccountResourceDefinition extends AzureServiceResource.D
     @Override
     public String getResourceConnectionString(@Nonnull SqlDatabase resource) {
         return resource.getModule().getParent().getCosmosDBAccountPrimaryConnectionString().getConnectionString();
-    }
-
-    @Override
-    public List<SqlDatabase> getResources() {
-        return Azure.az(AzureCosmosService.class).getDatabaseAccounts().stream()
-                .filter(account -> account instanceof SqlCosmosDBAccount)
-                .map(account -> (SqlCosmosDBAccount) account)
-                .flatMap(account -> account.sqlDatabases().list().stream())
-                .collect(Collectors.toList());
     }
 }

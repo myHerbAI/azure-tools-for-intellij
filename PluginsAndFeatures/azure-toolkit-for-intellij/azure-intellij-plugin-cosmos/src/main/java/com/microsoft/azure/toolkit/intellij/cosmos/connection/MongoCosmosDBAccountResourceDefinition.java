@@ -70,13 +70,4 @@ public class MongoCosmosDBAccountResourceDefinition extends AzureServiceResource
         properties.add(Pair.of("spring.data.mongodb.uri", String.format("${%s_CONNECTION_STRING}", Connection.ENV_PREFIX)));
         return properties;
     }
-
-    @Override
-    public List<MongoDatabase> getResources() {
-        return Azure.az(AzureCosmosService.class).getDatabaseAccounts().stream()
-                .filter(account -> account instanceof MongoCosmosDBAccount)
-                .map(account -> (MongoCosmosDBAccount) account)
-                .flatMap(account -> account.mongoDatabases().list().stream())
-                .collect(Collectors.toList());
-    }
 }
