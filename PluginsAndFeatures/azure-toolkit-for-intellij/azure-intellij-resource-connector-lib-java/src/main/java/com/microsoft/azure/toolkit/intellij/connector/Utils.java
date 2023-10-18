@@ -24,20 +24,21 @@ import java.util.regex.Pattern;
 public class Utils {
     public static final Pattern SPRING_PROPERTY_VALUE_PATTERN = Pattern.compile("\\$\\{(.*)}");
 
+    public static String extractVariableFromSpringProperties(final String origin) {
+        final Matcher matcher = SPRING_PROPERTY_VALUE_PATTERN.matcher(origin);
+        return matcher.matches() ? matcher.group(1) : origin;
+    }
+
     @Nullable
     public static Connection<? extends AzResource, ?> getConnectionForPropertiesValue(@Nonnull PropertyValueImpl element) {
-        final String origin = element.getText();
-        final Matcher matcher = SPRING_PROPERTY_VALUE_PATTERN.matcher(origin);
-        final String text = matcher.matches() ? matcher.group(1) : origin;
+        final String text = extractVariableFromSpringProperties(element.getText());
         final Module module = ModuleUtil.findModuleForPsiElement(element);
         return getConnectionWithEnvironmentVariable(module, text);
     }
 
     @Nullable
     public static Connection<? extends AzResource, ?> getConnectionForYamlPlainText(@Nonnull YAMLPlainTextImpl element) {
-        final String origin = element.getText();
-        final Matcher matcher = SPRING_PROPERTY_VALUE_PATTERN.matcher(origin);
-        final String text = matcher.matches() ? matcher.group(1) : origin;
+        final String text = extractVariableFromSpringProperties(element.getText());
         final Module module = ModuleUtil.findModuleForPsiElement(element);
         return getConnectionWithEnvironmentVariable(module, text);
     }
