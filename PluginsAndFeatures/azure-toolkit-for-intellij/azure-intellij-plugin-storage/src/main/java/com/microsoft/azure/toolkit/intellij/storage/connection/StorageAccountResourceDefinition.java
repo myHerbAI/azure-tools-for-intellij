@@ -104,4 +104,9 @@ public class StorageAccountResourceDefinition extends AzureServiceResource.Defin
     public String getResourceConnectionString(@Nonnull StorageAccount resource) {
         return resource instanceof AzuriteStorageAccount ? LOCAL_STORAGE_CONNECTION_STRING : resource.getConnectionString();
     }
+
+    @Override
+    public List<StorageAccount> getResources() {
+        return Azure.az(AzureStorageAccount.class).accounts(true);
+    }
 }

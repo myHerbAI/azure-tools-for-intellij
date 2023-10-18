@@ -77,4 +77,13 @@ public class CassandraCosmosDBAccountResourceDefinition extends AzureServiceReso
         properties.add(Pair.of("spring.data.cassandra.ssl", "true"));
         return properties;
     }
+
+    @Override
+    public List<CassandraKeyspace> getResources() {
+        return Azure.az(AzureCosmosService.class).getDatabaseAccounts().stream()
+                .filter(account -> account instanceof CassandraCosmosDBAccount)
+                .map(account -> (CassandraCosmosDBAccount) account)
+                .flatMap(account -> account.keySpaces().list().stream())
+                .collect(Collectors.toList());
+    }
 }
