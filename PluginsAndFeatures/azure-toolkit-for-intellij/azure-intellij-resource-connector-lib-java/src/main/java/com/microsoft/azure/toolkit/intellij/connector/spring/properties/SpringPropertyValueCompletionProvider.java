@@ -46,16 +46,15 @@ public class SpringPropertyValueCompletionProvider extends CompletionProvider<Co
         }
         final String key = parameters.getPosition().getParent().getFirstChild().getText();
         final List<? extends SpringSupported<?>> definitions = getSupportedDefinitions(key);
-        definitions.stream()
-            .flatMap(d -> d.getResources(module.getProject()).stream())
-            .map(r -> LookupElementBuilder.create(r, r.getName())
-                .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(r.getDefinition().getIcon(), AzureIcons.Common.AZURE.getIconPath())))
-                .withBoldness(true)
-                .withLookupStrings(Arrays.asList(r.getName(), ((AzResource) r.getData()).getResourceGroupName()))
-                .withInsertHandler(new PropertyValueInsertHandler(r))
-                .withTailText(" " + ((AzResource) r.getData()).getResourceTypeName())
-                .withTypeText(((AzResource) r.getData()).getResourceGroupName()))
-            .forEach(result::addElement);
+        final List<LookupElementBuilder> elements = definitions.stream().flatMap(d -> d.getResources(module.getProject()).stream().map(r -> LookupElementBuilder.create(r, r.getName())
+            .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(r.getDefinition().getIcon(), AzureIcons.Common.AZURE.getIconPath())))
+            .withBoldness(true)
+            .withLookupStrings(Arrays.asList(r.getName(), ((AzResource) r.getData()).getResourceGroupName()))
+            .withInsertHandler(new PropertyValueInsertHandler(r))
+            .withTailText(" " + ((AzResource) r.getData()).getResourceTypeName())
+            .withTypeText(d.getSpringPropertyTypes().get(key)))).toList();
+        elements.forEach(result::addElement);
+        result.addLookupAdvertisement("Press enter to configure all required properties to connect Azure resource.");
         if (!definitions.isEmpty()) { // filter out un-relevant completion items (known packages)
             // it's not safe to `stopHere()` immediately considering e.g. other cloud service may also
             // provide similar completion items for Redis/MongoDB related properties...
