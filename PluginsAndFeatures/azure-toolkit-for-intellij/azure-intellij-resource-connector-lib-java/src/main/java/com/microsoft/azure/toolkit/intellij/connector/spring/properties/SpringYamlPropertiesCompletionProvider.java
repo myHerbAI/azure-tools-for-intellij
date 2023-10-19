@@ -205,47 +205,30 @@ public class SpringYamlPropertiesCompletionProvider extends CompletionProvider<C
         final YAMLKeyValue parent = latestKeyValue.getKey();
         final YAMLValue parentValue = Optional.ofNullable(parent).map(YAMLKeyValue::getValue).orElse(null);
         final List<String> keyList = latestKeyValue.getValue();
-        if (Objects.isNull(parent)) {
-            // there is no parent, so we can insert the key at the beginning of the document
-            final StringBuilder result = new StringBuilder(YAMLElementGenerator.createChainedKey(keyList, 0));
-            result.append(StringUtils.SPACE);
-            if (StringUtils.isNotBlank(value)) {
-                result.append(value);
-            }
-            // add lf if first line is not empty
-            final String firstLine = document.getText(new TextRange(0, document.getLineEndOffset(0)));
-            if (StringUtils.isNotBlank(firstLine)) {
-                result.append(StringUtils.LF);
-            }
-            document.insertString(0, result.toString());
-            context.commitDocument();
-            return;
-        }
         final int indent = Optional.ofNullable(parentValue)
                 .map(YAMLUtil::getIndentToThisElement)
-                .orElse(YAMLUtil.getIndentToThisElement(parent) + 2);
+                .orElse(Objects.isNull(parent) ? 0 : YAMLUtil.getIndentToThisElement(parent) + 2);
         final StringBuilder insertContent = new StringBuilder(YAMLElementGenerator.createChainedKey(keyList, indent));
         insertContent.append(StringUtils.SPACE);
         if (StringUtils.isNotBlank(value)) {
             insertContent.append(value);
         }
         final int index = Optional.ofNullable(parentValue)
-                .map(YAMLValue::getTextOffset)
-                .orElseGet(() -> parent.getTextRange().getEndOffset());
-        if (document.getLineNumber(parent.getTextOffset()) == document.getLineNumber(index)) {
-            // if insert in the same line as parent
+                .map(v -> v.getTextRange().getEndOffset())
+                .orElseGet(() -> (Objects.isNull(parent) ? yamlFile : parent).getTextRange().getEndOffset());
+        if (StringUtils.isNotBlank(getOffsetLineContent(document, index))) {
             insertContent.insert(0, StringUtils.repeat(' ', indent));
             insertContent.insert(0, StringUtils.LF);
-        } else {
-            insertContent.append(StringUtils.LF);
-            // need add indent for brother element
-            if (parentValue instanceof YAMLMapping) {
-                insertContent.append(StringUtils.repeat(' ', indent));
-            }
         }
         final String content = insertContent.toString();
         document.insertString(index, content);
         context.commitDocument();
+    }
+
+    private static String getOffsetLineContent(@Nonnull final Document document, final int offset) {
+        final int lineNumber = document.getLineNumber(offset);
+        final TextRange range = DocumentUtil.getLineTextRange(document, lineNumber);
+        return document.getText(range);
     }
 
     @Nonnull
