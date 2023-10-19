@@ -172,7 +172,7 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
             .withLabel("Open In Editor")
             .withIcon(AzureIcons.Action.EDIT.getIconPath())
             .visibleWhen(m -> m instanceof Connection<?, ?>)
-            .withHandler((c, e) -> AzureTaskManager.getInstance().runLater(() -> editConnectionInEditor(c, ((AnActionEvent) e).getProject())))
+            .withHandler((c, e) -> AzureTaskManager.getInstance().runLater(() -> editEnvInEditor(c, ((AnActionEvent) e).getProject())))
             .withAuthRequired(false)
             .register(am);
 
@@ -226,19 +226,18 @@ public class ResourceConnectionActionsContributor implements IActionsContributor
             .register(am);
     }
 
-    public static void editConnectionInEditor(Connection<?, ?> c, Project project) {
-        final VirtualFile connectionsFile = Optional.ofNullable(c)
+    public static void editEnvInEditor(Connection<?, ?> c, Project project) {
+        final VirtualFile envFile = Optional.ofNullable(c)
                 .map(Connection::getProfile)
-                .map(Profile::getConnectionManager)
-                .map(ConnectionManager::getConnectionsFile)
+                .map(Profile::getDotEnvFile)
                 .orElse(null);
-        final PsiFile psiFile = Optional.ofNullable(connectionsFile)
+        final PsiFile psiFile = Optional.ofNullable(envFile)
                 .map(f -> PsiManager.getInstance(project).findFile(f)).orElse(null);
         if (Objects.isNull(psiFile)) {
             return;
         }
         NavigationUtil.openFileWithPsiElement(psiFile, true, true);
-        EditorUtils.focusContentInCurrentEditor(project, connectionsFile, c.getId());
+        EditorUtils.focusContentInCurrentEditor(project, envFile, c.getId());
     }
 
     public static Connection<?, ?> fixResourceConnection(Connection<?, ?> c, Project project) {
