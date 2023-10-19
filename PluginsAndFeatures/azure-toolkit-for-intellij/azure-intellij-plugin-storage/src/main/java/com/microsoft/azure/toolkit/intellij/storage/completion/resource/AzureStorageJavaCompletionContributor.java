@@ -7,8 +7,6 @@ package com.microsoft.azure.toolkit.intellij.storage.completion.resource;
 
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionInitializationContext;
-import com.intellij.codeInsight.completion.CompletionParameters;
-import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.patterns.ElementPattern;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.patterns.PsiJavaElementPattern;
@@ -49,13 +47,7 @@ public class AzureStorageJavaCompletionContributor extends CompletionContributor
     }
 
     @Override
-    public void fillCompletionVariants(@Nonnull CompletionParameters parameters, @Nonnull CompletionResultSet result) {
-        super.fillCompletionVariants(parameters, result);
-    }
-
-    @Override
     public void beforeCompletion(@Nonnull final CompletionInitializationContext context) {
-//        CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED
         super.beforeCompletion(context);
         context.setDummyIdentifier(DUMMY_IDENTIFIER);
     }

@@ -21,6 +21,8 @@ import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.blob.BlobContainer;
@@ -54,15 +56,16 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
             if (Objects.isNull(module)) {
                 return;
             }
-            final List<? extends StorageFile> files = getFiles(fullPrefix, module);
-            files.stream().map(file -> LookupElementBuilder.create(file.getName())
-                .withInsertHandler(new MyInsertHandler(file))
-                .withBoldness(true)
-                .withTypeText(file.getResourceTypeName())
-                .withTailText(" " + Optional.ofNullable(getStorageAccount(file)).map(AbstractAzResource::getName).orElse(""))
-                .withIcon(IntelliJAzureIcons.getIcon(getFileIcon(file)))
-            ).forEach(result::addElement);
-            result.stopHere();
+            if (Azure.az(AzureAccount.class).isLoggedIn()) {
+                final List<? extends StorageFile> files = getFiles(fullPrefix, module);
+                files.stream().map(file -> LookupElementBuilder.create(file.getName())
+                    .withInsertHandler(new MyInsertHandler(file))
+                    .withBoldness(true)
+                    .withTypeText(file.getResourceTypeName())
+                    .withTailText(" " + Optional.ofNullable(getStorageAccount(file)).map(AbstractAzResource::getName).orElse(""))
+                    .withIcon(IntelliJAzureIcons.getIcon(getFileIcon(file)))
+                ).forEach(result::addElement);
+            }
         }
     }
 

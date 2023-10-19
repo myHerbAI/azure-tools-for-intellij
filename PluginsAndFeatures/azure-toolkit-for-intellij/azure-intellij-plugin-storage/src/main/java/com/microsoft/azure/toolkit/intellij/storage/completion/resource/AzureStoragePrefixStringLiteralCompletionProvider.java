@@ -23,7 +23,8 @@ public class AzureStoragePrefixStringLiteralCompletionProvider extends Completio
     @Override
     protected void addCompletions(@Nonnull CompletionParameters parameters, @Nonnull ProcessingContext context, @Nonnull CompletionResultSet result) {
         final PsiElement element = parameters.getPosition();
-        final String fullPrefix = element.getText().split(DUMMY_IDENTIFIER)[0].replace("\"", "").trim();
+        final String[] parts = element.getText().split(DUMMY_IDENTIFIER);
+        final String fullPrefix = parts.length > 0 ? parts[0].replace("\"", "").trim() : element.getText();
         final boolean isBlobContainer = fullPrefix.startsWith("azure-blob://");
         final boolean isFileShare = fullPrefix.startsWith("azure-file://");
 

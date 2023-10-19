@@ -9,6 +9,7 @@ import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
@@ -23,6 +24,8 @@ import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager;
 import com.microsoft.azure.toolkit.intellij.connector.spring.SpringSupported;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -46,16 +49,18 @@ public class SpringPropertyValueCompletionProvider extends CompletionProvider<Co
         }
         final String key = parameters.getPosition().getParent().getFirstChild().getText();
         final List<? extends SpringSupported<?>> definitions = getSupportedDefinitions(key);
-        final List<LookupElementBuilder> elements = definitions.stream().flatMap(d -> d.getResources(module.getProject()).stream().map(r -> LookupElementBuilder.create(r, r.getName())
-            .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(r.getDefinition().getIcon(), AzureIcons.Common.AZURE.getIconPath())))
-            .withBoldness(true)
-            .withLookupStrings(Arrays.asList(r.getName(), ((AzResource) r.getData()).getResourceGroupName()))
-            .withInsertHandler(new PropertyValueInsertHandler(r))
-            .withTailText(" " + ((AzResource) r.getData()).getResourceTypeName())
-            .withTypeText(d.getSpringPropertyTypes().get(key)))).toList();
-        elements.forEach(result::addElement);
-        result.addLookupAdvertisement("Press enter to configure all required properties to connect Azure resource.");
-        if (!definitions.isEmpty()) { // filter out un-relevant completion items (known packages)
+        if (!definitions.isEmpty()) {
+            if (Azure.az(AzureAccount.class).isLoggedIn()) {
+                final List<LookupElementBuilder> elements = definitions.stream().flatMap(d -> d.getResources(module.getProject()).stream().map(r -> LookupElementBuilder.create(r, r.getName())
+                    .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(r.getDefinition().getIcon(), AzureIcons.Common.AZURE.getIconPath())))
+                    .bold()
+                    .withLookupStrings(Arrays.asList(r.getName(), ((AzResource) r.getData()).getResourceGroupName()))
+                    .withInsertHandler(new PropertyValueInsertHandler(r))
+                    .withTailText(" " + ((AzResource) r.getData()).getResourceTypeName())
+                    .withTypeText(d.getSpringPropertyTypes().get(key)))).toList();
+                elements.forEach(result::addElement);
+                result.addLookupAdvertisement("Press enter to configure all required properties to connect Azure resource.");
+            }
             // it's not safe to `stopHere()` immediately considering e.g. other cloud service may also
             // provide similar completion items for Redis/MongoDB related properties...
             result.runRemainingContributors(parameters, r -> {
@@ -66,7 +71,7 @@ public class SpringPropertyValueCompletionProvider extends CompletionProvider<Co
         }
     }
 
-    private static List<? extends SpringSupported<?>> getSupportedDefinitions(String key) {
+    public static List<? extends SpringSupported<?>> getSupportedDefinitions(String key) {
         final List<ResourceDefinition<?>> definitions = ResourceManager.getDefinitions(ResourceDefinition.RESOURCE).stream()
             .filter(d -> d instanceof SpringSupported<?>).toList();
         return definitions.stream().map(d -> (SpringSupported<?>) d)
@@ -84,6 +89,10 @@ public class SpringPropertyValueCompletionProvider extends CompletionProvider<Co
         @ExceptionNotification
         @AzureOperation(name = "user/connector.insert_spring_properties")
         public void handleInsert(@Nonnull InsertionContext context, @Nonnull LookupElement lookupElement) {
+            final PsiElement element = context.getFile().findElementAt(context.getStartOffset());
+            if (Objects.nonNull(element)) {
+                context.getDocument().deleteString(element.getTextOffset(), element.getTextOffset() + element.getTextLength());
+            }
             final Project project = context.getProject();
             final Module module = ModuleUtil.findModuleForFile(context.getFile().getVirtualFile(), project);
             AzureTaskManager.getInstance().write(() -> Optional.ofNullable(module).map(AzureModule::from)
@@ -132,13 +141,9 @@ public class SpringPropertyValueCompletionProvider extends CompletionProvider<Co
         }
 
         private static void cancel(@Nonnull InsertionContext context) {
-            final PsiElement element = context.getFile().findElementAt(context.getStartOffset());
-            if (Objects.nonNull(element)) {
-                context.getDocument().replaceString(element.getTextOffset(), element.getTextOffset() + element.getTextLength(), "");
-            }
         }
 
-        private static void insert(Connection<?, ?> c, @Nonnull InsertionContext context) {
+        public static void insert(Connection<?, ?> c, @Nonnull InsertionContext context) {
             final PsiElement element = context.getFile().findElementAt(context.getStartOffset());
             final List<Pair<String, String>> properties = SpringSupported.getProperties(c);
             if (properties.size() < 1 || Objects.isNull(element)) {
@@ -154,8 +159,9 @@ public class SpringPropertyValueCompletionProvider extends CompletionProvider<Co
                 final Pair<String, String> p = properties.get(i);
                 result.append(p.getKey()).append("=").append(p.getValue()).append(StringUtils.LF);
             }
-            context.getDocument().replaceString(element.getTextOffset(), element.getTextOffset() + element.getTextLength(), result.toString());
-            context.commitDocument();
+
+            final CaretModel caretModel = context.getEditor().getCaretModel();
+            context.getDocument().insertString(caretModel.getOffset(), result.toString());
         }
     }
 }
