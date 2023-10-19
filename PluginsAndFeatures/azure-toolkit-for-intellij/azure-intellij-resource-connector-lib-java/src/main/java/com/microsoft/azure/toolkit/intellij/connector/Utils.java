@@ -5,14 +5,11 @@
 
 package com.microsoft.azure.toolkit.intellij.connector;
 
-import com.intellij.lang.properties.psi.impl.PropertyValueImpl;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtil;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import org.apache.commons.lang.StringUtils;
-import org.jetbrains.yaml.psi.impl.YAMLPlainTextImpl;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,20 +24,6 @@ public class Utils {
     public static String extractVariableFromSpringProperties(final String origin) {
         final Matcher matcher = SPRING_PROPERTY_VALUE_PATTERN.matcher(origin);
         return matcher.matches() ? matcher.group(1) : origin;
-    }
-
-    @Nullable
-    public static Connection<? extends AzResource, ?> getConnectionForPropertiesValue(@Nonnull PropertyValueImpl element) {
-        final String text = extractVariableFromSpringProperties(element.getText());
-        final Module module = ModuleUtil.findModuleForPsiElement(element);
-        return getConnectionWithEnvironmentVariable(module, text);
-    }
-
-    @Nullable
-    public static Connection<? extends AzResource, ?> getConnectionForYamlPlainText(@Nonnull YAMLPlainTextImpl element) {
-        final String text = extractVariableFromSpringProperties(element.getText());
-        final Module module = ModuleUtil.findModuleForPsiElement(element);
-        return getConnectionWithEnvironmentVariable(module, text);
     }
 
     @Nullable

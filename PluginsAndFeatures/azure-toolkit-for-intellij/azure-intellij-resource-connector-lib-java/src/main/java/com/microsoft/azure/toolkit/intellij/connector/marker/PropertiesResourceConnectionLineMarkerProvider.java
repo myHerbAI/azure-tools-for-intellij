@@ -7,11 +7,12 @@ package com.microsoft.azure.toolkit.intellij.connector.marker;
 
 import com.intellij.lang.properties.psi.Property;
 import com.intellij.lang.properties.psi.impl.PropertyValueImpl;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition;
-import com.microsoft.azure.toolkit.intellij.connector.Utils;
 import com.microsoft.azure.toolkit.intellij.connector.spring.SpringSupported;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import org.apache.commons.collections4.CollectionUtils;
@@ -24,6 +25,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.microsoft.azure.toolkit.intellij.connector.Utils.extractVariableFromSpringProperties;
+import static com.microsoft.azure.toolkit.intellij.connector.Utils.getConnectionWithEnvironmentVariable;
+
 public class PropertiesResourceConnectionLineMarkerProvider extends AbstractResourceConnectionLineMarkerProvider {
     @Override
     protected boolean shouldAccept(@Nonnull PsiElement element) {
@@ -32,7 +36,9 @@ public class PropertiesResourceConnectionLineMarkerProvider extends AbstractReso
 
     @Override
     protected Connection<? extends AzResource, ?> getConnectionForPsiElement(@Nonnull PsiElement element) {
-        final Connection<? extends AzResource, ?> connection = Utils.getConnectionForPropertiesValue((PropertyValueImpl) element);
+        final String text = extractVariableFromSpringProperties(element.getText());
+        final Module module = ModuleUtil.findModuleForPsiElement(element);
+        final Connection<? extends AzResource, ?> connection = getConnectionWithEnvironmentVariable(module, text);;
         if (Objects.isNull(connection)) {
             return null;
         }

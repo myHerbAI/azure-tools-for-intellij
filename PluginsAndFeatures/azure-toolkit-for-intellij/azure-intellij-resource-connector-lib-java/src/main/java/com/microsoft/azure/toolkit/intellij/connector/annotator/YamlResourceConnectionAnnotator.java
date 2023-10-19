@@ -6,9 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.connector.annotator;
 
 import com.intellij.psi.PsiElement;
-import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.Utils;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import org.jetbrains.yaml.psi.impl.YAMLPlainTextImpl;
 
 import javax.annotation.Nonnull;
@@ -22,10 +20,5 @@ public class YamlResourceConnectionAnnotator extends AbstractResourceConnectionA
     @Override
     protected boolean shouldAccept(@Nonnull PsiElement element) {
         return element instanceof YAMLPlainTextImpl;
-    }
-
-    @Override
-    protected Connection<? extends AzResource, ?> getConnectionForPsiElement(@Nonnull PsiElement element) {
-        return Utils.getConnectionForYamlPlainText((YAMLPlainTextImpl) element);
     }
 }
