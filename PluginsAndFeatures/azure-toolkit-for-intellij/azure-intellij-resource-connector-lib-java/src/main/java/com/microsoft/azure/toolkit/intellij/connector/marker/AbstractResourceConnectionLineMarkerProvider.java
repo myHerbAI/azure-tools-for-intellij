@@ -7,9 +7,12 @@ package com.microsoft.azure.toolkit.intellij.connector.marker;
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.psi.PsiElement;
 import com.microsoft.azure.toolkit.intellij.connector.AzureServiceResource;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 
 import javax.annotation.Nonnull;
@@ -22,7 +25,7 @@ public abstract class AbstractResourceConnectionLineMarkerProvider implements Li
     @Override
     @Nullable
     public LineMarkerInfo<?> getLineMarkerInfo(@Nonnull PsiElement element) {
-        if (shouldAccept(element)) {
+        if (isAzureFacetEnabled(element) && shouldAccept(element)) {
             final Connection<? extends AzResource, ?> connection = getConnectionForPsiElement(element);
             final AzureServiceResource<?> resource = Optional.ofNullable(connection)
                     .filter(c -> c.getResource() instanceof AzureServiceResource)
@@ -32,6 +35,11 @@ public abstract class AbstractResourceConnectionLineMarkerProvider implements Li
             }
         }
         return null;
+    }
+
+    protected boolean isAzureFacetEnabled(@Nonnull PsiElement element){
+        final Module module = ModuleUtil.findModuleForPsiElement(element);
+        return Optional.ofNullable(module).map(AzureModule::from).map(AzureModule::hasAzureFacet).orElse(false);
     }
 
     protected abstract boolean shouldAccept(@Nonnull final PsiElement element);

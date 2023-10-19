@@ -10,11 +10,13 @@ import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.SmartPointerManager;
 import com.microsoft.azure.toolkit.intellij.connector.AzureServiceResource;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
+import com.microsoft.azure.toolkit.intellij.connector.Utils;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
@@ -38,7 +40,7 @@ import java.util.Optional;
 public abstract class AbstractResourceConnectionAnnotator implements Annotator {
     @Override
     public void annotate(@Nonnull PsiElement element, @Nonnull AnnotationHolder holder) {
-        if (shouldAccept(element)) {
+        if (isAzureFacetEnabled(element) && shouldAccept(element)) {
             final Connection<? extends AzResource, ?> connection = getConnectionForPsiElement(element);
             if (Objects.isNull(connection)) {
                 validateNamePattern(element, holder);
@@ -48,12 +50,20 @@ public abstract class AbstractResourceConnectionAnnotator implements Annotator {
         }
     }
 
-    protected abstract String extractVariableValue(@Nonnull final PsiElement element);
+    protected boolean isAzureFacetEnabled(@Nonnull PsiElement element){
+        final Module module = ModuleUtil.findModuleForPsiElement(element);
+        return Optional.ofNullable(module).map(AzureModule::from).map(AzureModule::hasAzureFacet).orElse(false);
+    }
 
     protected abstract boolean shouldAccept(@Nonnull final PsiElement element);
 
+    protected abstract String extractVariableValue(@Nonnull final PsiElement element);
+
     @Nullable
-    protected abstract Connection<? extends AzResource, ?> getConnectionForPsiElement(@Nonnull final PsiElement element);
+    protected Connection<? extends AzResource, ?> getConnectionForPsiElement(@Nonnull final PsiElement element) {
+        final Module module = ModuleUtil.findModuleForPsiElement(element);
+        return Utils.getConnectionWithEnvironmentVariable(module, extractVariableValue(element));
+    }
 
     private void validateNamePattern(@Nonnull final PsiElement element, @Nonnull final AnnotationHolder holder) {
         final Profile profile = Optional.ofNullable(ModuleUtil.findModuleForPsiElement(element))
@@ -96,7 +106,7 @@ public abstract class AbstractResourceConnectionAnnotator implements Annotator {
         if (!data.getFormalStatus().isConnected()) {
             holder.newAnnotation(HighlightSeverity.ERROR, "Connected resource is not available")
                     .range(element.getTextRange())
-                    .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
+                    .highlightType(ProblemHighlightType.GENERIC_ERROR_OR_WARNING)
                     .withFix(new EditConnectionFix(connection))
                     .create();
         }
