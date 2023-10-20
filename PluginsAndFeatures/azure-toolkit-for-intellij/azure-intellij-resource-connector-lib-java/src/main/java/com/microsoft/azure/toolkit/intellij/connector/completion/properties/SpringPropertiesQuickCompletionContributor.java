@@ -20,8 +20,8 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
 
-public class SpringPropertiesConnectManuallyCompletionContributor extends CompletionContributor {
-    public SpringPropertiesConnectManuallyCompletionContributor() {
+public class SpringPropertiesQuickCompletionContributor extends CompletionContributor {
+    public SpringPropertiesQuickCompletionContributor() {
         super();
         extend(CompletionType.BASIC, PlatformPatterns.psiElement(PropertiesTokenTypes.VALUE_CHARACTERS), new CompletionProvider<>() {
             @Override

@@ -7,34 +7,28 @@ package com.microsoft.azure.toolkit.intellij.storage.completion.resource;
 
 import com.intellij.codeInsight.lookup.CharFilter;
 import com.intellij.codeInsight.lookup.Lookup;
-import com.intellij.ide.highlighter.JavaFileType;
-import com.intellij.patterns.PsiJavaPatterns;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiLiteralExpression;
+import com.intellij.psi.impl.source.PsiJavaFileImpl;
 
-import java.util.Optional;
+import java.util.Objects;
 
 public class AzureStorageStringLiteralCharFilter extends CharFilter {
-    public static final String ANNOTATION_VALUE = "org.springframework.beans.factory.annotation.Value";
-
     @Override
     public Result acceptChar(char c, final int prefixLength, final Lookup lookup) {
         final PsiFile file = lookup.getPsiFile();
-        if (file == null || file.getFileType() != JavaFileType.INSTANCE || !isWithinLiteral(lookup)) {
+        if (!AzureStorageJavaCompletionContributor.SPECIAL_CHARS.contains(c) || !(file instanceof PsiJavaFileImpl)) {
             return null;
         }
-        final PsiElement element = lookup.getPsiElement();
-        final String text = Optional.ofNullable(element).map(PsiElement::getText).map(t -> t.replace("\"", "")).orElse("");
-        if ((c == ':' || c == '-' || c == '/') && text.startsWith("azure")
-            && PsiJavaPatterns.psiElement().insideAnnotationParam(ANNOTATION_VALUE).accepts(element)) {
+        final PsiElement ele = lookup.getPsiElement();
+        if (Objects.isNull(ele)) {
+            return null;
+        }
+        final String text = ele.getText().replace("\"", "");
+        if (AzureStorageJavaCompletionContributor.PREFIX_PLACES.accepts(ele)
+            || text.startsWith("azure-blob") || text.startsWith("azure-file")) {
             return Result.ADD_TO_PREFIX;
         }
         return null;
-    }
-
-    private static boolean isWithinLiteral(final Lookup lookup) {
-        final PsiElement psiElement = lookup.getPsiElement();
-        return psiElement != null && psiElement.getParent() instanceof PsiLiteralExpression;
     }
 }

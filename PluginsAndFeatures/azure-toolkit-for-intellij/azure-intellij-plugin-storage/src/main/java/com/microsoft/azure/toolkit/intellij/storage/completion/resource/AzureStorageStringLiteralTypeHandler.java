@@ -17,10 +17,9 @@ import javax.annotation.Nonnull;
 import java.util.Objects;
 
 public class AzureStorageStringLiteralTypeHandler extends TypedHandlerDelegate {
-
     @Override
     public @Nonnull Result checkAutoPopup(char charTyped, @Nonnull Project project, @Nonnull Editor editor, @Nonnull PsiFile file) {
-        if (charTyped != '/' || !(file instanceof PsiJavaFileImpl)) {
+        if (!AzureStorageJavaCompletionContributor.SPECIAL_CHARS.contains(charTyped) || !(file instanceof PsiJavaFileImpl)) {
             return Result.CONTINUE;
         }
         final PsiElement ele = file.findElementAt(editor.getCaretModel().getOffset());
@@ -28,7 +27,8 @@ public class AzureStorageStringLiteralTypeHandler extends TypedHandlerDelegate {
             return Result.CONTINUE;
         }
         final String text = ele.getText().replace("\"", "");
-        if (text.startsWith("azure-blob:") || text.startsWith("azure-file:")) {
+        if (AzureStorageJavaCompletionContributor.PREFIX_PLACES.accepts(ele)
+            || text.startsWith("azure-blob") || text.startsWith("azure-file")) {
             AutoPopupController.getInstance(project).scheduleAutoPopup(editor);
             return Result.STOP;
         }

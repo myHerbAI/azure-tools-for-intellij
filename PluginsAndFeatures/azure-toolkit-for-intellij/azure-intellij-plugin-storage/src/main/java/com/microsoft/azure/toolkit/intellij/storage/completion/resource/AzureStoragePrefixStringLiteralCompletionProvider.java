@@ -29,6 +29,7 @@ public class AzureStoragePrefixStringLiteralCompletionProvider extends Completio
         final boolean isFileShare = fullPrefix.startsWith("azure-file://");
 
         if (!isBlobContainer && !isFileShare) {
+            result = result.withPrefixMatcher(fullPrefix);
             result.addElement(LookupElementBuilder.create("azure-blob://")
                 .withInsertHandler(new MyInsertHandler())
                 .withIcon(IntelliJAzureIcons.getIcon(AzureIcons.StorageAccount.CONTAINERS)));

@@ -28,9 +28,9 @@ import java.util.Optional;
 import static com.intellij.patterns.PsiJavaPatterns.literalExpression;
 import static com.intellij.patterns.PsiJavaPatterns.psiElement;
 
-public class AzureStorageJavaManuallyCompletionContributor extends CompletionContributor {
+public class AzureStorageJavaQuickCompletionContributor extends CompletionContributor {
 
-    public AzureStorageJavaManuallyCompletionContributor() {
+    public AzureStorageJavaQuickCompletionContributor() {
         super();
         extend(null, psiElement().inside(literalExpression()), new CompletionProvider<>() {
             @Override
