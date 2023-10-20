@@ -104,7 +104,7 @@ public abstract class AbstractResourceConnectionAnnotator implements Annotator {
                                             @Nonnull final Connection<? extends AzResource, ?> connection) {
         final AzResource data = connection.getResource().getData();
         if (!data.getFormalStatus().isConnected()) {
-            holder.newAnnotation(HighlightSeverity.ERROR, "Connected resource is not available")
+            holder.newAnnotation(HighlightSeverity.WARNING, "Connected resource is not available")
                     .range(element.getTextRange())
                     .highlightType(ProblemHighlightType.GENERIC_ERROR_OR_WARNING)
                     .withFix(new EditConnectionFix(connection))
