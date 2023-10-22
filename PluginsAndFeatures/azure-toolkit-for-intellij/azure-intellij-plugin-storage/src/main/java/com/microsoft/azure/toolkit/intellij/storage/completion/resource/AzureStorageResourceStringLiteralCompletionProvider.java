@@ -9,7 +9,6 @@ import com.intellij.codeInsight.AutoPopupController;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.psi.PsiElement;
@@ -40,6 +39,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class AzureStorageResourceStringLiteralCompletionProvider extends CompletionProvider<CompletionParameters> {
@@ -58,13 +58,19 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
             }
             if (Azure.az(AzureAccount.class).isLoggedIn()) {
                 final List<? extends StorageFile> files = getFiles(fullPrefix, module);
-                files.stream().map(file -> LookupElementBuilder.create(file.getName())
-                    .withInsertHandler(new MyInsertHandler(file))
+                final BiFunction<StorageFile, String, LookupElementBuilder> builder = (file, title) -> LookupElementBuilder.create(title)
+                    .withInsertHandler(new MyInsertHandler(title.endsWith("/")))
                     .withBoldness(true)
+                    .withCaseSensitivity(false)
                     .withTypeText(file.getResourceTypeName())
                     .withTailText(" " + Optional.ofNullable(getStorageAccount(file)).map(AbstractAzResource::getName).orElse(""))
-                    .withIcon(IntelliJAzureIcons.getIcon(getFileIcon(file)))
-                ).forEach(result::addElement);
+                    .withIcon(IntelliJAzureIcons.getIcon(getFileIcon(file)));
+                for (final StorageFile file : files) {
+                    result.addElement(builder.apply(file, file.getName()));
+                    if (file.isDirectory()) {
+                        result.addElement(builder.apply(file, file.getName() + "/"));
+                    }
+                }
             }
         }
     }
@@ -93,14 +99,11 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
 
     @RequiredArgsConstructor
     private static class MyInsertHandler implements InsertHandler<LookupElement> {
-        private final StorageFile file;
+        private final boolean popup;
 
         @Override
         public void handleInsert(@Nonnull InsertionContext context, @Nonnull LookupElement item) {
-            if (file instanceof Share || file instanceof BlobContainer) {
-                final CaretModel caretModel = context.getEditor().getCaretModel();
-                context.getDocument().insertString(caretModel.getOffset(), "/");
-                context.getEditor().getCaretModel().moveToOffset(caretModel.getOffset() + 1);
+            if (popup) {
                 AutoPopupController.getInstance(context.getProject()).scheduleAutoPopup(context.getEditor());
             }
         }
