@@ -19,19 +19,18 @@ import org.jetbrains.yaml.psi.YAMLMapping;
 public class SpringYamlPropertiesCompletionContributor extends CompletionContributor {
 
     public static final String APPLICATION = "application";
+    public static final PsiJavaElementPattern.Capture<PsiElement> YAML_TEXT = PsiJavaPatterns.psiElement(YAMLTokenTypes.TEXT).with(new PatternCondition<>("spring-yaml-file") {
+        @Override
+        public boolean accepts(@NotNull PsiElement element, ProcessingContext context) {
+            final PsiFile file = element.getContainingFile();
+            return file instanceof YAMLFile && StringUtils.startsWith(file.getName(), APPLICATION);
+        }
+    });
 
     public SpringYamlPropertiesCompletionContributor() {
         super();
-        final PsiJavaElementPattern.Capture<PsiElement> textPattern = PsiJavaPatterns.psiElement(YAMLTokenTypes.TEXT)
-                        .with(new PatternCondition<>("spring-yaml-file") {
-                            @Override
-                            public boolean accepts(@NotNull PsiElement element, ProcessingContext context) {
-                                final PsiFile file = element.getContainingFile();
-                                return file instanceof YAMLFile && StringUtils.startsWith(file.getName(), APPLICATION);
-                            }
-                        });
-        extend(CompletionType.BASIC, textPattern.withSuperParent(2, PsiJavaPatterns.psiElement(YAMLKeyValue.class)), new SpringYamlPropertiesCompletionProvider());
-        extend(CompletionType.BASIC, textPattern.withSuperParent(2, PsiJavaPatterns.psiElement(YAMLMapping.class)), new SpringYamlPropertiesCompletionProvider());
-        extend(CompletionType.BASIC, textPattern.withSuperParent(2, PsiJavaPatterns.psiElement(YAMLDocument.class)), new SpringYamlPropertiesCompletionProvider());
+        extend(CompletionType.BASIC, YAML_TEXT.withSuperParent(2, PsiJavaPatterns.psiElement(YAMLKeyValue.class)), new SpringYamlPropertiesCompletionProvider());
+        extend(CompletionType.BASIC, YAML_TEXT.withSuperParent(2, PsiJavaPatterns.psiElement(YAMLMapping.class)), new SpringYamlPropertiesCompletionProvider());
+        extend(CompletionType.BASIC, YAML_TEXT.withSuperParent(2, PsiJavaPatterns.psiElement(YAMLDocument.class)), new SpringYamlPropertiesCompletionProvider());
     }
 }

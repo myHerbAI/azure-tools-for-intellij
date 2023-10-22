@@ -15,7 +15,6 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.DocumentUtil;
@@ -37,7 +36,6 @@ import org.jetbrains.yaml.YAMLElementGenerator;
 import org.jetbrains.yaml.YAMLUtil;
 import org.jetbrains.yaml.psi.YAMLFile;
 import org.jetbrains.yaml.psi.YAMLKeyValue;
-import org.jetbrains.yaml.psi.YAMLMapping;
 import org.jetbrains.yaml.psi.YAMLValue;
 
 import javax.annotation.Nonnull;
@@ -243,7 +241,7 @@ public class SpringYamlPropertiesCompletionProvider extends CompletionProvider<C
         return Pair.of(null, Arrays.stream(keys).toList());
     }
 
-    private String getYamlElementKey(@Nonnull final PsiElement position) {
+    public static String getYamlElementKey(@Nonnull final PsiElement position) {
         final StringBuilder result = new StringBuilder();
         PsiElement element = position;
         while (Objects.nonNull(element)) {
@@ -257,5 +255,4 @@ public class SpringYamlPropertiesCompletionProvider extends CompletionProvider<C
         }
         return result.toString();
     }
-
 }
