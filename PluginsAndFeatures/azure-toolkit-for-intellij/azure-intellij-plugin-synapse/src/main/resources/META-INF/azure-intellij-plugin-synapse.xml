@@ -5,7 +5,7 @@
     </extensions>
     <actions>
         <action id="Actions.SubmitArcadiaSparkApplicationAction"
-                class="com.microsoft.azure.synapse.spark.actions.ArcadiaSparkSelectAndSubmitAction"
+                class="com.microsoft.azure.hdinsight.spark.actions.ArcadiaSparkSelectAndSubmitAction"
                 text="Apache Spark on Azure Synapse"
                 description="Submit Apache Spark on Azure Synapse Application" icon="/icons/Spark.png"/>
     </actions>
