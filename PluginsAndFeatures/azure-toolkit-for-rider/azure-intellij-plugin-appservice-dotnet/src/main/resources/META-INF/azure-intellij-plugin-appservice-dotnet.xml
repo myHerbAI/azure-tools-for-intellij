@@ -1,4 +1,6 @@
 <idea-plugin>
+    <depends>Docker</depends>
+
     <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
         <actions implementation="com.microsoft.azure.toolkit.intellij.appservice.AppServiceRiderActionsContributor"/>
     </extensions>
@@ -8,8 +10,12 @@
     </extensions>
 
     <actions>
-        <action id="Actions.WebDeployAction" class="com.microsoft.azure.toolkit.intellij.legacy.webapp.action.DeployWebAppAction"
+        <action id="Actions.WebAppDeployAction" class="com.microsoft.azure.toolkit.intellij.legacy.webapp.action.DeployWebAppAction"
                 text="Deploy to Azure Web Apps..." description="Deploy selected module to Azure WebApp"
+                icon="/icons/WebApp/Deploy.svg">
+        </action>
+        <action id="Actions.WebAppContainersDeployAction" class="com.microsoft.azure.toolkit.intellij.legacy.webapp.action.DeployWebAppContainersAction"
+                text="Deploy to Azure Web Apps for Containers..." description="Deploy image to Azure WebApp"
                 icon="/icons/WebApp/Deploy.svg">
         </action>
     </actions>

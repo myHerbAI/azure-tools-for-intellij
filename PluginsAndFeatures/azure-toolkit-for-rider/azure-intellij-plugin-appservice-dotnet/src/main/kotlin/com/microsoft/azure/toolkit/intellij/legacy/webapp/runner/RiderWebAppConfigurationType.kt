@@ -7,6 +7,7 @@ import com.intellij.execution.configurations.ConfigurationTypeUtil
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.RiderWebAppConfigurationFactory
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers.WebAppContainersConfigurationFactory
 
 class RiderWebAppConfigurationType : ConfigurationTypeBase(
     "AzureDotNetWebAppPublish",
@@ -20,7 +21,10 @@ class RiderWebAppConfigurationType : ConfigurationTypeBase(
 
     init {
         addFactory(RiderWebAppConfigurationFactory(this))
+        addFactory(WebAppContainersConfigurationFactory(this))
     }
 
     fun getWebAppConfigurationFactory() = RiderWebAppConfigurationFactory(this)
+
+    fun getWebAppContainersConfigurationFactory() = WebAppContainersConfigurationFactory(this)
 }

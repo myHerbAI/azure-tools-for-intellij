@@ -97,6 +97,8 @@ allprojects {
     intellij {
         version = properties("platformVersion")
         type = properties("platformType")
+
+        plugins = properties("platformPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }
     }
 }
 
