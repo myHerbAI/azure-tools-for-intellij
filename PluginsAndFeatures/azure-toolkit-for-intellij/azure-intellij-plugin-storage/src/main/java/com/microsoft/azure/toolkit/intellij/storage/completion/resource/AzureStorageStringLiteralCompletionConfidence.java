@@ -23,7 +23,7 @@ public class AzureStorageStringLiteralCompletionConfidence extends CompletionCon
     public ThreeState shouldSkipAutopopup(@Nonnull PsiElement element, @Nonnull PsiFile psiFile, int offset) {
         final String text = element.getText().replace("\"", "");
         if (element.getParent() instanceof PsiLiteralExpression
-            && (AzureStorageJavaCompletionContributor.PREFIX_SCOPES.accepts(element) || text.startsWith("azure-blob://") || text.startsWith("azure-file://"))) {
+            && (AzureStorageJavaCompletionContributor.PREFIX_PLACES.accepts(element) || text.startsWith("azure-blob://") || text.startsWith("azure-file://"))) {
             return ThreeState.NO;
         }
         return ThreeState.UNSURE;

@@ -25,11 +25,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 public class StorageAccountResourceDefinition extends AzureServiceResource.Definition<StorageAccount>
@@ -66,6 +62,26 @@ public class StorageAccountResourceDefinition extends AzureServiceResource.Defin
         properties.add(Pair.of("# azure.storage.blob-endpoint", String.format(blobEndpoint, Connection.ENV_PREFIX, suffix)));
         properties.add(Pair.of("# azure.storage.file-endpoint", String.format(fileEndpoint, Connection.ENV_PREFIX, suffix)));
         return properties;
+    }
+
+    @Override
+    public Map<String, String> getSpringPropertyFields() {
+        final Map<String, String> fields = new HashMap<>();
+        fields.put("azure.storage.accountName", "com.azure.spring.autoconfigure.storage.StorageProperties#accountName");
+        fields.put("azure.storage.accountKey", "com.azure.spring.autoconfigure.storage.StorageProperties#accountKey");
+        fields.put("azure.storage.blobEndpoint", "com.azure.spring.autoconfigure.storage.StorageProperties#blobEndpoint");
+        fields.put("azure.storage.fileEndpoint", "com.azure.spring.autoconfigure.storage.StorageProperties#fileEndpoint");
+        return fields;
+    }
+
+    @Override
+    public Map<String, String> getSpringPropertyTypes() {
+        final Map<String, String> fields = new HashMap<>();
+        fields.put("azure.storage.accountName", "Name");
+        fields.put("azure.storage.accountKey", "Access Key");
+        fields.put("azure.storage.blobEndpoint", "Endpoint Url");
+        fields.put("azure.storage.fileEndpoint", "Endpoint Url");
+        return fields;
     }
 
     @Override
