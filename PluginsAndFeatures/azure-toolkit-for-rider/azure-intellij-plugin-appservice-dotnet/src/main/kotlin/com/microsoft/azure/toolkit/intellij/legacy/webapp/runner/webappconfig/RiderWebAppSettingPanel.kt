@@ -151,8 +151,8 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
         webAppPanel.setConfigurationAndPlatform(configuration.projectConfiguration, configuration.projectPlatform)
     }
 
+    override fun getMainPanel() = panel
+
     override fun disposeEditor() {
     }
-
-    override fun getMainPanel() = panel
 }

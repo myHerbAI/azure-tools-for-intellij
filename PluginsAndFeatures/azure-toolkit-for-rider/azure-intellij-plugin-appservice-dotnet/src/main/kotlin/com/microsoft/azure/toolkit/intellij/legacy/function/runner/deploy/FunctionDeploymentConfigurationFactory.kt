@@ -21,8 +21,8 @@ class FunctionDeploymentConfigurationFactory(type: ConfigurationType): Configura
     override fun getName() = FACTORY_NAME
 
     override fun createTemplateConfiguration(project: Project) =
-            FunctionDeployConfiguration(project, this, project.name)
+            FunctionDeploymentConfiguration(project, this, project.name)
 
     override fun createConfiguration(name: String?, template: RunConfiguration) =
-            FunctionDeployConfiguration(template.project, this, name)
+            FunctionDeploymentConfiguration(template.project, this, name)
 }

@@ -150,9 +150,8 @@ class RiderWebAppConfiguration(private val project: Project, factory: Configurat
         webAppSettingModel.projectPath = projectModel.projectFilePath
     }
 
-    override fun getState(executor: Executor, executionEnvironment: ExecutionEnvironment): RunProfileState {
-        return RiderWebAppRunState(project, this)
-    }
+    override fun getState(executor: Executor, executionEnvironment: ExecutionEnvironment) =
+            RiderWebAppRunState(project, this)
 
     override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> =
             RiderWebAppSettingEditor(project, this)

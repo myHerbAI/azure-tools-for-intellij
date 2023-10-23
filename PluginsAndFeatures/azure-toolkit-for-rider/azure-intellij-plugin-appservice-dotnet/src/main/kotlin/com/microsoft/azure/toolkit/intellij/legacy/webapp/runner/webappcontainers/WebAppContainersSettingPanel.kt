@@ -84,8 +84,8 @@ class WebAppContainersSettingPanel(private val project: Project) : RiderAzureSet
         repositoryLabel.component.text = "${value.address}/"
     }
 
+    override fun getMainPanel() = panel
+
     override fun disposeEditor() {
     }
-
-    override fun getMainPanel() = panel
 }
