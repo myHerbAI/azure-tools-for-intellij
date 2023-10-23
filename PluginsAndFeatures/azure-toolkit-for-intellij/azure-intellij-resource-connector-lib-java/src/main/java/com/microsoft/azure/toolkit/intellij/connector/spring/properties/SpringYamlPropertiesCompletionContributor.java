@@ -2,14 +2,9 @@ package com.microsoft.azure.toolkit.intellij.connector.spring.properties;
 
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.patterns.PatternCondition;
-import com.intellij.patterns.PsiJavaElementPattern;
-import com.intellij.patterns.PsiJavaPatterns;
+import com.intellij.patterns.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.util.ProcessingContext;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.yaml.YAMLTokenTypes;
 import org.jetbrains.yaml.psi.YAMLDocument;
 import org.jetbrains.yaml.psi.YAMLFile;
@@ -18,14 +13,8 @@ import org.jetbrains.yaml.psi.YAMLMapping;
 
 public class SpringYamlPropertiesCompletionContributor extends CompletionContributor {
 
-    public static final String APPLICATION = "application";
-    public static final PsiJavaElementPattern.Capture<PsiElement> YAML_TEXT = PsiJavaPatterns.psiElement(YAMLTokenTypes.TEXT).with(new PatternCondition<>("spring-yaml-file") {
-        @Override
-        public boolean accepts(@NotNull PsiElement element, ProcessingContext context) {
-            final PsiFile file = element.getContainingFile();
-            return file instanceof YAMLFile && StringUtils.startsWith(file.getName(), APPLICATION);
-        }
-    });
+    public static final ElementPattern<? extends PsiFile> APPLICATION_YAML_FILES = PlatformPatterns.psiFile(YAMLFile.class).withName(StandardPatterns.string().startsWith("application"));
+    public static final PsiJavaElementPattern.Capture<PsiElement> YAML_TEXT = PsiJavaPatterns.psiElement(YAMLTokenTypes.TEXT).inFile(APPLICATION_YAML_FILES);
 
     public SpringYamlPropertiesCompletionContributor() {
         super();

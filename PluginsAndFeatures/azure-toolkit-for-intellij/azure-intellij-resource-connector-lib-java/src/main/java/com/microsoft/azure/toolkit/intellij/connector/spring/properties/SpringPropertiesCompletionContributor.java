@@ -8,13 +8,19 @@ package com.microsoft.azure.toolkit.intellij.connector.spring.properties;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.lang.properties.parsing.PropertiesTokenTypes;
+import com.intellij.lang.properties.psi.impl.PropertiesFileImpl;
+import com.intellij.patterns.ElementPattern;
 import com.intellij.patterns.PlatformPatterns;
+import com.intellij.patterns.StandardPatterns;
+import com.intellij.psi.PsiFile;
 
 public class SpringPropertiesCompletionContributor extends CompletionContributor {
+    public static final ElementPattern<? extends PsiFile> APPLICATION_PROPERTIES_FILE = PlatformPatterns.psiFile(PropertiesFileImpl.class).withName(StandardPatterns.string().startsWith("application"));
+
     public SpringPropertiesCompletionContributor() {
         super();
-        extend(CompletionType.BASIC, PlatformPatterns.psiElement(PropertiesTokenTypes.KEY_CHARACTERS), new SpringPropertyKeyCompletionProvider());
-        extend(CompletionType.BASIC, PlatformPatterns.psiElement(PropertiesTokenTypes.KEY_VALUE_SEPARATOR), new SpringPropertyValueCompletionProvider());
-        extend(CompletionType.BASIC, PlatformPatterns.psiElement(PropertiesTokenTypes.VALUE_CHARACTERS), new SpringPropertyValueCompletionProvider());
+        extend(CompletionType.BASIC, PlatformPatterns.psiElement(PropertiesTokenTypes.KEY_CHARACTERS).inFile(APPLICATION_PROPERTIES_FILE), new SpringPropertyKeyCompletionProvider());
+        extend(CompletionType.BASIC, PlatformPatterns.psiElement(PropertiesTokenTypes.KEY_VALUE_SEPARATOR).inFile(APPLICATION_PROPERTIES_FILE), new SpringPropertyValueCompletionProvider());
+        extend(CompletionType.BASIC, PlatformPatterns.psiElement(PropertiesTokenTypes.VALUE_CHARACTERS).inFile(APPLICATION_PROPERTIES_FILE), new SpringPropertyValueCompletionProvider());
     }
 }

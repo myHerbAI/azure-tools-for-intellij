@@ -23,7 +23,7 @@ import java.util.Objects;
 public class SpringPropertiesQuickCompletionContributor extends CompletionContributor {
     public SpringPropertiesQuickCompletionContributor() {
         super();
-        extend(CompletionType.BASIC, PlatformPatterns.psiElement(PropertiesTokenTypes.VALUE_CHARACTERS), new CompletionProvider<>() {
+        extend(CompletionType.BASIC, PlatformPatterns.psiElement(PropertiesTokenTypes.VALUE_CHARACTERS).inFile(SpringPropertiesCompletionContributor.APPLICATION_PROPERTIES_FILE), new CompletionProvider<>() {
             @Override
             protected void addCompletions(@Nonnull final CompletionParameters parameters, @Nonnull final ProcessingContext context, @Nonnull final CompletionResultSet result) {
                 final Module module = ModuleUtil.findModuleForFile(parameters.getOriginalFile());
