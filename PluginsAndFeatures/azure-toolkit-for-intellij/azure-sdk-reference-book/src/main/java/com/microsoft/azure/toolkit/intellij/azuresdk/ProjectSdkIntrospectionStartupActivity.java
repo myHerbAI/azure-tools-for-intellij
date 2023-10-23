@@ -24,10 +24,7 @@ import reactor.core.publisher.Mono;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -88,9 +85,9 @@ public class ProjectSdkIntrospectionStartupActivity implements ProjectActivity {
 
     private static Set<String> getWorkspaceTags(@Nonnull final Project project) {
         return ProjectLibraryService.getProjectLibraries(project).stream()
-                .map(l -> WorkspaceTaggingService.getWorkspaceTag(l.getGroupId(), l.getArtifactId()))
-                .filter(StringUtils::isNotBlank)
-                .collect(Collectors.toSet());
+            .flatMap(l -> WorkspaceTaggingService.getWorkspaceTags(l.getGroupId(), l.getArtifactId()).stream()).filter(Objects::nonNull)
+            .filter(StringUtils::isNotBlank)
+            .collect(Collectors.toSet());
     }
 
     private static void trackWorkspaceTagging(final Set<String> tagSet) {
