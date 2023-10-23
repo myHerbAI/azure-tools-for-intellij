@@ -9,12 +9,12 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.common.auth.AzureLoginHelper
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.RiderWebAppConfigurationType
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.WebAppConfigurationType
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 
 class DeployWebAppContainersAction : AnAction() {
     companion object {
-        private val configType = RiderWebAppConfigurationType.getInstance()
+        private val configType = WebAppConfigurationType.getInstance()
 
         private fun deploy(project: Project) {
             val settings = getOrCreateRunConfigurationSettings(project)

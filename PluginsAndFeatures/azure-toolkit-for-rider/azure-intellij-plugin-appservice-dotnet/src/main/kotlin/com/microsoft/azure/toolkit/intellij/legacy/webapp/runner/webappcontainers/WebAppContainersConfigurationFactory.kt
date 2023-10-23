@@ -4,14 +4,19 @@ import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.project.Project
+import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
+import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
+import javax.swing.Icon
 
 class WebAppContainersConfigurationFactory(type: ConfigurationType) : ConfigurationFactory(type) {
     companion object {
-        private const val FACTORY_ID = "Azure Web App for Containers"
-        private const val FACTORY_NAME = "Azure Web App for Containers"
+        private const val FACTORY_ID = "Azure - Publish Web App for Containers"
+        private const val FACTORY_NAME = "Publish Web App for Containers"
     }
 
     override fun getId() = FACTORY_ID
+
+    override fun getIcon(): Icon = IntelliJAzureIcons.getIcon(AzureIcons.WebApp.DEPLOY)
 
     override fun getName() = FACTORY_NAME
 

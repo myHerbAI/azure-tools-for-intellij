@@ -9,14 +9,14 @@ import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.RiderWebAppConfigurationFactory
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers.WebAppContainersConfigurationFactory
 
-class RiderWebAppConfigurationType : ConfigurationTypeBase(
-    "AzureDotNetWebAppPublish",
-    "Azure - Publish Web App",
+class WebAppConfigurationType : ConfigurationTypeBase(
+    "AzureWebAppPublish",
+    "Azure - Web App",
     "Azure Publish Web App configuration",
-    IntelliJAzureIcons.getIcon(AzureIcons.WebApp.DEPLOY)
+    IntelliJAzureIcons.getIcon(AzureIcons.WebApp.MODULE)
 ) {
     companion object {
-        fun getInstance() = ConfigurationTypeUtil.findConfigurationType(RiderWebAppConfigurationType::class.java)
+        fun getInstance() = ConfigurationTypeUtil.findConfigurationType(WebAppConfigurationType::class.java)
     }
 
     init {

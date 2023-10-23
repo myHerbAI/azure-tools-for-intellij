@@ -1,4 +1,4 @@
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
+package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy
 
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationType
@@ -8,21 +8,21 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 import javax.swing.Icon
 
-class RiderWebAppConfigurationFactory(type: ConfigurationType) : ConfigurationFactory(type) {
+class FunctionDeploymentConfigurationFactory(type: ConfigurationType): ConfigurationFactory(type) {
     companion object {
-        private const val FACTORY_ID = "Azure - Publish Web App"
-        private const val FACTORY_NAME = "Publish Web App"
+        private const val FACTORY_ID = "Azure - Deploy Function"
+        private const val FACTORY_NAME = "Deploy Function"
     }
 
     override fun getId() = FACTORY_ID
 
-    override fun getIcon(): Icon = IntelliJAzureIcons.getIcon(AzureIcons.WebApp.DEPLOY)
+    override fun getIcon(): Icon = IntelliJAzureIcons.getIcon(AzureIcons.FunctionApp.DEPLOY)
 
     override fun getName() = FACTORY_NAME
 
     override fun createTemplateConfiguration(project: Project) =
-        RiderWebAppConfiguration(project, this, project.name)
+            FunctionDeployConfiguration(project, this, project.name)
 
     override fun createConfiguration(name: String?, template: RunConfiguration) =
-        RiderWebAppConfiguration(template.project, this, name)
+            FunctionDeployConfiguration(template.project, this, name)
 }
