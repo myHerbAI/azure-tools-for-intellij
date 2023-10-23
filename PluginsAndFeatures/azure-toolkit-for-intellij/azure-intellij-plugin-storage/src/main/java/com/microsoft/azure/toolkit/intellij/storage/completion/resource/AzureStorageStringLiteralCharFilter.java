@@ -11,13 +11,14 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.PsiJavaFileImpl;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 public class AzureStorageStringLiteralCharFilter extends CharFilter {
     @Override
     public Result acceptChar(char c, final int prefixLength, final Lookup lookup) {
         final PsiFile file = lookup.getPsiFile();
-        if (!AzureStorageJavaCompletionContributor.SPECIAL_CHARS.contains(c) || !(file instanceof PsiJavaFileImpl)) {
+        if (!Arrays.asList(':', '-').contains(c) || !(file instanceof PsiJavaFileImpl)) {
             return null;
         }
         final PsiElement ele = lookup.getPsiElement();

@@ -62,6 +62,8 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
             }
             if (Azure.az(AzureAccount.class).isLoggedIn()) {
                 final List<? extends StorageFile> files = getFiles(fullPrefix, module);
+                final String[] parts = result.getPrefixMatcher().getPrefix().trim().split("/", -1);
+                result = result.withPrefixMatcher(parts[parts.length - 1]);
                 AzureTelemeter.info("info/resources_count.storage_resources_code_completion", ImmutableMap.of("count", files.size() + ""));
                 final BiFunction<StorageFile, String, LookupElementBuilder> builder = (file, title) -> LookupElementBuilder.create(title)
                     .withInsertHandler(new MyInsertHandler(title.endsWith("/")))
