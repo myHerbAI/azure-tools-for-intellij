@@ -1,9 +1,12 @@
+@file:Suppress("DialogTitleCapitalization")
+
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers
 
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig
@@ -15,13 +18,19 @@ import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.model.Subscription
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig
-import com.microsoft.azuretools.core.mvp.model.webapp.PrivateRegistryImageSetting
 import com.microsoft.azuretools.core.mvp.model.webapp.WebAppOnLinuxDeployModel
 
 class WebAppContainersConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
         RiderAzureRunConfigurationBase<WebAppOnLinuxDeployModel>(project, factory, name) {
+    companion object {
+        private const val REPO_COMPONENT_REGEX_PATTERN = "[a-z0-9]+(?:[._-][a-z0-9]+)*"
+        private const val TAG_REGEX_PATTERN = "^\\w+[\\w.-]*\$"
+    }
 
     private val webAppContainersModel = WebAppOnLinuxDeployModel()
+
+    private val repoComponentRegex = Regex(REPO_COMPONENT_REGEX_PATTERN)
+    private val tagRegex = Regex(TAG_REGEX_PATTERN)
 
     var webAppId: String?
         get() = webAppContainersModel.webAppId
@@ -33,75 +42,50 @@ class WebAppContainersConfiguration(private val project: Project, factory: Confi
         set(value) {
             webAppContainersModel.webAppName = value
         }
-    var subscriptionId: String
+    private var subscriptionId: String
         get() = webAppContainersModel.subscriptionId
         set(value) {
             webAppContainersModel.subscriptionId = value
         }
-    var isCreatingNewResourceGroup: Boolean
-        get() = webAppContainersModel.isCreatingNewResourceGroup
-        set(value) {
-            webAppContainersModel.isCreatingNewResourceGroup = value
-        }
-    var resourceGroupName: String
+    private var resourceGroupName: String
         get() = webAppContainersModel.appServicePlanResourceGroupName
         set(value) {
             webAppContainersModel.resourceGroupName = value
         }
-    var locationName: String?
+    private var locationName: String?
         get() = webAppContainersModel.locationName
         set(value) {
             webAppContainersModel.locationName = value
         }
-    var pricingSkuTier: String?
+    private var pricingSkuTier: String?
         get() = webAppContainersModel.pricingSkuTier
         set(value) {
             webAppContainersModel.pricingSkuTier = value
         }
-    var pricingSkuSize: String?
+    private var pricingSkuSize: String?
         get() = webAppContainersModel.pricingSkuSize
         set(value) {
             webAppContainersModel.pricingSkuSize = value
         }
-    var privateRegistryImageSetting: PrivateRegistryImageSetting
-        get() = webAppContainersModel.privateRegistryImageSetting
-        set(value) {
-            webAppContainersModel.privateRegistryImageSetting = value
-        }
-    var isCreatingNewWebAppOnLinux: Boolean
+    private var isCreatingNewWebAppOnLinux: Boolean
         get() = webAppContainersModel.isCreatingNewWebAppOnLinux
         set(value) {
             webAppContainersModel.isCreatingNewWebAppOnLinux = value
         }
-    var isCreatingNewAppServicePlan: Boolean
+    private var isCreatingNewAppServicePlan: Boolean
         get() = webAppContainersModel.isCreatingNewAppServicePlan
         set(value) {
             webAppContainersModel.isCreatingNewAppServicePlan = value
         }
-    var appServicePlanName: String?
+    private var appServicePlanName: String?
         get() = webAppContainersModel.appServicePlanName
         set(value) {
             webAppContainersModel.appServicePlanName = value
         }
-    var appServicePlanResourceGroupName: String?
+    private var appServicePlanResourceGroupName: String?
         get() = webAppContainersModel.appServicePlanResourceGroupName
         set(value) {
             webAppContainersModel.appServicePlanResourceGroupName = value
-        }
-    var targetPath: String?
-        get() = webAppContainersModel.targetPath
-        set(value) {
-            webAppContainersModel.targetPath = value
-        }
-    var targetName: String?
-        get() = webAppContainersModel.targetName
-        set(value) {
-            webAppContainersModel.targetName = value
-        }
-    var dockerFilePath: String?
-        get() = webAppContainersModel.dockerFilePath
-        set(value) {
-            webAppContainersModel.dockerFilePath = value
         }
     var finalRepositoryName: String?
         get() = webAppContainersModel.finalRepositoryName
@@ -129,6 +113,33 @@ class WebAppContainersConfiguration(private val project: Project, factory: Confi
 
     override fun validate() {
         checkAzurePreconditions()
+        validateDockerImageConfiguration()
+        with(webAppContainersModel) {
+            if (isCreatingNewWebAppOnLinux) {
+                if (webAppName.isNullOrEmpty()) throw ConfigurationException("Please specify a Web App for Containers.")
+                if (subscriptionId.isNullOrEmpty()) throw ConfigurationException("Please specify a Subscription.")
+                if (resourceGroupName.isNullOrEmpty()) throw ConfigurationException("Please specify a Resource Group.")
+                if (appServicePlanName.isNullOrEmpty()) throw ConfigurationException("Please specify an App Service Plan.")
+            } else {
+                if (webAppId.isNullOrEmpty()) throw ConfigurationException("Please specify Web App for Containers.")
+            }
+        }
+    }
+
+    private fun validateDockerImageConfiguration() {
+        val repositoryName = finalRepositoryName
+        val tagName = finalTagName
+        if (repositoryName.isNullOrEmpty()) throw ConfigurationException("Please specify a container registry and an image.")
+        if (tagName.isNullOrEmpty()) throw ConfigurationException("Please specify an image tag.")
+        if (repositoryName.length > 255) throw ConfigurationException("The length of repository name must be less than 256 characters.")
+        val repositoryParts = repositoryName.split('/')
+        if (repositoryParts.last().isEmpty()) throw ConfigurationException("Please specify an image name.")
+        if (repositoryName.endsWith('/')) throw ConfigurationException("The repository name should not end with '/'.")
+        repositoryParts.forEach {
+            if (!repoComponentRegex.matches(it)) throw ConfigurationException("Invalid repository component: $it, should follow: $REPO_COMPONENT_REGEX_PATTERN")
+        }
+        if (tagName.length > 127) throw ConfigurationException("The length of tag name must be less than 128 characters")
+        if (!tagRegex.matches(tagName)) throw ConfigurationException("Invalid tag: $tagName, should follow: $TAG_REGEX_PATTERN")
     }
 
     fun getWebAppConfig(): WebAppConfig {

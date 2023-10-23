@@ -43,7 +43,10 @@ class WebAppContainersRunState(project: Project, private val webAppContainersCon
     }
 
     override fun onSuccess(result: AppServiceAppBase<*, *, *>, processHandler: RunProcessHandler) {
-        processHandler.setText("Image has been deployed to Web App ${result.name}")
+        val imageRepository = webAppContainersModel.finalRepositoryName
+        val imageTag = webAppContainersModel.finalTagName
+
+        processHandler.setText("Image $imageRepository:$imageTag has been deployed to Web App ${result.name}")
         val url = "https://${result.name}.azurewebsites.net/"
         processHandler.setText("URL: $url")
         processHandler.notifyComplete()
