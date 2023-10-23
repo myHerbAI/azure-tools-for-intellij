@@ -13,6 +13,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 
 import javax.annotation.Nonnull;
 
@@ -36,12 +40,14 @@ public class AzureStoragePrefixStringLiteralCompletionProvider extends Completio
             result.addElement(LookupElementBuilder.create("azure-file://")
                 .withInsertHandler(new MyInsertHandler())
                 .withIcon(IntelliJAzureIcons.getIcon(AzureIcons.StorageAccount.SHARES)));
+            AzureTelemeter.log(AzureTelemetry.Type.OP_END, OperationBundle.description("boundary/connector.complete_storage_resource_prefixes_in_string_literal"));
             result.stopHere();
         }
     }
 
     private static class MyInsertHandler implements InsertHandler<LookupElement> {
         @Override
+        @AzureOperation("user/connector.insert_storage_resource_prefix_from_code_completion")
         public void handleInsert(@Nonnull InsertionContext context, @Nonnull LookupElement item) {
             AutoPopupController.getInstance(context.getProject()).scheduleAutoPopup(context.getEditor());
         }

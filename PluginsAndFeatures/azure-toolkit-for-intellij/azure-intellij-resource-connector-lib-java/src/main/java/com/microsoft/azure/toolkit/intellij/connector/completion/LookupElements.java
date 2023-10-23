@@ -49,7 +49,7 @@ public class LookupElements {
     private static class SignInInsertHandler implements InsertHandler<LookupElement> {
         @Override
         @ExceptionNotification
-        @AzureOperation(name = "user/common.sign_in_from_lookup_element")
+        @AzureOperation(name = "user/connector.sign_in_from_code_completion")
         public void handleInsert(@Nonnull InsertionContext context, @Nonnull LookupElement lookupElement) {
             final PsiElement element = context.getFile().findElementAt(context.getStartOffset());
             if (Objects.nonNull(element)) {
@@ -80,7 +80,7 @@ public class LookupElements {
 
         @Override
         @ExceptionNotification
-        @AzureOperation(name = "user/connector.create_connection")
+        @AzureOperation(name = "user/connector.create_connection_from_code_completion")
         public void handleInsert(@Nonnull InsertionContext context, @Nonnull LookupElement lookupElement) {
             final PsiElement element = context.getFile().findElementAt(context.getStartOffset());
             if (Objects.nonNull(element)) {

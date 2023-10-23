@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.connector.spring.properties;
 
+import com.google.common.collect.ImmutableMap;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
@@ -29,7 +30,10 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -50,14 +54,10 @@ public class SpringPropertyValueCompletionProvider extends CompletionProvider<Co
         final String key = parameters.getPosition().getParent().getFirstChild().getText();
         final List<? extends SpringSupported<?>> definitions = getSupportedDefinitions(key);
         if (!definitions.isEmpty()) {
+            AzureTelemeter.log(AzureTelemetry.Type.OP_END, OperationBundle.description("boundary/connector.complete_resources_in_properties"));
             if (Azure.az(AzureAccount.class).isLoggedIn()) {
-                final List<LookupElementBuilder> elements = definitions.stream().flatMap(d -> d.getResources(module.getProject()).stream().map(r -> LookupElementBuilder.create(r, r.getName())
-                    .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(r.getDefinition().getIcon(), AzureIcons.Common.AZURE.getIconPath())))
-                    .bold()
-                    .withLookupStrings(Arrays.asList(r.getName(), ((AzResource) r.getData()).getResourceGroupName()))
-                    .withInsertHandler(new PropertyValueInsertHandler(r))
-                    .withTailText(" " + ((AzResource) r.getData()).getResourceTypeName())
-                    .withTypeText(d.getSpringPropertyTypes().get(key)))).toList();
+                final List<LookupElementBuilder> elements = buildCompletionItems(definitions, module, key);
+                AzureTelemeter.info("info/resources_count.properties_value_code_completion", ImmutableMap.of("count", elements.size() + "", "key", key));
                 elements.forEach(result::addElement);
                 result.addLookupAdvertisement("Press enter to configure all required properties to connect Azure resource.");
             }
@@ -69,6 +69,18 @@ public class SpringPropertyValueCompletionProvider extends CompletionProvider<Co
                 }
             });
         }
+    }
+
+    @Nonnull
+    @AzureOperation("boundary/connector.build_value_completion_items_in_properties")
+    private static List<LookupElementBuilder> buildCompletionItems(final List<? extends SpringSupported<?>> definitions, final Module module, final String key) {
+        return definitions.stream().flatMap(d -> d.getResources(module.getProject()).stream().map(r -> LookupElementBuilder.create(r, r.getName())
+            .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(r.getDefinition().getIcon(), AzureIcons.Common.AZURE.getIconPath())))
+            .bold()
+            .withLookupStrings(Arrays.asList(r.getName(), ((AzResource) r.getData()).getResourceGroupName()))
+            .withInsertHandler(new PropertyValueInsertHandler(r))
+            .withTailText(" " + ((AzResource) r.getData()).getResourceTypeName())
+            .withTypeText(d.getSpringPropertyTypes().get(key)))).toList();
     }
 
     public static List<? extends SpringSupported<?>> getSupportedDefinitions(String key) {
@@ -87,7 +99,7 @@ public class SpringPropertyValueCompletionProvider extends CompletionProvider<Co
 
         @Override
         @ExceptionNotification
-        @AzureOperation(name = "user/connector.insert_spring_properties")
+        @AzureOperation(name = "user/connector.select_resource_completion_item_in_properties")
         public void handleInsert(@Nonnull InsertionContext context, @Nonnull LookupElement lookupElement) {
             final PsiElement element = context.getFile().findElementAt(context.getStartOffset());
             if (Objects.nonNull(element)) {
@@ -103,6 +115,7 @@ public class SpringPropertyValueCompletionProvider extends CompletionProvider<Co
                     .ifPresentOrElse(c -> insert(c, context), () -> this.createAndInsert(module, context, connectionManager))));
         }
 
+        @AzureOperation(name = "internal/connector.create_connection_in_properties")
         private void createAndInsert(Module module, @Nonnull InsertionContext context, ConnectionManager connectionManager) {
             final Project project = context.getProject();
             if (this.resource.canConnectSilently()) {
@@ -124,6 +137,7 @@ public class SpringPropertyValueCompletionProvider extends CompletionProvider<Co
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
+        @AzureOperation(name = "internal/connector.creating_connection_silently_in_properties")
         private Connection<?, ?> createSilently(Module module, ConnectionManager connectionManager) {
             final Resource consumer = ModuleResource.Definition.IJ_MODULE.define(module.getName());
             final ConnectionDefinition<?, ?> connectionDefinition = ConnectionManager.getDefinitionOrDefault(resource.getDefinition(), consumer.getDefinition());
@@ -140,9 +154,11 @@ public class SpringPropertyValueCompletionProvider extends CompletionProvider<Co
             return connection;
         }
 
+        @AzureOperation(name = "user/connector.cancel_creating_connection_in_properties")
         private static void cancel(@Nonnull InsertionContext context) {
         }
 
+        @AzureOperation(name = "user/connector.insert_value_in_properties")
         public static void insert(Connection<?, ?> c, @Nonnull InsertionContext context) {
             final PsiElement element = context.getFile().findElementAt(context.getStartOffset());
             final List<Pair<String, String>> properties = SpringSupported.getProperties(c);

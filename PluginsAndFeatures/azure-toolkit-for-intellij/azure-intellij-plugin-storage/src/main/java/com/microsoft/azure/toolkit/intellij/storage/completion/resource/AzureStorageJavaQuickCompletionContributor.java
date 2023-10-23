@@ -20,6 +20,7 @@ import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -46,8 +47,10 @@ public class AzureStorageJavaQuickCompletionContributor extends CompletionContri
                         return;
                     }
                     if (!Azure.az(AzureAccount.class).isLoggedIn()) {
+                        AzureTelemeter.info("info/not_signed_in.storage_string_code_completion");
                         result.addElement(LookupElements.buildSignInLookupElement());
                     } else if (!hasConnections(module)) {
+                        AzureTelemeter.info("info/signed_in_no_connections.storage_string_code_completion");
                         result.addElement(LookupElements.buildConnectLookupElement(StorageAccountResourceDefinition.INSTANCE, (definition, ctx) -> {
                             if (Objects.nonNull(definition)) {
                                 AutoPopupController.getInstance(ctx.getProject()).scheduleAutoPopup(ctx.getEditor());
