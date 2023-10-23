@@ -4,4 +4,27 @@
         <actions implementation="com.microsoft.azure.toolkit.ide.sqlserver.spark.SqlserverBigDataActionsContributor"/>
         <actions implementation="com.microsoft.azure.toolkit.intellij.sqlserverbigdata.IntellijSqlserverBigDataActionsContributor"/>
     </extensions>
+
+    <actions>
+        <action id="Actions.SubmitArisSparkApplicationAction"
+                class="com.microsoft.azure.hdinsight.spark.actions.ArisSparkSelectAndSubmitAction"
+                text="Apache Spark on SQL Server Big Data Cluster"
+                description="Submit Apache Spark on SQL Server Big Data Cluster Application" icon="/icons/Spark.png"/>
+
+        <group id="AzureToolkit.ValidateCertificate" text="Validate Spark Cluster SSL Certificate" popup="true">
+            <action id="AzureToolkit.DisableSSLCertificateValidation"
+                    class="com.microsoft.intellij.actions.DisableSslCertificateValidationAction"
+                    text="Disable"/>
+        </group>
+
+        <action id="Actions.RunArisSparkConsoleAction"
+                class="com.microsoft.azure.hdinsight.spark.console.SelectArisSparkTypeThenRunLivyConsoleAction"
+                text="Apache Spark on SQL Server Big Data Cluster"
+                description="Start an interactive console for Apache Spark on SQL Server Big Data Cluster Application" icon="/icons/Spark.png"/>
+
+        <action id="Actions.RunArisSparkLocalConsoleAction"
+                class="com.microsoft.azure.hdinsight.spark.console.SelectArisSparkTypeThenRunLocalConsoleAction"
+                text="Apache Spark on SQL Server Big Data Cluster"
+                description="Start a Apache Spark local console for Apache Spark on SQL Server Big Data Cluster Application" icon="/icons/Spark.png"/>
+    </actions>
 </idea-plugin>
