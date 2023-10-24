@@ -13,6 +13,7 @@ import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtil;
@@ -58,13 +59,15 @@ public class SpringYamlValueCompletionProvider extends CompletionProvider<Comple
                 .map(d -> (SpringSupported<?>) d)
                 .filter(d -> d.getSpringProperties().stream().anyMatch(p -> StringUtils.equals(p.getKey(), key)))
                 .collect(Collectors.toList());
+        ProgressManager.checkCanceled();
         final Module module = ModuleUtil.findModuleForPsiElement(parameters.getOriginalFile());
         if (Objects.isNull(module) || CollectionUtils.isEmpty(definitions) || !Azure.az(AzureAccount.class).isLoggedIn()) {
             return;
         }
         final List<? extends Resource<?>> resources = definitions.stream()
-                .flatMap(d -> d.getResources(module.getProject()).stream())
+                .flatMap(d -> Utils.listResourceForDefinition(module.getProject(), d).stream())
                 .toList();
+        ProgressManager.checkCanceled();
         resources.stream()
                 .map(resource -> createYamlValueLookupElement(module, resource))
                 .filter(Objects::nonNull)

@@ -49,7 +49,7 @@ public class SpringPropertyValueCompletionProvider extends CompletionProvider<Co
         final List<? extends SpringSupported<?>> definitions = getSupportedDefinitions(key);
         if (!definitions.isEmpty()) {
             if (Azure.az(AzureAccount.class).isLoggedIn()) {
-                final List<LookupElementBuilder> elements = definitions.stream().flatMap(d -> d.getResources(module.getProject()).stream().map(r -> LookupElementBuilder.create(r, r.getName())
+                final List<LookupElementBuilder> elements = definitions.stream().flatMap(d -> Utils.listResourceForDefinition(module.getProject(), d).stream().map(r -> LookupElementBuilder.create(r, r.getName())
                     .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(r.getDefinition().getIcon(), AzureIcons.Common.AZURE.getIconPath())))
                     .bold()
                     .withLookupStrings(Arrays.asList(r.getName(), ((AzResource) r.getData()).getResourceGroupName()))

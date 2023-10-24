@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.intellij.connector;
 import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -18,10 +19,12 @@ import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -96,11 +99,24 @@ public class Utils {
 
     @Nullable
     public static PsiElement getPropertyField(final String fullQualifiedFieldName, final PsiFile file) {
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(fullQualifiedFieldName)) {
+        if (StringUtils.isNotBlank(fullQualifiedFieldName)) {
             final String[] parts = fullQualifiedFieldName.split("#");
             final PsiClass psiClass = JavaPsiFacade.getInstance(file.getProject()).findClass(parts[0], file.getResolveScope());
             return Optional.ofNullable(psiClass).map(c -> c.findFieldByName(parts[1], true)).orElse(null);
         }
         return null;
+    }
+
+
+    public static List<? extends Resource<?>> listResourceForDefinition(@Nonnull final Project project,
+                                                                        @Nonnull final ResourceDefinition<?> d) {
+        try {
+            return d.getResources(project);
+        } catch (final ProcessCanceledException ProcessCanceledException) {
+            throw ProcessCanceledException;
+        } catch (final Exception e) {
+            // swallow all exceptions except ProcessCanceledException
+            return Collections.emptyList();
+        }
     }
 }

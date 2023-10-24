@@ -13,6 +13,7 @@ import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -49,6 +50,7 @@ public class SpringYamlKeyCompletionProvider extends CompletionProvider<Completi
         if (Objects.isNull(yamlFile)) {
             return;
         }
+        ProgressManager.checkCanceled();
         ResourceManager.getDefinitions().stream()
                 .filter(d -> d instanceof SpringSupported<?>)
                 .map(d -> (SpringSupported<?>) d)
