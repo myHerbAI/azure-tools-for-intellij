@@ -1,7 +1,6 @@
 package com.microsoft.azure.toolkit.lib.synapse;
 
 import com.azure.resourcemanager.hdinsight.HDInsightManager;
-import com.azure.resourcemanager.synapse.SynapseManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
 
