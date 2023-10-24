@@ -103,7 +103,7 @@ public abstract class AbstractResourceConnectionAnnotator implements Annotator {
     private void validateConnectionResource(@Nonnull final PsiElement element, @Nonnull final AnnotationHolder holder,
                                             @Nonnull final Connection<? extends AzResource, ?> connection) {
         final AzResource data = connection.getResource().getData();
-        if (!data.getFormalStatus().isConnected()) {
+        if (Objects.isNull(data) || !data.getFormalStatus().isConnected()) {
             holder.newAnnotation(HighlightSeverity.WARNING, "Connected resource is not available")
                     .range(element.getTextRange())
                     .highlightType(ProblemHighlightType.GENERIC_ERROR_OR_WARNING)
