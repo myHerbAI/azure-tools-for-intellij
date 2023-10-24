@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.microsoft.hdinsight</groupId>
         <artifactId>azure-toolkit-ide-hdinsight-libs</artifactId>
-        <version>0.1.0</version>
+        <version>0.1.1</version>
     </parent>
 
     <artifactId>azure-toolkit-ide-cosmos-spark-lib</artifactId>

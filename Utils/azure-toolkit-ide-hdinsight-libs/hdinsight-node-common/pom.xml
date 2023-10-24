@@ -3,12 +3,12 @@
     <parent>
         <groupId>com.microsoft.hdinsight</groupId>
         <artifactId>azure-toolkit-ide-hdinsight-libs</artifactId>
-        <version>0.1.0</version>
+        <version>0.1.1</version>
     </parent>
     <artifactId>hdinsight-node-common</artifactId>
     <properties>
         <artifact.name>${project.artifactId}-${project.version}.jar</artifact.name>
-        <hdinsight.htmlcopy.enabled>false</hdinsight.htmlcopy.enabled>
+        <hdinsight.htmlcopy.enabled>true</hdinsight.htmlcopy.enabled>
         <project.build.encoding>UTF-8</project.build.encoding>
         <scala.version>2.12.10</scala.version>
         <spark.version>3.4.0</spark.version>
@@ -23,7 +23,7 @@
                 <activeByDefault>false</activeByDefault>
                 <property>
                     <name>hdinsight.htmlcopy.enabled</name>
-                    <value>true</value>
+                    <value>${hdinsight.htmlcopy.enabled}</value>
                 </property>
             </activation>
             <build>
