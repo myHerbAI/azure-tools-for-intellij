@@ -13,6 +13,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
@@ -51,7 +52,9 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
     @Override
     protected void addCompletions(@Nonnull CompletionParameters parameters, @Nonnull ProcessingContext context, @Nonnull CompletionResultSet result) {
         final PsiElement element = parameters.getPosition();
-        final String fullPrefix = element.getText().split(AzureStorageJavaCompletionContributor.DUMMY_IDENTIFIER)[0].replace("\"", "").trim();
+        final PsiLiteralExpression literal = ((PsiLiteralExpression) element.getParent());
+        final String value = literal.getValue() instanceof String ? (String) literal.getValue() : "";
+        final String fullPrefix = value.split(AzureStorageJavaCompletionContributor.DUMMY_IDENTIFIER, -1)[0].trim();
         final boolean isBlobContainer = fullPrefix.startsWith("azure-blob://");
         final boolean isFileShare = fullPrefix.startsWith("azure-file://");
 
