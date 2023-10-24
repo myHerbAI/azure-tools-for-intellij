@@ -5,7 +5,7 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
-import com.microsoft.azure.cosmos.spark.actions.CosmosServerlessSparkSelectAndSubmitAction;
+import com.microsoft.azure.hdinsight.spark.actions.CosmosServerlessSparkSelectAndSubmitAction;
 import com.microsoft.azure.hdinsight.sdk.common.azure.serverless.AzureSparkServerlessAccount;
 import com.microsoft.azure.cosmos.spark.actions.SparkAppSubmitContext;
 import com.microsoft.azure.hdinsight.spark.run.configuration.CosmosServerlessSparkConfigurationFactory;

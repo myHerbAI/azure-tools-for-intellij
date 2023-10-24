@@ -5,6 +5,12 @@
         <actions implementation="com.microsoft.azure.toolkit.intellij.sqlserverbigdata.IntellijSqlserverBigDataActionsContributor"/>
     </extensions>
 
+    <extensions defaultExtensionNs="com.intellij">
+        <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.ArisSparkConfigurationType"/>
+        <runConfigurationProducer implementation="com.microsoft.azure.hdinsight.spark.run.ArisSparkRunConfigurationProducer"/>
+        <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.ArisSparkBatchRunner"/>
+    </extensions>
+
     <actions>
         <action id="Actions.SubmitArisSparkApplicationAction"
                 class="com.microsoft.azure.hdinsight.spark.actions.ArisSparkSelectAndSubmitAction"
