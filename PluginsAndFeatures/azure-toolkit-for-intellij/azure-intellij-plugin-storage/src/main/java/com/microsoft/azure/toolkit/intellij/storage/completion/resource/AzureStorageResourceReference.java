@@ -5,21 +5,37 @@
 
 package com.microsoft.azure.toolkit.intellij.storage.completion.resource;
 
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.SyntheticElement;
 import com.intellij.psi.impl.FakePsiElement;
+import com.microsoft.azure.toolkit.ide.storage.StorageActionsContributor;
+import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+import java.util.Objects;
+
 public class AzureStorageResourceReference extends PsiReferenceBase<PsiElement> {
+    private String fullNameWithPrefix;
+
     public AzureStorageResourceReference(@NotNull PsiElement element, TextRange rangeInElement, boolean soft) {
         super(element, rangeInElement, soft);
     }
 
-    public AzureStorageResourceReference(@NotNull PsiElement element, TextRange rangeInElement) {
+    public AzureStorageResourceReference(@NotNull PsiElement element, TextRange rangeInElement, final @NotNull String fullNameWithPrefix) {
         super(element, rangeInElement);
+        this.fullNameWithPrefix = fullNameWithPrefix;
     }
 
     public AzureStorageResourceReference(@NotNull PsiElement element, boolean soft) {
@@ -32,10 +48,25 @@ public class AzureStorageResourceReference extends PsiReferenceBase<PsiElement> 
 
     @Override
     public @Nullable PsiElement resolve() {
-        return new MyFakePsiElement();
+        final Module module = ModuleUtil.findModuleForFile(this.getElement().getContainingFile());
+        if (Objects.isNull(module)) {
+            return null;
+        }
+        final StorageFile file = AzureStorageResourceStringLiteralCompletionProvider.getFile(fullNameWithPrefix, module);
+        if (Objects.nonNull(file)) {
+            return new AzureStorageResourcePsiElement(file);
+        }
+        return null;
     }
 
-    class MyFakePsiElement extends FakePsiElement implements SyntheticElement {
+    class AzureStorageResourcePsiElement extends FakePsiElement implements SyntheticElement {
+        private final StorageFile file;
+
+        public AzureStorageResourcePsiElement(final StorageFile file) {
+            super();
+            this.file = file;
+        }
+
         @Override
         public PsiElement getParent() {
             return myElement;
@@ -43,18 +74,37 @@ public class AzureStorageResourceReference extends PsiReferenceBase<PsiElement> 
 
         @Override
         public void navigate(boolean requestFocus) {
-            System.out.println(getValue());
+            DataManager.getInstance().getDataContextFromFocusAsync().onSuccess(context -> {
+                if (!this.file.isDirectory()) {
+                    final AnActionEvent event = AnActionEvent.createFromInputEvent(null, ActionPlaces.EDITOR_GUTTER, null, context);
+                    AzureActionManager.getInstance().getAction(StorageActionsContributor.OPEN_FILE).handle(this.file, event);
+                }
+            });
         }
 
         @Override
         public String getPresentableText() {
-            return getValue();
+            return file.getName();
         }
-
 
         @Override
         public String getName() {
-            return getValue();
+            return file.getName();
+        }
+
+        @Override
+        public @Nullable String getLocationString() {
+            final StorageAccount account = AzureStorageResourceStringLiteralCompletionProvider.getStorageAccount(this.file);
+            if (Objects.nonNull(account)) {
+                return this.file.getResourceGroupName() + "/" + account.getName();
+            } else {
+                return this.file.getResourceGroupName();
+            }
+        }
+
+        @Override
+        public @Nullable Icon getIcon(final boolean open) {
+            return IntelliJAzureIcons.getIcon(AzureStorageResourceStringLiteralCompletionProvider.getFileIcon(this.file));
         }
 
         @Override

@@ -108,6 +108,13 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
         return files;
     }
 
+    @Nullable
+    public static StorageFile getFile(String fullPrefix, Module module) {
+        final List<? extends StorageFile> files = getFiles(fullPrefix, module);
+        final String[] parts = fullPrefix.trim().split("/", -1);
+        return files.stream().filter(f -> f.getName().equalsIgnoreCase(parts[parts.length - 1].trim())).findFirst().orElse(null);
+    }
+
     @RequiredArgsConstructor
     private static class MyInsertHandler implements InsertHandler<LookupElement> {
         private final boolean popup;
@@ -121,7 +128,7 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
     }
 
     @Nullable
-    private static StorageAccount getStorageAccount(final StorageFile file) {
+    public static StorageAccount getStorageAccount(final StorageFile file) {
         if (file instanceof IBlobFile) {
             return ((IBlobFile) file).getContainer().getParent();
         } else if (file instanceof IShareFile) {
@@ -130,7 +137,7 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
         return null;
     }
 
-    private static AzureIcon getFileIcon(StorageFile file) {
+    public static AzureIcon getFileIcon(StorageFile file) {
         if (file instanceof Share || file instanceof BlobContainer) {
             return AzureIcon.builder().iconPath(String.format("/icons/%s/default.svg", file.getFullResourceType())).build();
         }
