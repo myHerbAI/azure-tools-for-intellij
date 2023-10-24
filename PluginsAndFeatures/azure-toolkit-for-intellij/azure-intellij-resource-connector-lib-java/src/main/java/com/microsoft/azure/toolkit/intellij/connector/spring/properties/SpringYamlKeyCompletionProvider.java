@@ -20,9 +20,9 @@ import com.intellij.util.DocumentUtil;
 import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
-import com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager;
 import com.microsoft.azure.toolkit.intellij.connector.spring.SpringSupported;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.yaml.YAMLUtil;
@@ -31,8 +31,9 @@ import org.jetbrains.yaml.psi.YAMLKeyValue;
 import org.jetbrains.yaml.psi.YAMLPsiElement;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 import java.util.Objects;
+
+import static com.microsoft.azure.toolkit.intellij.connector.Utils.getPropertyField;
 
 public class SpringYamlKeyCompletionProvider extends CompletionProvider<CompletionParameters> implements DumbAware {
     @Override
@@ -43,36 +44,34 @@ public class SpringYamlKeyCompletionProvider extends CompletionProvider<Completi
         if (Objects.isNull(yamlElement)) {
             return;
         }
-        final String currentKey = YAMLUtil.getConfigFullName(yamlElement);
-        final List<ResourceDefinition<?>> definitions = ResourceManager.getDefinitions();
-        addYamlKeyLookupElements(currentKey, definitions, parameters, result);
-    }
-
-    private void addYamlKeyLookupElements(@Nonnull final String key, @Nonnull final List<ResourceDefinition<?>> definitions,
-                                          @Nonnull CompletionParameters parameters, @Nonnull final CompletionResultSet result) {
+        final String key = YAMLUtil.getConfigFullName(yamlElement);
         final YAMLFile yamlFile = parameters.getOriginalFile() instanceof YAMLFile ? (YAMLFile) parameters.getOriginalFile() : null;
         if (Objects.isNull(yamlFile)) {
             return;
         }
-        definitions.stream()
+        ResourceManager.getDefinitions().stream()
                 .filter(d -> d instanceof SpringSupported<?>)
                 .map(d -> (SpringSupported<?>) d)
                 .flatMap(d -> d.getSpringProperties().stream().map(p -> Triple.of(p.getKey(), p.getValue(), d)))
                 .filter(t -> !StringUtils.startsWith(t.getLeft(), "#")) // filter out commented properties
                 .filter(t -> StringUtils.isBlank(key) || (StringUtils.startsWith(t.getLeft(), key) && !StringUtils.equals(t.getLeft(), key)))
                 .filter(t -> YAMLUtil.getQualifiedKeyInFile(yamlFile, getKeyListForProperty(t.getLeft())) == null)
-                .forEach(t -> result.addElement(createYamlKeyLookupElement(t.getLeft(), t.getRight())));
+                .forEach(t -> result.addElement(createYamlKeyLookupElement(t.getLeft(), t.getRight(), yamlFile)));
     }
 
-    private LookupElement createYamlKeyLookupElement(@Nonnull final String property, @Nonnull final SpringSupported<?> definition) {
-        return LookupElementBuilder.create(property)
+    private LookupElement createYamlKeyLookupElement(@Nonnull final String property, @Nonnull final SpringSupported<?> definition,
+                                                     @Nonnull final YAMLFile yamlFile) {
+        return LookupElementBuilder.create(definition.getName(), property)
                 .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(definition.getIcon(), AzureIcons.Common.AZURE.getIconPath())))
+                .withPsiElement(getPropertyField(definition.getSpringPropertyFields().get(property), yamlFile))
                 .withBoldness(true)
                 .withPresentableText(property)
-                .withTypeText("String")
-                .withInsertHandler((context, item) -> handleInsertYamlKey(property, context, item));
+                .withTypeText("Property Key")
+                .withInsertHandler((context, item) -> handleInsertYamlKey(property, context, item))
+                .withTailText(String.format(" (%s)", definition.getTitle()));
     }
 
+    @AzureOperation(name = "user/connector.insert_spring_yaml_key")
     private void handleInsertYamlKey(@Nonnull final String property, InsertionContext context, LookupElement item) {
         final YAMLFile yamlFile = context.getFile() instanceof YAMLFile ? (YAMLFile) context.getFile() : null;
         if (Objects.isNull(yamlFile)) {
