@@ -9,7 +9,10 @@ import com.google.common.collect.Sets;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
+import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
@@ -190,16 +193,15 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
         if (Objects.isNull(tree)) {
             return;
         }
+        final Module module = connection.getProfile().getModule().getModule();
         final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Project");
         Optional.ofNullable(toolWindow).ifPresent(w -> {
             toolWindow.show();
-            final DefaultMutableTreeNode azureRoot = TreeUtil.findNode((DefaultMutableTreeNode) tree.getModel().getRoot(), node -> {
-                final Object userObject = node.getUserObject();
-                return userObject instanceof AzureFacetRootNode n
-                    && StringUtils.equalsIgnoreCase(n.getValue().getName(), connection.getConsumer().getName());
-            });
+            final DefaultMutableTreeNode moduleRoot = TreeUtil.findNode((DefaultMutableTreeNode) tree.getModel().getRoot(), node ->
+                node.getUserObject() instanceof PsiDirectoryNode n
+                    && Objects.equals(ModuleUtil.findModuleForFile(n.getValue().getVirtualFile(), project), module));
             TreeUtils.expandNode(tree, new TreeUtils.NodeMatcher() {
-                private DefaultMutableTreeNode current = azureRoot;
+                private DefaultMutableTreeNode current = moduleRoot;
 
                 @Override
                 public DefaultMutableTreeNode getCurrent() {
