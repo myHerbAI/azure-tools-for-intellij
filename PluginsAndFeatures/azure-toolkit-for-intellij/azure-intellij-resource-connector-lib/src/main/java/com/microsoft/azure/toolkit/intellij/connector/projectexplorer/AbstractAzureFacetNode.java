@@ -218,7 +218,7 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
             final DefaultMutableTreeNode moduleRoot = TreeUtil.findNode((DefaultMutableTreeNode) tree.getModel().getRoot(), node ->
                 node.getUserObject() instanceof PsiDirectoryNode n
                     && Objects.equals(ModuleUtil.findModuleForFile(n.getValue().getVirtualFile(), module.getProject()), module));
-            TreeUtils.expandNode(tree, new TreeUtils.NodeMatcher() {
+            TreeUtils.focusNode(tree, new TreeUtils.NodeFinder() {
                 private DefaultMutableTreeNode current = moduleRoot;
 
                 @Override

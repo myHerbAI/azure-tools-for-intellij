@@ -408,7 +408,7 @@ public class TreeUtils {
         });
     }
 
-    public interface NodeMatcher {
+    public interface NodeFinder {
         /**
          * @return the found nearest parent or itself.
          */
@@ -426,22 +426,22 @@ public class TreeUtils {
         boolean contains(TreePath path);
     }
 
-    public static void expandNode(@Nonnull JTree tree, @Nonnull NodeMatcher matcher) {
+    public static void focusNode(@Nonnull JTree tree, @Nonnull NodeFinder finder) {
         final AtomicReference<TreeModelListener> listener = new AtomicReference<>();
         listener.set(new TreeModelAdapter() {
             @Override
             protected void process(@NotNull final TreeModelEvent event, @NotNull final EventType type) {
                 final Object source = event.getTreePath().getLastPathComponent();
-                if (source.equals(matcher.getCurrent()) && type != EventType.NodesRemoved) {
-                    doExpandNode(tree, matcher, listener.get());
+                if (source.equals(finder.getCurrent()) && type != EventType.NodesRemoved) {
+                    doFocusNode(tree, finder, listener.get());
                 }
             }
         });
         tree.getModel().addTreeModelListener(listener.get());
-        doExpandNode(tree, matcher, listener.get());
+        doFocusNode(tree, finder, listener.get());
     }
 
-    private static void doExpandNode(final @Nonnull JTree tree, final @Nonnull NodeMatcher matcher, final TreeModelListener listener) {
+    private static void doFocusNode(final @Nonnull JTree tree, final @Nonnull NodeFinder matcher, final TreeModelListener listener) {
         TreeUtil.promiseExpand(tree, new TreeVisitor() {
             @Override
             public @NotNull Action visit(@NotNull final TreePath path) {
