@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import lombok.EqualsAndHashCode;
@@ -45,13 +46,12 @@ import javax.swing.tree.TreePath;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 
 @Slf4j
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> implements IAzureFacetNode {
-    public static final String FOCUS_KEY = "focuses";
-
     private final long createdTime;
     private long disposedTime;
     @Getter
@@ -186,20 +186,38 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
         }
     }
 
-    public static void focusConnectedResource(@Nonnull Project project, @Nonnull Connection<?, ?> connection, @Nullable String resourceId) {
+    public static void focusDeploymentResource(@Nonnull Module module, @Nonnull AbstractAzResource<?, ?, ?> app) {
+        final String rId = app.getId();
+        focusResource(module, rId, node -> node instanceof AzureFacetRootNode
+            || node instanceof DeploymentTargetsNode
+            || node instanceof ResourceNode rn && isAncestorResourceOrModule(rn.getValue().getValue(), rId));
+    }
+
+    public static void focusConnectedResource(@Nonnull Connection<?, ?> connection) {
+        focusConnectedResource(connection, null);
+    }
+
+    public static void focusConnectedResource(@Nonnull Connection<?, ?> connection, @Nullable String resourceId) {
+        final Module module = connection.getProfile().getModule().getModule();
         final String rId = Optional.ofNullable(resourceId).filter(StringUtils::isNotBlank).orElseGet(() -> connection.getResource().getDataId());
-        final JTree tree = Optional.ofNullable(ProjectView.getInstance(project).getCurrentProjectViewPane())
+        focusResource(module, rId, node -> node instanceof AzureFacetRootNode
+            || node instanceof ConnectionsNode
+            || node instanceof ConnectionNode cn && Objects.equals(cn.getValue(), connection)
+            || node instanceof ResourceNode rn && isAncestorResourceOrModule(rn.getValue().getValue(), rId));
+    }
+
+    private static void focusResource(final Module module, final String rId, Predicate<Object> isContainerNode) {
+        final JTree tree = Optional.ofNullable(ProjectView.getInstance(module.getProject()).getCurrentProjectViewPane())
             .map(AbstractProjectViewPane::getTree).orElse(null);
         if (Objects.isNull(tree)) {
             return;
         }
-        final Module module = connection.getProfile().getModule().getModule();
-        final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Project");
+        final ToolWindow toolWindow = ToolWindowManager.getInstance(module.getProject()).getToolWindow("Project");
         Optional.ofNullable(toolWindow).ifPresent(w -> {
             toolWindow.show();
             final DefaultMutableTreeNode moduleRoot = TreeUtil.findNode((DefaultMutableTreeNode) tree.getModel().getRoot(), node ->
                 node.getUserObject() instanceof PsiDirectoryNode n
-                    && Objects.equals(ModuleUtil.findModuleForFile(n.getValue().getVirtualFile(), project), module));
+                    && Objects.equals(ModuleUtil.findModuleForFile(n.getValue().getVirtualFile(), module.getProject()), module));
             TreeUtils.expandNode(tree, new TreeUtils.NodeMatcher() {
                 private DefaultMutableTreeNode current = moduleRoot;
 
@@ -223,25 +241,22 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
                 @Override
                 public boolean contains(final TreePath path) {
                     final Object node = ((DefaultMutableTreeNode) path.getLastPathComponent()).getUserObject();
-                    if (node instanceof AzureFacetRootNode
-                        || node instanceof ConnectionsNode
-                        || node instanceof ConnectionNode cn && Objects.equals(cn.getValue(), connection)
-                        || node instanceof ResourceNode rn && isAncestorResourceOrModule(rn.getValue().getValue(), rId)) {
+                    if (isContainerNode.test(node)) {
                         this.current = (DefaultMutableTreeNode) path.getLastPathComponent();
                         return true;
                     }
                     return false;
                 }
-
-                private static boolean isAncestorResourceOrModule(Object r, final String target) {
-                    if (r instanceof AzResource azr) {
-                        return StringUtils.containsIgnoreCase(target, azr.getId());
-                    } else if (r instanceof AbstractAzResourceModule<?, ?, ?> azrm) {
-                        return StringUtils.containsIgnoreCase(target, azrm.toResourceId("", null));
-                    }
-                    return false;
-                }
             });
         });
+    }
+
+    private static boolean isAncestorResourceOrModule(Object r, final String target) {
+        if (r instanceof AzResource azr) {
+            return StringUtils.containsIgnoreCase(target, azr.getId());
+        } else if (r instanceof AbstractAzResourceModule<?, ?, ?> azrm) {
+            return StringUtils.containsIgnoreCase(target, azrm.toResourceId("", null));
+        }
+        return false;
     }
 }

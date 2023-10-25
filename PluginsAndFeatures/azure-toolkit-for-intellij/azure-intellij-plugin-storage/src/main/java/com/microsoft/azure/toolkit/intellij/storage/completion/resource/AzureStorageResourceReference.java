@@ -83,7 +83,7 @@ public class AzureStorageResourceReference extends PsiReferenceBase<PsiElement> 
             if (Objects.nonNull(module)) {
                 final List<Connection<?, ?>> connections = AzureStorageResourceStringLiteralCompletionProvider.getConnections(module);
                 if (connections.size() > 0) {
-                    AbstractAzureFacetNode.focusConnectedResource(module.getProject(), connections.get(0), this.file.getId());
+                    AbstractAzureFacetNode.focusConnectedResource(connections.get(0), this.file.getId());
                     if (!this.file.isDirectory()) {
                         DataManager.getInstance().getDataContextFromFocusAsync().onSuccess(context -> {
                             final AnActionEvent event = AnActionEvent.createFromInputEvent(null, ActionPlaces.EDITOR_GUTTER, null, context);

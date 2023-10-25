@@ -85,7 +85,7 @@ public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<Ps
                     if (Objects.isNull(e.getProject()) || e.getProject().isDisposed()) {
                         return;
                     }
-                    AbstractAzureFacetNode.focusConnectedResource(e.getProject(), connection, null);
+                    AbstractAzureFacetNode.focusConnectedResource(connection);
                 }
             };
             this.editConnectionAction = new AnAction("Edit Connection", "Edit resource connection for current resource", AllIcons.Actions.Edit) {
