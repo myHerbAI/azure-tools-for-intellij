@@ -18,7 +18,6 @@ import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
-import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition;
@@ -87,12 +86,8 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
     }
 
     private static List<? extends StorageFile> getFiles(String fullPrefix, Module module) {
-        final List<StorageAccount> accounts = Optional.of(module).map(AzureModule::from)
-            .map(AzureModule::getDefaultProfile).map(Profile::getConnectionManager).stream()
-            .flatMap(m -> m.getConnections().stream())
-            .filter(c -> c.getDefinition().getResourceDefinition() instanceof StorageAccountResourceDefinition)
+        final List<StorageAccount> accounts = getConnections(module).stream()
             .map(Connection::getResource)
-            .filter(Resource::isValidResource)
             .map(r -> ((StorageAccount) r.getData()))
             .toList();
         final String fixedFullPrefix = fullPrefix.replace("azure-blob://", "").replace("azure-file://", "").trim();
@@ -106,6 +101,15 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
             files = files.stream().filter(f -> f.getName().equalsIgnoreCase(parentName)).filter(StorageFile::isDirectory).flatMap(f -> f.getSubFileModule().list().stream()).toList();
         }
         return files;
+    }
+
+    public static List<Connection<?, ?>> getConnections(Module module) {
+        return Optional.of(module).map(AzureModule::from)
+            .map(AzureModule::getDefaultProfile).map(Profile::getConnectionManager).stream()
+            .flatMap(m -> m.getConnections().stream())
+            .filter(c -> c.getDefinition().getResourceDefinition() instanceof StorageAccountResourceDefinition)
+            .filter(c -> c.getResource().isValidResource())
+            .toList();
     }
 
     @Nullable

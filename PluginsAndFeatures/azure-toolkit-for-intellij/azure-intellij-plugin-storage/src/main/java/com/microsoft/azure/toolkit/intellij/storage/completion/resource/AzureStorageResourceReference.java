@@ -17,13 +17,17 @@ import com.intellij.psi.SyntheticElement;
 import com.intellij.psi.impl.FakePsiElement;
 import com.microsoft.azure.toolkit.ide.storage.StorageActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.intellij.connector.Connection;
+import com.microsoft.azure.toolkit.intellij.connector.projectexplorer.AbstractAzureFacetNode;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
 import java.util.Objects;
 
 public class AzureStorageResourceReference extends PsiReferenceBase<PsiElement> {
@@ -73,13 +77,21 @@ public class AzureStorageResourceReference extends PsiReferenceBase<PsiElement> 
         }
 
         @Override
+        @AzureOperation("user/connector.navigate_to_storage_resource_from_string_literal")
         public void navigate(boolean requestFocus) {
-            DataManager.getInstance().getDataContextFromFocusAsync().onSuccess(context -> {
-                if (!this.file.isDirectory()) {
-                    final AnActionEvent event = AnActionEvent.createFromInputEvent(null, ActionPlaces.EDITOR_GUTTER, null, context);
-                    AzureActionManager.getInstance().getAction(StorageActionsContributor.OPEN_FILE).handle(this.file, event);
+            final Module module = ModuleUtil.findModuleForPsiElement(getElement());
+            if (Objects.nonNull(module)) {
+                final List<Connection<?, ?>> connections = AzureStorageResourceStringLiteralCompletionProvider.getConnections(module);
+                if (connections.size() > 0) {
+                    AbstractAzureFacetNode.focusConnectedResource(module.getProject(), connections.get(0), this.file.getId());
+                    if (!this.file.isDirectory()) {
+                        DataManager.getInstance().getDataContextFromFocusAsync().onSuccess(context -> {
+                            final AnActionEvent event = AnActionEvent.createFromInputEvent(null, ActionPlaces.EDITOR_GUTTER, null, context);
+                            AzureActionManager.getInstance().getAction(StorageActionsContributor.OPEN_FILE).handle(this.file, event);
+                        });
+                    }
                 }
-            });
+            }
         }
 
         @Override
