@@ -8,7 +8,6 @@ package com.microsoft.azure.toolkit.intellij.connector.spring.properties;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
@@ -20,7 +19,6 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.*;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
-import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager;
 import com.microsoft.azure.toolkit.intellij.connector.spring.SpringSupported;
@@ -51,7 +49,7 @@ public class SpringPropertyValueCompletionProvider extends CompletionProvider<Co
         final List<? extends SpringSupported<?>> definitions = getSupportedDefinitions(key);
         if (!definitions.isEmpty()) {
             if (Azure.az(AzureAccount.class).isLoggedIn()) {
-                final List<LookupElementBuilder> elements = definitions.stream().flatMap(d -> d.getResources(module.getProject()).stream().map(r -> LookupElementBuilder.create(r, r.getName())
+                final List<LookupElementBuilder> elements = definitions.stream().flatMap(d -> Utils.listResourceForDefinition(module.getProject(), d).stream().map(r -> LookupElementBuilder.create(r, r.getName())
                     .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(r.getDefinition().getIcon(), AzureIcons.Common.AZURE.getIconPath())))
                     .bold()
                     .withLookupStrings(Arrays.asList(r.getName(), ((AzResource) r.getData()).getResourceGroupName()))
@@ -100,44 +98,9 @@ public class SpringPropertyValueCompletionProvider extends CompletionProvider<Co
                 .ifPresent(connectionManager -> connectionManager
                     .getConnectionsByConsumerId(module.getName()).stream()
                     .filter(c -> Objects.equals(resource, c.getResource())).findAny()
-                    .ifPresentOrElse(c -> insert(c, context), () -> this.createAndInsert(module, context, connectionManager))));
-        }
-
-        private void createAndInsert(Module module, @Nonnull InsertionContext context, ConnectionManager connectionManager) {
-            final Project project = context.getProject();
-            if (this.resource.canConnectSilently()) {
-                final Connection<?, ?> c = createSilently(module, connectionManager);
-                WriteCommandAction.runWriteCommandAction(project, () -> insert(c, context));
-            } else {
-                AzureTaskManager.getInstance().runLater(() -> {
-                    final var dialog = new ConnectorDialog(project);
-                    dialog.setConsumer(new ModuleResource(module.getName()));
-                    dialog.setResource(resource);
-                    if (dialog.showAndGet()) {
-                        final Connection<?, ?> c = dialog.getValue();
-                        WriteCommandAction.runWriteCommandAction(project, () -> insert(c, context));
-                    } else {
-                        WriteCommandAction.runWriteCommandAction(project, () -> cancel(context));
-                    }
-                });
-            }
-        }
-
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        private Connection<?, ?> createSilently(Module module, ConnectionManager connectionManager) {
-            final Resource consumer = ModuleResource.Definition.IJ_MODULE.define(module.getName());
-            final ConnectionDefinition<?, ?> connectionDefinition = ConnectionManager.getDefinitionOrDefault(resource.getDefinition(), consumer.getDefinition());
-            final Connection<?, ?> connection = connectionDefinition.define(this.resource, consumer);
-            if (resource.getDefinition().isEnvPrefixSupported()) {
-                connection.setEnvPrefix(connectionManager.getNewPrefix(resource, consumer));
-            }
-            final AzureTaskManager taskManager = AzureTaskManager.getInstance();
-            taskManager.runLater(() -> taskManager.write(() -> {
-                final Profile profile = connectionManager.getProfile().getModule().initializeWithDefaultProfileIfNot();
-                profile.createOrUpdateConnection(connection);
-                profile.save();
-            }));
-            return connection;
+                    .ifPresentOrElse(c -> insert(c, context),
+                            () -> Utils.createAndInsert(module, resource, context, connectionManager,
+                                    PropertyValueInsertHandler::insert, PropertyValueInsertHandler::cancel))));
         }
 
         private static void cancel(@Nonnull InsertionContext context) {
