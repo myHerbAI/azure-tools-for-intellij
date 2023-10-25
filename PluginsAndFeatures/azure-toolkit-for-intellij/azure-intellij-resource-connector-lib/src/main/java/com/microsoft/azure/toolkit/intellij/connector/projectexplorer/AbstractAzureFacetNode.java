@@ -18,19 +18,20 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.tree.AsyncTreeModel;
 import com.intellij.util.ui.tree.TreeUtil;
+import com.microsoft.azure.toolkit.intellij.common.component.TreeUtils;
+import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.jetbrains.concurrency.AsyncPromise;
-import org.jetbrains.concurrency.Promise;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,7 +42,6 @@ import javax.swing.tree.TreePath;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Predicate;
 
 @Slf4j
 @ToString(onlyExplicitlyIncluded = true)
@@ -183,26 +183,63 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
         }
     }
 
-    public static void focusNode(@Nonnull Project project, @Nonnull Predicate<DefaultMutableTreeNode>... predicates) {
+    public static void focusConnectedResource(@Nonnull Project project, @Nonnull Connection<?, ?> connection, @Nullable String resourceId) {
+        final String rId = Optional.ofNullable(resourceId).filter(StringUtils::isNotBlank).orElseGet(() -> connection.getResource().getDataId());
         final JTree tree = Optional.ofNullable(ProjectView.getInstance(project).getCurrentProjectViewPane())
-                .map(AbstractProjectViewPane::getTree).orElse(null);
+            .map(AbstractProjectViewPane::getTree).orElse(null);
         if (Objects.isNull(tree)) {
             return;
         }
         final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Project");
-        toolWindow.show();
-        final Stack<Predicate<DefaultMutableTreeNode>> stack = new Stack<>();
-        Arrays.stream(predicates).forEach(stack::push);
-        expandNode(tree, stack);
-    }
+        Optional.ofNullable(toolWindow).ifPresent(w -> {
+            toolWindow.show();
+            final DefaultMutableTreeNode azureRoot = TreeUtil.findNode((DefaultMutableTreeNode) tree.getModel().getRoot(), node -> {
+                final Object userObject = node.getUserObject();
+                return userObject instanceof AzureFacetRootNode n
+                    && StringUtils.equalsIgnoreCase(n.getValue().getName(), connection.getConsumer().getName());
+            });
+            TreeUtils.expandNode(tree, new TreeUtils.NodeMatcher() {
+                private DefaultMutableTreeNode current = azureRoot;
 
-    @Nullable
-    public static Promise<TreePath> expandNode(@Nonnull final JTree tree, @Nonnull Stack<Predicate<DefaultMutableTreeNode>> stack) {
-        final Predicate<DefaultMutableTreeNode> predicate = stack.pop();
-        final DefaultMutableTreeNode node = TreeUtil.findNode((DefaultMutableTreeNode) tree.getModel().getRoot(), n -> predicate.test(n));
-        if (Objects.nonNull(node)) {
-            TreeUtil.selectPath(tree, new TreePath(node.getPath()));
-        }
-        return CollectionUtils.isEmpty(stack) ? new AsyncPromise<>() : TreeUtil.promiseExpand(tree, new TreePath(node.getPath())).thenAsync(path -> expandNode(tree, stack));
+                @Override
+                public DefaultMutableTreeNode getCurrent() {
+                    return current;
+                }
+
+                @Override
+                public boolean matches(final TreePath path) {
+                    final DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                    if (node.getUserObject() instanceof ResourceNode rn
+                        && rn.getValue().getValue() instanceof AzResource r
+                        && r.getId().equalsIgnoreCase(rId)) {
+                        this.current = node;
+                        return true;
+                    }
+                    return false;
+                }
+
+                @Override
+                public boolean contains(final TreePath path) {
+                    final Object node = ((DefaultMutableTreeNode) path.getLastPathComponent()).getUserObject();
+                    if (node instanceof AzureFacetRootNode
+                        || node instanceof ConnectionsNode
+                        || node instanceof ConnectionNode cn && Objects.equals(cn.getValue(), connection)
+                        || node instanceof ResourceNode rn && isAncestorResourceOrModule(rn.getValue().getValue(), rId)) {
+                        this.current = (DefaultMutableTreeNode) path.getLastPathComponent();
+                        return true;
+                    }
+                    return false;
+                }
+
+                private static boolean isAncestorResourceOrModule(Object r, final String target) {
+                    if (r instanceof AzResource azr) {
+                        return StringUtils.containsIgnoreCase(target, azr.getId());
+                    } else if (r instanceof AbstractAzResourceModule<?, ?, ?> azrm) {
+                        return StringUtils.containsIgnoreCase(target, azrm.toResourceId("", null));
+                    }
+                    return false;
+                }
+            });
+        });
     }
 }
