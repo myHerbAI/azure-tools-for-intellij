@@ -56,14 +56,14 @@ public class AzureFacetRootNode extends AbstractProjectNode<AzureModule> impleme
             final JTree tree = this.getTree();
             if (conn.getConsumer().getId().equalsIgnoreCase(module.getName()) && tree != null) {
                 updateChildren();
-                AzureTaskManager.getInstance().runLater(() -> AbstractAzureFacetNode.focusConnectedResource(conn));
+                AzureTaskManager.getInstance().runLater(() -> AbstractAzureFacetNode.selectConnectedResource(conn, false));
             }
         });
         connection.subscribe(DeploymentTargetTopics.TARGET_APP_CHANGED, (DeploymentTargetTopics.TargetAppChanged) (m, app, action) -> {
             final JTree tree = this.getTree();
             if (m.getName().equalsIgnoreCase(module.getName()) && tree != null) {
                 updateChildren();
-                AzureTaskManager.getInstance().runLater(() -> AbstractAzureFacetNode.focusDeploymentResource(module.getModule(), app));
+                AzureTaskManager.getInstance().runLater(() -> AbstractAzureFacetNode.selectDeploymentResource(module.getModule(), app, true));
             }
         });
     }

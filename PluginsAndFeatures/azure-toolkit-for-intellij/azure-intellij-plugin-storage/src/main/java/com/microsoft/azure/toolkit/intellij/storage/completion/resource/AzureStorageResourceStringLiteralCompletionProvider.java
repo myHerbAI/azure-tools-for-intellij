@@ -159,7 +159,7 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
         if (Objects.nonNull(module)) {
             final List<Connection<?, ?>> connections = AzureStorageResourceStringLiteralCompletionProvider.getConnections(module);
             if (connections.size() > 0) {
-                AbstractAzureFacetNode.focusConnectedResource(connections.get(0), file.getId());
+                AbstractAzureFacetNode.selectConnectedResource(connections.get(0), file.getId(), file.isDirectory());
                 if (!file.isDirectory()) {
                     DataManager.getInstance().getDataContextFromFocusAsync().onSuccess(context -> {
                         final AnActionEvent event = AnActionEvent.createFromInputEvent(null, ActionPlaces.EDITOR_GUTTER, null, context);

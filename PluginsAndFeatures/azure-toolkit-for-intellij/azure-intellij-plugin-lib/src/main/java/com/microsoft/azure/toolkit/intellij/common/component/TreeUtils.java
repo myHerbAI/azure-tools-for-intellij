@@ -426,7 +426,7 @@ public class TreeUtils {
         boolean contains(TreePath path);
     }
 
-    public static void focusNode(@Nonnull JTree tree, @Nonnull NodeFinder finder) {
+    public static void selectNode(@Nonnull JTree tree, @Nonnull NodeFinder finder) {
         final AtomicReference<TreeModelListener> listener = new AtomicReference<>();
         listener.set(new TreeModelAdapter() {
             @Override
