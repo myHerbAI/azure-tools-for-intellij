@@ -215,36 +215,22 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
             final DefaultMutableTreeNode moduleRoot = TreeUtil.findNode((DefaultMutableTreeNode) tree.getModel().getRoot(), node ->
                 node.getUserObject() instanceof PsiDirectoryNode n
                     && Objects.equals(ModuleUtil.findModuleForFile(n.getValue().getVirtualFile(), module.getProject()), module));
+            final TreePath from = Optional.ofNullable(moduleRoot).map(r -> new TreePath(r.getPath())).orElse(null);
             TreeUtils.selectNode(tree, new TreeUtils.NodeFinder() {
-                private DefaultMutableTreeNode current = moduleRoot;
-
-                @Override
-                public DefaultMutableTreeNode getCurrent() {
-                    return current;
-                }
-
                 @Override
                 public boolean matches(final TreePath path) {
                     final DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-                    if (node.getUserObject() instanceof ResourceNode rn
+                    return node.getUserObject() instanceof ResourceNode rn
                         && rn.getValue().getValue() instanceof AzResource r
-                        && r.getId().equalsIgnoreCase(rId)) {
-                        this.current = node;
-                        return true;
-                    }
-                    return false;
+                        && r.getId().equalsIgnoreCase(rId);
                 }
 
                 @Override
                 public boolean contains(final TreePath path) {
                     final Object node = ((DefaultMutableTreeNode) path.getLastPathComponent()).getUserObject();
-                    if (isContainerNode.test(node)) {
-                        this.current = (DefaultMutableTreeNode) path.getLastPathComponent();
-                        return true;
-                    }
-                    return false;
+                    return isContainerNode.test(node);
                 }
-            });
+            }, from);
         }, requestFocus));
     }
 

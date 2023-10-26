@@ -410,12 +410,6 @@ public class TreeUtils {
 
     public interface NodeFinder {
         /**
-         * @return the found nearest parent or itself.
-         */
-        @Nullable
-        DefaultMutableTreeNode getCurrent();
-
-        /**
          * @return true if the represented node is the target node.
          */
         boolean matches(TreePath path);
@@ -426,29 +420,36 @@ public class TreeUtils {
         boolean contains(TreePath path);
     }
 
-    public static void selectNode(@Nonnull JTree tree, @Nonnull NodeFinder finder) {
+    public static void selectNode(@Nonnull JTree tree, @Nonnull NodeFinder finder, TreePath from) {
         final AtomicReference<TreeModelListener> listener = new AtomicReference<>();
+        final AtomicReference<TreePath> checkpoint = new AtomicReference<>(from);
         listener.set(new TreeModelAdapter() {
             @Override
             protected void process(@NotNull final TreeModelEvent event, @NotNull final EventType type) {
-                final Object source = event.getTreePath().getLastPathComponent();
-                if (source.equals(finder.getCurrent()) && type != EventType.NodesRemoved) {
-                    doFocusNode(tree, finder, listener.get());
+                if (event.getTreePath().equals(checkpoint.get()) && type != EventType.NodesRemoved) {
+                    doSelectNode(tree, finder, checkpoint, listener.get());
                 }
             }
         });
         tree.getModel().addTreeModelListener(listener.get());
-        doFocusNode(tree, finder, listener.get());
+        doSelectNode(tree, finder, checkpoint, listener.get());
     }
 
-    private static void doFocusNode(final @Nonnull JTree tree, final @Nonnull NodeFinder matcher, final TreeModelListener listener) {
+    private static void doSelectNode(final @Nonnull JTree tree, final @Nonnull NodeFinder matcher, final AtomicReference<TreePath> checkpoint, final TreeModelListener listener) {
         TreeUtil.promiseExpand(tree, new TreeVisitor() {
             @Override
             public @NotNull Action visit(@NotNull final TreePath path) {
-                if (matcher.matches(path)) return Action.INTERRUPT;
-                if (Objects.nonNull(matcher.getCurrent()) && path.isDescendant(new TreePath(matcher.getCurrent().getPath())))
+                if (matcher.matches(path)) {
+                    checkpoint.set(path);
+                    return Action.INTERRUPT;
+                }
+                if (Objects.nonNull(checkpoint.get()) && path.isDescendant(checkpoint.get())) {
                     return Action.CONTINUE;
-                if (matcher.contains(path)) return Action.CONTINUE;
+                }
+                if ((Objects.isNull(checkpoint.get()) || checkpoint.get().isDescendant(path)) && matcher.contains(path)) {
+                    checkpoint.set(path);
+                    return Action.CONTINUE;
+                }
                 return Action.SKIP_CHILDREN;
             }
         }).onSuccess(path -> {
