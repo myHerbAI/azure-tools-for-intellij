@@ -37,7 +37,9 @@ public class AzureStorageStringLiteralLineMarkerProvider implements LineMarkerPr
             if (Objects.nonNull(module) && valueWithPrefix != null && (valueWithPrefix.startsWith("azure-blob://") || valueWithPrefix.startsWith("azure-file://"))) {
                 final String prefix = valueWithPrefix.startsWith("azure-blob://") ? "azure-blob://" : "azure-file://";
                 final StorageFile file = AzureStorageResourceStringLiteralCompletionProvider.getFile(valueWithPrefix, module);
-                return new ResourceLineMarkerInfo(element, file);
+                if (Objects.nonNull(file)) {
+                    return new ResourceLineMarkerInfo(element, file);
+                }
             }
         }
         return null;
