@@ -16,7 +16,6 @@ import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
-import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.tree.AsyncTreeModel;
@@ -212,9 +211,7 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
         if (Objects.isNull(tree)) {
             return;
         }
-        final ToolWindow toolWindow = ToolWindowManager.getInstance(module.getProject()).getToolWindow("Project");
-        Optional.ofNullable(toolWindow).ifPresent(w -> {
-            toolWindow.show();
+        Optional.ofNullable(ToolWindowManager.getInstance(module.getProject()).getToolWindow("Project")).ifPresent(w -> w.activate(() -> {
             final DefaultMutableTreeNode moduleRoot = TreeUtil.findNode((DefaultMutableTreeNode) tree.getModel().getRoot(), node ->
                 node.getUserObject() instanceof PsiDirectoryNode n
                     && Objects.equals(ModuleUtil.findModuleForFile(n.getValue().getVirtualFile(), module.getProject()), module));
@@ -248,7 +245,7 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
                     return false;
                 }
             });
-        });
+        }, true));
     }
 
     private static boolean isAncestorResourceOrModule(Object r, final String target) {
