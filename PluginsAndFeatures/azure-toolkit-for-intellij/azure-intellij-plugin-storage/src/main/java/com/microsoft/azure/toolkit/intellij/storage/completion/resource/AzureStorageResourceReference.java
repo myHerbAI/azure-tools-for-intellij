@@ -80,18 +80,7 @@ public class AzureStorageResourceReference extends PsiReferenceBase<PsiElement> 
         @AzureOperation("user/connector.navigate_to_storage_resource_from_string_literal")
         public void navigate(boolean requestFocus) {
             final Module module = ModuleUtil.findModuleForPsiElement(getElement());
-            if (Objects.nonNull(module)) {
-                final List<Connection<?, ?>> connections = AzureStorageResourceStringLiteralCompletionProvider.getConnections(module);
-                if (connections.size() > 0) {
-                    AbstractAzureFacetNode.focusConnectedResource(connections.get(0), this.file.getId());
-                    if (!this.file.isDirectory()) {
-                        DataManager.getInstance().getDataContextFromFocusAsync().onSuccess(context -> {
-                            final AnActionEvent event = AnActionEvent.createFromInputEvent(null, ActionPlaces.EDITOR_GUTTER, null, context);
-                            AzureActionManager.getInstance().getAction(StorageActionsContributor.OPEN_FILE).handle(this.file, event);
-                        });
-                    }
-                }
-            }
+            AzureStorageResourceStringLiteralCompletionProvider.navigateToFile(this.file, module);
         }
 
         @Override
