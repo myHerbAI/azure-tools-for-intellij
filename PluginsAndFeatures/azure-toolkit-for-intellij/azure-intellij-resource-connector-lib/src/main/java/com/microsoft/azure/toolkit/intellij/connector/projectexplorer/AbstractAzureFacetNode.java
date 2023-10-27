@@ -26,7 +26,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureToolkitAuthenticationException;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzComponent;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -189,7 +189,7 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
         final String rId = app.getId();
         selectResource(module, rId, node -> node instanceof AzureFacetRootNode
             || node instanceof DeploymentTargetsNode
-            || node instanceof ResourceNode rn && isAncestorResourceOrModule(rn.getValue().getValue(), rId), requestFocus);
+            || node instanceof ResourceNode rn && isAncestor(rn.getValue().getValue(), rId), requestFocus);
     }
 
     public static void selectConnectedResource(@Nonnull Connection<?, ?> connection, final boolean requestFocus) {
@@ -202,7 +202,7 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
         selectResource(module, rId, node -> node instanceof AzureFacetRootNode
             || node instanceof ConnectionsNode
             || node instanceof ConnectionNode cn && Objects.equals(cn.getValue(), connection)
-            || node instanceof ResourceNode rn && isAncestorResourceOrModule(rn.getValue().getValue(), rId), requestFocus);
+            || node instanceof ResourceNode rn && isAncestor(rn.getValue().getValue(), rId), requestFocus);
     }
 
     private static void selectResource(final Module module, final String rId, Predicate<Object> isContainerNode, final boolean requestFocus) {
@@ -234,12 +234,8 @@ public abstract class AbstractAzureFacetNode<T> extends AbstractTreeNode<T> impl
         }, requestFocus));
     }
 
-    private static boolean isAncestorResourceOrModule(Object r, final String target) {
-        if (r instanceof AzResource azr) {
-            return StringUtils.containsIgnoreCase(target, azr.getId());
-        } else if (r instanceof AbstractAzResourceModule<?, ?, ?> azrm) {
-            return StringUtils.containsIgnoreCase(target, azrm.toResourceId("", null));
-        }
-        return false;
+    private static boolean isAncestor(Object r, final String target) {
+        // why append? consider resource `xxx/abc` and `xxx/abcd`
+        return r instanceof AzComponent azr && StringUtils.containsIgnoreCase(target, StringUtils.appendIfMissing(azr.getId(), "/"));
     }
 }
