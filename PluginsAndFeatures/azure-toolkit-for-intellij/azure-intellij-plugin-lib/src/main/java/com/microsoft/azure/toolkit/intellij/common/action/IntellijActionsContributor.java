@@ -47,7 +47,7 @@ public class IntellijActionsContributor implements IActionsContributor {
             AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_AZURE_EXPLORER).handle(null, e);
             AzureEventBus.emit("azure.explorer.select_resource", r);
         };
-        am.registerHandler(ResourceCommonActionsContributor.HIGHLIGHT_RESOURCE_IN_EXPLORER, (s, e) -> Objects.nonNull(s) && Objects.nonNull(e.getProject()), highlightResource);
+        am.registerHandler(ResourceCommonActionsContributor.SELECT_RESOURCE_IN_EXPLORER, (s, e) -> Objects.nonNull(s) && Objects.nonNull(e.getProject()), highlightResource);
 
         final AzureTaskManager tm = AzureTaskManager.getInstance();
         am.registerHandler(ResourceCommonActionsContributor.RESTART_IDE, (s, e) -> tm.runLater(() -> {
