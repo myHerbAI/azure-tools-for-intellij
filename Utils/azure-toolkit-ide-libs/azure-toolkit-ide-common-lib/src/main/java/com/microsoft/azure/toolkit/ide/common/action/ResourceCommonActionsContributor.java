@@ -281,7 +281,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
                     AzureMessager.getMessager().info(AzureString.format("Cannot find connected service(%s) in Azure Explorer.", serviceName));
                     return;
                 }
-                AzureEventBus.emit("azure.explorer.focus_resource", resource);
+                AzureEventBus.emit("azure.explorer.select_resource", resource);
             })
             .withAuthRequired(false)
             .register(am);

@@ -44,8 +44,8 @@ public class IntellijActionsContributor implements IActionsContributor {
             (s, e) -> IntellijShowPropertiesViewAction.showPropertyView(s, Objects.requireNonNull(e.getProject())));
 
         final BiConsumer<Object, AnActionEvent> highlightResource = (r, e) -> {
-            AzureEventBus.emit("azure.explorer.highlight_resource", r);
             AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_AZURE_EXPLORER).handle(null, e);
+            AzureEventBus.emit("azure.explorer.select_resource", r);
         };
         am.registerHandler(ResourceCommonActionsContributor.HIGHLIGHT_RESOURCE_IN_EXPLORER, (s, e) -> Objects.nonNull(s) && Objects.nonNull(e.getProject()), highlightResource);
 

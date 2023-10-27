@@ -14,14 +14,11 @@ import java.util.function.BiConsumer;
 public class AzureExplorerActionsContributor implements IActionsContributor {
     @Override
     public void registerHandlers(AzureActionManager am) {
-        final BiConsumer<Object, AnActionEvent> openAzureExplorer = (ignore, e) -> openAzureExplorer(e);
-        am.registerHandler(ResourceCommonActionsContributor.OPEN_AZURE_EXPLORER, (i, e) -> true, openAzureExplorer);
-    }
-
-    private static void openAzureExplorer(AnActionEvent e) {
-        Optional.ofNullable(e).map(AnActionEvent::getProject).map(ToolWindowManager::getInstance)
+        final BiConsumer<Object, AnActionEvent> openAzureExplorer = (ignore, e) -> Optional.ofNullable(e).map(AnActionEvent::getProject)
+            .map(ToolWindowManager::getInstance)
             .map(m -> m.getToolWindow(AzureExplorer.TOOLWINDOW_ID))
-            .ifPresent(w -> AzureTaskManager.getInstance().runLater(() -> w.activate(null)));
+            .ifPresent(w -> AzureTaskManager.getInstance().runLater(() -> w.show(null)));
+        am.registerHandler(ResourceCommonActionsContributor.OPEN_AZURE_EXPLORER, (i, e) -> true, openAzureExplorer);
     }
 
     @Override
