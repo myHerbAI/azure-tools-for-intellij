@@ -1,7 +1,6 @@
 package com.microsoft.azure.toolkit.intellij.explorer.action;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
@@ -9,7 +8,7 @@ import com.microsoft.azure.toolkit.intellij.explorer.AzureExplorer;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 
-import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 
 public class AzureExplorerActionsContributor implements IActionsContributor {
@@ -20,11 +19,9 @@ public class AzureExplorerActionsContributor implements IActionsContributor {
     }
 
     private static void openAzureExplorer(AnActionEvent e) {
-        final ToolWindow toolWindow = ToolWindowManager.getInstance(Objects.requireNonNull(e.getProject())).
-            getToolWindow(AzureExplorer.TOOLWINDOW_ID);
-        if (Objects.nonNull(toolWindow) && !toolWindow.isVisible()) {
-            AzureTaskManager.getInstance().runLater((Runnable) toolWindow::show);
-        }
+        Optional.ofNullable(e).map(AnActionEvent::getProject).map(ToolWindowManager::getInstance)
+            .map(m -> m.getToolWindow(AzureExplorer.TOOLWINDOW_ID))
+            .ifPresent(w -> AzureTaskManager.getInstance().runLater(() -> w.activate(null)));
     }
 
     @Override
