@@ -29,7 +29,7 @@ public class SpringYamlPropertiesQuickCompletionContributor extends CompletionCo
                 final List<? extends SpringSupported<?>> definitions = SpringPropertyValueCompletionProvider.getSupportedDefinitions(key);
                 if (!definitions.isEmpty()) {
                     if (!Azure.az(AzureAccount.class).isLoggedIn()) {
-                        AzureTelemeter.info("info/not_signed_in.yaml_value_code_completion", ImmutableMap.of("key", key));
+                        AzureTelemeter.info("connector.not_signed_in.yaml_value_code_completion", ImmutableMap.of("key", key));
                         result.addElement(LookupElements.buildSignInLookupElement());
                     } else {
                         result.addElement(LookupElements.buildConnectLookupElement(definitions.get(0), SpringPropertyValueCompletionProvider.PropertyValueInsertHandler::insert));

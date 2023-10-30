@@ -52,10 +52,10 @@ public class AzureStorageJavaQuickCompletionContributor extends CompletionContri
                         return;
                     }
                     if (!Azure.az(AzureAccount.class).isLoggedIn()) {
-                        AzureTelemeter.info("info/not_signed_in.storage_string_code_completion");
+                        AzureTelemeter.info("connector.not_signed_in.storage_string_code_completion");
                         result.addElement(LookupElements.buildSignInLookupElement());
                     } else if (!hasValidConnections(module)) {
-                        AzureTelemeter.info("info/signed_in_no_connections.storage_string_code_completion");
+                        AzureTelemeter.info("connector.signed_in_no_connections.storage_string_code_completion");
                         result.addElement(LookupElements.buildConnectLookupElement(StorageAccountResourceDefinition.INSTANCE, (definition, ctx) -> {
                             if (Objects.nonNull(definition)) {
                                 AutoPopupController.getInstance(ctx.getProject()).scheduleAutoPopup(ctx.getEditor());
