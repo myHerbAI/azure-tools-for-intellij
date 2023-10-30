@@ -17,7 +17,7 @@ import java.util.Optional;
 public class Utils {
 
     public static List<StorageAccount> getConnectedStorageAccounts(@Nonnull final Module module) {
-        return com.microsoft.azure.toolkit.intellij.connector.Utils.getConnectedResources(module, StorageAccountResourceDefinition.INSTANCE);
+        return com.microsoft.azure.toolkit.intellij.connector.code.Utils.getConnectedResources(module, StorageAccountResourceDefinition.INSTANCE);
     }
 
     public static List<Connection<?, ?>> getConnectionWithStorageAccount(@Nonnull final StorageAccount account, @Nonnull final Module module) {

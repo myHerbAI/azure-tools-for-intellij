@@ -19,10 +19,10 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
-import com.microsoft.azure.toolkit.intellij.connector.code.function.AzureFunctionAnnotationCompletionConfidence;
-import com.microsoft.azure.toolkit.intellij.connector.code.function.AzureFunctionAnnotationTypeHandler;
+import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationCompletionConfidence;
+import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationTypeHandler;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationValueInsertHandler;
-import com.microsoft.azure.toolkit.intellij.storage.code.spring.AzureStorageJavaCompletionContributor;
+import com.microsoft.azure.toolkit.intellij.storage.code.spring.StringLiteralCompletionContributor;
 import com.microsoft.azure.toolkit.intellij.storage.code.Utils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
@@ -38,7 +38,7 @@ import java.util.*;
 import java.util.function.BiFunction;
 
 import static com.intellij.patterns.PsiJavaPatterns.psiElement;
-import static com.microsoft.azure.toolkit.intellij.storage.code.spring.AzureStorageResourceStringLiteralCompletionProvider.*;
+import static com.microsoft.azure.toolkit.intellij.storage.code.spring.StringLiteralResourceCompletionProvider.*;
 
 public class FunctionBlobPathCompletionProvider extends CompletionProvider<CompletionParameters> {
     public static final String[] BLOB_ANNOTATIONS = new String[]{
@@ -57,8 +57,8 @@ public class FunctionBlobPathCompletionProvider extends CompletionProvider<Compl
     public static final PsiJavaElementPattern<?, ?> BLOB_PATH_PATTERN = psiElement().withSuperParent(2, BLOB_PATH_PAIR_PATTERN);
 
     static {
-        AzureFunctionAnnotationTypeHandler.registerKeyPairPattern(BLOB_PATH_PAIR_PATTERN);
-        AzureFunctionAnnotationCompletionConfidence.registerCodeCompletionPattern(BLOB_PATH_PATTERN);
+        FunctionAnnotationTypeHandler.registerKeyPairPattern(BLOB_PATH_PAIR_PATTERN);
+        FunctionAnnotationCompletionConfidence.registerCodeCompletionPattern(BLOB_PATH_PATTERN);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class FunctionBlobPathCompletionProvider extends CompletionProvider<Compl
         if (Objects.isNull(account) && StringUtils.isNotBlank(connection)) {
             return;
         }
-        final String fullPrefix = StringUtils.substringBefore(element.getText(), AzureStorageJavaCompletionContributor.DUMMY_IDENTIFIER).replace("\"", "").trim();
+        final String fullPrefix = StringUtils.substringBefore(element.getText(), StringLiteralCompletionContributor.DUMMY_IDENTIFIER).replace("\"", "").trim();
         final List<StorageAccount> accountsToSearch = Objects.nonNull(account) ? List.of(account) : Utils.getConnectedStorageAccounts(module);
         final List<? extends StorageFile> files = getFiles("azure-blob://" + fullPrefix, accountsToSearch);
         final BiFunction<StorageFile, String, LookupElementBuilder> builder = (file, title) -> LookupElementBuilder.create(title)

@@ -20,10 +20,10 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
-import com.microsoft.azure.toolkit.intellij.connector.code.function.AzureFunctionAnnotationCompletionConfidence;
-import com.microsoft.azure.toolkit.intellij.connector.code.function.AzureFunctionAnnotationTypeHandler;
+import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationCompletionConfidence;
+import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationTypeHandler;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationValueInsertHandler;
-import com.microsoft.azure.toolkit.intellij.storage.code.spring.AzureStorageJavaCompletionContributor;
+import com.microsoft.azure.toolkit.intellij.storage.code.spring.StringLiteralCompletionContributor;
 import com.microsoft.azure.toolkit.intellij.storage.code.Utils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
@@ -54,14 +54,14 @@ public class FunctionTableNameCompletionProvider extends CompletionProvider<Comp
     public static final PsiJavaElementPattern<?, ?> TABLE_NAME_PATTERN = psiElement().withSuperParent(2, TABLE_NAME_PAIR_PATTERN);
 
     static {
-        AzureFunctionAnnotationTypeHandler.registerKeyPairPattern(TABLE_NAME_PAIR_PATTERN);
-        AzureFunctionAnnotationCompletionConfidence.registerCodeCompletionPattern(TABLE_NAME_PATTERN);
+        FunctionAnnotationTypeHandler.registerKeyPairPattern(TABLE_NAME_PAIR_PATTERN);
+        FunctionAnnotationCompletionConfidence.registerCodeCompletionPattern(TABLE_NAME_PATTERN);
     }
 
     @Override
     protected void addCompletions(@NotNull CompletionParameters parameters, @NotNull ProcessingContext context, @NotNull CompletionResultSet result) {
         final PsiElement element = parameters.getPosition();
-        final String fullPrefix = StringUtils.substringBefore(element.getText(), AzureStorageJavaCompletionContributor.DUMMY_IDENTIFIER).replace("\"", "").trim();
+        final String fullPrefix = StringUtils.substringBefore(element.getText(), StringLiteralCompletionContributor.DUMMY_IDENTIFIER).replace("\"", "").trim();
         final Module module = ModuleUtil.findModuleForFile(parameters.getOriginalFile());
         if (Objects.isNull(module) || !Azure.az(AzureAccount.class).isLoggedIn()) {
             return;

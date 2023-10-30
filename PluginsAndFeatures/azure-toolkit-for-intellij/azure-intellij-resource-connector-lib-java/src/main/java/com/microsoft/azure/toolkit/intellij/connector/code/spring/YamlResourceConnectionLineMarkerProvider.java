@@ -24,8 +24,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import static com.microsoft.azure.toolkit.intellij.connector.Utils.extractVariableFromSpringProperties;
-import static com.microsoft.azure.toolkit.intellij.connector.Utils.getConnectionWithEnvironmentVariable;
+import static com.microsoft.azure.toolkit.intellij.connector.code.Utils.extractVariableFromSpringProperties;
+import static com.microsoft.azure.toolkit.intellij.connector.code.Utils.getConnectionWithEnvironmentVariable;
 
 public class YamlResourceConnectionLineMarkerProvider extends AbstractResourceConnectionLineMarkerProvider {
 

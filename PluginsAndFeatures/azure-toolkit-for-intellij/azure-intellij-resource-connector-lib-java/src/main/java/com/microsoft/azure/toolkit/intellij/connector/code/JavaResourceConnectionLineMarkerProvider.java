@@ -11,7 +11,6 @@ import com.intellij.psi.JavaTokenType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiJavaToken;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
-import com.microsoft.azure.toolkit.intellij.connector.Utils;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import org.apache.commons.lang.StringUtils;
 

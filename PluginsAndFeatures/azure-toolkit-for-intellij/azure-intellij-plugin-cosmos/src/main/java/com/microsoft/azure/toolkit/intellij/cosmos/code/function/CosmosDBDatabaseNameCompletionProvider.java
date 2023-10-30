@@ -25,9 +25,9 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.Resource;
-import com.microsoft.azure.toolkit.intellij.connector.Utils;
-import com.microsoft.azure.toolkit.intellij.connector.code.function.AzureFunctionAnnotationCompletionConfidence;
-import com.microsoft.azure.toolkit.intellij.connector.code.function.AzureFunctionAnnotationTypeHandler;
+import com.microsoft.azure.toolkit.intellij.connector.code.Utils;
+import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationCompletionConfidence;
+import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationTypeHandler;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationValueInsertHandler;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionUtils;
 import com.microsoft.azure.toolkit.intellij.cosmos.connection.SqlCosmosDBAccountResourceDefinition;
@@ -56,8 +56,8 @@ public class CosmosDBDatabaseNameCompletionProvider extends CompletionProvider<C
     public static final PsiElementPattern<?, ?> COSMOS_DATABASE_PATTERN = psiElement().withSuperParent(2, COSMOS_DATABASE_NAME_PAIR_PATTERN);
 
     static {
-        AzureFunctionAnnotationTypeHandler.registerKeyPairPattern(COSMOS_DATABASE_NAME_PAIR_PATTERN);
-        AzureFunctionAnnotationCompletionConfidence.registerCodeCompletionPattern(COSMOS_DATABASE_PATTERN);
+        FunctionAnnotationTypeHandler.registerKeyPairPattern(COSMOS_DATABASE_NAME_PAIR_PATTERN);
+        FunctionAnnotationCompletionConfidence.registerCodeCompletionPattern(COSMOS_DATABASE_PATTERN);
     }
 
     @Override
