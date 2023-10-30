@@ -6,7 +6,8 @@
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
-        <configurationType implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.WebAppConfigurationType"/>
+        <configurationType implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfigurationType"/>
+        <configurationType implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers.WebAppContainersConfigurationType"/>
         <configurationType implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.AzureFunctionConfigurationType"/>
     </extensions>
 
