@@ -18,30 +18,37 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.Objects;
 import java.util.Optional;
 
 public class StringLiteralResourceReference extends PsiReferenceBase<PsiElement> {
+    private StorageAccount account;
     private String fullNameWithPrefix;
 
-    public StringLiteralResourceReference(@NotNull PsiElement element, TextRange rangeInElement, boolean soft) {
+    public StringLiteralResourceReference(@Nonnull PsiElement element, TextRange rangeInElement, boolean soft) {
         super(element, rangeInElement, soft);
     }
 
-    public StringLiteralResourceReference(@NotNull PsiElement element, TextRange rangeInElement, final @NotNull String fullNameWithPrefix) {
-        super(element, rangeInElement);
-        this.fullNameWithPrefix = fullNameWithPrefix;
+    public StringLiteralResourceReference(@Nonnull PsiElement element, TextRange rangeInElement, final @Nonnull String fullNameWithPrefix) {
+        this(element, rangeInElement, fullNameWithPrefix, null);
     }
 
-    public StringLiteralResourceReference(@NotNull PsiElement element, boolean soft) {
+    public StringLiteralResourceReference(@Nonnull PsiElement element, TextRange rangeInElement,
+                                          @Nonnull final String fullNameWithPrefix, @Nullable final StorageAccount account) {
+        super(element, rangeInElement);
+        this.fullNameWithPrefix = fullNameWithPrefix;
+        this.account = account;
+    }
+
+    public StringLiteralResourceReference(@Nonnull PsiElement element, boolean soft) {
         super(element, soft);
     }
 
-    public StringLiteralResourceReference(@NotNull PsiElement element) {
+    public StringLiteralResourceReference(@Nonnull PsiElement element) {
         super(element);
     }
 

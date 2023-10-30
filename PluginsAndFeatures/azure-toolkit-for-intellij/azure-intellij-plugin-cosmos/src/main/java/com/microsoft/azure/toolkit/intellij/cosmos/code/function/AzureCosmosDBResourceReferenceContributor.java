@@ -5,6 +5,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
+import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionStringLiteralResourceReference;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionUtils;
 import com.microsoft.azure.toolkit.lib.cosmos.sql.SqlContainer;
 import com.microsoft.azure.toolkit.lib.cosmos.sql.SqlDatabase;
@@ -30,7 +31,7 @@ public class AzureCosmosDBResourceReferenceContributor extends PsiReferenceContr
                 final SqlDatabase database = CosmosDBDatabaseNameCompletionProvider.getConnectedDatabase(annotation);
                 if (Objects.nonNull(database) && StringUtils.equalsIgnoreCase(value, database.getName())) {
                     final TextRange range = new TextRange(value.indexOf(database.getName()) + 1, value.indexOf(database.getName()) + 1 + database.getName().length());
-                    return new PsiReference[]{new CosmosDBStringLiteralResourceReference(element, range, database, connection, true)};
+                    return new PsiReference[]{new FunctionStringLiteralResourceReference(element, range, database, connection, true)};
                 }
                 return PsiReference.EMPTY_ARRAY;
             }
@@ -46,7 +47,7 @@ public class AzureCosmosDBResourceReferenceContributor extends PsiReferenceContr
                 final SqlContainer container = database.containers().get(value, database.getResourceGroupName());
                 if (Objects.nonNull(container)) {
                     final TextRange range = new TextRange(value.indexOf(container.getName()) + 1, value.indexOf(container.getName()) + 1 + database.getName().length());
-                    return new PsiReference[]{new CosmosDBStringLiteralResourceReference(element, range, container, connection, true)};
+                    return new PsiReference[]{new FunctionStringLiteralResourceReference(element, range, container, connection, true)};
                 }
                 return PsiReference.EMPTY_ARRAY;
             }
