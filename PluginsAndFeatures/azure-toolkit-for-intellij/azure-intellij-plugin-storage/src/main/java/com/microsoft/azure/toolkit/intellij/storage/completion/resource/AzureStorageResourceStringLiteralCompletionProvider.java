@@ -43,6 +43,7 @@ import com.microsoft.azure.toolkit.lib.storage.share.Share;
 import com.microsoft.azure.toolkit.lib.storage.share.ShareModule;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -58,8 +59,8 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
     protected void addCompletions(@Nonnull CompletionParameters parameters, @Nonnull ProcessingContext context, @Nonnull CompletionResultSet result) {
         final PsiElement element = parameters.getPosition();
         final PsiLiteralExpression literal = ((PsiLiteralExpression) element.getParent());
-        final String value = literal.getValue() instanceof String ? (String) literal.getValue() : "";
-        final String fullPrefix = value.split(AzureStorageJavaCompletionContributor.DUMMY_IDENTIFIER, -1)[0].trim();
+        final String value = literal.getValue() instanceof String ? (String) literal.getValue() : element.getText();
+        final String fullPrefix = StringUtils.substringBefore(value, AzureStorageJavaCompletionContributor.DUMMY_IDENTIFIER);
         final boolean isBlobContainer = fullPrefix.startsWith("azure-blob://");
         final boolean isFileShare = fullPrefix.startsWith("azure-file://");
 

@@ -18,8 +18,10 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 public class AzureStoragePrefixStringLiteralCompletionProvider extends CompletionProvider<CompletionParameters> {
 
@@ -27,9 +29,8 @@ public class AzureStoragePrefixStringLiteralCompletionProvider extends Completio
     protected void addCompletions(@Nonnull CompletionParameters parameters, @Nonnull ProcessingContext context, @Nonnull CompletionResultSet result) {
         final PsiElement element = parameters.getPosition();
         final PsiLiteralExpression literal = ((PsiLiteralExpression) element.getParent());
-        final String value = literal.getValue() instanceof String ? (String) literal.getValue() : null;
-        final String[] parts = value.split(AzureStorageJavaCompletionContributor.DUMMY_IDENTIFIER, -1);
-        final String fullPrefix = parts.length > 0 ? parts[0].trim() : element.getText();
+        final String value = literal.getValue() instanceof String ? (String) literal.getValue() : element.getText();
+        final String fullPrefix = StringUtils.substringBefore(value, AzureStorageJavaCompletionContributor.DUMMY_IDENTIFIER);
         final boolean isBlobContainer = fullPrefix.startsWith("azure-blob://");
         final boolean isFileShare = fullPrefix.startsWith("azure-file://");
 
