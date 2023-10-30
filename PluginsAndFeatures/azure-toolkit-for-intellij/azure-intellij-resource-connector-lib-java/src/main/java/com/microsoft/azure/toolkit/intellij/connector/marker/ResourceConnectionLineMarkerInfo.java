@@ -18,7 +18,7 @@ import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.AzureServiceResource;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor;
-import com.microsoft.azure.toolkit.intellij.connector.projectexplorer.*;
+import com.microsoft.azure.toolkit.intellij.connector.projectexplorer.AbstractAzureFacetNode;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import lombok.Getter;
@@ -28,10 +28,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 
 public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<PsiElement> {
     @Getter
@@ -39,25 +37,25 @@ public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<Ps
 
     public ResourceConnectionLineMarkerInfo(@Nonnull Connection<? extends AzResource, ?> connection, final AzureServiceResource<?> resource, @Nonnull PsiElement element) {
         super(element, element.getTextRange(),
-                IntelliJAzureIcons.getIcon(ObjectUtils.firstNonNull(resource.getDefinition().getIcon(), AzureIcons.Connector.CONNECT.getIconPath())),
-                ignore -> String.format("%s (%s)", resource.getName(), resource.getResourceType()),
-                null, null, GutterIconRenderer.Alignment.LEFT, () -> connection.getResource().getName());
+            IntelliJAzureIcons.getIcon(ObjectUtils.firstNonNull(resource.getDefinition().getIcon(), AzureIcons.Connector.CONNECT.getIconPath())),
+            ignore -> String.format("%s (%s)", resource.getName(), resource.getResourceType()),
+            null, null, GutterIconRenderer.Alignment.LEFT, () -> connection.getResource().getName());
         this.connection = connection;
     }
 
     @Override
     public boolean canMergeWith(@Nonnull MergeableLineMarkerInfo<?> info) {
         return info instanceof ResourceConnectionLineMarkerInfo &&
-                Objects.equals(((ResourceConnectionLineMarkerInfo) info).connection, this.connection);
+            Objects.equals(((ResourceConnectionLineMarkerInfo) info).connection, this.connection);
     }
 
     @Override
     public Icon getCommonIcon(@Nonnull List<? extends MergeableLineMarkerInfo<?>> infos) {
         return infos.stream()
-                .filter(i -> i instanceof ResourceConnectionLineMarkerInfo)
-                .map(i -> (ResourceConnectionLineMarkerInfo) i)
-                .map(ResourceConnectionLineMarkerInfo::getIcon)
-                .findFirst().orElse(null);
+            .filter(i -> i instanceof ResourceConnectionLineMarkerInfo)
+            .map(i -> (ResourceConnectionLineMarkerInfo) i)
+            .map(ResourceConnectionLineMarkerInfo::getIcon)
+            .findFirst().orElse(null);
     }
 
     @Override
@@ -87,13 +85,7 @@ public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<Ps
                     if (Objects.isNull(e.getProject()) || e.getProject().isDisposed()) {
                         return;
                     }
-                    final Predicate<DefaultMutableTreeNode> rootPredict = node -> node.getUserObject() instanceof AzureFacetRootNode;
-                    final Predicate<DefaultMutableTreeNode> connectionsPredict = node -> node.getUserObject() instanceof ConnectionsNode;
-                    final Predicate<DefaultMutableTreeNode> connectionPredict = node -> node.getUserObject() instanceof ConnectionNode
-                            && Objects.equals(((ConnectionNode) node.getUserObject()).getValue(), connection);
-                    final Predicate<DefaultMutableTreeNode> resourcePredict = node -> node.getUserObject() instanceof ResourceNode
-                            && Objects.equals(((ResourceNode) node.getUserObject()).getValue().getValue(), connection.getResource().getData());
-                    AbstractAzureFacetNode.focusNode(e.getProject(), resourcePredict, connectionPredict, connectionsPredict, rootPredict);
+                    AbstractAzureFacetNode.focusConnectedResource(e.getProject(), connection, null);
                 }
             };
             this.editConnectionAction = new AnAction("Edit Connection", "Edit resource connection for current resource", AllIcons.Actions.Edit) {
@@ -121,5 +113,4 @@ public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<Ps
             return true;
         }
     }
-
 }

@@ -7,11 +7,7 @@ package com.microsoft.azure.toolkit.intellij.common.component;
 
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPopupMenu;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.EmptyAction;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
@@ -19,6 +15,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.tree.TreeVisitor;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
@@ -51,6 +48,7 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
@@ -58,14 +56,9 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.StreamSupport;
 
 public class TreeUtils {
@@ -331,7 +324,7 @@ public class TreeUtils {
         }
         return (parent instanceof AbstractAzResource<?, ?, ?> && StringUtils.containsIgnoreCase(resource.getId(), ((AbstractAzResource<?, ?, ?>) parent).getId())) ||
             (parent instanceof AbstractAzResourceModule<?, ?, ?> && StringUtils.containsIgnoreCase(resource.getId(),
-                ((AbstractAzResourceModule<?, ?, ?>) parent).toResourceId(resource.getResourceGroupName(), resource.getName())));
+                ((AbstractAzResourceModule<?, ?, ?>) parent).toResourceId("", resource.getResourceGroupName())));
     }
 
     public static void expandTreeNode(@Nonnull JTree tree, @Nonnull DefaultMutableTreeNode node) {
@@ -412,6 +405,55 @@ public class TreeUtils {
                     }
                 }
             }
+        });
+    }
+
+    public interface NodeMatcher {
+        /**
+         * @return the found nearest parent or itself.
+         */
+        @Nullable
+        DefaultMutableTreeNode getCurrent();
+
+        /**
+         * @return true if the represented node is the target node.
+         */
+        boolean matches(TreePath path);
+
+        /**
+         * @return true if the represented node is parent of the target node.
+         */
+        boolean contains(TreePath path);
+    }
+
+    public static void expandNode(@Nonnull JTree tree, @Nonnull NodeMatcher matcher) {
+        final AtomicReference<TreeModelListener> listener = new AtomicReference<>();
+        listener.set(new TreeModelAdapter() {
+            @Override
+            protected void process(@NotNull final TreeModelEvent event, @NotNull final EventType type) {
+                final Object source = event.getTreePath().getLastPathComponent();
+                if (source.equals(matcher.getCurrent()) && type != EventType.NodesRemoved) {
+                    doExpandNode(tree, matcher, listener.get());
+                }
+            }
+        });
+        tree.getModel().addTreeModelListener(listener.get());
+        doExpandNode(tree, matcher, listener.get());
+    }
+
+    private static void doExpandNode(final @Nonnull JTree tree, final @Nonnull NodeMatcher matcher, final TreeModelListener listener) {
+        TreeUtil.promiseExpand(tree, new TreeVisitor() {
+            @Override
+            public @NotNull Action visit(@NotNull final TreePath path) {
+                if (matcher.matches(path)) return Action.INTERRUPT;
+                if (Objects.nonNull(matcher.getCurrent()) && path.isDescendant(new TreePath(matcher.getCurrent().getPath())))
+                    return Action.CONTINUE;
+                if (matcher.contains(path)) return Action.CONTINUE;
+                return Action.SKIP_CHILDREN;
+            }
+        }).onSuccess(path -> {
+            tree.getModel().removeTreeModelListener(listener);
+            TreeUtil.selectPath(tree, path, true);
         });
     }
 }

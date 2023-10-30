@@ -18,7 +18,6 @@ import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
-import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition;
@@ -87,12 +86,8 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
     }
 
     private static List<? extends StorageFile> getFiles(String fullPrefix, Module module) {
-        final List<StorageAccount> accounts = Optional.of(module).map(AzureModule::from)
-            .map(AzureModule::getDefaultProfile).map(Profile::getConnectionManager).stream()
-            .flatMap(m -> m.getConnections().stream())
-            .filter(c -> c.getDefinition().getResourceDefinition() instanceof StorageAccountResourceDefinition)
+        final List<StorageAccount> accounts = getConnections(module).stream()
             .map(Connection::getResource)
-            .filter(Resource::isValidResource)
             .map(r -> ((StorageAccount) r.getData()))
             .toList();
         final String fixedFullPrefix = fullPrefix.replace("azure-blob://", "").replace("azure-file://", "").trim();
@@ -108,6 +103,22 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
         return files;
     }
 
+    public static List<Connection<?, ?>> getConnections(Module module) {
+        return Optional.of(module).map(AzureModule::from)
+            .map(AzureModule::getDefaultProfile).map(Profile::getConnectionManager).stream()
+            .flatMap(m -> m.getConnections().stream())
+            .filter(c -> c.getDefinition().getResourceDefinition() instanceof StorageAccountResourceDefinition)
+            .filter(c -> c.getResource().isValidResource())
+            .toList();
+    }
+
+    @Nullable
+    public static StorageFile getFile(String fullPrefix, Module module) {
+        final List<? extends StorageFile> files = getFiles(fullPrefix, module);
+        final String[] parts = fullPrefix.trim().split("/", -1);
+        return files.stream().filter(f -> f.getName().equalsIgnoreCase(parts[parts.length - 1].trim())).findFirst().orElse(null);
+    }
+
     @RequiredArgsConstructor
     private static class MyInsertHandler implements InsertHandler<LookupElement> {
         private final boolean popup;
@@ -121,7 +132,7 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
     }
 
     @Nullable
-    private static StorageAccount getStorageAccount(final StorageFile file) {
+    public static StorageAccount getStorageAccount(final StorageFile file) {
         if (file instanceof IBlobFile) {
             return ((IBlobFile) file).getContainer().getParent();
         } else if (file instanceof IShareFile) {
@@ -130,7 +141,7 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
         return null;
     }
 
-    private static AzureIcon getFileIcon(StorageFile file) {
+    public static AzureIcon getFileIcon(StorageFile file) {
         if (file instanceof Share || file instanceof BlobContainer) {
             return AzureIcon.builder().iconPath(String.format("/icons/%s/default.svg", file.getFullResourceType())).build();
         }

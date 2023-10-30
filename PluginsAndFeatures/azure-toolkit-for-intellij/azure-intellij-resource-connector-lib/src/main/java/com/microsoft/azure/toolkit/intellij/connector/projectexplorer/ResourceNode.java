@@ -145,6 +145,10 @@ public class ResourceNode extends AbstractAzureFacetNode<Node<?>> implements Nod
         Optional.ofNullable(getValue()).ifPresent(Node::dispose);
     }
 
+    public String toString() {
+        return this.getValue().getLabel();
+    }
+
     @EqualsAndHashCode.Include
     public AbstractTreeNode<?> getMyParent() {
         return this.parent;
