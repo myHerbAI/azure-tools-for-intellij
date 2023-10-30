@@ -10,6 +10,7 @@ import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
@@ -20,15 +21,15 @@ import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 
 import javax.annotation.Nonnull;
 
-import static com.microsoft.azure.toolkit.intellij.storage.completion.resource.AzureStorageJavaCompletionContributor.DUMMY_IDENTIFIER;
-
 public class AzureStoragePrefixStringLiteralCompletionProvider extends CompletionProvider<CompletionParameters> {
 
     @Override
     protected void addCompletions(@Nonnull CompletionParameters parameters, @Nonnull ProcessingContext context, @Nonnull CompletionResultSet result) {
         final PsiElement element = parameters.getPosition();
-        final String[] parts = element.getText().split(DUMMY_IDENTIFIER);
-        final String fullPrefix = parts.length > 0 ? parts[0].replace("\"", "").trim() : element.getText();
+        final PsiLiteralExpression literal = ((PsiLiteralExpression) element.getParent());
+        final String value = literal.getValue() instanceof String ? (String) literal.getValue() : null;
+        final String[] parts = value.split(AzureStorageJavaCompletionContributor.DUMMY_IDENTIFIER, -1);
+        final String fullPrefix = parts.length > 0 ? parts[0].trim() : element.getText();
         final boolean isBlobContainer = fullPrefix.startsWith("azure-blob://");
         final boolean isFileShare = fullPrefix.startsWith("azure-file://");
 

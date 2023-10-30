@@ -13,7 +13,9 @@ import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.util.ProcessingContext;
+import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.completion.LookupElements;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
@@ -37,7 +39,9 @@ public class AzureStorageJavaQuickCompletionContributor extends CompletionContri
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters, @NotNull final ProcessingContext context, @NotNull final CompletionResultSet result) {
                 final PsiElement element = parameters.getPosition();
-                final String fullPrefix = element.getText().split(AzureStorageJavaCompletionContributor.DUMMY_IDENTIFIER)[0].replace("\"", "").trim();
+                final PsiLiteralExpression literal = ((PsiLiteralExpression) element.getParent());
+                final String value = literal.getValue() instanceof String ? (String) literal.getValue() : "";
+                final String fullPrefix = value.split(AzureStorageJavaCompletionContributor.DUMMY_IDENTIFIER, -1)[0].trim();
                 final boolean isBlobContainer = fullPrefix.startsWith("azure-blob://");
                 final boolean isFileShare = fullPrefix.startsWith("azure-file://");
 
@@ -49,7 +53,7 @@ public class AzureStorageJavaQuickCompletionContributor extends CompletionContri
                     if (!Azure.az(AzureAccount.class).isLoggedIn()) {
                         AzureTelemeter.info("info/not_signed_in.storage_string_code_completion");
                         result.addElement(LookupElements.buildSignInLookupElement());
-                    } else if (!hasConnections(module)) {
+                    } else if (!hasValidConnections(module)) {
                         AzureTelemeter.info("info/signed_in_no_connections.storage_string_code_completion");
                         result.addElement(LookupElements.buildConnectLookupElement(StorageAccountResourceDefinition.INSTANCE, (definition, ctx) -> {
                             if (Objects.nonNull(definition)) {
@@ -63,10 +67,11 @@ public class AzureStorageJavaQuickCompletionContributor extends CompletionContri
         });
     }
 
-    private static boolean hasConnections(Module module) {
+    private static boolean hasValidConnections(Module module) {
         return Optional.of(module).map(AzureModule::from)
             .map(AzureModule::getDefaultProfile).map(Profile::getConnectionManager).stream()
             .flatMap(m -> m.getConnections().stream())
-            .anyMatch(c -> c.getDefinition().getResourceDefinition() instanceof StorageAccountResourceDefinition);
+            .filter(c -> c.getDefinition().getResourceDefinition() instanceof StorageAccountResourceDefinition)
+            .anyMatch(Connection::isValidConnection);
     }
 }
