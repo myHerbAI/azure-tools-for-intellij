@@ -13,7 +13,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.psi.PsiElement;
-import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.AzureServiceResource;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
@@ -22,7 +21,6 @@ import com.microsoft.azure.toolkit.intellij.connector.projectexplorer.AbstractAz
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import lombok.Getter;
-import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -31,15 +29,17 @@ import javax.swing.*;
 import java.util.List;
 import java.util.Objects;
 
+import static com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider.DEFAULT_AZURE_RESOURCE_ICON_PROVIDER;
+
 public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<PsiElement> {
     @Getter
     private final Connection<? extends AzResource, ?> connection;
 
     public ResourceConnectionLineMarkerInfo(@Nonnull Connection<? extends AzResource, ?> connection, final AzureServiceResource<?> resource, @Nonnull PsiElement element) {
         super(element, element.getTextRange(),
-            IntelliJAzureIcons.getIcon(ObjectUtils.firstNonNull(resource.getDefinition().getIcon(), AzureIcons.Connector.CONNECT.getIconPath())),
-            ignore -> String.format("%s (%s)", resource.getName(), resource.getResourceType()),
-            null, null, GutterIconRenderer.Alignment.LEFT, () -> connection.getResource().getName());
+                IntelliJAzureIcons.getIcon(DEFAULT_AZURE_RESOURCE_ICON_PROVIDER.getIcon(resource.getData())),
+                ignore -> String.format("%s : %s", resource.getData().getModule().getResourceTypeName(), resource.getName()),
+                null, null, GutterIconRenderer.Alignment.LEFT, () -> connection.getResource().getName());
         this.connection = connection;
     }
 

@@ -70,7 +70,7 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
                 return;
             }
             if (Azure.az(AzureAccount.class).isLoggedIn()) {
-                final List<? extends StorageFile> files = getFiles(fullPrefix, module);
+                final List<? extends StorageFile> files = getFiles(fullPrefix, Utils.getConnectedStorageAccounts(module));
                 final String[] parts = result.getPrefixMatcher().getPrefix().trim().split("/", -1);
                 result = result.withPrefixMatcher(parts[parts.length - 1]);
                 AzureTelemeter.info("connector.resources_count.storage_resources_code_completion", ImmutableMap.of("count", files.size() + ""));
@@ -92,11 +92,7 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
         }
     }
 
-    private static List<? extends StorageFile> getFiles(String fullPrefix, Module module) {
-        final List<StorageAccount> accounts = getConnections(module).stream()
-            .map(Connection::getResource)
-            .map(r -> ((StorageAccount) r.getData()))
-            .toList();
+    public static List<? extends StorageFile> getFiles(String fullPrefix, @Nonnull final List<StorageAccount> accounts) {
         final String fixedFullPrefix = fullPrefix.replace("azure-blob://", "").replace("azure-file://", "").trim();
         final String[] parts = fixedFullPrefix.split("/", -1);
         final var getModule = fullPrefix.startsWith("azure-blob://") ?
@@ -121,13 +117,13 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
 
     @Nullable
     public static StorageFile getFile(String fullPrefix, Module module) {
-        final List<? extends StorageFile> files = getFiles(fullPrefix, module);
+        final List<? extends StorageFile> files = getFiles(fullPrefix, Utils.getConnectedStorageAccounts(module));
         final String[] parts = fullPrefix.trim().split("/", -1);
         return files.stream().filter(f -> f.getName().equalsIgnoreCase(parts[parts.length - 1].trim())).findFirst().orElse(null);
     }
 
     @RequiredArgsConstructor
-    private static class MyInsertHandler implements InsertHandler<LookupElement> {
+    public static class MyInsertHandler implements InsertHandler<LookupElement> {
         private final boolean popup;
 
         @Override
