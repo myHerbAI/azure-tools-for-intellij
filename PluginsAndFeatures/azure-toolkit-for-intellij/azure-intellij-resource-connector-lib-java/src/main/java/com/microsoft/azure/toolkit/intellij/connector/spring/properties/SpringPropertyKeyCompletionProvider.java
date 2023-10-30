@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition;
 import com.microsoft.azure.toolkit.intellij.connector.Utils;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager;
 import com.microsoft.azure.toolkit.intellij.connector.spring.SpringSupported;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +33,7 @@ public class SpringPropertyKeyCompletionProvider extends CompletionProvider<Comp
         .map(d -> (SpringSupported<?>) d).toList();
 
     @Override
+    @AzureOperation("boundary/connector.complete_keys_in_properties")
     protected void addCompletions(@Nonnull CompletionParameters parameters, @Nonnull ProcessingContext context, @Nonnull CompletionResultSet result) {
         final PsiFile file = parameters.getOriginalFile();
         definitions.stream().flatMap(definition ->
@@ -50,6 +52,7 @@ public class SpringPropertyKeyCompletionProvider extends CompletionProvider<Comp
     @RequiredArgsConstructor
     private static class PropertyKeyInsertHandler implements InsertHandler<LookupElement> {
         @Override
+        @AzureOperation("user/connector.insert_key_in_properties")
         public void handleInsert(@NotNull InsertionContext context, @Nonnull LookupElement item) {
             final CaretModel caretModel = context.getEditor().getCaretModel();
             context.getDocument().insertString(caretModel.getOffset(), "=");

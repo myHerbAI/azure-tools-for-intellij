@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang3.StringUtils;
 
@@ -57,6 +58,7 @@ public class Utils {
                 .anyMatch(pair -> StringUtils.equalsIgnoreCase(pair.getKey(), variable));
     }
 
+    @AzureOperation(name = "internal/connector.create_connection_in_properties")
     public static void createAndInsert(@Nonnull Module module, @Nonnull Resource resource,
                                        @Nonnull InsertionContext context, @Nonnull ConnectionManager connectionManager,
                                        @Nonnull BiConsumer<Connection, InsertionContext> insertHandler,
@@ -81,6 +83,7 @@ public class Utils {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
+    @AzureOperation(name = "internal/connector.creating_connection_silently_in_properties")
     private static Connection<?, ?> createSilently(Module module, @Nonnull Resource resource,  ConnectionManager connectionManager) {
         final Resource consumer = ModuleResource.Definition.IJ_MODULE.define(module.getName());
         final ConnectionDefinition<?, ?> connectionDefinition = ConnectionManager.getDefinitionOrDefault(resource.getDefinition(), consumer.getDefinition());

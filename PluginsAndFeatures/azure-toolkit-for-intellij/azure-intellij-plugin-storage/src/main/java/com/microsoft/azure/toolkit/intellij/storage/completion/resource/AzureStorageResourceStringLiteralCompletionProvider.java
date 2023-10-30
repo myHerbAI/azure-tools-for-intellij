@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.storage.completion.resource;
 
+import com.google.common.collect.ImmutableMap;
 import com.intellij.codeInsight.AutoPopupController;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -23,6 +24,9 @@ import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountRes
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.blob.BlobContainer;
 import com.microsoft.azure.toolkit.lib.storage.blob.BlobContainerModule;
@@ -58,6 +62,7 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
             }
             if (Azure.az(AzureAccount.class).isLoggedIn()) {
                 final List<? extends StorageFile> files = getFiles(fullPrefix, module);
+                AzureTelemeter.info("info/resources_count.storage_resources_code_completion", ImmutableMap.of("count", files.size() + ""));
                 final BiFunction<StorageFile, String, LookupElementBuilder> builder = (file, title) -> LookupElementBuilder.create(title)
                     .withInsertHandler(new MyInsertHandler(title.endsWith("/")))
                     .withBoldness(true)
@@ -71,6 +76,7 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
                         result.addElement(builder.apply(file, file.getName() + "/"));
                     }
                 }
+                AzureTelemeter.log(AzureTelemetry.Type.OP_END, OperationBundle.description("boundary/connector.complete_storage_resources_in_string_literal"));
             }
         }
     }

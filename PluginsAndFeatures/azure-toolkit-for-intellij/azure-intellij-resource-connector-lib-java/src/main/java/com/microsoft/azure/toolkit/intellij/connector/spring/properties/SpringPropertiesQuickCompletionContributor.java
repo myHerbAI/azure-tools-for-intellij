@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.connector.spring.properties;
 
+import com.google.common.collect.ImmutableMap;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.lang.properties.parsing.PropertiesTokenTypes;
 import com.intellij.openapi.module.Module;
@@ -15,6 +16,7 @@ import com.microsoft.azure.toolkit.intellij.connector.completion.LookupElements;
 import com.microsoft.azure.toolkit.intellij.connector.spring.SpringSupported;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -34,6 +36,7 @@ public class SpringPropertiesQuickCompletionContributor extends CompletionContri
                 final List<? extends SpringSupported<?>> definitions = SpringPropertyValueCompletionProvider.getSupportedDefinitions(key);
                 if (!definitions.isEmpty()) {
                     if (!Azure.az(AzureAccount.class).isLoggedIn()) {
+                        AzureTelemeter.info("info/not_signed_in.properties_value_code_completion", ImmutableMap.of("key", key));
                         result.addElement(LookupElements.buildSignInLookupElement());
                     } else {
                         result.addElement(LookupElements.buildConnectLookupElement(definitions.get(0), SpringPropertyValueCompletionProvider.PropertyValueInsertHandler::insert));
