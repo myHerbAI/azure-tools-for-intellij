@@ -55,7 +55,9 @@ public class StringLiteralStorageLineMarkerProvider implements LineMarkerProvide
         public ResourceLineMarkerInfo(final PsiElement element, final StorageFile file) {
             super(element, element.getTextRange(),
                 IntelliJAzureIcons.getIcon(StringLiteralResourceCompletionProvider.getFileIcon(file)),
-                ignore -> String.format("navigate to Azure Storage %s \"%s\" in Project Explorer", file.getName(), file.getResourceTypeName()),
+                ignore -> Azure.az(AzureAccount.class).isLoggedIn()?
+                    String.format("navigate to Azure Storage %s \"%s\" in Project Explorer", file.getName(), file.getResourceTypeName()):
+                    "navigate to Azure Storage in Project Explorer",
                 null, (e, element1) -> {
                     final Module module = ModuleUtil.findModuleForPsiElement(element1);
                     StringLiteralResourceCompletionProvider.navigateToFile(file, module);
