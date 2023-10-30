@@ -39,6 +39,8 @@ public class MachineTaggingService {
         "sqlservr",
         "redis-server",
         "redis-cli",
+        "azurite",
+        "Microsoft.Azure.Cosmos.Emulator",
 
         // other
         "azd",
