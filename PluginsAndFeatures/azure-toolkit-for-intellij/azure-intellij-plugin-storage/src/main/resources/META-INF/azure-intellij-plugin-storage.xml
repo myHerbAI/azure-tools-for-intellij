@@ -8,6 +8,7 @@
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
         <psi.referenceContributor language="JAVA" implementation="com.microsoft.azure.toolkit.intellij.storage.completion.resource.AzureStorageResourceReferenceContributor"/>
+        <codeInsight.lineMarkerProvider language="JAVA" implementationClass="com.microsoft.azure.toolkit.intellij.storage.completion.resource.AzureStorageStringLiteralLineMarkerProvider"/>
         <completion.confidence id="azStorageStringLiteral" language="JAVA" implementationClass="com.microsoft.azure.toolkit.intellij.storage.completion.resource.AzureStorageStringLiteralCompletionConfidence" order="before javaSkipAutopopupInStrings"/>
         <completion.contributor id="azStorageStringLiteral" language="JAVA" order="first" implementationClass="com.microsoft.azure.toolkit.intellij.storage.completion.resource.AzureStorageJavaCompletionContributor"/>
         <completion.contributor id="azStorageStringLiteralQuick" language="JAVA" order="after azStorageStringLiteral" implementationClass="com.microsoft.azure.toolkit.intellij.storage.completion.resource.AzureStorageJavaQuickCompletionContributor"/>

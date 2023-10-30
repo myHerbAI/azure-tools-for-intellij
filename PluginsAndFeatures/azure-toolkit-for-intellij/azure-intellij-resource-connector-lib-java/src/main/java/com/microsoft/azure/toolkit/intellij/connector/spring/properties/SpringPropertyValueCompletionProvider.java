@@ -58,7 +58,7 @@ public class SpringPropertyValueCompletionProvider extends CompletionProvider<Co
             AzureTelemeter.log(AzureTelemetry.Type.OP_END, OperationBundle.description("boundary/connector.complete_resources_in_properties"));
             if (Azure.az(AzureAccount.class).isLoggedIn()) {
                 final List<LookupElementBuilder> elements = buildCompletionItems(definitions, module, key);
-                AzureTelemeter.info("info/resources_count.properties_value_code_completion", ImmutableMap.of("count", elements.size() + "", "key", key));
+                AzureTelemeter.info("connector.resources_count.properties_value_code_completion", ImmutableMap.of("count", elements.size() + "", "key", key));
                 elements.forEach(result::addElement);
                 result.addLookupAdvertisement("Press enter to configure all required properties to connect Azure resource.");
             }

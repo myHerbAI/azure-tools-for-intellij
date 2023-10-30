@@ -10,19 +10,25 @@ import com.intellij.codeInsight.AutoPopupController;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
+import com.microsoft.azure.toolkit.ide.storage.StorageActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
+import com.microsoft.azure.toolkit.intellij.connector.projectexplorer.AbstractAzureFacetNode;
 import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
@@ -37,6 +43,7 @@ import com.microsoft.azure.toolkit.lib.storage.share.Share;
 import com.microsoft.azure.toolkit.lib.storage.share.ShareModule;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -52,8 +59,8 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
     protected void addCompletions(@Nonnull CompletionParameters parameters, @Nonnull ProcessingContext context, @Nonnull CompletionResultSet result) {
         final PsiElement element = parameters.getPosition();
         final PsiLiteralExpression literal = ((PsiLiteralExpression) element.getParent());
-        final String value = literal.getValue() instanceof String ? (String) literal.getValue() : "";
-        final String fullPrefix = value.split(AzureStorageJavaCompletionContributor.DUMMY_IDENTIFIER, -1)[0].trim();
+        final String value = literal.getValue() instanceof String ? (String) literal.getValue() : element.getText();
+        final String fullPrefix = StringUtils.substringBefore(value, AzureStorageJavaCompletionContributor.DUMMY_IDENTIFIER);
         final boolean isBlobContainer = fullPrefix.startsWith("azure-blob://");
         final boolean isFileShare = fullPrefix.startsWith("azure-file://");
 
@@ -66,7 +73,7 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
                 final List<? extends StorageFile> files = getFiles(fullPrefix, module);
                 final String[] parts = result.getPrefixMatcher().getPrefix().trim().split("/", -1);
                 result = result.withPrefixMatcher(parts[parts.length - 1]);
-                AzureTelemeter.info("info/resources_count.storage_resources_code_completion", ImmutableMap.of("count", files.size() + ""));
+                AzureTelemeter.info("connector.resources_count.storage_resources_code_completion", ImmutableMap.of("count", files.size() + ""));
                 final BiFunction<StorageFile, String, LookupElementBuilder> builder = (file, title) -> LookupElementBuilder.create(title)
                     .withInsertHandler(new MyInsertHandler(title.endsWith("/")))
                     .withBoldness(true)
@@ -147,5 +154,20 @@ public class AzureStorageResourceStringLiteralCompletionProvider extends Complet
         }
         final String fileIconName = file.isDirectory() ? "folder" : FilenameUtils.getExtension(file.getName());
         return AzureIcon.builder().iconPath("file/" + fileIconName).build();
+    }
+
+    public static void navigateToFile(StorageFile file, Module module) {
+        if (Objects.nonNull(module)) {
+            final List<Connection<?, ?>> connections = AzureStorageResourceStringLiteralCompletionProvider.getConnections(module);
+            if (connections.size() > 0) {
+                AbstractAzureFacetNode.selectConnectedResource(connections.get(0), file.getId(), file.isDirectory());
+                if (!file.isDirectory()) {
+                    DataManager.getInstance().getDataContextFromFocusAsync().onSuccess(context -> {
+                        final AnActionEvent event = AnActionEvent.createFromInputEvent(null, ActionPlaces.EDITOR_GUTTER, null, context);
+                        AzureActionManager.getInstance().getAction(StorageActionsContributor.OPEN_FILE).handle(file, event);
+                    });
+                }
+            }
+        }
     }
 }

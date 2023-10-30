@@ -23,6 +23,7 @@ import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountRes
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -40,8 +41,8 @@ public class AzureStorageJavaQuickCompletionContributor extends CompletionContri
             protected void addCompletions(@NotNull final CompletionParameters parameters, @NotNull final ProcessingContext context, @NotNull final CompletionResultSet result) {
                 final PsiElement element = parameters.getPosition();
                 final PsiLiteralExpression literal = ((PsiLiteralExpression) element.getParent());
-                final String value = literal.getValue() instanceof String ? (String) literal.getValue() : "";
-                final String fullPrefix = value.split(AzureStorageJavaCompletionContributor.DUMMY_IDENTIFIER, -1)[0].trim();
+                final String value = literal.getValue() instanceof String ? (String) literal.getValue() : element.getText();
+                final String fullPrefix = StringUtils.substringBefore(value, AzureStorageJavaCompletionContributor.DUMMY_IDENTIFIER);
                 final boolean isBlobContainer = fullPrefix.startsWith("azure-blob://");
                 final boolean isFileShare = fullPrefix.startsWith("azure-file://");
 
@@ -51,10 +52,10 @@ public class AzureStorageJavaQuickCompletionContributor extends CompletionContri
                         return;
                     }
                     if (!Azure.az(AzureAccount.class).isLoggedIn()) {
-                        AzureTelemeter.info("info/not_signed_in.storage_string_code_completion");
+                        AzureTelemeter.info("connector.not_signed_in.storage_string_code_completion");
                         result.addElement(LookupElements.buildSignInLookupElement());
                     } else if (!hasValidConnections(module)) {
-                        AzureTelemeter.info("info/signed_in_no_connections.storage_string_code_completion");
+                        AzureTelemeter.info("connector.signed_in_no_connections.storage_string_code_completion");
                         result.addElement(LookupElements.buildConnectLookupElement(StorageAccountResourceDefinition.INSTANCE, (definition, ctx) -> {
                             if (Objects.nonNull(definition)) {
                                 AutoPopupController.getInstance(ctx.getProject()).scheduleAutoPopup(ctx.getEditor());

@@ -19,6 +19,9 @@ import com.microsoft.azure.toolkit.intellij.connector.Utils;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager;
 import com.microsoft.azure.toolkit.intellij.connector.spring.SpringSupported;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +36,6 @@ public class SpringPropertyKeyCompletionProvider extends CompletionProvider<Comp
         .map(d -> (SpringSupported<?>) d).toList();
 
     @Override
-    @AzureOperation("boundary/connector.complete_keys_in_properties")
     protected void addCompletions(@Nonnull CompletionParameters parameters, @Nonnull ProcessingContext context, @Nonnull CompletionResultSet result) {
         final PsiFile file = parameters.getOriginalFile();
         definitions.stream().flatMap(definition ->
@@ -46,6 +48,7 @@ public class SpringPropertyKeyCompletionProvider extends CompletionProvider<Comp
                 .withTypeText("Property Key")
                 .withTailText(String.format(" (%s)", definition.getTitle())))
         ).forEach(result::addElement);
+        AzureTelemeter.log(AzureTelemetry.Type.OP_END, OperationBundle.description("boundary/connector.complete_keys_in_properties"));
         result.addLookupAdvertisement("Press enter and select a Azure Storage Account to connect");
     }
 
