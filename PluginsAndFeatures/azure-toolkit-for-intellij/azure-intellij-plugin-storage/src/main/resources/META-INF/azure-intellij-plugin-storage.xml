@@ -7,15 +7,15 @@
         <actions implementation="com.microsoft.azure.toolkit.intellij.storage.IntellijStorageActionsContributor"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
-        <psi.referenceContributor language="JAVA" implementation="com.microsoft.azure.toolkit.intellij.storage.completion.resource.AzureStorageResourceReferenceContributor"/>
-        <codeInsight.lineMarkerProvider language="JAVA" implementationClass="com.microsoft.azure.toolkit.intellij.storage.completion.resource.AzureStorageStringLiteralLineMarkerProvider"/>
-        <completion.confidence id="azStorageStringLiteral" language="JAVA" implementationClass="com.microsoft.azure.toolkit.intellij.storage.completion.resource.AzureStorageStringLiteralCompletionConfidence" order="before javaSkipAutopopupInStrings"/>
-        <completion.contributor id="azStorageFunctionAnnotation" language="JAVA" order="first" implementationClass="com.microsoft.azure.toolkit.intellij.storage.completion.resource.AzureStorageFunctionAnnotationCompletionContributor"/>
-        <completion.contributor id="azStorageStringLiteral" language="JAVA" order="first" implementationClass="com.microsoft.azure.toolkit.intellij.storage.completion.resource.AzureStorageJavaCompletionContributor"/>
-        <completion.contributor id="azStorageStringLiteralQuick" language="JAVA" order="after azStorageStringLiteral" implementationClass="com.microsoft.azure.toolkit.intellij.storage.completion.resource.AzureStorageJavaQuickCompletionContributor"/>
-        <annotator language="JAVA" implementationClass="com.microsoft.azure.toolkit.intellij.storage.annotator.StorageFunctionPathAnnotator"/>
-        <typedHandler id="azStorageSpringValueAnnotation" implementation="com.microsoft.azure.toolkit.intellij.storage.completion.resource.AzureStorageStringLiteralTypeHandler"/>
-        <lookup.charFilter id="azStorageSpringValueAnnotation" implementation="com.microsoft.azure.toolkit.intellij.storage.completion.resource.AzureStorageStringLiteralCharFilter"/>
+        <psi.referenceContributor language="JAVA" implementation="com.microsoft.azure.toolkit.intellij.storage.code.spring.AzureStorageResourceReferenceContributor"/>
+        <codeInsight.lineMarkerProvider language="JAVA" implementationClass="com.microsoft.azure.toolkit.intellij.storage.code.spring.AzureStorageStringLiteralLineMarkerProvider"/>
+        <completion.confidence id="azStorageStringLiteral" language="JAVA" implementationClass="com.microsoft.azure.toolkit.intellij.storage.code.spring.AzureStorageStringLiteralCompletionConfidence" order="before javaSkipAutopopupInStrings"/>
+        <completion.contributor id="azStorageFunctionAnnotation" language="JAVA" order="first" implementationClass="com.microsoft.azure.toolkit.intellij.storage.code.function.AzureStorageFunctionAnnotationCompletionContributor"/>
+        <completion.contributor id="azStorageStringLiteral" language="JAVA" order="first" implementationClass="com.microsoft.azure.toolkit.intellij.storage.code.spring.AzureStorageJavaCompletionContributor"/>
+        <completion.contributor id="azStorageStringLiteralQuick" language="JAVA" order="after azStorageStringLiteral" implementationClass="com.microsoft.azure.toolkit.intellij.storage.code.spring.AzureStorageJavaQuickCompletionContributor"/>
+        <annotator language="JAVA" implementationClass="com.microsoft.azure.toolkit.intellij.storage.code.function.StorageFunctionPathAnnotator"/>
+        <typedHandler id="azStorageSpringValueAnnotation" implementation="com.microsoft.azure.toolkit.intellij.storage.code.spring.AzureStorageStringLiteralTypeHandler"/>
+        <lookup.charFilter id="azStorageSpringValueAnnotation" implementation="com.microsoft.azure.toolkit.intellij.storage.code.spring.AzureStorageStringLiteralCharFilter"/>
         <stepsBeforeRunProvider id="AzuriteTaskProviderId" implementation="com.microsoft.azure.toolkit.intellij.storage.azurite.AzuriteTaskProvider"/>
     </extensions>
     <projectListeners>

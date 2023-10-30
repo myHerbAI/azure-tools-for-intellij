@@ -3,19 +3,18 @@ package com.microsoft.azure.toolkit.intellij.storage.connection;
 import com.intellij.openapi.module.Module;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
-import com.microsoft.azure.toolkit.intellij.connector.completion.CompletionMetadataProvider;
-import com.microsoft.azure.toolkit.intellij.connector.completion.model.AnnotationIdentifier;
-import com.microsoft.azure.toolkit.intellij.connector.completion.model.CompletionItem;
-import com.microsoft.azure.toolkit.intellij.connector.completion.model.ParameterIdentifier;
-import com.microsoft.azure.toolkit.intellij.connector.completion.provider.AnnotationCompletionMetadata;
-import com.microsoft.azure.toolkit.intellij.connector.completion.provider.MethodCompletionMetadata;
+import com.microsoft.azure.toolkit.intellij.connector.code.CompletionMetadataProvider;
+import com.microsoft.azure.toolkit.intellij.connector.code.model.AnnotationIdentifier;
+import com.microsoft.azure.toolkit.intellij.connector.code.model.CompletionItem;
+import com.microsoft.azure.toolkit.intellij.connector.code.model.ParameterIdentifier;
+import com.microsoft.azure.toolkit.intellij.connector.code.provider.AnnotationCompletionMetadata;
+import com.microsoft.azure.toolkit.intellij.connector.code.provider.MethodCompletionMetadata;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
-import com.microsoft.azure.toolkit.lib.storage.blob.BlobContainer;
 import com.microsoft.azure.toolkit.lib.storage.blob.BlobFile;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
 import org.apache.commons.collections4.CollectionUtils;
@@ -28,7 +27,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.microsoft.azure.toolkit.intellij.connector.completion.model.CompletionItem.DEFAULT_LOOKUP_VALUES_FUNCTION;
+import static com.microsoft.azure.toolkit.intellij.connector.code.model.CompletionItem.DEFAULT_LOOKUP_VALUES_FUNCTION;
 
 public class StorageAccountCompletionProvider implements CompletionMetadataProvider {
     @Override

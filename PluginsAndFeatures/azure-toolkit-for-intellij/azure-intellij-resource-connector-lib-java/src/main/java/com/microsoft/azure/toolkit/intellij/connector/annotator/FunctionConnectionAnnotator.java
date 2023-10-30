@@ -25,9 +25,9 @@ import com.microsoft.azure.toolkit.intellij.connector.ConnectorDialog;
 import com.microsoft.azure.toolkit.intellij.connector.ModuleResource;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
-import com.microsoft.azure.toolkit.intellij.connector.completion.function.FunctionConnectionCompletionProvider;
+import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionConnectionCompletionProvider;
 import com.microsoft.azure.toolkit.intellij.connector.function.FunctionSupported;
-import com.microsoft.azure.toolkit.intellij.connector.completion.function.FunctionUtils;
+import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.microsoft.azure.toolkit.intellij.connector.completion.function.FunctionConnectionCompletionProvider.FUNCTION_ANNOTATION_CONNECTION_PATTERN;
+import static com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionConnectionCompletionProvider.FUNCTION_ANNOTATION_CONNECTION_PATTERN;
 
 public class FunctionConnectionAnnotator implements Annotator {
     @Override
