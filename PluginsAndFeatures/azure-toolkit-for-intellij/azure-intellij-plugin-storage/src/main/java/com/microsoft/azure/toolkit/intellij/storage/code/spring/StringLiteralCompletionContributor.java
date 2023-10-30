@@ -44,6 +44,6 @@ public class StringLiteralCompletionContributor extends CompletionContributor {
     public StringLiteralCompletionContributor() {
         super();
         extend(null, PREFIX_PLACES, new StringLiteralStoragePrefixCompletionProvider());
-        extend(null, psiElement().inside(literalExpression()), new StringLiteralResourceCompletionProvider());
+        extend(null, psiElement(JavaTokenType.STRING_LITERAL).withParent(literalExpression()), new StringLiteralResourceCompletionProvider());
     }
 }

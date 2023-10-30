@@ -11,9 +11,12 @@ import com.intellij.codeInsight.daemon.MergeableLineMarkerInfo;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.psi.JavaTokenType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiLiteralExpression;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
 import lombok.Getter;
 
@@ -31,10 +34,10 @@ public class StringLiteralStorageLineMarkerProvider implements LineMarkerProvide
     @Override
     @Nullable
     public LineMarkerInfo<?> getLineMarkerInfo(@Nonnull PsiElement element) {
-        if (psiElement().inside(literalExpression()).accepts(element) && element.getParent() instanceof PsiLiteralExpression literal) {
+        if (psiElement(JavaTokenType.STRING_LITERAL).withParent(literalExpression()).accepts(element) && element.getParent() instanceof PsiLiteralExpression literal) {
             final Module module = ModuleUtil.findModuleForPsiElement(element);
-            final String valueWithPrefix = literal.getValue() instanceof String ? (String) literal.getValue() : null;
-            if (Objects.nonNull(module) && valueWithPrefix != null && (valueWithPrefix.startsWith("azure-blob://") || valueWithPrefix.startsWith("azure-file://"))) {
+            final String valueWithPrefix = literal.getValue() instanceof String ? (String) literal.getValue() : element.getText();
+            if (Objects.nonNull(module) && (valueWithPrefix.startsWith("azure-blob://") || valueWithPrefix.startsWith("azure-file://")) && Azure.az(AzureAccount.class).isLoggedIn()) {
                 final String prefix = valueWithPrefix.startsWith("azure-blob://") ? "azure-blob://" : "azure-file://";
                 final StorageFile file = StringLiteralResourceCompletionProvider.getFile(valueWithPrefix, module);
                 if (Objects.nonNull(file)) {

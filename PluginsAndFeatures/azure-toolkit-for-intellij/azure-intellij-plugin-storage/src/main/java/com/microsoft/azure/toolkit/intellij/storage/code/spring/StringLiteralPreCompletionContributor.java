@@ -12,6 +12,7 @@ import com.intellij.codeInsight.completion.CompletionProvider;
 import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.psi.JavaTokenType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.util.ProcessingContext;
@@ -36,7 +37,7 @@ public class StringLiteralPreCompletionContributor extends CompletionContributor
 
     public StringLiteralPreCompletionContributor() {
         super();
-        extend(null, psiElement().inside(literalExpression()), new CompletionProvider<>() {
+        extend(null, psiElement(JavaTokenType.STRING_LITERAL).withParent(literalExpression()), new CompletionProvider<>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters, @NotNull final ProcessingContext context, @NotNull final CompletionResultSet result) {
                 final PsiElement element = parameters.getPosition();
