@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -58,9 +59,10 @@ public class StringLiteralResourceReference extends PsiReferenceBase<PsiElement>
             return null;
         }
         return Optional.of(this.getElement()).map(ModuleUtil::findModuleForPsiElement)
-            .map(m -> StringLiteralResourceCompletionProvider.getFile(fullNameWithPrefix, m))
-            .map(AzureStorageResourcePsiElement::new)
-            .orElse(null);
+                .map(m -> Objects.isNull(account) ? StringLiteralResourceCompletionProvider.getFile(fullNameWithPrefix, m) :
+                        StringLiteralResourceCompletionProvider.getFile(fullNameWithPrefix, List.of(account)))
+                .map(AzureStorageResourcePsiElement::new)
+                .orElse(null);
     }
 
     class AzureStorageResourcePsiElement extends FakePsiElement implements SyntheticElement {
