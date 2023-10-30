@@ -16,7 +16,7 @@ import com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvide
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.projectexplorer.AbstractAzureFacetNode;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.Nullable;
@@ -26,11 +26,17 @@ import javax.swing.*;
 import java.util.Objects;
 
 public class FunctionStringLiteralResourceReference extends PsiReferenceBase<PsiElement> {
-    private final AbstractAzResource<?, ?, ?> resource;
+    private final AzResource resource;
     private final Connection<?, ?> connection;
 
     public FunctionStringLiteralResourceReference(@Nonnull final PsiElement element, @Nonnull TextRange rangeInElement,
-                                                  @Nonnull final AbstractAzResource<?, ?, ?> resource,
+                                                  @Nonnull final Connection<?, ?> connection,
+                                                  boolean soft) {
+        this(element, rangeInElement, (AzResource) connection.getResource().getData(), connection, soft);
+    }
+
+    public FunctionStringLiteralResourceReference(@Nonnull final PsiElement element, @Nonnull TextRange rangeInElement,
+                                                  @Nonnull final AzResource resource,
                                                   @Nonnull final Connection<?, ?> connection,
                                                   boolean soft) {
         super(element, rangeInElement, soft);
@@ -44,13 +50,13 @@ public class FunctionStringLiteralResourceReference extends PsiReferenceBase<Psi
         if (Objects.isNull(module)) {
             return null;
         }
-        return new AzureCosmosResourcePsiElement(resource, connection);
+        return new AzureResourcePsiElement(resource, connection);
     }
 
 
     @AllArgsConstructor
-    class AzureCosmosResourcePsiElement extends FakePsiElement implements SyntheticElement {
-        private final AbstractAzResource<?, ?, ?> resource;
+    class AzureResourcePsiElement extends FakePsiElement implements SyntheticElement {
+        private final AzResource resource;
         private final Connection<?, ?> connection;
 
         @Override
