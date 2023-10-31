@@ -8,7 +8,7 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 import javax.swing.Icon
 
-class FunctionDeploymentConfigurationFactory(type: ConfigurationType): ConfigurationFactory(type) {
+class FunctionDeploymentConfigurationFactory(type: ConfigurationType) : ConfigurationFactory(type) {
     companion object {
         private const val FACTORY_ID = "Azure - Deploy Function"
         private const val FACTORY_NAME = "Deploy Function"
@@ -21,8 +21,8 @@ class FunctionDeploymentConfigurationFactory(type: ConfigurationType): Configura
     override fun getName() = FACTORY_NAME
 
     override fun createTemplateConfiguration(project: Project) =
-            FunctionDeploymentConfiguration(project, this, project.name)
+        FunctionDeploymentConfiguration(project, this, project.name)
 
     override fun createConfiguration(name: String?, template: RunConfiguration) =
-            FunctionDeploymentConfiguration(template.project, this, name)
+        FunctionDeploymentConfiguration(template.project, this, name)
 }

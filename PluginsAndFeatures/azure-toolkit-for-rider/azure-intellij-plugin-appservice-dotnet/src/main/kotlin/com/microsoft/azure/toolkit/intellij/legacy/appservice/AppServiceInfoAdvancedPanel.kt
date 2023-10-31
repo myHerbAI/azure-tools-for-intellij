@@ -16,8 +16,8 @@ import com.microsoft.azure.toolkit.intellij.common.component.resourcegroup.Resou
 import com.microsoft.azure.toolkit.intellij.common.configurationAndPlatformComboBox
 import com.microsoft.azure.toolkit.intellij.common.dotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.ServicePlanComboBox
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.canBePublishedToAzure
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.toRuntime
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
@@ -39,7 +39,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import kotlin.io.path.Path
 
-class RiderAppServiceInfoAdvancedPanel<T>(
+class AppServiceInfoAdvancedPanel<T>(
         private val project: Project,
         private val defaultConfigSupplier: Supplier<T>
 ) : JPanel(), AzureFormPanel<T> where T : AppServiceConfig {

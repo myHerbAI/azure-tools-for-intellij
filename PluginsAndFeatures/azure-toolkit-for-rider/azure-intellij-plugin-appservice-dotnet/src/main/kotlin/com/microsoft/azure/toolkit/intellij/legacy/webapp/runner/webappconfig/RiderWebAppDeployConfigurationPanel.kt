@@ -24,8 +24,8 @@ import com.microsoft.azure.toolkit.intellij.common.configurationAndPlatformCombo
 import com.microsoft.azure.toolkit.intellij.common.dotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot
@@ -51,8 +51,8 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
     val panel: JPanel
 
     private lateinit var webAppComboBox: Cell<WebAppComboBox>
-    private lateinit var configurationAndPlatformComboBox: Cell<LabeledComponent<ComboBox<PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform?>>>
     private lateinit var dotnetProjectComboBox: Cell<AzureDotnetProjectComboBox>
+    private lateinit var configurationAndPlatformComboBox: Cell<LabeledComponent<ComboBox<PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform?>>>
     private lateinit var appSettingsTable: AppSettingsTable
     private lateinit var deploymentSlotGroup: CollapsibleRow
     private lateinit var deployToSlotCheckBox: Cell<JBCheckBox>
@@ -68,18 +68,18 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
 
     init {
         panel = panel {
+            row("Web App:") {
+                webAppComboBox = webAppComboBox(project)
+                    .align(Align.FILL)
+            }
             row("Project:") {
                 dotnetProjectComboBox = dotnetProjectComboBox(project) { it.canBePublishedToAzure() }
                         .align(Align.FILL)
                         .resizableColumn()
             }
-            row("Web App:") {
-                webAppComboBox = webAppComboBox(project)
-                        .align(Align.FILL)
-            }
             row("Configuration:") {
                 configurationAndPlatformComboBox = configurationAndPlatformComboBox(project)
-                        .align(Align.FILL)
+                    .align(Align.FILL)
             }
             row("App Settings:") {
                 appSettingsTable = AppSettingsTable()

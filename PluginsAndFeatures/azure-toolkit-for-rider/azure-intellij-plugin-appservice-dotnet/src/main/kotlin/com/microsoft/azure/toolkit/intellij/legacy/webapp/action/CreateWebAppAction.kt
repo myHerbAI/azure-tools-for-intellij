@@ -10,9 +10,9 @@ import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandlerMessenger
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.WebAppArtifactService
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
 import com.microsoft.azure.toolkit.lib.common.action.Action
@@ -28,7 +28,7 @@ class CreateWebAppAction {
     companion object {
         fun openDialog(project: Project, data: WebAppConfig?) {
             AzureTaskManager.getInstance().runLater {
-                val dialog = RiderWebAppCreationDialog(project)
+                val dialog = WebAppCreationDialog(project)
                 if (data != null) dialog.data = data
 
                 val actionId = Action.Id.of<WebAppConfig>("user/webapp.create_app.app")

@@ -7,9 +7,15 @@ import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunConfigurationBase
 
 class FunctionDeploymentConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
-        RiderAzureRunConfigurationBase<FunctionDeployModel>(project, factory, name) {
+    RiderAzureRunConfigurationBase<FunctionDeployModel>(project, factory, name) {
 
     private val functionDeploymentModel = FunctionDeployModel()
+
+    var appSettingsKey: String?
+        get() = functionDeploymentModel.appSettingsKey
+        set(value) {
+            functionDeploymentModel.appSettingsKey = value
+        }
 
     override fun getModel() = functionDeploymentModel
 
@@ -17,7 +23,7 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
     }
 
     override fun getState(executor: Executor, environment: ExecutionEnvironment) =
-            FunctionDeploymentState(project, this)
+        FunctionDeploymentState(project, this)
 
-    override fun getConfigurationEditor() = FunctionDeploymentEditor(project)
+    override fun getConfigurationEditor() = FunctionDeploymentSettingsEditor(project, this)
 }

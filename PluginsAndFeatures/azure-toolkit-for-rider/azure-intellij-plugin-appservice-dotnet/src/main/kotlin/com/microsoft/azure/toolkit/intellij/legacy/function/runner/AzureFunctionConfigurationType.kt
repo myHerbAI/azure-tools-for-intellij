@@ -6,10 +6,10 @@ import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.FunctionDeploymentConfigurationFactory
 
 class AzureFunctionConfigurationType : ConfigurationTypeBase(
-        "AzureFunctionAppPublish",
-        "Azure - Function App",
-        "Azure Publish Function App configuration",
-        IntelliJAzureIcons.getIcon(AzureIcons.FunctionApp.MODULE)
+    "AzureFunctionAppPublish",
+    "Azure - Function App",
+    "Azure Publish Function App configuration",
+    IntelliJAzureIcons.getIcon(AzureIcons.FunctionApp.MODULE)
 ) {
     init {
         addFactory(FunctionDeploymentConfigurationFactory(this))
