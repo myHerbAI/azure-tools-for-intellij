@@ -60,7 +60,7 @@ public class YamlValueCompletionProvider extends CompletionProvider<CompletionPa
         final List<? extends SpringSupported<?>> definitions = ResourceManager.getDefinitions().stream()
                 .filter(d -> d instanceof SpringSupported<?>)
                 .map(d -> (SpringSupported<?>) d)
-                .filter(d -> d.getSpringProperties().stream().anyMatch(p -> StringUtils.equals(p.getKey(), key)))
+                .filter(d -> d.getSpringProperties(key).stream().anyMatch(p -> StringUtils.equals(p.getKey(), key)))
                 .collect(Collectors.toList());
         ProgressManager.checkCanceled();
         final Module module = ModuleUtil.findModuleForPsiElement(parameters.getOriginalFile());
@@ -107,7 +107,7 @@ public class YamlValueCompletionProvider extends CompletionProvider<CompletionPa
         final YAMLPsiElement yamlElement = Objects.requireNonNull(PsiTreeUtil.getParentOfType(element, YAMLPsiElement.class));
         final String key = YAMLUtil.getConfigFullName(yamlElement);
         final SpringSupported<?> definition = (SpringSupported<?>)connection.getResource().getDefinition();
-        final String value = definition.getSpringProperties().stream()
+        final String value = definition.getSpringProperties(key).stream()
                 .filter(pair -> StringUtils.equalsIgnoreCase(pair.getKey(), key))
                 .findFirst()
                 .map(Pair::getValue)
@@ -116,7 +116,7 @@ public class YamlValueCompletionProvider extends CompletionProvider<CompletionPa
         context.getDocument().insertString(context.getStartOffset(), value);
         context.commitDocument();
         // add up missing connection parameters
-        YamlUtils.insertYamlConnection(connection, context);
+        YamlUtils.insertYamlConnection(connection, context, key);
     }
 }
 

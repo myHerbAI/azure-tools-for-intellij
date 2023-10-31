@@ -88,7 +88,7 @@ public class PropertiesValueCompletionProvider extends CompletionProvider<Comple
         final List<ResourceDefinition<?>> definitions = ResourceManager.getDefinitions(ResourceDefinition.RESOURCE).stream()
             .filter(d -> d instanceof SpringSupported<?>).toList();
         return definitions.stream().map(d -> (SpringSupported<?>) d)
-            .filter(d -> d.getSpringProperties().stream().anyMatch(p -> p.getKey().equals(key)))
+            .filter(d -> d.getSpringProperties(key).stream().anyMatch(p -> p.getKey().equals(key)))
             .toList();
     }
 
@@ -125,11 +125,14 @@ public class PropertiesValueCompletionProvider extends CompletionProvider<Comple
         @AzureOperation(name = "user/connector.insert_value_in_properties")
         public static void insert(Connection<?, ?> c, @Nonnull InsertionContext context) {
             final PsiElement element = context.getFile().findElementAt(context.getStartOffset());
-            final List<Pair<String, String>> properties = SpringSupported.getProperties(c);
-            if (properties.size() < 1 || Objects.isNull(element)) {
+            if (Objects.isNull(element)) {
                 return;
             }
             final String k0 = element.getParent().getFirstChild().getText().trim();
+            final List<Pair<String, String>> properties = SpringSupported.getProperties(c, k0);
+            if (properties.size() < 1) {
+                return;
+            }
             properties.stream().filter(p -> p.getKey().equals(k0)).findAny().ifPresent(p -> {
                 properties.remove(p);
                 properties.add(0, p);

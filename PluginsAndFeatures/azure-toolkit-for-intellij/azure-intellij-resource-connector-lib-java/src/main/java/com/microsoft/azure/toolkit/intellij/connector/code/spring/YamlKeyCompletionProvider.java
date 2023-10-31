@@ -57,7 +57,7 @@ public class YamlKeyCompletionProvider extends CompletionProvider<CompletionPara
         ResourceManager.getDefinitions().stream()
                 .filter(d -> d instanceof SpringSupported<?>)
                 .map(d -> (SpringSupported<?>) d)
-                .flatMap(d -> d.getSpringProperties().stream().map(p -> Triple.of(p.getKey(), p.getValue(), d)))
+                .flatMap(d -> d.getSpringProperties(key).stream().map(p -> Triple.of(p.getKey(), p.getValue(), d)))
                 .filter(t -> !StringUtils.startsWith(t.getLeft(), "#")) // filter out commented properties
                 .filter(t -> StringUtils.isBlank(key) || (StringUtils.startsWith(t.getLeft(), key) && !StringUtils.equals(t.getLeft(), key)))
                 .filter(t -> YAMLUtil.getQualifiedKeyInFile(yamlFile, getKeyListForProperty(t.getLeft())) == null)

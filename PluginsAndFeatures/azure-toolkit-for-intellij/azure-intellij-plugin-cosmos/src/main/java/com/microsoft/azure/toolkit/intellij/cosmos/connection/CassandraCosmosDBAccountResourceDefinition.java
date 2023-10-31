@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.cosmos.cassandra.CassandraCosmosDBAccount
 import com.microsoft.azure.toolkit.lib.cosmos.cassandra.CassandraKeyspace;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -66,7 +67,7 @@ public class CassandraCosmosDBAccountResourceDefinition extends AzureServiceReso
     }
 
     @Override
-    public List<Pair<String, String>> getSpringProperties() {
+    public List<Pair<String, String>> getSpringProperties(@Nullable final String key) {
         final List<Pair<String, String>> properties = new ArrayList<>();
         properties.add(Pair.of("spring.data.cassandra.contact-points", String.format("${%s_CONTACT_POINT}", Connection.ENV_PREFIX)));
         properties.add(Pair.of("spring.data.cassandra.port", String.format("${%s_PORT}", Connection.ENV_PREFIX)));
