@@ -27,6 +27,9 @@ import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager;
 import com.microsoft.azure.toolkit.intellij.connector.function.FunctionSupported;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -82,6 +85,7 @@ public class FunctionConnectionCompletionContributor extends CompletionContribut
                 final AzureModule azureModule = Optional.ofNullable(module).map(AzureModule::from).orElse(null);
                 // get all connection string from function definition
                 addExistingConnectionLookupElements(azureModule, result, resourceDefinition);
+                AzureTelemeter.log(AzureTelemetry.Type.OP_END, OperationBundle.description("boundary/connector.complete_function_connection"));
             }
         });
     }
