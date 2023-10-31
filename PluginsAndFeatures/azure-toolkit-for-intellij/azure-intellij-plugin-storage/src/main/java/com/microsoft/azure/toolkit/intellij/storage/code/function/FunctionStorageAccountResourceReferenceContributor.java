@@ -34,7 +34,7 @@ public class FunctionStorageAccountResourceReferenceContributor extends PsiRefer
     @Override
     public void registerReferenceProviders(@Nonnull PsiReferenceRegistrar registrar) {
         // blob
-        registrar.registerReferenceProvider(psiElement(PsiLiteralExpression.class).inside(BLOB_PATH_PAIR_PATTERN), new PsiReferenceProvider() {
+        registrar.registerReferenceProvider(psiElement(PsiLiteralExpression.class).withParent(BLOB_PATH_PAIR_PATTERN), new PsiReferenceProvider() {
             @Override
             public PsiReference @NotNull [] getReferencesByElement(@NotNull PsiElement element, @NotNull ProcessingContext context) {
                 if (!Azure.az(AzureAccount.class).isLoggedIn()) {
@@ -52,7 +52,7 @@ public class FunctionStorageAccountResourceReferenceContributor extends PsiRefer
             }
         });
         // queue
-        registrar.registerReferenceProvider(psiElement(PsiLiteralExpression.class).inside(QUEUE_NAME_PAIR_PATTERN), new PsiReferenceProvider() {
+        registrar.registerReferenceProvider(psiElement(PsiLiteralExpression.class).withParent(QUEUE_NAME_PAIR_PATTERN), new PsiReferenceProvider() {
             @Override
             public PsiReference[] getReferencesByElement(@Nonnull PsiElement element, @Nonnull ProcessingContext context) {
                 final PsiLiteralExpression literal = (PsiLiteralExpression) element;
@@ -71,7 +71,7 @@ public class FunctionStorageAccountResourceReferenceContributor extends PsiRefer
             }
         });
         // table
-        registrar.registerReferenceProvider(psiElement(PsiLiteralExpression.class).inside(TABLE_NAME_PAIR_PATTERN), new PsiReferenceProvider() {
+        registrar.registerReferenceProvider(psiElement(PsiLiteralExpression.class).withParent(TABLE_NAME_PAIR_PATTERN), new PsiReferenceProvider() {
             @Override
             public PsiReference[] getReferencesByElement(@Nonnull PsiElement element, @Nonnull ProcessingContext context) {
                 final PsiLiteralExpression literal = (PsiLiteralExpression) element;
