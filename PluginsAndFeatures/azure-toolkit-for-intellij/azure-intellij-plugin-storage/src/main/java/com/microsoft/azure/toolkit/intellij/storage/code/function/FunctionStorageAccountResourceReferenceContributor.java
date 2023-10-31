@@ -40,7 +40,7 @@ public class FunctionStorageAccountResourceReferenceContributor extends PsiRefer
                 final PsiAnnotation annotation = Objects.requireNonNull(PsiTreeUtil.getParentOfType(element, PsiAnnotation.class));
                 final StorageAccount storageAccount = Utils.getBindingStorageAccount(annotation);
                 if (Objects.nonNull(storageAccount)) {
-                    return StringLiteralResourceReferenceContributor.getStorageBlobReferences(StringUtils.EMPTY, "azure-blob://", literal, storageAccount);
+                    return StringLiteralResourceReferenceContributor.getStorageFileReferences(StringUtils.EMPTY, "azure-blob://", literal, storageAccount);
                 }
                 return PsiReference.EMPTY_ARRAY;
             }

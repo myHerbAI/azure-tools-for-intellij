@@ -31,14 +31,14 @@ public class StringLiteralResourceReferenceContributor extends PsiReferenceContr
                 final String valueWithPrefix = literal.getValue() instanceof String ? (String) literal.getValue() : element.getText();
                 if ((valueWithPrefix.startsWith("azure-blob://") || valueWithPrefix.startsWith("azure-file://"))) {
                     final String prefix = valueWithPrefix.startsWith("azure-blob://") ? "azure-blob://" : "azure-file://";
-                    return getStorageBlobReferences(prefix, prefix, literal, null);
+                    return getStorageFileReferences(prefix, prefix, literal, null);
                 }
                 return PsiReference.EMPTY_ARRAY;
             }
         });
     }
 
-    public static PsiReference[] getStorageBlobReferences(@Nonnull final String prefix, @Nonnull final String proxy,
+    public static PsiReference[] getStorageFileReferences(@Nonnull final String prefix, @Nonnull final String protocol,
                                                           @Nonnull final PsiLiteralExpression element, @Nullable final StorageAccount account) {
         final String text = element.getText();
         final String valueWithPrefix = element.getValue() instanceof String ? (String) element.getValue() : StringUtils.EMPTY;
@@ -52,7 +52,7 @@ public class StringLiteralResourceReferenceContributor extends PsiReferenceContr
             }
             final int endOffset = offset + part.length();
             final TextRange range = new TextRange(offset, endOffset);
-            final String fullNameWithPrefix = proxy + new TextRange(startOffset, endOffset).substring(text);
+            final String fullNameWithPrefix = protocol + new TextRange(startOffset, endOffset).substring(text);
             references.add(new StringLiteralResourceReference(element, range, fullNameWithPrefix, account));
             offset = endOffset + 1;
         }
