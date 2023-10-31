@@ -10,19 +10,18 @@ import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
-import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionStringLiteralResourceReference;
-import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionUtils;
+import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationResourceReference;
 import com.microsoft.azure.toolkit.intellij.storage.code.Utils;
 import com.microsoft.azure.toolkit.intellij.storage.code.spring.StringLiteralResourceReferenceContributor;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
-import com.microsoft.azure.toolkit.lib.storage.queue.Queue;
-import com.microsoft.azure.toolkit.lib.storage.table.Table;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
 import static com.intellij.patterns.PsiJavaPatterns.psiElement;
 import static com.microsoft.azure.toolkit.intellij.storage.code.function.FunctionBlobPathCompletionProvider.BLOB_PATH_PAIR_PATTERN;
@@ -52,15 +51,15 @@ public class FunctionStorageAccountResourceReferenceContributor extends PsiRefer
             public PsiReference[] getReferencesByElement(@Nonnull PsiElement element, @Nonnull ProcessingContext context) {
                 final PsiLiteralExpression literal = (PsiLiteralExpression) element;
                 final String value = literal.getValue() instanceof String ? (String) literal.getValue() : null;
-                final PsiAnnotation annotation = Objects.requireNonNull(PsiTreeUtil.getParentOfType(element, PsiAnnotation.class));
-                final Connection<?, ?> connection = FunctionUtils.getConnectionFromAnnotation(annotation);
-                final StorageAccount storageAccount = Utils.getBindingStorageAccount(annotation);
-                final Queue queue = Optional.ofNullable(storageAccount)
-                        .map(account -> account.getQueueModule().get(value, account.getResourceGroupName()))
-                        .orElse(null);
-                if (Objects.nonNull(queue)) {
-                    final TextRange range = new TextRange(value.indexOf(queue.getName()) + 1, value.indexOf(queue.getName()) + 1 + queue.getName().length());
-                    return new PsiReference[]{new FunctionStringLiteralResourceReference(element, range, queue, Objects.requireNonNull(connection), true)};
+                final BiFunction<PsiAnnotation, Connection<?, ?>, AzResource> function = (annotation, connection) -> {
+                    final StorageAccount storageAccount = Utils.getBindingStorageAccount(annotation);
+                    return Optional.ofNullable(storageAccount)
+                            .map(account -> account.getQueueModule().get(value, account.getResourceGroupName()))
+                            .orElse(null);
+                };
+                if (StringUtils.isNotBlank(value)) {
+                    final TextRange range = new TextRange(1, value.length() + 1);
+                    return new PsiReference[]{new FunctionAnnotationResourceReference(element, range, function)};
                 }
                 return PsiReference.EMPTY_ARRAY;
             }
@@ -71,15 +70,15 @@ public class FunctionStorageAccountResourceReferenceContributor extends PsiRefer
             public PsiReference[] getReferencesByElement(@Nonnull PsiElement element, @Nonnull ProcessingContext context) {
                 final PsiLiteralExpression literal = (PsiLiteralExpression) element;
                 final String value = literal.getValue() instanceof String ? (String) literal.getValue() : StringUtils.EMPTY;
-                final PsiAnnotation annotation = Objects.requireNonNull(PsiTreeUtil.getParentOfType(element, PsiAnnotation.class));
-                final Connection<?, ?> connection = FunctionUtils.getConnectionFromAnnotation(annotation);
-                final StorageAccount storageAccount = Utils.getBindingStorageAccount(annotation);
-                final Table table = Optional.ofNullable(storageAccount)
-                        .map(account -> account.getTableModule().get(value, account.getResourceGroupName()))
-                        .orElse(null);
-                if (Objects.nonNull(table)) {
-                    final TextRange range = new TextRange(value.indexOf(table.getName()) + 1, value.indexOf(table.getName()) + 1 + table.getName().length());
-                    return new PsiReference[]{new FunctionStringLiteralResourceReference(element, range, table, Objects.requireNonNull(connection), true)};
+                final BiFunction<PsiAnnotation, Connection<?, ?>, AzResource> function = (annotation, connection) -> {
+                    final StorageAccount storageAccount = Utils.getBindingStorageAccount(annotation);
+                    return Optional.ofNullable(storageAccount)
+                            .map(account -> account.getTableModule().get(value, account.getResourceGroupName()))
+                            .orElse(null);
+                };
+                if (StringUtils.isNotBlank(value)) {
+                    final TextRange range = new TextRange(1, value.length() + 1);
+                    return new PsiReference[]{new FunctionAnnotationResourceReference(element, range, function)};
                 }
                 return PsiReference.EMPTY_ARRAY;
             }

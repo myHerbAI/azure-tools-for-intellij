@@ -7,13 +7,11 @@ package com.microsoft.azure.toolkit.intellij.connector.code.function;
 
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
-import com.microsoft.azure.toolkit.intellij.connector.Connection;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
-import java.util.Objects;
 
 import static com.intellij.patterns.PsiJavaPatterns.psiElement;
 import static com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionConnectionCompletionProvider.CONNECTION_NAME_VALUE;
@@ -27,12 +25,9 @@ public class FunctionConnectionReferenceContributor extends PsiReferenceContribu
             public PsiReference @NotNull [] getReferencesByElement(@NotNull PsiElement element, @NotNull ProcessingContext context) {
                 final PsiLiteralExpression literal = (PsiLiteralExpression) element;
                 final String value = literal.getValue() instanceof String ? (String) literal.getValue() : null;
-                final PsiAnnotation annotation = Objects.requireNonNull(PsiTreeUtil.getParentOfType(element, PsiAnnotation.class));
-                final Connection<?, ?> connection = FunctionUtils.getConnectionFromAnnotation(annotation);
-                if (Objects.nonNull(connection)) {
-                    final String envPrefix = connection.getEnvPrefix();
-                    final TextRange range = new TextRange(value.indexOf(envPrefix) + 1, value.indexOf(envPrefix) + 1 + envPrefix.length());
-                    return new PsiReference[]{new FunctionStringLiteralResourceReference(element, range, Objects.requireNonNull(connection), true)};
+                if (StringUtils.isNotBlank(value)) {
+                    final TextRange range = new TextRange(1, value.length() + 1);
+                    return new PsiReference[]{new FunctionAnnotationResourceReference(element, range)};
                 }
                 return PsiReference.EMPTY_ARRAY;
             }

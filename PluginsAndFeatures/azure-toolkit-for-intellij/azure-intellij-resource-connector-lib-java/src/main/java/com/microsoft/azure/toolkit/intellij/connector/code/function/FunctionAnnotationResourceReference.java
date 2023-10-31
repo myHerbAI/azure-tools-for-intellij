@@ -8,13 +8,16 @@ package com.microsoft.azure.toolkit.intellij.connector.code.function;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.SyntheticElement;
 import com.intellij.psi.impl.FakePsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
+import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.intellij.connector.projectexplorer.AbstractAzureFacetNode;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -24,33 +27,38 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.BiFunction;
 
-public class FunctionStringLiteralResourceReference extends PsiReferenceBase<PsiElement> {
-    private final AzResource resource;
-    private final Connection<?, ?> connection;
+public class FunctionAnnotationResourceReference extends PsiReferenceBase<PsiElement> {
+    private static final BiFunction<PsiAnnotation, Connection<?, ?>, AzResource> DEFAULT_RESOURCE_FUNCTION =
+            (element, connection) -> Optional.ofNullable(connection).map(Connection::getResource)
+                    .map(Resource::getData)
+                    .filter(AzResource.class::isInstance)
+                    .map(AzResource.class::cast).orElse(null);
 
-    public FunctionStringLiteralResourceReference(@Nonnull final PsiElement element, @Nonnull TextRange rangeInElement,
-                                                  @Nonnull final Connection<?, ?> connection,
-                                                  boolean soft) {
-        this(element, rangeInElement, (AzResource) connection.getResource().getData(), connection, soft);
+    private final BiFunction<PsiAnnotation, Connection<?, ?>, ? extends AzResource> resourceFunction;
+
+    public FunctionAnnotationResourceReference(@Nonnull final PsiElement element, @Nonnull TextRange rangeInElement) {
+        this(element, rangeInElement, DEFAULT_RESOURCE_FUNCTION);
     }
 
-    public FunctionStringLiteralResourceReference(@Nonnull final PsiElement element, @Nonnull TextRange rangeInElement,
-                                                  @Nonnull final AzResource resource,
-                                                  @Nonnull final Connection<?, ?> connection,
-                                                  boolean soft) {
-        super(element, rangeInElement, soft);
-        this.resource = resource;
-        this.connection = connection;
+    public FunctionAnnotationResourceReference(@Nonnull final PsiElement element, @Nonnull TextRange rangeInElement,
+                                               @Nonnull BiFunction<PsiAnnotation, Connection<?, ?>, ? extends AzResource> resourceFunction) {
+        super(element, rangeInElement);
+        this.resourceFunction = resourceFunction;
     }
 
     @Override
     public @Nullable PsiElement resolve() {
-        final Module module = ModuleUtil.findModuleForFile(this.getElement().getContainingFile());
-        if (Objects.isNull(module)) {
+        final PsiAnnotation annotation = PsiTreeUtil.getParentOfType(getElement(), PsiAnnotation.class);
+        final Connection<?, ?> connection = Optional.ofNullable(annotation)
+                .map(FunctionUtils::getConnectionFromAnnotation).orElse(null);
+        if (Objects.isNull(annotation) || Objects.isNull(connection)) {
             return null;
         }
-        return new AzureResourcePsiElement(resource, connection);
+        final AzResource resource = resourceFunction.apply(annotation, connection);
+        return Optional.ofNullable(resource).map(r -> new AzureResourcePsiElement(r, connection)).orElse(null);
     }
 
 
