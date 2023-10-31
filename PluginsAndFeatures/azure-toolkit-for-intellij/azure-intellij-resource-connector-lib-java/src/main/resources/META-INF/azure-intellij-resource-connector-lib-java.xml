@@ -30,11 +30,6 @@
         <connectionProvider implementation="com.microsoft.azure.toolkit.intellij.connector.JavaConnection$JavaConnectionProvider"/>
     </extensions>
 
-    <extensionPoints>
-        <extensionPoint name="completionMetadataProvider"
-                        interface="com.microsoft.azure.toolkit.intellij.connector.code.CompletionMetadataProvider"/>
-    </extensionPoints>
-
     <projectListeners>
         <listener class="com.microsoft.azure.toolkit.intellij.connector.dotazure.BeforeRunTaskAdder"
                   topic="com.intellij.execution.RunManagerListener" />
