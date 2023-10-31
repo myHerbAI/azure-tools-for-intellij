@@ -65,31 +65,29 @@ public class StringLiteralResourceCompletionProvider extends CompletionProvider<
         final boolean isBlobContainer = fullPrefix.startsWith("azure-blob://");
         final boolean isFileShare = fullPrefix.startsWith("azure-file://");
 
-        if (isBlobContainer || isFileShare) {
+        if ((isBlobContainer || isFileShare) && Azure.az(AzureAccount.class).isLoggedIn()) {
             final Module module = ModuleUtil.findModuleForFile(parameters.getOriginalFile());
             if (Objects.isNull(module)) {
                 return;
             }
-            if (Azure.az(AzureAccount.class).isLoggedIn()) {
-                final List<? extends StorageFile> files = getFiles(fullPrefix, Utils.getConnectedStorageAccounts(module));
-                final String[] parts = result.getPrefixMatcher().getPrefix().trim().split("/", -1);
-                result = result.withPrefixMatcher(parts[parts.length - 1]);
-                AzureTelemeter.info("connector.resources_count.storage_resources_code_completion", ImmutableMap.of("count", files.size() + ""));
-                final BiFunction<StorageFile, String, LookupElementBuilder> builder = (file, title) -> LookupElementBuilder.create(title)
-                    .withInsertHandler(new MyInsertHandler(title.endsWith("/")))
-                    .withBoldness(true)
-                    .withCaseSensitivity(false)
-                    .withTypeText(file.getResourceTypeName())
-                    .withTailText(" " + Optional.ofNullable(getStorageAccount(file)).map(AbstractAzResource::getName).orElse(""))
-                    .withIcon(IntelliJAzureIcons.getIcon(getFileIcon(file)));
-                for (final StorageFile file : files) {
-                    result.addElement(builder.apply(file, file.getName()));
-                    if (file.isDirectory()) {
-                        result.addElement(builder.apply(file, file.getName() + "/"));
-                    }
+            final List<? extends StorageFile> files = getFiles(fullPrefix, Utils.getConnectedStorageAccounts(module));
+            final String[] parts = result.getPrefixMatcher().getPrefix().trim().split("/", -1);
+            result = result.withPrefixMatcher(parts[parts.length - 1]);
+            AzureTelemeter.info("connector.resources_count.storage_resources_code_completion", ImmutableMap.of("count", files.size() + ""));
+            final BiFunction<StorageFile, String, LookupElementBuilder> builder = (file, title) -> LookupElementBuilder.create(title)
+                .withInsertHandler(new MyInsertHandler(title.endsWith("/")))
+                .withBoldness(true)
+                .withCaseSensitivity(false)
+                .withTypeText(file.getResourceTypeName())
+                .withTailText(" " + Optional.ofNullable(getStorageAccount(file)).map(AbstractAzResource::getName).orElse(""))
+                .withIcon(IntelliJAzureIcons.getIcon(getFileIcon(file)));
+            for (final StorageFile file : files) {
+                result.addElement(builder.apply(file, file.getName()));
+                if (file.isDirectory()) {
+                    result.addElement(builder.apply(file, file.getName() + "/"));
                 }
-                AzureTelemeter.log(AzureTelemetry.Type.OP_END, OperationBundle.description("boundary/connector.complete_storage_resources_in_string_literal"));
             }
+            AzureTelemeter.log(AzureTelemetry.Type.OP_END, OperationBundle.description("boundary/connector.complete_storage_resources_in_string_literal"));
         }
     }
 
@@ -118,7 +116,12 @@ public class StringLiteralResourceCompletionProvider extends CompletionProvider<
 
     @Nullable
     public static StorageFile getFile(String fullPrefix, Module module) {
-        final List<? extends StorageFile> files = getFiles(fullPrefix, Utils.getConnectedStorageAccounts(module));
+        return getFile(fullPrefix, Utils.getConnectedStorageAccounts(module));
+    }
+
+    @Nullable
+    public static StorageFile getFile(String fullPrefix, @Nonnull final List<StorageAccount> accounts) {
+        final List<? extends StorageFile> files = getFiles(fullPrefix, accounts);
         final String[] parts = fullPrefix.trim().split("/", -1);
         return files.stream().filter(f -> f.getName().equalsIgnoreCase(parts[parts.length - 1].trim())).findFirst().orElse(null);
     }

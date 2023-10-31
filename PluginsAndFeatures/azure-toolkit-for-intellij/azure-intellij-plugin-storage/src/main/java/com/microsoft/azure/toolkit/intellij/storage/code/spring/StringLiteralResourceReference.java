@@ -13,6 +13,8 @@ import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.SyntheticElement;
 import com.intellij.psi.impl.FakePsiElement;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
@@ -21,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Objects;
+import java.util.Optional;
 
 public class StringLiteralResourceReference extends PsiReferenceBase<PsiElement> {
     private String fullNameWithPrefix;
@@ -44,15 +47,13 @@ public class StringLiteralResourceReference extends PsiReferenceBase<PsiElement>
 
     @Override
     public @Nullable PsiElement resolve() {
-        final Module module = ModuleUtil.findModuleForFile(this.getElement().getContainingFile());
-        if (Objects.isNull(module)) {
+        if(!Azure.az(AzureAccount.class).isLoggedIn()){
             return null;
         }
-        final StorageFile file = StringLiteralResourceCompletionProvider.getFile(fullNameWithPrefix, module);
-        if (Objects.nonNull(file)) {
-            return new AzureStorageResourcePsiElement(file);
-        }
-        return null;
+        return Optional.of(this.getElement()).map(ModuleUtil::findModuleForPsiElement)
+            .map(m -> StringLiteralResourceCompletionProvider.getFile(fullNameWithPrefix, m))
+            .map(AzureStorageResourcePsiElement::new)
+            .orElse(null);
     }
 
     class AzureStorageResourcePsiElement extends FakePsiElement implements SyntheticElement {
