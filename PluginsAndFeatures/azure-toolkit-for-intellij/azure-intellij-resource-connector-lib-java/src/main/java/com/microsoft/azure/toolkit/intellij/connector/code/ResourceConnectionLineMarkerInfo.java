@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -95,6 +96,7 @@ public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<Ps
         private void initActions() {
             this.clickAction = new AnAction("Navigate", "Navigate to resource in explorer", this.getIcon()) {
                 @Override
+                @AzureOperation("user/connector.navigate_to_resource_in_line_marker")
                 public void actionPerformed(@Nonnull AnActionEvent e) {
                     if (Objects.isNull(e.getProject()) || e.getProject().isDisposed()) {
                         return;
@@ -104,12 +106,14 @@ public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<Ps
             };
             this.editConnectionAction = new AnAction("Edit Connection", "Edit resource connection for current resource", AllIcons.Actions.Edit) {
                 @Override
+                @AzureOperation("user/connector.edit_connection_in_line_marker")
                 public void actionPerformed(@NotNull AnActionEvent e) {
                     AzureActionManager.getInstance().getAction(ResourceConnectionActionsContributor.EDIT_CONNECTION).handle(connection, e);
                 }
             };
             this.editEnvAction = new AnAction("Edit Environment Variables", "Edit environment variables for current resource", AllIcons.Actions.Edit) {
                 @Override
+                @AzureOperation("user/connector.edit_env_in_line_marker")
                 public void actionPerformed(@NotNull AnActionEvent e) {
                     AzureActionManager.getInstance().getAction(ResourceConnectionActionsContributor.EDIT_ENV_FILE_IN_EDITOR).handle(connection, e);
                 }

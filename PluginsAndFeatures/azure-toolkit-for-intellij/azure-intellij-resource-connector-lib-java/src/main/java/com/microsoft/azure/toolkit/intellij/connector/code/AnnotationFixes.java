@@ -21,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -53,6 +54,7 @@ public class AnnotationFixes {
             }
 
             @Override
+            @AzureOperation("user/connector.create_connection_quick_fix")
             public void invoke(@Nonnull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
                 final Module module = ModuleUtil.findModuleForFile(file);
                 if (Objects.nonNull(module)) {
@@ -96,6 +98,7 @@ public class AnnotationFixes {
             }
 
             @Override
+            @AzureOperation("user/connector.sign_in_quick_fix")
             public void invoke(@Nonnull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
                 if (!Azure.az(AzureAccount.class).isLoggedIn()) {
                     AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle((a) -> callback.run());
