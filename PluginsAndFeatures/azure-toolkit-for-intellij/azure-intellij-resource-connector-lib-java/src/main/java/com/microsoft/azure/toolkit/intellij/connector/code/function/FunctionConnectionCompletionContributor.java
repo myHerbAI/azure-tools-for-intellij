@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager;
 import com.microsoft.azure.toolkit.intellij.connector.function.FunctionSupported;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -117,6 +118,7 @@ public class FunctionConnectionCompletionContributor extends CompletionContribut
                 .withTailText(String.format(" (%s : %s)", resource.getName(), definition.getTitle()));
     }
 
+    @AzureOperation(name = "user/connector.insert_function_connection")
     public static void onInsertConnection(@Nullable final Connection<?, ?> connection, @Nonnull final InsertionContext context) {
         if (Objects.isNull(connection)) {
             return;
