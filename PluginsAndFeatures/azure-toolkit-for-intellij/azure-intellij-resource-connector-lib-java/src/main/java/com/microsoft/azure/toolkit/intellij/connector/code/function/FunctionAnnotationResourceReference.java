@@ -5,8 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.connector.code.function;
 
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtil;
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiElement;
@@ -75,8 +74,7 @@ public class FunctionAnnotationResourceReference extends PsiReferenceBase<PsiEle
         @Override
         @AzureOperation("user/connector.navigate_to_resource_from_function_string_literal")
         public void navigate(boolean requestFocus) {
-            final Module module = ModuleUtil.findModuleForPsiElement(getElement());
-            AbstractAzureFacetNode.selectConnectedResource(connection, resource.getId(), true);
+            AbstractAzureFacetNode.selectConnectedResource(connection, resource.getId(), requestFocus);
         }
 
         @Override
@@ -91,7 +89,8 @@ public class FunctionAnnotationResourceReference extends PsiReferenceBase<PsiEle
 
         @Override
         public @Nullable String getLocationString() {
-            return resource.getId();
+            final ResourceId resourceId = ResourceId.fromString(resource.getId());
+            return Optional.ofNullable(resourceId).map(ResourceId::parent).map(ResourceId::id).orElseGet(() -> resourceId.resourceGroupName());
         }
 
         @Override
