@@ -64,7 +64,7 @@ public class FunctionAnnotationValueInsertHandler implements InsertHandler<Looku
 
     private void updatePropertiesIfEmpty(@Nonnull final PsiAnnotation annotation, final String key, final String value, @Nonnull InsertionContext context) {
         final PsiAnnotationMemberValue psiValue = Optional.ofNullable(annotation)
-                .map(a -> annotation.findAttributeValue(key)).orElse(null);
+                .map(a -> annotation.findDeclaredAttributeValue(key)).orElse(null);
         final String originalValue = Optional.ofNullable(psiValue).map(PsiAnnotationMemberValue::getText)
                 .map(s -> s.replace("\"", "")).orElse(null);
         if (Objects.isNull(psiValue) || StringUtils.isNotBlank(originalValue)) {
