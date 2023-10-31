@@ -48,11 +48,7 @@ public class StringLiteralResourceAnnotator implements Annotator {
                 }
                 final TextRange range = new TextRange(prefix.length() + 1, valueWithPrefix.length() + 1).shiftRight(element.getTextOffset());
                 if (!Azure.az(AzureAccount.class).isLoggedIn()) {
-                    holder.newAnnotation(HighlightSeverity.WARNING, "You are not signed in to Azure")
-                        .range(range)
-                        .highlightType(ProblemHighlightType.WEAK_WARNING)
-                        .withFix(AnnotationFixes.signIn(AnnotationFixes.DO_NOTHING))
-                        .create();
+                    AnnotationFixes.createSignInAnnotation(element, holder);
                 } else {
                     final List<StorageAccount> accounts = Optional.of(element)
                         .map(ModuleUtil::findModuleForPsiElement)

@@ -19,6 +19,8 @@ import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -39,17 +41,18 @@ import java.util.Optional;
 public abstract class AbstractResourceConnectionAnnotator implements Annotator {
     @Override
     public void annotate(@Nonnull PsiElement element, @Nonnull AnnotationHolder holder) {
-        if (isAzureFacetEnabled(element) && shouldAccept(element)) {
-            final Connection<? extends AzResource, ?> connection = getConnectionForPsiElement(element);
-            if (Objects.isNull(connection)) {
-                validateNamePattern(element, holder);
-            } else {
-                validateConnectionResource(element, holder, connection);
-            }
+        if (!(isAzureFacetEnabled(element) && shouldAccept(element))) {
+            return;
+        }
+        final Connection<? extends AzResource, ?> connection = getConnectionForPsiElement(element);
+        if (Objects.isNull(connection)) {
+            validateNamePattern(element, holder);
+        } else {
+            validateConnectionResource(element, holder, connection);
         }
     }
 
-    protected boolean isAzureFacetEnabled(@Nonnull PsiElement element){
+    public static boolean isAzureFacetEnabled(@Nonnull PsiElement element) {
         final Module module = ModuleUtil.findModuleForPsiElement(element);
         return Optional.ofNullable(module).map(AzureModule::from).map(AzureModule::hasAzureFacet).orElse(false);
     }
@@ -101,6 +104,10 @@ public abstract class AbstractResourceConnectionAnnotator implements Annotator {
 
     private void validateConnectionResource(@Nonnull final PsiElement element, @Nonnull final AnnotationHolder holder,
                                             @Nonnull final Connection<? extends AzResource, ?> connection) {
+        if (!Azure.az(AzureAccount.class).isLoggedIn()) {
+            AnnotationFixes.createSignInAnnotation(element, holder);
+            return;
+        }
         final AzResource data = connection.getResource().getData();
         if (Objects.isNull(data) || !data.getFormalStatus().isConnected()) {
             holder.newAnnotation(HighlightSeverity.WARNING, "Connected resource is not available")
