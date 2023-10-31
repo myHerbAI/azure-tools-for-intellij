@@ -43,7 +43,7 @@ class PluginLifecycleListener : AppLifecycleListener {
     }
 
     private fun initializeConfig() {
-        var installId = IntelliJAzureTelemetryCommonPropertiesProvider.getInstallationId()
+        val installId = IntelliJAzureTelemetryCommonPropertiesProvider.getInstallationId()
 
         initialize(installId, "Azure Toolkit for IntelliJ", CommonConst.PLUGIN_VERSION)
         val cloud = Azure.az().config().cloud
