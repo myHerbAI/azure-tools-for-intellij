@@ -13,6 +13,8 @@ import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationResourceReference;
 import com.microsoft.azure.toolkit.intellij.storage.code.Utils;
 import com.microsoft.azure.toolkit.intellij.storage.code.spring.StringLiteralResourceReferenceContributor;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import org.apache.commons.lang.StringUtils;
@@ -35,8 +37,12 @@ public class FunctionStorageAccountResourceReferenceContributor extends PsiRefer
         registrar.registerReferenceProvider(psiElement(PsiLiteralExpression.class).inside(BLOB_PATH_PAIR_PATTERN), new PsiReferenceProvider() {
             @Override
             public PsiReference @NotNull [] getReferencesByElement(@NotNull PsiElement element, @NotNull ProcessingContext context) {
+                if (!Azure.az(AzureAccount.class).isLoggedIn()) {
+                    return PsiReference.EMPTY_ARRAY;
+                }
                 final PsiLiteralExpression literal = (PsiLiteralExpression) element;
                 final String value = literal.getValue() instanceof String ? (String) literal.getValue() : null;
+                // todo: parse the storage account within `StringLiteralResourceReferenceContributor`
                 final PsiAnnotation annotation = Objects.requireNonNull(PsiTreeUtil.getParentOfType(element, PsiAnnotation.class));
                 final StorageAccount storageAccount = Utils.getBindingStorageAccount(annotation);
                 if (Objects.nonNull(storageAccount)) {
