@@ -50,7 +50,7 @@ public class YamlValueCompletionProvider extends CompletionProvider<CompletionPa
                                   @Nonnull CompletionResultSet result) {
         final PsiElement element = parameters.getPosition();
         final YAMLPsiElement yamlElement = PsiTreeUtil.getParentOfType(element, YAMLPsiElement.class);
-        if (Objects.isNull(yamlElement)) {
+        if (Objects.isNull(yamlElement) || !Azure.az(AzureAccount.class).isLoggedIn()) {
             return;
         }
         final String key = YAMLUtil.getConfigFullName(yamlElement);
@@ -61,7 +61,7 @@ public class YamlValueCompletionProvider extends CompletionProvider<CompletionPa
                 .collect(Collectors.toList());
         ProgressManager.checkCanceled();
         final Module module = ModuleUtil.findModuleForPsiElement(parameters.getOriginalFile());
-        if (Objects.isNull(module) || CollectionUtils.isEmpty(definitions) || !Azure.az(AzureAccount.class).isLoggedIn()) {
+        if (Objects.isNull(module) || CollectionUtils.isEmpty(definitions)) {
             return;
         }
         final List<? extends Resource<?>> resources = definitions.stream()
