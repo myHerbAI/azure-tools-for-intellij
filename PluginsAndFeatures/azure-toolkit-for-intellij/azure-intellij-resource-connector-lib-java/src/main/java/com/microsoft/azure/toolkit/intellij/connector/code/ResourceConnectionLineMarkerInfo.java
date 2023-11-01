@@ -13,6 +13,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.psi.PsiElement;
+import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.AzureServiceResource;
@@ -25,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -47,10 +49,11 @@ public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<Ps
     }
 
     private static Icon getIcon(final AzureServiceResource<?> resource) {
-        final Icon dft = IntelliJAzureIcons.getIcon(Optional.ofNullable(resource.getDefinition().getIcon()).orElseGet(AzureIcons.Common.AZURE::getIconPath));
-        return Azure.az(AzureAccount.class).isLoggedIn() ?
-            Optional.ofNullable(IntelliJAzureIcons.getIcon(DEFAULT_AZURE_RESOURCE_ICON_PROVIDER.getIcon(resource.getData()))).orElse(dft) :
-            dft;
+        final String definitionIconPath = StringUtils.firstNonBlank(resource.getDefinition().getIcon(), AzureIcons.Connector.CONNECT.getIconPath());
+        final AzureIcon icon = Azure.az(AzureAccount.class).isLoggedIn() ?
+                DEFAULT_AZURE_RESOURCE_ICON_PROVIDER.getIcon(resource.getData()) :
+                AzureIcon.builder().iconPath(definitionIconPath).build();
+        return IntelliJAzureIcons.getIcon(icon);
     }
 
     private static String getToolTip(final AzureServiceResource<?> resource) {
