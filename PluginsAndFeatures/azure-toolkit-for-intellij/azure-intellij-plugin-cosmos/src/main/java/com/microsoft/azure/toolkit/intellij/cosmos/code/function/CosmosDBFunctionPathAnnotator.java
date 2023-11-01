@@ -13,6 +13,8 @@ import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionUtils;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.sql.SqlContainer;
 import com.microsoft.azure.toolkit.lib.cosmos.sql.SqlDatabase;
 import org.apache.commons.lang3.StringUtils;
@@ -21,12 +23,16 @@ import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.microsoft.azure.toolkit.intellij.connector.code.AbstractResourceConnectionAnnotator.isAzureFacetEnabled;
 import static com.microsoft.azure.toolkit.intellij.cosmos.code.function.CosmosDBContainerNameCompletionProvider.COSMOS_CONTAINER_PATTERN;
 import static com.microsoft.azure.toolkit.intellij.cosmos.code.function.CosmosDBDatabaseNameCompletionProvider.COSMOS_DATABASE_PATTERN;
 
 public class CosmosDBFunctionPathAnnotator implements Annotator {
     @Override
     public void annotate(@Nonnull PsiElement element, @Nonnull AnnotationHolder holder) {
+        if (!(isAzureFacetEnabled(element) && Azure.az(AzureAccount.class).isLoggedIn())) {
+            return;
+        }
         if (COSMOS_CONTAINER_PATTERN.accepts(element)) {
             validateContainer(element, holder);
         } else if (COSMOS_DATABASE_PATTERN.accepts(element)) {

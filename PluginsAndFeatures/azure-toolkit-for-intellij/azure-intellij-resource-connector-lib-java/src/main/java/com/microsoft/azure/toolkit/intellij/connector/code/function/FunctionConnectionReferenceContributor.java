@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 
 import static com.intellij.patterns.PsiJavaPatterns.psiElement;
-import static com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionConnectionCompletionProvider.CONNECTION_NAME_VALUE;
+import static com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionConnectionCompletionContributor.CONNECTION_NAME_VALUE;
 
 public class FunctionConnectionReferenceContributor extends PsiReferenceContributor {
     @Override

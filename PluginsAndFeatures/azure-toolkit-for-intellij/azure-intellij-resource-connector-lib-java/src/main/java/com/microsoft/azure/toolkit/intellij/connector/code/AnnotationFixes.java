@@ -1,12 +1,16 @@
 package com.microsoft.azure.toolkit.intellij.connector.code;
 
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.util.IntentionFamilyName;
 import com.intellij.codeInspection.util.IntentionName;
+import com.intellij.lang.annotation.AnnotationHolder;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
@@ -105,4 +109,12 @@ public class AnnotationFixes {
         };
     }
 
+
+    public static void createSignInAnnotation(@Nonnull PsiElement element, @Nonnull AnnotationHolder holder) {
+        holder.newAnnotation(HighlightSeverity.WEAK_WARNING, "You are not signed in to Azure")
+                .range(element.getTextRange())
+                .highlightType(ProblemHighlightType.WEAK_WARNING)
+                .withFix(AnnotationFixes.signIn(AnnotationFixes.DO_NOTHING))
+                .create();
+    }
 }

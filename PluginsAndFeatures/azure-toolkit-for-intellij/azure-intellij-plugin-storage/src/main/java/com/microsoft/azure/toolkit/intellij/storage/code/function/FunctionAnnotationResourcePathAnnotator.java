@@ -13,6 +13,8 @@ import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.microsoft.azure.toolkit.intellij.storage.code.Utils;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.blob.BlobContainer;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
@@ -25,9 +27,14 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.microsoft.azure.toolkit.intellij.connector.code.AbstractResourceConnectionAnnotator.isAzureFacetEnabled;
+
 public class FunctionAnnotationResourcePathAnnotator implements Annotator {
     @Override
     public void annotate(@Nonnull PsiElement element, @Nonnull AnnotationHolder holder) {
+        if (!(isAzureFacetEnabled(element) && Azure.az(AzureAccount.class).isLoggedIn())) {
+            return;
+        }
         if (FunctionBlobPathCompletionProvider.BLOB_PATH_PATTERN.accepts(element)) {
             validateBlobPath(element, holder);
         } else if (FunctionQueueNameCompletionProvider.QUEUE_NAME_PATTERN.accepts(element)) {
