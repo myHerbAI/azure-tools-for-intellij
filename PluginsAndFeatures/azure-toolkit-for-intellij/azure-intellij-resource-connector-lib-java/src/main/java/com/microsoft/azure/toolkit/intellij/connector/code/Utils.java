@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -84,10 +83,9 @@ public class Utils {
     }
 
     @AzureOperation(name = "internal/connector.create_connection_in_properties")
-    public static void createAndInsert(@Nonnull Module module, @Nonnull Resource resource,
+    public static void createAndInsert(@Nonnull Module module, @Nonnull Resource<?> resource,
                                        @Nonnull InsertionContext context, @Nonnull ConnectionManager connectionManager,
-                                       @Nonnull BiConsumer<Connection, InsertionContext> insertHandler,
-                                       @Nullable Consumer<InsertionContext> cancelHandler) {
+                                       @Nonnull BiConsumer<Connection<?, ?>, InsertionContext> insertHandler) {
         final Project project = context.getProject();
         if (resource.canConnectSilently()) {
             final Connection<?, ?> c = createSilently(module, resource, connectionManager);
@@ -101,7 +99,7 @@ public class Utils {
                     final Connection<?, ?> c = dialog.getValue();
                     WriteCommandAction.runWriteCommandAction(project, () -> insertHandler.accept(c, context));
                 } else {
-                    WriteCommandAction.runWriteCommandAction(project, () -> Optional.ofNullable(cancelHandler).ifPresent(c -> c.accept(context)));
+                    WriteCommandAction.runWriteCommandAction(project, () -> insertHandler.accept(null, context));
                 }
             });
         }

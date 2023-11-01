@@ -98,10 +98,13 @@ public class YamlValueCompletionProvider extends CompletionProvider<CompletionPa
     private void handleYamlConnection(AzureModule azureModule, Resource<?> resource, InsertionContext context) {
         final ConnectionManager connectionManager = Optional.ofNullable(azureModule.getDefaultProfile())
                 .map(Profile::getConnectionManager).orElse(null);
-        Utils.createAndInsert(azureModule.getModule(), resource, context, connectionManager, this::insertConnection, null);
+        Utils.createAndInsert(azureModule.getModule(), resource, context, connectionManager, this::insertConnection);
     }
 
-    private void insertConnection(@Nonnull Connection connection, @Nonnull InsertionContext context) {
+    private void insertConnection(@Nullable Connection<?, ?> connection, @Nonnull InsertionContext context) {
+        if (Objects.isNull(connection)) {
+            return;
+        }
         // delete value insert by LookupElement
         final PsiElement element = PsiUtil.getElementAtOffset(context.getFile(), context.getStartOffset());
         final YAMLPsiElement yamlElement = Objects.requireNonNull(PsiTreeUtil.getParentOfType(element, YAMLPsiElement.class));

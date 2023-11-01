@@ -40,6 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -115,17 +116,13 @@ public class PropertiesValueCompletionProvider extends CompletionProvider<Comple
                     .filter(c -> Objects.equals(resource, c.getResource())).findAny()
                     .ifPresentOrElse(c -> insert(c, context),
                         () -> Utils.createAndInsert(module, resource, context, connectionManager,
-                            PropertyValueInsertHandler::insert, PropertyValueInsertHandler::cancel))));
-        }
-
-        @AzureOperation(name = "user/connector.cancel_creating_connection_in_properties")
-        private static void cancel(@Nonnull InsertionContext context) {
+                            PropertyValueInsertHandler::insert))));
         }
 
         @AzureOperation(name = "user/connector.insert_value_in_properties")
-        public static void insert(Connection<?, ?> c, @Nonnull InsertionContext context) {
+        public static void insert(@Nullable Connection<?, ?> c, @Nonnull InsertionContext context) {
             final PsiElement element = context.getFile().findElementAt(context.getStartOffset());
-            if (Objects.isNull(element)) {
+            if (Objects.isNull(element) || Objects.isNull(c)) {
                 return;
             }
             final String k0 = element.getParent().getFirstChild().getText().trim();
