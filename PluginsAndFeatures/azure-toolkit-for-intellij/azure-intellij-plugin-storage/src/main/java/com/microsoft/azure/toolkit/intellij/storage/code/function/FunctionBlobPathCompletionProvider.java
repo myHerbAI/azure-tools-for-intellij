@@ -15,6 +15,7 @@ import com.intellij.patterns.*;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationParameterList;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
@@ -22,6 +23,7 @@ import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationCompletionConfidence;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationTypeHandler;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationValueInsertHandler;
+import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionUtils;
 import com.microsoft.azure.toolkit.intellij.storage.code.spring.StringLiteralCompletionContributor;
 import com.microsoft.azure.toolkit.intellij.storage.code.Utils;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -57,7 +59,7 @@ public class FunctionBlobPathCompletionProvider extends CompletionProvider<Compl
                             return StringUtils.equalsAnyIgnoreCase(psiAnnotation.getQualifiedName(), BLOB_ANNOTATIONS);
                         }
                     })));
-    public static final PsiJavaElementPattern<?, ?> BLOB_PATH_PATTERN = psiElement().withSuperParent(2, BLOB_PATH_PAIR_PATTERN);
+    public static final PsiJavaElementPattern<?, ?> BLOB_PATH_PATTERN = psiElement().withParent(PsiLiteralExpression.class).withSuperParent(2, BLOB_PATH_PAIR_PATTERN);
 
     static {
         FunctionAnnotationTypeHandler.registerKeyPairPattern(BLOB_PATH_PAIR_PATTERN);
@@ -73,12 +75,13 @@ public class FunctionBlobPathCompletionProvider extends CompletionProvider<Compl
         }
         final PsiAnnotation annotation = PsiTreeUtil.getParentOfType(parameters.getPosition(), PsiAnnotation.class);
         final StorageAccount account = Optional.ofNullable(annotation).map(Utils::getBindingStorageAccount).orElse(null);
-        final String connection = Optional.ofNullable(annotation).map(a -> a.findAttributeValue("connection"))
-                .map(value -> value.getText().replace("\"", "").trim()).orElse(null);
+        final String connection = FunctionUtils.getConnectionValueFromAnnotation(annotation);
         if (Objects.isNull(account) && StringUtils.isNotBlank(connection)) {
             return;
         }
-        final String fullPrefix = StringUtils.substringBefore(element.getText(), StringLiteralCompletionContributor.DUMMY_IDENTIFIER).replace("\"", "").trim();
+        final PsiLiteralExpression literal = (PsiLiteralExpression) element.getParent();
+        final String value = literal.getValue() instanceof String ? (String) literal.getValue() : StringUtils.EMPTY;
+        final String fullPrefix = StringUtils.substringBefore(value, StringLiteralCompletionContributor.DUMMY_IDENTIFIER);
         final List<StorageAccount> accountsToSearch = Objects.nonNull(account) ? List.of(account) : Utils.getConnectedStorageAccounts(module);
         final List<? extends StorageFile> files = getFiles("azure-blob://" + fullPrefix, accountsToSearch);
         final BiFunction<StorageFile, String, LookupElementBuilder> builder = (file, title) -> LookupElementBuilder.create(title)

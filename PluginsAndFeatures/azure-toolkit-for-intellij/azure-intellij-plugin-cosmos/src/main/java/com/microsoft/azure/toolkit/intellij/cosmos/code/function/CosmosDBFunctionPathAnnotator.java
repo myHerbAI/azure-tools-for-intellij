@@ -11,6 +11,7 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -42,8 +43,8 @@ public class CosmosDBFunctionPathAnnotator implements Annotator {
 
     private void validateDatabase(@Nonnull PsiElement element, @Nonnull AnnotationHolder holder) {
         final PsiAnnotation annotation = PsiTreeUtil.getParentOfType(element, PsiAnnotation.class);
-        final String databaseName = Optional.ofNullable(annotation.findAttributeValue("databaseName"))
-                .map(PsiElement::getText).map(text -> text.replace("\"", "")).orElse(StringUtils.EMPTY);
+        final PsiLiteralExpression literal = (PsiLiteralExpression) element.getParent();
+        final String databaseName = literal.getValue() instanceof String ? (String) literal.getValue() : StringUtils.EMPTY;
         if (StringUtils.isBlank(databaseName)) {
             holder.newAnnotation(HighlightSeverity.WARNING, "DatabaseName could not be empty")
                     .range(element.getTextRange()).highlightType(ProblemHighlightType.GENERIC_ERROR_OR_WARNING).create();
@@ -63,8 +64,8 @@ public class CosmosDBFunctionPathAnnotator implements Annotator {
         if (Objects.isNull(database)) {
             return;
         }
-        final String containerName = Optional.ofNullable(annotation.findAttributeValue("containerName"))
-                .map(PsiElement::getText).map(text -> text.replace("\"", "")).orElse(StringUtils.EMPTY);
+        final PsiLiteralExpression literal = (PsiLiteralExpression) element.getParent();
+        final String containerName = literal.getValue() instanceof String ? (String) literal.getValue() : StringUtils.EMPTY;
         if (StringUtils.isBlank(containerName)) {
             holder.newAnnotation(HighlightSeverity.WARNING, "ContainerName could not be empty")
                     .range(element.getTextRange()).highlightType(ProblemHighlightType.GENERIC_ERROR_OR_WARNING).create();

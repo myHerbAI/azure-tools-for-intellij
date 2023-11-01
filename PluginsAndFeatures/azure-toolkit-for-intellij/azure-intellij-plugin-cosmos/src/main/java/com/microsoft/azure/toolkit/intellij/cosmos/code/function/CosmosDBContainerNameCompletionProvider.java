@@ -18,6 +18,7 @@ import com.intellij.patterns.PsiJavaPatterns;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationParameterList;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
@@ -58,7 +59,7 @@ public class CosmosDBContainerNameCompletionProvider extends CompletionProvider<
                             return StringUtils.equalsAnyIgnoreCase(psiAnnotation.getQualifiedName(), COSMOS_ANNOTATIONS);
                         }
                     })));
-    public static final PsiElementPattern<?, ?> COSMOS_CONTAINER_PATTERN = psiElement().withSuperParent(2, COSMOS_CONTAINER_NAME_PAIR_PATTERN);
+    public static final PsiElementPattern<?, ?> COSMOS_CONTAINER_PATTERN = psiElement().withParent(PsiLiteralExpression.class).withSuperParent(2, COSMOS_CONTAINER_NAME_PAIR_PATTERN);
 
     static {
         FunctionAnnotationTypeHandler.registerKeyPairPattern(COSMOS_CONTAINER_NAME_PAIR_PATTERN);

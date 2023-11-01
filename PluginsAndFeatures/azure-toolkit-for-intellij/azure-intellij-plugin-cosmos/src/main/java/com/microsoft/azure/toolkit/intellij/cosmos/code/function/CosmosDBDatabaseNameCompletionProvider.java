@@ -18,6 +18,7 @@ import com.intellij.patterns.PsiJavaPatterns;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationParameterList;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
@@ -57,7 +58,7 @@ public class CosmosDBDatabaseNameCompletionProvider extends CompletionProvider<C
                             return StringUtils.equalsAnyIgnoreCase(psiAnnotation.getQualifiedName(), COSMOS_ANNOTATIONS);
                         }
                     })));
-    public static final PsiElementPattern<?, ?> COSMOS_DATABASE_PATTERN = psiElement().withSuperParent(2, COSMOS_DATABASE_NAME_PAIR_PATTERN);
+    public static final PsiElementPattern<?, ?> COSMOS_DATABASE_PATTERN = psiElement().withParent(PsiLiteralExpression.class).withSuperParent(2, COSMOS_DATABASE_NAME_PAIR_PATTERN);
 
     static {
         FunctionAnnotationTypeHandler.registerKeyPairPattern(COSMOS_DATABASE_NAME_PAIR_PATTERN);
@@ -73,7 +74,9 @@ public class CosmosDBDatabaseNameCompletionProvider extends CompletionProvider<C
             return;
         }
         final String connectionValue = FunctionUtils.getConnectionValueFromAnnotation(annotation);
-        final SqlDatabase database = getConnectedDatabase(annotation);
+        final Connection<?, ?> connection = FunctionUtils.getConnectionFromAnnotation(annotation);
+        final SqlDatabase database = (SqlDatabase) Optional.ofNullable(connection).map(Connection::getResource)
+                .map(Resource::getData).filter(data -> data instanceof SqlDatabase).orElse(null);
         if (Objects.isNull(database) && StringUtils.isNotBlank(connectionValue)) {
             return;
         }
