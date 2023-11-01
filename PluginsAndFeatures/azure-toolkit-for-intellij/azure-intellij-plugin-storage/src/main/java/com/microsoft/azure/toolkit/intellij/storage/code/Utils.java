@@ -37,8 +37,8 @@ public class Utils {
     }
 
     public static StorageAccount getBindingStorageAccount(@Nonnull final PsiAnnotation annotation) {
-        final PsiMethod method = Objects.requireNonNull(PsiTreeUtil.getParentOfType(annotation, PsiMethod.class));
-        final PsiAnnotation accountAnnotation = Arrays.stream(method.getAnnotations())
+        final PsiMethod method = PsiTreeUtil.getParentOfType(annotation, PsiMethod.class);
+        final PsiAnnotation accountAnnotation = Objects.isNull(method) ? null : Arrays.stream(method.getAnnotations())
                 .filter(ann -> StringUtils.equalsIgnoreCase(ann.getQualifiedName(), "com.microsoft.azure.functions.annotation.StorageAccount"))
                 .findFirst().orElse(null);
         return Stream.of(accountAnnotation, annotation).filter(Objects::nonNull)

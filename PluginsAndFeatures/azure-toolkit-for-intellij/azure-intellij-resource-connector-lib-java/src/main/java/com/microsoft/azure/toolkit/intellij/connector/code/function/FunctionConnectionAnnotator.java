@@ -64,7 +64,7 @@ public class FunctionConnectionAnnotator implements Annotator {
     private void addCreateNewConnectionFix(@Nonnull final PsiElement element, FunctionSupported<?> definition, @Nonnull final AnnotationBuilder builder) {
         final Consumer<Connection<?, ?>> consumer = connection -> {
             final Editor editor = PsiEditorUtil.findEditor(element);
-            if (Objects.isNull(editor)) {
+            if (Objects.isNull(editor) || Objects.isNull(connection)) {
                 return;
             }
             editor.getDocument().replaceString(element.getTextRange().getStartOffset(), element.getTextRange().getEndOffset(), String.format("\"%s\"", connection.getEnvPrefix()));
