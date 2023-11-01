@@ -50,8 +50,9 @@ public class FunctionConnectionAnnotator implements Annotator {
         final Connection<?, ?> connection = FunctionUtils.getConnectionWithEnvPrefix(connectionValue, module);
         if (Objects.isNull(connection)) {
             final String message = StringUtils.isEmpty(connectionValue) ? "Connection could not be empty" :
-                    String.format("Could not find connection with envPrefix '%s'", element.getText());
+                    String.format("Could not find connection with envPrefix '%s'", connectionValue);
             final AnnotationBuilder builder = holder.newAnnotation(HighlightSeverity.ERROR, message);
+            //noinspection ResultOfMethodCallIgnored
             builder.range(element.getTextRange())
                     .highlightType(ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
             addChangeEnvironmentVariableFix(element, definition, builder);
@@ -67,19 +68,24 @@ public class FunctionConnectionAnnotator implements Annotator {
                 return;
             }
             editor.getDocument().replaceString(element.getTextRange().getStartOffset(), element.getTextRange().getEndOffset(), String.format("\"%s\"", connection.getEnvPrefix()));
-            PsiDocumentManager.getInstance(editor.getProject()).commitDocument(editor.getDocument());
+            PsiDocumentManager.getInstance(element.getProject()).commitDocument(editor.getDocument());
         };
+        //noinspection ResultOfMethodCallIgnored
         builder.withFix(AnnotationFixes.createNewConnection(definition, consumer));
     }
 
     private void addChangeEnvironmentVariableFix(PsiElement element, FunctionSupported<?> definition, AnnotationBuilder builder) {
         final Module module = ModuleUtil.findModuleForPsiElement(element);
         final Profile profile = Optional.ofNullable(module).map(AzureModule::from).map(AzureModule::getDefaultProfile).orElse(null);
+        if (Objects.isNull(profile)) {
+            return;
+        }
         final List<Connection<?, ?>> storageConnections = profile.getConnections().stream()
                 .filter(c -> Objects.equals(c.getResource().getDefinition(), definition))
                 .toList();
         final String originalValue = element.getText().replace("\"", "");
         final SmartPsiElementPointer<PsiElement> pointer = SmartPointerManager.createPointer(element);
+        //noinspection ResultOfMethodCallIgnored
         storageConnections.forEach(connection -> builder.withFix(new ChangeEnvironmentVariableFix(originalValue, connection.getEnvPrefix(), pointer)));
     }
 }
