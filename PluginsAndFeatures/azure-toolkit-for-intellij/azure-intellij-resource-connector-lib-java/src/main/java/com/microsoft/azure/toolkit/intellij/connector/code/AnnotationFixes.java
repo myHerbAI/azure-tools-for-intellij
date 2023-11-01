@@ -25,6 +25,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class AnnotationFixes {
@@ -34,6 +35,10 @@ public class AnnotationFixes {
     };
 
     public static IntentionAction createNewConnection(ResourceDefinition<?> definition, Consumer<Connection<?, ?>> callback) {
+        return createNewConnection(definition, callback, null);
+    }
+
+    public static IntentionAction createNewConnection(ResourceDefinition<?> definition, Consumer<Connection<?, ?>> callback, String defaultEnvPrefix) {
         return new IntentionAction() {
 
             @Override
@@ -61,6 +66,7 @@ public class AnnotationFixes {
                     final var dialog = new ConnectorDialog(project);
                     dialog.setConsumer(new ModuleResource(module.getName()));
                     dialog.setResourceDefinition(definition);
+                    Optional.ofNullable(defaultEnvPrefix).ifPresent(dialog::setFixedEnvPrefix);
                     if (dialog.showAndGet()) {
                         callback.accept(dialog.getValue());
                     } else {

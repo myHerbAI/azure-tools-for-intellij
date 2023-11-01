@@ -25,7 +25,6 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -33,7 +32,7 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.stream.Stream;
 
 import static com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider.DEFAULT_AZURE_RESOURCE_ICON_PROVIDER;
 
@@ -47,12 +46,15 @@ public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<Ps
         this.connection = connection;
     }
 
-    private static Icon getIcon(final AzureServiceResource<?> resource) {
-        final String definitionIconPath = StringUtils.firstNonBlank(resource.getDefinition().getIcon(), AzureIcons.Connector.CONNECT.getIconPath());
-        final AzureIcon icon = Azure.az(AzureAccount.class).isLoggedIn() ?
-                DEFAULT_AZURE_RESOURCE_ICON_PROVIDER.getIcon(resource.getData()) :
-                AzureIcon.builder().iconPath(definitionIconPath).build();
-        return IntelliJAzureIcons.getIcon(icon);
+    private static Icon getIcon(@Nonnull final AzureServiceResource<?> resource) {
+        final AzureIcon resourceIcon = Azure.az(AzureAccount.class).isLoggedIn() ?
+                DEFAULT_AZURE_RESOURCE_ICON_PROVIDER.getIcon(resource.getData()) : null;
+        final AzureIcon definitionIcon = AzureIcon.builder().iconPath(resource.getDefinition().getIcon()).build();
+        return Stream.of(resourceIcon, definitionIcon, AzureIcons.Connector.CONNECT)
+                .filter(Objects::nonNull)
+                .filter(i -> !Objects.equals(AzureIcons.Common.REFRESH_ICON, i))
+                .map(IntelliJAzureIcons::getIcon)
+                .findFirst().orElse(AllIcons.Providers.Azure);
     }
 
     private static String getToolTip(final AzureServiceResource<?> resource) {
