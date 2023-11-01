@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SqlCosmosDBAccountResourceDefinition extends AzureServiceResource.Definition<SqlDatabase>
     implements SpringSupported<SqlDatabase>, FunctionSupported<SqlDatabase> {
@@ -43,7 +44,13 @@ public class SqlCosmosDBAccountResourceDefinition extends AzureServiceResource.D
         return Azure.az(AzureCosmosService.class).list().stream()
             .flatMap(m -> m.getCosmosDBAccountModule().list().stream())
             .filter(a -> a instanceof SqlCosmosDBAccount)
-            .flatMap(a -> ((SqlCosmosDBAccount) a).sqlDatabases().list().stream())
+            .flatMap(s -> {
+                try {
+                    return ((SqlCosmosDBAccount) s).sqlDatabases().list().stream();
+                } catch (final Throwable e) {
+                    return Stream.empty();
+                }
+            })
             .map(this::define).toList();
     }
 

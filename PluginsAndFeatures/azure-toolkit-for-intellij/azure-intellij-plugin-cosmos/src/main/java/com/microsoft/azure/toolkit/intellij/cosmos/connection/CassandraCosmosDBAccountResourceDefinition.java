@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CassandraCosmosDBAccountResourceDefinition extends AzureServiceResource.Definition<CassandraKeyspace> implements SpringSupported<CassandraKeyspace> {
     public static final CassandraCosmosDBAccountResourceDefinition INSTANCE = new CassandraCosmosDBAccountResourceDefinition();
@@ -39,7 +40,13 @@ public class CassandraCosmosDBAccountResourceDefinition extends AzureServiceReso
         return Azure.az(AzureCosmosService.class).list().stream()
             .flatMap(m -> m.getCosmosDBAccountModule().list().stream())
             .filter(a -> a instanceof CassandraCosmosDBAccount)
-            .flatMap(a -> ((CassandraCosmosDBAccount) a).keySpaces().list().stream())
+            .flatMap(s -> {
+                try {
+                    return ((CassandraCosmosDBAccount) s).keySpaces().list().stream();
+                } catch (final Throwable e) {
+                    return Stream.empty();
+                }
+            })
             .map(this::define).toList();
     }
 
