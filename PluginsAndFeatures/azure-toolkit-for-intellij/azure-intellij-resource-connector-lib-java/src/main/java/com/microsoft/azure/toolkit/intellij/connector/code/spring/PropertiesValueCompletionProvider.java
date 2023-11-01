@@ -79,6 +79,7 @@ public class PropertiesValueCompletionProvider extends CompletionProvider<Comple
         return definitions.stream().flatMap(d -> Utils.listResourceForDefinition(module.getProject(), d).stream().map(r -> LookupElementBuilder.create(r, r.getName())
             .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(r.getDefinition().getIcon(), AzureIcons.Common.AZURE.getIconPath())))
             .bold()
+            .withCaseSensitivity(false)
             .withLookupStrings(Arrays.asList(r.getName(), ((AzResource) r.getData()).getResourceGroupName()))
             .withInsertHandler(new PropertyValueInsertHandler(r))
             .withTailText(" " + ((AzResource) r.getData()).getResourceTypeName())
