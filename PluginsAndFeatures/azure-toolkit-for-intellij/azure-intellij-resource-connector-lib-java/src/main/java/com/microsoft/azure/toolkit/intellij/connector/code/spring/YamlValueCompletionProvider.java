@@ -25,7 +25,6 @@ import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition;
 import com.microsoft.azure.toolkit.intellij.connector.code.Utils;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
-import com.microsoft.azure.toolkit.intellij.connector.dotazure.ConnectionManager;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager;
 import com.microsoft.azure.toolkit.intellij.connector.spring.SpringSupported;
@@ -96,9 +95,7 @@ public class YamlValueCompletionProvider extends CompletionProvider<CompletionPa
 
     @AzureOperation(name = "user/connector.insert_spring_yaml_properties")
     private void handleYamlConnection(AzureModule azureModule, Resource<?> resource, InsertionContext context) {
-        final ConnectionManager connectionManager = Optional.ofNullable(azureModule.getDefaultProfile())
-                .map(Profile::getConnectionManager).orElse(null);
-        Utils.createAndInsert(azureModule.getModule(), resource, context, connectionManager, this::insertConnection);
+        azureModule.connect(resource, c-> insertConnection(c, context));
     }
 
     private void insertConnection(@Nullable Connection<?, ?> connection, @Nonnull InsertionContext context) {

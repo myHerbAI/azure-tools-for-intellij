@@ -32,7 +32,6 @@ import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.RequiredArgsConstructor;
@@ -110,14 +109,13 @@ public class PropertiesValueCompletionProvider extends CompletionProvider<Comple
             }
             final Project project = context.getProject();
             final Module module = ModuleUtil.findModuleForFile(context.getFile().getVirtualFile(), project);
-            AzureTaskManager.getInstance().write(() -> Optional.ofNullable(module).map(AzureModule::from)
+            Optional.ofNullable(module).map(AzureModule::from)
                 .map(AzureModule::initializeWithDefaultProfileIfNot).map(Profile::getConnectionManager)
                 .ifPresent(connectionManager -> connectionManager
                     .getConnectionsByConsumerId(module.getName()).stream()
                     .filter(c -> Objects.equals(resource, c.getResource())).findAny()
                     .ifPresentOrElse(c -> insert(c, context),
-                        () -> Utils.createAndInsert(module, resource, context, connectionManager,
-                            PropertyValueInsertHandler::insert))));
+                        () -> connectionManager.getProfile().getModule().connect(resource, c -> insert(c, context))));
         }
 
         @AzureOperation(name = "user/connector.insert_value_in_properties")
