@@ -32,6 +32,9 @@ import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionUtil
 import com.microsoft.azure.toolkit.intellij.cosmos.connection.SqlCosmosDBAccountResourceDefinition;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.cosmos.sql.SqlCosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.sql.SqlDatabase;
 import org.apache.commons.lang3.StringUtils;
@@ -79,6 +82,7 @@ public class CosmosDBDatabaseNameCompletionProvider extends CompletionProvider<C
         accountsToSearch.stream()
                 .map(d -> createLookupElement(d, module))
                 .forEach(result::addElement);
+        AzureTelemeter.log(AzureTelemetry.Type.OP_END, OperationBundle.description("boundary/connector.complete_cosmos_database"));
     }
 
     private LookupElement createLookupElement(@Nonnull final SqlDatabase database, Module module) {

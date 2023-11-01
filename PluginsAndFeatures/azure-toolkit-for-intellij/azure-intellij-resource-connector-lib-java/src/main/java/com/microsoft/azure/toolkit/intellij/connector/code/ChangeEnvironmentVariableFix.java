@@ -16,6 +16,7 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.SmartPsiElementPointer;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
@@ -47,6 +48,7 @@ public class ChangeEnvironmentVariableFix extends ChoiceVariantIntentionAction {
     }
 
     @Override
+    @AzureOperation("user/connector.change_to_existing_connection_quick_fix")
     public void applyFix(@Nonnull Project project, PsiFile file, @Nullable Editor editor) {
         if (Objects.isNull(editor)) {
             return;

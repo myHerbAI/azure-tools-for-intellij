@@ -27,6 +27,9 @@ import com.microsoft.azure.toolkit.intellij.storage.code.spring.StringLiteralCom
 import com.microsoft.azure.toolkit.intellij.storage.code.Utils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.table.Table;
 import org.apache.commons.lang3.StringUtils;
@@ -73,6 +76,7 @@ public class FunctionTableNameCompletionProvider extends CompletionProvider<Comp
                 .filter(table -> StringUtils.startsWithIgnoreCase(table.getName(), fullPrefix))
                 .map(queue -> createLookupElement(queue, module))
                 .forEach(result::addElement);
+        AzureTelemeter.log(AzureTelemetry.Type.OP_END, OperationBundle.description("boundary/connector.complete_table_name"));
     }
 
     private LookupElement createLookupElement(Table table, Module module) {

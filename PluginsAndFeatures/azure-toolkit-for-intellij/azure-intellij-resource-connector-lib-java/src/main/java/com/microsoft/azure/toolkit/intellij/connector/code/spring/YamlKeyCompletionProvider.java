@@ -24,6 +24,9 @@ import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.ResourceManager;
 import com.microsoft.azure.toolkit.intellij.connector.spring.SpringSupported;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.yaml.YAMLUtil;
@@ -59,6 +62,7 @@ public class YamlKeyCompletionProvider extends CompletionProvider<CompletionPara
                 .filter(t -> StringUtils.isBlank(key) || (StringUtils.startsWith(t.getLeft(), key) && !StringUtils.equals(t.getLeft(), key)))
                 .filter(t -> YAMLUtil.getQualifiedKeyInFile(yamlFile, getKeyListForProperty(t.getLeft())) == null)
                 .forEach(t -> result.addElement(createYamlKeyLookupElement(t.getLeft(), t.getRight(), yamlFile)));
+        AzureTelemeter.log(AzureTelemetry.Type.OP_END, OperationBundle.description("boundary/connector.complete_keys_in_yaml"));
     }
 
     private LookupElement createYamlKeyLookupElement(@Nonnull final String property, @Nonnull final SpringSupported<?> definition,

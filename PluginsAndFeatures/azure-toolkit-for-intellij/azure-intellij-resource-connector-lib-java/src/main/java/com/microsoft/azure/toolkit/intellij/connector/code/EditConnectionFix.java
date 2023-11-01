@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,6 +39,7 @@ public class EditConnectionFix implements IntentionAction {
     }
 
     @Override
+    @AzureOperation("user/connector.edit_connection_quick_fix")
     public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
         final DataContext context = dataId -> CommonDataKeys.PROJECT.getName().equals(dataId) ? project : null;
         final AnActionEvent event = AnActionEvent.createFromAnAction(new EmptyAction(), null, "azure.annotator.action", context);

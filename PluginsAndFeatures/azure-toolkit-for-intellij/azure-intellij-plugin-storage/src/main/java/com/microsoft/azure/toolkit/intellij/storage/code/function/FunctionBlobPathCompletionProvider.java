@@ -27,6 +27,9 @@ import com.microsoft.azure.toolkit.intellij.storage.code.Utils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
+import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
 import org.apache.commons.lang3.StringUtils;
@@ -91,6 +94,7 @@ public class FunctionBlobPathCompletionProvider extends CompletionProvider<Compl
                 result.addElement(builder.apply(file, file.getName() + "/"));
             }
         }
+        AzureTelemeter.log(AzureTelemetry.Type.OP_END, OperationBundle.description("boundary/connector.complete_blob_path"));
     }
 
     public static Map<String, String> getAdditionalPropertiesFromCompletion(@Nullable final StorageAccount account, @Nonnull final Module module) {
