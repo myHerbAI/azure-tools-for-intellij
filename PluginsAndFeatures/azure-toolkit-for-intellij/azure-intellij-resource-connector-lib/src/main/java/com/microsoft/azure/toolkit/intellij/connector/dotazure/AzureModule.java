@@ -13,7 +13,9 @@ import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.intellij.common.runconfig.IWebAppRunConfiguration;
+import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware;
+import com.microsoft.azure.toolkit.intellij.connector.ResourceDefinition;
 import com.microsoft.azure.toolkit.intellij.facet.AzureFacet;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -32,6 +34,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class AzureModule {
@@ -248,6 +251,14 @@ public class AzureModule {
                     StringUtils.equals(artifactId, "com.microsoft.azure:azure-client-runtime") ||
                     StringUtils.equals(artifactId, "com.microsoft.azure.functions:azure-functions-java-library");
             });
+    }
+
+    public List<Connection<?, ?>> getConnections(@Nonnull ResourceDefinition<?> definition) {
+        return Optional.ofNullable(this.getDefaultProfile())
+            .map(Profile::getConnectionManager).stream()
+            .flatMap(m -> m.getConnections().stream())
+            .filter(c -> c.getDefinition().getResourceDefinition().getName().equalsIgnoreCase(definition.getName()))
+            .collect(Collectors.toList());
     }
 
     @Nonnull
