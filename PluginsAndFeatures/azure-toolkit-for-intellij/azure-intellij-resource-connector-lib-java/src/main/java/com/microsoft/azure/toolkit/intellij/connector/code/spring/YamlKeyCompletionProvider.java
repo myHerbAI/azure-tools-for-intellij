@@ -91,8 +91,10 @@ public class YamlKeyCompletionProvider extends CompletionProvider<CompletionPara
         context.commitDocument();
         YamlUtils.insertYamlKeyValue(property, null, yamlFile, context);
         final YAMLKeyValue result = YAMLUtil.getQualifiedKeyInFile(yamlFile, getKeyListForProperty(property));
-        context.getEditor().getCaretModel().moveToOffset(result.getTextRange().getEndOffset() + 1);
-        AutoPopupController.getInstance(context.getProject()).scheduleAutoPopup(context.getEditor());
+        if (Objects.nonNull(result)) {
+            context.getEditor().getCaretModel().moveToOffset(result.getTextRange().getEndOffset() + 1);
+            AutoPopupController.getInstance(context.getProject()).scheduleAutoPopup(context.getEditor());
+        }
     }
 
     private String[] getKeyListForProperty(@Nonnull final String property) {
