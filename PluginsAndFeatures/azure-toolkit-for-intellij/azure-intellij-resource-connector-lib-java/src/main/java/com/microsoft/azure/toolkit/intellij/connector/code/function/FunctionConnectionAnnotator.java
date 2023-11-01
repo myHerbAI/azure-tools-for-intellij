@@ -70,8 +70,10 @@ public class FunctionConnectionAnnotator implements Annotator {
             editor.getDocument().replaceString(element.getTextRange().getStartOffset(), element.getTextRange().getEndOffset(), String.format("\"%s\"", connection.getEnvPrefix()));
             PsiDocumentManager.getInstance(element.getProject()).commitDocument(editor.getDocument());
         };
+        final PsiLiteralExpression parent = (PsiLiteralExpression) element.getParent();
+        final String value = parent.getValue() instanceof String ? (String) parent.getValue() : StringUtils.EMPTY;
         //noinspection ResultOfMethodCallIgnored
-        builder.withFix(AnnotationFixes.createNewConnection(definition, consumer));
+        builder.withFix(AnnotationFixes.createNewConnection(definition, consumer, value));
     }
 
     private void addChangeEnvironmentVariableFix(PsiElement element, FunctionSupported<?> definition, AnnotationBuilder builder) {
@@ -80,12 +82,13 @@ public class FunctionConnectionAnnotator implements Annotator {
         if (Objects.isNull(profile)) {
             return;
         }
+        final PsiLiteralExpression parent = (PsiLiteralExpression) element.getParent();
+        final String value = parent.getValue() instanceof String ? (String) parent.getValue() : StringUtils.EMPTY;
         final List<Connection<?, ?>> storageConnections = profile.getConnections().stream()
                 .filter(c -> Objects.equals(c.getResource().getDefinition(), definition))
                 .toList();
-        final String originalValue = element.getText().replace("\"", "");
         final SmartPsiElementPointer<PsiElement> pointer = SmartPointerManager.createPointer(element);
         //noinspection ResultOfMethodCallIgnored
-        storageConnections.forEach(connection -> builder.withFix(new ChangeEnvironmentVariableFix(originalValue, connection.getEnvPrefix(), pointer)));
+        storageConnections.forEach(connection -> builder.withFix(new ChangeEnvironmentVariableFix(value, connection.getEnvPrefix(), pointer)));
     }
 }
