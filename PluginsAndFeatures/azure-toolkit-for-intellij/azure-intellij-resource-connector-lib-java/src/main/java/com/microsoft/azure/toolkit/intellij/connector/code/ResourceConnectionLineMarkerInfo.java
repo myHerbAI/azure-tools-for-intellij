@@ -23,7 +23,6 @@ import com.microsoft.azure.toolkit.intellij.connector.projectexplorer.AbstractAz
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -40,9 +39,9 @@ import static com.microsoft.azure.toolkit.ide.common.component.AzureResourceIcon
 
 public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<PsiElement> {
     @Getter
-    private final Connection<? extends AzResource, ?> connection;
+    private final Connection<?, ?> connection;
 
-    public ResourceConnectionLineMarkerInfo(@Nonnull Connection<? extends AzResource, ?> connection, final AzureServiceResource<?> resource, @Nonnull PsiElement element) {
+    public ResourceConnectionLineMarkerInfo(@Nonnull Connection<?, ?> connection, final AzureServiceResource<?> resource, @Nonnull PsiElement element) {
         super(element, element.getTextRange(), getIcon(resource), ignore -> getToolTip(resource), null, null,
             GutterIconRenderer.Alignment.LEFT, () -> connection.getResource().getName());
         this.connection = connection;
@@ -85,7 +84,7 @@ public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<Ps
     }
 
     private static class ResourceConnectionGutterIconRender extends LineMarkerInfo.LineMarkerGutterIconRenderer<PsiElement> {
-        private final Connection<? extends AzResource, ?> connection;
+        private final Connection<?, ?> connection;
         @Getter
         private AnAction clickAction;
         private AnAction editConnectionAction;
@@ -93,7 +92,7 @@ public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<Ps
         @Getter
         private ActionGroup popupMenuActions;
 
-        public ResourceConnectionGutterIconRender(@Nonnull final ResourceConnectionLineMarkerInfo info, @Nonnull final Connection<? extends AzResource, ?> connection) {
+        public ResourceConnectionGutterIconRender(@Nonnull final ResourceConnectionLineMarkerInfo info, @Nonnull final Connection<?, ?> connection) {
             super(info);
             this.connection = connection;
             this.initActions();
