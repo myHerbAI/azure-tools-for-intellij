@@ -11,10 +11,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.patterns.*;
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiAnnotationParameterList;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiWhiteSpace;
+import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.ProcessingContext;
@@ -66,7 +63,7 @@ public class FunctionConnectionCompletionContributor extends CompletionContribut
                             return ANNOTATION_DEFINITION_MAP.containsKey(psiAnnotation.getQualifiedName());
                         }
                     })));
-    public static final ElementPattern CONNECTION_ANNOTATION = psiElement().withSuperParent(2, CONNECTION_NAME_VALUE);
+    public static final ElementPattern CONNECTION_ANNOTATION = psiElement().withParent(PsiLiteralExpression.class).withSuperParent(2, CONNECTION_NAME_VALUE);
     public static final ElementPattern FUNCTION_ANNOTATION_CONNECTION_PATTERN = PlatformPatterns.or(STORAGE_ACCOUNT_ANNOTATION, CONNECTION_ANNOTATION);
 
     public FunctionConnectionCompletionContributor() {

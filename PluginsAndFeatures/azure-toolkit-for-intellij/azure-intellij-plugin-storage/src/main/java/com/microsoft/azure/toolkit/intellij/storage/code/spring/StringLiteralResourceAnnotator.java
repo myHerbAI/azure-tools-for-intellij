@@ -40,7 +40,7 @@ public class StringLiteralResourceAnnotator implements Annotator {
         if (psiElement(JavaTokenType.STRING_LITERAL).withParent(literalExpression()).accepts(element)) {
             final PsiLiteralExpression literal = (PsiLiteralExpression) element.getParent();
             final String valueWithPrefix = StringUtils.substringBefore((String) literal.getValue(), StringLiteralCompletionContributor.DUMMY_IDENTIFIER);
-            if (valueWithPrefix.startsWith("azure-blob://") || valueWithPrefix.startsWith("azure-file://")) {
+            if (Objects.nonNull(valueWithPrefix) && (valueWithPrefix.startsWith("azure-blob://") || valueWithPrefix.startsWith("azure-file://"))) {
                 final String prefix = valueWithPrefix.startsWith("azure-blob://") ? "azure-blob://" : "azure-file://";
                 final String path = valueWithPrefix.substring(prefix.length());
                 if (StringUtils.isBlank(path)) {
