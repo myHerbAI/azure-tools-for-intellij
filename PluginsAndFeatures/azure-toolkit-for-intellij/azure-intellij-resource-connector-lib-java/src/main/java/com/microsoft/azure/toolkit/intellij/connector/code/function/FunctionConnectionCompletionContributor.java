@@ -54,6 +54,7 @@ public class FunctionConnectionCompletionContributor extends CompletionContribut
         put("com.microsoft.azure.functions.annotation.CosmosDBTrigger", "DocumentDB");
     }};
     public static final PsiJavaElementPattern.Capture<PsiElement> STORAGE_ACCOUNT_ANNOTATION = psiElement()
+            .withParent(PsiLiteralExpression.class)
             .insideAnnotationParam("com.microsoft.azure.functions.annotation.StorageAccount");
     public static final ElementPattern CONNECTION_NAME_VALUE = PsiJavaPatterns.psiNameValuePair().withName("connection").withParent(
             PlatformPatterns.psiElement(PsiAnnotationParameterList.class).withParent(
