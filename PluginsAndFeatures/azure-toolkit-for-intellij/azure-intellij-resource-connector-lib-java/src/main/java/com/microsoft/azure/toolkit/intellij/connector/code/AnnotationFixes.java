@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -66,7 +67,7 @@ public class AnnotationFixes {
                     final var dialog = new ConnectorDialog(project);
                     dialog.setConsumer(new ModuleResource(module.getName()));
                     dialog.setResourceDefinition(definition);
-                    Optional.ofNullable(defaultEnvPrefix).ifPresent(dialog::setFixedEnvPrefix);
+                    Optional.ofNullable(defaultEnvPrefix).filter(StringUtils::isNoneBlank).ifPresent(dialog::setEnvPrefix);
                     if (dialog.showAndGet()) {
                         callback.accept(dialog.getValue());
                     } else {

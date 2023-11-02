@@ -10,6 +10,8 @@ import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
@@ -67,8 +69,10 @@ public class FunctionConnectionAnnotator implements Annotator {
             if (Objects.isNull(editor) || Objects.isNull(connection)) {
                 return;
             }
-            editor.getDocument().replaceString(element.getTextRange().getStartOffset(), element.getTextRange().getEndOffset(), String.format("\"%s\"", connection.getEnvPrefix()));
-            PsiDocumentManager.getInstance(element.getProject()).commitDocument(editor.getDocument());
+            WriteCommandAction.runWriteCommandAction(element.getProject(), () -> {
+                editor.getDocument().replaceString(element.getTextRange().getStartOffset(), element.getTextRange().getEndOffset(), String.format("\"%s\"", connection.getEnvPrefix()));
+                PsiDocumentManager.getInstance(element.getProject()).commitDocument(editor.getDocument());
+            });
         };
         final PsiLiteralExpression parent = (PsiLiteralExpression) element.getParent();
         final String value = parent.getValue() instanceof String ? (String) parent.getValue() : StringUtils.EMPTY;
