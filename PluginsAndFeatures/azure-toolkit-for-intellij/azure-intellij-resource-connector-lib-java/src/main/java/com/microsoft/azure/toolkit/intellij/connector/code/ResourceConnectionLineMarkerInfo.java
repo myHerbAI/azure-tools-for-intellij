@@ -50,7 +50,7 @@ public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<Ps
         final AzureIcon resourceIcon = Azure.az(AzureAccount.class).isLoggedIn() ?
                 DEFAULT_AZURE_RESOURCE_ICON_PROVIDER.getIcon(resource.getData()) : null;
         final AzureIcon definitionIcon = AzureIcon.builder().iconPath(resource.getDefinition().getIcon()).build();
-        return Stream.of(resourceIcon, definitionIcon, AzureIcons.Connector.CONNECT)
+        return Stream.of(resourceIcon, definitionIcon, AzureIcons.Common.AZURE)
                 .filter(Objects::nonNull)
                 .filter(i -> !Objects.equals(AzureIcons.Common.REFRESH_ICON, i))
                 .map(IntelliJAzureIcons::getIcon)
