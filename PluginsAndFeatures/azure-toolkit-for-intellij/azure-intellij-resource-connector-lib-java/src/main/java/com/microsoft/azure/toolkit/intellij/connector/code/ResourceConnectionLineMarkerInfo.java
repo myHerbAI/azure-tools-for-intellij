@@ -54,6 +54,7 @@ public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<Ps
                 .filter(Objects::nonNull)
                 .filter(i -> !Objects.equals(AzureIcons.Common.REFRESH_ICON, i))
                 .map(IntelliJAzureIcons::getIcon)
+                .filter(Objects::nonNull)
                 .findFirst().orElse(AllIcons.Providers.Azure);
     }
 
