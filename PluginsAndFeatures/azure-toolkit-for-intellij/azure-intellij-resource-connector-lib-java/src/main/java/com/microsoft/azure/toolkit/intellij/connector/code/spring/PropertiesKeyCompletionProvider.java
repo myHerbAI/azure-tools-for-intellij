@@ -38,7 +38,7 @@ public class PropertiesKeyCompletionProvider extends CompletionProvider<Completi
     @Override
     protected void addCompletions(@Nonnull CompletionParameters parameters, @Nonnull ProcessingContext context, @Nonnull CompletionResultSet result) {
         final String originalPrefix = result.getPrefixMatcher().getPrefix();
-        final String prefix = StringUtils.substringBefore(parameters.getPosition().getParent().getLastChild().getText(), CompletionUtil.DUMMY_IDENTIFIER_TRIMMED);
+        final String prefix = StringUtils.substringBefore(parameters.getPosition().getText(), CompletionUtil.DUMMY_IDENTIFIER_TRIMMED);
         if (!StringUtils.equals(originalPrefix, prefix)) {
             result = result.withPrefixMatcher(prefix);
         }
