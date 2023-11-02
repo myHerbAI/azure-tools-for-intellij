@@ -13,6 +13,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.psi.PsiElement;
+import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.AzureServiceResource;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
@@ -31,6 +32,7 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider.DEFAULT_AZURE_RESOURCE_ICON_PROVIDER;
 
@@ -40,21 +42,22 @@ public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<Ps
 
     public ResourceConnectionLineMarkerInfo(@Nonnull Connection<? extends AzResource, ?> connection, final AzureServiceResource<?> resource, @Nonnull PsiElement element) {
         super(element, element.getTextRange(), getIcon(resource), ignore -> getToolTip(resource), null, null,
-                GutterIconRenderer.Alignment.LEFT, () -> connection.getResource().getName());
+            GutterIconRenderer.Alignment.LEFT, () -> connection.getResource().getName());
         this.connection = connection;
     }
 
     private static Icon getIcon(final AzureServiceResource<?> resource) {
+        final Icon dft = IntelliJAzureIcons.getIcon(Optional.ofNullable(resource.getDefinition().getIcon()).orElseGet(AzureIcons.Common.AZURE::getIconPath));
         return Azure.az(AzureAccount.class).isLoggedIn() ?
-                IntelliJAzureIcons.getIcon(DEFAULT_AZURE_RESOURCE_ICON_PROVIDER.getIcon(resource.getData())) :
-                IntelliJAzureIcons.getIcon(resource.getDefinition().getIcon());
+            Optional.ofNullable(IntelliJAzureIcons.getIcon(DEFAULT_AZURE_RESOURCE_ICON_PROVIDER.getIcon(resource.getData()))).orElse(dft) :
+            dft;
     }
 
     private static String getToolTip(final AzureServiceResource<?> resource) {
         final String name = resource.getName();
         final String resourceTypeName = Azure.az(AzureAccount.class).isLoggedIn() ?
-                resource.getData().getModule().getResourceTypeName() :
-                resource.getDefinition().getTitle();
+            resource.getData().getModule().getResourceTypeName() :
+            resource.getDefinition().getTitle();
         return String.format("%s : %s", resourceTypeName, name);
     }
 

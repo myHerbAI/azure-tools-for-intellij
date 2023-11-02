@@ -5,6 +5,7 @@ import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
+import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionUtils;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
@@ -22,7 +23,8 @@ import java.util.stream.Stream;
 public class Utils {
 
     public static List<StorageAccount> getConnectedStorageAccounts(@Nonnull final Module module) {
-        return com.microsoft.azure.toolkit.intellij.connector.code.Utils.getConnectedResources(module, StorageAccountResourceDefinition.INSTANCE);
+        return AzureModule.from(module).getConnections(StorageAccountResourceDefinition.INSTANCE).stream()
+            .filter(Connection::isValidConnection).map(Connection::getResource).map(Resource::getData).toList();
     }
 
     public static List<Connection<?, ?>> getConnectionWithStorageAccount(@Nonnull final StorageAccount account, @Nonnull final Module module) {

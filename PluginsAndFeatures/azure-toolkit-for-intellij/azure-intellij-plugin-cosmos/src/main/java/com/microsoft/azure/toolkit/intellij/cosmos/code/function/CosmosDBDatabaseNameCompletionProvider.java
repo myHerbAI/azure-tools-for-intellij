@@ -30,6 +30,7 @@ import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnno
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationTypeHandler;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationValueInsertHandler;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionUtils;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.cosmos.connection.SqlCosmosDBAccountResourceDefinition;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
@@ -81,7 +82,8 @@ public class CosmosDBDatabaseNameCompletionProvider extends CompletionProvider<C
             return;
         }
         final List<SqlDatabase> accountsToSearch = Objects.nonNull(database) ? List.of(database) :
-                Utils.getConnectedResources(module, SqlCosmosDBAccountResourceDefinition.INSTANCE);
+            AzureModule.from(module).getConnections(SqlCosmosDBAccountResourceDefinition.INSTANCE).stream()
+                .filter(Connection::isValidConnection).map(Connection::getResource).map(Resource::getData).toList();
         accountsToSearch.stream()
                 .map(d -> createLookupElement(d, module))
                 .forEach(result::addElement);
