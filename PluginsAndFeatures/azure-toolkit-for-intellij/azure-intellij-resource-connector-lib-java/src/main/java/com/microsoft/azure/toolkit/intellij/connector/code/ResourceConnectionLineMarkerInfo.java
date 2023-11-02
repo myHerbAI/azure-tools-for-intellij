@@ -37,6 +37,7 @@ import java.util.stream.Stream;
 import static com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider.DEFAULT_AZURE_RESOURCE_ICON_PROVIDER;
 
 public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<PsiElement> {
+    public static final String LINE_MARKER_NAVIGATE_TOOLTIP = "Navigate to %s \"%s\" in Project Explorer";
     @Getter
     private final Connection<?, ?> connection;
 
@@ -63,7 +64,7 @@ public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<Ps
         final String resourceTypeName = Azure.az(AzureAccount.class).isLoggedIn() ?
             resource.getData().getModule().getResourceTypeName() :
             resource.getDefinition().getTitle();
-        return String.format("%s : %s", resourceTypeName, name);
+        return String.format(LINE_MARKER_NAVIGATE_TOOLTIP, resourceTypeName, name);
     }
 
     @Override
