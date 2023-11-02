@@ -14,23 +14,22 @@ import com.intellij.util.IncorrectOperationException;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionActionsContributor;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 @AllArgsConstructor
 public class EditConnectionFix implements IntentionAction {
-    private final Connection<? extends AzResource, ?> connection;
+    private final Connection<?, ?> connection;
 
     @Override
     public @IntentionName @NotNull String getText() {
-        return "Edit Connection";
+        return "Edit connection";
     }
 
     @Override
     public @NotNull @IntentionFamilyName String getFamilyName() {
-        return "Resource Connection Fixes";
+        return "Resource connection fixes";
     }
 
     @Override

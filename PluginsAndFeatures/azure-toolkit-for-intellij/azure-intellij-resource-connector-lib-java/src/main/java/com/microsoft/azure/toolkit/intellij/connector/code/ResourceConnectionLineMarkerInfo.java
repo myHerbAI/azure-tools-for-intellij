@@ -13,6 +13,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.psi.PsiElement;
+import com.microsoft.azure.toolkit.ide.common.icon.AzureIcon;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.AzureServiceResource;
@@ -22,7 +23,6 @@ import com.microsoft.azure.toolkit.intellij.connector.projectexplorer.AbstractAz
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -32,25 +32,29 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.stream.Stream;
 
 import static com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider.DEFAULT_AZURE_RESOURCE_ICON_PROVIDER;
 
 public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<PsiElement> {
     @Getter
-    private final Connection<? extends AzResource, ?> connection;
+    private final Connection<?, ?> connection;
 
-    public ResourceConnectionLineMarkerInfo(@Nonnull Connection<? extends AzResource, ?> connection, final AzureServiceResource<?> resource, @Nonnull PsiElement element) {
+    public ResourceConnectionLineMarkerInfo(@Nonnull Connection<?, ?> connection, final AzureServiceResource<?> resource, @Nonnull PsiElement element) {
         super(element, element.getTextRange(), getIcon(resource), ignore -> getToolTip(resource), null, null,
             GutterIconRenderer.Alignment.LEFT, () -> connection.getResource().getName());
         this.connection = connection;
     }
 
-    private static Icon getIcon(final AzureServiceResource<?> resource) {
-        final Icon dft = IntelliJAzureIcons.getIcon(Optional.ofNullable(resource.getDefinition().getIcon()).orElseGet(AzureIcons.Common.AZURE::getIconPath));
-        return Azure.az(AzureAccount.class).isLoggedIn() ?
-            Optional.ofNullable(IntelliJAzureIcons.getIcon(DEFAULT_AZURE_RESOURCE_ICON_PROVIDER.getIcon(resource.getData()))).orElse(dft) :
-            dft;
+    private static Icon getIcon(@Nonnull final AzureServiceResource<?> resource) {
+        final AzureIcon resourceIcon = Azure.az(AzureAccount.class).isLoggedIn() ?
+                DEFAULT_AZURE_RESOURCE_ICON_PROVIDER.getIcon(resource.getData()) : null;
+        final AzureIcon definitionIcon = AzureIcon.builder().iconPath(resource.getDefinition().getIcon()).build();
+        return Stream.of(resourceIcon, definitionIcon, AzureIcons.Common.AZURE)
+                .filter(Objects::nonNull)
+                .filter(i -> !Objects.equals(AzureIcons.Common.REFRESH_ICON, i))
+                .map(IntelliJAzureIcons::getIcon)
+                .findFirst().orElse(AllIcons.Providers.Azure);
     }
 
     private static String getToolTip(final AzureServiceResource<?> resource) {
@@ -82,7 +86,7 @@ public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<Ps
     }
 
     private static class ResourceConnectionGutterIconRender extends LineMarkerInfo.LineMarkerGutterIconRenderer<PsiElement> {
-        private final Connection<? extends AzResource, ?> connection;
+        private final Connection<?, ?> connection;
         @Getter
         private AnAction clickAction;
         private AnAction editConnectionAction;
@@ -90,7 +94,7 @@ public class ResourceConnectionLineMarkerInfo extends MergeableLineMarkerInfo<Ps
         @Getter
         private ActionGroup popupMenuActions;
 
-        public ResourceConnectionGutterIconRender(@Nonnull final ResourceConnectionLineMarkerInfo info, @Nonnull final Connection<? extends AzResource, ?> connection) {
+        public ResourceConnectionGutterIconRender(@Nonnull final ResourceConnectionLineMarkerInfo info, @Nonnull final Connection<?, ?> connection) {
             super(info);
             this.connection = connection;
             this.initActions();

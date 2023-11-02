@@ -8,6 +8,8 @@ package com.microsoft.azure.toolkit.intellij.connector.code;
 import com.intellij.codeInsight.intention.choice.ChoiceVariantIntentionAction;
 import com.intellij.codeInspection.util.IntentionFamilyName;
 import com.intellij.codeInspection.util.IntentionName;
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
@@ -57,7 +59,9 @@ public class ChangeEnvironmentVariableFix extends ChoiceVariantIntentionAction {
         final PsiElement element = pointer.getElement();
         final TextRange textRange = element.getTextRange();
         final String newValue = StringUtils.isEmpty(origin) ? String.format("\"%s\"", value) : StringUtils.replace(element.getText(), origin, value);
-        document.replaceString(textRange.getStartOffset(), textRange.getEndOffset(), newValue);
-        PsiDocumentManager.getInstance(project).commitDocument(document);
+        WriteCommandAction.runWriteCommandAction(project, () -> {
+            document.replaceString(textRange.getStartOffset(), textRange.getEndOffset(), newValue);
+            PsiDocumentManager.getInstance(project).commitDocument(document);
+        });
     }
 }

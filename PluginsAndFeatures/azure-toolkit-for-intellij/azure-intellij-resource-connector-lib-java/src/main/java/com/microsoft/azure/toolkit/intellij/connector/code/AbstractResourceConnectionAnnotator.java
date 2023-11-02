@@ -44,7 +44,7 @@ public abstract class AbstractResourceConnectionAnnotator implements Annotator {
         if (!(isAzureFacetEnabled(element) && shouldAccept(element))) {
             return;
         }
-        final Connection<? extends AzResource, ?> connection = getConnectionForPsiElement(element);
+        final Connection<?, ?> connection = getConnectionForPsiElement(element);
         if (Objects.isNull(connection)) {
             validateNamePattern(element, holder);
         } else {
@@ -62,7 +62,7 @@ public abstract class AbstractResourceConnectionAnnotator implements Annotator {
     protected abstract String extractVariableValue(@Nonnull final PsiElement element);
 
     @Nullable
-    protected Connection<? extends AzResource, ?> getConnectionForPsiElement(@Nonnull final PsiElement element) {
+    protected Connection<?, ?> getConnectionForPsiElement(@Nonnull final PsiElement element) {
         final Module module = ModuleUtil.findModuleForPsiElement(element);
         return Utils.getConnectionWithEnvironmentVariable(module, extractVariableValue(element));
     }
@@ -75,6 +75,7 @@ public abstract class AbstractResourceConnectionAnnotator implements Annotator {
             return;
         }
         final String text = extractVariableValue(element);
+        //noinspection ReturnOfNull
         final AzureServiceResource.Definition<?> definition = ConnectionManager.getDefinitions().stream()
                 .map(d -> d.getResourceDefinition() instanceof AzureServiceResource.Definition ?
                         (AzureServiceResource.Definition<?>) d.getResourceDefinition() : null)
@@ -95,6 +96,7 @@ public abstract class AbstractResourceConnectionAnnotator implements Annotator {
                     .map(Pair::getKey)
                     .filter(key -> StringUtils.isNotBlank(suffix) && StringUtils.endsWith(key, suffix))
                     .toList();
+            //noinspection ResultOfMethodCallIgnored
             values.stream()
                     .map(property -> new ChangeEnvironmentVariableFix(text, property, SmartPointerManager.createPointer(element)))
                     .forEach(builder::withFix);
@@ -103,14 +105,13 @@ public abstract class AbstractResourceConnectionAnnotator implements Annotator {
     }
 
     private void validateConnectionResource(@Nonnull final PsiElement element, @Nonnull final AnnotationHolder holder,
-                                            @Nonnull final Connection<? extends AzResource, ?> connection) {
+                                            @Nonnull final Connection<?, ?> connection) {
         if (!Azure.az(AzureAccount.class).isLoggedIn()) {
             AnnotationFixes.createSignInAnnotation(element, holder);
             return;
         }
-        final AzResource data = connection.getResource().getData();
-        if (Objects.isNull(data) || !data.getFormalStatus().isConnected()) {
-            holder.newAnnotation(HighlightSeverity.WARNING, "Connected resource is not available")
+        if (!connection.isValidConnection()) {
+            holder.newAnnotation(HighlightSeverity.WARNING, String.format("Connection '%s' is not valid", connection.getEnvPrefix()))
                     .range(element.getTextRange())
                     .highlightType(ProblemHighlightType.GENERIC_ERROR_OR_WARNING)
                     .withFix(new EditConnectionFix(connection))
