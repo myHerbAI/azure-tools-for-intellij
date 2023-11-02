@@ -110,13 +110,8 @@ public abstract class AbstractResourceConnectionAnnotator implements Annotator {
             AnnotationFixes.createSignInAnnotation(element, holder);
             return;
         }
-        final Object data = connection.getResource().getData();
-        if (!(data instanceof AzResource)) {
-            return;
-        }
-        final AzResource resource = (AzResource) data;
-        if (!resource.getFormalStatus().isConnected()) {
-            holder.newAnnotation(HighlightSeverity.WARNING, "Connected resource is not available")
+        if (!connection.isValidConnection()) {
+            holder.newAnnotation(HighlightSeverity.WARNING, String.format("Connection '%s' is not valid", connection.getEnvPrefix()))
                     .range(element.getTextRange())
                     .highlightType(ProblemHighlightType.GENERIC_ERROR_OR_WARNING)
                     .withFix(new EditConnectionFix(connection))
