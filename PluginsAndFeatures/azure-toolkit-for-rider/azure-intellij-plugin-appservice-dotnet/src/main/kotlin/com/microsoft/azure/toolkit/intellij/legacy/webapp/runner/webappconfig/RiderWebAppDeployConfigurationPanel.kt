@@ -75,11 +75,11 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
             row("Web App:") {
                 webAppComboBox = webAppComboBox(project)
                     .align(Align.FILL)
+                    .resizableColumn()
             }
             row("Project:") {
                 dotnetProjectComboBox = dotnetProjectComboBox(project) { it.canBePublishedToAzure() }
                         .align(Align.FILL)
-                        .resizableColumn()
             }
             row("Configuration:") {
                 configurationAndPlatformComboBox = configurationAndPlatformComboBox(project)

@@ -24,7 +24,7 @@ open class WebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(p
 
     companion object {
         const val RIDER_PROJECT_CONFIGURATION = "RIDER_PROJECT_CONFIGURATION"
-        const val RIDER_PROJECT_PLATFORM = "RIDER_PROJECT_CONFIGURATION"
+        const val RIDER_PROJECT_PLATFORM = "RIDER_PROJECT_PLATFORM"
     }
 
     init {

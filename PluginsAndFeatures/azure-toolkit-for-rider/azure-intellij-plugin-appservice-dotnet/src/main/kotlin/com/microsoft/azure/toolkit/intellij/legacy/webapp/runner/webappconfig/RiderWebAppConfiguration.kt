@@ -172,26 +172,26 @@ class RiderWebAppConfiguration(private val project: Project, factory: Configurat
     override fun validate() {
         with(webAppSettingModel) {
             if (isCreatingNew) {
-                if (webAppName.isNullOrEmpty()) throw ConfigurationException("Web App name not provided.")
-                if (subscriptionId.isNullOrEmpty()) throw ConfigurationException("Subscription not provided.")
-                if (resourceGroup.isNullOrEmpty()) throw ConfigurationException("Resource Group not provided.")
+                if (webAppName.isNullOrEmpty()) throw ConfigurationException("Web App name not provided")
+                if (subscriptionId.isNullOrEmpty()) throw ConfigurationException("Subscription not provided")
+                if (resourceGroup.isNullOrEmpty()) throw ConfigurationException("Resource Group not provided")
                 if (isCreatingAppServicePlan) {
-                    if (region.isNullOrEmpty()) throw ConfigurationException("Location not provided.")
-                    if (pricing.isNullOrEmpty()) throw ConfigurationException("Pricing Tier not provided.")
+                    if (region.isNullOrEmpty()) throw ConfigurationException("Location not provided")
+                    if (pricing.isNullOrEmpty()) throw ConfigurationException("Pricing Tier not provided")
                 }
-                if (appServicePlanName.isNullOrEmpty()) throw ConfigurationException("App Service Plan not provided.")
+                if (appServicePlanName.isNullOrEmpty()) throw ConfigurationException("App Service Plan not provided")
             } else {
-                if (webAppId.isNullOrEmpty()) throw ConfigurationException("Choose a web app to deploy.")
+                if (webAppId.isNullOrEmpty()) throw ConfigurationException("Choose a web app to deploy")
                 if (appServicePlanName.isNullOrEmpty()) throw ConfigurationException("Meta-data of target webapp is still loading...")
                 if (isDeployToSlot) {
                     if (slotName == Constants.CREATE_NEW_SLOT) {
-                        if (newSlotName.isNullOrEmpty()) throw ConfigurationException("The deployment slot name is not provided.")
-                        if (!slotNameRegex.matches(newSlotName)) throw ConfigurationException("The slot name is invalid.")
-                    } else if (slotName.isNullOrEmpty()) throw ConfigurationException("The deployment slot name is not provided.")
+                        if (newSlotName.isNullOrEmpty()) throw ConfigurationException("The deployment slot name is not provided")
+                        if (!slotNameRegex.matches(newSlotName)) throw ConfigurationException("The slot name is invalid")
+                    } else if (slotName.isNullOrEmpty()) throw ConfigurationException("The deployment slot name is not provided")
                 }
             }
 
-            if (OperatingSystem.fromString(operatingSystem) == OperatingSystem.DOCKER) throw ConfigurationException("Invalid target, please change to use `Deploy Image to Web App` for docker web app.")
+            if (OperatingSystem.fromString(operatingSystem) == OperatingSystem.DOCKER) throw ConfigurationException("Invalid target, please change to use `Deploy Image to Web App` for docker web app")
             if (projectPath.isEmpty()) throw ConfigurationException("Choose a project to deploy")
         }
     }
