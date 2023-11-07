@@ -11,7 +11,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.cognitiveservices.AzureCognitiveServices;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 
 import javax.annotation.Nonnull;
 import java.util.*;
