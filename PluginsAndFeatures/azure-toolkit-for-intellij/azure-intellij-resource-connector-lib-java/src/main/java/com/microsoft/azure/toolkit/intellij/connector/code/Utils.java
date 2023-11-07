@@ -43,6 +43,7 @@ public class Utils {
     }
 
     public static <T> List<T> getConnectedResources(@Nonnull final Module module, @Nonnull final ResourceDefinition<T> definition) {
+        //noinspection unchecked
         return Optional.of(module).map(AzureModule::from)
                 .map(AzureModule::getDefaultProfile).map(Profile::getConnectionManager).stream()
                 .flatMap(m -> m.getConnections().stream())
@@ -55,14 +56,15 @@ public class Utils {
     }
 
     @Nullable
-    public static Connection<? extends AzResource, ?> getConnectionWithEnvironmentVariable(@Nullable final Module module,
+    public static Connection<?, ?> getConnectionWithEnvironmentVariable(@Nullable final Module module,
                                                                                  @Nonnull String variable) {
         final Profile defaultProfile = Optional.ofNullable(module).map(AzureModule::from).map(AzureModule::getDefaultProfile).orElse(null);
-        if (Objects.isNull(defaultProfile)) {
+        if (Objects.isNull(defaultProfile) || !defaultProfile.isEnvFileValid()) {
             return null;
         }
-        return (Connection<? extends AzResource, ?>) defaultProfile.getConnections().stream()
-                .filter(c -> isConnectionVariable(variable, defaultProfile, c))
+        return defaultProfile.getConnections().stream()
+                .filter(c -> defaultProfile.getGeneratedEnvironmentVariables(c).stream()
+                        .anyMatch(pair -> StringUtils.equalsIgnoreCase(pair.getKey(), variable)))
                 .findAny().orElse(null);
     }
 
@@ -73,6 +75,7 @@ public class Utils {
         if (Objects.isNull(defaultProfile)) {
             return null;
         }
+        //noinspection unchecked
         return (Connection<? extends AzResource, ?>) defaultProfile.getConnections().stream()
                 .filter(c -> Objects.equals(c.getResource().getData(), resource))
                 .findAny().orElse(null);
@@ -83,6 +86,7 @@ public class Utils {
                 .anyMatch(pair -> StringUtils.equalsIgnoreCase(pair.getKey(), variable));
     }
 
+    @SuppressWarnings("rawtypes")
     @AzureOperation(name = "internal/connector.create_connection_in_properties")
     public static void createAndInsert(@Nonnull Module module, @Nonnull Resource resource,
                                        @Nonnull InsertionContext context, @Nonnull ConnectionManager connectionManager,
@@ -136,8 +140,8 @@ public class Utils {
     }
 
 
-    public static List<? extends Resource<?>> listResourceForDefinition(@Nonnull final Project project,
-                                                                        @Nonnull final ResourceDefinition<?> d) {
+    public static <T> List<? extends Resource<T>> listResourceForDefinition(@Nonnull final Project project,
+                                                                        @Nonnull final ResourceDefinition<T> d) {
         try {
             return d.getResources(project);
         } catch (final ProcessCanceledException ProcessCanceledException) {
