@@ -1,3 +1,7 @@
+/*
+ * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ */
+
 package com.microsoft.azure.toolkit.intellij.base
 
 import com.intellij.ide.AppLifecycleListener
@@ -39,7 +43,7 @@ class PluginLifecycleListener : AppLifecycleListener {
     }
 
     private fun initializeConfig() {
-        var installId = IntelliJAzureTelemetryCommonPropertiesProvider.getInstallationId()
+        val installId = IntelliJAzureTelemetryCommonPropertiesProvider.getInstallationId()
 
         initialize(installId, "Azure Toolkit for IntelliJ", CommonConst.PLUGIN_VERSION)
         val cloud = Azure.az().config().cloud

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ */
+
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner
 
 import com.intellij.openapi.components.Service
@@ -52,7 +56,6 @@ class WebAppArtifactService(private val project: Project) {
      * Note: For a DotNET Framework projects publish a copy of project folder as is
      *       For a DotNet Core projects generate an publishable output by [MsBuildPublishingService]
      *
-     * @param project IDEA [Project] instance
      * @param publishableProject contains information about project to be published (isDotNetCore, path to project file)
      * @param configuration optional configuration to pass to MSBuild
      * @param platform optional platform to pass to MSBuild

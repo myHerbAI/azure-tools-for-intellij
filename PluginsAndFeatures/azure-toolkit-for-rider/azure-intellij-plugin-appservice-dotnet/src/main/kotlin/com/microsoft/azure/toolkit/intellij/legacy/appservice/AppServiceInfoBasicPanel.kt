@@ -1,3 +1,7 @@
+/*
+ * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ */
+
 package com.microsoft.azure.toolkit.intellij.legacy.appservice
 
 import com.intellij.openapi.project.Project
@@ -11,8 +15,8 @@ import com.microsoft.azure.toolkit.intellij.common.AzureDotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel
 import com.microsoft.azure.toolkit.intellij.common.configurationAndPlatformComboBox
 import com.microsoft.azure.toolkit.intellij.common.dotnetProjectComboBox
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.RiderWebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.canBePublishedToAzure
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.toRuntime
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
@@ -23,7 +27,7 @@ import java.util.function.Supplier
 import javax.swing.JPanel
 import kotlin.io.path.Path
 
-class RiderAppServiceInfoBasicPanel<T>(
+class AppServiceInfoBasicPanel<T>(
         private val project: Project,
         private val subscription: Subscription,
         private val defaultConfigSupplier: Supplier<T>
@@ -72,6 +76,7 @@ class RiderAppServiceInfoBasicPanel<T>(
                 }
             }
         }
+        setDeploymentVisible(false)
         dotnetProjectComboBox.component.reloadItems()
 
         add(panel)

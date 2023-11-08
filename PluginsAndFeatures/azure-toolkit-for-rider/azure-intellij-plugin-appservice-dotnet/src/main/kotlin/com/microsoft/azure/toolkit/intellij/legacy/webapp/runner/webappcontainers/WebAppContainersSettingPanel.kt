@@ -1,3 +1,7 @@
+/*
+ * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ */
+
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers
 
 import com.intellij.openapi.project.Project
@@ -84,8 +88,8 @@ class WebAppContainersSettingPanel(private val project: Project) : RiderAzureSet
         repositoryLabel.component.text = "${value.address}/"
     }
 
+    override fun getMainPanel() = panel
+
     override fun disposeEditor() {
     }
-
-    override fun getMainPanel() = panel
 }

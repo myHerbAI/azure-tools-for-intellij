@@ -1,3 +1,7 @@
+/*
+ * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ */
+
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.action
 
 import com.intellij.execution.ProgramRunnerUtil
@@ -9,14 +13,14 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.common.auth.AzureLoginHelper
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.RiderWebAppConfigurationType
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfigurationType
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.RiderWebAppConfiguration
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 
 class DeployWebAppAction : AnAction() {
     companion object {
-        private val configType = RiderWebAppConfigurationType.getInstance()
+        private val configType = WebAppConfigurationType.getInstance()
 
         fun deploy(webApp: WebApp?, project: Project?) {
             if (webApp == null || project == null) return
@@ -31,7 +35,7 @@ class DeployWebAppAction : AnAction() {
 
         private fun getOrCreateRunConfigurationSettings(project: Project, webApp: WebApp?): RunnerAndConfigurationSettings {
             val manager = RunManagerEx.getInstanceEx(project)
-            val factory = configType.getWebAppConfigurationFactory()
+            val factory = configType.getFactory()
             val name = webApp?.name ?: ""
             val runConfigurationName = "${factory.name}: ${project.name} $name"
             val settings = manager.findConfigurationByName(runConfigurationName)

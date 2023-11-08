@@ -1,3 +1,7 @@
+/*
+ * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ */
+
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
 import com.intellij.openapi.project.Project
@@ -151,8 +155,8 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
         webAppPanel.setConfigurationAndPlatform(configuration.projectConfiguration, configuration.projectPlatform)
     }
 
+    override fun getMainPanel() = panel
+
     override fun disposeEditor() {
     }
-
-    override fun getMainPanel() = panel
 }
