@@ -8,9 +8,6 @@ import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileState
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager
-import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
-import com.microsoft.azure.toolkit.lib.legacy.function.FunctionAppService
 
 class FunctionDeploymentState(
     project: Project,
@@ -20,15 +17,10 @@ class FunctionDeploymentState(
     private val deployModel = functionDeploymentConfiguration.getModel()
 
     override fun executeSteps(processHandler: RunProcessHandler): FunctionAppBase<*, *, *> {
-        val publishableProject = deployModel.publishableProject ?: throw RuntimeException("Project is not defined")
-        val messenger = AzureMessager.getDefaultMessager()
-        OperationContext.current().setMessager(processHandlerMessenger)
-        val target = FunctionAppService.getInstance().createOrUpdateFunctionApp(deployModel.functionAppConfig)
-
-        return target
+        throw NotImplementedError()
     }
 
     override fun onSuccess(result: FunctionAppBase<*, *, *>, processHandler: RunProcessHandler) {
-        TODO("Not yet implemented")
+        processHandler.notifyComplete()
     }
 }
