@@ -1,3 +1,7 @@
+<!--
+  ~ Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+  -->
+
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude" url="https://github.com/JetBrains/azure-tools-for-intellij">
   <id>com.intellij.resharper.azure</id>
   <name>Azure Toolkit for Rider</name>
@@ -19,7 +23,7 @@
     <applicationConfigurable parentId="tools"
                              displayName="Azure"
                              id="com.microsoft.intellij.AzureConfigurable"
-                             provider="com.microsoft.azure.toolkit.intellij.settings.AzureSettingsConfigurableProvider"/>
+                             instance="com.microsoft.azure.toolkit.intellij.settings.AzureConfigurable"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">

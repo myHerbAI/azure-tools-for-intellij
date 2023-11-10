@@ -1,3 +1,7 @@
+<!--
+  ~ Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+  -->
+
 <idea-plugin>
     <depends>Docker</depends>
 
@@ -9,6 +13,20 @@
         <configurationType implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfigurationType"/>
         <configurationType implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers.WebAppContainersConfigurationType"/>
         <configurationType implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.AzureFunctionConfigurationType"/>
+
+        <projectTemplateProvider implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.FunctionTemplateProvider" order="first"/>
+
+        <applicationConfigurable parentId="com.microsoft.intellij.AzureConfigurable"
+                                 displayName="Functions"
+                                 id="com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionConfigurable"
+                                 instance="com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionConfigurable"/>
+
+        <registryKey key="azure.function_app.core_tools.feed.enabled"
+                     defaultValue="true"
+                     description="Enable downloading from Azure Functions Core Tools releases feed URL." />
+        <registryKey key="azure.function_app.core_tools.feed.url"
+                     defaultValue="https://functionscdn.azureedge.net/public/cli-feed-v4.json"
+                     description="Azure Functions Core Tools releases feed URL." />
     </extensions>
 
     <actions>
