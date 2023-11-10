@@ -5,15 +5,23 @@
 package com.microsoft.azure.toolkit.intellij.legacy.function.settings
 
 import com.intellij.openapi.components.*
+import java.nio.file.Path
 
 @State(
     name = "com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionSettings",
     storages = [(Storage("AzureSettings.xml"))]
 )
 @Service
-class AzureFunctionSettings : SimplePersistentStateComponent<AzureFunctionSettingState>(AzureFunctionSettingState()) {
+class AzureFunctionSettings : SimplePersistentStateComponent<AzureFunctionSettingState>(
+    AzureFunctionSettingState(
+        Path.of(System.getProperty("user.home")).resolve(AZURE_TOOLS_FOLDER).resolve(AZURE_FUNCTIONS_TOOLS_FOLDER)
+    )
+) {
     companion object {
         fun getInstance(): AzureFunctionSettings = service()
+
+        private const val AZURE_TOOLS_FOLDER = ".AzureToolsForIntelliJ"
+        private const val AZURE_FUNCTIONS_TOOLS_FOLDER = "AzureFunctionsCoreTools"
     }
 
     var azureCoreToolsPathEntries: List<AzureCoreToolsPathEntry>
@@ -26,7 +34,7 @@ class AzureFunctionSettings : SimplePersistentStateComponent<AzureFunctionSettin
         }
         set(entries) {
             for (entry in entries) {
-                when(entry.functionsVersion) {
+                when (entry.functionsVersion) {
                     "v4" -> state.functionV4Path = entry.coreToolsPath
                     "v3" -> state.functionV3Path = entry.coreToolsPath
                     "v2" -> state.functionV2Path = entry.coreToolsPath

@@ -1,3 +1,7 @@
+/*
+ * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ */
+
 dependencies {
     implementation("com.microsoft.azure:azure-toolkit-auth-lib")
     implementation("com.microsoft.azure:azure-toolkit-ide-common-lib")
@@ -12,4 +16,8 @@ dependencies {
     implementation("com.microsoft.azure:azure-toolkit-appservice-lib")
     implementation("com.microsoft.azure:azure-toolkit-ide-appservice-lib")
     implementation("com.microsoft.azure:azure-toolkit-ide-containerregistry-lib")
+    implementation("io.ktor:ktor-client-core:2.3.6")
+    implementation("io.ktor:ktor-client-cio:2.3.6")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.6")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.6")
 }

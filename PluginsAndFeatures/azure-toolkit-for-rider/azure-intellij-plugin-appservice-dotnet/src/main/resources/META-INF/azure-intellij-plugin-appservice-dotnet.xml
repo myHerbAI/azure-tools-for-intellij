@@ -15,6 +15,7 @@
         <configurationType implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.AzureFunctionConfigurationType"/>
 
         <projectTemplateProvider implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.FunctionTemplateProvider" order="first"/>
+        <rider.projectView.actions.projectTemplating.backend.reSharperProjectTemplateCustomizer implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.FunctionTemplateCustomizer" />
 
         <applicationConfigurable parentId="com.microsoft.intellij.AzureConfigurable"
                                  displayName="Functions"

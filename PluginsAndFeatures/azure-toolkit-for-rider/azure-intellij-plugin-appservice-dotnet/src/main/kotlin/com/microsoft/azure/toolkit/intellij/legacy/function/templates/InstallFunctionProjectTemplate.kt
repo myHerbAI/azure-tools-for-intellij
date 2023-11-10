@@ -4,6 +4,7 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.templates
 
+import com.jetbrains.rd.util.reactive.fire
 import com.jetbrains.rider.projectView.actions.projectTemplating.RiderProjectTemplate
 import com.jetbrains.rider.projectView.actions.projectTemplating.RiderProjectTemplateGenerator
 import com.jetbrains.rider.projectView.actions.projectTemplating.common.InfoProjectTemplateGeneratorBase
@@ -13,7 +14,7 @@ import com.jetbrains.rider.projectView.actions.projectTemplating.impl.ProjectTem
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 import javax.swing.Icon
 
-class FunctionProjectTemplate : RiderProjectTemplate {
+class InstallFunctionProjectTemplate : RiderProjectTemplate {
     override val group: String
         get() = ".NET / .NET Core"
     override val localizedGroup: String
@@ -35,12 +36,13 @@ class FunctionProjectTemplate : RiderProjectTemplate {
             get() = "Reload"
 
         override fun expand(): Runnable {
-            // just close dialog and show again to refresh templates
+            // close dialog and show again to refresh templates
             return Runnable { ProjectTemplateDialog.show(context.project, context.entity) }
         }
 
         override fun getComponent() = InstallFunctionToolComponent(validationError) {
 
+            context.restart.fire()
         }.getView()
     }
 }

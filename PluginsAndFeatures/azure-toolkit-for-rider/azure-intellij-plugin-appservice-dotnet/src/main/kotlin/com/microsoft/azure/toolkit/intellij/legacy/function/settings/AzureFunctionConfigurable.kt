@@ -21,15 +21,12 @@ import com.intellij.util.PathUtil
 import com.intellij.util.asSafely
 import com.intellij.util.ui.*
 import com.microsoft.azure.toolkit.intellij.common.getSelectedValue
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.isFunctionTool
 import java.io.File
 import javax.swing.JTable
 import javax.swing.ListSelectionModel
 
 class AzureFunctionConfigurable : BoundConfigurable("Functions") {
-    companion object {
-        private fun File.isFunctionTool() = nameWithoutExtension.equals("func", ignoreCase = true)
-    }
-
     private val isCoreToolsFeedEnabled = Registry.`is`("azure.function_app.core_tools.feed.enabled")
 
     private val settings get() = AzureFunctionSettings.getInstance()
