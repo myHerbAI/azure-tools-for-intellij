@@ -16,6 +16,7 @@
 
         <projectTemplateProvider implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.FunctionTemplateProvider" order="first"/>
         <rider.projectView.actions.projectTemplating.backend.reSharperProjectTemplateCustomizer implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.FunctionTemplateCustomizer" />
+        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.ReloadFunctionTemplateActivity"/>
 
         <applicationConfigurable parentId="com.microsoft.intellij.AzureConfigurable"
                                  displayName="Functions"
