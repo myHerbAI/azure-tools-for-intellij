@@ -2,20 +2,19 @@
  * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
+@file:Suppress("UnstableApiUsage")
+
 package com.microsoft.azure.toolkit.intellij.legacy.function.templates
 
 import com.intellij.ide.actions.ShowSettingsUtilImpl
+import com.intellij.openapi.progress.runWithModalProgressBlocking
 import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.rd.util.lifetime
+import com.intellij.openapi.rd.util.withBackgroundContext
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.ui.dsl.builder.panel
 import com.jetbrains.rd.util.reactive.IProperty
-import com.jetbrains.rd.util.threading.SpinWait
-import com.jetbrains.rd.util.threading.coroutines.launch
 import com.jetbrains.rider.ui.components.base.Viewable
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionsCoreToolsInfoProvider
-import kotlinx.coroutines.Dispatchers
-import java.time.Duration
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -36,17 +35,15 @@ class InstallFunctionToolComponent(private val validationError: IProperty<String
             row {
                 link("Download Azure Functions Core Tools... (recommended)") {
                     val project = ProjectManager.getInstance().defaultProject
-                    var isDownloaded = false
-                    project.lifetime.launch(Dispatchers.Default) {
-                        FunctionsCoreToolsInfoProvider.getInstance()
-                            .retrieveForVersion(
-                                project,
-                                FunctionTemplateManager.FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION,
-                                true
-                            )
-                        isDownloaded = true
+                    runWithModalProgressBlocking(project, "Downloading Azure Functions Core Tools...") {
+                        withBackgroundContext {
+                            FunctionsCoreToolsInfoProvider.getInstance()
+                                .retrieveForVersion(
+                                    FunctionTemplateManager.FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION,
+                                    true
+                                )
+                        }
                     }
-                    SpinWait.spinUntil(project.lifetime, Duration.ofSeconds(60)) { isDownloaded }
                     validationError.set(null)
                     reloadTemplates.run()
                 }

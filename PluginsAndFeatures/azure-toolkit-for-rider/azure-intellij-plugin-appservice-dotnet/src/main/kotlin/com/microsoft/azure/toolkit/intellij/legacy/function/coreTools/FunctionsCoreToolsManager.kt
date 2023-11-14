@@ -9,8 +9,6 @@ package com.microsoft.azure.toolkit.intellij.legacy.function.coreTools
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.progress.withBackgroundProgress
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.registry.Registry
@@ -35,7 +33,6 @@ class FunctionsCoreToolsManager {
     private val releaseCache = concurrentMapOf<String, FunctionCoreToolsRelease>()
 
     suspend fun demandCoreToolsPathForVersion(
-        project: Project,
         azureFunctionsVersion: String,
         releaseFeedUrl: String,
         allowDownload: Boolean
@@ -46,7 +43,7 @@ class FunctionsCoreToolsManager {
             ensureReleaseCacheFromFeed(releaseFeedUrl)
 
             val coreToolsPath = resolveDownloadInfoForRelease(azureFunctionsVersion, downloadRoot)
-                ?.let { ensureReleaseDownloaded(project, it) }
+                ?.let { ensureReleaseDownloaded(it) }
 
             if (coreToolsPath != null) return coreToolsPath
         }
@@ -197,17 +194,11 @@ class FunctionsCoreToolsManager {
         )
     }
 
-    private suspend fun ensureReleaseDownloaded(
-        project: Project,
-        downloadInfo: FunctionCoreToolsDownloadInfo
-    ): String? {
+    private fun ensureReleaseDownloaded(downloadInfo: FunctionCoreToolsDownloadInfo): String? {
         if (downloadInfo.downloadFolderForTagAndRelease.exists()) {
             return downloadInfo.downloadFolderForTagAndRelease.path
         }
-
-        withBackgroundProgress(project, "Downloading Azure Functions Core Tools...", true) {
-            downloadRelease(downloadInfo)
-        }
+        downloadRelease(downloadInfo)
 
         if (downloadInfo.downloadFolderForTagAndRelease.exists()) {
             return downloadInfo.downloadFolderForTagAndRelease.path

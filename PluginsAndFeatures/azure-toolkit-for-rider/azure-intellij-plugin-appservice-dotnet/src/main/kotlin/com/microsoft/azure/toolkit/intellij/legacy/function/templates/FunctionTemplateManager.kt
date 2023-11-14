@@ -6,7 +6,6 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.templates
 
-import com.intellij.openapi.command.impl.DummyProject
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
@@ -40,9 +39,7 @@ class FunctionTemplateManager {
 
         // Determine core tools info for the latest supported Azure Functions version
         val toolsInfoProvider = FunctionsCoreToolsInfoProvider.getInstance()
-        val dummyProject = DummyProject.getInstance()
         val coreToolsInfo = toolsInfoProvider.retrieveForVersion(
-            dummyProject,
             FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION,
             false
         ) ?: return

@@ -9,7 +9,6 @@ package com.microsoft.azure.toolkit.intellij.legacy.function.coreTools
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.util.application
@@ -26,7 +25,6 @@ class FunctionsCoreToolsInfoProvider {
     }
 
     suspend fun retrieveForVersion(
-        project: Project,
         azureFunctionsVersion: String,
         allowDownload: Boolean
     ): FunctionsCoreToolsInfo? {
@@ -37,7 +35,7 @@ class FunctionsCoreToolsInfoProvider {
 
         LOG.info("Could not determine Azure Core Tools path from configuration")
 
-        val coreToolsFromFeed = retrieveFromFeed(project, azureFunctionsVersion, allowDownload)
+        val coreToolsFromFeed = retrieveFromFeed(azureFunctionsVersion, allowDownload)
         if (coreToolsFromFeed != null) return coreToolsFromFeed
 
         LOG.info("Could not determine Azure Core Tools path from feed")
@@ -73,12 +71,10 @@ class FunctionsCoreToolsInfoProvider {
     }
 
     private suspend fun retrieveFromFeed(
-        project: Project,
         azureFunctionsVersion: String,
         allowDownload: Boolean
     ): FunctionsCoreToolsInfo? {
         val coreToolsPathFromFeed = FunctionsCoreToolsManager.getInstance().demandCoreToolsPathForVersion(
-            project,
             azureFunctionsVersion,
             Registry.get("azure.function_app.core_tools.feed.url").asString(),
             allowDownload
