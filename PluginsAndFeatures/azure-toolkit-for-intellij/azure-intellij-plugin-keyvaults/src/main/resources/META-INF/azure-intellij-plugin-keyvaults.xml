@@ -2,5 +2,14 @@
     <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
         <explorerNodeProvider implementation="com.microsoft.azure.toolkit.ide.keyvaults.KeyVaultNodeProvider"/>
         <actions implementation="com.microsoft.azure.toolkit.ide.keyvaults.KeyVaultActionsContributor"/>
+        <actions implementation="com.microsoft.azure.toolkit.intellij.keyvaults.IntelliJKeyVaultsActionsContributor"/>
+    </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.keyvaults.property.secret.SecretPropertiesEditorProvider"/>
+        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.keyvaults.property.secret.SecretVersionPropertiesEditorProvider"/>
+        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.keyvaults.property.certificate.CertificatePropertiesEditorProvider"/>
+        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.keyvaults.property.certificate.CertificateVersionPropertiesEditorProvider"/>
+        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.keyvaults.property.key.KeyPropertiesEditorProvider"/>
+        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.keyvaults.property.key.KeyVersionPropertiesEditorProvider"/>
     </extensions>
 </idea-plugin>

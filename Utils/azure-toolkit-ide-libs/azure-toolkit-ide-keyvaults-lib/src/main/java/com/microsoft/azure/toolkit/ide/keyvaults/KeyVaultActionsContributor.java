@@ -11,6 +11,7 @@ import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 
@@ -25,10 +26,9 @@ public class KeyVaultActionsContributor implements IActionsContributor {
     public static final String CERTIFICATE_VERSION_ACTIONS = "actions.keyvaults.certificate_version";
     public static final String KEY_ACTIONS = "actions.keyvaults.key";
     public static final String KEY_VERSION_ACTIONS = "actions.keyvaults.key_version";
-    public static final Action.Id<AzResource> ENABLE_CREDENTIAL = Action.Id.of("user/keyvaults.enable_credential.type|credential");
-    public static final Action.Id<AzResource> DISABLE_CREDENTIAL = Action.Id.of("user/keyvaults.disable_credential.type|credential");
-    public static final Action.Id<AzResource> DOWNLOAD_CREDENTIAL = Action.Id.of("user/keyvaults.download_credential.type|credential");
-    public static final Action.Id<AzResource> SHOW_CREDENTIAL = Action.Id.of("user/keyvaults.show_credential.type|credential");
+    public static final Action.Id<AbstractAzResource<?, ?, ?>> ENABLE_CREDENTIAL = Action.Id.of("user/keyvaults.enable_credential.type|credential");
+    public static final Action.Id<AbstractAzResource<?, ?, ?>> DISABLE_CREDENTIAL = Action.Id.of("user/keyvaults.disable_credential.type|credential");
+    public static final Action.Id<AbstractAzResource<?, ?, ?>> DOWNLOAD_CREDENTIAL = Action.Id.of("user/keyvaults.download_credential.type|credential");
     public static final Action.Id<ResourceGroup> GROUP_CREATE_KEY_VAULT = Action.Id.of("user/keyvaults.create_key_vault.group");
 
     @Override
@@ -54,13 +54,6 @@ public class KeyVaultActionsContributor implements IActionsContributor {
                 .enableWhen(s -> s.getFormalStatus().isRunning())
                 .register(am);
 
-        new Action<>(SHOW_CREDENTIAL)
-                .withLabel("Show Credential")
-                .withIdParam(AzResource::getResourceTypeName)
-                .withIdParam(AzResource::getName)
-                .enableWhen(s -> s.getFormalStatus().isRunning())
-                .register(am);
-
         new Action<>(GROUP_CREATE_KEY_VAULT)
                 .withLabel("Key vault")
                 .withIdParam(AzResource::getName)
@@ -79,26 +72,25 @@ public class KeyVaultActionsContributor implements IActionsContributor {
         );
         am.registerGroup(SERVICE_ACTIONS, serviceActionGroup);
 
-        final ActionGroup redisActionGroup = new ActionGroup(
+        final ActionGroup keyVaultActionGroup = new ActionGroup(
                 ResourceCommonActionsContributor.PIN,
                 "---",
                 ResourceCommonActionsContributor.REFRESH,
                 ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
                 ResourceCommonActionsContributor.OPEN_PORTAL_URL,
-                ResourceCommonActionsContributor.SHOW_PROPERTIES,
                 "---",
                 ResourceCommonActionsContributor.CONNECT,
                 "---",
                 ResourceCommonActionsContributor.DELETE
         );
-        am.registerGroup(KEY_VAULT_ACTIONS, redisActionGroup);
+        am.registerGroup(KEY_VAULT_ACTIONS, keyVaultActionGroup);
 
         final ActionGroup keyVaultSubModuleActionGroup = new ActionGroup(
                 ResourceCommonActionsContributor.REFRESH,
                 "---",
                 ResourceCommonActionsContributor.CREATE
         );
-        am.registerGroup(MODULE_ACTIONS, redisActionGroup);
+        am.registerGroup(MODULE_ACTIONS, keyVaultActionGroup);
 
         final ActionGroup credentialActionGroup = new ActionGroup(
                 ResourceCommonActionsContributor.REFRESH,
@@ -106,22 +98,22 @@ public class KeyVaultActionsContributor implements IActionsContributor {
                 ResourceCommonActionsContributor.CREATE,
                 ResourceCommonActionsContributor.DELETE,
                 "---",
-                SHOW_CREDENTIAL,
+                ResourceCommonActionsContributor.SHOW_PROPERTIES,
                 DOWNLOAD_CREDENTIAL
         );
-        am.registerGroup(SECRET_ACTIONS, redisActionGroup);
-        am.registerGroup(CERTIFICATE_ACTIONS, redisActionGroup);
-        am.registerGroup(KEY_ACTIONS, redisActionGroup);
+        am.registerGroup(SECRET_ACTIONS, credentialActionGroup);
+        am.registerGroup(CERTIFICATE_ACTIONS, credentialActionGroup);
+        am.registerGroup(KEY_ACTIONS, credentialActionGroup);
 
         final ActionGroup credentialVersionActionGroup = new ActionGroup(
                 ENABLE_CREDENTIAL,
                 DISABLE_CREDENTIAL,
-                SHOW_CREDENTIAL,
+                ResourceCommonActionsContributor.SHOW_PROPERTIES,
                 DOWNLOAD_CREDENTIAL
         );
-        am.registerGroup(SECRET_VERSION_ACTIONS, redisActionGroup);
-        am.registerGroup(CERTIFICATE_VERSION_ACTIONS, redisActionGroup);
-        am.registerGroup(KEY_VERSION_ACTIONS, redisActionGroup);
+        am.registerGroup(SECRET_VERSION_ACTIONS, credentialVersionActionGroup);
+        am.registerGroup(CERTIFICATE_VERSION_ACTIONS, credentialVersionActionGroup);
+        am.registerGroup(KEY_VERSION_ACTIONS, credentialVersionActionGroup);
 
         final IActionGroup group = am.getGroup(ResourceCommonActionsContributor.RESOURCE_GROUP_CREATE_ACTIONS);
         group.addAction(GROUP_CREATE_KEY_VAULT);

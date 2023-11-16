@@ -77,6 +77,7 @@ public class KeyVaultNodeProvider implements IExplorerNodeProvider {
                     .withActions(KeyVaultActionsContributor.MODULE_ACTIONS);
         } else if (data instanceof Certificate) {
             return new AzResourceNode<>((Certificate) data)
+                    .withDescription(key -> key.isEnabled() ? "enabled" : "disabled")
                     .addChildren(certificate -> certificate.versions().list(), (d, p) -> this.createNode(d, p, manager))
                     .addInlineAction(ResourceCommonActionsContributor.PIN)
                     .withActions(KeyVaultActionsContributor.CERTIFICATE_ACTIONS);
@@ -90,10 +91,11 @@ public class KeyVaultNodeProvider implements IExplorerNodeProvider {
             return new AzModuleNode<>((SecretModule) data)
                     .withIcon(AzureIcons.KeyVaults.SECRETS)
                     .withLabel("Secrets")
-                    .addChildren(SecretModule::list, (d, p) -> this.createNode(d, p, manager))
+                    .addChildren(module -> module.list().stream().filter(s -> BooleanUtils.isNotTrue(s.isManaged())).collect(Collectors.toList()), (d, p) -> this.createNode(d, p, manager))
                     .withActions(KeyVaultActionsContributor.MODULE_ACTIONS);
         } else if (data instanceof Secret) {
             return new AzResourceNode<>((Secret) data)
+                    .withDescription(key -> key.isEnabled() ? "enabled" : "disabled")
                     .addChildren(secret -> secret.versions().list(), (d, p) -> this.createNode(d, p, manager))
                     .addInlineAction(ResourceCommonActionsContributor.PIN)
                     .withActions(KeyVaultActionsContributor.SECRET_ACTIONS);
@@ -107,10 +109,11 @@ public class KeyVaultNodeProvider implements IExplorerNodeProvider {
             return new AzModuleNode<>((KeyModule) data)
                     .withIcon(AzureIcons.KeyVaults.KEYS)
                     .withLabel("Keys")
-                    .addChildren(KeyModule::list, (d, p) -> this.createNode(d, p, manager))
+                    .addChildren(module -> module.list().stream().filter(s -> BooleanUtils.isNotTrue(s.isManaged())).collect(Collectors.toList()), (d, p) -> this.createNode(d, p, manager))
                     .withActions(KeyVaultActionsContributor.MODULE_ACTIONS);
         } else if (data instanceof Key) {
             return new AzResourceNode<>((Key) data)
+                    .withDescription(key -> key.isEnabled() ? "enabled" : "disabled")
                     .addChildren(secret -> secret.versions().list(), (d, p) -> this.createNode(d, p, manager))
                     .addInlineAction(ResourceCommonActionsContributor.PIN)
                     .withActions(KeyVaultActionsContributor.KEY_ACTIONS);
