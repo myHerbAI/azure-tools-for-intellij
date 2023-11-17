@@ -1,5 +1,6 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
+        <connectorResourceType implementation="com.microsoft.azure.toolkit.intellij.keyvaults.connection.KeyVaultResourceDefinition"/>
         <explorerNodeProvider implementation="com.microsoft.azure.toolkit.ide.keyvaults.KeyVaultNodeProvider"/>
         <actions implementation="com.microsoft.azure.toolkit.ide.keyvaults.KeyVaultActionsContributor"/>
         <actions implementation="com.microsoft.azure.toolkit.intellij.keyvaults.IntelliJKeyVaultsActionsContributor"/>
@@ -11,5 +12,14 @@
         <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.keyvaults.property.certificate.CertificateVersionPropertiesEditorProvider"/>
         <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.keyvaults.property.key.KeyPropertiesEditorProvider"/>
         <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.keyvaults.property.key.KeyVersionPropertiesEditorProvider"/>
+    </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <completion.contributor language="Properties" id="azKeyVaultPropertiesCompletion" order="before azPropertiesCompletion, first"
+                                implementationClass="com.microsoft.azure.toolkit.intellij.keyvaults.code.spring.EnvVarCompletionContributor"/>
+        <completion.contributor language="yaml" id="azKeyVaultYamlCompletion" order="first, before azYamlCompletion"
+                                implementationClass="com.microsoft.azure.toolkit.intellij.keyvaults.code.spring.EnvVarCompletionContributor"/>
+        <typedHandler implementation="com.microsoft.azure.toolkit.intellij.keyvaults.code.spring.EnvVarTypeHandler"/>
+        <lookup.charFilter implementation="com.microsoft.azure.toolkit.intellij.keyvaults.code.spring.EnvVarCharFilter"/>
+        <annotator language="Properties" implementationClass="com.microsoft.azure.toolkit.intellij.keyvaults.code.spring.SecretValueAnnotator"/>
     </extensions>
 </idea-plugin>
