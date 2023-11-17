@@ -175,8 +175,19 @@ tasks {
         into(projectDir.resolve("src").resolve("main").resolve("resources").resolve("icons"))
     }
 
+    val dotnetBuildConfiguration = properties("dotnetBuildConfiguration").get()
+    val compileDotNet by registering {
+        doLast {
+            exec {
+                executable("dotnet")
+                args("build", "-c", dotnetBuildConfiguration, "ReSharper.Azure.sln")
+            }
+        }
+    }
+
     buildPlugin  {
         dependsOn(copyIcons)
+        dependsOn(compileDotNet)
     }
 
     processResources {
@@ -216,6 +227,30 @@ tasks {
             directory = csDaemonGeneratedOutput.canonicalPath
         }
     }
+    prepareSandbox {
+        dependsOn(compileDotNet)
+
+        val outputFolder = file("$projectDir/src/dotnet/ReSharper.Azure")
+
+        val dllFiles = listOf(
+            "$outputFolder/Azure.Project/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Project.dll",
+            "$outputFolder/Azure.Project/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Project.pdb",
+            "$outputFolder/Azure.Intellisense/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Intellisense.dll",
+            "$outputFolder/Azure.Intellisense/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Intellisense.pdb"
+        )
+
+        for (f in dllFiles) {
+            from(f) { into("${rootProject.name}/dotnet") }
+        }
+
+        doLast {
+            for (f in dllFiles) {
+                val file = file(f)
+                if (!file.exists()) throw RuntimeException("File \"$file\" does not exist")
+            }
+        }
+    }
+
 
     buildSearchableOptions {
         enabled = false

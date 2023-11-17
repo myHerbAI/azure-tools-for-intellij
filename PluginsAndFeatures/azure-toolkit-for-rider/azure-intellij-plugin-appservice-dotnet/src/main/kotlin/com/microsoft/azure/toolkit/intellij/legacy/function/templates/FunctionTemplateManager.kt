@@ -60,7 +60,7 @@ class FunctionTemplateManager {
             File(coreToolsInfo.coreToolsPath)
                 .resolve("templates").resolve("net6-isolated"), // Isolated worker - .NET 6
             File(coreToolsInfo.coreToolsPath)
-                .resolve("templates").resolve("net-isolated")   // Isolated worker - .NET 5 - .NET 7
+                .resolve("templates").resolve("net-isolated")   // Isolated worker - .NET 5 - .NET 8
         ).filter { it.exists() }
 
         for (templateFolder in templateFolders) {
