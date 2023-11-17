@@ -1,3 +1,7 @@
+/*
+ * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ */
+
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 
@@ -5,7 +9,7 @@ fun properties(key: String) = providers.gradleProperty(key)
 fun environment(key: String) = providers.environmentVariable(key)
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.9.10"
+    id("org.jetbrains.kotlin.jvm") version "1.9.20"
     // https://search.maven.org/artifact/com.jetbrains.rd/rd-gen
     id("com.jetbrains.rdgen") version "2023.3.0"
     id("org.jetbrains.intellij") version "1.15.0"
@@ -171,8 +175,19 @@ tasks {
         into(projectDir.resolve("src").resolve("main").resolve("resources").resolve("icons"))
     }
 
+    val dotnetBuildConfiguration = properties("dotnetBuildConfiguration").get()
+    val compileDotNet by registering {
+        doLast {
+            exec {
+                executable("dotnet")
+                args("build", "-c", dotnetBuildConfiguration, "ReSharper.Azure.sln")
+            }
+        }
+    }
+
     buildPlugin  {
         dependsOn(copyIcons)
+        dependsOn(compileDotNet)
     }
 
     processResources {
@@ -212,6 +227,30 @@ tasks {
             directory = csDaemonGeneratedOutput.canonicalPath
         }
     }
+    prepareSandbox {
+        dependsOn(compileDotNet)
+
+        val outputFolder = file("$projectDir/src/dotnet/ReSharper.Azure")
+
+        val dllFiles = listOf(
+            "$outputFolder/Azure.Project/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Project.dll",
+            "$outputFolder/Azure.Project/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Project.pdb",
+            "$outputFolder/Azure.Intellisense/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Intellisense.dll",
+            "$outputFolder/Azure.Intellisense/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Intellisense.pdb"
+        )
+
+        for (f in dllFiles) {
+            from(f) { into("${rootProject.name}/dotnet") }
+        }
+
+        doLast {
+            for (f in dllFiles) {
+                val file = file(f)
+                if (!file.exists()) throw RuntimeException("File \"$file\" does not exist")
+            }
+        }
+    }
+
 
     buildSearchableOptions {
         enabled = false

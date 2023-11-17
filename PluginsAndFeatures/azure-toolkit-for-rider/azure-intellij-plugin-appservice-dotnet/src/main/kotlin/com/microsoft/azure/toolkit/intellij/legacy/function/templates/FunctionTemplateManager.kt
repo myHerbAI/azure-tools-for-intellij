@@ -1,0 +1,81 @@
+/*
+ * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ */
+
+@file:Suppress("UnstableApiUsage")
+
+package com.microsoft.azure.toolkit.intellij.legacy.function.templates
+
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.logger
+import com.intellij.util.application
+import com.jetbrains.rider.projectView.actions.projectTemplating.backend.ReSharperProjectTemplateProvider
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionsCoreToolsInfoProvider
+import java.io.File
+
+@Service
+class FunctionTemplateManager {
+    companion object {
+        fun getInstance(): FunctionTemplateManager = service()
+
+        // Known and supported list of tags from https://github.com/Azure/azure-functions-tooling-feed/blob/main/cli-feed-v4.json
+        val FUNCTIONS_CORE_TOOLS_KNOWN_SUPPORTED_VERSIONS = listOf("v2", "v3", "v4")
+
+        // Latest supported version by the Azure Toolkit for Rider
+        const val FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION = "v4"
+
+        private val LOG = logger<FunctionTemplateManager>()
+
+        private fun isFunctionsProjectTemplate(file: File?) =
+            file != null && file.name.startsWith("projectTemplates.", true) && file.name.endsWith(".nupkg", true)
+    }
+
+    fun areRegistered() =
+        ReSharperProjectTemplateProvider.getUserTemplateSources().any { isFunctionsProjectTemplate(it) && it.exists() }
+
+    suspend fun tryReload() {
+        application.assertIsNonDispatchThread()
+
+        // Determine core tools info for the latest supported Azure Functions version
+        val toolsInfoProvider = FunctionsCoreToolsInfoProvider.getInstance()
+        val coreToolsInfo = toolsInfoProvider.retrieveForVersion(
+            FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION,
+            false
+        ) ?: return
+
+        // Remove previous templates
+        ReSharperProjectTemplateProvider.getUserTemplateSources().forEach {
+            if (isFunctionsProjectTemplate(it)) {
+                ReSharperProjectTemplateProvider.removeUserTemplateSource(it)
+            }
+        }
+
+        // Add available templates
+        val templateFolders = listOf(
+            File(coreToolsInfo.coreToolsPath)
+                .resolve("templates"), // Default worker
+            File(coreToolsInfo.coreToolsPath)
+                .resolve("templates").resolve("net5-isolated"), // Isolated worker - .NET 5
+            File(coreToolsInfo.coreToolsPath)
+                .resolve("templates").resolve("net6-isolated"), // Isolated worker - .NET 6
+            File(coreToolsInfo.coreToolsPath)
+                .resolve("templates").resolve("net-isolated")   // Isolated worker - .NET 5 - .NET 8
+        ).filter { it.exists() }
+
+        for (templateFolder in templateFolders) {
+            try {
+                val templateFiles = templateFolder.listFiles { f: File? -> isFunctionsProjectTemplate(f) }
+                    ?: emptyArray<File>()
+
+                LOG.info("Found ${templateFiles.size} function template(s) in ${templateFolder.path}")
+
+                templateFiles.forEach { file ->
+                    ReSharperProjectTemplateProvider.addUserTemplateSource(file)
+                }
+            } catch (e: Exception) {
+                LOG.error("Could not register project templates from ${templateFolder.path}", e)
+            }
+        }
+    }
+}

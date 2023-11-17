@@ -1,3 +1,7 @@
+/*
+ * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ */
+
 dependencies {
     implementation("com.microsoft.azure:azure-toolkit-auth-lib")
     implementation("com.microsoft.azure:azure-toolkit-ide-common-lib")

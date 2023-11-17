@@ -29,6 +29,6 @@ class IntellijCommonActionsContributor : IActionsContributor {
     }
 
     private fun openSettingsDialog(project: Project?) {
-        ShowSettingsUtil.getInstance().showSettingsDialog(project, AzureSettingsConfigurable::class.java)
+        ShowSettingsUtil.getInstance().showSettingsDialog(project, AzureConfigurable::class.java)
     }
 }
