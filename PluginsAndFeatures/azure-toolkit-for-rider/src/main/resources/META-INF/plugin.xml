@@ -46,7 +46,7 @@
     <group id="AzureToolbarGroup" text="Azure" description="Azure">
       <add-to-group group-id="MainToolBar" anchor="last"/>
       <group id="PublishToAzureGroup" text="Publish Group" description="Publish Group" popup="true" icon="/icons/Publish_16.png">
-          <reference ref="Actions.WebDeployAction"/>
+          <reference ref="Actions.WebAppDeployAction"/>
       </group>
       <reference ref="Actions.AzureExplorerOpenAction"/>
       <reference ref="AzureToolkit.OpenResourceConnectionExplorerAction"/>
@@ -61,7 +61,7 @@
         <add-to-group group-id="ToolsMenu" anchor="first"/>
         <reference ref="AzureToolkit.SelectSubscriptions"/>
         <separator/>
-        <reference ref="Actions.WebDeployAction"/>
+        <reference ref="Actions.WebAppDeployAction"/>
         <separator/>
         <reference ref="AzureToolkit.AzureSignIn"/>
     </group>
