@@ -24,6 +24,8 @@
                              displayName="Azure"
                              id="com.microsoft.intellij.AzureConfigurable"
                              instance="com.microsoft.azure.toolkit.intellij.settings.AzureConfigurable"/>
+
+    <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.icons.RiderIconPatcherRegistrar"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
