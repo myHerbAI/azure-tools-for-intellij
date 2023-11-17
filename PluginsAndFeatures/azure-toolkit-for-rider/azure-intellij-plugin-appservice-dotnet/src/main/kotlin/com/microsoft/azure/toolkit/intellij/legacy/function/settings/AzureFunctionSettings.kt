@@ -20,6 +20,8 @@ class AzureFunctionSettings : SimplePersistentStateComponent<AzureFunctionSettin
     companion object {
         fun getInstance(): AzureFunctionSettings = service()
 
+        const val DISMISS_NOTIFICATION_AZURE_FUNCTIONS_MISSING_NUPKG = "DismissAzureFunctionsMissingNupkg"
+
         private const val AZURE_TOOLS_FOLDER = ".AzureToolsForIntelliJ"
         private const val AZURE_FUNCTIONS_TOOLS_FOLDER = "AzureFunctionsCoreTools"
     }

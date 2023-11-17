@@ -29,6 +29,8 @@
         <registryKey key="azure.function_app.core_tools.feed.url"
                      defaultValue="https://functionscdn.azureedge.net/public/cli-feed-v4.json"
                      description="Azure Functions Core Tools releases feed URL." />
+
+        <editorNotificationProvider implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionMissingNugetPackageNotificationProvider"/>
     </extensions>
 
     <actions>
