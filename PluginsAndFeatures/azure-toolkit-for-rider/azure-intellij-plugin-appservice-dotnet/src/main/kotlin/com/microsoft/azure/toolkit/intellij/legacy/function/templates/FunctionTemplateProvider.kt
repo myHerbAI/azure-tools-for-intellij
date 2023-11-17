@@ -7,7 +7,7 @@
 package com.microsoft.azure.toolkit.intellij.legacy.function.templates
 
 import com.intellij.openapi.command.impl.DummyProject
-import com.intellij.openapi.progress.runWithModalProgressBlocking
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rd.util.reactive.IOptProperty
 import com.jetbrains.rd.util.reactive.OptProperty

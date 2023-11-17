@@ -7,10 +7,10 @@
 package com.microsoft.azure.toolkit.intellij.legacy.function.templates
 
 import com.intellij.ide.actions.ShowSettingsUtilImpl
-import com.intellij.openapi.progress.runWithModalProgressBlocking
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.rd.util.withBackgroundContext
 import com.intellij.openapi.util.registry.Registry
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.ui.dsl.builder.panel
 import com.jetbrains.rd.util.reactive.IProperty
 import com.jetbrains.rider.ui.components.base.Viewable
