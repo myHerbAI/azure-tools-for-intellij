@@ -183,7 +183,10 @@ tasks {
 
     val copyIcons by registering(Copy::class) {
         description = "Copies the icons directory of the base plugin."
-        from(projectDir.resolve("..").resolve("azure-toolkit-for-intellij").resolve("src").resolve("main").resolve("resources").resolve("icons"))
+        from(
+            projectDir.resolve("..").resolve("azure-toolkit-for-intellij").resolve("src").resolve("main")
+                .resolve("resources").resolve("icons")
+        )
         into(projectDir.resolve("src").resolve("main").resolve("resources").resolve("icons"))
     }
 
@@ -197,7 +200,7 @@ tasks {
         }
     }
 
-    buildPlugin  {
+    buildPlugin {
         dependsOn(copyIcons)
         dependsOn(compileDotNet)
     }
@@ -208,11 +211,11 @@ tasks {
 
     configure<com.jetbrains.rd.generator.gradle.RdGenExtension> {
         val modelDir = projectDir.resolve("protocol").resolve("src").resolve("main")
-            .resolve("kotlin")
-        val csDaemonGeneratedOutput = projectDir.resolve("ReSharper.Azure").resolve("src")
+            .resolve("kotlin").resolve("model").resolve("daemon")
+        val csGeneratedOutput = projectDir.resolve("src").resolve("dotnet").resolve("ReSharper.Azure")
             .resolve("Azure.Daemon").resolve("Protocol")
-        val ktGeneratedOutput = projectDir.resolve("src").resolve("main").resolve("kotlin")
-            .resolve("org").resolve("jetbrains").resolve("protocol")
+        val ktGeneratedOutput = projectDir.resolve("azure-intellij-plugin-resharper-host").resolve("src")
+            .resolve("main").resolve("kotlin").resolve("org").resolve("jetbrains").resolve("protocol")
 
         verbose = true
         hashFolder = "build/rdgen"
@@ -236,7 +239,7 @@ tasks {
             transform = "reversed"
             root = "com.jetbrains.rider.model.nova.ide.IdeRoot"
             namespace = "JetBrains.Rider.Azure.Model"
-            directory = csDaemonGeneratedOutput.canonicalPath
+            directory = csGeneratedOutput.canonicalPath
         }
     }
 
@@ -248,8 +251,13 @@ tasks {
         val dllFiles = listOf(
             "$outputFolder/Azure.Project/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Project.dll",
             "$outputFolder/Azure.Project/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Project.pdb",
+            "$outputFolder/Azure.Psi/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Psi.dll",
+            "$outputFolder/Azure.Psi/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Psi.pdb",
             "$outputFolder/Azure.Intellisense/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Intellisense.dll",
-            "$outputFolder/Azure.Intellisense/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Intellisense.pdb"
+            "$outputFolder/Azure.Intellisense/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Intellisense.pdb",
+            "$outputFolder/Azure.Daemon/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Daemon.dll",
+            "$outputFolder/Azure.Daemon/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Daemon.pdb",
+            "$outputFolder/Azure.Daemon/bin/$dotnetBuildConfiguration/NCrontab.Signed.dll"
         )
 
         for (f in dllFiles) {

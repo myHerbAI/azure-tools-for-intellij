@@ -4,4 +4,4 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.coreTools
 
-data class FunctionsCoreToolsInfo(val coreToolsPath: String, val coreToolsExecutable: String)
+data class FunctionCoreToolsInfo(val coreToolsPath: String, val coreToolsExecutable: String)

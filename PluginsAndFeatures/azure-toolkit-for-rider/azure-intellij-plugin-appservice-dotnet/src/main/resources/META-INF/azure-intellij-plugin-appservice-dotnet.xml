@@ -23,6 +23,16 @@
                                  id="com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionConfigurable"
                                  instance="com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionConfigurable"/>
 
+        <projectConfigurable parentId="FileTemplatesSettingsId"
+                             displayName="Azure (C#)"
+                             instance="com.microsoft.azure.toolkit.intellij.legacy.function.settings.templates.RiderAzureCSharpFileTemplatesOptionPage"
+                             groupWeight="-150" />
+
+        <projectConfigurable parentId="FileTemplatesSettingsId"
+                             displayName="Azure (F#)"
+                             instance="com.microsoft.azure.toolkit.intellij.legacy.function.settings.templates.RiderAzureFSharpFileTemplatesOptionPage"
+                             groupWeight="-150" />
+
         <registryKey key="azure.function_app.core_tools.feed.enabled"
                      defaultValue="true"
                      description="Enable downloading from Azure Functions Core Tools releases feed URL." />
@@ -30,7 +40,23 @@
                      defaultValue="https://functionscdn.azureedge.net/public/cli-feed-v4.json"
                      description="Azure Functions Core Tools releases feed URL." />
 
+        <internalFileTemplate name="Trigger Azure Function"/>
+
         <editorNotificationProvider implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionMissingNugetPackageNotificationProvider"/>
+
+        <completion.contributor language="C#"
+                                implementationClass="com.microsoft.azure.toolkit.intellij.legacy.function.completion.csharp.TimerTriggerCompletionContributor"/>
+
+        <localInspection language="MSBuild"
+                         enabledByDefault="true"
+                         level="WARNING"
+                         shortName="AzureFunctionsVersionNotSpecified"
+                         displayName="Azure Functions version not specified"
+                         groupName="Azure"
+                         implementationClass="com.microsoft.azure.toolkit.intellij.legacy.function.codeInspection.msbuild.AzureFunctionsVersionInspection"/>
+
+        <rd.solutionExtListener endpoint="IDE Frontend"
+                                listener="com.microsoft.azure.toolkit.intellij.legacy.function.daemon.FunctionAppSolutionExtListener"/>
     </extensions>
 
     <actions>

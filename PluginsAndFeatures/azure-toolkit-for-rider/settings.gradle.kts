@@ -20,6 +20,7 @@ pluginManagement {
 }
 
 include("protocol")
+include("azure-intellij-plugin-resharper-host")
 include(":azure-intellij-plugin-lib")
 project(":azure-intellij-plugin-lib").projectDir = file("../azure-toolkit-for-intellij/azure-intellij-plugin-lib")
 include(":azure-intellij-plugin-lib-dotnet")

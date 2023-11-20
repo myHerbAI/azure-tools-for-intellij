@@ -13,6 +13,8 @@ dependencies {
     runtimeOnly(project(path = ":azure-intellij-plugin-appservice", configuration = "instrumentedJar"))
     compileOnly(project(path = ":azure-intellij-resource-connector-lib"))
     runtimeOnly(project(path = ":azure-intellij-resource-connector-lib", configuration = "instrumentedJar"))
+    compileOnly(project(path = ":azure-intellij-plugin-resharper-host"))
+    runtimeOnly(project(path = ":azure-intellij-plugin-resharper-host", configuration = "instrumentedJar"))
     implementation("com.microsoft.azure:azure-toolkit-appservice-lib")
     implementation("com.microsoft.azure:azure-toolkit-ide-appservice-lib")
     implementation("com.microsoft.azure:azure-toolkit-ide-containerregistry-lib")

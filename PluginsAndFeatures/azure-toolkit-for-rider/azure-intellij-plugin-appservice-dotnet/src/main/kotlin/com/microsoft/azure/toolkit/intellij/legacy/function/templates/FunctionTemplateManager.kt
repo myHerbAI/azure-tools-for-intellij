@@ -11,19 +11,14 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.util.application
 import com.jetbrains.rider.projectView.actions.projectTemplating.backend.ReSharperProjectTemplateProvider
-import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionsCoreToolsInfoProvider
+import com.microsoft.azure.toolkit.intellij.legacy.function.FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsInfoProvider
 import java.io.File
 
 @Service
 class FunctionTemplateManager {
     companion object {
         fun getInstance(): FunctionTemplateManager = service()
-
-        // Known and supported list of tags from https://github.com/Azure/azure-functions-tooling-feed/blob/main/cli-feed-v4.json
-        val FUNCTIONS_CORE_TOOLS_KNOWN_SUPPORTED_VERSIONS = listOf("v2", "v3", "v4")
-
-        // Latest supported version by the Azure Toolkit for Rider
-        const val FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION = "v4"
 
         private val LOG = logger<FunctionTemplateManager>()
 
@@ -38,7 +33,7 @@ class FunctionTemplateManager {
         application.assertIsNonDispatchThread()
 
         // Determine core tools info for the latest supported Azure Functions version
-        val toolsInfoProvider = FunctionsCoreToolsInfoProvider.getInstance()
+        val toolsInfoProvider = FunctionCoreToolsInfoProvider.getInstance()
         val coreToolsInfo = toolsInfoProvider.retrieveForVersion(
             FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION,
             false

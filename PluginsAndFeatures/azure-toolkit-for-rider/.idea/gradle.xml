@@ -20,6 +20,7 @@
             <option value="$PROJECT_DIR$/../azure-toolkit-for-intellij/azure-intellij-resource-connector-lib" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-appservice-dotnet" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-lib-dotnet" />
+            <option value="$PROJECT_DIR$/azure-intellij-plugin-resharper-host" />
             <option value="$PROJECT_DIR$/protocol" />
           </set>
         </option>

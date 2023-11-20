@@ -23,11 +23,11 @@ import java.io.IOException
 import java.net.UnknownHostException
 
 @Service
-class FunctionsCoreToolsManager {
+class FunctionCoreToolsManager {
     companion object {
-        fun getInstance(): FunctionsCoreToolsManager = service()
+        fun getInstance(): FunctionCoreToolsManager = service()
 
-        private val LOG = logger<FunctionsCoreToolsManager>()
+        private val LOG = logger<FunctionCoreToolsManager>()
     }
 
     private val releaseCache = concurrentMapOf<String, FunctionCoreToolsRelease>()
