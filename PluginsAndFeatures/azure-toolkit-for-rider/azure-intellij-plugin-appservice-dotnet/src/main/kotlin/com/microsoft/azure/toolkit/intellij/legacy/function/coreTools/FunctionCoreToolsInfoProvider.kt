@@ -17,17 +17,17 @@ import com.microsoft.azure.toolkit.lib.appservice.utils.FunctionCliResolver
 import java.io.File
 
 @Service
-class FunctionsCoreToolsInfoProvider {
+class FunctionCoreToolsInfoProvider {
     companion object {
-        fun getInstance(): FunctionsCoreToolsInfoProvider = service()
+        fun getInstance(): FunctionCoreToolsInfoProvider = service()
 
-        private val LOG = logger<FunctionsCoreToolsInfoProvider>()
+        private val LOG = logger<FunctionCoreToolsInfoProvider>()
     }
 
     suspend fun retrieveForVersion(
         azureFunctionsVersion: String,
         allowDownload: Boolean
-    ): FunctionsCoreToolsInfo? {
+    ): FunctionCoreToolsInfo? {
         application.assertIsNonDispatchThread()
 
         val coreToolsFromConfiguration = retrieveFromConfiguration(azureFunctionsVersion)
@@ -43,7 +43,7 @@ class FunctionsCoreToolsInfoProvider {
         return null
     }
 
-    private fun retrieveFromConfiguration(azureFunctionsVersion: String): FunctionsCoreToolsInfo? {
+    private fun retrieveFromConfiguration(azureFunctionsVersion: String): FunctionCoreToolsInfo? {
         val settings = AzureFunctionSettings.getInstance()
         val toolsPathEntries = settings.azureCoreToolsPathEntries
         LOG.debug("Azure Core Tools path entries: ${toolsPathEntries.joinToString { "${it.functionsVersion}: ${it.coreToolsPath}" }}")
@@ -73,8 +73,8 @@ class FunctionsCoreToolsInfoProvider {
     private suspend fun retrieveFromFeed(
         azureFunctionsVersion: String,
         allowDownload: Boolean
-    ): FunctionsCoreToolsInfo? {
-        val coreToolsPathFromFeed = FunctionsCoreToolsManager.getInstance().demandCoreToolsPathForVersion(
+    ): FunctionCoreToolsInfo? {
+        val coreToolsPathFromFeed = FunctionCoreToolsManager.getInstance().demandCoreToolsPathForVersion(
             azureFunctionsVersion,
             Registry.get("azure.function_app.core_tools.feed.url").asString(),
             allowDownload
@@ -86,7 +86,7 @@ class FunctionsCoreToolsInfoProvider {
         return null
     }
 
-    private fun resolveFromPath(funcCoreToolsPath: File): FunctionsCoreToolsInfo? {
+    private fun resolveFromPath(funcCoreToolsPath: File): FunctionCoreToolsInfo? {
         val patchedPath = patchCoreToolsPath(funcCoreToolsPath)
 
         val executablePath = if (SystemInfo.isWindows) {
@@ -108,7 +108,7 @@ class FunctionsCoreToolsInfoProvider {
             }
         }
 
-        return FunctionsCoreToolsInfo(patchedPath.path, executablePath.path)
+        return FunctionCoreToolsInfo(patchedPath.path, executablePath.path)
     }
 
     private fun patchCoreToolsPath(funcCoreToolsPath: File): File {

@@ -15,7 +15,7 @@ import com.intellij.ui.dsl.builder.panel
 import com.jetbrains.rd.util.reactive.IProperty
 import com.jetbrains.rider.ui.components.base.Viewable
 import com.microsoft.azure.toolkit.intellij.legacy.function.FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION
-import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionsCoreToolsInfoProvider
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsInfoProvider
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -38,7 +38,7 @@ class InstallFunctionToolComponent(private val validationError: IProperty<String
                     val project = ProjectManager.getInstance().defaultProject
                     runWithModalProgressBlocking(project, "Downloading Azure Functions Core Tools...") {
                         withBackgroundContext {
-                            FunctionsCoreToolsInfoProvider.getInstance()
+                            FunctionCoreToolsInfoProvider.getInstance()
                                 .retrieveForVersion(
                                     FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION,
                                     true

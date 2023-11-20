@@ -54,6 +54,9 @@
                          displayName="Azure Functions version not specified"
                          groupName="Azure"
                          implementationClass="com.microsoft.azure.toolkit.intellij.legacy.function.codeInspection.msbuild.AzureFunctionsVersionInspection"/>
+
+        <rd.solutionExtListener endpoint="IDE Frontend"
+                                listener="com.microsoft.azure.toolkit.intellij.legacy.function.daemon.FunctionAppSolutionExtListener"/>
     </extensions>
 
     <actions>

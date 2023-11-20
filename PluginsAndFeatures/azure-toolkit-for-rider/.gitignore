@@ -40,12 +40,6 @@ bin/
 # Jar dependencies generated in build
 **/resources/spark/spark-tools-*.jar
 
-# Rider Protocol generated files
-*Generated.kt
-
-# Rider Protocol and Inspections generated files
-*Generated.cs
-
 # Build results
 [Dd]ebug/
 [Rr]elease/

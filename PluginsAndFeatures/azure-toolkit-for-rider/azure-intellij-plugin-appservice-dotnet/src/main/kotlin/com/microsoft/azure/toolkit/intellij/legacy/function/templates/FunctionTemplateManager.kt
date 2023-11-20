@@ -12,7 +12,7 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.util.application
 import com.jetbrains.rider.projectView.actions.projectTemplating.backend.ReSharperProjectTemplateProvider
 import com.microsoft.azure.toolkit.intellij.legacy.function.FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION
-import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionsCoreToolsInfoProvider
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsInfoProvider
 import java.io.File
 
 @Service
@@ -33,7 +33,7 @@ class FunctionTemplateManager {
         application.assertIsNonDispatchThread()
 
         // Determine core tools info for the latest supported Azure Functions version
-        val toolsInfoProvider = FunctionsCoreToolsInfoProvider.getInstance()
+        val toolsInfoProvider = FunctionCoreToolsInfoProvider.getInstance()
         val coreToolsInfo = toolsInfoProvider.retrieveForVersion(
             FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION,
             false
