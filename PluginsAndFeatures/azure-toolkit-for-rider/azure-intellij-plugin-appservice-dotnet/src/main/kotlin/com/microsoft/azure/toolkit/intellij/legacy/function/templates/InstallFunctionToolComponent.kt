@@ -14,6 +14,7 @@ import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.ui.dsl.builder.panel
 import com.jetbrains.rd.util.reactive.IProperty
 import com.jetbrains.rider.ui.components.base.Viewable
+import com.microsoft.azure.toolkit.intellij.legacy.function.FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionsCoreToolsInfoProvider
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -39,7 +40,7 @@ class InstallFunctionToolComponent(private val validationError: IProperty<String
                         withBackgroundContext {
                             FunctionsCoreToolsInfoProvider.getInstance()
                                 .retrieveForVersion(
-                                    FunctionTemplateManager.FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION,
+                                    FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION,
                                     true
                                 )
                         }

@@ -44,6 +44,14 @@
 
         <completion.contributor language="C#"
                                 implementationClass="com.microsoft.azure.toolkit.intellij.legacy.function.completion.csharp.TimerTriggerCompletionContributor"/>
+
+        <localInspection language="MSBuild"
+                         enabledByDefault="true"
+                         level="WARNING"
+                         shortName="AzureFunctionsVersionNotSpecified"
+                         displayName="Azure Functions version not specified"
+                         groupName="Azure"
+                         implementationClass="com.microsoft.azure.toolkit.intellij.legacy.function.codeInspection.msbuild.AzureFunctionsVersionInspection"/>
     </extensions>
 
     <actions>
