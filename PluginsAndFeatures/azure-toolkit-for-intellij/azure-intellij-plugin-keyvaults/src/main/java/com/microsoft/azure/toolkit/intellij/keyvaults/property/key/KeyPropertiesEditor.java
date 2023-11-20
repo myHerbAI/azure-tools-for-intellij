@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.keyvaults.property.key;
 
-import com.azure.security.keyvault.keys.models.KeyOperation;
 import com.azure.security.keyvault.keys.models.KeyProperties;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -28,7 +27,6 @@ import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -102,7 +100,7 @@ public class KeyPropertiesEditor extends AzResourcePropertiesEditor<KeyVersion> 
                 .withHandler(ignore -> this.refresh());
         this.btnRefresh.setAction(refreshAction);
 
-        this.btnDownload.setAction(KeyVaultActionsContributor.DOWNLOAD_CREDENTIAL, this.resource);
+        this.btnDownload.setAction(KeyVaultActionsContributor.DOWNLOAD_CREDENTIAL_VERSION, this.resource);
     }
 
     private void setEnabled(boolean enabled) {
@@ -172,18 +170,6 @@ public class KeyPropertiesEditor extends AzResourcePropertiesEditor<KeyVersion> 
         final String labels = properties.getTags().entrySet().stream().map(entry -> String.format("%s=%s", entry.getKey(), entry.getValue()))
                 .collect(Collectors.joining(", "));
         tagsTextField.setText(StringUtils.isBlank(labels) ? N_A : labels);
-        // operations
-        AzureTaskManager.getInstance().runInBackground("Loading data", () -> {
-            final List<KeyOperation> keyOperations = keyVersion.getSecret().getKeyOperations();
-            AzureTaskManager.getInstance().runLater(() -> {
-                chkEncrypt.setSelected(keyOperations.contains(KeyOperation.ENCRYPT));
-                chkDecrypt.setSelected(keyOperations.contains(KeyOperation.DECRYPT));
-                chkSign.setSelected(keyOperations.contains(KeyOperation.SIGN));
-                chkVerify.setSelected(keyOperations.contains(KeyOperation.VERIFY));
-                chkWrapKey.setSelected(keyOperations.contains(KeyOperation.WRAP_KEY));
-                chkUnwrapKey.setSelected(keyOperations.contains(KeyOperation.UNWRAP_KEY));
-            });
-        });
     }
 
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES

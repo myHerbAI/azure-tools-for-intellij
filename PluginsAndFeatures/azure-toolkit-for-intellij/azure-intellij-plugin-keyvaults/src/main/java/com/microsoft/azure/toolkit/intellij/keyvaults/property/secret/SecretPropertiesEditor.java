@@ -11,6 +11,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.ActionLink;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.JBTable;
+import com.microsoft.azure.toolkit.ide.keyvaults.KeyVaultActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.AzureActionButton;
 import com.microsoft.azure.toolkit.intellij.common.AzureHideableTitledSeparator;
 import com.microsoft.azure.toolkit.intellij.common.component.AzureTextFieldWithCopyButton;
@@ -20,7 +21,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.keyvaults.secret.Secret;
 import com.microsoft.azure.toolkit.lib.keyvaults.secret.SecretVersion;
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -103,18 +103,7 @@ public class SecretPropertiesEditor extends AzResourcePropertiesEditor<SecretVer
                 .withHandler(ignore -> this.refresh());
         this.btnRefresh.setAction(refreshAction);
 
-        final Action<Void> showSecretAction = new Action<Void>(Action.Id.of("user/keyvaults.refresh_properties_view.secret"))
-                .withAuthRequired(false)
-                .withHandler(ignore -> toggleSecretVisible());
-        this.showSecretButton.setAction(showSecretAction);
-    }
-
-    private void toggleSecretVisible() {
-        final Boolean visible = Optional.ofNullable(txtSecretValue.getClientProperty(SECRET_VISIBLE))
-                .filter(Boolean.class::isInstance)
-                .map(Boolean.class::cast).orElse(false);
-        txtSecretValue.putClientProperty(SECRET_VISIBLE, BooleanUtils.negate(visible));
-        renderSecret();
+        this.showSecretButton.setAction(KeyVaultActionsContributor.SHOW_CREDENTIAL_VERSION, this.resource);
     }
 
     private void setEnabled(boolean enabled) {
@@ -186,30 +175,6 @@ public class SecretPropertiesEditor extends AzResourcePropertiesEditor<SecretVer
         tagsTextField.setText(StringUtils.isBlank(labels) ? N_A : labels);
         // secret
         txtContentType.setText(StringUtils.firstNonBlank(properties.getContentType(), N_A));
-        if (secret.isEnabled()) {
-            txtSecretValue.setEnabled(true);
-            AzureTaskManager.getInstance().runInBackground("Loading data", () -> {
-                txtSecretValue.putClientProperty(SECRET_VISIBLE, Boolean.FALSE);
-                txtSecretValue.putClientProperty(SECRET_VALUE, secret.getSecretValue());
-                renderSecret();
-            });
-        } else {
-            txtSecretValue.setText("This secret is disabled");
-            txtSecretValue.setEnabled(false);
-        }
-    }
-
-    private void renderSecret() {
-        final Boolean visible = Optional.ofNullable(txtSecretValue.getClientProperty(SECRET_VISIBLE))
-                .filter(Boolean.class::isInstance)
-                .map(Boolean.class::cast).orElse(false);
-        final String value = Optional.ofNullable(txtSecretValue.getClientProperty(SECRET_VALUE))
-                .filter(String.class::isInstance)
-                .map(String.class::cast).orElse(StringUtils.EMPTY);
-        AzureTaskManager.getInstance().runLater(() -> {
-            txtSecretValue.setText(visible ? value : StringUtils.repeat("*", value.length()));
-            showSecretButton.setText(visible ? "Hide Secret" : "Show Secret");
-        });
     }
 
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES

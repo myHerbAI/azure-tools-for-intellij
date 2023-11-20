@@ -256,6 +256,7 @@
                     <properties>
                       <font style="1"/>
                       <text value="Permitted Operations:"/>
+                      <visible value="false"/>
                     </properties>
                   </component>
                   <component id="3a9ba" class="javax.swing.JCheckBox" binding="chkEncrypt">
@@ -265,6 +266,7 @@
                     <properties>
                       <enabled value="false"/>
                       <text value="Encrypt"/>
+                      <visible value="false"/>
                     </properties>
                   </component>
                   <component id="ac898" class="javax.swing.JCheckBox" binding="chkDecrypt">
@@ -274,6 +276,7 @@
                     <properties>
                       <enabled value="false"/>
                       <text value="Decrypt"/>
+                      <visible value="false"/>
                     </properties>
                   </component>
                   <component id="68878" class="javax.swing.JCheckBox" binding="chkUnwrapKey">
@@ -283,6 +286,7 @@
                     <properties>
                       <enabled value="false"/>
                       <text value="Unwrap Key"/>
+                      <visible value="false"/>
                     </properties>
                   </component>
                   <component id="b4209" class="javax.swing.JCheckBox" binding="chkSign">
@@ -292,6 +296,7 @@
                     <properties>
                       <enabled value="false"/>
                       <text value="Sign"/>
+                      <visible value="false"/>
                     </properties>
                   </component>
                   <component id="e31c8" class="javax.swing.JCheckBox" binding="chkVerify">
@@ -301,6 +306,7 @@
                     <properties>
                       <enabled value="false"/>
                       <text value="Verify"/>
+                      <visible value="false"/>
                     </properties>
                   </component>
                   <component id="c1200" class="javax.swing.JCheckBox" binding="chkWrapKey">
@@ -310,6 +316,7 @@
                     <properties>
                       <enabled value="false"/>
                       <text value="Wrap Key"/>
+                      <visible value="false"/>
                     </properties>
                   </component>
                 </children>

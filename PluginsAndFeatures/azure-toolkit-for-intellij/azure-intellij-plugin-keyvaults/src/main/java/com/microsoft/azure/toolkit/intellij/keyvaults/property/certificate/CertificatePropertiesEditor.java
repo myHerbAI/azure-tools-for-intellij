@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.intellij.keyvaults.property.certificate;
 
 import com.azure.security.keyvault.certificates.models.CertificatePolicy;
 import com.azure.security.keyvault.certificates.models.CertificateProperties;
-import com.azure.security.keyvault.certificates.models.KeyVaultCertificate;
 import com.azure.security.keyvault.certificates.models.SubjectAlternativeNames;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -26,7 +25,6 @@ import com.microsoft.azure.toolkit.lib.keyvaults.certificate.Certificate;
 import com.microsoft.azure.toolkit.lib.keyvaults.certificate.CertificateVersion;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -128,7 +126,7 @@ public class CertificatePropertiesEditor extends AzResourcePropertiesEditor<Cert
                 .withHandler(ignore -> this.refresh());
         this.btnRefresh.setAction(refreshAction);
 
-        this.btnDownload.setAction(KeyVaultActionsContributor.DOWNLOAD_CREDENTIAL, this.resource);
+        this.btnDownload.setAction(KeyVaultActionsContributor.DOWNLOAD_CREDENTIAL_VERSION, this.resource);
     }
 
     private void setEnabled(boolean enabled) {
@@ -200,14 +198,12 @@ public class CertificatePropertiesEditor extends AzResourcePropertiesEditor<Cert
         tagsTextField.setText(StringUtils.isBlank(labels) ? N_A : labels);
         // certificate
         AzureTaskManager.getInstance().runInBackground("Loading data", () -> {
-            final KeyVaultCertificate certificate = secret.getCertificate();
             final CertificatePolicy policy = secret.getPolicy();
-            AzureTaskManager.getInstance().runLater(() -> renderCertificate(certificate, policy));
+            AzureTaskManager.getInstance().runLater(() -> renderCertificate(properties, policy));
         });
     }
 
-    private void renderCertificate(@Nullable final KeyVaultCertificate certificate, @Nullable final CertificatePolicy policy) {
-        final CertificateProperties properties = Optional.ofNullable(certificate).map(KeyVaultCertificate::getProperties).orElse(null);
+    private void renderCertificate(@Nullable final CertificateProperties properties, @Nullable final CertificatePolicy policy) {
         txtSubject.setText(Optional.ofNullable(policy).map(CertificatePolicy::getSubject).orElse(N_A));
         final String issuer = Optional.ofNullable(policy).map(CertificatePolicy::getIssuerName).orElse(N_A);
         txtIssuer.setText(StringUtils.equalsIgnoreCase(issuer, "Self") ? txtSubject.getText() : issuer);
@@ -220,8 +216,6 @@ public class CertificatePropertiesEditor extends AzResourcePropertiesEditor<Cert
         txtAlternativeName.setText(alternativeNames);
         final String thumbprint = new String(Hex.encodeHex(properties.getX509Thumbprint())).toUpperCase(Locale.ROOT);
         txtThumbprint.setText(thumbprint);
-        txtKeyIdentifier.setText(certificate.getKeyId());
-        txtSecretIdentifier.setText(certificate.getSecretId());
     }
 
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES

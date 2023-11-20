@@ -65,7 +65,7 @@
                       <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text value="Download in CER format"/>
+                      <text value="Download Certificate"/>
                     </properties>
                   </component>
                 </children>
@@ -260,6 +260,7 @@
                         <properties>
                           <font style="1"/>
                           <text value="Key Identifier:"/>
+                          <visible value="false"/>
                         </properties>
                       </component>
                       <component id="3d821" class="javax.swing.JLabel" binding="lblSecret">
@@ -273,6 +274,7 @@
                         <properties>
                           <font style="1"/>
                           <text value="Secret Identifier:"/>
+                          <visible value="false"/>
                         </properties>
                       </component>
                       <component id="b00ec" class="com.microsoft.azure.toolkit.intellij.common.component.AzureTextFieldWithCopyButton" binding="txtIssuer">
@@ -305,13 +307,17 @@
                         <constraints>
                           <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                         </constraints>
-                        <properties/>
+                        <properties>
+                          <visible value="false"/>
+                        </properties>
                       </component>
                       <component id="20fdc" class="com.microsoft.azure.toolkit.intellij.common.component.AzureTextFieldWithCopyButton" binding="txtSecretIdentifier">
                         <constraints>
                           <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                         </constraints>
-                        <properties/>
+                        <properties>
+                          <visible value="false"/>
+                        </properties>
                       </component>
                     </children>
                   </grid>
