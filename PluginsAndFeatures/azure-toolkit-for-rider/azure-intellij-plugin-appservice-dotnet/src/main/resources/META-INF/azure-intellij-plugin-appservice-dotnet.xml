@@ -40,6 +40,8 @@
                      defaultValue="https://functionscdn.azureedge.net/public/cli-feed-v4.json"
                      description="Azure Functions Core Tools releases feed URL." />
 
+        <internalFileTemplate name="Trigger Azure Function"/>
+
         <editorNotificationProvider implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionMissingNugetPackageNotificationProvider"/>
 
         <completion.contributor language="C#"
