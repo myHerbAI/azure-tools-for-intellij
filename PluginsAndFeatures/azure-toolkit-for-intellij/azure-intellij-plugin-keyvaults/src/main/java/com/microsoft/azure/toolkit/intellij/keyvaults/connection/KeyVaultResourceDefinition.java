@@ -56,10 +56,12 @@ public class KeyVaultResourceDefinition extends AzureServiceResource.Definition<
         } else if (StringUtils.containsIgnoreCase(key, "secret")) {
             properties.add(Pair.of("spring.cloud.azure.keyvault.secret.endpoint", String.format("${%s_ENDPOINT}", Connection.ENV_PREFIX)));
             properties.add(Pair.of("spring.cloud.azure.keyvault.secret.property-sources[0].endpoint", String.format("${%s_ENDPOINT}", Connection.ENV_PREFIX)));
+            properties.add(Pair.of("spring.cloud.azure.keyvault.secret.property-source-enabled", "true"));
         } else {
             properties.add(Pair.of("spring.cloud.azure.keyvault.certificate.endpoint", String.format("${%s_ENDPOINT}", Connection.ENV_PREFIX)));
             properties.add(Pair.of("spring.cloud.azure.keyvault.secret.endpoint", String.format("${%s_ENDPOINT}", Connection.ENV_PREFIX)));
             properties.add(Pair.of("spring.cloud.azure.keyvault.secret.property-sources[0].endpoint", String.format("${%s_ENDPOINT}", Connection.ENV_PREFIX)));
+            properties.add(Pair.of("spring.cloud.azure.keyvault.secret.property-source-enabled", "true"));
         }
         return properties;
     }
