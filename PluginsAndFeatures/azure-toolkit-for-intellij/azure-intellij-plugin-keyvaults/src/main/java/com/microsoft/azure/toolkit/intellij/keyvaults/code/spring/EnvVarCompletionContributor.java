@@ -124,7 +124,8 @@ public class EnvVarCompletionContributor extends CompletionContributor {
     }
 
     static boolean isSecretKey(final String key) {
-        return StringUtils.endsWithAny(key, "password", "key", "secret");
+        return !key.startsWith("spring.cloud.azure.keyvault") &&
+            StringUtils.containsAnyIgnoreCase(key, "password", "passwd", "pwd", "key", "secret", "token", "sig", "signature");
     }
 
     static boolean hasEnvVars(final String value) {
