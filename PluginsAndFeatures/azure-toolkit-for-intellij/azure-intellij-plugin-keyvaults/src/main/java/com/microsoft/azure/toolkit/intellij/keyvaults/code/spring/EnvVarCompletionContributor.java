@@ -100,14 +100,6 @@ public class EnvVarCompletionContributor extends CompletionContributor {
             }
         }
 
-        @Nonnull
-        private static List<Secret> listSecrets(KeyVault v) {
-            try {
-                return v.secrets().list();
-            } catch (final Exception e) {
-                return Collections.emptyList();
-            }
-        }
 
         private static boolean hasKeyVaultDependencies(@Nonnull final Module module) {
             final Pattern PATTERN = Pattern.compile("(Gradle|Maven): com\\.azure\\.spring:spring-cloud-azure-starter-keyvault:(.+)");
@@ -122,11 +114,20 @@ public class EnvVarCompletionContributor extends CompletionContributor {
         }
     }
 
+    @Nonnull
+    static List<Secret> listSecrets(KeyVault v) {
+        try {
+            return v.secrets().list();
+        } catch (final Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
     static boolean isSecretKey(final String key) {
         return StringUtils.endsWithAny(key, "password", "key", "secret");
     }
 
-    static boolean isSecreted(final String value) {
+    static boolean hasEnvVars(final String value) {
         return value.matches(".*\\$\\{[^}]+}.*");
     }
 

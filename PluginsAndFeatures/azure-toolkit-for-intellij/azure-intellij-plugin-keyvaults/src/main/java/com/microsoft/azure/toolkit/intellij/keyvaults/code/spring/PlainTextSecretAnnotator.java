@@ -21,13 +21,13 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 
-public class SecretValueAnnotator implements Annotator {
+public class PlainTextSecretAnnotator implements Annotator {
     @Override
     public void annotate(@Nonnull PsiElement element, @Nonnull AnnotationHolder holder) {
         if (EnvVarCompletionContributor.PROPERTY_VALUE.accepts(element)) {
             final String key = element.getParent().getFirstChild().getText();
             final String value = element.getText();
-            if (EnvVarCompletionContributor.isSecretKey(key) && !EnvVarCompletionContributor.isSecreted(value)) {
+            if (EnvVarCompletionContributor.isSecretKey(key) && !EnvVarCompletionContributor.hasEnvVars(value)) {
                 holder.newAnnotation(HighlightSeverity.ERROR, "Secret is in plain text.")
                     .range(element.getTextRange())
                     .highlightType(ProblemHighlightType.WARNING)
