@@ -41,6 +41,9 @@
                      description="Azure Functions Core Tools releases feed URL." />
 
         <editorNotificationProvider implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionMissingNugetPackageNotificationProvider"/>
+
+        <completion.contributor language="C#"
+                                implementationClass="com.microsoft.azure.toolkit.intellij.legacy.function.completion.csharp.TimerTriggerCompletionContributor"/>
     </extensions>
 
     <actions>

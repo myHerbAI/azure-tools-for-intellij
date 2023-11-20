@@ -235,6 +235,8 @@ tasks {
         val dllFiles = listOf(
             "$outputFolder/Azure.Project/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Project.dll",
             "$outputFolder/Azure.Project/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Project.pdb",
+            "$outputFolder/Azure.Psi/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Psi.dll",
+            "$outputFolder/Azure.Psi/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Psi.pdb",
             "$outputFolder/Azure.Intellisense/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Intellisense.dll",
             "$outputFolder/Azure.Intellisense/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Intellisense.pdb"
         )
