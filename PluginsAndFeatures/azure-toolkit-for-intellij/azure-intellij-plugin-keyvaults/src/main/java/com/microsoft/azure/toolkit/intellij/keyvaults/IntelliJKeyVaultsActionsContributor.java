@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.intellij.keyvaults.creation.certificate.Certi
 import com.microsoft.azure.toolkit.intellij.keyvaults.creation.key.KeyCreationActions;
 import com.microsoft.azure.toolkit.intellij.keyvaults.creation.secret.SecretCreationActions;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.keyvaults.AzureKeyVault;
 import com.microsoft.azure.toolkit.lib.keyvaults.CredentialVersion;
 import com.microsoft.azure.toolkit.lib.keyvaults.certificate.Certificate;
 import com.microsoft.azure.toolkit.lib.keyvaults.certificate.CertificateModule;
@@ -20,13 +21,22 @@ import com.microsoft.azure.toolkit.lib.keyvaults.key.Key;
 import com.microsoft.azure.toolkit.lib.keyvaults.key.KeyModule;
 import com.microsoft.azure.toolkit.lib.keyvaults.secret.Secret;
 import com.microsoft.azure.toolkit.lib.keyvaults.secret.SecretModule;
+import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 
 import java.util.function.BiPredicate;
+
+import static com.microsoft.azure.toolkit.intellij.keyvaults.creation.KeyVaultCreationActions.createNewKeyVault;
+import static com.microsoft.azure.toolkit.intellij.keyvaults.creation.KeyVaultCreationActions.getDefaultConfig;
 
 public class IntelliJKeyVaultsActionsContributor implements IActionsContributor {
 
     @Override
     public void registerHandlers(AzureActionManager am) {
+        am.registerHandler(ResourceCommonActionsContributor.CREATE, (r, e) -> r instanceof AzureKeyVault,
+                (Object ignore, AnActionEvent e) -> createNewKeyVault(getDefaultConfig(null), e.getProject()));
+        am.registerHandler(KeyVaultActionsContributor.GROUP_CREATE_KEY_VAULT, (r, e) -> true,
+                (ResourceGroup group, AnActionEvent e) -> createNewKeyVault(getDefaultConfig(group), e.getProject()));
+
         final BiPredicate<CredentialVersion, AnActionEvent> certificateCondition = (r, e) -> r instanceof CredentialVersion;
         am.registerHandler(KeyVaultActionsContributor.DOWNLOAD_CREDENTIAL_VERSION, certificateCondition,
                 (CredentialVersion r, AnActionEvent e) -> KeyVaultCredentialActions.downloadCredential(r, e.getProject()));

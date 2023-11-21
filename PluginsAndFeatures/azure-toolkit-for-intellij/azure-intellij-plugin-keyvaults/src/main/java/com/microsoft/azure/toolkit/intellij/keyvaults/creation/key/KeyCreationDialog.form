@@ -10,7 +10,7 @@
     <children>
       <component id="f20a4" class="javax.swing.JLabel" binding="lblName">
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
             <minimum-size width="-1" height="24"/>
             <preferred-size width="-1" height="24"/>
             <maximum-size width="-1" height="24"/>
@@ -34,7 +34,7 @@
       </component>
       <component id="49274" class="javax.swing.JLabel" binding="lblKeyType">
         <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
             <minimum-size width="-1" height="24"/>
             <preferred-size width="-1" height="24"/>
             <maximum-size width="-1" height="24"/>
@@ -69,7 +69,7 @@
       </hspacer>
       <component id="a59c1" class="javax.swing.JLabel" binding="lblRsaKeySize">
         <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
             <minimum-size width="-1" height="24"/>
             <preferred-size width="-1" height="24"/>
             <maximum-size width="-1" height="24"/>
@@ -112,7 +112,7 @@
       </hspacer>
       <component id="a85e5" class="javax.swing.JLabel" binding="lblCurveName">
         <constraints>
-          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
             <minimum-size width="-1" height="24"/>
             <preferred-size width="-1" height="24"/>
             <maximum-size width="-1" height="24"/>
@@ -168,7 +168,7 @@
       </hspacer>
       <component id="c096" class="javax.swing.JLabel" binding="lblEnabled">
         <constraints>
-          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
             <minimum-size width="-1" height="24"/>
             <preferred-size width="-1" height="24"/>
             <maximum-size width="-1" height="24"/>
