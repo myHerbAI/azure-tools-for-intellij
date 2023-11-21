@@ -195,7 +195,7 @@ tasks {
         doLast {
             exec {
                 executable("dotnet")
-                args("build", "-c", dotnetBuildConfiguration, "ReSharper.Azure.sln")
+                args("build", "-c", dotnetBuildConfiguration, "/clp:ErrorsOnly", "ReSharper.Azure.sln")
             }
         }
     }
