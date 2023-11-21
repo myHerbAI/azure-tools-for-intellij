@@ -145,34 +145,72 @@ public class KeyVaultActionsContributor implements IActionsContributor {
         final ActionGroup keyVaultSubModuleActionGroup = new ActionGroup(
                 ResourceCommonActionsContributor.REFRESH,
                 "---",
-                ResourceCommonActionsContributor.CREATE
+                ResourceCommonActionsContributor.CREATE,
+                "---",
+                ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK
         );
-        am.registerGroup(MODULE_ACTIONS, keyVaultActionGroup);
+        am.registerGroup(MODULE_ACTIONS, keyVaultSubModuleActionGroup);
 
-        final ActionGroup credentialActionGroup = new ActionGroup(
+        final ActionGroup secretActionGroup = new ActionGroup(
                 ResourceCommonActionsContributor.REFRESH,
                 "---",
-                ResourceCommonActionsContributor.CREATE,
+                am.getAction(ResourceCommonActionsContributor.CREATE).bind(null).withLabel("Create New Version"),
                 ResourceCommonActionsContributor.DELETE,
                 "---",
                 ResourceCommonActionsContributor.SHOW_PROPERTIES,
-                SHOW_CREDENTIAL,
-                DOWNLOAD_CREDENTIAL
+                am.getAction(SHOW_CREDENTIAL).bind(null).withLabel("Show Secret"),
+                am.getAction(DOWNLOAD_CREDENTIAL).bind(null).withLabel("Download Secret")
         );
-        am.registerGroup(SECRET_ACTIONS, credentialActionGroup);
-        am.registerGroup(CERTIFICATE_ACTIONS, credentialActionGroup);
-        am.registerGroup(KEY_ACTIONS, credentialActionGroup);
+        am.registerGroup(SECRET_ACTIONS, secretActionGroup);
 
-        final ActionGroup credentialVersionActionGroup = new ActionGroup(
+        final ActionGroup certificateActionGroup = new ActionGroup(
+                ResourceCommonActionsContributor.REFRESH,
+                "---",
+                am.getAction(ResourceCommonActionsContributor.CREATE).bind(null).withLabel("Create New Version"),
+                ResourceCommonActionsContributor.DELETE,
+                "---",
+                ResourceCommonActionsContributor.SHOW_PROPERTIES,
+                am.getAction(SHOW_CREDENTIAL).bind(null).withLabel("Show Certificate"),
+                am.getAction(DOWNLOAD_CREDENTIAL).bind(null).withLabel("Download Certificate")
+        );
+        am.registerGroup(CERTIFICATE_ACTIONS, certificateActionGroup);
+
+        final ActionGroup keyActionGroup = new ActionGroup(
+                ResourceCommonActionsContributor.REFRESH,
+                "---",
+                am.getAction(ResourceCommonActionsContributor.CREATE).bind(null).withLabel("Create New Key"),
+                ResourceCommonActionsContributor.DELETE,
+                "---",
+                ResourceCommonActionsContributor.SHOW_PROPERTIES,
+                am.getAction(SHOW_CREDENTIAL).bind(null).withLabel("Show Key"),
+                am.getAction(DOWNLOAD_CREDENTIAL).bind(null).withLabel("Download Key")
+        );
+        am.registerGroup(KEY_ACTIONS, keyActionGroup);
+
+        final ActionGroup secretVersionActionGroup = new ActionGroup(
                 ENABLE_CREDENTIAL_VERSION,
                 DISABLE_CREDENTIAL_VERSION,
                 ResourceCommonActionsContributor.SHOW_PROPERTIES,
-                SHOW_CREDENTIAL_VERSION,
-                DOWNLOAD_CREDENTIAL_VERSION
+                am.getAction(SHOW_CREDENTIAL_VERSION).bind(null).withLabel("Show Secret"),
+                am.getAction(DOWNLOAD_CREDENTIAL_VERSION).bind(null).withLabel("Download Secret")
         );
-        am.registerGroup(SECRET_VERSION_ACTIONS, credentialVersionActionGroup);
-        am.registerGroup(CERTIFICATE_VERSION_ACTIONS, credentialVersionActionGroup);
-        am.registerGroup(KEY_VERSION_ACTIONS, credentialVersionActionGroup);
+        am.registerGroup(SECRET_VERSION_ACTIONS, secretVersionActionGroup);
+        final ActionGroup certificateVersionActionGroup = new ActionGroup(
+                ENABLE_CREDENTIAL_VERSION,
+                DISABLE_CREDENTIAL_VERSION,
+                ResourceCommonActionsContributor.SHOW_PROPERTIES,
+                am.getAction(SHOW_CREDENTIAL_VERSION).bind(null).withLabel("Show Certificate"),
+                am.getAction(DOWNLOAD_CREDENTIAL_VERSION).bind(null).withLabel("Download Certificate")
+        );
+        am.registerGroup(CERTIFICATE_VERSION_ACTIONS, certificateVersionActionGroup);
+        final ActionGroup keyVersionActionGroup = new ActionGroup(
+                ENABLE_CREDENTIAL_VERSION,
+                DISABLE_CREDENTIAL_VERSION,
+                ResourceCommonActionsContributor.SHOW_PROPERTIES,
+                am.getAction(SHOW_CREDENTIAL_VERSION).bind(null).withLabel("Show Key"),
+                am.getAction(DOWNLOAD_CREDENTIAL_VERSION).bind(null).withLabel("Download Key")
+        );
+        am.registerGroup(KEY_VERSION_ACTIONS, keyVersionActionGroup);
 
         final IActionGroup group = am.getGroup(ResourceCommonActionsContributor.RESOURCE_GROUP_CREATE_ACTIONS);
         group.addAction(GROUP_CREATE_KEY_VAULT);

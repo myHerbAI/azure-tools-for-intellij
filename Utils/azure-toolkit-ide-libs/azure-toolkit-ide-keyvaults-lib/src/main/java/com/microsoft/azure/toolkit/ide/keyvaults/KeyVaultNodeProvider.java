@@ -13,6 +13,7 @@ import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.keyvaults.AzureKeyVault;
 import com.microsoft.azure.toolkit.lib.keyvaults.KeyVault;
 import com.microsoft.azure.toolkit.lib.keyvaults.certificate.Certificate;
@@ -28,6 +29,7 @@ import org.apache.commons.lang3.BooleanUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -76,9 +78,12 @@ public class KeyVaultNodeProvider implements IExplorerNodeProvider {
                     .addChildren(CertificateModule::list, (d, p) -> this.createNode(d, p, manager))
                     .withActions(KeyVaultActionsContributor.MODULE_ACTIONS);
         } else if (data instanceof Certificate) {
+            final Function<Certificate, List<CertificateVersion>> function = certificate -> certificate.versions().list().stream()
+                    .sorted(Comparator.comparing(CertificateVersion::isCurrentVersion).thenComparing(CertificateVersion::isEnabled).reversed())
+                    .collect(Collectors.toList());
             return new AzResourceNode<>((Certificate) data)
                     .withDescription(key -> key.isEnabled() ? "enabled" : "disabled")
-                    .addChildren(certificate -> certificate.versions().list(), (d, p) -> this.createNode(d, p, manager))
+                    .addChildren(function, (d, p) -> this.createNode(d, p, manager))
                     .addInlineAction(ResourceCommonActionsContributor.PIN)
                     .withActions(KeyVaultActionsContributor.CERTIFICATE_ACTIONS);
         } else if (data instanceof CertificateVersion) {
@@ -91,12 +96,15 @@ public class KeyVaultNodeProvider implements IExplorerNodeProvider {
             return new AzModuleNode<>((SecretModule) data)
                     .withIcon(AzureIcons.KeyVaults.SECRETS)
                     .withLabel("Secrets")
-                    .addChildren(module -> module.list().stream().filter(s -> BooleanUtils.isNotTrue(s.isManaged())).collect(Collectors.toList()), (d, p) -> this.createNode(d, p, manager))
+                    .addChildren(AbstractAzResourceModule::list, (d, p) -> this.createNode(d, p, manager))
                     .withActions(KeyVaultActionsContributor.MODULE_ACTIONS);
         } else if (data instanceof Secret) {
+            final Function<Secret, List<SecretVersion>> function = secret -> secret.versions().list().stream()
+                    .sorted(Comparator.comparing(SecretVersion::isCurrentVersion).thenComparing(SecretVersion::isEnabled).reversed())
+                    .collect(Collectors.toList());
             return new AzResourceNode<>((Secret) data)
                     .withDescription(key -> key.isEnabled() ? "enabled" : "disabled")
-                    .addChildren(secret -> secret.versions().list(), (d, p) -> this.createNode(d, p, manager))
+                    .addChildren(function, (d, p) -> this.createNode(d, p, manager))
                     .addInlineAction(ResourceCommonActionsContributor.PIN)
                     .withActions(KeyVaultActionsContributor.SECRET_ACTIONS);
         } else if (data instanceof SecretVersion) {
@@ -109,12 +117,15 @@ public class KeyVaultNodeProvider implements IExplorerNodeProvider {
             return new AzModuleNode<>((KeyModule) data)
                     .withIcon(AzureIcons.KeyVaults.KEYS)
                     .withLabel("Keys")
-                    .addChildren(module -> module.list().stream().filter(s -> BooleanUtils.isNotTrue(s.isManaged())).collect(Collectors.toList()), (d, p) -> this.createNode(d, p, manager))
+                    .addChildren(AbstractAzResourceModule::list, (d, p) -> this.createNode(d, p, manager))
                     .withActions(KeyVaultActionsContributor.MODULE_ACTIONS);
         } else if (data instanceof Key) {
+            final Function<Key, List<KeyVersion>> function = key -> key.versions().list().stream()
+                    .sorted(Comparator.comparing(KeyVersion::isCurrentVersion).thenComparing(KeyVersion::isEnabled).reversed())
+                    .collect(Collectors.toList());
             return new AzResourceNode<>((Key) data)
                     .withDescription(key -> key.isEnabled() ? "enabled" : "disabled")
-                    .addChildren(secret -> secret.versions().list(), (d, p) -> this.createNode(d, p, manager))
+                    .addChildren(function, (d, p) -> this.createNode(d, p, manager))
                     .addInlineAction(ResourceCommonActionsContributor.PIN)
                     .withActions(KeyVaultActionsContributor.KEY_ACTIONS);
         } else if (data instanceof KeyVersion) {
