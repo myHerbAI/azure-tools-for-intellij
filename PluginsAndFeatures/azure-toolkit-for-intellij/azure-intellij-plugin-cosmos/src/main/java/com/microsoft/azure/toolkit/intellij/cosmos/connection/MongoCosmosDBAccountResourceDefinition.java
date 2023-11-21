@@ -15,15 +15,18 @@ import com.microsoft.azure.toolkit.lib.cosmos.mongo.MongoCosmosDBAccount;
 import com.microsoft.azure.toolkit.lib.cosmos.mongo.MongoDatabase;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MongoCosmosDBAccountResourceDefinition extends AzureServiceResource.Definition<MongoDatabase> implements SpringSupported<MongoDatabase> {
     public static final MongoCosmosDBAccountResourceDefinition INSTANCE = new MongoCosmosDBAccountResourceDefinition();
+
     public MongoCosmosDBAccountResourceDefinition() {
         super("Azure.Cosmos.Mongo", "Azure Cosmos DB account (Mongo)", AzureIcons.Cosmos.MODULE.getIconPath());
     }
@@ -34,11 +37,26 @@ public class MongoCosmosDBAccountResourceDefinition extends AzureServiceResource
     }
 
     @Override
+    public List<Resource<MongoDatabase>> getResources(Project project) {
+        return Azure.az(AzureCosmosService.class).list().stream()
+            .flatMap(m -> m.getCosmosDBAccountModule().list().stream())
+            .filter(a -> a instanceof MongoCosmosDBAccount)
+            .flatMap(s -> {
+                try {
+                    return ((MongoCosmosDBAccount) s).mongoDatabases().list().stream();
+                } catch (final Throwable e) {
+                    return Stream.empty();
+                }
+            })
+            .map(this::define).toList();
+    }
+
+    @Override
     public AzureFormJPanel<Resource<MongoDatabase>> getResourcePanel(Project project) {
         final Function<Subscription, ? extends List<MongoCosmosDBAccount>> accountLoader = subscription ->
-                Azure.az(AzureCosmosService.class).databaseAccounts(subscription.getId()).list().stream()
-                        .filter(account -> account instanceof MongoCosmosDBAccount)
-                        .map(account -> (MongoCosmosDBAccount) account).collect(Collectors.toList());
+            Azure.az(AzureCosmosService.class).databaseAccounts(subscription.getId()).list().stream()
+                .filter(account -> account instanceof MongoCosmosDBAccount)
+                .map(account -> (MongoCosmosDBAccount) account).collect(Collectors.toList());
         final Function<MongoCosmosDBAccount, ? extends List<? extends MongoDatabase>> databaseLoader = account -> account.mongoDatabases().list();
         return new CosmosDatabaseResourcePanel<>(this, accountLoader, databaseLoader);
     }
@@ -54,7 +72,7 @@ public class MongoCosmosDBAccountResourceDefinition extends AzureServiceResource
     }
 
     @Override
-    public List<Pair<String, String>> getSpringProperties() {
+    public List<Pair<String, String>> getSpringProperties(@Nullable final String key) {
         final List<Pair<String, String>> properties = new ArrayList<>();
         properties.add(Pair.of("spring.data.mongodb.database", String.format("${%s_DATABASE}", Connection.ENV_PREFIX)));
         properties.add(Pair.of("spring.data.mongodb.uri", String.format("${%s_CONNECTION_STRING}", Connection.ENV_PREFIX)));

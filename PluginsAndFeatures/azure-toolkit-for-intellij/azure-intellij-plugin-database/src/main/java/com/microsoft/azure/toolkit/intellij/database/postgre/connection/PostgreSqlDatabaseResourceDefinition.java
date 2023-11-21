@@ -21,6 +21,7 @@ import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class PostgreSqlDatabaseResourceDefinition extends SqlDatabaseResourceDefinition<PostgreSqlDatabase> {
     public static final PostgreSqlDatabaseResourceDefinition INSTANCE = new PostgreSqlDatabaseResourceDefinition();
@@ -32,6 +33,20 @@ public class PostgreSqlDatabaseResourceDefinition extends SqlDatabaseResourceDef
     @Override
     public PostgreSqlDatabase getResource(String dataId) {
         return Azure.az(AzurePostgreSql.class).getById(dataId);
+    }
+
+    @Override
+    public List<Resource<PostgreSqlDatabase>> getResources(Project project) {
+        return Azure.az(AzurePostgreSql.class).list().stream()
+            .flatMap(m -> m.servers().list().stream())
+            .flatMap(s -> {
+                try {
+                    return s.databases().list().stream();
+                } catch (final Throwable e) {
+                    return Stream.empty();
+                }
+            })
+            .map(this::define).toList();
     }
 
     @Override

@@ -24,9 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SqlCosmosDBAccountResourceDefinition extends AzureServiceResource.Definition<SqlDatabase>
-        implements SpringSupported<SqlDatabase>, FunctionSupported<SqlDatabase> {
+    implements SpringSupported<SqlDatabase>, FunctionSupported<SqlDatabase> {
     public static final SqlCosmosDBAccountResourceDefinition INSTANCE = new SqlCosmosDBAccountResourceDefinition();
 
     public SqlCosmosDBAccountResourceDefinition() {
@@ -39,11 +40,26 @@ public class SqlCosmosDBAccountResourceDefinition extends AzureServiceResource.D
     }
 
     @Override
+    public List<Resource<SqlDatabase>> getResources(Project project) {
+        return Azure.az(AzureCosmosService.class).list().stream()
+            .flatMap(m -> m.getCosmosDBAccountModule().list().stream())
+            .filter(a -> a instanceof SqlCosmosDBAccount)
+            .flatMap(s -> {
+                try {
+                    return ((SqlCosmosDBAccount) s).sqlDatabases().list().stream();
+                } catch (final Throwable e) {
+                    return Stream.empty();
+                }
+            })
+            .map(this::define).toList();
+    }
+
+    @Override
     public AzureFormJPanel<Resource<SqlDatabase>> getResourcePanel(Project project) {
         final Function<Subscription, ? extends List<SqlCosmosDBAccount>> accountLoader = subscription ->
-                Azure.az(AzureCosmosService.class).databaseAccounts(subscription.getId()).list().stream()
-                        .filter(account -> account instanceof SqlCosmosDBAccount)
-                        .map(account -> (SqlCosmosDBAccount) account).collect(Collectors.toList());
+            Azure.az(AzureCosmosService.class).databaseAccounts(subscription.getId()).list().stream()
+                .filter(account -> account instanceof SqlCosmosDBAccount)
+                .map(account -> (SqlCosmosDBAccount) account).collect(Collectors.toList());
         final Function<SqlCosmosDBAccount, ? extends List<? extends SqlDatabase>> databaseLoader = account -> account.sqlDatabases().list();
         return new CosmosDatabaseResourcePanel<>(this, accountLoader, databaseLoader);
     }
@@ -60,7 +76,7 @@ public class SqlCosmosDBAccountResourceDefinition extends AzureServiceResource.D
     }
 
     @Override
-    public List<Pair<String, String>> getSpringProperties() {
+    public List<Pair<String, String>> getSpringProperties(@Nullable final String key) {
         final List<Pair<String, String>> properties = new ArrayList<>();
         properties.add(Pair.of("spring.cloud.azure.cosmos.endpoint", String.format("${%s_ENDPOINT}", Connection.ENV_PREFIX)));
         properties.add(Pair.of("spring.cloud.azure.cosmos.key", String.format("${%s_KEY}", Connection.ENV_PREFIX)));

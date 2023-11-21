@@ -14,12 +14,14 @@ import com.microsoft.azure.toolkit.lib.cosmos.cassandra.CassandraCosmosDBAccount
 import com.microsoft.azure.toolkit.lib.cosmos.cassandra.CassandraKeyspace;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CassandraCosmosDBAccountResourceDefinition extends AzureServiceResource.Definition<CassandraKeyspace> implements SpringSupported<CassandraKeyspace> {
     public static final CassandraCosmosDBAccountResourceDefinition INSTANCE = new CassandraCosmosDBAccountResourceDefinition();
@@ -34,11 +36,26 @@ public class CassandraCosmosDBAccountResourceDefinition extends AzureServiceReso
     }
 
     @Override
+    public List<Resource<CassandraKeyspace>> getResources(Project project) {
+        return Azure.az(AzureCosmosService.class).list().stream()
+            .flatMap(m -> m.getCosmosDBAccountModule().list().stream())
+            .filter(a -> a instanceof CassandraCosmosDBAccount)
+            .flatMap(s -> {
+                try {
+                    return ((CassandraCosmosDBAccount) s).keySpaces().list().stream();
+                } catch (final Throwable e) {
+                    return Stream.empty();
+                }
+            })
+            .map(this::define).toList();
+    }
+
+    @Override
     public AzureFormJPanel<Resource<CassandraKeyspace>> getResourcePanel(Project project) {
         final Function<Subscription, ? extends List<CassandraCosmosDBAccount>> accountLoader = subscription ->
-                Azure.az(AzureCosmosService.class).databaseAccounts(subscription.getId()).list().stream()
-                        .filter(account -> account instanceof CassandraCosmosDBAccount)
-                        .map(account -> (CassandraCosmosDBAccount) account).collect(Collectors.toList());
+            Azure.az(AzureCosmosService.class).databaseAccounts(subscription.getId()).list().stream()
+                .filter(account -> account instanceof CassandraCosmosDBAccount)
+                .map(account -> (CassandraCosmosDBAccount) account).collect(Collectors.toList());
         final Function<CassandraCosmosDBAccount, ? extends List<? extends CassandraKeyspace>> databaseLoader = account -> account.keySpaces().list();
         return new CosmosDatabaseResourcePanel<>(this, accountLoader, databaseLoader);
     }
@@ -57,7 +74,7 @@ public class CassandraCosmosDBAccountResourceDefinition extends AzureServiceReso
     }
 
     @Override
-    public List<Pair<String, String>> getSpringProperties() {
+    public List<Pair<String, String>> getSpringProperties(@Nullable final String key) {
         final List<Pair<String, String>> properties = new ArrayList<>();
         properties.add(Pair.of("spring.data.cassandra.contact-points", String.format("${%s_CONTACT_POINT}", Connection.ENV_PREFIX)));
         properties.add(Pair.of("spring.data.cassandra.port", String.format("${%s_PORT}", Connection.ENV_PREFIX)));
