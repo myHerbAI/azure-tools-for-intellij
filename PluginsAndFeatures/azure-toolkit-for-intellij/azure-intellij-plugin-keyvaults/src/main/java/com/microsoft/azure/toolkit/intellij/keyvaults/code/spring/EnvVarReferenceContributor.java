@@ -14,16 +14,20 @@ import com.intellij.psi.*;
 import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.keyvaults.connection.KeyVaultResourceDefinition;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.yaml.psi.impl.YAMLPlainTextImpl;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.intellij.patterns.PsiJavaPatterns.psiElement;
 
 public class EnvVarReferenceContributor extends PsiReferenceContributor {
+    static final Pattern pattern = Pattern.compile("\\$\\{[A-Za-z0-9-]{1,127}}");
 
     @Override
     public void registerReferenceProviders(@Nonnull PsiReferenceRegistrar registrar) {
@@ -51,29 +55,13 @@ public class EnvVarReferenceContributor extends PsiReferenceContributor {
 
     @Nonnull
     private static List<TextRange> getEnvVarRanges(String text) {
+        int startPosition = 0;
         final List<TextRange> ranges = new ArrayList<>();
-        int startPos = 0;
-        while (true) {
-            final TextRange range = getEnvVarRange(text, startPos);
-            if (Objects.isNull(range)) {
-                break;
-            }
-            ranges.add(range);
-            startPos = range.getEndOffset() + 1;
+        final Matcher matcher = EnvVarReferenceContributor.pattern.matcher(text);
+        while (startPosition < text.length() - 3 && matcher.find(startPosition)) {
+            ranges.add(new TextRange(matcher.start() + 2, matcher.end() - 1));
+            startPosition = matcher.end();
         }
         return ranges;
-    }
-
-    @Nullable
-    private static TextRange getEnvVarRange(String text, int startPos) {
-        if (startPos == -1) {
-            return null;
-        }
-        final int start = StringUtils.indexOf(text, "${", startPos);
-        final int end = StringUtils.indexOf(text, "}", start + 3);
-        if (start > -1 && end > -1) {
-            return new TextRange(start + 2, end);
-        }
-        return null;
     }
 }
