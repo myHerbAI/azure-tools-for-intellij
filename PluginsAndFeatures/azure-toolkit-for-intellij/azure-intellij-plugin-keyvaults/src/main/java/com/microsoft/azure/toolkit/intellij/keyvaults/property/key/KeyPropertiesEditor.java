@@ -167,8 +167,12 @@ public class KeyPropertiesEditor extends AzResourcePropertiesEditor<KeyVersion> 
         // settings
         activationDateTextField.setText(Optional.ofNullable(properties.getNotBefore()).map(date -> date.format(dateTimeFormatter)).orElse(N_A));
         expirationDateTextField.setText(Optional.ofNullable(properties.getExpiresOn()).map(date -> date.format(dateTimeFormatter)).orElse(N_A));
-        final String labels = properties.getTags().entrySet().stream().map(entry -> String.format("%s=%s", entry.getKey(), entry.getValue()))
-                .collect(Collectors.joining(", "));
+
+        final String labels = Optional.ofNullable(properties.getTags())
+                .map(tags -> tags.entrySet().stream()
+                        .map(entry -> String.format("%s=%s", entry.getKey(), entry.getValue()))
+                        .collect(Collectors.joining(", "))).orElse(N_A);
+        tagsTextField.setText(labels);
         tagsTextField.setText(StringUtils.isBlank(labels) ? N_A : labels);
     }
 
