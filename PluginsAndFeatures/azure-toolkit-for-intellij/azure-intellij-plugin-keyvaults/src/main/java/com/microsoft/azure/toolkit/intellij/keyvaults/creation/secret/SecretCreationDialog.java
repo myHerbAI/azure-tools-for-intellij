@@ -5,18 +5,24 @@
 
 package com.microsoft.azure.toolkit.intellij.keyvaults.creation.secret;
 
+import com.intellij.icons.AllIcons;
+import com.intellij.ui.TitledSeparator;
+import com.intellij.ui.components.JBPasswordField;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
+import com.microsoft.azure.toolkit.intellij.common.component.AzurePasswordFieldInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.keyvaults.secret.SecretDraft;
+import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class SecretCreationDialog extends AzureDialog<SecretDraft.Config> implements AzureFormPanel<SecretDraft.Config> {
     private final String title;
@@ -24,7 +30,15 @@ public class SecretCreationDialog extends AzureDialog<SecretDraft.Config> implem
     private JLabel lblName;
     private AzureTextInput txtName;
     private JLabel lblValue;
-    private AzureTextInput txtValue;
+    private TitledSeparator titleInstance;
+    private TitledSeparator titleSettings;
+    private JLabel lblEnabled;
+    private JRadioButton rdoYes;
+    private JRadioButton rdoNo;
+    private AzureTextInput txtContentType;
+    private JLabel lblContentType;
+    private JBPasswordField passwordField;
+    private AzurePasswordFieldInput txtValue;
 
     public SecretCreationDialog(String title) {
         super();
@@ -32,6 +46,20 @@ public class SecretCreationDialog extends AzureDialog<SecretDraft.Config> implem
         setTitle(this.title);
         $$$setupUI$$$();
         init();
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        final ButtonGroup group = new ButtonGroup();
+        group.add(rdoYes);
+        group.add(rdoNo);
+        this.txtName.setRequired(true);
+        this.txtValue.setRequired(true);
+        this.txtContentType.setRequired(false);
+
+        this.lblName.setIcon(AllIcons.General.ContextHelp);
+        this.lblValue.setIcon(AllIcons.General.ContextHelp);
     }
 
     @Override
@@ -55,13 +83,18 @@ public class SecretCreationDialog extends AzureDialog<SecretDraft.Config> implem
         final SecretDraft.Config config = new SecretDraft.Config();
         config.setName(txtName.getValue());
         config.setValue(txtValue.getValue());
+        config.setEnabled(rdoYes.isSelected());
+        config.setContentType(txtContentType.getValue());
         return config;
     }
 
     @Override
     public void setValue(@Nonnull final SecretDraft.Config data) {
-        txtName.setValue(data.getName());
-        txtValue.setValue(data.getValue());
+        Optional.ofNullable(data.getName()).ifPresent(txtName::setValue);
+        Optional.ofNullable(data.getValue()).ifPresent(txtValue::setValue);
+        rdoYes.setSelected(BooleanUtils.isNotFalse(data.getEnabled()));
+        rdoNo.setSelected(BooleanUtils.isFalse(data.getEnabled()));
+        Optional.ofNullable(data.getContentType()).ifPresent(txtContentType::setValue);
     }
 
     public void setFixedName(final String name) {
@@ -73,5 +106,11 @@ public class SecretCreationDialog extends AzureDialog<SecretDraft.Config> implem
     @Override
     public List<AzureFormInput<?>> getInputs() {
         return Arrays.asList(txtName, txtValue);
+    }
+
+    private void createUIComponents() {
+        // TODO: place custom component creation code here
+        this.passwordField = new JBPasswordField();
+        this.txtValue = new AzurePasswordFieldInput(this.passwordField);
     }
 }

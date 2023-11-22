@@ -25,7 +25,7 @@ public class SecretCreationActions {
                     .withIdParam(SecretDraft.Config::getName)
                     .withAuthRequired(true)
                     .withHandler(config -> {
-                        keyVault.createNewSecret(config.getName(), config.getValue());
+                        keyVault.createNewSecret(config);
                     }));
             dialog.show();
         });
@@ -40,7 +40,7 @@ public class SecretCreationActions {
                     .withIdParam(SecretDraft.Config::getName)
                     .withAuthRequired(true)
                     .withHandler(config -> {
-                        secret.addNewSecretVersion(config.getValue());
+                        secret.addNewSecretVersion(config);
                     }));
             dialog.setFixedName(secret.getName());
             dialog.show();
