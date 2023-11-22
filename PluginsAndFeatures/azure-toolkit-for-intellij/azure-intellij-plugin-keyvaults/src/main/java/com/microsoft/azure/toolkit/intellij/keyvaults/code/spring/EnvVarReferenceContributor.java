@@ -12,6 +12,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.psi.*;
 import com.intellij.util.ProcessingContext;
+import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.keyvaults.connection.KeyVaultResourceDefinition;
 import org.jetbrains.yaml.psi.impl.YAMLPlainTextImpl;
@@ -44,7 +45,8 @@ public class EnvVarReferenceContributor extends PsiReferenceContributor {
         final String text = element.getText();
         final Module module = ModuleUtil.findModuleForPsiElement(element);
         final boolean hasVaults = Optional.ofNullable(ModuleUtil.findModuleForPsiElement(element)).map(AzureModule::from).stream()
-            .flatMap(m -> m.getConnections(KeyVaultResourceDefinition.INSTANCE).stream()).findAny().isPresent();
+            .flatMap(m -> m.getConnections(KeyVaultResourceDefinition.INSTANCE).stream())
+            .anyMatch(Connection::isValidConnection);
         if (EnvVarCompletionContributor.hasEnvVars(text) && hasVaults) {
             return getEnvVarRanges(element.getText()).stream()
                 .map(r -> new EnvVarReference(element, r))
