@@ -6,7 +6,12 @@
 package com.microsoft.azure.toolkit.intellij.keyvaults.creation;
 
 import com.azure.resourcemanager.keyvault.models.SkuName;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.fields.ExtendableTextComponent;
+import com.intellij.util.ui.JBFont;
+import com.intellij.util.ui.UIUtil;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
@@ -25,10 +30,15 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.event.ItemEvent;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 public class KeyVaultCreationDialog extends AzureDialog<KeyVaultDraft.Config> implements AzureFormPanel<KeyVaultDraft.Config> {
+    public static final String RBAC_DOCUMENT = "Azure RBAC is an authorization system built on Azure Resource Manager that provides fine-grained access management to Azure resources," +
+            " <a href = \"https://learn.microsoft.com/en-us/azure/role-based-access-control/overview\">please refer this document for more details</a>.";
+    public static final String VAULT_ACCESS_DOCUMENT = "A Key Vault access policy determines whether a given security principal, namely a user, application or user group, can perform different operations on Key Vault secrets, keys, and certificates," +
+            " <a href = \"https://learn.microsoft.com/en-us/azure/key-vault/general/assign-access-polic\">please refer this document for more details</a>.";
     private JLabel lblSubscription;
     private JLabel lblResourceGroup;
     private ResourceGroupComboBox cbResourceGroup;
@@ -42,6 +52,7 @@ public class KeyVaultCreationDialog extends AzureDialog<KeyVaultDraft.Config> im
     private JPanel pnlRoot;
     private JRadioButton rdoRBAC;
     private JRadioButton rdoVaultAccess;
+    private JBLabel lblPermissionDoc;
 
     private Project project;
 
@@ -58,6 +69,10 @@ public class KeyVaultCreationDialog extends AzureDialog<KeyVaultDraft.Config> im
         final ButtonGroup buttonGroup = new ButtonGroup();
         buttonGroup.add(rdoRBAC);
         buttonGroup.add(rdoVaultAccess);
+        lblName.setIcon(AllIcons.General.ContextHelp);
+        lblPermissionDoc.setText(RBAC_DOCUMENT);
+        rdoRBAC.addActionListener(ignore -> lblPermissionDoc.setText(RBAC_DOCUMENT));
+        rdoVaultAccess.addActionListener(ignore -> lblPermissionDoc.setText(VAULT_ACCESS_DOCUMENT));
 
         this.selectorSubscription.addItemListener(this::onSelectSubscription);
     }
@@ -121,6 +136,18 @@ public class KeyVaultCreationDialog extends AzureDialog<KeyVaultDraft.Config> im
             protected String getItemText(final Object item) {
                 return item instanceof SkuName ? StringUtils.capitalize(((SkuName) item).name()) : super.getItemText(item);
             }
+
+            @Nonnull
+            @Override
+            protected List<ExtendableTextComponent.Extension> getExtensions() {
+                return Collections.emptyList();
+            }
         };
+
+        this.lblPermissionDoc = new JBLabel();
+        this.lblPermissionDoc.setFont(JBFont.regular());
+        this.lblPermissionDoc.setAllowAutoWrapping(true);
+        this.lblPermissionDoc.setCopyable(true);// this makes label auto wrapping
+        this.lblPermissionDoc.setForeground(UIUtil.getContextHelpForeground());
     }
 }

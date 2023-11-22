@@ -7,6 +7,8 @@ package com.microsoft.azure.toolkit.intellij.keyvaults.creation.key;
 
 import com.azure.security.keyvault.keys.models.KeyCurveName;
 import com.azure.security.keyvault.keys.models.KeyType;
+import com.intellij.icons.AllIcons;
+import com.intellij.ui.TitledSeparator;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
@@ -42,6 +44,8 @@ public class KeyCreationDialog extends AzureDialog<KeyDraft.Config> implements A
     private JRadioButton p256k;
     private JLabel lblCurveName;
     private JLabel lblRsaKeySize;
+    private TitledSeparator titleInstance;
+    private TitledSeparator titleSettings;
 
     private final ButtonGroup typeGroup = new ButtonGroup();
     private final ButtonGroup rsaGroup = new ButtonGroup();
@@ -63,6 +67,8 @@ public class KeyCreationDialog extends AzureDialog<KeyDraft.Config> implements A
     protected void init() {
         typeGroup.add(rdoRsa);
         typeGroup.add(rdoEc);
+        lblName.setIcon(AllIcons.General.ContextHelp);
+        lblKeyType.setIcon(AllIcons.General.ContextHelp);
         rdoRsa.addActionListener(ignore -> changeToRsa());
         rdoEc.addActionListener(ignore -> changeToEc());
         // rsa size
