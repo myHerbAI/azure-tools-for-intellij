@@ -19,10 +19,11 @@ public class KeyCreationActions {
     public static void createNewKey(@Nonnull final KeyVault keyVault, @Nullable final Project project) {
         AzureTaskManager.getInstance().runLater(() -> {
             final KeyCreationDialog dialog = new KeyCreationDialog("Create new key");
-            final Action.Id<KeyDraft.Config> actionId = Action.Id.of("user/keyvaults.create_key.key");
+            final Action.Id<KeyDraft.Config> actionId = Action.Id.of("user/keyvaults.create_key.key|keyvault");
             dialog.setOkAction(new Action<>(actionId)
                     .withLabel("Create")
                     .withIdParam(KeyDraft.Config::getName)
+                    .withIdParam(keyVault.getName())
                     .withAuthRequired(true)
                     .withHandler(config -> {
                         keyVault.createNewKey(config);
