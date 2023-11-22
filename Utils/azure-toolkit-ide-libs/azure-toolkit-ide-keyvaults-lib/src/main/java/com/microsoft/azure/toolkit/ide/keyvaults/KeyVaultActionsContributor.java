@@ -112,7 +112,7 @@ public class KeyVaultActionsContributor implements IActionsContributor {
                 .register(am);
 
         new Action<>(GROUP_CREATE_KEY_VAULT)
-                .withLabel("Key vault")
+                .withLabel("Key Vault")
                 .withIdParam(AzResource::getName)
                 .visibleWhen(s -> s instanceof ResourceGroup)
                 .enableWhen(s -> s.getFormalStatus().isConnected())

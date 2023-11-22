@@ -39,7 +39,7 @@ import java.util.stream.Stream;
 import static com.microsoft.azure.toolkit.lib.Azure.az;
 
 public class KeyVaultNodeProvider implements IExplorerNodeProvider {
-    private static final String NAME = "Key vaults";
+    private static final String NAME = "Key Vault";
     private static final String ICON = AzureIcons.KeyVaults.MODULE.getIconPath();
 
     @Override
