@@ -38,7 +38,7 @@ public class KeyVaultCreationDialog extends AzureDialog<KeyVaultDraft.Config> im
     public static final String RBAC_DOCUMENT = "Azure RBAC is an authorization system built on Azure Resource Manager that provides fine-grained access management to Azure resources," +
             " <a href = \"https://learn.microsoft.com/en-us/azure/role-based-access-control/overview\">please refer this document for more details</a>.";
     public static final String VAULT_ACCESS_DOCUMENT = "A Key Vault access policy determines whether a given security principal, namely a user, application or user group, can perform different operations on Key Vault secrets, keys, and certificates," +
-            " <a href = \"https://learn.microsoft.com/en-us/azure/key-vault/general/assign-access-polic\">please refer this document for more details</a>.";
+            " <a href = \"https://learn.microsoft.com/en-us/azure/key-vault/general/assign-access-policy\">please refer this document for more details</a>.";
     private JLabel lblSubscription;
     private JLabel lblResourceGroup;
     private ResourceGroupComboBox cbResourceGroup;
@@ -134,7 +134,7 @@ public class KeyVaultCreationDialog extends AzureDialog<KeyVaultDraft.Config> im
         this.cbSku = new AzureComboBox<SkuName>(() -> Arrays.asList(SkuName.STANDARD, SkuName.PREMIUM)) {
             @Override
             protected String getItemText(final Object item) {
-                return item instanceof SkuName ? StringUtils.capitalize(((SkuName) item).name()) : super.getItemText(item);
+                return item instanceof SkuName ? StringUtils.capitalize(StringUtils.lowerCase(((SkuName) item).name())) : super.getItemText(item);
             }
 
             @Nonnull

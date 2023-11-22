@@ -33,7 +33,8 @@ import java.util.stream.Collectors;
 
 public class KeyPropertiesEditor extends AzResourcePropertiesEditor<KeyVersion> {
     public static final String N_A = "N/A";
-    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.n a");
+    private static final DateTimeFormatter dateTimeFormatter =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.n z").withZone(ZoneId.systemDefault());
     private JPanel pnlContent;
     private JPanel propertyActionPanel;
     private AzureActionButton<Void> btnRefresh;

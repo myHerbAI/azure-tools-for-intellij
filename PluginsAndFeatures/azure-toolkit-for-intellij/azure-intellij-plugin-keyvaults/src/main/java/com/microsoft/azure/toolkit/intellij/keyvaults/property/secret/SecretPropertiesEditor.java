@@ -33,7 +33,8 @@ import java.util.stream.Collectors;
 
 public class SecretPropertiesEditor extends AzResourcePropertiesEditor<SecretVersion> {
     public static final String N_A = "N/A";
-    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.n a");
+    private static final DateTimeFormatter dateTimeFormatter =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.n z").withZone(ZoneId.systemDefault());
     public static final String SECRET_VISIBLE = "SecretVisible";
     public static final String SECRET_VALUE = "SecretValue";
     private JPanel pnlContent;
@@ -177,6 +178,8 @@ public class SecretPropertiesEditor extends AzResourcePropertiesEditor<SecretVer
         tagsTextField.setText(labels);
         // secret
         txtContentType.setText(StringUtils.firstNonBlank(properties.getContentType(), N_A));
+        // buttons
+        this.showSecretButton.setEnabled(properties.isEnabled());
     }
 
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES

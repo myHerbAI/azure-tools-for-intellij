@@ -48,6 +48,7 @@
                     </constraints>
                     <properties>
                       <text value="Save"/>
+                      <visible value="false"/>
                     </properties>
                   </component>
                   <component id="87d76" class="com.intellij.ui.components.ActionLink" binding="resetButton">
@@ -57,6 +58,7 @@
                     <properties>
                       <font style="1"/>
                       <text value="Reset"/>
+                      <visible value="false"/>
                       <visited value="false"/>
                     </properties>
                   </component>
@@ -88,10 +90,10 @@
                 <children>
                   <component id="56bde" class="javax.swing.JLabel" binding="lblCreated">
                     <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                        <minimum-size width="120" height="24"/>
-                        <preferred-size width="120" height="24"/>
-                        <maximum-size width="120" height="24"/>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                        <minimum-size width="135" height="24"/>
+                        <preferred-size width="135" height="24"/>
+                        <maximum-size width="135" height="24"/>
                       </grid>
                     </constraints>
                     <properties>
@@ -111,10 +113,10 @@
                   </component>
                   <component id="8ee63" class="javax.swing.JLabel" binding="lblUpdated">
                     <constraints>
-                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                        <minimum-size width="120" height="24"/>
-                        <preferred-size width="120" height="24"/>
-                        <maximum-size width="120" height="24"/>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                        <minimum-size width="135" height="24"/>
+                        <preferred-size width="135" height="24"/>
+                        <maximum-size width="135" height="24"/>
                       </grid>
                     </constraints>
                     <properties>
@@ -134,10 +136,10 @@
                   </component>
                   <component id="f1116" class="javax.swing.JLabel" binding="lblIdentifier">
                     <constraints>
-                      <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                        <minimum-size width="120" height="24"/>
-                        <preferred-size width="120" height="24"/>
-                        <maximum-size width="120" height="24"/>
+                      <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                        <minimum-size width="135" height="24"/>
+                        <preferred-size width="135" height="24"/>
+                        <maximum-size width="135" height="24"/>
                       </grid>
                     </constraints>
                     <properties>
@@ -179,10 +181,10 @@
                     <children>
                       <component id="7ead" class="javax.swing.JLabel" binding="lblSecretValue">
                         <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                            <minimum-size width="120" height="24"/>
-                            <preferred-size width="120" height="24"/>
-                            <maximum-size width="120" height="24"/>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                            <minimum-size width="135" height="24"/>
+                            <preferred-size width="135" height="24"/>
+                            <maximum-size width="135" height="24"/>
                           </grid>
                         </constraints>
                         <properties>
@@ -198,10 +200,10 @@
                       </component>
                       <component id="788da" class="javax.swing.JLabel" binding="lblIssuer">
                         <constraints>
-                          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                            <minimum-size width="120" height="24"/>
-                            <preferred-size width="120" height="24"/>
-                            <maximum-size width="120" height="24"/>
+                          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                            <minimum-size width="135" height="24"/>
+                            <preferred-size width="135" height="24"/>
+                            <maximum-size width="135" height="24"/>
                           </grid>
                         </constraints>
                         <properties>
@@ -211,10 +213,10 @@
                       </component>
                       <component id="c56c9" class="javax.swing.JLabel" binding="lblSerialNumber">
                         <constraints>
-                          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                            <minimum-size width="120" height="24"/>
-                            <preferred-size width="120" height="24"/>
-                            <maximum-size width="120" height="24"/>
+                          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                            <minimum-size width="135" height="24"/>
+                            <preferred-size width="135" height="24"/>
+                            <maximum-size width="135" height="24"/>
                           </grid>
                         </constraints>
                         <properties>
@@ -225,10 +227,10 @@
                       </component>
                       <component id="e19bd" class="javax.swing.JLabel" binding="lblAlternativeName">
                         <constraints>
-                          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                            <minimum-size width="120" height="24"/>
-                            <preferred-size width="120" height="24"/>
-                            <maximum-size width="120" height="24"/>
+                          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                            <minimum-size width="135" height="24"/>
+                            <preferred-size width="135" height="24"/>
+                            <maximum-size width="135" height="24"/>
                           </grid>
                         </constraints>
                         <properties>
@@ -238,10 +240,10 @@
                       </component>
                       <component id="2fa55" class="javax.swing.JLabel" binding="lblThumbprint">
                         <constraints>
-                          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                            <minimum-size width="120" height="24"/>
-                            <preferred-size width="120" height="24"/>
-                            <maximum-size width="120" height="24"/>
+                          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                            <minimum-size width="135" height="24"/>
+                            <preferred-size width="135" height="24"/>
+                            <maximum-size width="135" height="24"/>
                           </grid>
                         </constraints>
                         <properties>
@@ -251,10 +253,10 @@
                       </component>
                       <component id="b0860" class="javax.swing.JLabel" binding="lblKeyIdentifier">
                         <constraints>
-                          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                            <minimum-size width="120" height="24"/>
-                            <preferred-size width="120" height="24"/>
-                            <maximum-size width="120" height="24"/>
+                          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                            <minimum-size width="135" height="24"/>
+                            <preferred-size width="135" height="24"/>
+                            <maximum-size width="135" height="24"/>
                           </grid>
                         </constraints>
                         <properties>
@@ -265,10 +267,10 @@
                       </component>
                       <component id="3d821" class="javax.swing.JLabel" binding="lblSecret">
                         <constraints>
-                          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                            <minimum-size width="120" height="24"/>
-                            <preferred-size width="120" height="24"/>
-                            <maximum-size width="120" height="24"/>
+                          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                            <minimum-size width="135" height="24"/>
+                            <preferred-size width="135" height="24"/>
+                            <maximum-size width="135" height="24"/>
                           </grid>
                         </constraints>
                         <properties>
@@ -346,10 +348,10 @@
                 <children>
                   <component id="124b6" class="javax.swing.JLabel" binding="lblActivationDate">
                     <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                        <minimum-size width="120" height="24"/>
-                        <preferred-size width="120" height="24"/>
-                        <maximum-size width="120" height="24"/>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                        <minimum-size width="135" height="24"/>
+                        <preferred-size width="135" height="24"/>
+                        <maximum-size width="135" height="24"/>
                       </grid>
                     </constraints>
                     <properties>
@@ -369,10 +371,10 @@
                   </component>
                   <component id="368f0" class="javax.swing.JLabel" binding="lblExpirationDate">
                     <constraints>
-                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                        <minimum-size width="120" height="24"/>
-                        <preferred-size width="120" height="24"/>
-                        <maximum-size width="120" height="24"/>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                        <minimum-size width="135" height="24"/>
+                        <preferred-size width="135" height="24"/>
+                        <maximum-size width="135" height="24"/>
                       </grid>
                     </constraints>
                     <properties>
@@ -392,10 +394,10 @@
                   </component>
                   <component id="3de6" class="javax.swing.JLabel" binding="lblTags">
                     <constraints>
-                      <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                        <minimum-size width="120" height="24"/>
-                        <preferred-size width="120" height="24"/>
-                        <maximum-size width="120" height="24"/>
+                      <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                        <minimum-size width="135" height="24"/>
+                        <preferred-size width="135" height="24"/>
+                        <maximum-size width="135" height="24"/>
                       </grid>
                     </constraints>
                     <properties>

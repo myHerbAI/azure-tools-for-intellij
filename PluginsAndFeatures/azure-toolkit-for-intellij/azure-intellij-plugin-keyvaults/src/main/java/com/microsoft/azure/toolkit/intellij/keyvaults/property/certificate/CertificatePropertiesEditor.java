@@ -39,7 +39,8 @@ import java.util.stream.Collectors;
 
 public class CertificatePropertiesEditor extends AzResourcePropertiesEditor<CertificateVersion> {
     public static final String N_A = "N/A";
-    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.n a");
+    private static final DateTimeFormatter dateTimeFormatter =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.n z").withZone(ZoneId.systemDefault());
     public static final String SECRET_VISIBLE = "SecretVisible";
     public static final String SECRET_VALUE = "SecretValue";
     private JPanel pnlContent;
