@@ -9,12 +9,18 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.keyvaults.KeyVaultActionsContributor;
+import com.microsoft.azure.toolkit.intellij.connector.AzureServiceResource;
+import com.microsoft.azure.toolkit.intellij.connector.ConnectorDialog;
+import com.microsoft.azure.toolkit.intellij.keyvaults.connection.KeyVaultResourceDefinition;
 import com.microsoft.azure.toolkit.intellij.keyvaults.creation.certificate.CertificateCreationActions;
 import com.microsoft.azure.toolkit.intellij.keyvaults.creation.key.KeyCreationActions;
 import com.microsoft.azure.toolkit.intellij.keyvaults.creation.secret.SecretCreationActions;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.keyvaults.AzureKeyVault;
 import com.microsoft.azure.toolkit.lib.keyvaults.CredentialVersion;
+import com.microsoft.azure.toolkit.lib.keyvaults.KeyVault;
 import com.microsoft.azure.toolkit.lib.keyvaults.certificate.Certificate;
 import com.microsoft.azure.toolkit.lib.keyvaults.certificate.CertificateModule;
 import com.microsoft.azure.toolkit.lib.keyvaults.key.Key;
@@ -36,6 +42,13 @@ public class IntelliJKeyVaultsActionsContributor implements IActionsContributor 
                 (Object ignore, AnActionEvent e) -> createNewKeyVault(getDefaultConfig(null), e.getProject()));
         am.registerHandler(KeyVaultActionsContributor.GROUP_CREATE_KEY_VAULT, (r, e) -> true,
                 (ResourceGroup group, AnActionEvent e) -> createNewKeyVault(getDefaultConfig(group), e.getProject()));
+
+        am.<AzResource, AnActionEvent>registerHandler(ResourceCommonActionsContributor.CONNECT, (r, e) -> r instanceof KeyVault,
+            (r, e) -> AzureTaskManager.getInstance().runLater(() -> {
+                final ConnectorDialog dialog = new ConnectorDialog(e.getProject());
+                dialog.setResource(new AzureServiceResource<>(((KeyVault) r), KeyVaultResourceDefinition.INSTANCE));
+                dialog.show();
+            }));
 
         final BiPredicate<CredentialVersion, AnActionEvent> certificateCondition = (r, e) -> r instanceof CredentialVersion;
         am.registerHandler(KeyVaultActionsContributor.DOWNLOAD_CREDENTIAL_VERSION, certificateCondition,
