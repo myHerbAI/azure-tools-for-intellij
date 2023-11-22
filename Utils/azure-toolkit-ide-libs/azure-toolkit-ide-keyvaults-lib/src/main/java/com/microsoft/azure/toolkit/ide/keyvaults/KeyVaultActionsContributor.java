@@ -81,7 +81,6 @@ public class KeyVaultActionsContributor implements IActionsContributor {
                 .withLabel("Download")
                 .withIdParam(AzResource::getResourceTypeName)
                 .withIdParam(AzResource::getName)
-                .enableWhen(s -> s.getFormalStatus().isRunning())
                 .withHandler((s, r) -> Optional.ofNullable(s.getCurrentVersion())
                         .ifPresent(version -> am.getAction(DOWNLOAD_CREDENTIAL_VERSION).handle(version, r)))
                 .register(am);
@@ -91,14 +90,12 @@ public class KeyVaultActionsContributor implements IActionsContributor {
                 .withIdParam(AzResource::getResourceTypeName)
                 .withIdParam(AzResource::getName)
                 .withIdParam(version -> version.getCredential().getName())
-                .enableWhen(s -> s.getFormalStatus().isRunning())
                 .register(am);
 
         new Action<>(SHOW_CREDENTIAL)
                 .withLabel("Show")
                 .withIdParam(AzResource::getResourceTypeName)
                 .withIdParam(AzResource::getName)
-                .enableWhen(s -> s.getFormalStatus().isRunning())
                 .withHandler((s, r) -> Optional.ofNullable(s.getCurrentVersion())
                         .ifPresent(version -> am.getAction(SHOW_CREDENTIAL_VERSION).handle(version, r)))
                 .register(am);
@@ -108,7 +105,6 @@ public class KeyVaultActionsContributor implements IActionsContributor {
                 .withIdParam(AzResource::getResourceTypeName)
                 .withIdParam(AzResource::getName)
                 .withIdParam(version -> version.getCredential().getName())
-                .enableWhen(s -> s.getFormalStatus().isRunning())
                 .register(am);
 
         new Action<>(GROUP_CREATE_KEY_VAULT)
@@ -152,18 +148,22 @@ public class KeyVaultActionsContributor implements IActionsContributor {
         am.registerGroup(MODULE_ACTIONS, keyVaultSubModuleActionGroup);
 
         final ActionGroup secretActionGroup = new ActionGroup(
+                ResourceCommonActionsContributor.PIN,
+                "---",
                 ResourceCommonActionsContributor.REFRESH,
                 "---",
                 am.getAction(ResourceCommonActionsContributor.CREATE).bind(null).withLabel("Create New Version"),
                 ResourceCommonActionsContributor.DELETE,
                 "---",
                 ResourceCommonActionsContributor.SHOW_PROPERTIES,
-                am.getAction(SHOW_CREDENTIAL).bind(null).withLabel("Show Secret"),
-                am.getAction(DOWNLOAD_CREDENTIAL).bind(null).withLabel("Download Secret")
+                am.getAction(SHOW_CREDENTIAL).bind(null).withLabel("Show Secret").enableWhen(s -> s.isEnabled()),
+                am.getAction(DOWNLOAD_CREDENTIAL).bind(null).withLabel("Download Secret").enableWhen(s -> s.isEnabled())
         );
         am.registerGroup(SECRET_ACTIONS, secretActionGroup);
 
         final ActionGroup certificateActionGroup = new ActionGroup(
+                ResourceCommonActionsContributor.PIN,
+                "---",
                 ResourceCommonActionsContributor.REFRESH,
                 "---",
                 am.getAction(ResourceCommonActionsContributor.CREATE).bind(null).withLabel("Create New Version"),
@@ -176,6 +176,8 @@ public class KeyVaultActionsContributor implements IActionsContributor {
         am.registerGroup(CERTIFICATE_ACTIONS, certificateActionGroup);
 
         final ActionGroup keyActionGroup = new ActionGroup(
+                ResourceCommonActionsContributor.PIN,
+                "---",
                 ResourceCommonActionsContributor.REFRESH,
                 "---",
                 am.getAction(ResourceCommonActionsContributor.CREATE).bind(null).withLabel("Create New Key"),
@@ -191,8 +193,8 @@ public class KeyVaultActionsContributor implements IActionsContributor {
                 ENABLE_CREDENTIAL_VERSION,
                 DISABLE_CREDENTIAL_VERSION,
                 ResourceCommonActionsContributor.SHOW_PROPERTIES,
-                am.getAction(SHOW_CREDENTIAL_VERSION).bind(null).withLabel("Show Secret"),
-                am.getAction(DOWNLOAD_CREDENTIAL_VERSION).bind(null).withLabel("Download Secret")
+                am.getAction(SHOW_CREDENTIAL_VERSION).bind(null).withLabel("Show Secret").enableWhen(s -> s.isEnabled()),
+                am.getAction(DOWNLOAD_CREDENTIAL_VERSION).bind(null).withLabel("Download Secret").enableWhen(s -> s.isEnabled())
         );
         am.registerGroup(SECRET_VERSION_ACTIONS, secretVersionActionGroup);
         final ActionGroup certificateVersionActionGroup = new ActionGroup(
