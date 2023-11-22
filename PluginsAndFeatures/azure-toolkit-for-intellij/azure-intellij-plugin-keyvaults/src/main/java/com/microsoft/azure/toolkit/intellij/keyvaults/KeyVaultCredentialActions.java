@@ -5,13 +5,11 @@
 
 package com.microsoft.azure.toolkit.intellij.keyvaults;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.TerminalUtils;
@@ -19,24 +17,28 @@ import com.microsoft.azure.toolkit.intellij.common.fileexplorer.VirtualFileActio
 import com.microsoft.azure.toolkit.lib.auth.cli.AzureCliUtils;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
-import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azure.toolkit.lib.keyvaults.Credential;
 import com.microsoft.azure.toolkit.lib.keyvaults.CredentialVersion;
+import com.microsoft.azure.toolkit.lib.keyvaults.secret.SecretVersion;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.filefilter.AbstractFileFilter;
+import org.apache.commons.io.filefilter.FileFileFilter;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.function.Function;
+import java.time.Duration;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class KeyVaultCredentialActions {
 
@@ -56,24 +58,57 @@ public class KeyVaultCredentialActions {
             fileChooserDescriptor.setTitle("Choose Where to Save the Credential");
             final VirtualFile vf = FileChooser.chooseFile(fileChooserDescriptor, null, null);
             if (vf != null) {
-                final Path path = Paths.get(vf.getPath(), UUID.randomUUID().toString());
+                final Path path = Paths.get(vf.getPath(), getFileName(resource, Paths.get(vf.getPath())));
                 final String downloadCredentialCommand = resource.getDownloadCredentialCommand(path.toString());
                 TerminalUtils.executeInTerminal(project, downloadCredentialCommand);
                 final File file = path.toFile();
-
-                // todo: show notification after download
+                AzureTaskManager.getInstance().runOnPooledThread(() -> showNotification(project, file));
             }
         });
+    }
+
+    private static String getFileName(@Nonnull final CredentialVersion resource, @Nonnull final Path path) {
+        final String extension = getFileExtensionName(resource);
+        try {
+            final String defaultName = resource.getCredential().getName() + "_" + resource.getName();
+            final Set<String> existingFiles = FileUtils.listFiles(path.toFile(), new String[]{extension}, false).stream()
+                    .map(f -> FilenameUtils.getBaseName(f.getName())).collect(Collectors.toSet());
+            for (int i = 0; i < Integer.MAX_VALUE; i++) {
+                final String name = i == 0 ? defaultName : String.format("%s_%d", defaultName, i);
+                if (!existingFiles.contains(name)) {
+                    return String.format("%s.%s", name, extension);
+                }
+            }
+        } catch (final RuntimeException e) {
+            // swallow exception to get name
+        }
+        return String.format("%s.%s", UUID.randomUUID().toString(), extension);
+    }
+
+    private static String getFileExtensionName(@Nonnull final CredentialVersion resource) {
+        return resource instanceof SecretVersion ? "txt" : "pem";
+    }
+
+    private static void showNotification(@Nonnull final Project project, @Nonnull final File file) {
+        final File result = Mono.fromCallable(() -> file)
+                .delayElement(Duration.ofSeconds(1))
+                .subscribeOn(Schedulers.boundedElastic())
+                .repeat(5)
+                .takeUntil(f -> f.exists())
+                .blockLast();
+        if (Objects.nonNull(result) && result.exists()) {
+            VirtualFileActions.notifyDownloadSuccess(file.getName(), file, project);
+        }
     }
 
     private static void ensureAzureCli(@Nullable final Project project) {
         boolean appropriateCliInstalled = AzureCliUtils.isAppropriateCliInstalled();
         if (!appropriateCliInstalled) {
-            throw new AzureToolkitRuntimeException("Please install Azure CLI first.", getAzuriteFailureActions(project));
+            throw new AzureToolkitRuntimeException("Please install Azure CLI first.", getAzureCliNotExistsActions(project));
         }
     }
 
-    private static Action<?>[] getAzuriteFailureActions(@Nonnull final Project project) {
+    private static Action<?>[] getAzureCliNotExistsActions(@Nonnull final Project project) {
         final Action<Object> settingAction = AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS);
         final Action<String> learnAction = AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL)
                 .bind(AZURE_CLI_INSTALL_URL).withLabel("Learn More");
