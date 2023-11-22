@@ -14,9 +14,14 @@ import com.microsoft.azure.toolkit.lib.keyvaults.secret.SecretDraft;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.function.Consumer;
 
 public class SecretCreationActions {
     public static void createNewSecret(@Nonnull final KeyVault keyVault, @Nullable final Project project) {
+        createNewSecret(keyVault, null, s -> {});
+    }
+
+    public static void createNewSecret(@Nonnull final KeyVault keyVault, @Nullable final SecretDraft.Config data, Consumer<Secret> callback) {
         AzureTaskManager.getInstance().runLater(() -> {
             final SecretCreationDialog dialog = new SecretCreationDialog("Create new secret");
             final Action.Id<SecretDraft.Config> actionId = Action.Id.of("user/keyvaults.create_secret.secret|keyvault");
@@ -26,7 +31,8 @@ public class SecretCreationActions {
                     .withIdParam(keyVault.getName())
                     .withAuthRequired(true)
                     .withHandler(config -> {
-                        keyVault.createNewSecret(config);
+                        final Secret secret = keyVault.createNewSecret(config);
+                        callback.accept(secret);
                     }));
             dialog.show();
         });
@@ -40,9 +46,7 @@ public class SecretCreationActions {
                     .withLabel("Create")
                     .withIdParam(SecretDraft.Config::getName)
                     .withAuthRequired(true)
-                    .withHandler(config -> {
-                        secret.addNewSecretVersion(config);
-                    }));
+                    .withHandler(secret::addNewSecretVersion));
             dialog.setFixedName(secret.getName());
             dialog.show();
         });

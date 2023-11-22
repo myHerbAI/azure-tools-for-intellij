@@ -22,8 +22,9 @@
         <psi.referenceContributor language="yaml" implementation="com.microsoft.azure.toolkit.intellij.keyvaults.code.spring.EnvVarReferenceContributor" order="first"/>
         <codeInsight.lineMarkerProvider language="Properties" implementationClass="com.microsoft.azure.toolkit.intellij.keyvaults.code.spring.EnvVarLineMarkerProvider"/>
         <codeInsight.lineMarkerProvider language="yaml" implementationClass="com.microsoft.azure.toolkit.intellij.keyvaults.code.spring.EnvVarLineMarkerProvider"/>
+        <annotator language="Properties" implementationClass="com.microsoft.azure.toolkit.intellij.keyvaults.code.spring.PlainTextSecretAnnotator"/>
+        <annotator language="yaml" implementationClass="com.microsoft.azure.toolkit.intellij.keyvaults.code.spring.PlainTextSecretAnnotator"/>
         <typedHandler implementation="com.microsoft.azure.toolkit.intellij.keyvaults.code.spring.EnvVarTypeHandler"/>
         <lookup.charFilter implementation="com.microsoft.azure.toolkit.intellij.keyvaults.code.spring.EnvVarCharFilter"/>
-        <annotator language="Properties" implementationClass="com.microsoft.azure.toolkit.intellij.keyvaults.code.spring.PlainTextSecretAnnotator"/>
     </extensions>
 </idea-plugin>

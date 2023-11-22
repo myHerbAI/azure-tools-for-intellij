@@ -85,7 +85,7 @@ public class EnvVarReference extends PsiReferenceBase<PsiElement> {
         }
 
         @Override
-        @AzureOperation("user/connector.navigate_to_secret_from_env_var")
+        @AzureOperation("user/connector.navigate_to_keyvault_secret_from_reference")
         public void navigate(boolean requestFocus) {
             AbstractAzureFacetNode.selectConnectedResource(connection, this.secret.getId(), requestFocus);
         }

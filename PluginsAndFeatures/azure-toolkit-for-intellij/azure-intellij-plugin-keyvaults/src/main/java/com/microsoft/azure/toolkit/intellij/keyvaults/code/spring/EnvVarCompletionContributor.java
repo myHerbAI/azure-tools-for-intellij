@@ -29,6 +29,7 @@ import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.keyvaults.connection.KeyVaultResourceDefinition;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.keyvaults.KeyVault;
 import com.microsoft.azure.toolkit.lib.keyvaults.secret.Secret;
 import lombok.RequiredArgsConstructor;
@@ -137,6 +138,7 @@ public class EnvVarCompletionContributor extends CompletionContributor {
         private final Resource<KeyVault> vault;
 
         @Override
+        @AzureOperation("user/connector.insert_keyvault_secrets_in_spring_config_from_code_completion")
         public void handleInsert(@Nonnull InsertionContext context, @Nonnull LookupElement item) {
             context.getDocument().deleteString(context.getStartOffset(), context.getTailOffset());
             final Module module = ModuleUtil.findModuleForFile(context.getFile());
