@@ -141,7 +141,7 @@
           <font/>
           <text value="Access Configuration"/>
           <titleFont style="1"/>
-          <toolTipText value="To access a key vault in data plane, all callers (users or applications) must have proper authentication and authorization. Authentication establishes the identity of the caller. Authorization determines which operations the caller can execute."/>
+          <toolTipText value="To access a Key Vault in data plane, all callers (users or applications) must have proper authentication and authorization. Authentication establishes the identity of the caller. Authorization determines which operations the caller can execute."/>
         </properties>
       </component>
       <component id="a4b12" class="com.intellij.ui.TitledSeparator">
