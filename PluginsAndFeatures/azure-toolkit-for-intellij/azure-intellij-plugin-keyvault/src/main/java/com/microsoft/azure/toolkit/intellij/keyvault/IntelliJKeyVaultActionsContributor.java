@@ -34,7 +34,7 @@ import java.util.function.BiPredicate;
 import static com.microsoft.azure.toolkit.intellij.keyvault.creation.KeyVaultCreationActions.createNewKeyVault;
 import static com.microsoft.azure.toolkit.intellij.keyvault.creation.KeyVaultCreationActions.getDefaultConfig;
 
-public class IntelliJKeyVaultsActionsContributor implements IActionsContributor {
+public class IntelliJKeyVaultActionsContributor implements IActionsContributor {
 
     @Override
     public void registerHandlers(AzureActionManager am) {

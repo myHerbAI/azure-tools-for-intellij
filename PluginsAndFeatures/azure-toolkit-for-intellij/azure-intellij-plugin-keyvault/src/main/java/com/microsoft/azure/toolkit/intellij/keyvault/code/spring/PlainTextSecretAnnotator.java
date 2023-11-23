@@ -59,7 +59,7 @@ public class PlainTextSecretAnnotator implements Annotator {
                         @Override
                         public @IntentionName @NotNull String getName() {
                             //noinspection DialogTitleCapitalization
-                            return "Save in Azure KeyVaults";
+                            return "Save in Azure Key Vault";
                         }
 
                         @Override

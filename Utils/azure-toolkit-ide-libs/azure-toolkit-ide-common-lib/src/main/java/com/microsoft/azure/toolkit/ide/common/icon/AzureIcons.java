@@ -245,7 +245,7 @@ public final class AzureIcons {
         public static final AzureIcon MODULE = AzureIcon.builder().iconPath("/icons/Microsoft.ServiceBus/default.svg").build();
     }
 
-    public static final class KeyVaults {
+    public static final class KeyVault {
         public static final AzureIcon MODULE = AzureIcon.builder().iconPath("/icons/Microsoft.KeyVault/vaults/default.svg").build();
         public static final AzureIcon CERTIFICATES = AzureIcon.builder().iconPath("/icons/Microsoft.KeyVault/vaults/certificates/default.svg").build();
         public static final AzureIcon KEYS = AzureIcon.builder().iconPath("/icons/Microsoft.KeyVault/vaults/keys/default.svg").build();

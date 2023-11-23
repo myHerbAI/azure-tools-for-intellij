@@ -40,7 +40,7 @@ import static com.microsoft.azure.toolkit.lib.Azure.az;
 
 public class KeyVaultNodeProvider implements IExplorerNodeProvider {
     private static final String NAME = "Key Vault";
-    private static final String ICON = AzureIcons.KeyVaults.MODULE.getIconPath();
+    private static final String ICON = AzureIcons.KeyVault.MODULE.getIconPath();
 
     @Override
     public boolean accept(@Nonnull Object data, @Nullable Node<?> parent, ViewType type) {
@@ -73,7 +73,7 @@ public class KeyVaultNodeProvider implements IExplorerNodeProvider {
                     .withActions(KeyVaultActionsContributor.KEY_VAULT_ACTIONS);
         } else if (data instanceof CertificateModule) {
             return new AzModuleNode<>((CertificateModule) data)
-                    .withIcon(AzureIcons.KeyVaults.CERTIFICATES)
+                    .withIcon(AzureIcons.KeyVault.CERTIFICATES)
                     .withLabel("Certificates")
                     .addChildren(CertificateModule::list, (d, p) -> this.createNode(d, p, manager))
                     .withActions(KeyVaultActionsContributor.MODULE_ACTIONS);
@@ -94,7 +94,7 @@ public class KeyVaultNodeProvider implements IExplorerNodeProvider {
                     .withActions(KeyVaultActionsContributor.CERTIFICATE_VERSION_ACTIONS);
         } else if (data instanceof SecretModule) {
             return new AzModuleNode<>((SecretModule) data)
-                    .withIcon(AzureIcons.KeyVaults.SECRETS)
+                    .withIcon(AzureIcons.KeyVault.SECRETS)
                     .withLabel("Secrets")
                     .addChildren(AbstractAzResourceModule::list, (d, p) -> this.createNode(d, p, manager))
                     .withActions(KeyVaultActionsContributor.MODULE_ACTIONS);
@@ -115,7 +115,7 @@ public class KeyVaultNodeProvider implements IExplorerNodeProvider {
                     .withActions(KeyVaultActionsContributor.SECRET_VERSION_ACTIONS);
         } else if (data instanceof KeyModule) {
             return new AzModuleNode<>((KeyModule) data)
-                    .withIcon(AzureIcons.KeyVaults.KEYS)
+                    .withIcon(AzureIcons.KeyVault.KEYS)
                     .withLabel("Keys")
                     .addChildren(AbstractAzResourceModule::list, (d, p) -> this.createNode(d, p, manager))
                     .withActions(KeyVaultActionsContributor.MODULE_ACTIONS);

@@ -3,7 +3,7 @@
         <connectorResourceType implementation="com.microsoft.azure.toolkit.intellij.keyvault.connection.KeyVaultResourceDefinition"/>
         <explorerNodeProvider implementation="com.microsoft.azure.toolkit.ide.keyvault.KeyVaultNodeProvider"/>
         <actions implementation="com.microsoft.azure.toolkit.ide.keyvault.KeyVaultActionsContributor"/>
-        <actions implementation="com.microsoft.azure.toolkit.intellij.keyvault.IntelliJKeyVaultsActionsContributor"/>
+        <actions implementation="com.microsoft.azure.toolkit.intellij.keyvault.IntelliJKeyVaultActionsContributor"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
         <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.keyvault.property.secret.SecretPropertiesEditorProvider"/>
