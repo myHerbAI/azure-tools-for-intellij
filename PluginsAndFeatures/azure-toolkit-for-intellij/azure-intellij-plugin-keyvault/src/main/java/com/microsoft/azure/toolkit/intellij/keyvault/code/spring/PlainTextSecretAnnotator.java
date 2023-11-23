@@ -52,14 +52,14 @@ public class PlainTextSecretAnnotator implements Annotator {
             final String value = element.getText();
             final SmartPsiElementPointer<PsiElement> pointer = SmartPointerManager.createPointer(element);
             if (EnvVarCompletionContributor.isSecretKey(key) && !EnvVarCompletionContributor.hasEnvVars(value)) {
-                holder.newAnnotation(HighlightSeverity.ERROR, "Secret is in plain text.")
+                holder.newAnnotation(HighlightSeverity.WARNING, "Secret is in plain text.")
                     .range(element.getTextRange())
                     .highlightType(ProblemHighlightType.GENERIC_ERROR_OR_WARNING)
                     .withFix(new IntentionAndQuickFixAction() {
                         @Override
                         public @IntentionName @NotNull String getName() {
                             //noinspection DialogTitleCapitalization
-                            return "Save in Azure Key Vault";
+                            return "Create Secret in Azure Key Vault";
                         }
 
                         @Override
