@@ -14,7 +14,7 @@ public class CertificateCreationActions {
     public static void createNewCertificate(@Nonnull final KeyVault keyVault, @Nullable final Project project) {
         AzureTaskManager.getInstance().runLater(() -> {
             final CertificateCreationDialog dialog = new CertificateCreationDialog("Create new certificate");
-            final Action.Id<CertificateDraft.Config> actionId = Action.Id.of("user/keyvaults.create_certificate.certificate|keyvault");
+            final Action.Id<CertificateDraft.Config> actionId = Action.Id.of("user/keyvault.create_certificate.certificate|keyvault");
             dialog.setOkAction(new Action<>(actionId)
                     .withLabel("Create")
                     .withIdParam(CertificateDraft.Config::getName)
@@ -30,7 +30,7 @@ public class CertificateCreationActions {
     public static void createNewCertificateVersion(@Nonnull final Certificate certificate, @Nullable final Project project) {
         AzureTaskManager.getInstance().runLater(() -> {
             final CertificateCreationDialog dialog = new CertificateCreationDialog(String.format("Create new version for certificate %s", certificate.getName()));
-            final Action.Id<CertificateDraft.Config> actionId = Action.Id.of("user/keyvaults.create_certificate_version.certificate");
+            final Action.Id<CertificateDraft.Config> actionId = Action.Id.of("user/keyvault.create_certificate_version.certificate");
             dialog.setOkAction(new Action<>(actionId)
                     .withLabel("Create")
                     .withIdParam(CertificateDraft.Config::getName)

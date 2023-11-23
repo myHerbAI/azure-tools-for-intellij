@@ -19,7 +19,7 @@ public class KeyCreationActions {
     public static void createNewKey(@Nonnull final KeyVault keyVault, @Nullable final Project project) {
         AzureTaskManager.getInstance().runLater(() -> {
             final KeyCreationDialog dialog = new KeyCreationDialog("Create new key");
-            final Action.Id<KeyDraft.Config> actionId = Action.Id.of("user/keyvaults.create_key.key|keyvault");
+            final Action.Id<KeyDraft.Config> actionId = Action.Id.of("user/keyvault.create_key.key|keyvault");
             dialog.setOkAction(new Action<>(actionId)
                     .withLabel("Create")
                     .withIdParam(KeyDraft.Config::getName)
@@ -35,7 +35,7 @@ public class KeyCreationActions {
     public static void createNewKeyVersion(@Nonnull final Key key, @Nullable final Project project) {
         AzureTaskManager.getInstance().runLater(() -> {
             final KeyCreationDialog dialog = new KeyCreationDialog(String.format("Create new version for key %s", key.getName()));
-            final Action.Id<KeyDraft.Config> actionId = Action.Id.of("user/keyvaults.create_key_version.key");
+            final Action.Id<KeyDraft.Config> actionId = Action.Id.of("user/keyvault.create_key_version.key");
             dialog.setOkAction(new Action<>(actionId)
                     .withLabel("Create")
                     .withIdParam(KeyDraft.Config::getName)

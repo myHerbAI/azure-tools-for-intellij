@@ -31,15 +31,15 @@ public class KeyVaultActionsContributor implements IActionsContributor {
     public static final String CERTIFICATE_VERSION_ACTIONS = "actions.keyvault.certificate_version";
     public static final String KEY_ACTIONS = "actions.keyvault.key";
     public static final String KEY_VERSION_ACTIONS = "actions.keyvault.key_version";
-    public static final Action.Id<Credential> ENABLE_CREDENTIAL = Action.Id.of("user/keyvaults.enable_credential.type|credential");
-    public static final Action.Id<Credential> DISABLE_CREDENTIAL = Action.Id.of("user/keyvaults.disable_credential.type|credential");
-    public static final Action.Id<CredentialVersion> ENABLE_CREDENTIAL_VERSION = Action.Id.of("user/keyvaults.enable_credential_version.type|version|credential");
-    public static final Action.Id<CredentialVersion> DISABLE_CREDENTIAL_VERSION = Action.Id.of("user/keyvaults.disable_credential_version.type|version|credential");
-    public static final Action.Id<Credential> SHOW_CREDENTIAL = Action.Id.of("user/keyvaults.show_credential.type|credential");
-    public static final Action.Id<CredentialVersion> SHOW_CREDENTIAL_VERSION = Action.Id.of("user/keyvaults.show_credential_version.type|version|credential");
-    public static final Action.Id<Credential> DOWNLOAD_CREDENTIAL = Action.Id.of("user/keyvaults.download_credential.type|credential");
-    public static final Action.Id<CredentialVersion> DOWNLOAD_CREDENTIAL_VERSION = Action.Id.of("user/keyvaults.download_credential_version.type|version|credential");
-    public static final Action.Id<ResourceGroup> GROUP_CREATE_KEY_VAULT = Action.Id.of("user/keyvaults.create_key_vault.group");
+    public static final Action.Id<Credential> ENABLE_CREDENTIAL = Action.Id.of("user/keyvault.enable_credential.type|credential");
+    public static final Action.Id<Credential> DISABLE_CREDENTIAL = Action.Id.of("user/keyvault.disable_credential.type|credential");
+    public static final Action.Id<CredentialVersion> ENABLE_CREDENTIAL_VERSION = Action.Id.of("user/keyvault.enable_credential_version.type|version|credential");
+    public static final Action.Id<CredentialVersion> DISABLE_CREDENTIAL_VERSION = Action.Id.of("user/keyvault.disable_credential_version.type|version|credential");
+    public static final Action.Id<Credential> SHOW_CREDENTIAL = Action.Id.of("user/keyvault.show_credential.type|credential");
+    public static final Action.Id<CredentialVersion> SHOW_CREDENTIAL_VERSION = Action.Id.of("user/keyvault.show_credential_version.type|version|credential");
+    public static final Action.Id<Credential> DOWNLOAD_CREDENTIAL = Action.Id.of("user/keyvault.download_credential.type|credential");
+    public static final Action.Id<CredentialVersion> DOWNLOAD_CREDENTIAL_VERSION = Action.Id.of("user/keyvault.download_credential_version.type|version|credential");
+    public static final Action.Id<ResourceGroup> GROUP_CREATE_KEY_VAULT = Action.Id.of("user/keyvault.create_key_vault.group");
 
     @Override
     public void registerActions(AzureActionManager am) {

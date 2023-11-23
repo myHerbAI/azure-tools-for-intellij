@@ -120,7 +120,7 @@ public class CertificatePropertiesEditor extends AzResourcePropertiesEditor<Cert
 
     private void initListeners() {
         this.resetButton.addActionListener(e -> this.reset());
-        final Action<Void> refreshAction = new Action<Void>(Action.Id.of("user/keyvaults.refresh_properties_view.secret"))
+        final Action<Void> refreshAction = new Action<Void>(Action.Id.of("user/keyvault.refresh_properties_view.secret"))
                 .withAuthRequired(true)
                 .withSource(this.resource)
                 .withIdParam(this.resource.getName())
@@ -159,7 +159,7 @@ public class CertificatePropertiesEditor extends AzResourcePropertiesEditor<Cert
 
     @Override
     public boolean isModified() {
-        // todo: support properties update for keyvaults
+        // todo: support properties update for keyvault
         return false;
     }
 

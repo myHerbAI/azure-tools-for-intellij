@@ -24,7 +24,7 @@ public class KeyVaultCreationActions {
     public static void createNewKeyVault(@Nullable KeyVaultDraft.Config config, @Nullable final Project project) {
         AzureTaskManager.getInstance().runLater(() -> {
             final KeyVaultCreationDialog dialog = new KeyVaultCreationDialog(project);
-            final Action.Id<KeyVaultDraft.Config> actionId = Action.Id.of("user/keyvaults.create_vault.vault");
+            final Action.Id<KeyVaultDraft.Config> actionId = Action.Id.of("user/keyvault.create_vault.vault");
             dialog.setOkAction(new Action<>(actionId)
                     .withLabel("Create")
                     .withIdParam(KeyVaultDraft.Config::getName)

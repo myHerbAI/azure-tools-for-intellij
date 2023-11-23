@@ -24,7 +24,7 @@ public class SecretCreationActions {
     public static void createNewSecret(@Nonnull final KeyVault keyVault, @Nullable final SecretDraft.Config data, Consumer<Secret> callback) {
         AzureTaskManager.getInstance().runLater(() -> {
             final SecretCreationDialog dialog = new SecretCreationDialog("Create new secret");
-            final Action.Id<SecretDraft.Config> actionId = Action.Id.of("user/keyvaults.create_secret.secret|keyvault");
+            final Action.Id<SecretDraft.Config> actionId = Action.Id.of("user/keyvault.create_secret.secret|keyvault");
             dialog.setOkAction(new Action<>(actionId)
                     .withLabel("Create")
                     .withIdParam(SecretDraft.Config::getName)
@@ -41,7 +41,7 @@ public class SecretCreationActions {
     public static void createNewSecretVersion(@Nonnull final Secret secret, @Nullable final Project project) {
         AzureTaskManager.getInstance().runLater(() -> {
             final SecretCreationDialog dialog = new SecretCreationDialog(String.format("Create new version for secret %s", secret.getName()));
-            final Action.Id<SecretDraft.Config> actionId = Action.Id.of("user/keyvaults.create_secret_version.secret");
+            final Action.Id<SecretDraft.Config> actionId = Action.Id.of("user/keyvault.create_secret_version.secret");
             dialog.setOkAction(new Action<>(actionId)
                     .withLabel("Create")
                     .withIdParam(SecretDraft.Config::getName)
