@@ -54,7 +54,7 @@ public class PlainTextSecretAnnotator implements Annotator {
             if (EnvVarCompletionContributor.isSecretKey(key) && !EnvVarCompletionContributor.hasEnvVars(value)) {
                 holder.newAnnotation(HighlightSeverity.ERROR, "Secret is in plain text.")
                     .range(element.getTextRange())
-                    .highlightType(ProblemHighlightType.WARNING)
+                    .highlightType(ProblemHighlightType.GENERIC_ERROR_OR_WARNING)
                     .withFix(new IntentionAndQuickFixAction() {
                         @Override
                         public @IntentionName @NotNull String getName() {
