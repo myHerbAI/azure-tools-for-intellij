@@ -25,6 +25,9 @@
         <stepsBeforeRunProvider
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.buildTasks.BuildFunctionsProjectBeforeRunTaskProvider"/>
 
+        <runConfigurationProducer
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.FunctionRunConfigurationProducer"/>
+
         <projectTemplateProvider
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.FunctionTemplateProvider"
                 order="first"/>

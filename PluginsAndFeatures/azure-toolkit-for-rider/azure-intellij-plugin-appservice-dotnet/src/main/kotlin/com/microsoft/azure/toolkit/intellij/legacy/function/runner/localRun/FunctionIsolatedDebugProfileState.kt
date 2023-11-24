@@ -20,6 +20,7 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.rd.util.withBackgroundContext
+import com.intellij.openapi.rd.util.withUiContext
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.platform.ide.progress.withBackgroundProgress
@@ -190,8 +191,10 @@ class FunctionIsolatedDebugProfileState(
             .createRunCommandLine(dotNetRuntime)
             .apply(dotNetRuntime, ParametersListUtil.parse(dotNetExecutable.runtimeArguments))
 
-        val processListeners = PatchCommandLineExtension.EP_NAME.getExtensions(executionEnvironment.project)
-            .map { it.patchRunCommandLine(commandLine, dotNetRuntime, executionEnvironment.project) }
+        val processListeners = withUiContext {
+            PatchCommandLineExtension.EP_NAME.getExtensions(executionEnvironment.project)
+                .map { it.patchRunCommandLine(commandLine, dotNetRuntime, executionEnvironment.project) }
+        }
 
         val commandLineString = commandLine.commandLineString
 

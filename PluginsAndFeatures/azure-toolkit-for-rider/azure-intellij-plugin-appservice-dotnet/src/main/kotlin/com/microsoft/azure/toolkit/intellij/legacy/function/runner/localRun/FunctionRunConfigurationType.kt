@@ -31,7 +31,7 @@ class FunctionRunConfigurationType : ConfigurationTypeBase(
         fun isTypeApplicable(kind: RunnableProjectKind) = kind == AzureRunnableProjectKinds.AzureFunctions
     }
 
-    private val factory = FunctionRunConfigurationFactory(this)
+    val factory = FunctionRunConfigurationFactory(this)
 
     init {
         addFactory(factory)
