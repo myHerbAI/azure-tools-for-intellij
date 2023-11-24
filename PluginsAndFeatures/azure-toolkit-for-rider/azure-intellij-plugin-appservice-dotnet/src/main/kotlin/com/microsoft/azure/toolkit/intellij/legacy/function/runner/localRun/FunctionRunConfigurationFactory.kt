@@ -4,11 +4,9 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun
 
-import com.intellij.execution.BeforeRunTask
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
 import com.jetbrains.rider.run.configurations.DotNetConfigurationFactoryBase
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons

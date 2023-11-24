@@ -48,13 +48,13 @@ import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 
-class FunctionIsolatedDebugProfile(
+class FunctionIsolatedDebugProfileState(
     private val dotNetExecutable: DotNetExecutable,
     private val dotNetRuntime: DotNetRuntime,
     executionEnvironment: ExecutionEnvironment
 ) : DebugProfileStateBase(executionEnvironment) {
     companion object {
-        private val LOG = logger<FunctionIsolatedDebugProfile>()
+        private val LOG = logger<FunctionIsolatedDebugProfileState>()
         private val waitDuration = 1.minutes
         private const val DOTNET_ISOLATED_DEBUG_ARGUMENT = "--dotnet-isolated-debug"
         private const val DOTNET_ENABLE_JSON_OUTPUT_ARGUMENT = "--enable-json-output"

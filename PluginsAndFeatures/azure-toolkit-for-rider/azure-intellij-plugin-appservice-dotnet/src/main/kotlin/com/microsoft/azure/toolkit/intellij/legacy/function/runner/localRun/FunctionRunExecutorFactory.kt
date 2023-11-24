@@ -10,6 +10,7 @@ import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.rd.util.withBackgroundContext
 import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rider.run.configurations.AsyncExecutorFactory
 import com.jetbrains.rider.runtime.msNet.MsNetRuntime
@@ -39,8 +40,10 @@ class FunctionRunExecutorFactory(
             ?: throw CantRunException("Can't run Azure Functions host. No Azure Functions Core Tools information could be determined.")
         LOG.debug("Azure Functions version: $azureFunctionsVersion")
 
-        val coreToolsInfo = FunctionCoreToolsInfoProvider.getInstance()
-            .retrieveForVersion(azureFunctionsVersion, true)
+        val coreToolsInfo = withBackgroundContext {
+            FunctionCoreToolsInfoProvider.getInstance()
+                .retrieveForVersion(azureFunctionsVersion, true)
+        }
             ?: throw CantRunException("Can't run Azure Functions host. No Azure Functions Core Tools information could be determined.")
         LOG.debug("Core tools executable: ${coreToolsInfo.coreToolsExecutable}")
 

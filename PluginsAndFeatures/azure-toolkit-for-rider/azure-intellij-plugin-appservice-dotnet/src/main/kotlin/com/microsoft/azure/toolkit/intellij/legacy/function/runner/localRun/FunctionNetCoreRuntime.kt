@@ -7,11 +7,9 @@
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun
 
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.jetbrains.rider.run.DotNetProcessRunProfileState
-import com.jetbrains.rider.run.IDotNetDebugProfileState
 import com.jetbrains.rider.run.dotNetCore.DotNetCoreDebugProfile
 import com.jetbrains.rider.runtime.DotNetExecutable
 import com.jetbrains.rider.runtime.DotNetRuntime
@@ -38,7 +36,7 @@ class FunctionNetCoreRuntime(
             coreToolsInfo.coreToolsExecutable
         )
 
-        FunctionWorkerRuntime.DotNetIsolated -> FunctionIsolatedDebugProfile(
+        FunctionWorkerRuntime.DotNetIsolated -> FunctionIsolatedDebugProfileState(
             dotNetExecutable,
             this,
             executionEnvironment
