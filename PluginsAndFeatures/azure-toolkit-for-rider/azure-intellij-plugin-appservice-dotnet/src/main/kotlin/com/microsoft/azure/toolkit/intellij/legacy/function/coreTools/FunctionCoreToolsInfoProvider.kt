@@ -2,16 +2,16 @@
  * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-@file:Suppress("UnstableApiUsage")
-
 package com.microsoft.azure.toolkit.intellij.legacy.function.coreTools
 
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
-import com.intellij.util.application
+import com.intellij.util.concurrency.ThreadingAssertions
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsMsBuildService.Companion.PROPERTY_AZURE_FUNCTIONS_VERSION
 import com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionSettings
 import com.microsoft.azure.toolkit.lib.appservice.utils.FunctionCliResolver
 import java.io.File
@@ -24,11 +24,29 @@ class FunctionCoreToolsInfoProvider {
         private val LOG = logger<FunctionCoreToolsInfoProvider>()
     }
 
+    suspend fun retrieveForProject(
+        project: Project,
+        projectFilePath: String,
+        allowDownload: Boolean
+    ): FunctionCoreToolsInfo? {
+        val azureFunctionsVersion = FunctionCoreToolsMsBuildService.getInstance()
+            .requestAzureFunctionsVersion(project, projectFilePath)
+
+        if (azureFunctionsVersion == null) {
+            LOG.error("Could not determine project MSBuild property '${PROPERTY_AZURE_FUNCTIONS_VERSION}'.")
+            return null
+        }
+
+        LOG.info("MSBuild property ${PROPERTY_AZURE_FUNCTIONS_VERSION}: $azureFunctionsVersion")
+
+        return retrieveForVersion(azureFunctionsVersion, allowDownload)
+    }
+
     suspend fun retrieveForVersion(
         azureFunctionsVersion: String,
         allowDownload: Boolean
     ): FunctionCoreToolsInfo? {
-        application.assertIsNonDispatchThread()
+        ThreadingAssertions.assertBackgroundThread()
 
         val coreToolsFromConfiguration = retrieveFromConfiguration(azureFunctionsVersion)
         if (coreToolsFromConfiguration != null) return coreToolsFromConfiguration

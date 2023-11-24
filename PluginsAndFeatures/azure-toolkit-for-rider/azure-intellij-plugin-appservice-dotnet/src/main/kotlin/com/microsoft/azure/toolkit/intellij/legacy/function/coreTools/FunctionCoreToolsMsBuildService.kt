@@ -15,6 +15,7 @@ import com.jetbrains.rider.projectView.solution
 class FunctionCoreToolsMsBuildService {
     companion object {
         fun getInstance(): FunctionCoreToolsMsBuildService = service()
+        const val PROPERTY_AZURE_FUNCTIONS_VERSION = "AzureFunctionsVersion"
     }
 
     suspend fun requestAzureFunctionsVersion(project: Project, projectFilePath: String) =
