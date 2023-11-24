@@ -58,6 +58,8 @@
 
         <rd.solutionExtListener endpoint="IDE Frontend"
                                 listener="com.microsoft.azure.toolkit.intellij.legacy.function.daemon.FunctionAppSolutionExtListener"/>
+
+        <notificationGroup id="Azure Functions" displayType="BALLOON" isLogByDefault="true"/>
     </extensions>
 
     <actions>

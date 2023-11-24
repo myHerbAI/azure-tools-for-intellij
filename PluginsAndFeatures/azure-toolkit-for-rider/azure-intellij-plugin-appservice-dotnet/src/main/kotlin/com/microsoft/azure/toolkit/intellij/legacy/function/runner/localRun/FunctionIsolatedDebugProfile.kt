@@ -2,8 +2,11 @@
  * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
+@file:Suppress("UnstableApiUsage")
+
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun
 
+import com.google.gson.GsonBuilder
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
@@ -13,6 +16,8 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.rd.util.withBackgroundContext
 import com.intellij.openapi.util.SystemInfo
@@ -38,7 +43,6 @@ import com.jetbrains.rider.run.msNet.MsNetAttachProfileState
 import com.jetbrains.rider.runtime.DotNetExecutable
 import com.jetbrains.rider.runtime.DotNetRuntime
 import com.jetbrains.rider.runtime.apply
-import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils
 import kotlinx.coroutines.delay
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
@@ -74,22 +78,28 @@ class FunctionIsolatedDebugProfile(
         if (targetProcessHandler.isProcessTerminated) {
             LOG.warn("Azure Functions host process terminated before the debugger could attach.")
 
-            PluginUtil.showErrorNotificationProject(
-                executionEnvironment.project,
-                RiderAzureBundle.message("run_config.run_function_app.debug.notification.title"),
-                RiderAzureBundle.message("run_config.run_function_app.debug.notification.isolated_worker_process_terminated")
+            Notification(
+                "Azure Functions",
+                "Azure Functions - debug",
+                "Azure Functions host process terminated before the debugger could attach.",
+                NotificationType.ERROR
             )
+                .notify(executionEnvironment.project)
+
             return createWorkerRunInfoFor(port, DebuggerWorkerPlatform.AnyCpu)
         }
 
         if (processId == 0) {
             LOG.warn("Azure Functions host did not return isolated worker process id.")
 
-            PluginUtil.showErrorNotificationProject(
-                executionEnvironment.project,
-                RiderAzureBundle.message("run_config.run_function_app.debug.notification.title"),
-                RiderAzureBundle.message("run_config.run_function_app.debug.notification.isolated_worker_pid_unspecified")
+            Notification(
+                "Azure Functions",
+                "Azure Functions - debug",
+                "Azure Functions host did not return isolated worker process id. Could not attach the debugger. Check the process output for more information.",
+                NotificationType.ERROR
             )
+                .notify(executionEnvironment.project)
+
             return createWorkerRunInfoFor(port, DebuggerWorkerPlatform.AnyCpu)
         }
 
@@ -211,22 +221,31 @@ class FunctionIsolatedDebugProfile(
 
         var timeout = 0.milliseconds
         while (timeout <= waitDuration) {
-            val pidFileJson = JsonUtils.readJsonFile(tempPidFile)
-            if (pidFileJson != null) {
-                if (pidFileJson.has("workerProcessId")) {
-                    val pidFromJson = pidFileJson.get("workerProcessId").asInt
-
-                    LOG.info("Got functions isolated worker process id from JSON output.")
-                    LOG.info("Functions isolated worker process id: $pidFromJson")
-                    return pidFromJson
-                }
+            val pidFromJsonOutput = readPidFromJsonOutput(tempPidFile)
+            if (pidFromJsonOutput != null) {
+                LOG.info("Got functions isolated worker process id from JSON output.")
+                LOG.info("Functions isolated worker process id: $pidFromJsonOutput")
+                return pidFromJsonOutput
             }
+
             delay(500)
             timeout += 500.milliseconds
         }
 
         return null
     }
+
+    private fun readPidFromJsonOutput(pidFile: File): Int? {
+        val jsonText = pidFile.readText()
+        if (jsonText.isEmpty()) return null
+        val jsonOutput = GsonBuilder().create().fromJson(jsonText, JsonOutputFile::class.java)
+        return jsonOutput.workerProcessId
+    }
+
+    private data class JsonOutputFile(
+        val name: String,
+        val workerProcessId: Int
+    )
 
     override fun execute(
         executor: Executor,
