@@ -2,14 +2,12 @@
  * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-@file:Suppress("UnstableApiUsage")
-
 package com.microsoft.azure.toolkit.intellij.legacy.function.templates
 
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.util.application
+import com.intellij.util.concurrency.ThreadingAssertions
 import com.jetbrains.rider.projectView.actions.projectTemplating.backend.ReSharperProjectTemplateProvider
 import com.microsoft.azure.toolkit.intellij.legacy.function.FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsInfoProvider
@@ -30,7 +28,7 @@ class FunctionTemplateManager {
         ReSharperProjectTemplateProvider.getUserTemplateSources().any { isFunctionsProjectTemplate(it) && it.exists() }
 
     suspend fun tryReload() {
-        application.assertIsNonDispatchThread()
+        ThreadingAssertions.assertBackgroundThread()
 
         // Determine core tools info for the latest supported Azure Functions version
         val toolsInfoProvider = FunctionCoreToolsInfoProvider.getInstance()
