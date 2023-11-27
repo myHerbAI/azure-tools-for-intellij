@@ -26,6 +26,17 @@
                              instance="com.microsoft.azure.toolkit.intellij.settings.AzureConfigurable"/>
 
     <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.icons.RiderIconPatcherRegistrar"/>
+
+    <dependencySupport kind="dotnet" coordinate="Microsoft.NET.Sdk.Functions" displayName="Azure Toolkit"/>
+    <dependencySupport kind="dotnet" coordinate="Microsoft.Azure.Common" displayName="Azure Toolkit"/>
+    <dependencySupport kind="dotnet" coordinate="Microsoft.Azure.Functions.Worker" displayName="Azure Toolkit"/>
+    <dependencySupport kind="dotnet" coordinate="Microsoft.Azure.Storage.Common" displayName="Azure Toolkit"/>
+    <dependencySupport kind="dotnet" coordinate="Microsoft.Azure.Storage.Blob" displayName="Azure Toolkit"/>
+    <dependencySupport kind="dotnet" coordinate="Microsoft.Azure.WebJobs" displayName="Azure Toolkit"/>
+    <dependencySupport kind="dotnet" coordinate="Microsoft.Identity.Client" displayName="Azure Toolkit"/>
+    <dependencySupport kind="dotnet" coordinate="Microsoft.Identity.Web" displayName="Azure Toolkit"/>
+
+    <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
@@ -37,7 +48,7 @@
   </applicationListeners>
 
   <actions>
-    <group id="AzurePopupGroup" text="Azure" description="Azure" icon="/icons/Common/Azure.svg" popup="true">
+    <group id="AzurePopupGroup" text="Azure" description="Azure" icon="/icons/Rider/Azure.svg" popup="true">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
       <reference ref="Connector.ShowAzureNode"/>
       <reference ref="AzureToolkit.ConnectToAzureResource"/>
@@ -56,7 +67,7 @@
            class="com.intellij.openapi.actionSystem.DefaultActionGroup"
            text="Azure"
            description="Contains Azure tools plugin actions"
-           icon="/icons/Common/Azure.svg"
+           icon="/icons/Rider/Azure.svg"
            popup="true">
         <add-to-group group-id="ToolsMenu" anchor="first"/>
         <reference ref="AzureToolkit.SelectSubscriptions"/>
