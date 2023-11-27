@@ -81,6 +81,11 @@ public class KeyVaultCreationDialog extends AzureDialog<KeyVaultDraft.Config> im
         rdoRBAC.addActionListener(ignore -> lblPermissionDoc.setText(RBAC_DOCUMENT));
         rdoVaultAccess.addActionListener(ignore -> lblPermissionDoc.setText(VAULT_ACCESS_DOCUMENT));
 
+        this.lblSubscription.setLabelFor(this.selectorSubscription);
+        this.lblResourceGroup.setLabelFor(this.cbResourceGroup);
+        this.lblName.setLabelFor(this.txtName);
+        this.lblRegion.setLabelFor(this.selectorRegion);
+        this.lblSku.setLabelFor(this.cbSku);
         this.selectorSubscription.addItemListener(this::onSelectSubscription);
     }
 

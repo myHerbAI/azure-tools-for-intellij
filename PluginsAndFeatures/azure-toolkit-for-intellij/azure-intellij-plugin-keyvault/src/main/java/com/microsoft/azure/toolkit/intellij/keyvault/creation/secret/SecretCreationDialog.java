@@ -61,7 +61,10 @@ public class SecretCreationDialog extends AzureDialog<SecretDraft.Config> implem
         this.txtContentType.setRequired(false);
 
         this.lblName.setIcon(AllIcons.General.ContextHelp);
+        this.lblName.setLabelFor(txtName);
         this.lblValue.setIcon(AllIcons.General.ContextHelp);
+        this.lblValue.setLabelFor(passwordField);
+        this.lblContentType.setLabelFor(txtContentType);
     }
 
     @Override

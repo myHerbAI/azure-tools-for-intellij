@@ -94,6 +94,7 @@ public class KeyCreationDialog extends AzureDialog<KeyDraft.Config> implements A
         // enable group
         enableGroup.add(rdoYes);
         enableGroup.add(rdoNo);
+        this.lblName.setLabelFor(txtName);
         super.init();
     }
 

@@ -36,7 +36,6 @@ public class CertificateCreationDialog extends AzureDialog<CertificateDraft.Conf
     private JLabel lblCertificateFile;
     private JLabel lblPassword;
     private TitledSeparator titleInstance;
-    private JLabel lblPasswrod;
     private final String title;
 
     public CertificateCreationDialog(String title) {
@@ -61,6 +60,9 @@ public class CertificateCreationDialog extends AzureDialog<CertificateDraft.Conf
         final FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor()
                 .withFileFilter(file -> StringUtils.equalsAnyIgnoreCase(file.getExtension(), "pem", "pfx"));
         txtCertificate.addBrowseFolderListener("Select Certificate File", "Select Certificate File", null, descriptor);
+        this.lblCertificateFile.setLabelFor(txtCertificate);
+        this.lblName.setLabelFor(txtName);
+        this.lblPassword.setLabelFor(passwordField);
     }
 
     @Override
