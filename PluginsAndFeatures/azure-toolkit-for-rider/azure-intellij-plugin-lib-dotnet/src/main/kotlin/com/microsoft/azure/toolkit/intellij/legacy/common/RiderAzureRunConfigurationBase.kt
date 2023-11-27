@@ -10,7 +10,6 @@ import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project
 import com.intellij.util.xmlb.XmlSerializer
 import com.microsoft.azure.toolkit.intellij.common.auth.AzureLoginHelper
-import com.microsoft.azure.toolkit.lib.common.exception.AzureExecutionException
 import org.jdom.Element
 
 abstract class RiderAzureRunConfigurationBase<T : Any>(project: Project, factory: ConfigurationFactory, name: String?) :
@@ -32,7 +31,7 @@ abstract class RiderAzureRunConfigurationBase<T : Any>(project: Project, factory
     protected fun checkAzurePreconditions() {
         try {
             AzureLoginHelper.ensureAzureSubsAvailable()
-        } catch (e: AzureExecutionException) {
+        } catch (e: Exception) {
             throw ConfigurationException(e.message)
         }
     }

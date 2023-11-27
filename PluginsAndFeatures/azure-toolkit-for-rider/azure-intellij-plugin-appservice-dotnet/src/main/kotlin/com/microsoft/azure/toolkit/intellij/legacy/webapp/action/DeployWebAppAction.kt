@@ -35,11 +35,10 @@ class DeployWebAppAction : AnAction() {
 
         private fun getOrCreateRunConfigurationSettings(project: Project, webApp: WebApp?): RunnerAndConfigurationSettings {
             val manager = RunManagerEx.getInstanceEx(project)
-            val factory = configType.getFactory()
             val name = webApp?.name ?: ""
-            val runConfigurationName = "${factory.name}: ${project.name} $name"
+            val runConfigurationName = "${configType.name}: ${project.name} $name"
             val settings = manager.findConfigurationByName(runConfigurationName)
-                    ?: manager.createConfiguration(runConfigurationName, factory)
+                    ?: manager.createConfiguration(runConfigurationName, configType)
             val runConfiguration = settings.configuration
             if (runConfiguration is WebAppConfiguration && webApp != null) {
                 runConfiguration.setWebApp(webApp)

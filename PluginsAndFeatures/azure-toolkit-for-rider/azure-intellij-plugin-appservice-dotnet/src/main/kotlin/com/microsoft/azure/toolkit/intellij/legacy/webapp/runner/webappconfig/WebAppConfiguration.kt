@@ -25,13 +25,13 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
 
 
 class WebAppConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
-        RiderAzureRunConfigurationBase<DotNetWebAppSettingModel>(project, factory, name), IWebAppRunConfiguration,
+        RiderAzureRunConfigurationBase<WebAppPublishModel>(project, factory, name), IWebAppRunConfiguration,
         IConnectionAware {
     companion object {
         private const val SLOT_NAME_REGEX_PATTERN = "[a-zA-Z0-9-]{1,60}"
     }
 
-    val webAppSettingModel = DotNetWebAppSettingModel()
+    val webAppSettingModel = WebAppPublishModel()
 
     private val slotNameRegex = Regex(SLOT_NAME_REGEX_PATTERN)
 

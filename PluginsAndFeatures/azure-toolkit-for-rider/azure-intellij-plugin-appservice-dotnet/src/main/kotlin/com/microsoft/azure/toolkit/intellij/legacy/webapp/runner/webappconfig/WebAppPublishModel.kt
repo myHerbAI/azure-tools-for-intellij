@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 import com.microsoft.azuretools.core.mvp.model.webapp.WebAppSettingModel
 import java.util.*
 
-class DotNetWebAppSettingModel : WebAppSettingModel() {
+class WebAppPublishModel : WebAppSettingModel() {
     var appSettingsKey: String = UUID.randomUUID().toString()
     var appSettings: Map<String, String> = mapOf()
     var appSettingsToRemove: Set<String> = setOf()

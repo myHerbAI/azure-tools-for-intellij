@@ -6,24 +6,27 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
-import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.configurations.ConfigurationTypeUtil
+import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.configurations.SimpleConfigurationType
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.NotNullLazyValue
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 
-class WebAppConfigurationType : ConfigurationTypeBase(
+class WebAppConfigurationType : SimpleConfigurationType(
     "AzureWebAppPublish",
     "Azure - Web App",
     "Azure Publish Web App configuration",
-    IntelliJAzureIcons.getIcon(AzureIcons.WebApp.MODULE)
+    NotNullLazyValue.createValue { IntelliJAzureIcons.getIcon(AzureIcons.WebApp.MODULE) }
 ) {
     companion object {
         fun getInstance() = ConfigurationTypeUtil.findConfigurationType(WebAppConfigurationType::class.java)
     }
 
-    init {
-        addFactory(WebAppConfigurationFactory(this))
-    }
+    override fun createTemplateConfiguration(project: Project) =
+        WebAppConfiguration(project, this, project.name)
 
-    fun getFactory() = WebAppConfigurationFactory(this)
+    override fun createConfiguration(name: String?, template: RunConfiguration) =
+        WebAppConfiguration(template.project, this, name)
 }

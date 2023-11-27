@@ -26,7 +26,7 @@ import java.net.URL
 class WebAppRunState(project: Project, private val webAppConfiguration: WebAppConfiguration)
     : RiderAzureRunProfileState<WebAppBase<*, *, *>>(project) {
 
-    private val webAppSettingModel: DotNetWebAppSettingModel = webAppConfiguration.webAppSettingModel
+    private val webAppSettingModel: WebAppPublishModel = webAppConfiguration.webAppSettingModel
 
     override fun executeSteps(processHandler: RunProcessHandler): WebAppBase<*, *, *> {
         OperationContext.current().setMessager(processHandlerMessenger)
