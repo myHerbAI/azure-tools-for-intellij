@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.intellij.common.component.AzurePasswordFieldInput;
+import com.microsoft.azure.toolkit.intellij.keyvault.KeyVaultCredentialActions;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.keyvault.secret.SecretDraft;
@@ -55,6 +56,7 @@ public class SecretCreationDialog extends AzureDialog<SecretDraft.Config> implem
         group.add(rdoYes);
         group.add(rdoNo);
         this.txtName.setRequired(true);
+        this.txtName.addValidator(() -> KeyVaultCredentialActions.validateCredentialName(txtName));
         this.txtValue.setRequired(true);
         this.txtContentType.setRequired(false);
 

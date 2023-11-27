@@ -10,6 +10,7 @@ import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.intellij.common.component.AzureFileInput;
 import com.microsoft.azure.toolkit.intellij.common.component.AzurePasswordFieldInput;
+import com.microsoft.azure.toolkit.intellij.keyvault.KeyVaultCredentialActions;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.keyvault.certificate.CertificateDraft;
@@ -54,6 +55,7 @@ public class CertificateCreationDialog extends AzureDialog<CertificateDraft.Conf
         lblCertificateFile.setToolTipText(CERTIFICATE_FILE_HELP);
 
         txtName.setRequired(true);
+        txtName.addValidator(() -> KeyVaultCredentialActions.validateCredentialName(txtName));
         txtCertificate.setRequired(true);
         txtPassword.setRequired(false);
         final FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor()
