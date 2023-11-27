@@ -28,6 +28,9 @@
         <runConfigurationProducer
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.FunctionRunConfigurationProducer"/>
 
+        <rider.publishConfigurationProvider
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppContextPublishProvider"/>
+
         <projectTemplateProvider
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.FunctionTemplateProvider"
                 order="first"/>
