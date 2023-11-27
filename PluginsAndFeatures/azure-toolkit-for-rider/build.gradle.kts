@@ -257,7 +257,8 @@ tasks {
             "$outputFolder/Azure.Intellisense/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Intellisense.pdb",
             "$outputFolder/Azure.Daemon/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Daemon.dll",
             "$outputFolder/Azure.Daemon/bin/$dotnetBuildConfiguration/JetBrains.ReSharper.Azure.Daemon.pdb",
-            "$outputFolder/Azure.Daemon/bin/$dotnetBuildConfiguration/NCrontab.Signed.dll"
+            "$outputFolder/Azure.Daemon/bin/$dotnetBuildConfiguration/NCrontab.Signed.dll",
+            "$outputFolder/Azure.Daemon/bin/$dotnetBuildConfiguration/CronExpressionDescriptor.dll"
         )
 
         for (f in dllFiles) {
