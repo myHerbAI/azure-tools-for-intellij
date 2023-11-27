@@ -16,7 +16,7 @@ import com.jetbrains.rider.projectView.workspace.ProjectModelEntity
 import com.jetbrains.rider.run.configurations.publishing.RiderContextPublishProvider
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.RiderWebAppConfiguration
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfiguration
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfigurationType
 import javax.swing.Icon
 
@@ -36,7 +36,7 @@ class WebAppContextPublishProvider : RiderContextPublishProvider {
         val factory =
             ConfigurationTypeUtil.findConfigurationType(WebAppConfigurationType::class.java).configurationFactories.single()
         val configuration =
-            RiderWebAppConfiguration(project, factory, "Publish ${projectData.value.projectName} to Azure")
+            WebAppConfiguration(project, factory, "Publish ${projectData.value.projectName} to Azure")
 
         configuration.saveProject(projectData.value)
 

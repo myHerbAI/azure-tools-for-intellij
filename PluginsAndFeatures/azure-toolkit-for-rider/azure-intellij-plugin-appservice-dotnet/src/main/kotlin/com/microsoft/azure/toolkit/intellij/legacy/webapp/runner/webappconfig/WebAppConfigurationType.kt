@@ -22,8 +22,8 @@ class WebAppConfigurationType : ConfigurationTypeBase(
     }
 
     init {
-        addFactory(RiderWebAppConfigurationFactory(this))
+        addFactory(WebAppConfigurationFactory(this))
     }
 
-    fun getFactory() = RiderWebAppConfigurationFactory(this)
+    fun getFactory() = WebAppConfigurationFactory(this)
 }

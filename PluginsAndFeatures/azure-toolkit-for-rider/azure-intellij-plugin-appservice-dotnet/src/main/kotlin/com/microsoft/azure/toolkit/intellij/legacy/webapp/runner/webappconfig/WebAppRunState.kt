@@ -23,7 +23,7 @@ import java.io.IOException
 import java.net.URISyntaxException
 import java.net.URL
 
-class RiderWebAppRunState(project: Project, private val webAppConfiguration: RiderWebAppConfiguration)
+class WebAppRunState(project: Project, private val webAppConfiguration: WebAppConfiguration)
     : RiderAzureRunProfileState<WebAppBase<*, *, *>>(project) {
 
     private val webAppSettingModel: DotNetWebAppSettingModel = webAppConfiguration.webAppSettingModel

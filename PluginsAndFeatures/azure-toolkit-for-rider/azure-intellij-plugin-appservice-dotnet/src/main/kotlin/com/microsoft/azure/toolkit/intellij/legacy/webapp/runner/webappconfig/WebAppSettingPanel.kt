@@ -22,9 +22,9 @@ import com.microsoft.azure.toolkit.lib.common.model.Subscription
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig
 import javax.swing.JPanel
 
-class RiderWebAppSettingPanel(private val project: Project, configuration: RiderWebAppConfiguration) : RiderAzureSettingPanel<RiderWebAppConfiguration>() {
+class WebAppSettingPanel(private val project: Project, configuration: WebAppConfiguration) : RiderAzureSettingPanel<WebAppConfiguration>() {
     private val panel: JPanel
-    private val webAppPanel = RiderWebAppDeployConfigurationPanel(project)
+    private val webAppPanel = WebAppDeployConfigurationPanel(project)
     private var appSettingsKey: String = configuration.appSettingsKey
 
     init {
@@ -37,7 +37,7 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
         }
     }
 
-    override fun apply(configuration: RiderWebAppConfiguration) {
+    override fun apply(configuration: WebAppConfiguration) {
         val runConfigurationModel = webAppPanel.value
         val projectConfiguration = webAppPanel.getSelectedConfiguration()
         val projectPlatform = webAppPanel.getSelectedPlatform()
@@ -88,7 +88,7 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
         configuration.projectPlatform = projectPlatform
     }
 
-    override fun reset(configuration: RiderWebAppConfiguration) {
+    override fun reset(configuration: WebAppConfiguration) {
         if (configuration.webAppId.isNullOrEmpty() && configuration.webAppName.isEmpty()) return
 
         appSettingsKey = configuration.appSettingsKey

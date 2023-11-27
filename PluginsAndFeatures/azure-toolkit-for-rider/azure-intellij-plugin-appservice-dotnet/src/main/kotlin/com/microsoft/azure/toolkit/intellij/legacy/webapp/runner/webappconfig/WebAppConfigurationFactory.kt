@@ -12,7 +12,7 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 import javax.swing.Icon
 
-class RiderWebAppConfigurationFactory(type: ConfigurationType) : ConfigurationFactory(type) {
+class WebAppConfigurationFactory(type: ConfigurationType) : ConfigurationFactory(type) {
     companion object {
         private const val FACTORY_ID = "Azure - Publish Web App"
         private const val FACTORY_NAME = "Publish Web App"
@@ -25,8 +25,8 @@ class RiderWebAppConfigurationFactory(type: ConfigurationType) : ConfigurationFa
     override fun getName() = FACTORY_NAME
 
     override fun createTemplateConfiguration(project: Project) =
-        RiderWebAppConfiguration(project, this, project.name)
+        WebAppConfiguration(project, this, project.name)
 
     override fun createConfiguration(name: String?, template: RunConfiguration) =
-        RiderWebAppConfiguration(template.project, this, name)
+        WebAppConfiguration(template.project, this, name)
 }

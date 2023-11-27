@@ -45,7 +45,7 @@ import java.time.format.DateTimeFormatter
 import javax.swing.JComboBox
 import javax.swing.JPanel
 
-class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureFormPanel<WebAppDeployRunConfigurationModel> {
+class WebAppDeployConfigurationPanel(private val project: Project) : AzureFormPanel<WebAppDeployRunConfigurationModel> {
     companion object {
         private const val DEFAULT_SLOT_NAME = "slot"
     }

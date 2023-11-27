@@ -24,7 +24,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
 
 
-class RiderWebAppConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
+class WebAppConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
         RiderAzureRunConfigurationBase<DotNetWebAppSettingModel>(project, factory, name), IWebAppRunConfiguration,
         IConnectionAware {
     companion object {
@@ -154,10 +154,10 @@ class RiderWebAppConfiguration(private val project: Project, factory: Configurat
     }
 
     override fun getState(executor: Executor, executionEnvironment: ExecutionEnvironment) =
-            RiderWebAppRunState(project, this)
+            WebAppRunState(project, this)
 
     override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> =
-            RiderWebAppSettingEditor(project, this)
+            WebAppSettingEditor(project, this)
 
     override fun getModel() = webAppSettingModel
 
