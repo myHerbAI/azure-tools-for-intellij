@@ -10,6 +10,7 @@ import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.intellij.common.component.AzureFileInput;
 import com.microsoft.azure.toolkit.intellij.common.component.AzurePasswordFieldInput;
+import com.microsoft.azure.toolkit.intellij.keyvault.KeyVaultCredentialActions;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.keyvault.certificate.CertificateDraft;
@@ -35,7 +36,6 @@ public class CertificateCreationDialog extends AzureDialog<CertificateDraft.Conf
     private JLabel lblCertificateFile;
     private JLabel lblPassword;
     private TitledSeparator titleInstance;
-    private JLabel lblPasswrod;
     private final String title;
 
     public CertificateCreationDialog(String title) {
@@ -54,11 +54,15 @@ public class CertificateCreationDialog extends AzureDialog<CertificateDraft.Conf
         lblCertificateFile.setToolTipText(CERTIFICATE_FILE_HELP);
 
         txtName.setRequired(true);
+        txtName.addValidator(() -> KeyVaultCredentialActions.validateCredentialName(txtName));
         txtCertificate.setRequired(true);
         txtPassword.setRequired(false);
         final FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor()
                 .withFileFilter(file -> StringUtils.equalsAnyIgnoreCase(file.getExtension(), "pem", "pfx"));
         txtCertificate.addBrowseFolderListener("Select Certificate File", "Select Certificate File", null, descriptor);
+        this.lblCertificateFile.setLabelFor(txtCertificate);
+        this.lblName.setLabelFor(txtName);
+        this.lblPassword.setLabelFor(passwordField);
     }
 
     @Override

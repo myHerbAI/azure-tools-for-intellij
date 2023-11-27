@@ -12,6 +12,7 @@ import com.intellij.ui.TitledSeparator;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
+import com.microsoft.azure.toolkit.intellij.keyvault.KeyVaultCredentialActions;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.keyvault.key.KeyDraft;
@@ -23,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 public class KeyCreationDialog extends AzureDialog<KeyDraft.Config> implements AzureFormPanel<KeyDraft.Config> {
     private final String title;
@@ -67,6 +69,8 @@ public class KeyCreationDialog extends AzureDialog<KeyDraft.Config> implements A
     protected void init() {
         typeGroup.add(rdoRsa);
         typeGroup.add(rdoEc);
+        txtName.setRequired(true);
+        txtName.addValidator(() -> KeyVaultCredentialActions.validateCredentialName(txtName));
         lblName.setIcon(AllIcons.General.ContextHelp);
         lblKeyType.setIcon(AllIcons.General.ContextHelp);
         rdoRsa.addActionListener(ignore -> changeToRsa());
@@ -90,6 +94,7 @@ public class KeyCreationDialog extends AzureDialog<KeyDraft.Config> implements A
         // enable group
         enableGroup.add(rdoYes);
         enableGroup.add(rdoNo);
+        this.lblName.setLabelFor(txtName);
         super.init();
     }
 

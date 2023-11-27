@@ -12,6 +12,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.intellij.common.TerminalUtils;
 import com.microsoft.azure.toolkit.intellij.common.fileexplorer.VirtualFileActions;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -19,6 +20,7 @@ import com.microsoft.azure.toolkit.lib.auth.cli.AzureCliUtils;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.keyvault.CredentialVersion;
 import com.microsoft.azure.toolkit.lib.keyvault.secret.SecretVersion;
@@ -37,11 +39,27 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class KeyVaultCredentialActions {
-
+    public static final Pattern NAME_PATTERN = Pattern.compile("^[0-9a-zA-Z-]{1,127}$");
     public static final String AZURE_CLI_INSTALL_URL = "https://learn.microsoft.com/en-us/cli/azure/install-azure-cli#install";
+    public static final String NAME_LENGTH_MESSAGE = "Value must between 1 and 127 characters long.";
+    public static final String NAME_VALIDATION_MESSAGE = "Value can only contain alphanumeric characters and dashes. " +
+            "The value you provide may be copied globally for the purpose of running the service. " +
+            "The value provided should not include personally identifiable or sensitive information.";
+
+    public static AzureValidationInfo validateCredentialName(@Nonnull final AzureTextInput input) {
+        final String name = input.getValue();
+        if (Objects.isNull(name) || name.length() < 1 || name.length() > 127) {
+            return AzureValidationInfo.error(NAME_LENGTH_MESSAGE, input);
+        }
+        if (!NAME_PATTERN.matcher(name).matches()) {
+            return AzureValidationInfo.error(NAME_VALIDATION_MESSAGE, input);
+        }
+        return AzureValidationInfo.ok(input);
+    }
 
     public static void showCredential(@Nonnull final CredentialVersion resource, @Nullable final Project project) {
         ensureAzureCli(project);

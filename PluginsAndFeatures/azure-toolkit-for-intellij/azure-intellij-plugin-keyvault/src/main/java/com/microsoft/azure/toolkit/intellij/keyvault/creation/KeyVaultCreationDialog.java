@@ -19,9 +19,13 @@ import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.intellij.common.component.RegionComboBox;
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox;
 import com.microsoft.azure.toolkit.intellij.common.component.resourcegroup.ResourceGroupComboBox;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
+import com.microsoft.azure.toolkit.lib.common.model.Availability;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import com.microsoft.azure.toolkit.lib.keyvault.AzureKeyVault;
 import com.microsoft.azure.toolkit.lib.keyvault.KeyVaultDraft;
 import org.apache.commons.lang3.StringUtils;
 
@@ -29,10 +33,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.event.ItemEvent;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class KeyVaultCreationDialog extends AzureDialog<KeyVaultDraft.Config> implements AzureFormPanel<KeyVaultDraft.Config> {
     public static final String RBAC_DOCUMENT = "Azure RBAC is an authorization system built on Azure Resource Manager that provides fine-grained access management to Azure resources," +
@@ -69,12 +70,34 @@ public class KeyVaultCreationDialog extends AzureDialog<KeyVaultDraft.Config> im
         final ButtonGroup buttonGroup = new ButtonGroup();
         buttonGroup.add(rdoRBAC);
         buttonGroup.add(rdoVaultAccess);
+        this.txtName.setRequired(true);
+        this.txtName.addValidator(this::validateVaultName);
+        this.selectorSubscription.setRequired(true);
+        this.selectorRegion.setRequired(true);
+        this.cbSku.setRequired(true);
+        this.cbResourceGroup.setRequired(true);
         lblName.setIcon(AllIcons.General.ContextHelp);
         lblPermissionDoc.setText(RBAC_DOCUMENT);
         rdoRBAC.addActionListener(ignore -> lblPermissionDoc.setText(RBAC_DOCUMENT));
         rdoVaultAccess.addActionListener(ignore -> lblPermissionDoc.setText(VAULT_ACCESS_DOCUMENT));
 
+        this.lblSubscription.setLabelFor(this.selectorSubscription);
+        this.lblResourceGroup.setLabelFor(this.cbResourceGroup);
+        this.lblName.setLabelFor(this.txtName);
+        this.lblRegion.setLabelFor(this.selectorRegion);
+        this.lblSku.setLabelFor(this.cbSku);
         this.selectorSubscription.addItemListener(this::onSelectSubscription);
+    }
+
+    private AzureValidationInfo validateVaultName() {
+        final Subscription subscription = this.selectorSubscription.getValue();
+        if (Objects.isNull(subscription)) {
+            return AzureValidationInfo.none(txtName);
+        }
+        final String name = this.txtName.getValue();
+        final Availability availability = Azure.az(AzureKeyVault.class).keyVaults(subscription.getId()).checkNameAvailability(name);
+        return availability.isAvailable() ? AzureValidationInfo.success(txtName) :
+                AzureValidationInfo.error(availability.getUnavailabilityReason(), txtName);
     }
 
     private void onSelectSubscription(@Nonnull ItemEvent e) {
