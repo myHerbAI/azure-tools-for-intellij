@@ -31,126 +31,126 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         private const val SLOT_NAME_REGEX_PATTERN = "[a-zA-Z0-9-]{1,60}"
     }
 
-    val webAppSettingModel = WebAppPublishModel()
+    val webAppPublishModel = WebAppPublishModel()
 
     private val slotNameRegex = Regex(SLOT_NAME_REGEX_PATTERN)
 
     var webAppId: String?
-        get() = webAppSettingModel.webAppId
+        get() = webAppPublishModel.webAppId
         set(value) {
-            webAppSettingModel.webAppId = value
+            webAppPublishModel.webAppId = value
         }
     var webAppName: String
-        get() = webAppSettingModel.webAppName
+        get() = webAppPublishModel.webAppName
         set(value) {
-            webAppSettingModel.webAppName = value
+            webAppPublishModel.webAppName = value
         }
     var subscriptionId: String
-        get() = webAppSettingModel.subscriptionId
+        get() = webAppPublishModel.subscriptionId
         set(value) {
-            webAppSettingModel.subscriptionId = value
+            webAppPublishModel.subscriptionId = value
         }
     var region: String
-        get() = webAppSettingModel.region
+        get() = webAppPublishModel.region
         set(value) {
-            webAppSettingModel.region = value
+            webAppPublishModel.region = value
         }
     var resourceGroup: String
-        get() = webAppSettingModel.resourceGroup
+        get() = webAppPublishModel.resourceGroup
         set(value) {
-            webAppSettingModel.resourceGroup = value
+            webAppPublishModel.resourceGroup = value
         }
     var pricing: String
-        get() = webAppSettingModel.pricing
+        get() = webAppPublishModel.pricing
         set(value) {
-            webAppSettingModel.pricing = value
+            webAppPublishModel.pricing = value
         }
     val operatingSystem: OperatingSystem?
-        get() = OperatingSystem.fromString(webAppSettingModel.operatingSystem)
+        get() = OperatingSystem.fromString(webAppPublishModel.operatingSystem)
     var appServicePlanName: String?
-        get() = webAppSettingModel.appServicePlanName
+        get() = webAppPublishModel.appServicePlanName
         set(value) {
-            webAppSettingModel.appServicePlanName = value
+            webAppPublishModel.appServicePlanName = value
         }
     var appServicePlanResourceGroupName: String?
-        get() = webAppSettingModel.appServicePlanResourceGroupName
+        get() = webAppPublishModel.appServicePlanResourceGroupName
         set(value) {
-            webAppSettingModel.appServicePlanResourceGroupName = value
+            webAppPublishModel.appServicePlanResourceGroupName = value
         }
     var isCreatingAppServicePlan: Boolean
-        get() = webAppSettingModel.isCreatingAppServicePlan
+        get() = webAppPublishModel.isCreatingAppServicePlan
         set(value) {
-            webAppSettingModel.isCreatingAppServicePlan = value
+            webAppPublishModel.isCreatingAppServicePlan = value
         }
     var isCreatingNew: Boolean
-        get() = webAppSettingModel.isCreatingNew
+        get() = webAppPublishModel.isCreatingNew
         set(value) {
-            webAppSettingModel.isCreatingNew = value
+            webAppPublishModel.isCreatingNew = value
         }
     var isOpenBrowserAfterDeployment: Boolean
-        get() = webAppSettingModel.isOpenBrowserAfterDeployment
+        get() = webAppPublishModel.isOpenBrowserAfterDeployment
         set(value) {
-            webAppSettingModel.isOpenBrowserAfterDeployment = value
+            webAppPublishModel.isOpenBrowserAfterDeployment = value
         }
     var isSlotPanelVisible: Boolean
-        get() = webAppSettingModel.slotPanelVisible
+        get() = webAppPublishModel.slotPanelVisible
         set(value) {
-            webAppSettingModel.slotPanelVisible = value
+            webAppPublishModel.slotPanelVisible = value
         }
     var isDeployToSlot: Boolean
-        get() = webAppSettingModel.isDeployToSlot
+        get() = webAppPublishModel.isDeployToSlot
         set(value) {
-            webAppSettingModel.isDeployToSlot = value
+            webAppPublishModel.isDeployToSlot = value
         }
     var newSlotConfigurationSource: String
-        get() = webAppSettingModel.newSlotConfigurationSource
+        get() = webAppPublishModel.newSlotConfigurationSource
         set(value) {
-            webAppSettingModel.newSlotConfigurationSource = value
+            webAppPublishModel.newSlotConfigurationSource = value
         }
     var slotName: String?
-        get() = webAppSettingModel.slotName
+        get() = webAppPublishModel.slotName
         set(value) {
-            webAppSettingModel.slotName = value
+            webAppPublishModel.slotName = value
         }
     var newSlotName: String
-        get() = webAppSettingModel.newSlotName
+        get() = webAppPublishModel.newSlotName
         set(value) {
-            webAppSettingModel.newSlotName = value
+            webAppPublishModel.newSlotName = value
         }
     var appSettingsKey: String
-        get() = webAppSettingModel.appSettingsKey
+        get() = webAppPublishModel.appSettingsKey
         set(value) {
-            webAppSettingModel.appSettingsKey = value
+            webAppPublishModel.appSettingsKey = value
         }
     var projectConfiguration: String
-        get() = webAppSettingModel.projectConfiguration
+        get() = webAppPublishModel.projectConfiguration
         set(value) {
-            webAppSettingModel.projectConfiguration = value
+            webAppPublishModel.projectConfiguration = value
         }
     var projectPlatform: String
-        get() = webAppSettingModel.projectPlatform
+        get() = webAppPublishModel.projectPlatform
         set(value) {
-            webAppSettingModel.projectPlatform = value
+            webAppPublishModel.projectPlatform = value
         }
     var appSettingsToRemove: Set<String>
-        get() = webAppSettingModel.appSettingsToRemove
+        get() = webAppPublishModel.appSettingsToRemove
         set(value) {
-            webAppSettingModel.appSettingsToRemove = value
+            webAppPublishModel.appSettingsToRemove = value
         }
     val getRuntime: Runtime?
-        get() = webAppSettingModel.runtime
+        get() = webAppPublishModel.runtime
 
     fun saveRuntime(runtime: Runtime?, projectModel: PublishableProjectModel?) {
-        if (runtime == null || projectModel == null) webAppSettingModel.saveRuntime(null)
-        else webAppSettingModel.saveRuntime(projectModel.toRuntime(project, runtime.operatingSystem))
+        if (runtime == null || projectModel == null) webAppPublishModel.saveRuntime(null)
+        else webAppPublishModel.saveRuntime(projectModel.toRuntime(project, runtime.operatingSystem))
     }
 
     fun getProjectId(): Int? = project.solution.publishableProjectsModel.publishableProjects.values
-            .firstOrNull { p -> p.projectFilePath == webAppSettingModel.projectPath }
+            .firstOrNull { p -> p.projectFilePath == webAppPublishModel.projectPath }
             ?.projectModelId
 
     fun saveProject(projectModel: PublishableProjectModel) {
-        webAppSettingModel.projectPath = projectModel.projectFilePath
+        webAppPublishModel.projectPath = projectModel.projectFilePath
     }
 
     override fun getState(executor: Executor, executionEnvironment: ExecutionEnvironment) =
@@ -159,18 +159,18 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
     override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> =
             WebAppSettingEditor(project, this)
 
-    override fun getModel() = webAppSettingModel
+    override fun getModel() = webAppPublishModel
 
     override fun setApplicationSettings(env: Map<String, String>) {
-        webAppSettingModel.appSettings = env
+        webAppPublishModel.appSettings = env
     }
 
-    override fun getApplicationSettings(): Map<String, String> = webAppSettingModel.appSettings
+    override fun getApplicationSettings(): Map<String, String> = webAppPublishModel.appSettings
 
     override fun getModule(): Module? = null
 
     override fun validate() {
-        with(webAppSettingModel) {
+        with(webAppPublishModel) {
             if (isCreatingNew) {
                 if (webAppName.isNullOrEmpty()) throw ConfigurationException("Web App name not provided")
                 if (subscriptionId.isNullOrEmpty()) throw ConfigurationException("Subscription not provided")

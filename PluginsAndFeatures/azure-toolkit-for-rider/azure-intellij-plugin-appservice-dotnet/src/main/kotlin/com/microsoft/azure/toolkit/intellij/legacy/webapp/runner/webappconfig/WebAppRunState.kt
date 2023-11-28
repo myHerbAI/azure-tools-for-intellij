@@ -26,18 +26,18 @@ import java.net.URL
 class WebAppRunState(project: Project, private val webAppConfiguration: WebAppConfiguration)
     : RiderAzureRunProfileState<WebAppBase<*, *, *>>(project) {
 
-    private val webAppSettingModel: WebAppPublishModel = webAppConfiguration.webAppSettingModel
+    private val webAppPublishModel: WebAppPublishModel = webAppConfiguration.webAppPublishModel
 
     override fun executeSteps(processHandler: RunProcessHandler): WebAppBase<*, *, *> {
         OperationContext.current().setMessager(processHandlerMessenger)
         val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
-                .firstOrNull { it.projectFilePath == webAppSettingModel.projectPath }
+                .firstOrNull { it.projectFilePath == webAppPublishModel.projectPath }
                 ?: throw RuntimeException("Project is not defined")
         val artifact = WebAppArtifactService.getInstance(project)
-                .prepareArtifact(publishableProject, webAppSettingModel.projectConfiguration, webAppSettingModel.projectPlatform, processHandler)
+                .prepareArtifact(publishableProject, webAppPublishModel.projectConfiguration, webAppPublishModel.projectPlatform, processHandler)
         val deployTarget = getOrCreateDeployTargetFromAppSettingModel(processHandler)
         updateApplicationSettings(deployTarget, processHandler)
-        AzureWebAppMvpModel.getInstance().deployArtifactsToWebApp(deployTarget, artifact, webAppSettingModel.isDeployToRoot, processHandler)
+        AzureWebAppMvpModel.getInstance().deployArtifactsToWebApp(deployTarget, artifact, webAppPublishModel.isDeployToRoot, processHandler)
         FileUtil.delete(artifact)
         return deployTarget
     }
@@ -46,32 +46,32 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
         val webApp = getOrCreateWebappFromAppSettingModel(processHandler)
         if (!isDeployToSlot()) return webApp
 
-        return if (StringUtils.equals(webAppSettingModel.slotName, Constants.CREATE_NEW_SLOT)) {
-            AzureWebAppMvpModel.getInstance().createDeploymentSlotFromSettingModel(webApp, webAppSettingModel)
+        return if (StringUtils.equals(webAppPublishModel.slotName, Constants.CREATE_NEW_SLOT)) {
+            AzureWebAppMvpModel.getInstance().createDeploymentSlotFromSettingModel(webApp, webAppPublishModel)
         } else {
-            webApp.slots().get(webAppSettingModel.slotName, webAppSettingModel.resourceGroup)
-                    ?: throw NullPointerException("Failed to get deployment slot with name ${webAppSettingModel.slotName}")
+            webApp.slots().get(webAppPublishModel.slotName, webAppPublishModel.resourceGroup)
+                    ?: throw NullPointerException("Failed to get deployment slot with name ${webAppPublishModel.slotName}")
         }
     }
 
     private fun getOrCreateWebappFromAppSettingModel(processHandler: RunProcessHandler): WebApp {
-        val name = webAppSettingModel.webAppName
-        val rg = webAppSettingModel.resourceGroup
-        val id = webAppSettingModel.webAppId
-        val webapps = Azure.az(AzureWebApp::class.java).webApps(webAppSettingModel.subscriptionId)
+        val name = webAppPublishModel.webAppName
+        val rg = webAppPublishModel.resourceGroup
+        val id = webAppPublishModel.webAppId
+        val webapps = Azure.az(AzureWebApp::class.java).webApps(webAppPublishModel.subscriptionId)
         val webApp = if (StringUtils.isNotBlank(id)) webapps.get(id) else webapps.get(name, rg)
         if (webApp != null) return webApp
 
-        if (webAppSettingModel.isCreatingNew) {
+        if (webAppPublishModel.isCreatingNew) {
             processHandler.setText("Creating new web app...")
-            return AzureWebAppMvpModel.getInstance().createWebAppFromSettingModel(webAppSettingModel)
+            return AzureWebAppMvpModel.getInstance().createWebAppFromSettingModel(webAppPublishModel)
         } else {
             processHandler.setText("Deployment failed!")
             throw Exception("Cannot get webapp for deploy.")
         }
     }
 
-    private fun isDeployToSlot() = !webAppSettingModel.isCreatingNew && webAppSettingModel.isDeployToSlot
+    private fun isDeployToSlot() = !webAppPublishModel.isCreatingNew && webAppPublishModel.isDeployToSlot
 
     private fun updateApplicationSettings(deployTarget: WebAppBase<*, *, *>, processHandler: RunProcessHandler) {
         val applicationSettings = webAppConfiguration.applicationSettings.toMutableMap()
@@ -110,7 +110,7 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
         processHandler.setText("Deployment was successful but the app may still be starting.")
         val url = "https://${result.hostName}"
         processHandler.setText("URL: $url")
-        if (webAppSettingModel.isOpenBrowserAfterDeployment) {
+        if (webAppPublishModel.isOpenBrowserAfterDeployment) {
             openWebAppInBrowser(url, processHandler)
         }
         processHandler.notifyComplete()
