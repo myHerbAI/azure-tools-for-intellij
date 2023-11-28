@@ -337,7 +337,10 @@ public class TreeUtils {
             }
         }).onSuccess(path -> {
             tree.getModel().removeTreeModelListener(listener);
-            TreeUtil.selectPath(tree, path, true);
+        }).onProcessed(path -> {
+            if (Objects.nonNull(checkpoint.get())) {
+                TreeUtil.selectPath(tree, checkpoint.get(), true);
+            }
         });
     }
 }
