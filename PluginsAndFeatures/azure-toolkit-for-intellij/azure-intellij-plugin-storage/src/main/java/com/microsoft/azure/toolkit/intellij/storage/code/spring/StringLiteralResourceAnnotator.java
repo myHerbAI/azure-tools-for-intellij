@@ -64,9 +64,9 @@ public class StringLiteralResourceAnnotator implements Annotator {
                         final StorageFile file = StringLiteralResourceCompletionProvider.getFile(valueWithPrefix, accounts);
                         if (Objects.isNull(file)) {
                             final String message = String.format("Could not find '%s' in connected Azure Storage account(s) [%s]", path, accounts.stream().map(AbstractAzResource::getName).collect(Collectors.joining(",")));
-                            holder.newAnnotation(HighlightSeverity.ERROR, message)
+                            holder.newAnnotation(HighlightSeverity.WARNING, message)
                                 .range(range)
-                                .highlightType(ProblemHighlightType.GENERIC_ERROR_OR_WARNING)
+                                .highlightType(ProblemHighlightType.WEAK_WARNING)
                                 .create();
                         }
                     }
