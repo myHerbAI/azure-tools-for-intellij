@@ -56,10 +56,10 @@ public class EnvVarCompletionContributor extends CompletionContributor {
 
     public EnvVarCompletionContributor() {
         super();
-        extend(CompletionType.BASIC, SPRING_CONFIG_VALUE_PLACES, new PropertiesKeyVaultVariableCompletionProvider());
+        extend(CompletionType.BASIC, SPRING_CONFIG_VALUE_PLACES, new EnvVarCompletionProvider());
     }
 
-    private static class PropertiesKeyVaultVariableCompletionProvider extends CompletionProvider<CompletionParameters> {
+    private static class EnvVarCompletionProvider extends CompletionProvider<CompletionParameters> {
         @Override
         protected void addCompletions(@Nonnull final CompletionParameters parameters, @Nonnull final ProcessingContext context, @Nonnull CompletionResultSet result) {
             final Module module = ModuleUtil.findModuleForFile(parameters.getOriginalFile());
@@ -68,7 +68,7 @@ public class EnvVarCompletionContributor extends CompletionContributor {
                 return;
             }
             if (!Azure.az(AzureAccount.class).isLoggedIn()) {
-                result.addElement(LookupElements.buildSignInLookupElement());
+                result.withPrefixMatcher("").addElement(LookupElements.buildSignInLookupElement("Sign in to Azure to select Key Vault secrets..."));
                 return;
             }
             if (StringUtils.contains(prefix, "$")) {
