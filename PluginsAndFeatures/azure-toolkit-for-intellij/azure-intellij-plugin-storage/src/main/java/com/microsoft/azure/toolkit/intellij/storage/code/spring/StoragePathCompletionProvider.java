@@ -59,7 +59,7 @@ import java.util.stream.Stream;
 
 import static com.microsoft.azure.toolkit.intellij.connector.code.Utils.listResourceForDefinition;
 
-public class StoragePathResourceCompletionProvider extends CompletionProvider<CompletionParameters> {
+public class StoragePathCompletionProvider extends CompletionProvider<CompletionParameters> {
 
     @Override
     protected void addCompletions(@Nonnull CompletionParameters parameters, @Nonnull ProcessingContext context, @Nonnull CompletionResultSet result) {
@@ -196,7 +196,7 @@ public class StoragePathResourceCompletionProvider extends CompletionProvider<Co
 
     public static void navigateToFile(StorageFile file, Module module) {
         if (Objects.nonNull(module)) {
-            final List<Connection<?, ?>> connections = StoragePathResourceCompletionProvider.getConnections(module);
+            final List<Connection<?, ?>> connections = StoragePathCompletionProvider.getConnections(module);
             if (connections.size() > 0) {
                 AbstractAzureFacetNode.selectConnectedResource(connections.get(0), file.getId(), file.isDirectory());
                 if (!file.isDirectory()) {
