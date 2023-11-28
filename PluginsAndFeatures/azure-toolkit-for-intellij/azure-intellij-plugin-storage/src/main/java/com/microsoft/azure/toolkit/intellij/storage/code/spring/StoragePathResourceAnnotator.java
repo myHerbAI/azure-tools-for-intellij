@@ -35,12 +35,12 @@ import java.util.stream.Collectors;
 import static com.intellij.patterns.PsiJavaPatterns.literalExpression;
 import static com.intellij.patterns.PsiJavaPatterns.psiElement;
 
-public class StringLiteralResourceAnnotator implements Annotator {
+public class StoragePathResourceAnnotator implements Annotator {
     @Override
     public void annotate(@Nonnull PsiElement element, @Nonnull AnnotationHolder holder) {
         if (psiElement(JavaTokenType.STRING_LITERAL).withParent(literalExpression()).accepts(element)) {
             final PsiLiteralExpression literal = (PsiLiteralExpression) element.getParent();
-            final String valueWithPrefix = StringUtils.substringBefore((String) literal.getValue(), StringLiteralCompletionContributor.DUMMY_IDENTIFIER);
+            final String valueWithPrefix = StringUtils.substringBefore((String) literal.getValue(), StoragePathCompletionContributor.DUMMY_IDENTIFIER);
             if (Objects.nonNull(valueWithPrefix) && (valueWithPrefix.startsWith("azure-blob://") || valueWithPrefix.startsWith("azure-file://"))) {
                 final String prefix = valueWithPrefix.startsWith("azure-blob://") ? "azure-blob://" : "azure-file://";
                 final String path = valueWithPrefix.substring(prefix.length());
@@ -65,7 +65,7 @@ public class StringLiteralResourceAnnotator implements Annotator {
                         if (Utils.hasEnvVars(valueWithPrefix)) { // skip if environment variables are used.
                             return;
                         }
-                        final StorageFile file = StringLiteralResourceCompletionProvider.getFile(valueWithPrefix, accounts);
+                        final StorageFile file = StoragePathResourceCompletionProvider.getFile(valueWithPrefix, accounts);
                         if (Objects.isNull(file)) {
                             final String message = String.format("Could not find '%s' in connected Azure Storage account(s) [%s]", path, accounts.stream().map(AbstractAzResource::getName).collect(Collectors.joining(",")));
                             holder.newAnnotation(HighlightSeverity.WARNING, message)

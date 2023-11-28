@@ -25,7 +25,7 @@ import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnno
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationTypeHandler;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationValueInsertHandler;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
-import com.microsoft.azure.toolkit.intellij.storage.code.spring.StringLiteralCompletionContributor;
+import com.microsoft.azure.toolkit.intellij.storage.code.spring.StoragePathCompletionContributor;
 import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
@@ -68,7 +68,7 @@ public class FunctionQueueNameCompletionProvider extends CompletionProvider<Comp
         final PsiElement element = parameters.getPosition();
         final PsiLiteralExpression literal = (PsiLiteralExpression) element.getParent();
         final String value = literal.getValue() instanceof String ? (String) literal.getValue() : StringUtils.EMPTY;
-        final String fullPrefix = StringUtils.substringBefore(value, StringLiteralCompletionContributor.DUMMY_IDENTIFIER);
+        final String fullPrefix = StringUtils.substringBefore(value, StoragePathCompletionContributor.DUMMY_IDENTIFIER);
         final Module module = ModuleUtil.findModuleForFile(parameters.getOriginalFile());
         if (Objects.isNull(module) || !Azure.az(AzureAccount.class).isLoggedIn()) {
             return;

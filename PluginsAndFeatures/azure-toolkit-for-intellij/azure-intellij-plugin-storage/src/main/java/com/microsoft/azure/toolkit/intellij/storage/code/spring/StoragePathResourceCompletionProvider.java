@@ -59,14 +59,14 @@ import java.util.stream.Stream;
 
 import static com.microsoft.azure.toolkit.intellij.connector.code.Utils.listResourceForDefinition;
 
-public class StringLiteralResourceCompletionProvider extends CompletionProvider<CompletionParameters> {
+public class StoragePathResourceCompletionProvider extends CompletionProvider<CompletionParameters> {
 
     @Override
     protected void addCompletions(@Nonnull CompletionParameters parameters, @Nonnull ProcessingContext context, @Nonnull CompletionResultSet result) {
         final PsiElement element = parameters.getPosition();
         final PsiLiteralExpression literal = ((PsiLiteralExpression) element.getParent());
         final String value = literal.getValue() instanceof String ? (String) literal.getValue() : element.getText();
-        final String fullPrefix = StringUtils.substringBefore(value, StringLiteralCompletionContributor.DUMMY_IDENTIFIER);
+        final String fullPrefix = StringUtils.substringBefore(value, StoragePathCompletionContributor.DUMMY_IDENTIFIER);
         final boolean isBlobContainer = fullPrefix.startsWith("azure-blob://");
         final boolean isFileShare = fullPrefix.startsWith("azure-file://");
 
@@ -196,7 +196,7 @@ public class StringLiteralResourceCompletionProvider extends CompletionProvider<
 
     public static void navigateToFile(StorageFile file, Module module) {
         if (Objects.nonNull(module)) {
-            final List<Connection<?, ?>> connections = StringLiteralResourceCompletionProvider.getConnections(module);
+            final List<Connection<?, ?>> connections = StoragePathResourceCompletionProvider.getConnections(module);
             if (connections.size() > 0) {
                 AbstractAzureFacetNode.selectConnectedResource(connections.get(0), file.getId(), file.isDirectory());
                 if (!file.isDirectory()) {
