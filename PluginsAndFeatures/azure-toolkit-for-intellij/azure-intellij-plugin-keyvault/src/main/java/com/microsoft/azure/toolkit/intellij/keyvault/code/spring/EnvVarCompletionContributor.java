@@ -49,7 +49,7 @@ import static com.microsoft.azure.toolkit.intellij.connector.code.spring.YamlCom
 
 public class EnvVarCompletionContributor extends CompletionContributor {
 
-    public static final List<Character> SPECIAL_CHARS = Arrays.asList('$', '{', '}');
+    public static final List<Character> SPECIAL_CHARS = Arrays.asList('$', '{');
     public static final PsiElementPattern.Capture<PsiElement> PROPERTY_VALUE = PlatformPatterns.psiElement(PropertiesTokenTypes.VALUE_CHARACTERS).inFile(APPLICATION_PROPERTIES_FILE);
     public static final PsiElementPattern.Capture<PsiElement> YAML_VALUE = PlatformPatterns.psiElement(YAMLTokenTypes.TEXT).withSuperParent(2, PlatformPatterns.psiElement(YAMLKeyValue.class)).inFile(APPLICATION_YAML_FILE);
     public static final ElementPattern<PsiElement> SPRING_CONFIG_VALUE_PLACES = PlatformPatterns.or(PROPERTY_VALUE, YAML_VALUE);

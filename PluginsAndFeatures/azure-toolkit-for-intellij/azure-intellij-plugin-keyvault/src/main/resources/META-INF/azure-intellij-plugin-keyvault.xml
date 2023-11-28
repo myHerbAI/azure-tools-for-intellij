@@ -25,6 +25,6 @@
         <annotator language="Properties" implementationClass="com.microsoft.azure.toolkit.intellij.keyvault.code.spring.PlainTextSecretAnnotator"/>
         <annotator language="yaml" implementationClass="com.microsoft.azure.toolkit.intellij.keyvault.code.spring.PlainTextSecretAnnotator"/>
         <typedHandler implementation="com.microsoft.azure.toolkit.intellij.keyvault.code.spring.EnvVarTypeHandler"/>
-        <lookup.charFilter implementation="com.microsoft.azure.toolkit.intellij.keyvault.code.spring.EnvVarCharFilter"/>
+        <lookup.charFilter order="first, before azProperties" implementation="com.microsoft.azure.toolkit.intellij.keyvault.code.spring.EnvVarCharFilter"/>
     </extensions>
 </idea-plugin>

@@ -18,16 +18,12 @@ public class EnvVarCharFilter extends CharFilter {
     @Override
     public Result acceptChar(char c, final int prefixLength, final Lookup lookup) {
         final PsiFile file = lookup.getPsiFile();
-        if (!EnvVarCompletionContributor.SPECIAL_CHARS.contains(c) ||
-            (!(file instanceof PropertiesFileImpl) && !(file instanceof YAMLFileImpl))) {
-            return null;
-        }
         final PsiElement ele = lookup.getPsiElement();
-        if (Objects.isNull(ele)) {
+        if (Objects.isNull(ele) || !(EnvVarCompletionContributor.SPECIAL_CHARS.contains(c) && (file instanceof PropertiesFileImpl || file instanceof YAMLFileImpl))) {
             return null;
         }
         final String text = ele.getText();
-        if (EnvVarCompletionContributor.SPRING_CONFIG_VALUE_PLACES.accepts(ele)) {
+        if (EnvVarCompletionContributor.SPRING_CONFIG_VALUE_PLACES.accepts(ele) && (c == '$' || (text.endsWith("$") && c == '{'))) {
             return Result.ADD_TO_PREFIX;
         }
         return null;

@@ -41,7 +41,7 @@ public class EnvVarTypeHandler extends TypedHandlerDelegate {
             Optional.ofNullable(ele).map(PsiElement::getNode).map(ASTNode::getElementType)
                 .filter(t -> t == PropertiesTokenTypes.KEY_VALUE_SEPARATOR || t == PropertiesTokenTypes.VALUE_CHARACTERS)
                 .isPresent();
-        if (isPropertyValue || isYamlValue || EnvVarCompletionContributor.SPRING_CONFIG_VALUE_PLACES.accepts(ele)) {
+        if (isPropertyValue || isYamlValue) {
             AutoPopupController.getInstance(project).scheduleAutoPopup(editor);
             return Result.STOP;
         }
