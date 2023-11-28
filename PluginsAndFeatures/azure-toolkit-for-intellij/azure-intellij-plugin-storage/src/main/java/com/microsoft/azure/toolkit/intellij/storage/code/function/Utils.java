@@ -1,11 +1,10 @@
-package com.microsoft.azure.toolkit.intellij.storage.code;
+package com.microsoft.azure.toolkit.intellij.storage.code.function;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
-import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionUtils;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
@@ -20,12 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class Utils {
-
-    public static List<StorageAccount> getConnectedStorageAccounts(@Nonnull final Module module) {
-        return AzureModule.from(module).getConnections(StorageAccountResourceDefinition.INSTANCE).stream()
-            .filter(Connection::isValidConnection).map(Connection::getResource).map(Resource::getData).toList();
-    }
+class Utils {
 
     public static List<Connection<?, ?>> getConnectionWithStorageAccount(@Nonnull final StorageAccount account, @Nonnull final Module module) {
         return Optional.of(module).map(AzureModule::from)

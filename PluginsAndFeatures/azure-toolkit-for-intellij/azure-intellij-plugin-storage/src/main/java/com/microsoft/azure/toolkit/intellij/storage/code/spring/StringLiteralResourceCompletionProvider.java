@@ -27,7 +27,6 @@ import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.connector.projectexplorer.AbstractAzureFacetNode;
-import com.microsoft.azure.toolkit.intellij.storage.code.Utils;
 import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
@@ -76,7 +75,7 @@ public class StringLiteralResourceCompletionProvider extends CompletionProvider<
             if (Objects.isNull(module)) {
                 return;
             }
-            final List<StorageAccount> accounts = Utils.getConnectedStorageAccounts(module);
+            final List<StorageAccount> accounts = AzureModule.from(module).getConnectedResources(StorageAccountResourceDefinition.INSTANCE);
             if (accounts.isEmpty()) {
                 listResourceForDefinition(module.getProject(), StorageAccountResourceDefinition.INSTANCE).stream()
                     .map(a -> LookupElementBuilder
@@ -140,7 +139,7 @@ public class StringLiteralResourceCompletionProvider extends CompletionProvider<
 
     @Nullable
     public static StorageFile getFile(String fullPrefix, Module module) {
-        return getFile(fullPrefix, Utils.getConnectedStorageAccounts(module));
+        return getFile(fullPrefix, AzureModule.from(module).getConnectedResources(StorageAccountResourceDefinition.INSTANCE));
     }
 
     @Nullable

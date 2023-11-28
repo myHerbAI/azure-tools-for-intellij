@@ -24,8 +24,9 @@ import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnno
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationTypeHandler;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationValueInsertHandler;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionUtils;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.storage.code.spring.StringLiteralCompletionContributor;
-import com.microsoft.azure.toolkit.intellij.storage.code.Utils;
+import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
@@ -82,7 +83,7 @@ public class FunctionBlobPathCompletionProvider extends CompletionProvider<Compl
         final PsiLiteralExpression literal = (PsiLiteralExpression) element.getParent();
         final String value = literal.getValue() instanceof String ? (String) literal.getValue() : StringUtils.EMPTY;
         final String fullPrefix = StringUtils.substringBefore(value, StringLiteralCompletionContributor.DUMMY_IDENTIFIER);
-        final List<StorageAccount> accountsToSearch = Objects.nonNull(account) ? List.of(account) : Utils.getConnectedStorageAccounts(module);
+        final List<StorageAccount> accountsToSearch = Objects.nonNull(account) ? List.of(account) : AzureModule.from(module).getConnectedResources(StorageAccountResourceDefinition.INSTANCE);
         final List<? extends StorageFile> files = getFiles("azure-blob://" + fullPrefix, accountsToSearch);
         final BiFunction<StorageFile, String, LookupElementBuilder> builder = (file, title) -> LookupElementBuilder.create(title)
                 .withInsertHandler(new FunctionAnnotationValueInsertHandler(title.endsWith("/"), getAdditionalPropertiesFromCompletion(getStorageAccount(file), module)))
