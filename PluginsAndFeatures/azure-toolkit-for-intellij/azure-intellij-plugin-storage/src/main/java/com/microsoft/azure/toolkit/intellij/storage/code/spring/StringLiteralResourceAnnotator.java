@@ -15,6 +15,7 @@ import com.intellij.psi.JavaTokenType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiLiteralExpression;
 import com.microsoft.azure.toolkit.intellij.connector.code.AnnotationFixes;
+import com.microsoft.azure.toolkit.intellij.connector.code.Utils;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -61,6 +62,9 @@ public class StringLiteralResourceAnnotator implements Annotator {
                             .withFix(AnnotationFixes.createNewConnection(StorageAccountResourceDefinition.INSTANCE, AnnotationFixes.DO_NOTHING_CONSUMER))
                             .create();
                     } else {
+                        if (Utils.hasEnvVars(valueWithPrefix)) { // skip if environment variables are used.
+                            return;
+                        }
                         final StorageFile file = StringLiteralResourceCompletionProvider.getFile(valueWithPrefix, accounts);
                         if (Objects.isNull(file)) {
                             final String message = String.format("Could not find '%s' in connected Azure Storage account(s) [%s]", path, accounts.stream().map(AbstractAzResource::getName).collect(Collectors.joining(",")));
