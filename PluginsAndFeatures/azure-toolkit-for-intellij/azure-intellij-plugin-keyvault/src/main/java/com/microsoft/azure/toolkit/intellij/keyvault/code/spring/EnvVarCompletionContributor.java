@@ -18,6 +18,8 @@ import com.intellij.patterns.ElementPattern;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.patterns.PsiElementPattern;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider;
@@ -62,15 +64,21 @@ public class EnvVarCompletionContributor extends CompletionContributor {
     private static class EnvVarCompletionProvider extends CompletionProvider<CompletionParameters> {
         @Override
         protected void addCompletions(@Nonnull final CompletionParameters parameters, @Nonnull final ProcessingContext context, @Nonnull CompletionResultSet result) {
-            final Module module = ModuleUtil.findModuleForFile(parameters.getOriginalFile());
-            final String prefix = result.getPrefixMatcher().getPrefix();
-            if (Objects.isNull(module) || !hasKeyVaultDependencies(module)) {
+            final PsiFile file = parameters.getOriginalFile();
+            final PsiElement element = parameters.getPosition();
+            final Module module = ModuleUtil.findModuleForFile(file);
+            final Optional<String> key = file instanceof PropertiesFileImpl ?
+                Optional.of(element).map(PsiElement::getParent).map(PsiElement::getFirstChild).map(PsiElement::getText) :
+                Optional.of(element).map(e -> PsiTreeUtil.getParentOfType(e, YAMLPsiElement.class)).map(YAMLUtil::getConfigFullName);
+            final boolean isSecretSupported = file instanceof PsiJavaFile || key.map(EnvVarCompletionContributor::isSecretKey).orElse(false);
+            if (Objects.isNull(module) || !hasKeyVaultDependencies(module) || !isSecretSupported) {
                 return;
             }
             if (!Azure.az(AzureAccount.class).isLoggedIn()) {
                 result.withPrefixMatcher("").addElement(LookupElements.buildSignInLookupElement("Sign in to Azure to select Key Vault secrets..."));
                 return;
             }
+            final String prefix = result.getPrefixMatcher().getPrefix();
             if (StringUtils.contains(prefix, "$")) {
                 final String after = StringUtils.substringAfterLast(prefix, "$");
                 if (after.contains("}")) {
@@ -78,14 +86,6 @@ public class EnvVarCompletionContributor extends CompletionContributor {
                 } else {
                     result = result.withPrefixMatcher("$" + after);
                 }
-            }
-            final Optional<String> key = parameters.getOriginalFile() instanceof PropertiesFileImpl ?
-                Optional.of(parameters.getPosition()).map(PsiElement::getParent).map(PsiElement::getFirstChild)
-                    .map(PsiElement::getText) :
-                Optional.of(parameters.getPosition()).map(e -> PsiTreeUtil.getParentOfType(e, YAMLPsiElement.class))
-                    .map(YAMLUtil::getConfigFullName);
-            if (!key.map(EnvVarCompletionContributor::isSecretKey).orElse(false)) {
-                return;
             }
             final List<KeyVault> vaults = AzureModule.from(module).getConnections(KeyVaultResourceDefinition.INSTANCE).stream()
                 .filter(Connection::isValidConnection).map(Connection::getResource).map(Resource::getData).toList();

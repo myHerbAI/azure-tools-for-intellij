@@ -14,6 +14,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
@@ -36,7 +37,10 @@ public class EnvVarLineMarkerProvider implements LineMarkerProvider {
     @Override
     @Nullable
     public LineMarkerInfo<?> getLineMarkerInfo(@Nonnull PsiElement element) {
-        if (PlatformPatterns.or(psiElement(PropertyValueImpl.class), psiElement(LeafPsiElement.class).withParent(YAMLPlainTextImpl.class)).accepts(element)) {
+        if (PlatformPatterns.or(
+            psiElement(PropertyValueImpl.class),
+            psiElement(LeafPsiElement.class).withParent(YAMLPlainTextImpl.class),
+            psiElement(PsiLiteralExpression.class).insideAnnotationParam("org.springframework.beans.factory.annotation.Value")).accepts(element)) {
             final Module module = ModuleUtil.findModuleForPsiElement(element);
             if (Objects.isNull(module)) {
                 return null;

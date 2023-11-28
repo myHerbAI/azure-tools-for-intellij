@@ -32,12 +32,20 @@ public class EnvVarReferenceContributor extends PsiReferenceContributor {
 
     @Override
     public void registerReferenceProviders(@Nonnull PsiReferenceRegistrar registrar) {
-        registrar.registerReferenceProvider(PlatformPatterns.or(psiElement(PropertyValueImpl.class), psiElement(YAMLPlainTextImpl.class)), new PsiReferenceProvider() {
-            @Override
-            public PsiReference[] getReferencesByElement(@Nonnull PsiElement element, @Nonnull ProcessingContext context) {
-                return getEnvVarReferences(element).toArray(new PsiReference[0]);
-            }
-        }, PsiReferenceRegistrar.HIGHER_PRIORITY);
+        registrar.registerReferenceProvider(
+            PlatformPatterns.or(
+                psiElement(PropertyValueImpl.class),
+                psiElement(YAMLPlainTextImpl.class),
+                psiElement(PsiLiteralExpression.class)
+            ),
+            new PsiReferenceProvider() {
+                @Override
+                public PsiReference[] getReferencesByElement(@Nonnull PsiElement element, @Nonnull ProcessingContext context) {
+                    return getEnvVarReferences(element).toArray(new PsiReference[0]);
+                }
+            },
+            PsiReferenceRegistrar.HIGHER_PRIORITY
+        );
     }
 
     @Nonnull
