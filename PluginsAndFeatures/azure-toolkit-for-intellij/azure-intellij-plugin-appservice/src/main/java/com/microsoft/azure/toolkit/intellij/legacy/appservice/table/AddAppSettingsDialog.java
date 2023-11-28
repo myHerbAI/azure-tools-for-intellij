@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class AddAppSettingsDialog extends AzureDialog<Pair<String, String>>
-        implements AzureForm<Pair<String, String>> {
+    implements AzureForm<Pair<String, String>> {
 
     private static final Pattern APP_SETTINGS_NAME_PATTERN = Pattern.compile("^[a-zA-Z0-9_\\.]+$");
 

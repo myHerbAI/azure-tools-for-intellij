@@ -62,8 +62,8 @@ public class DockerHostRunState extends AzureRunProfileState<String> {
         // props
         final String hostname = Optional.ofNullable(new URI(dataModel.getDockerHost()).getHost()).orElse("localhost");
         final ContainerPort[] ports = container.getPorts();
-        final String message = ArrayUtils.getLength(ports) != 1 ? String.format("Container is running on %s now!", hostname):
-                String.format(Constant.MESSAGE_CONTAINER_STARTED, hostname + ":" + ports[0].getPublicPort());
+        final String message = ArrayUtils.getLength(ports) != 1 ? String.format("Container is running on %s now!", hostname) :
+            String.format(Constant.MESSAGE_CONTAINER_STARTED, hostname + ":" + ports[0].getPublicPort());
         AzureMessager.getMessager().info(message);
         if (ArrayUtils.getLength(ports) > 1) {
             Arrays.stream(ports).forEach(port -> AzureMessager.getMessager().info(String.format("\tImage port %s has been redirected to %s", port.getPrivatePort(), port.getPublicPort())));

@@ -38,7 +38,7 @@ class SparkToolException(exp: Throwable?) : ClassifiedException(exp) {
     override val title: String = "Azure Plugin for IntelliJ Error"
     override val errorType = ErrorType.toolError
 
-    override fun handleByUser(){
+    override fun handleByUser() {
         AzureTaskManager.getInstance().runLater {
             val toolErrorDialog = ErrorMessageForm(title)
             toolErrorDialog.showErrorMessageForm(message, stackTrace)

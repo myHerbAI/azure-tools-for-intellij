@@ -71,8 +71,8 @@ public class AzureSdkProjectDependencyPanel {
     private void init() {
         cbModule.addItemListener(e -> onSelectModule());
         final Action<Void> addDependency = new Action<Void>(Action.Id.of("user/sdk.add_dependency"))
-                .withAuthRequired(false)
-                .withHandler(ignore -> onAddDependency());
+            .withAuthRequired(false)
+            .withHandler(ignore -> onAddDependency());
         btnAddDependency.setAction(addDependency);
         lblMessageIcon.setIcon(AllIcons.General.BalloonInformation);
     }

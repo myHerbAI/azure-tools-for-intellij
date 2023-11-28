@@ -7,7 +7,6 @@ import com.intellij.openapi.editor.impl.DocumentImpl;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.ex.FileTypeManagerEx;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.EditorTextField;
