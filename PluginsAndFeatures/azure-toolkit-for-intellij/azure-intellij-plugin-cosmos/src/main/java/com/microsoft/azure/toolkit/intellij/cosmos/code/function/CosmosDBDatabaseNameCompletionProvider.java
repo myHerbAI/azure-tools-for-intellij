@@ -82,8 +82,7 @@ public class CosmosDBDatabaseNameCompletionProvider extends CompletionProvider<C
             return;
         }
         final List<SqlDatabase> accountsToSearch = Objects.nonNull(database) ? List.of(database) :
-            AzureModule.from(module).getConnections(SqlCosmosDBAccountResourceDefinition.INSTANCE).stream()
-                .filter(Connection::isValidConnection).map(Connection::getResource).map(Resource::getData).toList();
+            AzureModule.from(module).getConnectedResources(SqlCosmosDBAccountResourceDefinition.INSTANCE);
         accountsToSearch.stream()
                 .map(d -> createLookupElement(d, module))
                 .forEach(result::addElement);
