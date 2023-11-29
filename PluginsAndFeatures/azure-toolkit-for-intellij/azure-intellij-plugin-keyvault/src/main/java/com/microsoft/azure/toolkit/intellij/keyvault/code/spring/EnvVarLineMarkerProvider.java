@@ -8,19 +8,14 @@ package com.microsoft.azure.toolkit.intellij.keyvault.code.spring;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
 import com.intellij.codeInsight.daemon.MergeableLineMarkerInfo;
-import com.intellij.lang.properties.psi.impl.PropertyValueImpl;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
-import com.intellij.patterns.PlatformPatterns;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiLiteralExpression;
-import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.keyvault.secret.Secret;
 import lombok.Getter;
-import org.jetbrains.yaml.psi.impl.YAMLPlainTextImpl;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -29,7 +24,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.intellij.patterns.PsiJavaPatterns.psiElement;
 import static com.microsoft.azure.toolkit.intellij.connector.code.ResourceConnectionLineMarkerInfo.LINE_MARKER_NAVIGATE_TOOLTIP;
 
 public class EnvVarLineMarkerProvider implements LineMarkerProvider {
@@ -37,10 +31,7 @@ public class EnvVarLineMarkerProvider implements LineMarkerProvider {
     @Override
     @Nullable
     public LineMarkerInfo<?> getLineMarkerInfo(@Nonnull PsiElement element) {
-        if (PlatformPatterns.or(
-            psiElement(PropertyValueImpl.class),
-            psiElement(LeafPsiElement.class).withParent(YAMLPlainTextImpl.class),
-            psiElement(PsiLiteralExpression.class).insideAnnotationParam("org.springframework.beans.factory.annotation.Value")).accepts(element)) {
+        if (EnvVarCompletionContributor.KEYVAULT_SECRET_ENV_VAR_PLACES.accepts(element)) {
             final Module module = ModuleUtil.findModuleForPsiElement(element);
             if (Objects.isNull(module)) {
                 return null;

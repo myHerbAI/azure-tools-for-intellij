@@ -14,6 +14,11 @@
         <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.keyvault.property.key.KeyVersionPropertiesEditorProvider"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
+        <completion.confidence id="azKeyVaultValueAnnotation" language="JAVA"
+                               implementationClass="com.microsoft.azure.toolkit.intellij.keyvault.code.spring.EnvVarConfidence"
+                               order="before javaSkipAutopopupInStrings"/>
+        <completion.contributor language="JAVA" id="azKeyVaultAnnotationCompletion" order="before azStorageStringLiteral, first"
+                                implementationClass="com.microsoft.azure.toolkit.intellij.keyvault.code.spring.EnvVarCompletionContributor"/>
         <completion.contributor language="Properties" id="azKeyVaultPropertiesCompletion" order="before azPropertiesCompletion, first"
                                 implementationClass="com.microsoft.azure.toolkit.intellij.keyvault.code.spring.EnvVarCompletionContributor"/>
         <completion.contributor language="yaml" id="azKeyVaultYamlCompletion" order="first, before azYamlCompletion"

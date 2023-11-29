@@ -14,9 +14,8 @@ import com.intellij.lang.properties.psi.impl.PropertiesFileImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.roots.OrderEnumerator;
-import com.intellij.patterns.ElementPattern;
-import com.intellij.patterns.PlatformPatterns;
-import com.intellij.patterns.PsiElementPattern;
+import com.intellij.patterns.*;
+import com.intellij.psi.JavaTokenType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
@@ -46,19 +45,22 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.intellij.patterns.PsiJavaPatterns.literalExpression;
 import static com.microsoft.azure.toolkit.intellij.connector.code.spring.PropertiesCompletionContributor.APPLICATION_PROPERTIES_FILE;
 import static com.microsoft.azure.toolkit.intellij.connector.code.spring.YamlCompletionContributor.APPLICATION_YAML_FILE;
 
 public class EnvVarCompletionContributor extends CompletionContributor {
 
+    public static final String VALUE_ANNOTATION = "org.springframework.beans.factory.annotation.Value";
     public static final List<Character> SPECIAL_CHARS = Arrays.asList('$', '{');
     public static final PsiElementPattern.Capture<PsiElement> PROPERTY_VALUE = PlatformPatterns.psiElement(PropertiesTokenTypes.VALUE_CHARACTERS).inFile(APPLICATION_PROPERTIES_FILE);
     public static final PsiElementPattern.Capture<PsiElement> YAML_VALUE = PlatformPatterns.psiElement(YAMLTokenTypes.TEXT).withSuperParent(2, PlatformPatterns.psiElement(YAMLKeyValue.class)).inFile(APPLICATION_YAML_FILE);
-    public static final ElementPattern<PsiElement> SPRING_CONFIG_VALUE_PLACES = PlatformPatterns.or(PROPERTY_VALUE, YAML_VALUE);
+    public static final PsiJavaElementPattern.Capture<PsiElement> ANNOTATION_VALUE = PsiJavaPatterns.psiElement(JavaTokenType.STRING_LITERAL).withParent(literalExpression()).insideAnnotationParam(VALUE_ANNOTATION);
+    public static final ElementPattern<PsiElement> KEYVAULT_SECRET_ENV_VAR_PLACES = PlatformPatterns.or(PROPERTY_VALUE, YAML_VALUE, ANNOTATION_VALUE);
 
     public EnvVarCompletionContributor() {
         super();
-        extend(CompletionType.BASIC, SPRING_CONFIG_VALUE_PLACES, new EnvVarCompletionProvider());
+        extend(CompletionType.BASIC, KEYVAULT_SECRET_ENV_VAR_PLACES, new EnvVarCompletionProvider());
     }
 
     private static class EnvVarCompletionProvider extends CompletionProvider<CompletionParameters> {

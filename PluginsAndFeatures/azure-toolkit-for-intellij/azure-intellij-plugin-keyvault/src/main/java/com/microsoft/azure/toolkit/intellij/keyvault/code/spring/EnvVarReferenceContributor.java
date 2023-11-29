@@ -10,11 +10,13 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.patterns.PlatformPatterns;
+import com.intellij.patterns.PsiJavaPatterns;
 import com.intellij.psi.*;
 import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.keyvault.connection.KeyVaultResourceDefinition;
+import org.jetbrains.yaml.psi.YAMLKeyValue;
 import org.jetbrains.yaml.psi.impl.YAMLPlainTextImpl;
 
 import javax.annotation.Nonnull;
@@ -25,7 +27,9 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.intellij.patterns.PsiJavaPatterns.psiElement;
+import static com.microsoft.azure.toolkit.intellij.connector.code.spring.PropertiesCompletionContributor.APPLICATION_PROPERTIES_FILE;
+import static com.microsoft.azure.toolkit.intellij.connector.code.spring.YamlCompletionContributor.APPLICATION_YAML_FILE;
+import static com.microsoft.azure.toolkit.intellij.keyvault.code.spring.EnvVarCompletionContributor.VALUE_ANNOTATION;
 
 public class EnvVarReferenceContributor extends PsiReferenceContributor {
     static final Pattern pattern = Pattern.compile("\\$\\{[A-Za-z0-9-]{1,127}}");
@@ -34,10 +38,10 @@ public class EnvVarReferenceContributor extends PsiReferenceContributor {
     public void registerReferenceProviders(@Nonnull PsiReferenceRegistrar registrar) {
         registrar.registerReferenceProvider(
             PlatformPatterns.or(
-                psiElement(PropertyValueImpl.class),
-                psiElement(YAMLPlainTextImpl.class),
-                psiElement(PsiLiteralExpression.class)
-            ),
+                PlatformPatterns.psiElement(PropertyValueImpl.class).inFile(APPLICATION_PROPERTIES_FILE),
+                PlatformPatterns.psiElement(YAMLPlainTextImpl.class).withParent(PlatformPatterns.psiElement(YAMLKeyValue.class)).inFile(APPLICATION_YAML_FILE),
+                PsiJavaPatterns.psiElement(PsiLiteralExpression.class).insideAnnotationParam(VALUE_ANNOTATION)
+            ), // NOTE: not sure why KEYVAULT_SECRET_ENV_VAR_PLACES (uses token types) doesn't work
             new PsiReferenceProvider() {
                 @Override
                 public PsiReference[] getReferencesByElement(@Nonnull PsiElement element, @Nonnull ProcessingContext context) {

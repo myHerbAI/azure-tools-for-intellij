@@ -10,6 +10,7 @@ import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.lang.properties.psi.impl.PropertiesFileImpl;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
 import org.jetbrains.yaml.psi.impl.YAMLFileImpl;
 
 import java.util.Objects;
@@ -19,11 +20,11 @@ public class EnvVarCharFilter extends CharFilter {
     public Result acceptChar(char c, final int prefixLength, final Lookup lookup) {
         final PsiFile file = lookup.getPsiFile();
         final PsiElement ele = lookup.getPsiElement();
-        if (Objects.isNull(ele) || !(EnvVarCompletionContributor.SPECIAL_CHARS.contains(c) && (file instanceof PropertiesFileImpl || file instanceof YAMLFileImpl))) {
+        if (Objects.isNull(ele) || !(EnvVarCompletionContributor.SPECIAL_CHARS.contains(c) && (file instanceof PropertiesFileImpl || file instanceof YAMLFileImpl || file instanceof PsiJavaFile))) {
             return null;
         }
         final String text = ele.getText();
-        if (EnvVarCompletionContributor.SPRING_CONFIG_VALUE_PLACES.accepts(ele) && (c == '$' || (text.endsWith("$") && c == '{'))) {
+        if (EnvVarCompletionContributor.KEYVAULT_SECRET_ENV_VAR_PLACES.accepts(ele) && (c == '$' || (text.endsWith("$") && c == '{'))) {
             return Result.ADD_TO_PREFIX;
         }
         return null;
