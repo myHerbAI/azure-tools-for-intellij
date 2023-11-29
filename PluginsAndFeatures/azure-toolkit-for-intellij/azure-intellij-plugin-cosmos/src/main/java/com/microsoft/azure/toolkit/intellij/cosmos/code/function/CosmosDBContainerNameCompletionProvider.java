@@ -24,7 +24,6 @@ import com.intellij.util.ProcessingContext;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
-import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.intellij.connector.code.Utils;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationCompletionConfidence;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationTypeHandler;
@@ -83,8 +82,7 @@ public class CosmosDBContainerNameCompletionProvider extends CompletionProvider<
             return;
         }
         final List<SqlDatabase> databasesToSearch = Objects.nonNull(database) ? List.of(database) :
-                AzureModule.from(module).getConnections(SqlCosmosDBAccountResourceDefinition.INSTANCE).stream()
-                    .filter(Connection::isValidConnection).map(Connection::getResource).map(Resource::getData).toList();
+                AzureModule.from(module).getConnectedResources(SqlCosmosDBAccountResourceDefinition.INSTANCE);
         databasesToSearch.stream()
                 .flatMap(db -> db.containers().list().stream())
                 .map(container -> createLookupElement(container, module))
