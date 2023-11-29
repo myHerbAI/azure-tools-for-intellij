@@ -25,9 +25,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.C
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.canBePublishedToAzure
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.toRuntime
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
-import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
-import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
+import com.microsoft.azure.toolkit.lib.appservice.model.*
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput
 import com.microsoft.azure.toolkit.lib.common.model.Region
@@ -157,9 +155,7 @@ class AppServiceInfoAdvancedPanel<T>(
         config.subscription = subscription
         config.resourceGroup = ResourceGroupConfig.fromResource(resourceGroup)
         config.name = name
-        config.runtime =
-                if (projectModel != null) projectModel.toRuntime(project, os)
-                else Runtime(os, null, null)
+        config.runtime = Runtime(os, WebContainer.JAVA_OFF, JavaVersion.OFF)
         config.region = region
         val planConfig = AppServicePlanConfig.fromResource(servicePlan)
         if (planConfig != null && servicePlan?.isDraftForCreating == true) {

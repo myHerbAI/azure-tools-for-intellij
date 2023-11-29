@@ -41,11 +41,10 @@ class WebAppSettingPanel(private val project: Project, configuration: WebAppConf
         val runConfigurationModel = webAppPanel.value
         val projectConfiguration = webAppPanel.getSelectedConfiguration()
         val projectPlatform = webAppPanel.getSelectedPlatform()
-        val projectModel = runConfigurationModel.artifactConfig?.let {
+        val publishableProject = runConfigurationModel.artifactConfig?.let {
             val artifactId = it.artifactIdentifier.toIntOrNull() ?: return@let null
             project.solution.publishableProjectsModel.publishableProjects.values
                     .firstOrNull { p -> p.projectModelId == artifactId }
-                    ?.also { p -> configuration.saveProject(p) }
         }
 
         configuration.appSettingsKey = appSettingsKey
@@ -54,7 +53,7 @@ class WebAppSettingPanel(private val project: Project, configuration: WebAppConf
             configuration.subscriptionId = it.subscriptionId
             configuration.resourceGroup = it.resourceGroupName
             configuration.webAppName = it.name
-            configuration.saveRuntime(it.runtime, projectModel)
+            configuration.runtime = it.runtime
             configuration.applicationSettings = it.appSettings
             configuration.appSettingsToRemove = it.appSettingsToRemove
             configuration.isCreatingNew = it.resourceId.isNullOrEmpty()
@@ -86,6 +85,7 @@ class WebAppSettingPanel(private val project: Project, configuration: WebAppConf
         configuration.isOpenBrowserAfterDeployment = runConfigurationModel.isOpenBrowserAfterDeployment
         configuration.projectConfiguration = projectConfiguration
         configuration.projectPlatform = projectPlatform
+        configuration.publishableProject = publishableProject
     }
 
     override fun reset(configuration: WebAppConfiguration) {
@@ -102,14 +102,13 @@ class WebAppSettingPanel(private val project: Project, configuration: WebAppConf
                 .region(region)
                 .build()
         val pricingTier = if (configuration.pricing.isNotEmpty()) PricingTier.fromString(configuration.pricing) else null
-        val runtime = configuration.getRuntime
         val plan = AppServicePlanConfig
                 .builder()
                 .subscriptionId(subscription.id)
                 .name(configuration.appServicePlanName)
                 .resourceGroupName(resourceGroupName)
                 .region(region)
-                .os(configuration.operatingSystem)
+                .os(configuration.runtime?.operatingSystem)
                 .pricingTier(pricingTier)
                 .build()
         val slotConfig = if (configuration.isDeployToSlot) {
@@ -132,7 +131,7 @@ class WebAppSettingPanel(private val project: Project, configuration: WebAppConf
                 .resourceId(configuration.webAppId)
                 .subscription(subscription)
                 .resourceGroup(resourceGroup)
-                .runtime(runtime)
+                .runtime(configuration.runtime)
                 .servicePlan(plan)
                 .deploymentSlot(slotConfig)
                 .appSettings(configuration.applicationSettings)
@@ -142,7 +141,7 @@ class WebAppSettingPanel(private val project: Project, configuration: WebAppConf
                 else configBuilder.build()
         val artifactConfig = AzureArtifactConfig
                 .builder()
-                .artifactIdentifier(configuration.getProjectId()?.toString() ?: "")
+                .artifactIdentifier(configuration.publishableProject?.projectModelId?.toString() ?: "")
                 .build()
         val runConfigurationModel = WebAppDeployRunConfigurationModel
                 .builder()

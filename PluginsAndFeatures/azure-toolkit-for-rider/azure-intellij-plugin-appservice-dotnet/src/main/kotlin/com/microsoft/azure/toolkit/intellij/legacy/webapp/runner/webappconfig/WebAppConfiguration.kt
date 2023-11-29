@@ -31,7 +31,7 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         private const val SLOT_NAME_REGEX_PATTERN = "[a-zA-Z0-9-]{1,60}"
     }
 
-    val webAppPublishModel = WebAppPublishModel()
+    private val webAppPublishModel = WebAppPublishModel()
 
     private val slotNameRegex = Regex(SLOT_NAME_REGEX_PATTERN)
 
@@ -65,8 +65,6 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         set(value) {
             webAppPublishModel.pricing = value
         }
-    val operatingSystem: OperatingSystem?
-        get() = OperatingSystem.fromString(webAppPublishModel.operatingSystem)
     var appServicePlanName: String?
         get() = webAppPublishModel.appServicePlanName
         set(value) {
@@ -122,6 +120,16 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         set(value) {
             webAppPublishModel.appSettingsKey = value
         }
+    var appSettingsToRemove: Set<String>
+        get() = webAppPublishModel.appSettingsToRemove
+        set(value) {
+            webAppPublishModel.appSettingsToRemove = value
+        }
+    var runtime: Runtime?
+        get() = webAppPublishModel.runtime
+        set(value) {
+            webAppPublishModel.saveRuntime(runtime)
+        }
     var projectConfiguration: String
         get() = webAppPublishModel.projectConfiguration
         set(value) {
@@ -132,26 +140,11 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         set(value) {
             webAppPublishModel.projectPlatform = value
         }
-    var appSettingsToRemove: Set<String>
-        get() = webAppPublishModel.appSettingsToRemove
+    var publishableProject: PublishableProjectModel?
+        get() = webAppPublishModel.publishableProject
         set(value) {
-            webAppPublishModel.appSettingsToRemove = value
+            webAppPublishModel.publishableProject = value
         }
-    val getRuntime: Runtime?
-        get() = webAppPublishModel.runtime
-
-    fun saveRuntime(runtime: Runtime?, projectModel: PublishableProjectModel?) {
-        if (runtime == null || projectModel == null) webAppPublishModel.saveRuntime(null)
-        else webAppPublishModel.saveRuntime(projectModel.toRuntime(project, runtime.operatingSystem))
-    }
-
-    fun getProjectId(): Int? = project.solution.publishableProjectsModel.publishableProjects.values
-            .firstOrNull { p -> p.projectFilePath == webAppPublishModel.projectPath }
-            ?.projectModelId
-
-    fun saveProject(projectModel: PublishableProjectModel) {
-        webAppPublishModel.projectPath = projectModel.projectFilePath
-    }
 
     override fun getState(executor: Executor, executionEnvironment: ExecutionEnvironment) =
             WebAppRunState(project, this)
@@ -192,7 +185,7 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
             }
 
             if (OperatingSystem.fromString(operatingSystem) == OperatingSystem.DOCKER) throw ConfigurationException("Invalid target, please change to use `Deploy Image to Web App` for docker web app")
-            if (projectPath.isEmpty()) throw ConfigurationException("Choose a project to deploy")
+            if (publishableProject == null) throw ConfigurationException("Choose a project to deploy")
         }
     }
 
@@ -201,6 +194,7 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         webAppName = webApp.name
         subscriptionId = webApp.subscriptionId
         resourceGroup = webApp.resourceGroupName
+        webApp.runtime?.let { runtime = it }
         webApp.appServicePlan?.let {
             appServicePlanName = it.name
             appServicePlanResourceGroupName = it.resourceGroupName
