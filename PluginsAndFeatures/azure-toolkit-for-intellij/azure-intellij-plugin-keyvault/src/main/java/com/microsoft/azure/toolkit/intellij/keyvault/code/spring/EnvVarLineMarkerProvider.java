@@ -12,6 +12,9 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.psi.PsiElement;
+import com.microsoft.azure.toolkit.intellij.connector.code.Utils;
+import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
+import com.microsoft.azure.toolkit.intellij.keyvault.connection.KeyVaultResourceDefinition;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.keyvault.secret.Secret;
@@ -33,7 +36,9 @@ public class EnvVarLineMarkerProvider implements LineMarkerProvider {
     public LineMarkerInfo<?> getLineMarkerInfo(@Nonnull PsiElement element) {
         if (EnvVarCompletionContributor.KEYVAULT_SECRET_ENV_VAR_PLACES.accepts(element)) {
             final Module module = ModuleUtil.findModuleForPsiElement(element);
-            if (Objects.isNull(module)) {
+            if (Objects.isNull(module)
+                || !AzureModule.from(module).hasValidConnections(KeyVaultResourceDefinition.INSTANCE)
+                || !Utils.hasEnvVars(element.getText())) {
                 return null;
             }
             final List<EnvVarReference> references = EnvVarReferenceContributor.getEnvVarReferences(element);

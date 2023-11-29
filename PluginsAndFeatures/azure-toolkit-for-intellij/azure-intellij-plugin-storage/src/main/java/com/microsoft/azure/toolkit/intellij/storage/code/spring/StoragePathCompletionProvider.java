@@ -32,6 +32,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
@@ -166,11 +167,10 @@ public class StoragePathCompletionProvider extends CompletionProvider<Completion
         private final Resource<StorageAccount> account;
 
         @Override
+        @AzureOperation("user/connector.connect_storage_account_from_code_completion")
         public void handleInsert(@Nonnull InsertionContext context, @Nonnull LookupElement item) {
             context.getDocument().deleteString(context.getStartOffset(), context.getTailOffset());
-            final Module module = ModuleUtil.findModuleForFile(context.getFile());
-            Optional.ofNullable(ModuleUtil.findModuleForFile(context.getFile()))
-                .map(AzureModule::from)
+            Optional.ofNullable(ModuleUtil.findModuleForFile(context.getFile())).map(AzureModule::from)
                 .ifPresent(m -> m.connect(account,
                     (c) -> AutoPopupController.getInstance(context.getProject()).scheduleAutoPopup(context.getEditor())));
         }

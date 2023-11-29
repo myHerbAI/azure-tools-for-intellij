@@ -6,14 +6,12 @@
 package com.microsoft.azure.toolkit.intellij.keyvault.code.spring;
 
 import com.intellij.lang.properties.psi.impl.PropertyValueImpl;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.patterns.PsiJavaPatterns;
 import com.intellij.psi.*;
 import com.intellij.util.ProcessingContext;
-import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.keyvault.connection.KeyVaultResourceDefinition;
 import org.jetbrains.yaml.psi.YAMLKeyValue;
@@ -55,10 +53,8 @@ public class EnvVarReferenceContributor extends PsiReferenceContributor {
     @Nonnull
     static List<EnvVarReference> getEnvVarReferences(final @Nonnull PsiElement element) {
         final String text = element.getText();
-        final Module module = ModuleUtil.findModuleForPsiElement(element);
-        final boolean hasVaults = Optional.ofNullable(ModuleUtil.findModuleForPsiElement(element)).map(AzureModule::from).stream()
-            .flatMap(m -> m.getConnections(KeyVaultResourceDefinition.INSTANCE).stream())
-            .anyMatch(Connection::isValidConnection);
+        final boolean hasVaults = Optional.ofNullable(ModuleUtil.findModuleForPsiElement(element)).map(AzureModule::from)
+            .map(m -> m.hasValidConnections(KeyVaultResourceDefinition.INSTANCE)).orElse(false);
         if (EnvVarCompletionContributor.hasEnvVars(text) && hasVaults) {
             return getEnvVarRanges(element.getText()).stream()
                 .map(r -> new EnvVarReference(element, r))
