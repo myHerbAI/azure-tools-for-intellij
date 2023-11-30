@@ -18,7 +18,6 @@ import com.microsoft.azure.toolkit.intellij.common.dotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.canBePublishedToAzure
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.toRuntime
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
@@ -62,8 +61,8 @@ class AppServiceInfoBasicPanel<T>(
                 }
                 operatingSystemGroup = buttonsGroup {
                     row("Operating System:") {
-                        windowsRadioButton = radioButton("Windows", OperatingSystem.WINDOWS)
                         linuxRadioButton = radioButton("Linux", OperatingSystem.LINUX)
+                        windowsRadioButton = radioButton("Windows", OperatingSystem.WINDOWS)
                     }
                 }.bind(::operatingSystem)
             }

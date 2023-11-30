@@ -23,7 +23,6 @@ import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.Servic
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.canBePublishedToAzure
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.toRuntime
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.*
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
@@ -106,9 +105,9 @@ class AppServiceInfoAdvancedPanel<T>(
                 }
                 operatingSystemGroup = buttonsGroup {
                     row("Operating System:") {
+                        linuxRadioButton = radioButton("Linux", OperatingSystem.LINUX)
                         windowsRadioButton = radioButton("Windows", OperatingSystem.WINDOWS)
                         windowsRadioButton.component.addItemListener { onOperatingSystemChanged(it) }
-                        linuxRadioButton = radioButton("Linux", OperatingSystem.LINUX)
                     }
                 }.bind(::operatingSystem)
                 row("Region:") {

@@ -128,7 +128,7 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
     var runtime: Runtime?
         get() = webAppPublishModel.runtime
         set(value) {
-            webAppPublishModel.saveRuntime(runtime)
+            webAppPublishModel.saveRuntime(value)
         }
     var projectConfiguration: String
         get() = webAppPublishModel.projectConfiguration

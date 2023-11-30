@@ -5,6 +5,7 @@
 package com.microsoft.azure.toolkit.intellij.appservice.webapp
 
 import com.azure.resourcemanager.appservice.models.WebApp.DefinitionStages
+import com.azure.resourcemanager.appservice.models.WebAppRuntimeStack
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration
@@ -92,17 +93,20 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
         runtime: DotNetRuntime
     ) = when (os) {
         OperatingSystem.LINUX -> {
+            val stack = requireNotNull(runtime.stack) { "Unable to configure web app runtime" }
             blank
                 .withExistingLinuxPlan(plan.remote)
                 .withExistingResourceGroup(resourceGroupName)
-                .withBuiltInImage(runtime.toRuntimeStack())
+                .withBuiltInImage(stack)
         }
 
         OperatingSystem.WINDOWS -> {
+            val frameworkVersion = requireNotNull(runtime.frameworkVersion) { "Unable to configure web app runtime" }
             blank
                 .withExistingWindowsPlan(plan.remote)
                 .withExistingResourceGroup(resourceGroupName)
-                .withNetFrameworkVersion(runtime.toNetFrameworkVersion())
+                .withRuntimeStack(WebAppRuntimeStack.NET)
+                .withNetFrameworkVersion(frameworkVersion)
         }
 
         OperatingSystem.DOCKER -> throw AzureToolkitRuntimeException("Unsupported operating system $os")

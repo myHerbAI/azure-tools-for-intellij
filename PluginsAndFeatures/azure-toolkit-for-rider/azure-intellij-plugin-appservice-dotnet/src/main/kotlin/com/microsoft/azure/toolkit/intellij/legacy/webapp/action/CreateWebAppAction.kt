@@ -42,30 +42,30 @@ class CreateWebAppAction {
                         .withSource(WebAppConfig::getResourceGroup)
                         .withAuthRequired(true)
                         .withHandler { config ->
-                            try {
-                                CacheManager.getUsageHistory(WebAppConfig::class.java).push(config)
-                                val webApp = WebAppService.getInstance().createWebApp(config)
-                                val projectModel = project.solution.publishableProjectsModel.publishableProjects.values
-                                        .firstOrNull { Path.of(it.projectFilePath) == config.application }
-                                val projectConfiguration = config.appSettings[RIDER_PROJECT_CONFIGURATION]
-                                if (projectConfiguration != null) config.appSettings.remove(RIDER_PROJECT_CONFIGURATION)
-                                val projectPlatform = config.appSettings[RIDER_PROJECT_PLATFORM]
-                                if (projectConfiguration != null) config.appSettings.remove(RIDER_PROJECT_PLATFORM)
-
-                                if (projectModel != null && projectConfiguration != null && projectPlatform != null) {
-                                    Action(Action.Id.of<WebApp>("user/webapp.deploy_artifact.app"))
-                                            .withIdParam(WebApp::getName)
-                                            .withSource { s -> s }
-                                            .withAuthRequired(true)
-                                            .withHandler { app -> deploy(app, projectModel, projectConfiguration, projectPlatform, project) }
-                                            .handle(webApp)
-                                }
-                            } catch (ex: Exception) {
-                                val action = Action(Action.Id.of<Any>("user/webapp.reopen_creation_dialog"))
-                                        .withLabel("Reopen dialog ${dialog.title}")
-                                        .withHandler { openDialog(project, config) }
-                                AzureMessager.getMessager().error(ex, null, action)
-                            }
+//                            try {
+//                                CacheManager.getUsageHistory(WebAppConfig::class.java).push(config)
+//                                val webApp = WebAppService.getInstance().createWebApp(config)
+//                                val projectModel = project.solution.publishableProjectsModel.publishableProjects.values
+//                                        .firstOrNull { Path.of(it.projectFilePath) == config.application }
+//                                val projectConfiguration = config.appSettings[RIDER_PROJECT_CONFIGURATION]
+//                                if (projectConfiguration != null) config.appSettings.remove(RIDER_PROJECT_CONFIGURATION)
+//                                val projectPlatform = config.appSettings[RIDER_PROJECT_PLATFORM]
+//                                if (projectConfiguration != null) config.appSettings.remove(RIDER_PROJECT_PLATFORM)
+//
+//                                if (projectModel != null && projectConfiguration != null && projectPlatform != null) {
+//                                    Action(Action.Id.of<WebApp>("user/webapp.deploy_artifact.app"))
+//                                            .withIdParam(WebApp::getName)
+//                                            .withSource { s -> s }
+//                                            .withAuthRequired(true)
+//                                            .withHandler { app -> deploy(app, projectModel, projectConfiguration, projectPlatform, project) }
+//                                            .handle(webApp)
+//                                }
+//                            } catch (ex: Exception) {
+//                                val action = Action(Action.Id.of<Any>("user/webapp.reopen_creation_dialog"))
+//                                        .withLabel("Reopen dialog ${dialog.title}")
+//                                        .withHandler { openDialog(project, config) }
+//                                AzureMessager.getMessager().error(ex, null, action)
+//                            }
                         }
                 )
                 dialog.show()

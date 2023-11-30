@@ -4,10 +4,12 @@
 
 package com.microsoft.azure.toolkit.intellij.appservice.webapp
 
+import com.azure.resourcemanager.appservice.models.NetFrameworkVersion
+import com.azure.resourcemanager.appservice.models.RuntimeStack
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 
 class DotNetRuntimeConfig: RuntimeConfig() {
     var isDocker: Boolean = false
-    var stack: String? = null
-    var version: String? = null
+    var stack: RuntimeStack? = null
+    var frameworkVersion: NetFrameworkVersion? = null
 }

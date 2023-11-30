@@ -8,10 +8,7 @@ import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanDraft
-import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDraft
+import com.microsoft.azure.toolkit.lib.appservice.webapp.*
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask
@@ -43,11 +40,9 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
     }
 
     private fun create(): WebApp {
-        val region = config.region()
+        CreateResourceGroupTask(config.subscriptionId(), config.resourceGroup(), config.region()).doExecute()
+
         val planConfig = config.servicePlanConfig
-
-        CreateResourceGroupTask(config.subscriptionId(), config.resourceGroup(), region).doExecute()
-
         val planDraft = Azure.az(AzureAppService::class.java)
             .plans(planConfig.subscriptionId)
             .updateOrCreate<AppServicePlanDraft>(planConfig.name, planConfig.resourceGroupName)
@@ -67,6 +62,16 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
         return appDraft.createIfNotExist()
     }
 
+    private fun WebAppDraft.toDotNetWebAppDraft(): DotNetWebAppDraft {
+        val draftOrigin = origin
+        val draft =
+            if (draftOrigin != null) DotNetWebAppDraft(draftOrigin)
+            else DotNetWebAppDraft(name, resourceGroupName, module as WebAppModule)
+        //todo: fill other fields
+
+        return draft
+    }
+
     private fun update(webApp: WebApp): WebApp {
         throw NotImplementedError()
     }
@@ -75,9 +80,19 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
         if (runtimeConfig == null) return null
 
         return if (!runtimeConfig.isDocker) {
-            DotNetRuntime(runtimeConfig.os(), runtimeConfig.stack, runtimeConfig.version, false)
+            DotNetRuntime(
+                runtimeConfig.os(),
+                runtimeConfig.stack,
+                runtimeConfig.frameworkVersion,
+                false
+            )
         } else {
-            DotNetRuntime(runtimeConfig.os(), null, null, true)
+            DotNetRuntime(
+                runtimeConfig.os(),
+                null,
+                null,
+                true
+            )
         }
     }
 

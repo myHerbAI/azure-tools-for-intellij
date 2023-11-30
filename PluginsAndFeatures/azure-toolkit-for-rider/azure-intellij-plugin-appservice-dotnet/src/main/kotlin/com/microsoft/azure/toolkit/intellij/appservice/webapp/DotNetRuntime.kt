@@ -10,18 +10,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 
 data class DotNetRuntime(
     val operatingSystem: OperatingSystem,
-    val stack: String?,
-    val version: String?,
+    val stack: RuntimeStack?,
+    val frameworkVersion: NetFrameworkVersion?,
     val isDocker: Boolean
 )
-
-fun DotNetRuntime.toRuntimeStack(): RuntimeStack {
-    val runtimeStack = requireNotNull(stack) { "Runtime stack cannot be null" }
-    val runtimeVersion = requireNotNull(version) { "Runtime version cannot be null" }
-    return RuntimeStack(runtimeStack, runtimeVersion)
-}
-
-fun DotNetRuntime.toNetFrameworkVersion(): NetFrameworkVersion {
-    val runtimeVersion = requireNotNull(version) { "Runtime version cannot be null" }
-    return NetFrameworkVersion.fromString("v$runtimeVersion")
-}
