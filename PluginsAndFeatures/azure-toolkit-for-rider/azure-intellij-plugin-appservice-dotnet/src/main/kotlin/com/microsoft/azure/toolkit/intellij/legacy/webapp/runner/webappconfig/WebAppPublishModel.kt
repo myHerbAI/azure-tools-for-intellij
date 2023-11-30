@@ -4,7 +4,6 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
-import com.jetbrains.rider.model.PublishableProjectModel
 import com.microsoft.azuretools.core.mvp.model.webapp.WebAppSettingModel
 import java.util.*
 
@@ -14,7 +13,7 @@ class WebAppPublishModel : WebAppSettingModel() {
     var appSettingsToRemove: Set<String> = setOf()
     var isOpenBrowserAfterDeployment: Boolean = true
     var slotPanelVisible: Boolean = true
-    var publishableProject: PublishableProjectModel? = null
+    var publishableProjectPath: String? = null
     var projectConfiguration: String = ""
     var projectPlatform: String = ""
 }

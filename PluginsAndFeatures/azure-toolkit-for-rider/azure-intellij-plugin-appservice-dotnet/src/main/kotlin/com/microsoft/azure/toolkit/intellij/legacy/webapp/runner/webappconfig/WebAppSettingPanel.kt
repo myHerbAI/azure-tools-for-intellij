@@ -85,11 +85,14 @@ class WebAppSettingPanel(private val project: Project, configuration: WebAppConf
         configuration.isOpenBrowserAfterDeployment = runConfigurationModel.isOpenBrowserAfterDeployment
         configuration.projectConfiguration = projectConfiguration
         configuration.projectPlatform = projectPlatform
-        configuration.publishableProject = publishableProject
+        configuration.publishableProjectPath = publishableProject?.projectFilePath
     }
 
     override fun reset(configuration: WebAppConfiguration) {
         if (configuration.webAppId.isNullOrEmpty() && configuration.webAppName.isEmpty()) return
+
+        val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
+            .firstOrNull { p -> p.projectFilePath == configuration.publishableProjectPath }
 
         appSettingsKey = configuration.appSettingsKey
         val subscription = Subscription(configuration.subscriptionId)
@@ -141,7 +144,7 @@ class WebAppSettingPanel(private val project: Project, configuration: WebAppConf
                 else configBuilder.build()
         val artifactConfig = AzureArtifactConfig
                 .builder()
-                .artifactIdentifier(configuration.publishableProject?.projectModelId?.toString() ?: "")
+                .artifactIdentifier(publishableProject?.projectModelId?.toString() ?: "")
                 .build()
         val runConfigurationModel = WebAppDeployRunConfigurationModel
                 .builder()

@@ -38,7 +38,7 @@ class WebAppContextPublishProvider : RiderContextPublishProvider {
         val configuration =
             WebAppConfiguration(project, factory, "Publish ${projectData.value.projectName} to Azure")
 
-        configuration.publishableProject = projectData.value
+        configuration.publishableProjectPath = projectData.value.projectFilePath
 
         return Pair(configuration, factory)
     }

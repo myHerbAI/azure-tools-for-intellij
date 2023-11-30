@@ -12,9 +12,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
-import com.jetbrains.rider.model.PublishableProjectModel
-import com.jetbrains.rider.model.publishableProjectsModel
-import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.intellij.common.runconfig.IWebAppRunConfiguration
 import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunConfigurationBase
@@ -25,8 +22,8 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
 
 
 class WebAppConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
-        RiderAzureRunConfigurationBase<WebAppPublishModel>(project, factory, name), IWebAppRunConfiguration,
-        IConnectionAware {
+    RiderAzureRunConfigurationBase<WebAppPublishModel>(project, factory, name), IWebAppRunConfiguration,
+    IConnectionAware {
     companion object {
         private const val SLOT_NAME_REGEX_PATTERN = "[a-zA-Z0-9-]{1,60}"
     }
@@ -140,17 +137,17 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         set(value) {
             webAppPublishModel.projectPlatform = value
         }
-    var publishableProject: PublishableProjectModel?
-        get() = webAppPublishModel.publishableProject
+    var publishableProjectPath: String?
+        get() = webAppPublishModel.publishableProjectPath
         set(value) {
-            webAppPublishModel.publishableProject = value
+            webAppPublishModel.publishableProjectPath = value
         }
 
     override fun getState(executor: Executor, executionEnvironment: ExecutionEnvironment) =
-            WebAppRunState(project, this)
+        WebAppRunState(project, this)
 
     override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> =
-            WebAppSettingEditor(project, this)
+        WebAppSettingEditor(project, this)
 
     override fun getModel() = webAppPublishModel
 
@@ -185,7 +182,7 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
             }
 
             if (OperatingSystem.fromString(operatingSystem) == OperatingSystem.DOCKER) throw ConfigurationException("Invalid target, please change to use `Deploy Image to Web App` for docker web app")
-            if (publishableProject == null) throw ConfigurationException("Choose a project to deploy")
+            if (publishableProjectPath == null) throw ConfigurationException("Choose a project to deploy")
         }
     }
 

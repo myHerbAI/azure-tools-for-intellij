@@ -7,6 +7,9 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.jetbrains.rider.model.PublishableProjectModel
+import com.jetbrains.rider.model.publishableProjectsModel
+import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.CreateOrUpdateDotNetWebAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetAppServiceConfig
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetRuntimeConfig
@@ -36,8 +39,12 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
     override fun executeSteps(processHandler: RunProcessHandler): WebAppBase<*, *, *> {
         OperationContext.current().setMessager(processHandlerMessenger)
 
-        val publishableProject = publishModel.publishableProject
+        val publishableProjectPath = publishModel.publishableProjectPath
             ?: throw RuntimeException("Project is not defined")
+        val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
+            .firstOrNull { it.projectFilePath == publishableProjectPath }
+            ?: throw RuntimeException("Project is not defined")
+
         val zipFile = WebAppArtifactService.getInstance(project)
             .prepareArtifact(
                 publishableProject,
@@ -46,7 +53,7 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
                 processHandler
             )
 
-        val config = createDotNetAppServiceConfig()
+        val config = createDotNetAppServiceConfig(publishableProject)
         val createTask = CreateOrUpdateDotNetWebAppTask(config)
         val deployTarget = createTask.execute()
 //        updateApplicationSettings(deployTarget, processHandler)
@@ -64,7 +71,7 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
         return deployTarget
     }
 
-    private fun createDotNetAppServiceConfig(): DotNetAppServiceConfig {
+    private fun createDotNetAppServiceConfig(publishableProject: PublishableProjectModel): DotNetAppServiceConfig {
         return DotNetAppServiceConfig().apply {
             subscriptionId(publishModel.subscriptionId)
             resourceGroup(publishModel.resourceGroup)
@@ -74,7 +81,7 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
             pricingTier(PricingTier.fromString(publishModel.pricing))
             appName(publishModel.webAppName)
             runtime(createRuntimeConfig())
-            dotnetRuntime = createDotNetRuntimeConfig()
+            dotnetRuntime = createDotNetRuntimeConfig(publishableProject)
             appSettings(publishModel.appSettings)
         }
     }
@@ -85,13 +92,13 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
         webContainer(WebContainer.JAVA_OFF)
     }
 
-    private fun createDotNetRuntimeConfig() = DotNetRuntimeConfig().apply {
+    private fun createDotNetRuntimeConfig(publishableProject: PublishableProjectModel) = DotNetRuntimeConfig().apply {
         val operatingSystem = OperatingSystem.fromString(publishModel.operatingSystem)
         os(operatingSystem)
         javaVersion(JavaVersion.OFF)
         webContainer(WebContainer.JAVA_OFF)
         isDocker = false
-        val stackAndVersion = publishModel.publishableProject?.getStackAndVersion(project, operatingSystem)
+        val stackAndVersion = publishableProject.getStackAndVersion(project, operatingSystem)
         stack = stackAndVersion?.first
         frameworkVersion = stackAndVersion?.second
     }
