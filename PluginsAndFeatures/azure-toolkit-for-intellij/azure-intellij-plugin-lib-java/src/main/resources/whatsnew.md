@@ -7,7 +7,9 @@
   * Resource Management features in Azure explorer
     - Create new secret/certificate/key in toolkts
     - View/Download secret/certificate/key (need Azure CLI installed)
-  * Code assistance of Key Vault for Spring project
+  * Code assistance of Key Vault for Spring project    
+    <img alt="keyvault code assistance" src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202311/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib-java/src/main/resources/whatsnew.assets/202311.keyvaultcodeassistance.gif" width="1000"/>    
+    <img alt="create secret from plain text" src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202311/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib-java/src/main/resources/whatsnew.assets/202311.createsecretfromplaintext.gif" width="1000"/>
 
 ### Fixed
 - Get the error of "AzureToolkitRuntimeException" when opening project with resource connection configuration file
