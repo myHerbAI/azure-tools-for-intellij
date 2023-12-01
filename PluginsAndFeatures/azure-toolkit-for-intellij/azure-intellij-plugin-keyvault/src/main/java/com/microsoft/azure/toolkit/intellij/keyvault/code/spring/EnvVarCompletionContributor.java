@@ -77,22 +77,19 @@ public class EnvVarCompletionContributor extends CompletionContributor {
                 return;
             }
             final String prefix = result.getPrefixMatcher().getPrefix();
-            if (!StringUtils.contains(prefix, "$")) {
-                return;
-            } else {
+            if (StringUtils.isNotBlank(prefix) && StringUtils.contains(prefix, "$")) {
                 final String after = StringUtils.substringAfterLast(prefix, "$");
                 if (after.contains("}")) {
                     return;
-                } else {
-                    result = result.withPrefixMatcher("$" + after);
                 }
+                result = result.withPrefixMatcher("$" + after);
             }
             if (!Azure.az(AzureAccount.class).isLoggedIn()) {
-                result.withPrefixMatcher("").addElement(LookupElements.buildSignInLookupElement("Sign in to Azure to select Key Vault secrets..."));
+                result.withPrefixMatcher("").addElement(LookupElements.buildSignInLookupElement("Sign in to Azure to select secrets stored in Azure Key Vault..."));
                 return;
             }
             final List<KeyVault> vaults = AzureModule.from(module).getConnectedResources(KeyVaultResourceDefinition.INSTANCE);
-            if (vaults.isEmpty() && result.getPrefixMatcher().getPrefix().startsWith("$")) {
+            if (vaults.isEmpty()) {
                 result = result.withPrefixMatcher("");
                 listResourceForDefinition(module.getProject(), KeyVaultResourceDefinition.INSTANCE).stream()
                     .map(a -> LookupElementBuilder
