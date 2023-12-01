@@ -1,5 +1,19 @@
-<!-- Version: 3.82.0 -->
+<!-- Version: 3.83.0 -->
 # What's new in Azure Toolkit for IntelliJ
+
+## 3.83.0
+### Added
+- Add Azure Key Vault support in Azure Toolkits
+  * Resource Management features in Azure explorer
+    - Create new secret/certificate/key in toolkts
+    - View/Download secret/certificate/key (need Azure CLI installed)
+  * Code assistance of Key Vault for Spring project
+
+### Fixed
+- Get the error of "AzureToolkitRuntimeException" when opening project with resource connection configuration file
+- Get duplicate property key when connect resource from .properties
+- Generate deprecated configurations with code completions in spring properties
+- Build task will be removed for project with resource connection
 
 ## 3.82.0
 ### Added
