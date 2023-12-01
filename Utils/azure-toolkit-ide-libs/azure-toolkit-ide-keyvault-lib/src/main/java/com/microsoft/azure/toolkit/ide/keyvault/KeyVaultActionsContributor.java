@@ -192,7 +192,7 @@ public class KeyVaultActionsContributor implements IActionsContributor {
                 "---",
                 ResourceCommonActionsContributor.REFRESH,
                 "---",
-                am.getAction(ResourceCommonActionsContributor.CREATE).bind(null).withLabel("Create New Key"),
+                am.getAction(ResourceCommonActionsContributor.CREATE).bind(null).withLabel("Create New Version"),
                 ResourceCommonActionsContributor.DELETE,
                 "---",
                 ResourceCommonActionsContributor.SHOW_PROPERTIES,
