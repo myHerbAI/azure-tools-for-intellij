@@ -13,6 +13,7 @@ import com.intellij.lang.properties.parsing.PropertiesTokenTypes;
 import com.intellij.lang.properties.psi.impl.PropertiesFileImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.patterns.*;
 import com.intellij.psi.JavaTokenType;
 import com.intellij.psi.PsiElement;
@@ -25,13 +26,13 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.intellij.connector.code.LookupElements;
+import com.microsoft.azure.toolkit.intellij.connector.code.Utils;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.keyvault.connection.KeyVaultResourceDefinition;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.keyvault.KeyVault;
-import com.microsoft.azure.toolkit.lib.keyvault.secret.Secret;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.yaml.YAMLTokenTypes;
@@ -44,7 +45,6 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.intellij.patterns.PsiJavaPatterns.literalExpression;
-import static com.microsoft.azure.toolkit.intellij.connector.code.Utils.listResourceForDefinition;
 import static com.microsoft.azure.toolkit.intellij.connector.code.spring.PropertiesCompletionContributor.APPLICATION_PROPERTIES_FILE;
 import static com.microsoft.azure.toolkit.intellij.connector.code.spring.YamlCompletionContributor.APPLICATION_YAML_FILE;
 
@@ -76,6 +76,7 @@ public class EnvVarCompletionContributor extends CompletionContributor {
             if (Objects.isNull(module) || !AzureModule.from(module).hasDependencies(KEYVAULT_DEPENDENCY) || !isSecretSupported) {
                 return;
             }
+            ProgressManager.checkCanceled();
             final String prefix = result.getPrefixMatcher().getPrefix();
             if (StringUtils.isNotBlank(prefix) && StringUtils.contains(prefix, "$")) {
                 final String after = StringUtils.substringAfterLast(prefix, "$");
@@ -88,10 +89,11 @@ public class EnvVarCompletionContributor extends CompletionContributor {
                 result.withPrefixMatcher("").addElement(LookupElements.buildSignInLookupElement("Sign in to Azure to select secrets stored in Azure Key Vault..."));
                 return;
             }
-            final List<KeyVault> vaults = AzureModule.from(module).getConnectedResources(KeyVaultResourceDefinition.INSTANCE);
+            final List<KeyVault> vaults = Utils.getConnectedResources(module, KeyVaultResourceDefinition.INSTANCE);
+            ProgressManager.checkCanceled();
             if (vaults.isEmpty()) {
                 result = result.withPrefixMatcher("");
-                listResourceForDefinition(module.getProject(), KeyVaultResourceDefinition.INSTANCE).stream()
+                Utils.checkCancelled(() -> KeyVaultResourceDefinition.INSTANCE.getResources(module.getProject())).stream()
                     .map(a -> LookupElementBuilder
                         .create(a.getName())
                         .withInsertHandler(new ConnectKeyVaultInsertHandler(a))
@@ -102,7 +104,7 @@ public class EnvVarCompletionContributor extends CompletionContributor {
                         .withIcon(IntelliJAzureIcons.getIcon(AzureIcons.KeyVault.MODULE)))
                     .forEach(result::addElement);
             } else {
-                vaults.stream().flatMap(v -> listSecrets(v).stream())
+                vaults.stream().flatMap(v -> Utils.checkCancelled(() -> v.secrets().list()).stream())
                     .map(s -> LookupElementBuilder.create(String.format("${%s}", s.getName()))
                         .withBoldness(true)
                         .withInsertHandler(new SecretInsertHandler())
@@ -112,15 +114,6 @@ public class EnvVarCompletionContributor extends CompletionContributor {
                         .withIcon(IntelliJAzureIcons.getIcon(AzureResourceIconProvider.getResourceBaseIconPath(s))))
                     .forEach(result::addElement);
             }
-        }
-    }
-
-    @Nonnull
-    static List<Secret> listSecrets(KeyVault v) {
-        try {
-            return v.secrets().list();
-        } catch (final Exception e) {
-            return Collections.emptyList();
         }
     }
 
