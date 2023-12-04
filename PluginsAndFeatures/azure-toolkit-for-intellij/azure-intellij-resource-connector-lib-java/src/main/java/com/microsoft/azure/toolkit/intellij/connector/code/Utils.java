@@ -8,7 +8,7 @@ package com.microsoft.azure.toolkit.intellij.connector.code;
 import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -29,61 +29,54 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Utils {
     public static final Pattern SPRING_PROPERTY_VALUE_PATTERN = Pattern.compile("\\$\\{(.*)}");
 
+    public static boolean hasEnvVars(final String value) {
+        return value.matches(".*\\$\\{[^}]+}.*");
+    }
+
     public static String extractVariableFromSpringProperties(final String origin) {
         final Matcher matcher = SPRING_PROPERTY_VALUE_PATTERN.matcher(origin);
         return matcher.matches() ? matcher.group(1) : origin;
     }
 
-    public static <T> List<T> getConnectedResources(@Nonnull final Module module, @Nonnull final ResourceDefinition<T> definition) {
-        //noinspection unchecked
-        return Optional.of(module).map(AzureModule::from)
-                .map(AzureModule::getDefaultProfile).map(Profile::getConnectionManager).stream()
-                .flatMap(m -> m.getConnections().stream())
-                .filter(c -> Objects.equals(c.getDefinition().getResourceDefinition(), definition))
-                .map(Connection::getResource)
-                .filter(Resource::isValidResource)
-                .map(Resource::getData)
-                .map(resource -> (T) resource)
-                .toList();
-    }
-
     @Nullable
     public static Connection<?, ?> getConnectionWithEnvironmentVariable(@Nullable final Module module,
-                                                                                 @Nonnull String variable) {
+                                                                        @Nonnull String variable) {
         final Profile defaultProfile = Optional.ofNullable(module).map(AzureModule::from).map(AzureModule::getDefaultProfile).orElse(null);
         if (Objects.isNull(defaultProfile) || !defaultProfile.isEnvFileValid()) {
             return null;
         }
         return defaultProfile.getConnections().stream()
-                .filter(c -> defaultProfile.getGeneratedEnvironmentVariables(c).stream()
-                        .anyMatch(pair -> StringUtils.equalsIgnoreCase(pair.getKey(), variable)))
-                .findAny().orElse(null);
+            .filter(c -> defaultProfile.getGeneratedEnvironmentVariables(c).stream()
+                .anyMatch(pair -> StringUtils.equalsIgnoreCase(pair.getKey(), variable)))
+            .findAny().orElse(null);
     }
 
     @Nullable
     public static Connection<? extends AzResource, ?> getConnectionWithResource(@Nullable final Module module,
-                                                                                           @Nonnull AzResource resource) {
+                                                                                @Nonnull AzResource resource) {
         final Profile defaultProfile = Optional.ofNullable(module).map(AzureModule::from).map(AzureModule::getDefaultProfile).orElse(null);
         if (Objects.isNull(defaultProfile)) {
             return null;
         }
         //noinspection unchecked
         return (Connection<? extends AzResource, ?>) defaultProfile.getConnections().stream()
-                .filter(c -> Objects.equals(c.getResource().getData(), resource))
-                .findAny().orElse(null);
+            .filter(c -> Objects.equals(c.getResource().getData(), resource))
+            .findAny().orElse(null);
     }
 
     private static boolean isConnectionVariable(String variable, Profile defaultProfile, Connection<?, ?> c) {
         return defaultProfile.getGeneratedEnvironmentVariables(c).stream()
-                .anyMatch(pair -> StringUtils.equalsIgnoreCase(pair.getKey(), variable));
+            .anyMatch(pair -> StringUtils.equalsIgnoreCase(pair.getKey(), variable));
     }
 
     @SuppressWarnings("rawtypes")
@@ -113,7 +106,7 @@ public class Utils {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @AzureOperation(name = "internal/connector.creating_connection_silently_in_properties")
-    private static Connection<?, ?> createSilently(Module module, @Nonnull Resource resource,  ConnectionManager connectionManager) {
+    private static Connection<?, ?> createSilently(Module module, @Nonnull Resource resource, ConnectionManager connectionManager) {
         final Resource consumer = ModuleResource.Definition.IJ_MODULE.define(module.getName());
         final ConnectionDefinition<?, ?> connectionDefinition = ConnectionManager.getDefinitionOrDefault(resource.getDefinition(), consumer.getDefinition());
         final Connection<?, ?> connection = connectionDefinition.define(resource, consumer);
@@ -139,15 +132,29 @@ public class Utils {
         return null;
     }
 
+    public static <T> List<T> getConnectedResources(@Nonnull Module module, @Nonnull ResourceDefinition<T> definition) {
+        return checkCancelled(() -> AzureModule.from(module).getConnectedResources(definition));
+    }
 
-    public static <T> List<? extends Resource<T>> listResourceForDefinition(@Nonnull final Project project,
-                                                                        @Nonnull final ResourceDefinition<T> d) {
+    public static <T> List<T> checkCancelled(Supplier<List<T>> supplier) {
+        final CompletableFuture<List<T>> future = CompletableFuture.supplyAsync(() -> {
+            try {
+                return supplier.get();
+            } catch (final Exception e) {
+                return Collections.emptyList();
+            }
+        });
+        while (!future.isDone()) {
+            try {
+                ProgressManager.checkCanceled();
+                Thread.sleep(200);
+            } catch (final InterruptedException e) {
+                return Collections.emptyList();
+            }
+        }
         try {
-            return d.getResources(project);
-        } catch (final ProcessCanceledException ProcessCanceledException) {
-            throw ProcessCanceledException;
+            return future.get();
         } catch (final Exception e) {
-            // swallow all exceptions except ProcessCanceledException
             return Collections.emptyList();
         }
     }
