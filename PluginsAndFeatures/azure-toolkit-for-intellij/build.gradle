@@ -1,11 +1,8 @@
-import org.apache.tools.ant.filters.ReplaceTokens
-
 plugins {
     id "org.jetbrains.intellij" version "1.13.3"
     id "org.jetbrains.kotlin.jvm" version "1.9.10"
     id "com.github.ben-manes.versions" version "0.39.0"
     id "io.freefair.aspectj.post-compile-weaving" version "6.5.1"
-    id "io.spring.dependency-management" version "1.0.11.RELEASE"
 }
 
 processResources {
@@ -45,7 +42,6 @@ sourceSets {
 allprojects {
     apply plugin: 'java'
     apply plugin: 'io.freefair.aspectj.post-compile-weaving'
-    apply plugin: 'io.spring.dependency-management'
     apply plugin: 'org.jetbrains.intellij'
 
     group = 'com.microsoft.azuretools'
@@ -92,21 +88,16 @@ allprojects {
         mavenCentral()
     }
 
-    dependencyManagement {
-        imports {
-            mavenBom 'com.microsoft.azure:azure-toolkit-libs:0.40.0-SNAPSHOT'
-            mavenBom 'com.microsoft.azure:azure-toolkit-ide-libs:0.40.0-SNAPSHOT'
-            mavenBom 'com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-libs:0.1.0'
-        }
-    }
-
     dependencies {
-        // https://mvnrepository.com/artifact/org.projectlombok/lombok
-        compileOnly 'org.projectlombok:lombok'
-        annotationProcessor 'org.projectlombok:lombok'
-        implementation 'com.microsoft.azure:azure-toolkit-common-lib'
-        aspect "com.microsoft.azure:azure-toolkit-common-lib"
-        compileOnly 'org.jetbrains:annotations'
+        implementation platform('com.microsoft.azure:azure-toolkit-libs:0.40.0-SNAPSHOT')
+        implementation platform('com.microsoft.azure:azure-toolkit-ide-libs:0.40.0-SNAPSHOT')
+        implementation platform('com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-libs:0.1.0')
+
+        compileOnly 'org.projectlombok:lombok:1.18.24'
+        compileOnly 'org.jetbrains:annotations:24.0.0'
+        annotationProcessor 'org.projectlombok:lombok:1.18.24'
+        implementation 'com.microsoft.azure:azure-toolkit-common-lib:0.40.0-SNAPSHOT'
+        aspect "com.microsoft.azure:azure-toolkit-common-lib:0.40.0-SNAPSHOT"
     }
 
     configurations {
