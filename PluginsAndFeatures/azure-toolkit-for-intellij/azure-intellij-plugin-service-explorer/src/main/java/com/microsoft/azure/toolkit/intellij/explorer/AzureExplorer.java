@@ -113,7 +113,7 @@ public class AzureExplorer extends Tree {
             final IView.Label actionLabel = Optional.ofNullable(actions)
                     .map(l -> TreeUtils.getHoverInlineActionIndex(this, event, l.size()))
                     .filter(i -> i >= 0 && i < actions.size())
-                    .map(actions::get)
+                    .map(Objects.requireNonNull(actions)::get)
                     .orElse(null);
             if (Objects.nonNull(actionLabel)) {
                 return actionLabel.getLabel();

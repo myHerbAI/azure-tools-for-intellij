@@ -73,6 +73,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
     public static final Action.Id<ServiceLinker> FOCUS_ON_CONNECTED_SERVICE = Action.Id.of("user/common.focus_on_connected_service");
     public static final Action.Id<ServiceLinkerModule> CREATE_SERVICE_LINKER_IN_PORTAL = Action.Id.of("user/$resource.create_service_linker_in_portal");
     public static final Action.Id<AbstractAzService<?, ?>> GETTING_STARTED = Action.Id.of("user/$resource.open_getting_start.service");
+    public static final Action.Id<String> INVOKE_COMMAND_IN_TERMINAL = Action.Id.of("user/common.invoke_command_in_terminal");
     public static final Action.Id<Object> SHOW_COURSES = Action.Id.of("user/$resource.show_courses");
     public static final Action.Id<Object> OPEN_MONITOR = Action.Id.of("user/monitor.open_azure_monitor");
     public static final Action.Id<Action.Id<?>> SUPPRESS_ACTION = Action.Id.of("user/common.never_show_again");
@@ -267,6 +268,11 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
 
         new Action<>(RESTART_IDE)
             .withLabel("Restart IDE")
+            .withAuthRequired(false)
+            .register(am);
+
+        new Action<>(INVOKE_COMMAND_IN_TERMINAL)
+            .withLabel("Invoke command in terminal")
             .withAuthRequired(false)
             .register(am);
 

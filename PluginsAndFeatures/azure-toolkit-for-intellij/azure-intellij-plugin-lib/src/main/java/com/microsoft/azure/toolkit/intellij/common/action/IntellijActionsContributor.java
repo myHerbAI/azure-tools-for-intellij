@@ -17,6 +17,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
+import com.microsoft.azure.toolkit.intellij.common.TerminalUtils;
 import com.microsoft.azure.toolkit.intellij.common.fileexplorer.VirtualFileActions;
 import com.microsoft.azure.toolkit.intellij.common.properties.IntellijShowPropertiesViewAction;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
@@ -26,10 +27,13 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.BiConsumer;
+
+import static com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor.INVOKE_COMMAND_IN_TERMINAL;
 
 public class IntellijActionsContributor implements IActionsContributor {
     public static final Action.Id<Object> TRY_ULTIMATE = Action.Id.of("user/$database.try_ultimate");
@@ -38,6 +42,9 @@ public class IntellijActionsContributor implements IActionsContributor {
 
     @Override
     public void registerHandlers(AzureActionManager am) {
+        am.<String, AnActionEvent>registerHandler(INVOKE_COMMAND_IN_TERMINAL,
+                (s, e) -> StringUtils.isNotBlank(s) && Objects.nonNull(e.getProject()),
+                (s, e) -> TerminalUtils.executeInTerminal(Objects.requireNonNull(e.getProject()), s));
         am.registerHandler(ResourceCommonActionsContributor.OPEN_URL, Objects::nonNull, IntellijActionsContributor::browseUrl);
         am.<AzResource, AnActionEvent>registerHandler(ResourceCommonActionsContributor.SHOW_PROPERTIES,
             (s, e) -> Objects.nonNull(s) && Objects.nonNull(e.getProject()),

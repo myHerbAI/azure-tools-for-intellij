@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.ide.containerservice;
 
 import com.microsoft.azure.toolkit.ide.common.IExplorerNodeProvider;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.ide.common.component.AzureActionNode;
 import com.microsoft.azure.toolkit.ide.common.component.AzResourceNode;
 import com.microsoft.azure.toolkit.ide.common.component.AzServiceNode;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
@@ -50,8 +51,10 @@ public class ContainerServiceNodeProvider implements IExplorerNodeProvider {
         } else if (data instanceof KubernetesCluster) {
             return new AzResourceNode<>((KubernetesCluster) data)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
+                .addInlineAction(ContainerServiceActionsContributor.OPEN_KUBERNETES_PLUGIN)
                 .onDoubleClicked(ResourceCommonActionsContributor.SHOW_PROPERTIES)
-                .withActions(ContainerServiceActionsContributor.CLUSTER_ACTIONS);
+                .withActions(ContainerServiceActionsContributor.CLUSTER_ACTIONS)
+                .addChild(new AzureActionNode<>(ContainerServiceActionsContributor.OPEN_KUBERNETES_PLUGIN, (KubernetesCluster) data));
 //                    .addChildren(cluster -> cluster.agentPools().list(), (agentPool, clusterNode) -> this.createNode(agentPool, clusterNode, manager));
         }
 //        else if (data instanceof KubernetesClusterAgentPool) {
