@@ -12,10 +12,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.intellij.common.component.TreeUtils.INLINE_ACTION_ICON_WIDTH;
 import static com.microsoft.azure.toolkit.intellij.common.component.TreeUtils.KEY_SCROLL_PANE;
@@ -38,7 +36,12 @@ public class InlineActionSupportedNodeRenderer extends NodeRenderer {
             TreeUtils.renderMyTreeNode(jtree, node, selected, this);
             return;
         } else if (value instanceof Tree.LoadMoreNode node) {
+            this.inlineActionIcons = Collections.emptyList();
             TreeUtils.renderLoadModeNode(jtree, node, selected, this);
+            return;
+        } else if (value instanceof Tree.ActionNode node) {
+            this.inlineActionIcons = Collections.emptyList();
+            TreeUtils.renderActionNode(jtree, node, selected, this);
             return;
         }
         super.customizeCellRenderer(jtree, value, selected, expanded, isLeaf, row, focused);

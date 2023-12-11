@@ -6,12 +6,15 @@
 package com.microsoft.azure.toolkit.intellij.common.component;
 
 import com.google.common.collect.Sets;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.ui.ComponentUtil;
 import com.intellij.ui.LoadingNode;
 import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.util.ui.tree.TreeUtil;
+import com.microsoft.azure.toolkit.ide.common.component.AzureActionNode;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -26,6 +29,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.tree.*;
+import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -187,11 +191,15 @@ public class Tree extends SimpleTree implements DataProvider {
         private void setChildren(List<Node<?>> children) {
             AzureTaskManager.getInstance().runLater(() -> {
                 this.removeAllChildren();
-                children.stream().map(c -> new TreeNode<>(c, this.tree)).forEach(this::add);
+                children.stream().map(this::createChildNode).forEach(this::add);
                 this.addLoadMoreNode();
                 this.loaded = true;
                 this.doUpdateChildren();
             });
+        }
+
+        private DefaultMutableTreeNode createChildNode(@Nonnull final Node<?> node) {
+            return node instanceof AzureActionNode<?> ? new ActionNode((AzureActionNode<?>) node, this.tree) : new TreeNode<>(node, this.tree);
         }
 
         private void updateChildren(List<Node<?>> children) {
@@ -272,6 +280,31 @@ public class Tree extends SimpleTree implements DataProvider {
             } else {
                 super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
             }
+        }
+    }
+
+    public static class ActionNode extends DefaultMutableTreeNode {
+        private final AzureActionNode<?> inner;
+        private final JTree tree;
+
+        public ActionNode(@Nonnull AzureActionNode<?> n, JTree tree) {
+            super(n.getLabel(), false);
+            this.inner = n;
+            this.tree = tree;
+        }
+
+        public String getLabel() {
+            return inner.getLabel();
+        }
+
+        public String getDescription() {
+            return inner.buildDescription();
+        }
+
+        public void invoke(final MouseEvent event) {
+            final DataContext context = DataManager.getInstance().getDataContext(event.getComponent());
+            final AnActionEvent actionEvent = AnActionEvent.createFromInputEvent(event, TreeUtils.getPlace(tree), null, context);
+            inner.invoke(actionEvent);
         }
     }
 
