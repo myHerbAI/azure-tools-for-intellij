@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.samples.view;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.editor.colors.ColorKey;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.Gray;
@@ -37,6 +38,7 @@ public class GithubRepositoryPanel {
     private JTextPane descriptionPane;
     private JPanel topicsPanel;
     private HyperlinkLabel openBrowser;
+    private JLabel starLabel;
 
     public static final JBColor NOTIFICATION_BACKGROUND_COLOR =
         JBColor.namedColor("StatusBar.hoverBackground", new JBColor(15595004, 4606541));
@@ -57,6 +59,8 @@ public class GithubRepositoryPanel {
             this.titleLabel.setIcon(icon);
         }
 
+        this.starLabel.setIcon(AllIcons.Nodes.NotFavoriteOnHover);
+        this.starLabel.setText(String.valueOf(repo.getStars()));
         this.descriptionPane.setFont(JBFont.medium());
         this.descriptionPane.setText(repo.getDescription());
         this.descriptionPane.setOpaque(false);
@@ -93,7 +97,7 @@ public class GithubRepositoryPanel {
         final Border margin = BorderFactory.createEmptyBorder(0, 0, 3, 0);
         label.setBackground(JBUI.CurrentTheme.ActionButton.hoverBackground());
         label.setBorder(BorderFactory.createCompoundBorder(margin, BorderFactory.createCompoundBorder(border, padding)));
-        label.setFont(JBFont.regular().lessOn(1));
+//        label.setFont(JBFont.regular().lessOn(1));
         label.setOpaque(false);
         return label;
     }
