@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.intellij.samples.view;
 import com.intellij.openapi.editor.colors.ColorKey;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.Gray;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
@@ -35,6 +36,7 @@ public class GithubRepositoryPanel {
     private JLabel titleLabel;
     private JTextPane descriptionPane;
     private JPanel topicsPanel;
+    private HyperlinkLabel openBrowser;
 
     public static final JBColor NOTIFICATION_BACKGROUND_COLOR =
         JBColor.namedColor("StatusBar.hoverBackground", new JBColor(15595004, 4606541));
@@ -61,10 +63,17 @@ public class GithubRepositoryPanel {
         this.descriptionPane.setVisible(StringUtils.isNotBlank(repo.getDescription()));
 
         this.repo.getTopics().forEach(tag -> this.topicsPanel.add(createTopicLabel(tag)));
+
+        this.openBrowser.setHyperlinkText("Open in browser");
+        this.openBrowser.setHyperlinkTarget(this.repo.getHtmlUrl());
     }
 
-    public void toggleSelectedStatus(final boolean isSelected) {
-        this.contentPanel.setBackground(isSelected ? NOTIFICATION_BACKGROUND_COLOR : UIUtil.getLabelBackground());
+    public void toggleSelectedStatus(final boolean selected) {
+        this.contentPanel.setBackground(selected ? NOTIFICATION_BACKGROUND_COLOR : UIUtil.getLabelBackground());
+    }
+
+    public void toggleHoverStatus(final boolean hovered) {
+        this.openBrowser.setVisible(hovered);
     }
 
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES

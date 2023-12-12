@@ -20,6 +20,7 @@ import com.intellij.openapi.vcs.ui.cloneDialog.VcsCloneDialogExtensionComponent;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.SideBorder;
@@ -73,6 +74,7 @@ public class AzureSamplesCloneDialogExtensionComponent extends VcsCloneDialogExt
     private JPanel searchBoxPanel;
     private TextFieldWithBrowseButton directoryField;
     private JPanel paginationPanel;
+    private HyperlinkLabel orgHtmlLink;
 
     private int page = 1;
     private boolean last = false;
@@ -110,11 +112,15 @@ public class AzureSamplesCloneDialogExtensionComponent extends VcsCloneDialogExt
             BorderFactory.createEmptyBorder(4, 4, 4, 4)
         ));
 
-        this.scrollPane.setBorder(new SideBorder(JBColor.border(), SideBorder.ALL));
+        this.scrollPane.setBorder(new SideBorder(JBColor.border(), SideBorder.LEFT | SideBorder.RIGHT));
         this.loadingIcon.setIcon(IconUtil.scale(IntelliJAzureIcons.getIcon(AzureIcons.Common.REFRESH_ICON), this.loadingIcon, 1.5f));
 
         this.paginationPanel.setBorder(new SideBorder(JBColor.border(), SideBorder.ALL));
         this.loadPage(1);
+
+        //noinspection DialogTitleCapitalization
+        this.orgHtmlLink.setHyperlinkText("https://github.com/Azure-Samples");
+        this.orgHtmlLink.setHyperlinkTarget("https://github.com/Azure-Samples");
     }
 
     public void loadPrevPage(ActionEvent e) {
@@ -159,6 +165,18 @@ public class AzureSamplesCloneDialogExtensionComponent extends VcsCloneDialogExt
         for (int i = 0; i < repositories.size(); i++) {
             final GithubRepository repository = repositories.get(i);
             final GithubRepositoryPanel repositoryPanel = new GithubRepositoryPanel(repository, this.project);
+            repositoryPanel.getContentPanel().addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(final MouseEvent e) {
+                    repositoryPanel.toggleHoverStatus(true);
+                }
+
+                @Override
+                public void mouseExited(final MouseEvent e) {
+                    final Component c = SwingUtilities.getDeepestComponentAt(e.getComponent(), e.getX(), e.getY());
+                    repositoryPanel.toggleHoverStatus(c != null && SwingUtilities.isDescendingFrom(c, repositoryPanel.getContentPanel()));
+                }
+            });
             addSelectionListener(repositoryPanel.getContentPanel(), new MouseAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -188,7 +206,8 @@ public class AzureSamplesCloneDialogExtensionComponent extends VcsCloneDialogExt
     private void addSelectionListener(@Nonnull final JComponent component, @Nonnull MouseListener mouseListener) {
         component.addMouseListener(mouseListener);
         component.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        Arrays.stream(component.getComponents()).filter(c -> c instanceof JComponent).forEach(child -> addSelectionListener((JComponent) child, mouseListener));
+        Arrays.stream(component.getComponents()).filter(c -> c instanceof JComponent && !(c instanceof HyperlinkLabel))
+            .forEach(child -> addSelectionListener((JComponent) child, mouseListener));
     }
 
     private void select(final GithubRepositoryPanel panel) {
