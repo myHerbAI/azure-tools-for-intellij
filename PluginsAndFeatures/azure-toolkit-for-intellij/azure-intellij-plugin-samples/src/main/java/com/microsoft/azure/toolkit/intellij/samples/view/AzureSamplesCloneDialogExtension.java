@@ -25,13 +25,13 @@ public class AzureSamplesCloneDialogExtension implements VcsCloneDialogExtension
     @Nonnull
     @Override
     public VcsCloneDialogExtensionComponent createMainComponent(@Nonnull final Project project, @Nonnull final ModalityState modalityState) {
-        return new AzureSamplesCloneDialogExtensionComponent(project, modalityState);
+        return new AzureSamplesCloneDialogExtensionComponent(project);
     }
 
     @Nonnull
     @Override
     public List<VcsCloneDialogExtensionStatusLine> getAdditionalStatusLines() {
-        return Collections.singletonList(new VcsCloneDialogExtensionStatusLine("Azure code samples and examples", SimpleTextAttributes.GRAYED_ATTRIBUTES, e -> {
+        return Collections.singletonList(new VcsCloneDialogExtensionStatusLine("github.com/Azure-Samples", SimpleTextAttributes.GRAYED_ATTRIBUTES, e -> {
         }));
     }
 

@@ -1,5 +1,5 @@
 intellij {
-    plugins = ['org.jetbrains.plugins.github']
+    plugins = ['Git4Idea']
 }
 dependencies {
     compileOnly project(path: ':azure-intellij-plugin-lib')

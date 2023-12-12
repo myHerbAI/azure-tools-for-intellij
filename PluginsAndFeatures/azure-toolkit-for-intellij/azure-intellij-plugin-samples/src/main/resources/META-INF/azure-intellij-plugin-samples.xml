@@ -1,9 +1,3 @@
 <idea-plugin>
-    <depends>org.jetbrains.plugins.github</depends>
-    <extensions defaultExtensionNs="com.intellij">
-        <openapi.vcs.ui.cloneDialog.VcsCloneDialogExtension
-                id="com.microsoft.azure.toolkit.intellij.samples.view.AzureSamplesCloneDialogExtension"
-                implementation="com.microsoft.azure.toolkit.intellij.samples.view.AzureSamplesCloneDialogExtension"
-                order="after com.intellij.space.vcs.clone.SpaceCloneExtension"/>
-    </extensions>
+    <depends optional="true" config-file="azure-intellij-plugin-samples-git4idea.xml">Git4Idea</depends>
 </idea-plugin>

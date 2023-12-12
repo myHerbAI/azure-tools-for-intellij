@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See License.txt in the project root for license information.
+ */
+
 package com.microsoft.azure.toolkit.intellij.samples.view;
 
 import com.intellij.openapi.editor.colors.ColorKey;
@@ -22,6 +27,7 @@ import java.awt.event.MouseListener;
 
 public class GithubRepositoryPanel {
     private static final ColorKey TAG_BACKGROUND = ColorKey.createColorKey("Tag.background", JBUI.CurrentTheme.ActionButton.hoverBackground());
+    @Getter
     private final GithubRepository repo;
 
     @Getter
@@ -74,11 +80,11 @@ public class GithubRepositoryPanel {
         label.setVerticalAlignment(SwingConstants.CENTER);
         label.setHorizontalAlignment(SwingConstants.CENTER);
         final Border border = new TopicLabelLineBorder(JBColor.namedColor("Tag.border", Gray.xC0), 1);
-        final Border padding = BorderFactory.createEmptyBorder(0, 6, 4, 6);
+        final Border padding = BorderFactory.createEmptyBorder(0, 6, 2, 6);
         final Border margin = BorderFactory.createEmptyBorder(0, 0, 3, 0);
         label.setBackground(JBUI.CurrentTheme.ActionButton.hoverBackground());
         label.setBorder(BorderFactory.createCompoundBorder(margin, BorderFactory.createCompoundBorder(border, padding)));
-//        label.setFont(JBFont.regular().biggerOn(2));
+        label.setFont(JBFont.regular().lessOn(1));
         label.setOpaque(false);
         return label;
     }
