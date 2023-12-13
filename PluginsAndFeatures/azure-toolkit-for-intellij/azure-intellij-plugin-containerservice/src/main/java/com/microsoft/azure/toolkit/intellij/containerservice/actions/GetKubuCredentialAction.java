@@ -29,7 +29,7 @@ import java.util.Map;
 
 public class GetKubuCredentialAction {
 
-    public static final String KUBECONFIG_MERGE_MESSAGE = "Kubeconfig for %s has been merged to local kube config and set as default context";
+    public static final String KUBECONFIG_MERGE_MESSAGE = "Kubeconfig for %s has been merged to local kube config and set as default context.";
 
     public static void getKubuCredential(@Nonnull KubernetesCluster cluster, @Nonnull Project project, boolean isAdmin) {
         try {
@@ -87,7 +87,7 @@ public class GetKubuCredentialAction {
                 final Object existingObject = result.stream().filter(map -> (map instanceof Map) &&
                         StringUtils.equals(((Map<?, ?>) map).get("name").toString(), name)).findFirst().orElse(null);
                 if (existingObject != null) {
-                    AzureMessager.getMessager().info(AzureString.format("skip merging as %s (%s) already exists in kubeconfig", type, name));
+                    AzureMessager.getMessager().info(AzureString.format("skip merging as %s (%s) already exists in kubeconfig.", type, name));
                 } else {
                     result.add(o);
                 }

@@ -43,7 +43,7 @@ public class IntelliJContainerServiceActionsContributor implements IActionsContr
                 CreateKubernetesServiceAction.create(e.getProject(), getDefaultConfig(r));
         am.registerHandler(ContainerServiceActionsContributor.GROUP_CREATE_KUBERNETES_SERVICE, (r, e) -> true, groupCreateHandler);
 
-        final BiPredicate<KubernetesCluster, AnActionEvent> clusterCondition = (r, e) -> r instanceof KubernetesCluster;
+        final BiPredicate<KubernetesCluster, AnActionEvent> clusterCondition = (r, e) -> r != null;
         am.registerHandler(ContainerServiceActionsContributor.GET_CREDENTIAL_USER, clusterCondition, (c, e) ->
                 GetKubuCredentialAction.getKubuCredential(c, e.getProject(), false));
         am.registerHandler(ContainerServiceActionsContributor.GET_CREDENTIAL_ADMIN, clusterCondition, (c, e) ->
@@ -60,15 +60,14 @@ public class IntelliJContainerServiceActionsContributor implements IActionsContr
     }
 
     private void showKubernetesPluginNotification(@Nonnull KubernetesCluster cluster, @Nullable Project project) {
-        final String DATABASE_TOOLS_PLUGIN_ID = "com.intellij.database";
-        final String DATABASE_PLUGIN_NOT_INSTALLED = "\"Kubernetes\" plugin is not installed.";
+        final String KUBERNETES_PLUGIN_NOT_INSTALLED = "\"Kubernetes\" plugin is not installed.";
         final String NOT_SUPPORT_ERROR_ACTION = "\"Kubernetes\" plugin is only provided in IntelliJ Ultimate edition.";
         if (!KubernetesUtils.isKubernetesPluginEnabled()) {
             final Action<Object> tryUltimate = AzureActionManager.getInstance().getAction(IntellijActionsContributor.TRY_ULTIMATE);
             final Action<?> installPlugin = KubernetesUtils.getInstallKubernetesPluginAction();
             throw PlatformUtils.isIdeaCommunity() ?
-                    new AzureToolkitRuntimeException(DATABASE_PLUGIN_NOT_INSTALLED, NOT_SUPPORT_ERROR_ACTION, tryUltimate) :
-                    new AzureToolkitRuntimeException(DATABASE_PLUGIN_NOT_INSTALLED, installPlugin) ;
+                    new AzureToolkitRuntimeException(KUBERNETES_PLUGIN_NOT_INSTALLED, NOT_SUPPORT_ERROR_ACTION, tryUltimate) :
+                    new AzureToolkitRuntimeException(KUBERNETES_PLUGIN_NOT_INSTALLED, installPlugin) ;
         } else {
             AzureMessager.getMessager().info("Please restart the IDE to enable the Azure support for \"Kubernetes\" plugin.");
         }
