@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.ide.guidance.view.components.CoursePanel;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.action.ViewToolingDocumentAction;
 import com.microsoft.azure.toolkit.intellij.common.action.WhatsNewAction;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -67,10 +68,11 @@ public class CoursesView {
         this.moreSamplesLink.addHyperlinkListener(e -> {
             final InputEvent event = e.getInputEvent();
             final DataContext context = DataManager.getInstance().getDataContext(event.getComponent());
+            final Action<String> enableGit = AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.ENABLE_PLUGIN).bind("git4idea").withLabel("Enable \"Git\" plugin");
             Optional.ofNullable(AzureActionManager.getInstance())
                 .map(m -> m.getAction(ResourceCommonActionsContributor.BROWSE_AZURE_SAMPLES))
                 .ifPresentOrElse(a -> a.handle(null, AnActionEvent.createFromInputEvent(event, "azure.guidance", null, context)),
-                    () -> AzureMessager.getMessager().warning("Enable \"Git\" plugin to browse Azure samples."));
+                    () -> AzureMessager.getMessager().warning("Browsing Azure samples requires \"Git\" plugin to be enabled first.", enableGit));
         });
     }
 

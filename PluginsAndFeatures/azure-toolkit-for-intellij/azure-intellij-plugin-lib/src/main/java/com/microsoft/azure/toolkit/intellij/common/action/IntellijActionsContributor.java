@@ -7,10 +7,14 @@ package com.microsoft.azure.toolkit.intellij.common.action;
 
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.actions.RevealFileAction;
+import com.intellij.ide.plugins.PluginManager;
+import com.intellij.ide.plugins.PluginManagerConfigurable;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.FUSEventSource;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -56,6 +60,16 @@ public class IntellijActionsContributor implements IActionsContributor {
         }));
 
         am.registerHandler(ResourceCommonActionsContributor.SUPPRESS_ACTION, (id, e) -> IntellijAzureActionManager.suppress(id));
+
+        am.registerHandler(ResourceCommonActionsContributor.ENABLE_PLUGIN, (id, e) -> AzureTaskManager.getInstance().runLater(() -> {
+            PluginManager.getInstance().enablePlugin(PluginId.getId(id));
+        }));
+        am.registerHandler(ResourceCommonActionsContributor.SEARCH_INSTALLED_PLUGIN, (id, e) -> AzureTaskManager.getInstance().runLater(() -> {
+            ShowSettingsUtil.getInstance().editConfigurable(null, new PluginManagerConfigurable(), it -> it.openInstalledTab(id));
+        }));
+        am.registerHandler(ResourceCommonActionsContributor.SEARCH_MARKETPLACE_PLUGIN, (id, e) -> AzureTaskManager.getInstance().runLater(() -> {
+            ShowSettingsUtil.getInstance().editConfigurable(null, new PluginManagerConfigurable(), it -> it.openMarketplaceTab(id));
+        }));
     }
 
     @AzureOperation(name = "boundary/$resource.open_url.url", params = {"u"})
