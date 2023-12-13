@@ -93,7 +93,7 @@ public class ContainerServiceActionsContributor implements IActionsContributor {
             .withLabel("List Nodes")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof KubernetesCluster)
-            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .withHandler((cluster, event) -> executeKubectlCommand(cluster, "kubectl get node --all-namespaces=true", event))
             .register(am);
 
@@ -101,7 +101,7 @@ public class ContainerServiceActionsContributor implements IActionsContributor {
             .withLabel("List Services")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof KubernetesCluster)
-            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .enableWhen(s -> s.getFormalStatus().isRunning())
             .withHandler((cluster, event) -> executeKubectlCommand(cluster, "kubectl get service --all-namespaces=true", event))
             .register(am);
     }
