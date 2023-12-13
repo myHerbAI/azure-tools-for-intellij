@@ -147,6 +147,7 @@ public class AzureSamplesCloneDialogExtensionComponent extends VcsCloneDialogExt
         this.nextButton.setEnabled(false);
         final AzureTaskManager tm = AzureTaskManager.getInstance();
         final AzureString title = OperationBundle.description("user/samples.load_repositories");
+        this.searchBox.addCurrentTextToHistory();
         tm.runInBackground(title, () -> organization.search(this.searchBox.getText(), page)).thenAccept(result -> tm.runLater(() -> {
             final int pages = result.count() / GithubOrganization.DEFAULT_PAGE_SIZE + ((result.count() % GithubOrganization.DEFAULT_PAGE_SIZE == 0) ? 0 : 1);
             last = page >= pages;
