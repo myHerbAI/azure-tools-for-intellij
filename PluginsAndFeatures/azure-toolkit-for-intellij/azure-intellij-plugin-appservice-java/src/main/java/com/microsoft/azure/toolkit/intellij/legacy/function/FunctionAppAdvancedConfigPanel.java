@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFormPanel<FunctionAppConfig> {
+public class FunctionAppAdvancedConfigPanel extends JPanel implements AzureFormPanel<FunctionAppConfig> {
     private final Project project;
     private JTabbedPane tabPane;
     private JPanel pnlRoot;
@@ -38,7 +38,7 @@ public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFo
 
     private ApplicationInsightsConfig insightsConfig;
 
-    public FunctionAppConfigFormPanelAdvance(final Project project) {
+    public FunctionAppAdvancedConfigPanel(final Project project) {
         super();
         this.project = project;
         $$$setupUI$$$(); // tell IntelliJ to call createUIComponents() here.

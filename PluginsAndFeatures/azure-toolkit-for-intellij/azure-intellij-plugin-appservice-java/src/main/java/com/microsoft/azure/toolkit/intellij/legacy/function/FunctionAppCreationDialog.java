@@ -32,7 +32,7 @@ public class FunctionAppCreationDialog extends ConfigDialog<FunctionAppConfig> {
 
     private JPanel contentPane;
     private AppServiceInfoBasicPanel<FunctionAppConfig> basicPanel;
-    private FunctionAppConfigFormPanelAdvance advancePanel;
+    private FunctionAppAdvancedConfigPanel advancePanel;
 
     public FunctionAppCreationDialog(final Project project) {
         super(project);
@@ -82,7 +82,7 @@ public class FunctionAppCreationDialog extends ConfigDialog<FunctionAppConfig> {
                 return config;
             }
         };
-        basicPanel.getSelectorRuntime().setPlatformList(FunctionAppRuntime.getMajorRuntimes().stream().filter(r-> !r.isDocker()).collect(Collectors.toList()));
+        basicPanel.getSelectorRuntime().setPlatformList(Runtime.FUNCTION_APP_RUNTIME);
         advancePanel = new FunctionAppConfigFormPanelAdvance(project);
     }
 }
