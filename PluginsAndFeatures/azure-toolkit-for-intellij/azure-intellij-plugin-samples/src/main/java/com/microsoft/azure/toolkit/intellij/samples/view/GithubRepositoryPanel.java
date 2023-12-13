@@ -93,12 +93,12 @@ public class GithubRepositoryPanel {
         final JLabel label = new JLabel(tag);
         label.setVerticalAlignment(SwingConstants.CENTER);
         label.setHorizontalAlignment(SwingConstants.CENTER);
-        final Border border = new RoundedLineBorder(JBColor.namedColor("Tag.border", Gray.xC0), 1);
+        final Border border = new RoundedLineBorder(new JBColor(12895428, 6185056), 2);
         final Border padding = BorderFactory.createEmptyBorder(0, 6, 2, 6);
         final Border margin = BorderFactory.createEmptyBorder(0, 0, 3, 0);
         label.setBackground(JBUI.CurrentTheme.ActionButton.hoverBackground());
         label.setBorder(BorderFactory.createCompoundBorder(margin, BorderFactory.createCompoundBorder(border, padding)));
-//        label.setFont(JBFont.regular().lessOn(1));
+        label.setFont(JBFont.regular().lessOn(1));
         label.setOpaque(false);
         return label;
     }
