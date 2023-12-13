@@ -84,8 +84,8 @@ public class AzureSamplesCloneDialogExtensionComponent extends VcsCloneDialogExt
     private boolean first = false;
 
     private final List<GithubRepositoryPanel> repositoryPanels = new ArrayList<>();
-    private GithubRepository selected;
     private final FilePathDocumentChildPathHandle cloneDirectoryChildHandle;
+    private GithubRepositoryPanel selectedPanel;
 
     public AzureSamplesCloneDialogExtensionComponent(@Nonnull Project project) {
         super();
@@ -217,8 +217,8 @@ public class AzureSamplesCloneDialogExtensionComponent extends VcsCloneDialogExt
     private void select(final GithubRepositoryPanel panel) {
         repositoryPanels.forEach(p -> p.toggleSelectedStatus(false));
         panel.toggleSelectedStatus(true);
-        this.selected = panel.getRepo();
-        final String path = StringUtil.trimEnd(ClonePathProvider.relativeDirectoryPathForVcsUrl(project, this.selected.getCloneUrl()), GitUtil.DOT_GIT);
+        this.selectedPanel = panel;
+        final String path = StringUtil.trimEnd(ClonePathProvider.relativeDirectoryPathForVcsUrl(project, this.selectedPanel.getRepo().getCloneUrl()), GitUtil.DOT_GIT);
         cloneDirectoryChildHandle.trySetChildPath(path);
         this.getDialogStateListener().onOkActionEnabled(true);
     }
@@ -242,7 +242,7 @@ public class AzureSamplesCloneDialogExtensionComponent extends VcsCloneDialogExt
 
     @Override
     @ExceptionNotification
-    @AzureOperation(value = "user/samples.clone_repository.repo", params = "this.selected.getFullName()")
+    @AzureOperation(value = "user/samples.clone_repository.repo", params = "this.selectedPanel.getRepo().getFullName()")
     public void doClone(@Nonnull final CheckoutProvider.Listener checkoutListener) {
         final Path parent = Paths.get(directoryField.getText()).toAbsolutePath().getParent();
         final ValidationInfo destinationValidation = CloneDvcsValidationUtils.createDestination(parent.toString());
@@ -260,8 +260,8 @@ public class AzureSamplesCloneDialogExtensionComponent extends VcsCloneDialogExt
         }
         final String directoryName = Paths.get(directoryField.getText()).getFileName().toString();
         final String parentDirectory = parent.toAbsolutePath().toString();
-        GitCheckoutProvider.clone(project, Git.getInstance(), checkoutListener, destinationParent,
-            this.selected.getCloneUrl(), directoryName, parentDirectory);
+        final GithubRepository repo = this.selectedPanel.getRepo();
+        GitCheckoutProvider.clone(project, Git.getInstance(), checkoutListener, destinationParent, repo.getCloneUrl(), directoryName, parentDirectory);
     }
 
     @Nonnull
@@ -281,5 +281,8 @@ public class AzureSamplesCloneDialogExtensionComponent extends VcsCloneDialogExt
         getDialogStateListener().onOkActionNameChanged("Clone");
         final IdeFocusManager focusManager = IdeFocusManager.getInstance(project);
         focusManager.requestFocus(this.searchBox, true);
+        if (Objects.nonNull(this.selectedPanel)) {
+            this.select(this.selectedPanel);
+        }
     }
 }
