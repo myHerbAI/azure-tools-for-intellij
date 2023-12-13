@@ -18,6 +18,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.tree.TreeVisitor;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import com.intellij.util.ui.tree.TreeUtil;
+import com.microsoft.azure.toolkit.ide.common.component.ActionNode;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.favorite.Favorite;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
@@ -130,8 +131,6 @@ public class TreeUtils {
                     clickNode(e, node);
                 } else if (n instanceof Tree.LoadMoreNode && SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2) {
                     ((Tree.LoadMoreNode) n).load();
-                } else if (n instanceof Tree.ActionNode && SwingUtilities.isLeftMouseButton(e)) {
-                    ((Tree.ActionNode) n).invoke(e);
                 }
                 super.mouseClicked(e);
             }
@@ -223,14 +222,15 @@ public class TreeUtils {
         renderer.setToolTipText("double click to load more.");
     }
 
-    public static void renderActionNode(JTree tree, @Nonnull Tree.ActionNode node, boolean selected, @Nonnull SimpleColoredComponent renderer) {
+    public static void renderActionNode(JTree tree, @Nonnull Tree.TreeNode<?> node, boolean selected, @Nonnull SimpleColoredComponent renderer) {
+        final ActionNode<?> inner = (ActionNode<?>) node.getInner();
         final SimpleTextAttributes attributes = SimpleTextAttributes.LINK_ATTRIBUTES;
-        renderer.append(node.getLabel(), attributes);
-        renderer.setToolTipText(node.getDescription());
+        renderer.append(inner.getLabel(), attributes);
+        renderer.setToolTipText(inner.buildDescription());
     }
 
     public static void renderMyTreeNode(JTree tree, @Nonnull Tree.TreeNode<?> node, boolean selected, @Nonnull SimpleColoredComponent renderer) {
-        final Node.View view = node.inner.getView();
+        final Node.View view = node.getInner().getView();
         renderer.setIcon(Optional.ofNullable(view.getIcon()).map(IntelliJAzureIcons::getIcon).orElseGet(() -> IntelliJAzureIcons.getIcon(AzureIcons.Resources.GENERIC_RESOURCE)));
         final Object highlighted = tree.getClientProperty(HIGHLIGHTED_RESOURCE_KEY);
         final boolean toHighlightThisNode = Optional.ofNullable(highlighted).filter(h -> Objects.equals(node.getUserObject(), h)).isPresent();

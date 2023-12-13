@@ -69,7 +69,7 @@ public class IntelliJContainerServiceActionsContributor implements IActionsContr
                     new AzureToolkitRuntimeException(KUBERNETES_PLUGIN_NOT_INSTALLED, NOT_SUPPORT_ERROR_ACTION, tryUltimate) :
                     new AzureToolkitRuntimeException(KUBERNETES_PLUGIN_NOT_INSTALLED, installPlugin) ;
         } else {
-            AzureMessager.getMessager().info("Please restart the IDE to enable the Azure support for \"Kubernetes\" plugin.");
+            AzureMessager.getMessager().info("Please restart the IDE to enable 'Open with Kubernetes Plugin' action.");
         }
     }
 

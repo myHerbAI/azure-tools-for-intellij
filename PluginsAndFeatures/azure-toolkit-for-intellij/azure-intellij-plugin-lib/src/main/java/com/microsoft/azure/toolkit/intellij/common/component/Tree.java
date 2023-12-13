@@ -6,15 +6,11 @@
 package com.microsoft.azure.toolkit.intellij.common.component;
 
 import com.google.common.collect.Sets;
-import com.intellij.ide.DataManager;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.ui.LoadingNode;
 import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.util.ui.tree.TreeUtil;
-import com.microsoft.azure.toolkit.ide.common.component.AzureActionNode;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -29,7 +25,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.tree.*;
-import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -84,6 +79,7 @@ public class Tree extends SimpleTree implements DataProvider {
     @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
     public static class TreeNode<T> extends DefaultMutableTreeNode implements Node.ViewRenderer, Node.ChildrenRenderer {
         @Nonnull
+        @Getter
         @EqualsAndHashCode.Include
         protected final Node<T> inner;
         protected final JTree tree;
@@ -191,15 +187,11 @@ public class Tree extends SimpleTree implements DataProvider {
         private void setChildren(List<Node<?>> children) {
             AzureTaskManager.getInstance().runLater(() -> {
                 this.removeAllChildren();
-                children.stream().map(this::createChildNode).forEach(this::add);
+                children.stream().map(n -> new TreeNode<>(n, this.tree)).forEach(this::add);
                 this.addLoadMoreNode();
                 this.loaded = true;
                 this.doUpdateChildren();
             });
-        }
-
-        private DefaultMutableTreeNode createChildNode(@Nonnull final Node<?> node) {
-            return node instanceof AzureActionNode<?> ? new ActionNode((AzureActionNode<?>) node, this.tree) : new TreeNode<>(node, this.tree);
         }
 
         private void updateChildren(List<Node<?>> children) {
@@ -275,38 +267,14 @@ public class Tree extends SimpleTree implements DataProvider {
 
         @Override
         public void customizeCellRenderer(@Nonnull JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-            if (value instanceof TreeNode) {
-                TreeUtils.renderMyTreeNode(tree, (TreeNode<?>) value, selected, this);
+            if (value instanceof TreeNode node) {
+                TreeUtils.renderMyTreeNode(tree, node, selected, this);
             } else {
                 super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
             }
         }
     }
 
-    public static class ActionNode extends DefaultMutableTreeNode {
-        private final AzureActionNode<?> inner;
-        private final JTree tree;
-
-        public ActionNode(@Nonnull AzureActionNode<?> n, JTree tree) {
-            super(n.getLabel(), false);
-            this.inner = n;
-            this.tree = tree;
-        }
-
-        public String getLabel() {
-            return inner.getLabel();
-        }
-
-        public String getDescription() {
-            return inner.buildDescription();
-        }
-
-        public void invoke(final MouseEvent event) {
-            final DataContext context = DataManager.getInstance().getDataContext(event.getComponent());
-            final AnActionEvent actionEvent = AnActionEvent.createFromInputEvent(event, TreeUtils.getPlace(tree), null, context);
-            inner.invoke(actionEvent);
-        }
-    }
 
     public static class LoadMoreNode extends DefaultMutableTreeNode {
         public static final String LABEL = "load more...";
