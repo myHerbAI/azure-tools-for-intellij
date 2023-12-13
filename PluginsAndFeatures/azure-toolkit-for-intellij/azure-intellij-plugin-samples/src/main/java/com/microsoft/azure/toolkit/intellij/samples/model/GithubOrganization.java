@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -51,6 +52,7 @@ public class GithubOrganization {
         try {
             return JSON_MAPPER.readerFor(SearchResult.class).readValue(new URL(url.toString()));
         } catch (final IOException exception) {
+            AzureMessager.getMessager().error(exception);
             return new SearchResult(0, true, Collections.emptyList());
         }
     }

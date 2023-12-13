@@ -34,8 +34,11 @@ import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.TextDocumentListenerAdapter;
 import com.microsoft.azure.toolkit.intellij.samples.model.GithubOrganization;
 import com.microsoft.azure.toolkit.intellij.samples.model.GithubRepository;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.TailingDebouncer;
 import git4idea.GitUtil;
@@ -143,7 +146,8 @@ public class AzureSamplesCloneDialogExtensionComponent extends VcsCloneDialogExt
         this.prevButton.setEnabled(false);
         this.nextButton.setEnabled(false);
         final AzureTaskManager tm = AzureTaskManager.getInstance();
-        tm.runInBackground("load github.com/Azure-Samples repositories", () -> organization.search(this.searchBox.getText(), page)).thenAccept(result -> tm.runLater(() -> {
+        final AzureString title = OperationBundle.description("user/samples.load_repositories");
+        tm.runInBackground(title, () -> organization.search(this.searchBox.getText(), page)).thenAccept(result -> tm.runLater(() -> {
             final int pages = result.count() / GithubOrganization.DEFAULT_PAGE_SIZE + ((result.count() % GithubOrganization.DEFAULT_PAGE_SIZE == 0) ? 0 : 1);
             last = page >= pages;
             first = page <= 1; // pages can be 0
@@ -238,6 +242,7 @@ public class AzureSamplesCloneDialogExtensionComponent extends VcsCloneDialogExt
 
     @Override
     @ExceptionNotification
+    @AzureOperation(value = "user/samples.clone_repository.repo", params = "this.selected.getFullName()")
     public void doClone(@Nonnull final CheckoutProvider.Listener checkoutListener) {
         final Path parent = Paths.get(directoryField.getText()).toAbsolutePath().getParent();
         final ValidationInfo destinationValidation = CloneDvcsValidationUtils.createDestination(parent.toString());
