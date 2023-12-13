@@ -33,7 +33,7 @@ public class AddContextDialog extends AzureDialog<KubernetesCluster> implements 
     private SubscriptionComboBox selectorSubscription;
     private JPanel pnlRoot;
 
-    private Project project;
+    private final Project project;
 
     public AddContextDialog(@javax.annotation.Nullable Project project) {
         super(project);
@@ -45,6 +45,9 @@ public class AddContextDialog extends AzureDialog<KubernetesCluster> implements 
     @Override
     protected void init() {
         super.init();
+        this.cbCluster.setRequired(true);
+        this.lblName.setLabelFor(cbCluster);
+        this.lblSubscription.setLabelFor(selectorSubscription);
         this.selectorSubscription.addItemListener(e -> this.cbCluster.reloadItems());
     }
 
@@ -83,10 +86,10 @@ public class AddContextDialog extends AzureDialog<KubernetesCluster> implements 
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
-        this.cbCluster = new AzureComboBox<KubernetesCluster>() {
+        this.cbCluster = new AzureComboBox<>() {
             @Nonnull
             @Override
-            protected List<? extends KubernetesCluster> loadItems() throws Exception {
+            protected List<? extends KubernetesCluster> loadItems() {
                 final Subscription subscription = AddContextDialog.this.selectorSubscription.getValue();
                 return Optional.ofNullable(subscription)
                         .map(Subscription::getId)
