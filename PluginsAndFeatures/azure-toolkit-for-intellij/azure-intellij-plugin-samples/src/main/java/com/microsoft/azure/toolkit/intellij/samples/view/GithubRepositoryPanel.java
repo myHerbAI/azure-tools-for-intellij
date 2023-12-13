@@ -17,6 +17,7 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.WrapLayout;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.intellij.common.component.RoundedLineBorder;
 import com.microsoft.azure.toolkit.intellij.samples.model.GithubRepository;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -92,7 +93,7 @@ public class GithubRepositoryPanel {
         final JLabel label = new JLabel(tag);
         label.setVerticalAlignment(SwingConstants.CENTER);
         label.setHorizontalAlignment(SwingConstants.CENTER);
-        final Border border = new TopicLabelLineBorder(JBColor.namedColor("Tag.border", Gray.xC0), 1);
+        final Border border = new RoundedLineBorder(JBColor.namedColor("Tag.border", Gray.xC0), 1);
         final Border padding = BorderFactory.createEmptyBorder(0, 6, 2, 6);
         final Border margin = BorderFactory.createEmptyBorder(0, 0, 3, 0);
         label.setBackground(JBUI.CurrentTheme.ActionButton.hoverBackground());

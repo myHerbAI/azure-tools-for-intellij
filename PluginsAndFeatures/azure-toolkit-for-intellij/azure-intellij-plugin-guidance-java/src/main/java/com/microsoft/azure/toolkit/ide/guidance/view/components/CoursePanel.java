@@ -11,9 +11,9 @@ import com.microsoft.azure.toolkit.ide.guidance.action.ShowGettingStartAction;
 import com.microsoft.azure.toolkit.ide.guidance.config.CourseConfig;
 import com.microsoft.azure.toolkit.intellij.common.AzureActionButton;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
+import com.microsoft.azure.toolkit.intellij.common.component.RoundedLineBorder;
 import com.microsoft.azure.toolkit.intellij.common.component.RoundedPanel;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import lombok.Getter;
 
@@ -109,7 +109,7 @@ public class CoursePanel {
 
     private JLabel decorateTagLabel(String tag) {
         final JLabel label = new JLabel(tag);
-        final Border borderLine = new TagLineBorder(new JBColor(12895428, 6185056), 2);
+        final Border borderLine = new RoundedLineBorder(new JBColor(12895428, 6185056), 2);
         final Border margin = JBUI.Borders.empty(0, 6);
         label.setBorder(new CompoundBorder(borderLine, margin));
         label.setFont(JBFont.regular().lessOn(2));
