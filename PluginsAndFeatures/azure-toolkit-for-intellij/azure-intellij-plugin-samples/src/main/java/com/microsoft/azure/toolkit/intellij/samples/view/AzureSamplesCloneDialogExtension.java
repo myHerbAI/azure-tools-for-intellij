@@ -52,6 +52,6 @@ public class AzureSamplesCloneDialogExtension implements VcsCloneDialogExtension
     @Nullable
     @Override
     public String getTooltip() {
-        return "https://github.com/Azure-Samples";
+        return "Microsoft Azure code samples and examples in Java";
     }
 }

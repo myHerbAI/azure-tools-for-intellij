@@ -1,15 +1,17 @@
 package com.microsoft.azure.toolkit.ide.guidance.view;
 
+import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vcs.ui.cloneDialog.VcsCloneDialogExtension;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.ActionLink;
 import com.intellij.ui.components.AnActionLink;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBFont;
-import com.intellij.util.ui.cloneDialog.VcsCloneDialog;
+import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.ide.guidance.GuidanceConfigManager;
 import com.microsoft.azure.toolkit.ide.guidance.config.CourseConfig;
@@ -17,22 +19,21 @@ import com.microsoft.azure.toolkit.ide.guidance.view.components.CoursePanel;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.action.ViewToolingDocumentAction;
 import com.microsoft.azure.toolkit.intellij.common.action.WhatsNewAction;
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.collections.CollectionUtils;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class CoursesView {
     private JPanel pnlRoot;
@@ -62,19 +63,12 @@ public class CoursesView {
         AzureTaskManager.getInstance().runInBackground("Loading lesson", () -> GuidanceConfigManager.getInstance().loadCourses())
             .thenAccept(courses -> AzureTaskManager.getInstance().runLater(() -> this.setCourses(courses)));
         this.moreSamplesLink.setHyperlinkText("More Azure samples...");
-        this.moreSamplesLink.addHyperlinkListener(new HyperlinkListener() {
-            @Override
-            @AzureOperation("user/samples.browse_samples_from_guidance")
-            public void hyperlinkUpdate(final HyperlinkEvent e) {
-                try {
-                    //noinspection unchecked
-                    final Class<? extends VcsCloneDialogExtension> azureSamplesExtensionClass = (Class<? extends VcsCloneDialogExtension>) Class
-                        .forName("com.microsoft.azure.toolkit.intellij.samples.view.AzureSamplesCloneDialogExtension");
-                    new VcsCloneDialog.Builder(project).forExtension(azureSamplesExtensionClass).show();
-                } catch (final ClassNotFoundException ex) {
-                    AzureMessager.getMessager().warning("Git plugin is not enabled, please enable it to browse Azure samples.");
-                }
-            }
+        this.moreSamplesLink.addHyperlinkListener(e -> {
+            final InputEvent event = e.getInputEvent();
+            final DataContext context = DataManager.getInstance().getDataContext(event.getComponent());
+            Optional.ofNullable(AzureActionManager.getInstance())
+                .map(m -> m.getAction(ResourceCommonActionsContributor.BROWSE_AZURE_SAMPLES))
+                .ifPresent(a -> a.handle(null, AnActionEvent.createFromInputEvent(event, "azure.guidance", null, context)));
         });
     }
 
