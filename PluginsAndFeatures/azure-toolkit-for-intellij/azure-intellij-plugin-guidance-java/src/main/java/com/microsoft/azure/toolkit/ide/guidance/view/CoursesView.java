@@ -20,6 +20,7 @@ import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.action.ViewToolingDocumentAction;
 import com.microsoft.azure.toolkit.intellij.common.action.WhatsNewAction;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -68,7 +69,8 @@ public class CoursesView {
             final DataContext context = DataManager.getInstance().getDataContext(event.getComponent());
             Optional.ofNullable(AzureActionManager.getInstance())
                 .map(m -> m.getAction(ResourceCommonActionsContributor.BROWSE_AZURE_SAMPLES))
-                .ifPresent(a -> a.handle(null, AnActionEvent.createFromInputEvent(event, "azure.guidance", null, context)));
+                .ifPresentOrElse(a -> a.handle(null, AnActionEvent.createFromInputEvent(event, "azure.guidance", null, context)),
+                    () -> AzureMessager.getMessager().warning("Enable \"Git\" plugin to browse Azure samples."));
         });
     }
 
