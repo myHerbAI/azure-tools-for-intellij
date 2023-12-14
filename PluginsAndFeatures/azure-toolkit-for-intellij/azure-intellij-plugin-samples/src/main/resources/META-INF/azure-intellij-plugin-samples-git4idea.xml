@@ -6,6 +6,6 @@
         <openapi.vcs.ui.cloneDialog.VcsCloneDialogExtension
                 id="com.microsoft.azure.toolkit.intellij.samples.view.AzureSamplesCloneDialogExtension"
                 implementation="com.microsoft.azure.toolkit.intellij.samples.view.AzureSamplesCloneDialogExtension"
-                order="after com.intellij.util.ui.cloneDialog.RepositoryUrlCloneDialogExtension"/>
+                order="first, after com.intellij.util.ui.cloneDialog.RepositoryUrlCloneDialogExtension"/>
     </extensions>
 </idea-plugin>
