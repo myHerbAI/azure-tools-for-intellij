@@ -29,6 +29,7 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 
 import java.util.Arrays;
@@ -63,13 +64,17 @@ public class IntellijActionsContributor implements IActionsContributor {
 
         am.registerHandler(ResourceCommonActionsContributor.ENABLE_PLUGIN, (id, e) -> AzureTaskManager.getInstance().runLater(() -> {
             PluginManager.getInstance().enablePlugin(PluginId.getId(id));
-        }));
+        }, AzureTask.Modality.ANY));
+        am.registerHandler(ResourceCommonActionsContributor.ENABLE_PLUGIN_AND_RESTART, (id, e) -> AzureTaskManager.getInstance().runLater(() -> {
+            PluginManager.getInstance().enablePlugin(PluginId.getId(id));
+            PluginManagerConfigurable.showRestartDialog("Restart to Activate");
+        }, AzureTask.Modality.ANY));
         am.registerHandler(ResourceCommonActionsContributor.SEARCH_INSTALLED_PLUGIN, (id, e) -> AzureTaskManager.getInstance().runLater(() -> {
-            ShowSettingsUtil.getInstance().editConfigurable(null, new PluginManagerConfigurable(), it -> it.openInstalledTab(id));
-        }));
+            ShowSettingsUtil.getInstance().editConfigurable(((AnActionEvent) e).getProject(), new PluginManagerConfigurable(), it -> it.openInstalledTab(id));
+        }, AzureTask.Modality.ANY));
         am.registerHandler(ResourceCommonActionsContributor.SEARCH_MARKETPLACE_PLUGIN, (id, e) -> AzureTaskManager.getInstance().runLater(() -> {
-            ShowSettingsUtil.getInstance().editConfigurable(null, new PluginManagerConfigurable(), it -> it.openMarketplaceTab(id));
-        }));
+            ShowSettingsUtil.getInstance().editConfigurable(((AnActionEvent) e).getProject(), new PluginManagerConfigurable(), it -> it.openMarketplaceTab(id));
+        }, AzureTask.Modality.ANY));
     }
 
     @AzureOperation(name = "boundary/$resource.open_url.url", params = {"u"})

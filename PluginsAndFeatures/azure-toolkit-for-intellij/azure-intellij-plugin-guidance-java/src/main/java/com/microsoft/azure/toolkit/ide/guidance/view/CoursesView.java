@@ -68,11 +68,11 @@ public class CoursesView {
         this.moreSamplesLink.addHyperlinkListener(e -> {
             final InputEvent event = e.getInputEvent();
             final DataContext context = DataManager.getInstance().getDataContext(event.getComponent());
-            final Action<String> enableGit = AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.ENABLE_PLUGIN).bind("git4idea").withLabel("Enable \"Git\" plugin");
+            final Action<String> enable = AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.ENABLE_PLUGIN_AND_RESTART).bind("Git4Idea").withLabel("Enable and Restart");
             Optional.ofNullable(AzureActionManager.getInstance())
                 .map(m -> m.getAction(ResourceCommonActionsContributor.BROWSE_AZURE_SAMPLES))
                 .ifPresentOrElse(a -> a.handle(null, AnActionEvent.createFromInputEvent(event, "azure.guidance", null, context)),
-                    () -> AzureMessager.getMessager().warning("Browsing Azure samples requires \"Git\" plugin to be enabled first.", enableGit));
+                    () -> AzureMessager.getMessager().warning("Browsing Azure samples requires \"Git\" plugin to be enabled first.", enable));
         });
     }
 
