@@ -42,13 +42,15 @@ public class PostgreSqlActionsContributor implements IActionsContributor {
     public void registerGroups(AzureActionManager am) {
         final ActionGroup serviceActionGroup = new ActionGroup(
             ResourceCommonActionsContributor.REFRESH,
-            ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK
+            ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES
         );
         am.registerGroup(SERVICE_ACTIONS, serviceActionGroup);
 
         final ActionGroup serverActionGroup = new ActionGroup(
             ResourceCommonActionsContributor.REFRESH,
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
             ResourceCommonActionsContributor.OPEN_PORTAL_URL,
             ResourceCommonActionsContributor.SHOW_PROPERTIES,
             "---",

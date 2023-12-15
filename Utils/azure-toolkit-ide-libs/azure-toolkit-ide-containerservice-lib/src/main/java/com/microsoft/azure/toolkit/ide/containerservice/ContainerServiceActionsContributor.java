@@ -72,6 +72,7 @@ public class ContainerServiceActionsContributor implements IActionsContributor {
         final ActionGroup serviceActionGroup = new ActionGroup(
             ResourceCommonActionsContributor.REFRESH,
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
             "---",
             ResourceCommonActionsContributor.CREATE
         );
@@ -82,6 +83,7 @@ public class ContainerServiceActionsContributor implements IActionsContributor {
             "---",
             ResourceCommonActionsContributor.REFRESH,
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
             ResourceCommonActionsContributor.OPEN_PORTAL_URL,
             ResourceCommonActionsContributor.SHOW_PROPERTIES,
             "---",
