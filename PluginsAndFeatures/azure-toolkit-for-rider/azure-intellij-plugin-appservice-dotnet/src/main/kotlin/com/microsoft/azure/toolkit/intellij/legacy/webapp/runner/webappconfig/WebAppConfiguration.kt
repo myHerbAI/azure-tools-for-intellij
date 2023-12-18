@@ -7,15 +7,14 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.common.runconfig.IWebAppRunConfiguration
 import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunConfigurationBase
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.Constants
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
@@ -97,7 +96,7 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         set(value) {
             webAppPublishModel.isDeployToSlot = value
         }
-    var newSlotConfigurationSource: String
+    var newSlotConfigurationSource: String?
         get() = webAppPublishModel.newSlotConfigurationSource
         set(value) {
             webAppPublishModel.newSlotConfigurationSource = value
@@ -107,7 +106,7 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         set(value) {
             webAppPublishModel.slotName = value
         }
-    var newSlotName: String
+    var newSlotName: String?
         get() = webAppPublishModel.newSlotName
         set(value) {
             webAppPublishModel.newSlotName = value
@@ -126,6 +125,11 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         get() = webAppPublishModel.runtime
         set(value) {
             webAppPublishModel.saveRuntime(value)
+        }
+    var operatingSystem : OperatingSystem
+        get() = OperatingSystem.fromString(webAppPublishModel.operatingSystem)
+        set(value) {
+            webAppPublishModel.operatingSystem = value.toString()
         }
     var projectConfiguration: String
         get() = webAppPublishModel.projectConfiguration
@@ -159,30 +163,31 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
 
     override fun getModule(): Module? = null
 
-    override fun validate() {
+    override fun checkConfiguration() {
+        checkAzurePreconditions()
         with(webAppPublishModel) {
             if (isCreatingNew) {
-                if (webAppName.isNullOrEmpty()) throw ConfigurationException("Web App name not provided")
-                if (subscriptionId.isNullOrEmpty()) throw ConfigurationException("Subscription not provided")
-                if (resourceGroup.isNullOrEmpty()) throw ConfigurationException("Resource Group not provided")
+                if (webAppName.isNullOrEmpty()) throw RuntimeConfigurationError("Web App name not provided")
+                if (subscriptionId.isNullOrEmpty()) throw RuntimeConfigurationError("Subscription not provided")
+                if (resourceGroup.isNullOrEmpty()) throw RuntimeConfigurationError("Resource Group not provided")
                 if (isCreatingAppServicePlan) {
-                    if (region.isNullOrEmpty()) throw ConfigurationException("Location not provided")
-                    if (pricing.isNullOrEmpty()) throw ConfigurationException("Pricing Tier not provided")
+                    if (region.isNullOrEmpty()) throw RuntimeConfigurationError("Location not provided")
+                    if (pricing.isNullOrEmpty()) throw RuntimeConfigurationError("Pricing Tier not provided")
                 }
-                if (appServicePlanName.isNullOrEmpty()) throw ConfigurationException("App Service Plan not provided")
+                if (appServicePlanName.isNullOrEmpty()) throw RuntimeConfigurationError("App Service Plan not provided")
             } else {
-                if (webAppId.isNullOrEmpty()) throw ConfigurationException("Choose a web app to deploy")
-                if (appServicePlanName.isNullOrEmpty()) throw ConfigurationException("Meta-data of target webapp is still loading...")
+                if (webAppId.isNullOrEmpty()) throw RuntimeConfigurationError("Choose a web app to deploy")
+                if (appServicePlanName.isNullOrEmpty()) throw RuntimeConfigurationError("Meta-data of target webapp is still loading...")
                 if (isDeployToSlot) {
-                    if (slotName == Constants.CREATE_NEW_SLOT) {
-                        if (newSlotName.isNullOrEmpty()) throw ConfigurationException("The deployment slot name is not provided")
-                        if (!slotNameRegex.matches(newSlotName)) throw ConfigurationException("The slot name is invalid")
-                    } else if (slotName.isNullOrEmpty()) throw ConfigurationException("The deployment slot name is not provided")
+                    if (slotName.isNullOrEmpty()) {
+                        if (newSlotName.isNullOrEmpty()) throw RuntimeConfigurationError("The deployment slot name is not provided")
+                        if (!slotNameRegex.matches(newSlotName)) throw RuntimeConfigurationError("The slot name is invalid")
+                    } else if (slotName.isNullOrEmpty()) throw RuntimeConfigurationError("The deployment slot name is not provided")
                 }
             }
 
-            if (OperatingSystem.fromString(operatingSystem) == OperatingSystem.DOCKER) throw ConfigurationException("Invalid target, please change to use `Deploy Image to Web App` for docker web app")
-            if (publishableProjectPath == null) throw ConfigurationException("Choose a project to deploy")
+            if (OperatingSystem.fromString(operatingSystem) == OperatingSystem.DOCKER) throw RuntimeConfigurationError("Invalid target, please change to use `Deploy Image to Web App` for docker web app")
+            if (publishableProjectPath == null) throw RuntimeConfigurationError("Choose a project to deploy")
         }
     }
 

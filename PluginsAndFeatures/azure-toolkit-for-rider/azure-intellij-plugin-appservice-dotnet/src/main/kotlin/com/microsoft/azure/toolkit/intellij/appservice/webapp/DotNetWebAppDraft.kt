@@ -21,11 +21,8 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager
 import com.microsoft.azure.toolkit.lib.common.model.AzResource
 
 class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourcemanager.appservice.models.WebApp> {
-    constructor(name: String, resourceGroupName: String, module: WebAppModule) : super(
-        name,
-        resourceGroupName,
-        module
-    ) {
+    constructor(name: String, resourceGroupName: String, module: WebAppModule) :
+            super(name, resourceGroupName, module) {
         origin = null
     }
 
@@ -53,6 +50,19 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
         }
     }
 
+    override fun isModified(): Boolean {
+        val localConfig = config
+        val notModified = localConfig == null ||
+                ((localConfig.runtime == null || localConfig.runtime == remote?.getDotNetRuntime()) &&
+                        (localConfig.plan == null || localConfig.plan == super.getAppServicePlan()) &&
+                        localConfig.dockerConfiguration == null &&
+                        localConfig.diagnosticConfig == null &&
+                        (localConfig.appSettings == null || localConfig.appSettings == super.getAppSettings()) &&
+                        localConfig.appSettingsToRemove.isNullOrEmpty())
+
+        return !notModified
+    }
+
     override fun createResourceInAzure(): com.azure.resourcemanager.appservice.models.WebApp {
         val newRuntime = requireNotNull(dotNetRuntime) { "'runtime' is required to create Azure Web App" }
         val newPlan = requireNotNull(appServicePlan) { "'service plan' is required to create Azure Web App" }
@@ -69,19 +79,18 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
             if (!newRuntime.isDocker) createWebApp(blank, os, newPlan, newRuntime)
             else createDockerWebApp(blank, os, newPlan)
 
-        if (newAppSettings != null)
+        if (!newAppSettings.isNullOrEmpty())
             withCreate.withAppSettings(newAppSettings)
         if (newDiagnosticConfig != null)
             AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, newDiagnosticConfig)
 
         val messager = AzureMessager.getMessager()
-        messager.info(AzureString.format("Start creating Web App({0})...", name))
+        messager.info(AzureString.format("Start creating Web App ({0})...", name))
 
         val webApp = withCreate.create()
 
-        val deploy = AzureActionManager.getInstance().getAction(DEPLOY)?.bind(this)
         val open = AzureActionManager.getInstance().getAction(AppServiceAppBase.OPEN_IN_BROWSER)?.bind(this)
-        messager.success(AzureString.format("Web App({0}) is successfully created", name), deploy, open)
+        messager.success(AzureString.format("Web App({0}) is successfully created", name), open)
 
         return webApp
     }
@@ -148,12 +157,106 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
         return draft.withStartUpCommand(dockerConfig.startUpCommand)
     }
 
-    override fun isModified(): Boolean {
-        TODO("Not yet implemented")
+    override fun updateResourceInAzure(remote: com.azure.resourcemanager.appservice.models.WebApp): com.azure.resourcemanager.appservice.models.WebApp {
+        if (origin == null)
+            throw AzureToolkitRuntimeException("Updating target is not specified")
+
+        val newPlan = ensureConfig().plan
+        val newRuntime = ensureConfig().runtime
+        val newDockerConfig = ensureConfig().dockerConfiguration
+        val newDiagnosticConfig = ensureConfig().diagnosticConfig
+        val settingsToAdd = ensureConfig().appSettings?.toMutableMap()
+
+        val oldPlan = origin.appServicePlan
+        val oldRuntime = requireNotNull(origin.getDotNetRuntime())
+        val oldAppSettings = requireNotNull(origin.appSettings)
+
+        settingsToAdd?.entries?.removeAll(oldAppSettings.entries)
+        val settingsToRemove = ensureConfig().appSettingsToRemove
+            ?.filter { oldAppSettings.containsKey(it) }
+            ?.toSet()
+            ?: emptySet()
+
+        val planModified = newPlan != null && newPlan != oldPlan
+        val runtimeModified = !oldRuntime.isDocker && newRuntime != null && newRuntime != oldRuntime
+        val dockerModified = oldRuntime.isDocker && newDockerConfig != null
+        val diagnosticModified = newDiagnosticConfig != null
+        val isModified =
+            planModified || runtimeModified || dockerModified || diagnosticModified || !settingsToAdd.isNullOrEmpty() || settingsToRemove.isNotEmpty()
+
+        var result = remote
+        if (isModified) {
+            val update = remote.update()
+
+            if (planModified) newPlan?.let { updateAppServicePlan(update, it) }
+            if (runtimeModified) newRuntime?.let { updateRuntime(update, it) }
+            if (dockerModified) newDockerConfig?.let { updateDockerConfiguration(update, it) }
+            if (diagnosticModified) newDiagnosticConfig?.let { AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, it) }
+            settingsToAdd?.let { update.withAppSettings(it) }
+            settingsToRemove.let { if (settingsToRemove.isNotEmpty()) it.forEach { key -> update.withoutAppSetting(key) } }
+
+            val messager = AzureMessager.getMessager()
+            messager.info(AzureString.format("Start updating Web App ({0})...", remote.name()))
+
+            result = update.apply()
+
+            val open = AzureActionManager.getInstance().getAction(AppServiceAppBase.OPEN_IN_BROWSER)?.bind(this)
+            messager.success(AzureString.format("Web App ({0}) is successfully updated", result.name()), open)
+        }
+
+        return result
     }
 
-    override fun updateResourceInAzure(origin: com.azure.resourcemanager.appservice.models.WebApp): com.azure.resourcemanager.appservice.models.WebApp {
-        TODO("Not yet implemented")
+    private fun updateAppServicePlan(
+        update: com.azure.resourcemanager.appservice.models.WebApp.Update,
+        newPlan: AppServicePlan
+    ) {
+        val plan = requireNotNull(newPlan.remote) { "Target app service plan doesn't exist" }
+        val runtime = requireNotNull(dotNetRuntime) { "Unable to find web app runtime" }
+        if (runtime.operatingSystem != newPlan.operatingSystem) {
+            throw AzureToolkitRuntimeException("Could not migrate ${runtime.operatingSystem} app service to ${newPlan.operatingSystem} service plan")
+        }
+        update.withExistingAppServicePlan(plan)
+    }
+
+    private fun updateRuntime(
+        update: com.azure.resourcemanager.appservice.models.WebApp.Update,
+        newRuntime: DotNetRuntime
+    ) {
+        val oldRuntime = requireNotNull(origin?.getDotNetRuntime())
+        if (newRuntime.operatingSystem != oldRuntime.operatingSystem) {
+            throw AzureToolkitRuntimeException("Can not update the operation system for existing app service")
+        }
+
+        when (oldRuntime.operatingSystem) {
+            OperatingSystem.LINUX -> {
+                update.withBuiltInImage(newRuntime.stack)
+            }
+
+            OperatingSystem.WINDOWS -> {
+                update.withRuntimeStack(WebAppRuntimeStack.NET)
+                    .withNetFrameworkVersion(newRuntime.frameworkVersion)
+            }
+
+            OperatingSystem.DOCKER -> return
+        }
+    }
+
+    private fun updateDockerConfiguration(
+        update: com.azure.resourcemanager.appservice.models.WebApp.Update,
+        newConfig: DockerConfiguration
+    ) {
+        val draft =
+            if (newConfig.userName.isNullOrEmpty() && newConfig.password.isNullOrEmpty()) {
+                update.withPublicDockerHubImage(newConfig.image)
+            } else if (newConfig.registryUrl.isNullOrEmpty()) {
+                update.withPrivateDockerHubImage(newConfig.image)
+                    .withCredentials(newConfig.userName, newConfig.password)
+            } else {
+                update.withPrivateRegistryImage(newConfig.image, newConfig.registryUrl)
+                    .withCredentials(newConfig.userName, newConfig.password)
+            }
+        draft.withStartUpCommand(newConfig.startUpCommand)
     }
 
     var dotNetRuntime: DotNetRuntime?
@@ -166,6 +269,12 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
         get() = config?.dockerConfiguration
         set(value) {
             ensureConfig().dockerConfiguration = value
+        }
+
+    var appSettingsToRemove: Set<String>?
+        get() = config?.appSettingsToRemove
+        set(value) {
+            ensureConfig().appSettingsToRemove = value
         }
 
     override fun getAppServicePlan() = config?.plan ?: super.getAppServicePlan()
@@ -186,9 +295,9 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
     data class Config(
         var runtime: DotNetRuntime? = null,
         var plan: AppServicePlan? = null,
+        var dockerConfiguration: DockerConfiguration? = null,
         var diagnosticConfig: DiagnosticConfig? = null,
-        var appSettingsToRemove: Set<String> = setOf(),
         var appSettings: Map<String, String>? = null,
-        var dockerConfiguration: DockerConfiguration? = null
+        var appSettingsToRemove: Set<String>? = null
     )
 }

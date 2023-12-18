@@ -5,14 +5,18 @@
 package com.microsoft.azure.toolkit.intellij.appservice.webapp
 
 import com.azure.resourcemanager.appservice.models.OperatingSystem
+import com.azure.resourcemanager.appservice.models.RuntimeStack
 import com.azure.resourcemanager.appservice.models.WebAppBase
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
 
 fun WebAppBase.getDotNetRuntime(): DotNetRuntime {
     val os = operatingSystem()
     if (os == OperatingSystem.LINUX) {
+        val stack = linuxFxVersion().substringBefore('|', "DOTNETCORE")
+        val version = linuxFxVersion().substringAfter('|', "8.0")
         return DotNetRuntime(
             com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem.LINUX,
-            null,
+            RuntimeStack(stack, version),
             null,
             false
         )
@@ -20,8 +24,10 @@ fun WebAppBase.getDotNetRuntime(): DotNetRuntime {
         return DotNetRuntime(
             com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem.WINDOWS,
             null,
-            null,
+            netFrameworkVersion(),
             false
         )
     }
 }
+
+fun AppServiceAppBase<*, *, *>.getDotNetRuntime() = getRemote()?.getDotNetRuntime()
