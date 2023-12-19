@@ -115,7 +115,7 @@ class WebAppContainersConfiguration(private val project: Project, factory: Confi
 
     override fun getModel() = webAppContainersModel
 
-    override fun validate() {
+    override fun checkConfiguration() {
         checkAzurePreconditions()
         validateDockerImageConfiguration()
         with(webAppContainersModel) {

@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppDeployRunConfigurationModel
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureSettingPanel
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.Constants
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.common.model.Region
@@ -22,30 +21,30 @@ import com.microsoft.azure.toolkit.lib.common.model.Subscription
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig
 import javax.swing.JPanel
 
-class RiderWebAppSettingPanel(private val project: Project, configuration: RiderWebAppConfiguration) : RiderAzureSettingPanel<RiderWebAppConfiguration>() {
+class WebAppSettingPanel(private val project: Project, configuration: WebAppConfiguration) :
+    RiderAzureSettingPanel<WebAppConfiguration>() {
     private val panel: JPanel
-    private val webAppPanel = RiderWebAppDeployConfigurationPanel(project)
+    private val webAppPanel = WebAppDeployConfigurationPanel(project)
     private var appSettingsKey: String = configuration.appSettingsKey
 
     init {
         panel = panel {
             row {
                 cell(webAppPanel.panel)
-                        .align(Align.FILL)
-                        .resizableColumn()
+                    .align(Align.FILL)
+                    .resizableColumn()
             }
         }
     }
 
-    override fun apply(configuration: RiderWebAppConfiguration) {
+    override fun apply(configuration: WebAppConfiguration) {
         val runConfigurationModel = webAppPanel.value
         val projectConfiguration = webAppPanel.getSelectedConfiguration()
         val projectPlatform = webAppPanel.getSelectedPlatform()
-        val projectModel = runConfigurationModel.artifactConfig?.let {
+        val publishableProject = runConfigurationModel.artifactConfig?.let {
             val artifactId = it.artifactIdentifier.toIntOrNull() ?: return@let null
             project.solution.publishableProjectsModel.publishableProjects.values
-                    .firstOrNull { p -> p.projectModelId == artifactId }
-                    ?.also { p -> configuration.saveProject(p) }
+                .firstOrNull { p -> p.projectModelId == artifactId }
         }
 
         configuration.appSettingsKey = appSettingsKey
@@ -54,7 +53,7 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
             configuration.subscriptionId = it.subscriptionId
             configuration.resourceGroup = it.resourceGroupName
             configuration.webAppName = it.name
-            configuration.saveRuntime(it.runtime, projectModel)
+            configuration.runtime = it.runtime
             configuration.applicationSettings = it.appSettings
             configuration.appSettingsToRemove = it.appSettingsToRemove
             configuration.isCreatingNew = it.resourceId.isNullOrEmpty()
@@ -73,11 +72,14 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
 
             configuration.isDeployToSlot = it.deploymentSlot != null
             it.deploymentSlot?.let { slot ->
-                configuration.slotName = slot.name
                 if (slot.isNewCreate) {
-                    configuration.slotName = Constants.CREATE_NEW_SLOT
+                    configuration.slotName = null
                     configuration.newSlotName = slot.name
                     configuration.newSlotConfigurationSource = slot.configurationSource
+                } else {
+                    configuration.slotName = slot.name
+                    configuration.newSlotName = null
+                    configuration.newSlotConfigurationSource = null
                 }
             }
         }
@@ -86,71 +88,76 @@ class RiderWebAppSettingPanel(private val project: Project, configuration: Rider
         configuration.isOpenBrowserAfterDeployment = runConfigurationModel.isOpenBrowserAfterDeployment
         configuration.projectConfiguration = projectConfiguration
         configuration.projectPlatform = projectPlatform
+        configuration.publishableProjectPath = publishableProject?.projectFilePath
     }
 
-    override fun reset(configuration: RiderWebAppConfiguration) {
+    override fun reset(configuration: WebAppConfiguration) {
         if (configuration.webAppId.isNullOrEmpty() && configuration.webAppName.isEmpty()) return
+
+        val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
+            .firstOrNull { p -> p.projectFilePath == configuration.publishableProjectPath }
 
         appSettingsKey = configuration.appSettingsKey
         val subscription = Subscription(configuration.subscriptionId)
         val region = if (configuration.region.isNotEmpty()) Region.fromName(configuration.region) else null
         val resourceGroupName = configuration.resourceGroup
         val resourceGroup = ResourceGroupConfig
-                .builder()
-                .subscriptionId(subscription.id)
-                .name(resourceGroupName)
-                .region(region)
-                .build()
-        val pricingTier = if (configuration.pricing.isNotEmpty()) PricingTier.fromString(configuration.pricing) else null
-        val runtime = configuration.getRuntime
+            .builder()
+            .subscriptionId(subscription.id)
+            .name(resourceGroupName)
+            .region(region)
+            .build()
+        val pricingTier =
+            if (configuration.pricing.isNotEmpty()) PricingTier.fromString(configuration.pricing) else null
         val plan = AppServicePlanConfig
-                .builder()
-                .subscriptionId(subscription.id)
-                .name(configuration.appServicePlanName)
-                .resourceGroupName(resourceGroupName)
-                .region(region)
-                .os(configuration.operatingSystem)
-                .pricingTier(pricingTier)
-                .build()
+            .builder()
+            .subscriptionId(subscription.id)
+            .name(configuration.appServicePlanName)
+            .resourceGroupName(resourceGroupName)
+            .region(region)
+            .os(configuration.runtime?.operatingSystem)
+            .pricingTier(pricingTier)
+            .build()
         val slotConfig = if (configuration.isDeployToSlot) {
-            if (configuration.slotName == Constants.CREATE_NEW_SLOT)
+            if (configuration.slotName.isNullOrEmpty())
                 DeploymentSlotConfig
-                        .builder()
-                        .newCreate(true)
-                        .name(configuration.newSlotName)
-                        .configurationSource(configuration.newSlotConfigurationSource)
-                        .build()
-            else DeploymentSlotConfig
+                    .builder()
+                    .newCreate(true)
+                    .name(configuration.newSlotName)
+                    .configurationSource(configuration.newSlotConfigurationSource)
+                    .build()
+            else
+                DeploymentSlotConfig
                     .builder()
                     .newCreate(false)
                     .name(configuration.slotName)
                     .build()
         } else null
         val configBuilder = WebAppConfig
-                .builder()
-                .name(configuration.webAppName)
-                .resourceId(configuration.webAppId)
-                .subscription(subscription)
-                .resourceGroup(resourceGroup)
-                .runtime(runtime)
-                .servicePlan(plan)
-                .deploymentSlot(slotConfig)
-                .appSettings(configuration.applicationSettings)
-                .appSettingsToRemove(configuration.appSettingsToRemove)
+            .builder()
+            .name(configuration.webAppName)
+            .resourceId(configuration.webAppId)
+            .subscription(subscription)
+            .resourceGroup(resourceGroup)
+            .runtime(configuration.runtime)
+            .servicePlan(plan)
+            .deploymentSlot(slotConfig)
+            .appSettings(configuration.applicationSettings)
+            .appSettingsToRemove(configuration.appSettingsToRemove)
         val webAppConfig =
-                if (configuration.isCreatingNew) configBuilder.region(region).pricingTier(pricingTier).build()
-                else configBuilder.build()
+            if (configuration.isCreatingNew) configBuilder.region(region).pricingTier(pricingTier).build()
+            else configBuilder.build()
         val artifactConfig = AzureArtifactConfig
-                .builder()
-                .artifactIdentifier(configuration.getProjectId()?.toString() ?: "")
-                .build()
+            .builder()
+            .artifactIdentifier(publishableProject?.projectModelId?.toString() ?: "")
+            .build()
         val runConfigurationModel = WebAppDeployRunConfigurationModel
-                .builder()
-                .webAppConfig(webAppConfig)
-                .artifactConfig(artifactConfig)
-                .slotPanelVisible(configuration.isSlotPanelVisible)
-                .openBrowserAfterDeployment(configuration.isOpenBrowserAfterDeployment)
-                .build()
+            .builder()
+            .webAppConfig(webAppConfig)
+            .artifactConfig(artifactConfig)
+            .slotPanelVisible(configuration.isSlotPanelVisible)
+            .openBrowserAfterDeployment(configuration.isOpenBrowserAfterDeployment)
+            .build()
         webAppPanel.value = runConfigurationModel
         webAppPanel.setConfigurationAndPlatform(configuration.projectConfiguration, configuration.projectPlatform)
     }

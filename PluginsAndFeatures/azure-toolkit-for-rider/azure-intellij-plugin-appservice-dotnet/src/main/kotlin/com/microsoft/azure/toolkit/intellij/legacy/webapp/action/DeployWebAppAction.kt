@@ -14,7 +14,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.common.auth.AzureLoginHelper
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfigurationType
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.RiderWebAppConfiguration
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfiguration
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 
@@ -35,13 +35,12 @@ class DeployWebAppAction : AnAction() {
 
         private fun getOrCreateRunConfigurationSettings(project: Project, webApp: WebApp?): RunnerAndConfigurationSettings {
             val manager = RunManagerEx.getInstanceEx(project)
-            val factory = configType.getFactory()
             val name = webApp?.name ?: ""
-            val runConfigurationName = "${factory.name}: ${project.name} $name"
+            val runConfigurationName = "${configType.name}: ${project.name} $name"
             val settings = manager.findConfigurationByName(runConfigurationName)
-                    ?: manager.createConfiguration(runConfigurationName, factory)
+                    ?: manager.createConfiguration(runConfigurationName, configType)
             val runConfiguration = settings.configuration
-            if (runConfiguration is RiderWebAppConfiguration && webApp != null) {
+            if (runConfiguration is WebAppConfiguration && webApp != null) {
                 runConfiguration.setWebApp(webApp)
             }
             return settings

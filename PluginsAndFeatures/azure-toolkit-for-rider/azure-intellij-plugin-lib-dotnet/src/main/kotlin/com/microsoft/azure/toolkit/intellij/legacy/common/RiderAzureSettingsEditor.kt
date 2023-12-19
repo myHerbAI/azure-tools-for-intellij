@@ -11,7 +11,7 @@ abstract class RiderAzureSettingsEditor<T> : SettingsEditor<T>() where T : Rider
 
     override fun applyEditorTo(configuration: T) {
         getPanel().apply(configuration)
-        configuration.validate()
+        configuration.checkConfiguration()
     }
 
     override fun resetEditorFrom(configuration: T) {

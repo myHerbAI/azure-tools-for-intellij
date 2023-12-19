@@ -36,7 +36,6 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput.AzureValueChangeBiListener
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
-import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel
 import org.apache.commons.collections4.MapUtils
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
@@ -45,12 +44,14 @@ import java.time.format.DateTimeFormatter
 import javax.swing.JComboBox
 import javax.swing.JPanel
 
-class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureFormPanel<WebAppDeployRunConfigurationModel> {
+class WebAppDeployConfigurationPanel(private val project: Project) : AzureFormPanel<WebAppDeployRunConfigurationModel> {
     companion object {
         private const val DEFAULT_SLOT_NAME = "slot"
     }
 
     private val formatter = DateTimeFormatter.ofPattern("yyMMddHHmmss")
+
+    private val currentAppSettingKeys = mutableListOf<String>()
 
     val panel: JPanel
 
@@ -79,7 +80,7 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
             }
             row("Project:") {
                 dotnetProjectComboBox = dotnetProjectComboBox(project) { it.canBePublishedToAzure() }
-                        .align(Align.FILL)
+                    .align(Align.FILL)
             }
             row("Configuration:") {
                 configurationAndPlatformComboBox = configurationAndPlatformComboBox(project)
@@ -88,7 +89,7 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
             row("App Settings:") {
                 appSettingsTable = AppSettingsTable()
                 cell(AppSettingsTableUtils.createAppSettingPanel(appSettingsTable))
-                        .align(Align.FILL)
+                    .align(Align.FILL)
             }
             deploymentSlotGroup = collapsibleGroup("Deployment Slot") {
                 row {
@@ -97,38 +98,38 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
                 buttonsGroup {
                     row {
                         newSlotRadioButton = radioButton("Create new slot")
-                                .enabledIf(deployToSlotCheckBox.selected.and(webAppComboBox.component.selectedValueMatches { it != null }))
+                            .enabledIf(deployToSlotCheckBox.selected.and(webAppComboBox.component.selectedValueMatches { it != null }))
                         existingSlotRadioButton = radioButton("Use existing slot")
-                                .enabledIf(deployToSlotCheckBox.selected.and(webAppComboBox.component.selectedValueMatches { it != null }))
+                            .enabledIf(deployToSlotCheckBox.selected.and(webAppComboBox.component.selectedValueMatches { it != null }))
                     }
                 }
                 row("Slot Name:") {
                     newSlotTextField = textField()
-                            .enabledIf(deployToSlotCheckBox.selected.and(webAppComboBox.component.selectedValueMatches { it != null }))
-                            .enabledIf(newSlotRadioButton.selected)
-                            .visibleIf(newSlotRadioButton.selected)
-                            .align(Align.FILL)
+                        .enabledIf(deployToSlotCheckBox.selected.and(webAppComboBox.component.selectedValueMatches { it != null }))
+                        .enabledIf(newSlotRadioButton.selected)
+                        .visibleIf(newSlotRadioButton.selected)
+                        .align(Align.FILL)
 
                     existingSlotNameComboBox = comboBox(emptyList<String>())
-                            .enabledIf(deployToSlotCheckBox.selected.and(webAppComboBox.component.selectedValueMatches { it != null }))
-                            .enabledIf(existingSlotRadioButton.selected)
-                            .visibleIf(existingSlotRadioButton.selected)
-                            .align(Align.FILL)
+                        .enabledIf(deployToSlotCheckBox.selected.and(webAppComboBox.component.selectedValueMatches { it != null }))
+                        .enabledIf(existingSlotRadioButton.selected)
+                        .visibleIf(existingSlotRadioButton.selected)
+                        .align(Align.FILL)
                 }
                 row {
                     noAvailableSlotLink = link("No available deployment slot, click to create a new one") {
                         newSlotRadioButton.component.doClick()
                     }
-                            .visibleIf(existingSlotRadioButton.selected.and(existingSlotNameComboBox.component.selectedValueMatches { it == null }))
+                        .visibleIf(existingSlotRadioButton.selected.and(existingSlotNameComboBox.component.selectedValueMatches { it == null }))
                 }
                 row("Slot Configuration Source:") {
                     slotConfigurationSourceComboBox = comboBox(emptyList<String>())
-                            .enabledIf(deployToSlotCheckBox.selected.and(webAppComboBox.component.selectedValueMatches { it != null }))
-                            .enabledIf(newSlotRadioButton.selected)
-                            .align(Align.FILL)
-                }
+                        .enabledIf(deployToSlotCheckBox.selected.and(webAppComboBox.component.selectedValueMatches { it != null }))
                         .enabledIf(newSlotRadioButton.selected)
-                        .visibleIf(newSlotRadioButton.selected)
+                        .align(Align.FILL)
+                }
+                    .enabledIf(newSlotRadioButton.selected)
+                    .visibleIf(newSlotRadioButton.selected)
             }
             row {
                 openBrowserCheckBox = checkBox("Open browser after deployment")
@@ -160,11 +161,12 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
         } else {
             deployToSlotCheckBox.component.isEnabled = true
             Mono.fromCallable { Azure.az(AzureWebApp::class.java).webApp(resourceId) }
-                    .map { it?.slots()?.list() ?: emptyList() }
-                    .subscribeOn(Schedulers.boundedElastic())
-                    .subscribe {
-                        AzureTaskManager.getInstance().runLater({ fillDeploymentSlots(it, selectedWebApp) }, AzureTask.Modality.ANY)
-                    }
+                .map { it?.slots()?.list() ?: emptyList() }
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe {
+                    AzureTaskManager.getInstance()
+                        .runLater({ fillDeploymentSlots(it, selectedWebApp) }, AzureTask.Modality.ANY)
+                }
         }
     }
 
@@ -174,7 +176,7 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
             val defaultConfigurationSource = slotConfigurationSourceComboBox.component.selectedItem as? String?
             existingSlotNameComboBox.component.removeAllItems()
             slotConfigurationSourceComboBox.component.removeAllItems()
-            slotConfigurationSourceComboBox.component.addItem(AzureWebAppMvpModel.DO_NOT_CLONE_SLOT_CONFIGURATION)
+            slotConfigurationSourceComboBox.component.addItem("Don't clone configuration from an existing slot")
             slotConfigurationSourceComboBox.component.addItem(selectedWebApp.name)
             slotList.stream().filter { it != null }.forEach {
                 existingSlotNameComboBox.component.addItem(it.name)
@@ -185,22 +187,34 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
         }
     }
 
-    private fun loadAppSettings(value: WebAppConfig, before: WebAppConfig?) {
-        val rawValue = if (webAppComboBox.component.rawValue is WebAppConfig) webAppComboBox.component.rawValue as WebAppConfig else value
-        if (before == null && value != rawValue) {
-            if (rawValue.resourceId.isNullOrEmpty() && !value.resourceId.isNullOrEmpty()) {
+    private fun loadAppSettings(selectedWebApp: WebAppConfig, before: WebAppConfig?) {
+        val rawValue =
+            if (webAppComboBox.component.rawValue is WebAppConfig) webAppComboBox.component.rawValue as WebAppConfig
+            else selectedWebApp
+        if (before == null && selectedWebApp != rawValue) {
+            if (rawValue.resourceId.isNullOrEmpty() && !selectedWebApp.resourceId.isNullOrEmpty()) {
                 appSettingsTable.loadAppSettings { loadDraftAppSettings(rawValue) }
             }
-        } else if (value != before) {
+        } else if (selectedWebApp != before) {
             appSettingsTable.loadAppSettings {
-                if (value.resourceId.isNullOrEmpty()) value.appSettings
-                else Azure.az(AzureWebApp::class.java).webApp(value.resourceId)?.appSettings
+                currentAppSettingKeys.clear()
+                if (selectedWebApp.resourceId.isNullOrEmpty()) {
+                    selectedWebApp.appSettings
+                }
+                else {
+                    val currentSettings = Azure.az(AzureWebApp::class.java).webApp(selectedWebApp.resourceId)?.appSettings
+                    if (currentSettings != null) {
+                        currentAppSettingKeys.addAll(currentSettings.keys)
+                    }
+                    currentSettings
+                }
             }
         }
     }
 
     private fun loadDraftAppSettings(value: WebAppConfig): Map<String, String> {
-        val webApp = Azure.az(AzureWebApp::class.java).webApps(value.subscriptionId).get(value.name, value.resourceGroupName)
+        val webApp =
+            Azure.az(AzureWebApp::class.java).webApps(value.subscriptionId).get(value.name, value.resourceGroupName)
         return if (webApp != null && webApp.exists())
             MapUtils.putAll(webApp.appSettings, value.appSettings.entries.toTypedArray())
         else
@@ -212,8 +226,8 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
             val artifactId = it.artifactIdentifier?.toIntOrNull()
             if (artifactId != null) {
                 project.solution.publishableProjectsModel.publishableProjects.values
-                        .firstOrNull { p -> p.projectModelId == artifactId }
-                        ?.let { p -> dotnetProjectComboBox.component.setProject(p) }
+                    .firstOrNull { p -> p.projectModelId == artifactId }
+                    ?.let { p -> dotnetProjectComboBox.component.setProject(p) }
             }
         }
 
@@ -224,7 +238,7 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
 
             webApp.deploymentSlot?.let { slot ->
                 deployToSlotCheckBox.component.isSelected = true
-                newSlotRadioButton.component.isSelected = slot.isNewCreate
+                existingSlotRadioButton.component.isSelected = !slot.isNewCreate
                 if (slot.isNewCreate) {
                     newSlotTextField.component.text = slot.name
                     slotConfigurationSourceComboBox.component.addItem(slot.configurationSource)
@@ -257,51 +271,58 @@ class RiderWebAppDeployConfigurationPanel(private val project: Project) : AzureF
         }
 
         val slotConfig =
-                if (deployToSlotCheckBox.component.isSelected) {
-                    if (existingSlotRadioButton.component.isSelected) {
-                        DeploymentSlotConfig
-                                .builder()
-                                .newCreate(false)
-                                .name(existingSlotNameComboBox.component.selectedItem as? String?)
-                                .build()
-                    } else {
-                        DeploymentSlotConfig
-                                .builder()
-                                .newCreate(true)
-                                .name(newSlotTextField.component.text)
-                                .configurationSource(slotConfigurationSourceComboBox.component.selectedItem as? String?)
-                                .build()
-                    }
-                } else null
+            if (deployToSlotCheckBox.component.isSelected) {
+                if (existingSlotRadioButton.component.isSelected) {
+                    DeploymentSlotConfig
+                        .builder()
+                        .newCreate(false)
+                        .name(existingSlotNameComboBox.component.selectedItem as? String?)
+                        .build()
+                } else {
+                    DeploymentSlotConfig
+                        .builder()
+                        .newCreate(true)
+                        .name(newSlotTextField.component.text)
+                        .configurationSource(slotConfigurationSourceComboBox.component.selectedItem as? String?)
+                        .build()
+                }
+            } else null
 
         if (webAppComboBox.component.value?.appSettings?.containsKey(RIDER_PROJECT_CONFIGURATION) == true)
             webAppComboBox.component.value?.appSettings?.remove(RIDER_PROJECT_CONFIGURATION)
         if (webAppComboBox.component.value?.appSettings?.containsKey(RIDER_PROJECT_PLATFORM) == true)
             webAppComboBox.component.value?.appSettings?.remove(RIDER_PROJECT_PLATFORM)
 
+        val appSettings = appSettingsTable.appSettings
+        val settingsToRemove = currentAppSettingKeys
+            .filter { !appSettings.containsKey(it) }
+            .toSet()
+
         val webAppConfig = webAppComboBox.component.value
-                ?.toBuilder()
-                ?.appSettings(appSettingsTable.appSettings)
-                ?.deploymentSlot(slotConfig)
-                ?.build()
+            ?.toBuilder()
+            ?.appSettings(appSettingsTable.appSettings)
+            ?.appSettingsToRemove(settingsToRemove)
+            ?.deploymentSlot(slotConfig)
+            ?.build()
 
         return WebAppDeployRunConfigurationModel
-                .builder()
-                .webAppConfig(webAppConfig)
-                .artifactConfig(artifactConfig)
-                .openBrowserAfterDeployment(openBrowserCheckBox.component.isSelected)
-                .slotPanelVisible(deploymentSlotGroup.expanded)
-                .build()
+            .builder()
+            .webAppConfig(webAppConfig)
+            .artifactConfig(artifactConfig)
+            .openBrowserAfterDeployment(openBrowserCheckBox.component.isSelected)
+            .slotPanelVisible(deploymentSlotGroup.expanded)
+            .build()
     }
 
     fun getSelectedConfiguration() = getSelectedConfigurationAndPlatform()?.configuration ?: ""
     fun getSelectedPlatform() = getSelectedConfigurationAndPlatform()?.platform ?: ""
     private fun getSelectedConfigurationAndPlatform(): PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform? =
-            configurationAndPlatformComboBox.component.component.selectedItem as? PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform
+        configurationAndPlatformComboBox.component.component.selectedItem as? PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform
 
     override fun getInputs() = listOf(webAppComboBox.component, dotnetProjectComboBox.component)
 
     private fun setComboBoxDefaultValue(comboBox: JComboBox<*>, value: Any?) {
-        UIUtils.listComboBoxItems(comboBox).stream().filter { it == value }.findFirst().ifPresent { comboBox.selectedItem = value }
+        UIUtils.listComboBoxItems(comboBox).stream().filter { it == value }.findFirst()
+            .ifPresent { comboBox.selectedItem = value }
     }
 }

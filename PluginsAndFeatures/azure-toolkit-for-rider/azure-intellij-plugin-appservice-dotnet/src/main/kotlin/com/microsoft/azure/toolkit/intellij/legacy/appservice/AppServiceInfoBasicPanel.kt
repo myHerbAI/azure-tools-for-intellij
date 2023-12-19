@@ -18,9 +18,10 @@ import com.microsoft.azure.toolkit.intellij.common.dotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.canBePublishedToAzure
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.toRuntime
+import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
+import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput
 import com.microsoft.azure.toolkit.lib.common.model.Subscription
 import java.util.function.Supplier
@@ -28,9 +29,9 @@ import javax.swing.JPanel
 import kotlin.io.path.Path
 
 class AppServiceInfoBasicPanel<T>(
-        private val project: Project,
-        private val subscription: Subscription,
-        private val defaultConfigSupplier: Supplier<T>
+    private val project: Project,
+    private val subscription: Subscription,
+    private val defaultConfigSupplier: Supplier<T>
 ) : JPanel(), AzureFormPanel<T> where T : AppServiceConfig {
 
     private var config: T?
@@ -60,19 +61,19 @@ class AppServiceInfoBasicPanel<T>(
                 }
                 operatingSystemGroup = buttonsGroup {
                     row("Operating System:") {
-                        windowsRadioButton = radioButton("Windows", OperatingSystem.WINDOWS)
                         linuxRadioButton = radioButton("Linux", OperatingSystem.LINUX)
+                        windowsRadioButton = radioButton("Windows", OperatingSystem.WINDOWS)
                     }
                 }.bind(::operatingSystem)
             }
             deploymentGroup = group("Deployment") {
                 row("Project:") {
                     dotnetProjectComboBox = dotnetProjectComboBox(project) { it.canBePublishedToAzure() }
-                            .align(Align.FILL)
+                        .align(Align.FILL)
                 }
                 row("Configuration:") {
                     configurationAndPlatformComboBox = configurationAndPlatformComboBox(project)
-                            .align(Align.FILL)
+                        .align(Align.FILL)
                 }
             }
         }
@@ -92,9 +93,7 @@ class AppServiceInfoBasicPanel<T>(
 
         val result = config ?: defaultConfigSupplier.get()
         result.name = name
-        result.runtime =
-                if (projectModel != null) projectModel.toRuntime(project, os)
-                else Runtime(os, null, null)
+        result.runtime = Runtime(os, WebContainer.JAVA_OFF, JavaVersion.OFF)
 
         if (projectModel != null) {
             result.application = Path(projectModel.projectFilePath)
@@ -141,5 +140,5 @@ class AppServiceInfoBasicPanel<T>(
     }
 
     private fun getSelectedConfigurationAndPlatform(): PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform? =
-            configurationAndPlatformComboBox.component.component.selectedItem as? PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform
+        configurationAndPlatformComboBox.component.component.selectedItem as? PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform
 }

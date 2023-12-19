@@ -61,7 +61,7 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
 
     override fun getModel() = functionDeploymentModel
 
-    override fun validate() {
+    override fun checkConfiguration() {
         checkAzurePreconditions()
         val functionAppConfig = functionDeploymentModel.functionAppConfig
         if (functionAppConfig.resourceId.isNullOrEmpty() && functionAppConfig.name.isNullOrEmpty()) throw ConfigurationException("Please specify target function")
