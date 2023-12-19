@@ -23,6 +23,7 @@ import javax.swing.JPanel
 
 class WebAppSettingPanel(private val project: Project, configuration: WebAppConfiguration) :
     RiderAzureSettingPanel<WebAppConfiguration>() {
+
     private val panel: JPanel
     private val webAppPanel = WebAppDeployConfigurationPanel(project)
     private var appSettingsKey: String = configuration.appSettingsKey
@@ -60,12 +61,10 @@ class WebAppSettingPanel(private val project: Project, configuration: WebAppConf
 
             if (configuration.isCreatingNew) {
                 configuration.region = it.region.name
-                configuration.isCreatingAppServicePlan = it.servicePlan.toResource().isDraftForCreating
                 configuration.pricing = it.servicePlan.pricingTier.size
                 configuration.appServicePlanName = it.servicePlan.name
                 configuration.appServicePlanResourceGroupName = it.servicePlan.resourceGroupName
             } else {
-                configuration.isCreatingAppServicePlan = false
                 configuration.appServicePlanName = it.servicePlan?.name
                 configuration.appServicePlanResourceGroupName = it.servicePlan?.resourceGroupName
             }

@@ -6,24 +6,27 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers
 
-import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.configurations.ConfigurationTypeUtil
+import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.configurations.SimpleConfigurationType
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.NotNullLazyValue
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 
-class WebAppContainersConfigurationType : ConfigurationTypeBase(
+class WebAppContainersConfigurationType : SimpleConfigurationType(
     "AzureWebAppContainersPublish",
     "Azure - Web App for Containers",
     "Azure Publish Web App for Containers configuration",
-    IntelliJAzureIcons.getIcon(AzureIcons.WebApp.MODULE)
+    NotNullLazyValue.createValue {IntelliJAzureIcons.getIcon(AzureIcons.WebApp.MODULE) }
 ) {
     companion object {
         fun getInstance() = ConfigurationTypeUtil.findConfigurationType(WebAppContainersConfigurationType::class.java)
     }
 
-    init {
-        addFactory(WebAppContainersConfigurationFactory(this))
-    }
+    override fun createTemplateConfiguration(project: Project) =
+        WebAppContainersConfiguration(project, this, project.name)
 
-    fun getFactory() = WebAppContainersConfigurationFactory(this)
+    override fun createConfiguration(name: String?, template: RunConfiguration) =
+        WebAppContainersConfiguration(template.project, this, name)
 }

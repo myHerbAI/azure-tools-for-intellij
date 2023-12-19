@@ -27,10 +27,9 @@ class DeployWebAppContainersAction : AnAction() {
 
         private fun getOrCreateRunConfigurationSettings(project: Project): RunnerAndConfigurationSettings {
             val manager = RunManagerEx.getInstanceEx(project)
-            val factory = configType.getFactory()
-            val runConfigurationName = "${factory.name}: ${project.name}"
+            val runConfigurationName = "${configType.name}: ${project.name}"
             return manager.findConfigurationByName(runConfigurationName)
-                    ?: manager.createConfiguration(runConfigurationName, factory)
+                    ?: manager.createConfiguration(runConfigurationName, configType)
         }
 
         private fun runConfiguration(project: Project, settings: RunnerAndConfigurationSettings) {

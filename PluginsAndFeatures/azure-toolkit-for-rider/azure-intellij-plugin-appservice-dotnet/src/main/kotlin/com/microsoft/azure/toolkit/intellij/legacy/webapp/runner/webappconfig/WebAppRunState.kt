@@ -119,22 +119,23 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
     }
 
     private fun updateConfigurationDataModel(app: WebAppBase<*, *, *>) {
-        webAppConfiguration.isCreatingNew = false
-        if (app is WebAppDeploymentSlot) {
-            webAppConfiguration.slotName = app.name
-            webAppConfiguration.newSlotConfigurationSource = null
-            webAppConfiguration.newSlotName = null
-            webAppConfiguration.webAppId = app.parent.id
-        } else {
-            webAppConfiguration.webAppId = app.id
+        webAppConfiguration.apply {
+            isCreatingNew = false
+            if (app is WebAppDeploymentSlot) {
+                slotName = app.name
+                newSlotConfigurationSource = null
+                newSlotName = null
+                webAppId = app.parent.id
+            } else {
+                webAppId = app.id
+            }
+            applicationSettings = app.appSettings ?: emptyMap()
+            appSettingsToRemove = emptySet()
+            webAppName = app.name
+            resourceGroup = app.resourceGroupName
+            appServicePlanName = app.getAppServicePlan()?.name
+            appServicePlanResourceGroupName = app.getAppServicePlan()?.resourceGroupName
         }
-        webAppConfiguration.applicationSettings = app.appSettings ?: emptyMap()
-        webAppConfiguration.appSettingsToRemove = emptySet()
-        webAppConfiguration.webAppName = app.name
-        webAppConfiguration.resourceGroup = app.resourceGroupName
-        webAppConfiguration.isCreatingAppServicePlan = false
-        webAppConfiguration.appServicePlanName = app.getAppServicePlan()?.name
-        webAppConfiguration.appServicePlanResourceGroupName = app.getAppServicePlan()?.resourceGroupName
     }
 
     private fun openWebAppInBrowser(url: String, processHandler: RunProcessHandler) {
