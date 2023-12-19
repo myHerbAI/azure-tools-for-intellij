@@ -71,11 +71,6 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         set(value) {
             webAppPublishModel.appServicePlanResourceGroupName = value
         }
-    var isCreatingAppServicePlan: Boolean
-        get() = webAppPublishModel.isCreatingAppServicePlan
-        set(value) {
-            webAppPublishModel.isCreatingAppServicePlan = value
-        }
     var isCreatingNew: Boolean
         get() = webAppPublishModel.isCreatingNew
         set(value) {
@@ -147,6 +142,12 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
             webAppPublishModel.publishableProjectPath = value
         }
 
+    override fun setApplicationSettings(env: Map<String, String>) {
+        webAppPublishModel.appSettings = env
+    }
+
+    override fun getApplicationSettings(): Map<String, String> = webAppPublishModel.appSettings
+
     override fun getState(executor: Executor, executionEnvironment: ExecutionEnvironment) =
         WebAppRunState(project, this)
 
@@ -154,12 +155,6 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         WebAppSettingEditor(project, this)
 
     override fun getModel() = webAppPublishModel
-
-    override fun setApplicationSettings(env: Map<String, String>) {
-        webAppPublishModel.appSettings = env
-    }
-
-    override fun getApplicationSettings(): Map<String, String> = webAppPublishModel.appSettings
 
     override fun getModule(): Module? = null
 

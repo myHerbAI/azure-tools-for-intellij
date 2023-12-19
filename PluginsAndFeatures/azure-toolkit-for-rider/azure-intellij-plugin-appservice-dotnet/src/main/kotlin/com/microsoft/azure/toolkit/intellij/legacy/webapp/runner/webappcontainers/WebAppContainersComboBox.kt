@@ -22,10 +22,10 @@ class WebAppContainersComboBox(project: Project) : WebAppComboBox(project) {
     override fun loadAppServiceModels(): MutableList<WebAppConfig> {
         val webApps = Azure.az(AzureWebApp::class.java).webApps()
         return webApps.stream().parallel()
-                .filter { a -> a.runtime != null && a.runtime?.isWindows == false }
-                .sorted { a, b -> a.name.compareTo(b.name, true) }
-                .map { webApp -> convertAppServiceToConfig({ WebAppConfig() }, webApp) }
-                .collect(Collectors.toList())
+            .filter { a -> a.runtime != null && a.runtime?.isWindows == false }
+            .sorted { a, b -> a.name.compareTo(b.name, true) }
+            .map { webApp -> convertAppServiceToConfig({ WebAppConfig() }, webApp) }
+            .collect(Collectors.toList())
     }
 
     override fun createResource() {
@@ -33,11 +33,11 @@ class WebAppContainersComboBox(project: Project) : WebAppComboBox(project) {
         dialog.setDeploymentVisible(false)
         val actionId: Action.Id<WebAppConfig> = Action.Id.of("user/webapp.create_app.app")
         dialog.setOkAction(Action(actionId)
-                .withLabel("Create")
-                .withIdParam(WebAppConfig::getName)
-                .withSource { it }
-                .withAuthRequired(false)
-                .withHandler(this::setValue)
+            .withLabel("Create")
+            .withIdParam(WebAppConfig::getName)
+            .withSource { it }
+            .withAuthRequired(false)
+            .withHandler(this::setValue)
         )
         dialog.show()
     }
