@@ -41,6 +41,10 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
             .firstOrNull { it.projectFilePath == publishableProjectPath }
             ?: throw RuntimeException("Project is not defined")
 
+        val config = createDotNetAppServiceConfig(publishableProject)
+        val createTask = CreateOrUpdateDotNetWebAppTask(config)
+        val deployTarget = createTask.execute()
+
         val zipFile = WebAppArtifactService.getInstance(project)
             .prepareArtifact(
                 publishableProject,
@@ -48,11 +52,6 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
                 webAppConfiguration.projectPlatform,
                 processHandler
             )
-
-        val config = createDotNetAppServiceConfig(publishableProject)
-        val createTask = CreateOrUpdateDotNetWebAppTask(config)
-        val deployTarget = createTask.execute()
-
         val artifact = WebAppArtifact.builder()
             .file(zipFile)
             .deployType(DeployType.ZIP)
@@ -79,7 +78,10 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
             dotnetRuntime = createDotNetRuntimeConfig(publishableProject)
             appSettings(webAppConfiguration.applicationSettings)
             appSettingsToRemove(webAppConfiguration.appSettingsToRemove)
-            deploymentSlotName(webAppConfiguration.newSlotName ?: webAppConfiguration.slotName)
+            val slotName =
+                if (webAppConfiguration.isDeployToSlot) webAppConfiguration.newSlotName ?: webAppConfiguration.slotName
+                else null
+            deploymentSlotName(slotName)
             val configurationSource = when (webAppConfiguration.newSlotConfigurationSource) {
                 "Don't clone configuration from an existing slot" -> DotNetWebAppDeploymentSlotDraft.CONFIGURATION_SOURCE_NEW
                 webAppConfiguration.webAppName -> DotNetWebAppDeploymentSlotDraft.CONFIGURATION_SOURCE_PARENT
