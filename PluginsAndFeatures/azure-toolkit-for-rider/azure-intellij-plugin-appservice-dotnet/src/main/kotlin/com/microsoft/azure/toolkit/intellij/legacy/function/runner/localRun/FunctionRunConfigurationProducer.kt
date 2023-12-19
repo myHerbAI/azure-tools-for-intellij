@@ -5,6 +5,7 @@
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun
 
 import com.intellij.execution.actions.ConfigurationContext
+import com.intellij.execution.actions.ConfigurationFromContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.ConfigurationTypeUtil
 import com.intellij.openapi.util.Ref
@@ -61,5 +62,9 @@ class FunctionRunConfigurationProducer: LazyRunConfigurationProducer<FunctionRun
         }
 
         return true
+    }
+
+    override fun shouldReplace(self: ConfigurationFromContext, other: ConfigurationFromContext): Boolean {
+        return !other.isProducedBy(FunctionRunConfigurationProducer::class.java)
     }
 }
