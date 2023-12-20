@@ -12,6 +12,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiJvmModifiersOwner;
@@ -54,10 +55,12 @@ public class PropertiesValueCompletionProvider extends CompletionProvider<Comple
         }
         final String key = parameters.getPosition().getParent().getFirstChild().getText();
         final List<? extends SpringSupported<?>> definitions = getSupportedDefinitions(key);
+        ProgressManager.checkCanceled();
         if (!definitions.isEmpty()) {
             AzureTelemeter.log(AzureTelemetry.Type.OP_END, OperationBundle.description("boundary/connector.complete_resources_in_properties"));
             if (Azure.az(AzureAccount.class).isLoggedIn()) {
                 final List<LookupElementBuilder> elements = buildCompletionItems(definitions, module, key);
+                ProgressManager.checkCanceled();
                 AzureTelemeter.info("connector.resources_count.properties_value_code_completion", ImmutableMap.of("count", elements.size() + "", "key", key));
                 elements.forEach(result::addElement);
                 result.addLookupAdvertisement("Press enter to configure all required properties to connect Azure resource.");
@@ -75,14 +78,15 @@ public class PropertiesValueCompletionProvider extends CompletionProvider<Comple
     @Nonnull
     @AzureOperation("boundary/connector.build_value_completion_items_in_properties")
     private static List<LookupElementBuilder> buildCompletionItems(final List<? extends SpringSupported<?>> definitions, final Module module, final String key) {
-        return definitions.stream().flatMap(d -> Utils.listResourceForDefinition(module.getProject(), d).stream().map(r -> LookupElementBuilder.create(r, r.getName())
-            .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(r.getDefinition().getIcon(), AzureIcons.Common.AZURE.getIconPath())))
-            .bold()
-            .withCaseSensitivity(false)
-            .withLookupStrings(Arrays.asList(r.getName(), ((AzResource) r.getData()).getResourceGroupName()))
-            .withInsertHandler(new PropertyValueInsertHandler(r))
-            .withTailText(" " + ((AzResource) r.getData()).getResourceTypeName())
-            .withTypeText(d.getSpringPropertyTypes().get(key)))).toList();
+        return definitions.stream().flatMap(d -> Utils.checkCancelled(() -> d.getResources(module.getProject())).stream()
+            .map(r -> LookupElementBuilder.create(r, r.getName())
+                .withIcon(IntelliJAzureIcons.getIcon(StringUtils.firstNonBlank(d.getIcon(), AzureIcons.Common.AZURE.getIconPath())))
+                .bold()
+                .withCaseSensitivity(false)
+                .withLookupStrings(Arrays.asList(r.getName(), ((AzResource) r.getData()).getResourceGroupName()))
+                .withInsertHandler(new PropertyValueInsertHandler(r))
+                .withTailText(" " + ((AzResource) r.getData()).getResourceGroupName())
+                .withTypeText(((AzResource) r.getData()).getResourceTypeName()))).toList();
     }
 
     public static List<? extends SpringSupported<?>> getSupportedDefinitions(String key) {
@@ -103,6 +107,11 @@ public class PropertiesValueCompletionProvider extends CompletionProvider<Comple
         @ExceptionNotification
         @AzureOperation(name = "user/connector.select_resource_completion_item_in_properties")
         public void handleInsert(@Nonnull InsertionContext context, @Nonnull LookupElement lookupElement) {
+            final Optional<String> optKey = Optional.ofNullable(context.getFile().findElementAt(context.getStartOffset()))
+                .map(PsiElement::getParent).map(PsiElement::getFirstChild).map(PsiElement::getText).map(String::trim);
+            if (optKey.isEmpty()) {
+                return;
+            }
             context.getDocument().deleteString(context.getStartOffset(), context.getTailOffset());
             final Project project = context.getProject();
             final Module module = ModuleUtil.findModuleForFile(context.getFile().getVirtualFile(), project);
@@ -111,22 +120,20 @@ public class PropertiesValueCompletionProvider extends CompletionProvider<Comple
                 .ifPresent(connectionManager -> connectionManager
                     .getConnectionsByConsumerId(module.getName()).stream()
                     .filter(c -> Objects.equals(resource, c.getResource())).findAny()
-                    .ifPresentOrElse(c -> insert(c, context),
-                        () -> connectionManager.getProfile().getModule().connect(resource, c -> insert(c, context))));
+                    .ifPresentOrElse(c -> insert(c, context, optKey.get()),
+                        () -> connectionManager.getProfile().getModule().connect(resource, c -> insert(c, context, optKey.get()))));
         }
 
         @AzureOperation(name = "user/connector.insert_value_in_properties")
-        public static void insert(@Nullable Connection<?, ?> c, @Nonnull InsertionContext context) {
-            final PsiElement element = context.getFile().findElementAt(context.getStartOffset());
-            if (Objects.isNull(element) || Objects.isNull(c)) {
+        public static void insert(@Nullable Connection<?, ?> c, @Nonnull InsertionContext context, String key) {
+            if (Objects.isNull(c)) {
                 return;
             }
-            final String k0 = element.getParent().getFirstChild().getText().trim();
-            final List<Pair<String, String>> properties = SpringSupported.getProperties(c, k0);
+            final List<Pair<String, String>> properties = SpringSupported.getProperties(c, key);
             if (properties.size() < 1) {
                 return;
             }
-            properties.stream().filter(p -> p.getKey().equals(k0)).findAny().ifPresent(p -> {
+            properties.stream().filter(p -> p.getKey().equals(key)).findAny().ifPresent(p -> {
                 properties.remove(p);
                 properties.add(0, p);
             });

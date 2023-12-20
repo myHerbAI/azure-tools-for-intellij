@@ -24,8 +24,8 @@ import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationCompletionConfidence;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationTypeHandler;
 import com.microsoft.azure.toolkit.intellij.connector.code.function.FunctionAnnotationValueInsertHandler;
-import com.microsoft.azure.toolkit.intellij.storage.code.spring.StringLiteralCompletionContributor;
-import com.microsoft.azure.toolkit.intellij.storage.code.Utils;
+import com.microsoft.azure.toolkit.intellij.storage.code.spring.StoragePathCompletionContributor;
+import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
@@ -41,6 +41,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.intellij.patterns.PsiJavaPatterns.psiElement;
+import static com.microsoft.azure.toolkit.intellij.connector.code.Utils.getConnectedResources;
 
 public class FunctionQueueNameCompletionProvider extends CompletionProvider<CompletionParameters> {
     public static final String[] QUEUE_ANNOTATIONS = new String[]{
@@ -67,14 +68,14 @@ public class FunctionQueueNameCompletionProvider extends CompletionProvider<Comp
         final PsiElement element = parameters.getPosition();
         final PsiLiteralExpression literal = (PsiLiteralExpression) element.getParent();
         final String value = literal.getValue() instanceof String ? (String) literal.getValue() : StringUtils.EMPTY;
-        final String fullPrefix = StringUtils.substringBefore(value, StringLiteralCompletionContributor.DUMMY_IDENTIFIER);
+        final String fullPrefix = StringUtils.substringBefore(value, StoragePathCompletionContributor.DUMMY_IDENTIFIER);
         final Module module = ModuleUtil.findModuleForFile(parameters.getOriginalFile());
         if (Objects.isNull(module) || !Azure.az(AzureAccount.class).isLoggedIn()) {
             return;
         }
         final PsiAnnotation annotation = PsiTreeUtil.getParentOfType(parameters.getPosition(), PsiAnnotation.class);
         final StorageAccount account = Optional.ofNullable(annotation).map(Utils::getBindingStorageAccount).orElse(null);
-        final List<StorageAccount> accounts = Objects.isNull(account) ? Utils.getConnectedStorageAccounts(module) : List.of(account);
+        final List<StorageAccount> accounts = Objects.isNull(account) ? getConnectedResources(module, StorageAccountResourceDefinition.INSTANCE) : List.of(account);
         accounts.stream().flatMap(a -> a.getQueueModule().list().stream())
                 .filter(queue -> StringUtils.startsWithIgnoreCase(queue.getName(), fullPrefix))
                 .map(queue -> createLookupElement(queue, module))
