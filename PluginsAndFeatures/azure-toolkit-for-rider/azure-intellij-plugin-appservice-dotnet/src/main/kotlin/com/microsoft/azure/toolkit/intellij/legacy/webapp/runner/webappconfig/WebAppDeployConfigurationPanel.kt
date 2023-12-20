@@ -200,9 +200,9 @@ class WebAppDeployConfigurationPanel(private val project: Project) : AzureFormPa
                 currentAppSettingKeys.clear()
                 if (selectedWebApp.resourceId.isNullOrEmpty()) {
                     selectedWebApp.appSettings
-                }
-                else {
-                    val currentSettings = Azure.az(AzureWebApp::class.java).webApp(selectedWebApp.resourceId)?.appSettings
+                } else {
+                    val currentSettings =
+                        Azure.az(AzureWebApp::class.java).webApp(selectedWebApp.resourceId)?.appSettings
                     if (currentSettings != null) {
                         currentAppSettingKeys.addAll(currentSettings.keys)
                     }

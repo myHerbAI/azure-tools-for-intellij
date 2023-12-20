@@ -16,7 +16,7 @@ class FunctionDeploymentConfigurationType : SimpleConfigurationType(
     "AzureFunctionAppPublish",
     "Azure - Function App",
     "Azure Publish Function App configuration",
-    NotNullLazyValue.createValue { IntelliJAzureIcons.getIcon(AzureIcons.FunctionApp.DEPLOY) }
+    NotNullLazyValue.createValue { IntelliJAzureIcons.getIcon(AzureIcons.FunctionApp.MODULE) }
 ) {
     init {
         fun getInstance() = ConfigurationTypeUtil.findConfigurationType(FunctionDeploymentConfigurationType::class.java)

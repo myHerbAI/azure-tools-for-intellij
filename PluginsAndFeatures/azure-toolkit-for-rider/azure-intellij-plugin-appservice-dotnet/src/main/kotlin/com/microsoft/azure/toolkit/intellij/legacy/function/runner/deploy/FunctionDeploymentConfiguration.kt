@@ -52,7 +52,7 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
         functionDeploymentModel.publishableProject = projectModel
     }
 
-    fun getConfig(): FunctionAppConfig?  = functionDeploymentModel.functionAppConfig
+    fun getConfig(): FunctionAppConfig? = functionDeploymentModel.functionAppConfig
 
     fun saveConfig(config: FunctionAppConfig) {
         functionDeploymentModel.functionAppConfig = config
@@ -64,9 +64,11 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
     override fun checkConfiguration() {
         checkAzurePreconditions()
         val functionAppConfig = functionDeploymentModel.functionAppConfig
-        if (functionAppConfig.resourceId.isNullOrEmpty() && functionAppConfig.name.isNullOrEmpty()) throw ConfigurationException("Please specify target function")
+        if (functionAppConfig.resourceId.isNullOrEmpty() && functionAppConfig.name.isNullOrEmpty()) throw ConfigurationException(
+            "Please specify target function"
+        )
         if (functionAppConfig.runtime.operatingSystem == OperatingSystem.DOCKER) throw ConfigurationException("Invalid target, docker function is currently not supported")
-        if (functionAppConfig.servicePlan == null)  throw ConfigurationException("Meta-data of target function app is still loading...")
+        if (functionAppConfig.servicePlan == null) throw ConfigurationException("Meta-data of target function app is still loading...")
     }
 
     override fun getState(executor: Executor, environment: ExecutionEnvironment) =

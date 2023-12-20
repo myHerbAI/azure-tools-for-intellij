@@ -36,7 +36,7 @@ fun PublishableProjectModel.getStackAndVersion(
         } else {
             val version =
                 if (dotnetVersion != null) NetFrameworkVersion.fromString("v$dotnetVersion")
-                else  NetFrameworkVersion.fromString("v8.0")
+                else NetFrameworkVersion.fromString("v8.0")
 
             return null to version
         }

@@ -121,7 +121,7 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         set(value) {
             webAppPublishModel.saveRuntime(value)
         }
-    var operatingSystem : OperatingSystem
+    var operatingSystem: OperatingSystem
         get() = OperatingSystem.fromString(webAppPublishModel.operatingSystem)
         set(value) {
             webAppPublishModel.operatingSystem = value.toString()

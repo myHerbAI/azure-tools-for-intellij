@@ -6,7 +6,7 @@ package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy
 
 import com.jetbrains.rider.model.PublishableProjectModel
 
-class DotNetFunctionDeployModel: FunctionDeployModel() {
+class DotNetFunctionDeployModel : FunctionDeployModel() {
     var publishableProject: PublishableProjectModel? = null
     var projectConfiguration: String = ""
     var projectPlatform: String = ""
