@@ -56,7 +56,6 @@ class WebAppSettingPanel(private val project: Project, configuration: WebAppConf
             configuration.webAppName = it.name
             configuration.runtime = it.runtime
             configuration.applicationSettings = it.appSettings
-            configuration.appSettingsToRemove = it.appSettingsToRemove
             configuration.isCreatingNew = it.resourceId.isNullOrEmpty()
 
             if (configuration.isCreatingNew) {
@@ -142,7 +141,6 @@ class WebAppSettingPanel(private val project: Project, configuration: WebAppConf
             .servicePlan(plan)
             .deploymentSlot(slotConfig)
             .appSettings(configuration.applicationSettings)
-            .appSettingsToRemove(configuration.appSettingsToRemove)
         val webAppConfig =
             if (configuration.isCreatingNew) configBuilder.region(region).pricingTier(pricingTier).build()
             else configBuilder.build()

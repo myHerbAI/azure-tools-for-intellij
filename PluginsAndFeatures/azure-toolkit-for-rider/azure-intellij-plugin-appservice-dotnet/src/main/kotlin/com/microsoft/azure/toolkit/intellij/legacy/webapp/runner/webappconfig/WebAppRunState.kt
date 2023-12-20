@@ -77,7 +77,6 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
             runtime(createRuntimeConfig())
             dotnetRuntime = createDotNetRuntimeConfig(publishableProject)
             appSettings(webAppConfiguration.applicationSettings)
-            appSettingsToRemove(webAppConfiguration.appSettingsToRemove)
             val slotName =
                 if (webAppConfiguration.isDeployToSlot) webAppConfiguration.newSlotName ?: webAppConfiguration.slotName
                 else null
@@ -130,7 +129,6 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
                 webAppId = app.id
             }
             applicationSettings = app.appSettings ?: emptyMap()
-            appSettingsToRemove = emptySet()
             webAppName = app.name
             resourceGroup = app.resourceGroupName
             appServicePlanName = app.getAppServicePlan()?.name

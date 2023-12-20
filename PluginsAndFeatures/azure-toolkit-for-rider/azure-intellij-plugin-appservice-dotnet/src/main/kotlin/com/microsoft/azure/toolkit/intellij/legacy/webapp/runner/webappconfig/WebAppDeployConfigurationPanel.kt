@@ -51,8 +51,6 @@ class WebAppDeployConfigurationPanel(private val project: Project) : AzureFormPa
 
     private val formatter = DateTimeFormatter.ofPattern("yyMMddHHmmss")
 
-    private val currentAppSettingKeys = mutableListOf<String>()
-
     val panel: JPanel
 
     private lateinit var webAppComboBox: Cell<WebAppComboBox>
@@ -197,16 +195,10 @@ class WebAppDeployConfigurationPanel(private val project: Project) : AzureFormPa
             }
         } else if (selectedWebApp != before) {
             appSettingsTable.loadAppSettings {
-                currentAppSettingKeys.clear()
                 if (selectedWebApp.resourceId.isNullOrEmpty()) {
                     selectedWebApp.appSettings
                 } else {
-                    val currentSettings =
-                        Azure.az(AzureWebApp::class.java).webApp(selectedWebApp.resourceId)?.appSettings
-                    if (currentSettings != null) {
-                        currentAppSettingKeys.addAll(currentSettings.keys)
-                    }
-                    currentSettings
+                    Azure.az(AzureWebApp::class.java).webApp(selectedWebApp.resourceId)?.appSettings
                 }
             }
         }
@@ -293,15 +285,9 @@ class WebAppDeployConfigurationPanel(private val project: Project) : AzureFormPa
         if (webAppComboBox.component.value?.appSettings?.containsKey(RIDER_PROJECT_PLATFORM) == true)
             webAppComboBox.component.value?.appSettings?.remove(RIDER_PROJECT_PLATFORM)
 
-        val appSettings = appSettingsTable.appSettings
-        val settingsToRemove = currentAppSettingKeys
-            .filter { !appSettings.containsKey(it) }
-            .toSet()
-
         val webAppConfig = webAppComboBox.component.value
             ?.toBuilder()
             ?.appSettings(appSettingsTable.appSettings)
-            ?.appSettingsToRemove(settingsToRemove)
             ?.deploymentSlot(slotConfig)
             ?.build()
 
