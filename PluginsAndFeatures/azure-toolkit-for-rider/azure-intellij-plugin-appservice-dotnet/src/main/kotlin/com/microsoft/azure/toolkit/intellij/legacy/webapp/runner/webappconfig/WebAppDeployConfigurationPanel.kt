@@ -21,11 +21,8 @@ import com.microsoft.azure.toolkit.ide.appservice.model.AzureArtifactConfig
 import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppDeployRunConfigurationModel
-import com.microsoft.azure.toolkit.intellij.common.AzureDotnetProjectComboBox
-import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel
+import com.microsoft.azure.toolkit.intellij.common.*
 import com.microsoft.azure.toolkit.intellij.common.component.UIUtils
-import com.microsoft.azure.toolkit.intellij.common.configurationAndPlatformComboBox
-import com.microsoft.azure.toolkit.intellij.common.dotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
@@ -247,13 +244,7 @@ class WebAppDeployConfigurationPanel(private val project: Project) : AzureFormPa
     }
 
     fun setConfigurationAndPlatform(configuration: String, platform: String) {
-        for (i in 0 until configurationAndPlatformComboBox.component.component.model.size) {
-            val item = configurationAndPlatformComboBox.component.component.model.getElementAt(i)
-            if (item?.configuration == configuration && item.platform == platform) {
-                configurationAndPlatformComboBox.component.component.selectedItem = item
-                break
-            }
-        }
+        configurationAndPlatformComboBox.component.component.setPublishConfiguration(configuration, platform)
     }
 
     override fun getValue(): WebAppDeployRunConfigurationModel {
@@ -300,10 +291,8 @@ class WebAppDeployConfigurationPanel(private val project: Project) : AzureFormPa
             .build()
     }
 
-    fun getSelectedConfiguration() = getSelectedConfigurationAndPlatform()?.configuration ?: ""
-    fun getSelectedPlatform() = getSelectedConfigurationAndPlatform()?.platform ?: ""
-    private fun getSelectedConfigurationAndPlatform(): PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform? =
-        configurationAndPlatformComboBox.component.component.selectedItem as? PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform
+    fun getConfigurationAndPlatform(): Pair<String, String> =
+        configurationAndPlatformComboBox.component.component.getPublishConfiguration()
 
     override fun getInputs() = listOf(webAppComboBox.component, dotnetProjectComboBox.component)
 

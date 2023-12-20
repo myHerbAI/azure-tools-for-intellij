@@ -40,8 +40,7 @@ class WebAppSettingPanel(private val project: Project, configuration: WebAppConf
 
     override fun apply(configuration: WebAppConfiguration) {
         val runConfigurationModel = webAppPanel.value
-        val projectConfiguration = webAppPanel.getSelectedConfiguration()
-        val projectPlatform = webAppPanel.getSelectedPlatform()
+        val (projectConfiguration, projectPlatform) = webAppPanel.getConfigurationAndPlatform()
         val publishableProject = runConfigurationModel.artifactConfig?.let {
             val artifactId = it.artifactIdentifier.toIntOrNull() ?: return@let null
             project.solution.publishableProjectsModel.publishableProjects.values

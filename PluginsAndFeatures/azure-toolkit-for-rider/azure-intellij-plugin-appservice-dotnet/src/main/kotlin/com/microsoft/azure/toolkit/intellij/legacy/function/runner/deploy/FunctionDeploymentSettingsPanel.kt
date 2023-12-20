@@ -16,10 +16,7 @@ import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
 import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig
 import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig
-import com.microsoft.azure.toolkit.intellij.common.AzureDotnetProjectComboBox
-import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel
-import com.microsoft.azure.toolkit.intellij.common.configurationAndPlatformComboBox
-import com.microsoft.azure.toolkit.intellij.common.dotnetProjectComboBox
+import com.microsoft.azure.toolkit.intellij.common.*
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureSettingPanel
@@ -34,12 +31,11 @@ import java.util.*
 import javax.swing.JPanel
 
 class FunctionDeploymentSettingsPanel(private val project: Project, configuration: FunctionDeploymentConfiguration) :
-    RiderAzureSettingPanel<FunctionDeploymentConfiguration>(), AzureFormPanel<FunctionDeploymentConfiguration> {
+    RiderAzureSettingPanel<FunctionDeploymentConfiguration>() {
+
     private val panel: JPanel
     private var appSettingsKey: String = configuration.appSettingsKey ?: UUID.randomUUID().toString()
-
     private var appSettingsResourceId: String? = null
-
     private lateinit var functionAppComboBox: Cell<FunctionAppComboBox>
     private lateinit var deployToSlotCheckBox: Cell<JBCheckBox>
     private lateinit var deploymentSlotComboBox: Cell<DeploymentSlotComboBox>
@@ -162,8 +158,9 @@ class FunctionDeploymentSettingsPanel(private val project: Project, configuratio
         configuration.appSettingsKey = appSettingsKey
         configuration.setAppSettings(appSettingsTable.appSettings)
         dotnetProjectComboBox.component.value?.let { configuration.saveProject(it) }
-        configuration.projectConfiguration = getSelectedConfiguration()
-        configuration.projectPlatform = getSelectedPlatform()
+        val (projectConfiguration, projectPlatform) = configurationAndPlatformComboBox.component.component.getPublishConfiguration()
+        configuration.projectConfiguration = projectConfiguration
+        configuration.projectPlatform = projectPlatform
         val functionConfig = functionAppComboBox.component.value
         val isDeploymentSlotSelected = deployToSlotCheckBox.component.isSelected
         val deploymentSlotConfig = deploymentSlotComboBox.component.value
@@ -201,31 +198,14 @@ class FunctionDeploymentSettingsPanel(private val project: Project, configuratio
                 .firstOrNull { p -> p.projectModelId == projectId }
                 ?.let { p -> dotnetProjectComboBox.component.setProject(p) }
         }
-        setConfigurationAndPlatform(configuration.projectConfiguration, configuration.projectPlatform)
+        configurationAndPlatformComboBox.component.component.setPublishConfiguration(
+            configuration.projectConfiguration,
+            configuration.projectPlatform
+        )
     }
 
     override fun getMainPanel() = panel
 
     override fun disposeEditor() {
-    }
-
-    override fun setValue(data: FunctionDeploymentConfiguration) = reset(data)
-
-    override fun getInputs() =
-        listOf(functionAppComboBox.component, deploymentSlotComboBox.component, dotnetProjectComboBox.component)
-
-    private fun getSelectedConfiguration() = getSelectedConfigurationAndPlatform()?.configuration ?: ""
-    private fun getSelectedPlatform() = getSelectedConfigurationAndPlatform()?.platform ?: ""
-    private fun getSelectedConfigurationAndPlatform(): PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform? =
-        configurationAndPlatformComboBox.component.component.selectedItem as? PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform
-
-    fun setConfigurationAndPlatform(configuration: String, platform: String) {
-        for (i in 0 until configurationAndPlatformComboBox.component.component.model.size) {
-            val item = configurationAndPlatformComboBox.component.component.model.getElementAt(i)
-            if (item?.configuration == configuration && item.platform == platform) {
-                configurationAndPlatformComboBox.component.component.selectedItem = item
-                break
-            }
-        }
     }
 }
