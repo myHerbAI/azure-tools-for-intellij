@@ -4,17 +4,27 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy
 
-import com.intellij.execution.configurations.ConfigurationTypeBase
+import com.intellij.execution.configurations.ConfigurationTypeUtil
+import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.configurations.SimpleConfigurationType
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.NotNullLazyValue
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 
-class FunctionDeploymentConfigurationType : ConfigurationTypeBase(
+class FunctionDeploymentConfigurationType : SimpleConfigurationType(
     "AzureFunctionAppPublish",
     "Azure - Function App",
     "Azure Publish Function App configuration",
-    IntelliJAzureIcons.getIcon(AzureIcons.FunctionApp.DEPLOY)
+    NotNullLazyValue.createValue { IntelliJAzureIcons.getIcon(AzureIcons.FunctionApp.DEPLOY) }
 ) {
     init {
-        addFactory(FunctionDeploymentConfigurationFactory(this))
+        fun getInstance() = ConfigurationTypeUtil.findConfigurationType(FunctionDeploymentConfigurationType::class.java)
     }
+
+    override fun createTemplateConfiguration(project: Project) =
+        FunctionDeploymentConfiguration(project, this, project.name)
+
+    override fun createConfiguration(name: String?, template: RunConfiguration) =
+        FunctionDeploymentConfiguration(template.project, this, name)
 }

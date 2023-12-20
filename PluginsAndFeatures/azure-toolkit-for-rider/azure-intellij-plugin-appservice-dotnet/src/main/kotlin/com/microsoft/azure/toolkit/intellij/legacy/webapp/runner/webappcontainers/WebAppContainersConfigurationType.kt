@@ -18,7 +18,7 @@ class WebAppContainersConfigurationType : SimpleConfigurationType(
     "AzureWebAppContainersPublish",
     "Azure - Web App for Containers",
     "Azure Publish Web App for Containers configuration",
-    NotNullLazyValue.createValue {IntelliJAzureIcons.getIcon(AzureIcons.WebApp.MODULE) }
+    NotNullLazyValue.createValue { IntelliJAzureIcons.getIcon(AzureIcons.WebApp.MODULE) }
 ) {
     companion object {
         fun getInstance() = ConfigurationTypeUtil.findConfigurationType(WebAppContainersConfigurationType::class.java)
