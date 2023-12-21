@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS;
 
@@ -174,20 +175,22 @@ public class FunctionAppActionsContributor implements IActionsContributor {
         new Action<>(ENABLE_REMOTE_DEBUGGING)
             .withLabel("Enable Remote Debugging")
             .withIdParam(AzResource::getName)
-            .visibleWhen(s -> s instanceof FunctionAppBase<?, ?, ?> && ((FunctionAppBase<?, ?, ?>) s).getFormalStatus().isRunning() && !((FunctionAppBase<?, ?, ?>) s).isRemoteDebugEnabled())
+            .visibleWhen(s -> s instanceof FunctionAppBase<?, ?, ?> && ((FunctionAppBase<?, ?, ?>) s).getFormalStatus().isRunning() &&
+                !((FunctionAppBase<?, ?, ?>) s).isRemoteDebugEnabled() && !(s instanceof FunctionApp functionApp && (StringUtils.isNotBlank(functionApp.getEnvironmentId()))))
             .register(am);
 
         new Action<>(DISABLE_REMOTE_DEBUGGING)
             .withLabel("Disable Remote Debugging")
             .withIdParam(AzResource::getName)
-            .visibleWhen(s -> s instanceof FunctionAppBase<?, ?, ?> && ((FunctionAppBase<?, ?, ?>) s).getFormalStatus().isRunning() && ((FunctionAppBase<?, ?, ?>) s).isRemoteDebugEnabled())
+            .visibleWhen(s -> s instanceof FunctionAppBase<?, ?, ?> && ((FunctionAppBase<?, ?, ?>) s).getFormalStatus().isRunning()
+                && ((FunctionAppBase<?, ?, ?>) s).isRemoteDebugEnabled() && !(s instanceof FunctionApp functionApp && (StringUtils.isNotBlank(functionApp.getEnvironmentId()))))
             .register(am);
 
         new Action<>(REMOTE_DEBUGGING)
             .withLabel("Attach Debugger")
             .withIcon(AzureIcons.Action.ATTACH_DEBUGGER.getIconPath())
             .withIdParam(AzResource::getName)
-            .visibleWhen(s -> s instanceof FunctionAppBase<?, ?, ?>)
+            .visibleWhen(s -> s instanceof FunctionAppBase<?, ?, ?> && !(s instanceof FunctionApp functionApp && (StringUtils.isNotBlank(functionApp.getEnvironmentId()))))
             .enableWhen(s -> s.getFormalStatus().isRunning())
             .register(am);
     }

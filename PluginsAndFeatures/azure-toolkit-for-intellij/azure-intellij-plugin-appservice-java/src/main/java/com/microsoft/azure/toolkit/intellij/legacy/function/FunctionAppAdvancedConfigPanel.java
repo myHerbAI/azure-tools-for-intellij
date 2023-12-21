@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.legacy.function;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.DocumentAdapter;
+import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig;
 import com.microsoft.azure.toolkit.ide.appservice.model.ApplicationInsightsConfig;
 import com.microsoft.azure.toolkit.ide.appservice.model.MonitorConfig;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdvancedPanel;
@@ -14,15 +15,16 @@ import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceMonitorP
 import com.microsoft.azure.toolkit.lib.appservice.model.*;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.insights.ApplicationInsightsComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceMonitorPanel;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.insights.ApplicationInsightsComboBox;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
-import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig;
 import org.apache.commons.collections4.ListUtils;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -31,7 +33,7 @@ public class FunctionAppAdvancedConfigPanel extends JPanel implements AzureFormP
     private final Project project;
     private JTabbedPane tabPane;
     private JPanel pnlRoot;
-    private AppServiceInfoAdvancedPanel<FunctionAppConfig> appServiceConfigPanelAdvanced;
+    private FunctionAppInfoPanel appServiceConfigPanelAdvanced;
     private AppServiceMonitorPanel appServiceMonitorPanel;
     private JPanel pnlMonitoring;
     private JPanel pnlAppService;
@@ -84,9 +86,7 @@ public class FunctionAppAdvancedConfigPanel extends JPanel implements AzureFormP
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
-        appServiceConfigPanelAdvanced = new AppServiceInfoAdvancedPanel<>(project, () -> FunctionAppConfig.builder().build());
-        appServiceConfigPanelAdvanced.setValidRuntime(FunctionAppRuntime.getMajorRuntimes().stream().filter(r-> !r.isDocker()).collect(Collectors.toList()));
-        appServiceConfigPanelAdvanced.setValidPricingTier(new ArrayList<>(PricingTier.FUNCTION_PRICING), PricingTier.CONSUMPTION);
+        appServiceConfigPanelAdvanced = new FunctionAppInfoPanel(project);
         // Function does not support file deployment
         appServiceConfigPanelAdvanced.setDeploymentVisible(false);
         insightsConfig = ApplicationInsightsConfig.builder().newCreate(true)

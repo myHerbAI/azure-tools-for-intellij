@@ -14,19 +14,17 @@ import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerAppDraft;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateFunctionAppTask.APPINSIGHTS_INSTRUMENTATION_KEY;
@@ -34,6 +32,7 @@ import static com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateFunc
 public class FunctionAppService {
 
     private static final FunctionAppService instance = new FunctionAppService();
+    public static final String DEFAULT_IMAGE = "mcr.microsoft.com/azure-functions/dotnet7-quickstart-demo:1.0";
 
     public static FunctionAppService getInstance() {
         return FunctionAppService.instance;
@@ -77,7 +76,18 @@ public class FunctionAppService {
         result.pricingTier(Optional.ofNullable(config.getServicePlan()).map(AppServicePlanConfig::getPricingTier).orElseGet(config::getPricingTier));
         result.servicePlanName(Optional.ofNullable(config.getServicePlan()).map(AppServicePlanConfig::getName).orElseGet(config::getName));
         result.servicePlanResourceGroup(Optional.ofNullable(config.getServicePlan()).map(AppServicePlanConfig::getResourceGroupName).orElseGet(config::getResourceGroupName));
-        result.runtime(new RuntimeConfig().os(config.getRuntime().getOperatingSystem()).javaVersion(config.getRuntime().getJavaVersionUserText()));
+        final RuntimeConfig runtimeConfig = new RuntimeConfig().os(config.getRuntime().getOperatingSystem()).javaVersion(config.getRuntime().getJavaVersionUserText());
+        if (runtimeConfig.os()== OperatingSystem.DOCKER) {
+            final ContainerAppDraft.ImageConfig image = Objects.requireNonNull(config.getImage());
+            runtimeConfig.image(image.getFullImageName());
+            Optional.ofNullable(image.getContainerRegistry()).ifPresent(registry -> {
+                runtimeConfig.registryUrl(registry.getLoginServerUrl());
+                runtimeConfig.username(registry.getUserName());
+                runtimeConfig.password(registry.getPrimaryCredential());
+            });
+        }
+        result.runtime(runtimeConfig);
+
         result.appSettings(config.getAppSettings());
         result.appSettingsToRemove(getAppSettingsToRemove(config));
         final ApplicationInsightsConfig applicationInsightsConfig =
@@ -95,6 +105,16 @@ public class FunctionAppService {
         Optional.ofNullable(config.getMonitorConfig()).map(MonitorConfig::getDiagnosticConfig).ifPresent(result::diagnosticConfig);
         // currently ide did not support set flex consumption options, so use default values
         Optional.ofNullable(config.getFlexConsumptionConfiguration()).ifPresent(result::flexConsumptionConfiguration);
+        Optional.ofNullable(config.getEnvironment()).filter(StringUtils::isNotBlank).ifPresent(env -> {
+            result.environment(env);
+            result.containerConfiguration(config.getContainerConfiguration());
+            if (StringUtils.equalsIgnoreCase(runtimeConfig.image(), DEFAULT_IMAGE)) {
+                final Map<String, String> appSettings = Optional.ofNullable(result.appSettings()).orElseGet(HashMap::new);
+                appSettings.put("FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated");
+                result.appSettings(appSettings);
+            }
+            result.diagnosticConfig(null);
+        });
         return result;
     }
 

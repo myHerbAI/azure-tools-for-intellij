@@ -82,7 +82,7 @@ public class FunctionAppCreationDialog extends ConfigDialog<FunctionAppConfig> {
                 return config;
             }
         };
-        basicPanel.getSelectorRuntime().setPlatformList(Runtime.FUNCTION_APP_RUNTIME);
-        advancePanel = new FunctionAppConfigFormPanelAdvance(project);
+        basicPanel.getSelectorRuntime().setPlatformList(FunctionAppRuntime.getMajorRuntimes());
+        advancePanel = new FunctionAppAdvancedConfigPanel(project);
     }
 }

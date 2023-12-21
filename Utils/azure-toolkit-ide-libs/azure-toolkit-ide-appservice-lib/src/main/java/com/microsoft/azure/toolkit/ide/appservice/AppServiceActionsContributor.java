@@ -9,6 +9,7 @@ import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
@@ -55,7 +56,7 @@ public class AppServiceActionsContributor implements IActionsContributor {
             .withLabel("Start Streaming Logs")
             .withIcon(AzureIcons.Action.LOG.getIconPath())
             .withIdParam(AzResource::getName)
-            .visibleWhen(s -> s instanceof AppServiceAppBase)
+            .visibleWhen(s -> s instanceof AppServiceAppBase&& !(s instanceof FunctionApp functionApp && (StringUtils.isNotBlank(functionApp.getEnvironmentId()))))
             .enableWhen(s -> s.getFormalStatus().isRunning())
             .register(am);
 
@@ -63,7 +64,7 @@ public class AppServiceActionsContributor implements IActionsContributor {
             .withLabel("Stop Streaming Logs")
             .withIcon(AzureIcons.Action.LOG.getIconPath())
             .withIdParam(AzResource::getName)
-            .visibleWhen(s -> s instanceof AppServiceAppBase)
+            .visibleWhen(s -> s instanceof AppServiceAppBase&& !(s instanceof FunctionApp functionApp && (StringUtils.isNotBlank(functionApp.getEnvironmentId()))))
             .enableWhen(s -> s.getFormalStatus().isRunning())
             .register(am);
 
@@ -95,7 +96,7 @@ public class AppServiceActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Common.AZURE_MONITOR.getIconPath())
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof AppServiceAppBase)
-            .enableWhen(s -> s.getFormalStatus().isRunning())
+            .enableWhen(s -> s.getFormalStatus().isRunning() || (s instanceof FunctionApp function && StringUtils.isNotBlank(function.getEnvironmentId())))
             .register(am);
 
         new Action<>(COPY_FULL_APP_SETTINGS)
