@@ -18,6 +18,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.tree.TreeVisitor;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import com.intellij.util.ui.tree.TreeUtil;
+import com.microsoft.azure.toolkit.ide.common.component.ActionNode;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.favorite.Favorite;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
@@ -32,9 +33,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AzComponent;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
-import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
-import com.microsoft.azure.toolkit.lib.resource.ResourcesServiceSubscription;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -119,7 +117,7 @@ public class TreeUtils {
             public void mouseMoved(MouseEvent e) {
                 final Tree.TreeNode<?> node = getTreeNodeAtMouse(tree, e);
                 final boolean isMouseAtActionIcon = getHoverInlineActionIndex(tree, e, Optional.ofNullable(node)
-                    .map(Tree.TreeNode::getInlineActionViews).map(List::size).orElse(0)) > -1;
+                        .map(Tree.TreeNode::getInlineActionViews).map(List::size).orElse(0)) > -1;
                 final Cursor cursor = isMouseAtActionIcon ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor();
                 tree.setCursor(cursor);
             }
@@ -166,7 +164,7 @@ public class TreeUtils {
             public void mousePressed(MouseEvent e) {
                 final Tree.TreeNode<?> node = getTreeNodeAtMouse(tree, e);
                 final List<IView.Label> inlineActionViews = Optional.ofNullable(node)
-                    .map(Tree.TreeNode::getInlineActionViews).orElse(new ArrayList<>());
+                        .map(Tree.TreeNode::getInlineActionViews).orElse(new ArrayList<>());
                 final int inlineActionIndex = getHoverInlineActionIndex(tree, e, inlineActionViews.size());
                 if (Objects.nonNull(node) && e.getClickCount() == 1 && inlineActionIndex > -1) {
                     final String place = TreeUtils.getPlace(tree) + "." + (TreeUtils.underAppGroups(node) ? "app" : "type");
@@ -192,7 +190,7 @@ public class TreeUtils {
         return null;
     }
 
-    private static int getHoverInlineActionIndex(@Nonnull JTree tree, MouseEvent e, int actionCount) {
+    public static int getHoverInlineActionIndex(@Nonnull JTree tree, MouseEvent e, int actionCount) {
         final JBScrollPane scrollPane = (JBScrollPane) tree.getClientProperty(KEY_SCROLL_PANE);
         if (Objects.isNull(scrollPane)) {
             return -1;
@@ -224,8 +222,15 @@ public class TreeUtils {
         renderer.setToolTipText("double click to load more.");
     }
 
+    public static void renderActionNode(JTree tree, @Nonnull Tree.TreeNode<?> node, boolean selected, @Nonnull SimpleColoredComponent renderer) {
+        final ActionNode<?> inner = (ActionNode<?>) node.getInner();
+        final SimpleTextAttributes attributes = SimpleTextAttributes.LINK_ATTRIBUTES;
+        renderer.append(inner.getLabel(), attributes);
+        renderer.setToolTipText(inner.buildDescription());
+    }
+
     public static void renderMyTreeNode(JTree tree, @Nonnull Tree.TreeNode<?> node, boolean selected, @Nonnull SimpleColoredComponent renderer) {
-        final Node.View view = node.inner.getView();
+        final Node.View view = node.getInner().getView();
         renderer.setIcon(Optional.ofNullable(view.getIcon()).map(IntelliJAzureIcons::getIcon).orElseGet(() -> IntelliJAzureIcons.getIcon(AzureIcons.Resources.GENERIC_RESOURCE)));
         final Object highlighted = tree.getClientProperty(HIGHLIGHTED_RESOURCE_KEY);
         final boolean toHighlightThisNode = Optional.ofNullable(highlighted).filter(h -> Objects.equals(node.getUserObject(), h)).isPresent();

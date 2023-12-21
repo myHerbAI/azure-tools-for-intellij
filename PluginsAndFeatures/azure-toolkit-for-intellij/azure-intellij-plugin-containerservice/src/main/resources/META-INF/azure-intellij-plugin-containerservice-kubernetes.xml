@@ -1,0 +1,13 @@
+<idea-plugin>
+    <actions>
+        <action id="AzureToolkit.AddKubernetesContext"
+                class="com.microsoft.azure.toolkit.intellij.containerservice.actions.KubernetesAddContextFromAzureAction"
+                text="Add New Context From Azure">
+            <add-to-group relative-to-action="Kubernetes.AddContext" anchor="after" group-id="Kubernetes.NewContexts"/>
+        </action>
+    </actions>
+
+    <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
+        <actions implementation="com.microsoft.azure.toolkit.intellij.containerservice.IntelliJContainerServiceActionsContributorForKubernetesPlugin"/>
+    </extensions>
+</idea-plugin>
