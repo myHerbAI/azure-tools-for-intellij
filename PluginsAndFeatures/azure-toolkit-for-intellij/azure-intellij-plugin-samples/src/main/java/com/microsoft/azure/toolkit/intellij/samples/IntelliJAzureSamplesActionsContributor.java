@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class IntelliJAzureSamplesActionsContributor implements IActionsContributor {
-    private static Map<String, String> SERVICE_KEYWORDS = new HashMap<>() {
+    private static final Map<String, String> SERVICE_KEYWORDS = new HashMap<>() {
         {
             put("Microsoft.ContainerService", "Container App");
             put("Microsoft.ContainerService/managedClusters", "Container App");
@@ -84,6 +84,7 @@ public class IntelliJAzureSamplesActionsContributor implements IActionsContribut
 
         new Action<>(ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES)
             .withLabel("Browse Sample Projects...")
+            .withIdParam(c -> c.getResourceTypeName())
             .withHandler((c, e) -> AzureTaskManager.getInstance().runLater(() -> {
                 final AnActionEvent event = (AnActionEvent) e;
                 final VcsCloneDialog dialog = new VcsCloneDialog.Builder(Objects.requireNonNull(event.getProject()))
