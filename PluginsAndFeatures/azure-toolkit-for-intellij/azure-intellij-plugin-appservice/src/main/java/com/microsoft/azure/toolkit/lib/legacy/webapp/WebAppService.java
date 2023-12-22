@@ -10,11 +10,9 @@ import com.microsoft.azure.toolkit.ide.appservice.model.MonitorConfig;
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.*;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel;
 import com.microsoft.azuretools.core.mvp.model.webapp.WebAppSettingModel;
@@ -24,12 +22,8 @@ import com.microsoft.azuretools.telemetrywrapper.Operation;
 import com.microsoft.azuretools.telemetrywrapper.TelemetryManager;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class WebAppService {
     private static final WebAppService instance = new WebAppService();
@@ -64,7 +58,7 @@ public class WebAppService {
         result.pricingTier(Optional.ofNullable(config.getServicePlan()).map(AppServicePlanConfig::getPricingTier).orElseGet(config::getPricingTier));
         result.servicePlanName(config.getServicePlan().getName());
         result.servicePlanResourceGroup(StringUtils.firstNonBlank(config.getServicePlan().getResourceGroupName(), config.getResourceGroup().getName()));
-        result.runtime(convertToRuntimeConfig(config.getRuntime()));
+        result.runtime(new RuntimeConfig().runtime(config.getRuntime()));
         result.appSettings(config.getAppSettings());
         final ApplicationInsightsConfig applicationInsightsConfig =
                 Optional.ofNullable(config.getMonitorConfig()).map(MonitorConfig::getApplicationInsightsConfig).orElse(null);
@@ -76,10 +70,6 @@ public class WebAppService {
         return result;
     }
 
-    private static RuntimeConfig convertToRuntimeConfig(Runtime runtime) {
-        return new RuntimeConfig().os(runtime.getOperatingSystem()).webContainer(runtime.getWebContainer()).javaVersion(runtime.getJavaVersion());
-    }
-
     public static WebAppSettingModel convertConfig2Settings(final WebAppConfig config) {
         final WebAppSettingModel settings = new WebAppSettingModel();
         settings.setSubscriptionId(config.getSubscription().getId());
@@ -88,7 +78,7 @@ public class WebAppService {
         settings.setResourceGroup(rg.getName());
         settings.setWebAppName(config.getName());
         settings.setRegion(config.getRegion().getName());
-        settings.saveRuntime(config.getRuntime());
+        settings.saveRuntime(((WebAppRuntime) config.getRuntime()));
         // creating if id is empty
         final AppServicePlan plan = config.getServicePlan().toResource();
         settings.setCreatingAppServicePlan(plan.isDraftForCreating() || StringUtils.isEmpty(plan.getId()));
@@ -110,19 +100,5 @@ public class WebAppService {
         settings.setTargetName(config.getApplication() == null ? null : config.getApplication().toFile().getName());
         settings.setTargetPath(config.getApplication() == null ? null : config.getApplication().toString());
         return settings;
-    }
-
-    public String getRuntimeDisplayName(@Nonnull final Runtime runtime) {
-        if (runtime.getOperatingSystem() == OperatingSystem.DOCKER) {
-            return "Docker";
-        }
-        final String os = runtime.getOperatingSystem().getValue();
-        final String javaVersion = Objects.equals(runtime.getJavaVersion(), JavaVersion.OFF) ?
-                null : String.format("Java %s", runtime.getJavaVersion().getValue());
-        final String webContainer = Objects.equals(runtime.getWebContainer(), WebContainer.JAVA_OFF) ?
-                null : runtime.getWebContainer().getValue();
-        return Stream.of(os, javaVersion, webContainer)
-                     .filter(StringUtils::isNotEmpty)
-                     .map(StringUtils::capitalize).collect(Collectors.joining("-"));
     }
 }

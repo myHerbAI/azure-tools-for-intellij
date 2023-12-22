@@ -11,8 +11,7 @@ import com.microsoft.azure.toolkit.ide.appservice.model.ApplicationInsightsConfi
 import com.microsoft.azure.toolkit.ide.appservice.model.MonitorConfig;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdvancedPanel;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceMonitorPanel;
-import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
-import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.appservice.model.*;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.insights.ApplicationInsightsComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
@@ -85,7 +84,7 @@ public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFo
     private void createUIComponents() {
         // TODO: place custom component creation code here
         appServiceConfigPanelAdvanced = new AppServiceInfoAdvancedPanel<>(project, () -> FunctionAppConfig.builder().build());
-        appServiceConfigPanelAdvanced.setValidRuntime(Runtime.FUNCTION_APP_RUNTIME);
+        appServiceConfigPanelAdvanced.setValidRuntime(FunctionAppRuntime.getMajorRuntimes());
         appServiceConfigPanelAdvanced.setValidPricingTier(new ArrayList<>(PricingTier.FUNCTION_PRICING), PricingTier.CONSUMPTION);
         // Function does not support file deployment
         appServiceConfigPanelAdvanced.setDeploymentVisible(false);

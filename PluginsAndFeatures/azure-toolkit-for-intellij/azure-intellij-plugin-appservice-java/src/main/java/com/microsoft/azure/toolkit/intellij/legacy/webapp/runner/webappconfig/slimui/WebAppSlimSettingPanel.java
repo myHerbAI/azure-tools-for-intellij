@@ -152,7 +152,7 @@ public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguratio
             configuration.setSubscriptionId(webAppConfig.getSubscriptionId());
             configuration.setResourceGroup(webAppConfig.getResourceGroupName());
             configuration.setWebAppName(webAppConfig.getName());
-            configuration.saveRuntime(webAppConfig.getRuntime());
+            configuration.setRuntime(webAppConfig.getRuntime());
             configuration.setApplicationSettings(webAppConfig.getAppSettings());
             configuration.setAppSettingsToRemove(webAppConfig.getAppSettingsToRemove());
             configuration.setCreatingNew(StringUtils.isEmpty(webAppConfig.getResourceId()));

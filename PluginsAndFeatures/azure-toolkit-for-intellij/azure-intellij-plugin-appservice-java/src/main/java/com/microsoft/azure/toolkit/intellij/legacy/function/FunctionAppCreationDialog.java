@@ -11,7 +11,7 @@ import com.microsoft.azure.toolkit.ide.appservice.model.MonitorConfig;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.ConfigDialog;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoBasicPanel;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.IAccountActions;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -81,7 +81,7 @@ public class FunctionAppCreationDialog extends ConfigDialog<FunctionAppConfig> {
                 return config;
             }
         };
-        basicPanel.getSelectorRuntime().setPlatformList(Runtime.FUNCTION_APP_RUNTIME);
+        basicPanel.getSelectorRuntime().setPlatformList(FunctionAppRuntime.getMajorRuntimes());
         advancePanel = new FunctionAppConfigFormPanelAdvance(project);
     }
 }
