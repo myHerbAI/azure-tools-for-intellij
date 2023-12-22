@@ -25,6 +25,7 @@ import javax.swing.event.DocumentEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFormPanel<FunctionAppConfig> {
     private final Project project;
@@ -84,7 +85,7 @@ public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFo
     private void createUIComponents() {
         // TODO: place custom component creation code here
         appServiceConfigPanelAdvanced = new AppServiceInfoAdvancedPanel<>(project, () -> FunctionAppConfig.builder().build());
-        appServiceConfigPanelAdvanced.setValidRuntime(FunctionAppRuntime.getMajorRuntimes());
+        appServiceConfigPanelAdvanced.setValidRuntime(FunctionAppRuntime.getMajorRuntimes().stream().filter(r-> !r.isDocker()).collect(Collectors.toList()));
         appServiceConfigPanelAdvanced.setValidPricingTier(new ArrayList<>(PricingTier.FUNCTION_PRICING), PricingTier.CONSUMPTION);
         // Function does not support file deployment
         appServiceConfigPanelAdvanced.setDeploymentVisible(false);

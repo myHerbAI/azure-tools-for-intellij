@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 import static com.microsoft.azure.toolkit.lib.Azure.az;
@@ -81,7 +82,7 @@ public class FunctionAppCreationDialog extends ConfigDialog<FunctionAppConfig> {
                 return config;
             }
         };
-        basicPanel.getSelectorRuntime().setPlatformList(FunctionAppRuntime.getMajorRuntimes());
+        basicPanel.getSelectorRuntime().setPlatformList(FunctionAppRuntime.getMajorRuntimes().stream().filter(r-> !r.isDocker()).collect(Collectors.toList()));
         advancePanel = new FunctionAppConfigFormPanelAdvance(project);
     }
 }

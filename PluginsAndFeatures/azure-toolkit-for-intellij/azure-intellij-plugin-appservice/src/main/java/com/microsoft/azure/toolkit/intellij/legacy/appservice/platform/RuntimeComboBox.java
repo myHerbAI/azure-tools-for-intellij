@@ -13,19 +13,25 @@ import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class RuntimeComboBox extends AzureComboBox<Runtime> {
 
-    private List<Runtime> platformList;
+    private List<? extends Runtime> platformList;
 
     public RuntimeComboBox() {
-        this(WebAppRuntime.getMajorRuntimes());
+        this(WebAppRuntime.getMajorRuntimes().stream().filter(r -> !r.isDocker()).collect(Collectors.toList()));
     }
 
     public RuntimeComboBox(List<? extends Runtime> platformList) {
         super();
-        this.platformList = Collections.unmodifiableList(platformList);
+        this.platformList = platformList.stream()
+            .sorted(Comparator.comparing(Runtime::getOperatingSystem).thenComparing(Runtime::getJavaMajorVersionNumber).reversed())
+            .collect(Collectors.toList());
         setGroupRender();
     }
 
@@ -65,11 +71,7 @@ public class RuntimeComboBox extends AzureComboBox<Runtime> {
         if (item.isDocker()) {
             return "Docker";
         }
-        if (item instanceof WebAppRuntime) {
-            return String.format("%s & %s", item.getOperatingSystem().toString(), ((WebAppRuntime) item).getJavaVersionUserText());
-        } else {
-            return item.getOperatingSystem().toString();
-        }
+        return String.format("%s & %s", item.getOperatingSystem().toString(), item.getJavaVersionUserText());
     }
 
     class RuntimeItemDescriptor extends ListItemDescriptorAdapter<Runtime> {
