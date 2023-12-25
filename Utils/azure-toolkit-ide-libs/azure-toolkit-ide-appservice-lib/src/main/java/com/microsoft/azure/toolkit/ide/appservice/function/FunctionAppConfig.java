@@ -113,7 +113,7 @@ public class FunctionAppConfig extends AppServiceConfig {
         result.servicePlanName(Optional.ofNullable(config.getServicePlan()).map(AppServicePlanConfig::getName).orElse(null));
         result.servicePlanResourceGroup(Optional.ofNullable(config.getServicePlan())
             .map(AppServicePlanConfig::getResourceGroupName).orElseGet(config::getResourceGroupName));
-        Optional.ofNullable(config.getRuntime()).ifPresent(runtime -> result.runtime(new RuntimeConfig().runtime(runtime)));
+        Optional.ofNullable(config.getRuntime()).ifPresent(runtime -> result.runtime(new RuntimeConfig().os(runtime.getOperatingSystem()).javaVersion(runtime.getJavaVersionUserText())));
         final ApplicationInsightsConfig insightsConfig = Optional.ofNullable(config.getMonitorConfig()).map(MonitorConfig::getApplicationInsightsConfig).orElse(null);
         result.disableAppInsights(insightsConfig == null);
         if (insightsConfig != null) {

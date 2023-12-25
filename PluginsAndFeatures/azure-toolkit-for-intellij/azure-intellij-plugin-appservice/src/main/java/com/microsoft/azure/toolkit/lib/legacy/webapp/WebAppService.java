@@ -58,7 +58,7 @@ public class WebAppService {
         result.pricingTier(Optional.ofNullable(config.getServicePlan()).map(AppServicePlanConfig::getPricingTier).orElseGet(config::getPricingTier));
         result.servicePlanName(config.getServicePlan().getName());
         result.servicePlanResourceGroup(StringUtils.firstNonBlank(config.getServicePlan().getResourceGroupName(), config.getResourceGroup().getName()));
-        result.runtime(new RuntimeConfig().runtime(config.getRuntime()));
+        result.runtime(new RuntimeConfig().os(config.getRuntime().getOperatingSystem()).javaVersion(config.getRuntime().getJavaVersionUserText()).webContainer(((WebAppRuntime) config.getRuntime()).getContainerUserText()));
         result.appSettings(config.getAppSettings());
         final ApplicationInsightsConfig applicationInsightsConfig =
                 Optional.ofNullable(config.getMonitorConfig()).map(MonitorConfig::getApplicationInsightsConfig).orElse(null);

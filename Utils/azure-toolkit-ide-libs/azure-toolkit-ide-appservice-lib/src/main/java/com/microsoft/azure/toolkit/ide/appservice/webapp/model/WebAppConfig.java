@@ -110,7 +110,9 @@ public class WebAppConfig extends AppServiceConfig {
         result.servicePlanName(Optional.ofNullable(config.getServicePlan()).map(AppServicePlanConfig::getName).orElse(null));
         result.servicePlanResourceGroup(Optional.ofNullable(config.getServicePlan())
             .map(AppServicePlanConfig::getResourceGroupName).orElseGet(config::getResourceGroupName));
-        Optional.ofNullable(config.getRuntime()).ifPresent(runtime -> result.runtime(new RuntimeConfig().runtime(runtime)));
+        Optional.ofNullable(config.getRuntime()).map(r-> ((WebAppRuntime) r)).ifPresent(runtime -> result.runtime(new RuntimeConfig()
+            .os(runtime.getOperatingSystem()).webContainer(runtime.getContainerUserText()).javaVersion(runtime.getJavaVersionUserText())
+        ));
         return result;
     }
 }

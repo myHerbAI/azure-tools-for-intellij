@@ -77,7 +77,7 @@ public class FunctionAppService {
         result.pricingTier(Optional.ofNullable(config.getServicePlan()).map(AppServicePlanConfig::getPricingTier).orElseGet(config::getPricingTier));
         result.servicePlanName(Optional.ofNullable(config.getServicePlan()).map(AppServicePlanConfig::getName).orElseGet(config::getName));
         result.servicePlanResourceGroup(Optional.ofNullable(config.getServicePlan()).map(AppServicePlanConfig::getResourceGroupName).orElseGet(config::getResourceGroupName));
-        result.runtime(new RuntimeConfig().runtime(config.getRuntime()));
+        result.runtime(new RuntimeConfig().os(config.getRuntime().getOperatingSystem()).javaVersion(config.getRuntime().getJavaVersionUserText()));
         result.appSettings(config.getAppSettings());
         result.appSettingsToRemove(getAppSettingsToRemove(config));
         final ApplicationInsightsConfig applicationInsightsConfig =
