@@ -146,7 +146,7 @@
                 </constraints>
                 <properties>
                   <font style="1"/>
-                  <text value="Previouse page"/>
+                  <text value="Previous page"/>
                   <toolTipText value="previous page"/>
                 </properties>
               </component>

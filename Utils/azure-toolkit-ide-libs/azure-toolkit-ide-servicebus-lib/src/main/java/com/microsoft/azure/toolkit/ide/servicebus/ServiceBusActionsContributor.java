@@ -116,6 +116,7 @@ public class ServiceBusActionsContributor implements IActionsContributor {
         final ActionGroup serviceGroup = new ActionGroup(
                 ResourceCommonActionsContributor.REFRESH,
                 ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+                ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
                 "---",
                 ResourceCommonActionsContributor.CREATE_IN_PORTAL
         );
@@ -126,6 +127,7 @@ public class ServiceBusActionsContributor implements IActionsContributor {
                 "---",
                 ResourceCommonActionsContributor.REFRESH,
                 ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+                ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
                 COPY_NAMESPACE_CONNECTION_STRING,
                 ResourceCommonActionsContributor.OPEN_PORTAL_URL,
                 "---",

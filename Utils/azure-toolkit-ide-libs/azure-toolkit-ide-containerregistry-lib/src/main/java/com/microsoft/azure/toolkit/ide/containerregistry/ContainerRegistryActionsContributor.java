@@ -253,6 +253,7 @@ public class ContainerRegistryActionsContributor implements IActionsContributor 
         final ActionGroup serviceActionGroup = new ActionGroup(
             ResourceCommonActionsContributor.REFRESH,
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
             "---",
             ResourceCommonActionsContributor.CREATE_IN_PORTAL
         );
@@ -263,6 +264,7 @@ public class ContainerRegistryActionsContributor implements IActionsContributor 
             "---",
             ResourceCommonActionsContributor.REFRESH,
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
             ResourceCommonActionsContributor.OPEN_PORTAL_URL,
             "---",
             ContainerRegistryActionsContributor.ENABLE_ADMIN_USER,

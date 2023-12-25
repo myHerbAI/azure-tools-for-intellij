@@ -193,6 +193,7 @@ public class HDInsightActionsContributor implements IActionsContributor {
         final ActionGroup serviceActionGroup = new ActionGroup(
                 ResourceCommonActionsContributor.REFRESH,
                 ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+                ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
                 "---",
                 this.LINK_A_CLUSTER
         );

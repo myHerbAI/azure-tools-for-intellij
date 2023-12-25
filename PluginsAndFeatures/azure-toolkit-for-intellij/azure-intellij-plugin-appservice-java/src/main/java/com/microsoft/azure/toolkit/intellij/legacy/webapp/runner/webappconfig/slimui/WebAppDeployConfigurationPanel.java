@@ -22,8 +22,7 @@ import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
@@ -189,11 +188,11 @@ public class WebAppDeployConfigurationPanel extends JPanel implements AzureFormP
         if (selectedWebApp == null || azureArtifact == null) {
             return false;
         }
-        final String webContainer = Optional.ofNullable(selectedWebApp.getRuntime())
-                .map(Runtime::getWebContainer).map(WebContainer::getValue).orElse(StringUtils.EMPTY);
+        final String containerName = Optional.ofNullable(selectedWebApp.getRuntime())
+            .map(r -> ((WebAppRuntime) r)).map(WebAppRuntime::getContainerName).orElse(StringUtils.EMPTY);
         final String packaging = azureArtifact.getPackaging();
         final boolean isDeployingWar = StringUtils.equalsAnyIgnoreCase(packaging, MavenConstants.TYPE_WAR, "ear");
-        return isDeployingWar && StringUtils.containsAny(webContainer.toLowerCase(), "tomcat", "jboss");
+        return isDeployingWar && StringUtils.containsAnyIgnoreCase(containerName, "tomcat", "jboss");
     }
 
     private void toggleSlotPanel(boolean slot) {

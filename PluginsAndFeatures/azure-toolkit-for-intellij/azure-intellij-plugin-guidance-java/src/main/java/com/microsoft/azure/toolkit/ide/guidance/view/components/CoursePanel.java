@@ -110,10 +110,15 @@ public class CoursePanel {
 
     private JLabel decorateTagLabel(String tag) {
         final JLabel label = new JLabel(tag);
-        final Border borderLine = new RoundedLineBorder(new JBColor(12895428, 6185056), 2);
-        final Border margin = JBUI.Borders.empty(0, 6);
-        label.setBorder(new CompoundBorder(borderLine, margin));
-        label.setFont(JBFont.regular().lessOn(2));
+        label.setVerticalAlignment(SwingConstants.CENTER);
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        final Border border = new RoundedLineBorder(new JBColor(12895428, 6185056), 2);
+        final Border padding = BorderFactory.createEmptyBorder(0, 6, 2, 6);
+        final Border margin = BorderFactory.createEmptyBorder(0, 0, 3, 0);
+        label.setBackground(JBUI.CurrentTheme.ActionButton.hoverBackground());
+        label.setBorder(BorderFactory.createCompoundBorder(margin, BorderFactory.createCompoundBorder(border, padding)));
+        label.setFont(JBFont.regular().lessOn(1));
+        label.setOpaque(false);
         return label;
     }
 
