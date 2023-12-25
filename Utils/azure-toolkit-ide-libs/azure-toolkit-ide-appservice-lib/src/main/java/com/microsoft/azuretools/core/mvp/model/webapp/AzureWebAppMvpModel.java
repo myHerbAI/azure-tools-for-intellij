@@ -9,12 +9,7 @@ import com.microsoft.azure.toolkit.ide.appservice.AppServiceActionsContributor;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
-import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
-import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
-import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.appservice.model.*;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanDraft;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployWebAppTask;
@@ -99,7 +94,7 @@ public class AzureWebAppMvpModel {
         final WebAppDraft draft = Azure.az(AzureWebApp.class).webApps(model.getSubscriptionId())
             .create(model.getWebAppName(), model.getResourceGroupName());
         draft.setAppServicePlan(appServicePlan);
-        draft.setRuntime(Runtime.DOCKER);
+        draft.setRuntime(WebAppRuntime.DOCKER);
         draft.setDockerConfiguration(dockerConfiguration);
         return draft.createIfNotExist();
     }
@@ -208,8 +203,8 @@ public class AzureWebAppMvpModel {
             throw new AzureToolkitRuntimeException(error, action, retry);
         }
         final DeployType deployType = Optional.ofNullable(DeployType.fromString(FilenameUtils.getExtension(file.getName()))).orElse(DeployType.ZIP);
-        final String path = isDeployToRoot || Objects.equals(Objects.requireNonNull(deployTarget.getRuntime()).getWebContainer(), WebContainer.JAVA_SE) ?
-                null : String.format("webapps/%s", FilenameUtils.getBaseName(file.getName()).replaceAll("#", StringUtils.EMPTY));
+        final String path = isDeployToRoot || StringUtils.equalsIgnoreCase(deployTarget.getRuntime().getWebContainer().toString(), WebAppRuntime.JAVA_SE.toString()) ?
+            null : String.format("webapps/%s", FilenameUtils.getBaseName(file.getName()).replaceAll("#", StringUtils.EMPTY));
         final WebAppArtifact build = WebAppArtifact.builder().deployType(deployType).path(path).file(file).build();
         final DeployWebAppTask deployWebAppTask = new DeployWebAppTask(deployTarget, Collections.singletonList(build), true, false, false);
         deployWebAppTask.doExecute();

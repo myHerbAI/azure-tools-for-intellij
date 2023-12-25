@@ -31,7 +31,7 @@ public class GithubOrganization {
     private final String searchUrl;
 
     public GithubOrganization(@Nonnull String organization) {
-        this.searchUrl = "https://api.github.com/search/repositories?q=language:Java+org:" + URLEncoder.encode(organization, StandardCharsets.UTF_8);
+        this.searchUrl = "https://api.github.com/search/repositories?q=is:public+language:Java+org:" + URLEncoder.encode(organization, StandardCharsets.UTF_8);
     }
 
     public SearchResult search(@Nullable String keyword) {
@@ -49,6 +49,7 @@ public class GithubOrganization {
         }
         url.append("&page=").append(page);
         url.append("&per_page=").append(pageSize);
+        url.append("&sort=stars&order=desc");
         try {
             return JSON_MAPPER.readerFor(SearchResult.class).readValue(new URL(url.toString()));
         } catch (final IOException exception) {

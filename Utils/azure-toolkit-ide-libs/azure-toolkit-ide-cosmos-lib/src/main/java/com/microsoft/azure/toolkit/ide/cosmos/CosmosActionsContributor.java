@@ -107,6 +107,7 @@ public class CosmosActionsContributor implements IActionsContributor {
         final ActionGroup serviceActionGroup = new ActionGroup(
             ResourceCommonActionsContributor.REFRESH,
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
             "---",
             ResourceCommonActionsContributor.CREATE
         );
@@ -117,6 +118,7 @@ public class CosmosActionsContributor implements IActionsContributor {
             "---",
             ResourceCommonActionsContributor.REFRESH,
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
             ResourceCommonActionsContributor.OPEN_PORTAL_URL,
             CosmosActionsContributor.OPEN_DATA_EXPLORER,
             "---",

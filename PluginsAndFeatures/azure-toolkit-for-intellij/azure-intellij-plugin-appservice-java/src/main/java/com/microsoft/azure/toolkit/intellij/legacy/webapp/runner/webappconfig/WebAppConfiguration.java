@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig;
 
+import com.azure.resourcemanager.appservice.models.JavaVersion;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -23,17 +24,15 @@ import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunConfigurationBase;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.Constants;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom.Element;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -52,7 +51,7 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
     public static final String JAVA_VERSION = "javaVersion";
     private final IntelliJWebAppSettingModel webAppSettingModel;
 
-    public WebAppConfiguration(@NotNull Project project, @NotNull ConfigurationFactory factory, String name) {
+    public WebAppConfiguration(@Nonnull Project project, @Nonnull ConfigurationFactory factory, String name) {
         super(project, factory, name);
         this.webAppSettingModel = new IntelliJWebAppSettingModel();
     }
@@ -62,7 +61,7 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
         return this.webAppSettingModel;
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
         return new WebAppSettingEditor(getProject(), this);
@@ -96,7 +95,7 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
 
     @Nullable
     @Override
-    public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment executionEnvironment) {
+    public RunProfileState getState(@Nonnull Executor executor, @Nonnull ExecutionEnvironment executionEnvironment) {
         return new WebAppRunState(getProject(), this);
     }
 
@@ -155,22 +154,22 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
             }
         }
         // validate runtime with artifact
-        final Runtime runtime = webAppSettingModel.getRuntime();
+        final WebAppRuntime runtime = (WebAppRuntime) webAppSettingModel.getRuntime();
         final OperatingSystem operatingSystem = Optional.ofNullable(runtime).map(Runtime::getOperatingSystem).orElse(null);
-        final JavaVersion javaVersion = Optional.ofNullable(runtime).map(Runtime::getJavaVersion).orElse(null);
+        final JavaVersion javaVersion = Optional.ofNullable(runtime).map(Runtime::getJavaVersion).orElse(JavaVersion.OFF);
         if (operatingSystem == OperatingSystem.DOCKER) {
             throw new ConfigurationException(message("webapp.validate_deploy_configuration.dockerRuntime"));
         }
-        if (javaVersion == null || Objects.equals(javaVersion, JavaVersion.OFF)) {
+        if (Objects.equals(javaVersion, JavaVersion.OFF)) {
             throw new ConfigurationException(message("webapp.validate_deploy_configuration.invalidRuntime"));
         }
-        final String webContainer = runtime.getWebContainer().getValue();
+        final String containerName = runtime.getContainerName();
         final String artifactPackage = webAppSettingModel.getPackaging();
-        if (StringUtils.containsIgnoreCase(webContainer, TOMCAT) && !StringUtils.equalsAnyIgnoreCase(artifactPackage, "war")) {
+        if (StringUtils.containsIgnoreCase(containerName, TOMCAT) && !StringUtils.equalsAnyIgnoreCase(artifactPackage, "war")) {
             throw new ConfigurationException(message("webapp.deploy.validate.invalidTomcatArtifact"));
-        } else if (StringUtils.containsIgnoreCase(webContainer, JBOSS) && !StringUtils.equalsAnyIgnoreCase(artifactPackage, "war", "ear")) {
+        } else if (StringUtils.containsIgnoreCase(containerName, JBOSS) && !StringUtils.equalsAnyIgnoreCase(artifactPackage, "war", "ear")) {
             throw new ConfigurationException(message("webapp.deploy.validate.invalidJbossArtifact"));
-        } else if (Objects.equals(runtime.getWebContainer(), WebContainer.JAVA_SE) && !StringUtils.equalsAnyIgnoreCase(artifactPackage, "jar")) {
+        } else if (StringUtils.containsIgnoreCase(containerName, "Java") && !StringUtils.equalsAnyIgnoreCase(artifactPackage, "jar")) {
             throw new ConfigurationException(message("webapp.deploy.validate.invalidJavaSeArtifact"));
         }
         if (StringUtils.isEmpty(webAppSettingModel.getArtifactIdentifier())) {
@@ -356,8 +355,8 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
         webAppSettingModel.setPackaging(azureArtifact == null ? null : azureArtifact.getPackaging());
     }
 
-    public void saveRuntime(final Runtime runtime) {
-        webAppSettingModel.saveRuntime(runtime);
+    public void setRuntime(final Runtime runtime) {
+        webAppSettingModel.saveRuntime((WebAppRuntime) runtime);
     }
 
     public Set<String> getAppSettingsToRemove() {

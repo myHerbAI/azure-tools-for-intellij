@@ -10,35 +10,39 @@ import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.intellij.ui.popup.list.GroupedItemsListRenderer;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
-import com.microsoft.azure.toolkit.lib.legacy.webapp.WebAppService;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class RuntimeComboBox extends AzureComboBox<Runtime> {
 
-    private List<Runtime> platformList;
+    private List<? extends Runtime> platformList;
 
     public RuntimeComboBox() {
-        this(Runtime.WEBAPP_RUNTIME);
+        this(WebAppRuntime.getMajorRuntimes().stream().filter(r -> !r.isDocker()).collect(Collectors.toList()));
     }
 
-    public RuntimeComboBox(List<Runtime> platformList) {
+    public RuntimeComboBox(List<? extends Runtime> platformList) {
         super();
-        this.platformList = Collections.unmodifiableList(platformList.stream()
-                .sorted(Comparator.comparing(o -> WebAppService.getInstance().getRuntimeDisplayName(o))).toList());
+        this.platformList = platformList.stream()
+            .sorted(Comparator.comparing(Runtime::getOperatingSystem).thenComparing(Runtime::getJavaMajorVersionNumber).reversed())
+            .collect(Collectors.toList());
         setGroupRender();
     }
 
-    public void setPlatformList(final List<Runtime> platformList) {
+    public void setPlatformList(final List<? extends Runtime> platformList) {
         this.platformList = Collections.unmodifiableList(platformList);
         this.reloadItems();
     }
 
     @Override
     protected String getItemText(Object item) {
-        return item instanceof Runtime ? WebAppService.getInstance().getRuntimeDisplayName((Runtime) item) : super.getItemText(item);
+        return item instanceof Runtime ? ((Runtime) item).getDisplayName() : super.getItemText(item);
     }
 
     @Nonnull
@@ -55,6 +59,7 @@ public class RuntimeComboBox extends AzureComboBox<Runtime> {
 
     private void setGroupRender() {
         this.setRenderer(new GroupedItemsListRenderer<>(new RuntimeItemDescriptor()) {
+            @SuppressWarnings("UnstableApiUsage")
             @Override
             protected boolean hasSeparator(Runtime value, int index) {
                 return index >= 0 && super.hasSeparator(value, index);
@@ -66,14 +71,13 @@ public class RuntimeComboBox extends AzureComboBox<Runtime> {
         if (item.isDocker()) {
             return "Docker";
         }
-        return Objects.equals(item.getWebContainer(), WebContainer.JAVA_OFF) ? item.getOperatingSystem().toString() :
-                String.format("%s & %s", item.getOperatingSystem().toString(), item.getJavaVersion().toString());
+        return String.format("%s & %s", item.getOperatingSystem().toString(), item.getJavaVersionUserText());
     }
 
     class RuntimeItemDescriptor extends ListItemDescriptorAdapter<Runtime> {
         @Override
         public String getTextFor(Runtime value) {
-            return WebAppService.getInstance().getRuntimeDisplayName(value);
+            return value.getDisplayName();
         }
 
         @Override

@@ -64,6 +64,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
     public static final Action.Id<Object> OPEN_AZURE_SETTINGS = Action.OPEN_AZURE_SETTINGS;
     public static final Action.Id<Object> OPEN_AZURE_EXPLORER = Action.Id.of("user/common.open_azure_explorer");
     public static final Action.Id<Object> OPEN_AZURE_REFERENCE_BOOK = Action.Id.of("user/common.open_azure_reference_book");
+    public static final Action.Id<AzComponent> BROWSE_SERVICE_AZURE_SAMPLES = Action.Id.of("user/samples.browse_service_samples.service");
     public static final Action.Id<Object> SELECT_RESOURCE_IN_EXPLORER = Action.Id.of("internal/common.select_resource_in_explorer");
     public static final Action.Id<Object> INSTALL_DOTNET_RUNTIME = Action.Id.of("user/bicep.install_dotnet_runtime");
     public static final Action.Id<Object> RESTART_IDE = Action.Id.of("user/common.restart_ide");

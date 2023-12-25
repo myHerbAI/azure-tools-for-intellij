@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.GotItTooltip;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.ActionLink;
 import com.intellij.ui.components.AnActionLink;
@@ -62,9 +63,7 @@ public class CoursesView {
         this.lblTitle.setFont(JBFont.h2().asBold());
         this.lblLoading.setIcon(IntelliJAzureIcons.getIcon(AzureIcons.Common.REFRESH_ICON));
         this.actionLinkPanel.setVisible(true);
-        AzureTaskManager.getInstance().runInBackground("Loading lesson", () -> GuidanceConfigManager.getInstance().loadCourses())
-            .thenAccept(courses -> AzureTaskManager.getInstance().runLater(() -> this.setCourses(courses)));
-        this.moreSamplesLink.setHyperlinkText("More Azure samples...");
+        this.moreSamplesLink.setHyperlinkText("More sample projects...");
         this.moreSamplesLink.addHyperlinkListener(e -> {
             final InputEvent event = e.getInputEvent();
             final DataContext context = DataManager.getInstance().getDataContext(event.getComponent());
@@ -72,8 +71,14 @@ public class CoursesView {
             Optional.ofNullable(AzureActionManager.getInstance())
                 .map(m -> m.getAction(ResourceCommonActionsContributor.BROWSE_AZURE_SAMPLES))
                 .ifPresentOrElse(a -> a.handle(null, AnActionEvent.createFromInputEvent(event, "azure.guidance", null, context)),
-                    () -> AzureMessager.getMessager().warning("Browsing Azure samples requires \"Git\" plugin to be enabled first.", enable));
+                    () -> AzureMessager.getMessager().warning("Browsing Azure sample projects requires \"Git\" plugin to be enabled first.", enable));
         });
+        AzureTaskManager.getInstance().runInBackground("load courses", () -> GuidanceConfigManager.getInstance().loadCourses())
+            .thenAccept(courses -> AzureTaskManager.getInstance().runLater(() -> {
+                this.setCourses(courses);
+                new GotItTooltip("azure.guidance.more.samples", "Explore more Azure sample projects in Java and create projects from them.", project)
+                    .show(this.moreSamplesLink, GotItTooltip.BOTTOM_MIDDLE);
+            }));
     }
 
     private void setCourses(final List<CourseConfig> courseConfigs) {

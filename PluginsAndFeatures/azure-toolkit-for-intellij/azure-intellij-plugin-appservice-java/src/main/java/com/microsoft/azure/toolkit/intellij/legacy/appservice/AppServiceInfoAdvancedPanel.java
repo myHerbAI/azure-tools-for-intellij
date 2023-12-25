@@ -265,7 +265,7 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
         selectorServicePlan.setValidPricingTierList(pricingTier, defaultPricingTier);
     }
 
-    public void setValidRuntime(List<Runtime> runtimes) {
+    public void setValidRuntime(List<? extends Runtime> runtimes) {
         selectorRuntime.setPlatformList(runtimes);
     }
 

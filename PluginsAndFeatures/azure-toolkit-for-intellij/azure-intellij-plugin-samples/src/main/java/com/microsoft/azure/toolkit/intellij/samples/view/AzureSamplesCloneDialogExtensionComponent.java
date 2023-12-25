@@ -167,6 +167,8 @@ public class AzureSamplesCloneDialogExtensionComponent extends VcsCloneDialogExt
             return;
         }
         this.repositoryPanels.clear();
+        this.repositoriesPanel.removeAll();
+        this.select(null);
         for (int i = 0; i < repositories.size(); i++) {
             final GithubRepository repository = repositories.get(i);
             final GithubRepositoryPanel repositoryPanel = new GithubRepositoryPanel(repository, this.project);
@@ -215,10 +217,16 @@ public class AzureSamplesCloneDialogExtensionComponent extends VcsCloneDialogExt
             .forEach(child -> addSelectionListener((JComponent) child, mouseListener));
     }
 
-    private void select(final GithubRepositoryPanel panel) {
+    private void select(@Nullable final GithubRepositoryPanel panel) {
         repositoryPanels.forEach(p -> p.toggleSelectedStatus(false));
-        panel.toggleSelectedStatus(true);
         this.selectedPanel = panel;
+        if (Objects.isNull(panel)) {
+            this.directoryField.setEnabled(false);
+            this.getDialogStateListener().onOkActionEnabled(false);
+            return;
+        }
+        this.directoryField.setEnabled(true);
+        this.selectedPanel.toggleSelectedStatus(true);
         final String path = StringUtil.trimEnd(ClonePathProvider.relativeDirectoryPathForVcsUrl(project, this.selectedPanel.getRepo().getCloneUrl()), GitUtil.DOT_GIT);
         cloneDirectoryChildHandle.trySetChildPath(path);
         this.getDialogStateListener().onOkActionEnabled(true);

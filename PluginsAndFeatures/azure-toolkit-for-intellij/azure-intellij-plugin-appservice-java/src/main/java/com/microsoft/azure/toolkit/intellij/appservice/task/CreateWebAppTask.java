@@ -6,6 +6,7 @@ import com.microsoft.azure.toolkit.ide.guidance.Task;
 import com.microsoft.azure.toolkit.ide.guidance.task.SignInTask;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -47,7 +48,7 @@ public class CreateWebAppTask implements Task {
         final WebAppConfig webAppConfig = WebAppConfig.getWebAppDefaultConfig(name);
         webAppConfig.setName(name);
         webAppConfig.setSubscription(subscription);
-        webAppConfig.setRuntime(Runtime.LINUX_JAVA17);
+        webAppConfig.setRuntime(WebAppRuntime.DEFAULT_JAVASE_RUNTIME);
         final String rgName = Utils.generateRandomResourceName(String.format("rg-%s", name), 90);
         final ResourceGroupConfig newGroupConfig = ResourceGroupConfig.builder().subscriptionId(subscription.getId()).name(rgName).region(webAppConfig.getRegion()).build();
         webAppConfig.setResourceGroup(newGroupConfig);

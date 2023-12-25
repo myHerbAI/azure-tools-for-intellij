@@ -110,6 +110,7 @@ public class CognitiveServicesActionsContributor implements IActionsContributor 
             "---",
             ResourceCommonActionsContributor.GETTING_STARTED,
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
             "---",
             CognitiveServicesActionsContributor.CREATE_ACCOUNT
         );
@@ -120,6 +121,7 @@ public class CognitiveServicesActionsContributor implements IActionsContributor 
             "---",
             ResourceCommonActionsContributor.REFRESH,
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
             ResourceCommonActionsContributor.OPEN_PORTAL_URL,
             "---",
             CognitiveServicesActionsContributor.COPY_PRIMARY_KEY,
