@@ -9,12 +9,17 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.fileChooser.FileChooser;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.ToolbarDecorator;
+import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
@@ -25,7 +30,6 @@ import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.AllArgsConstructor;
@@ -34,7 +38,9 @@ import lombok.Data;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
+import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
@@ -158,6 +164,35 @@ public class ImportAppSettingsDialog extends AzureDialog<ImportAppSettingsDialog
                 final List<FunctionApp> functionApps = Azure.az(AzureFunctions.class).functionApps();
                 return Stream.concat(files.stream(), functionApps.stream()).collect(Collectors.toList());
             }
+
+            @Nonnull
+            @Override
+            protected List<ExtendableTextComponent.Extension> getExtensions() {
+                final List<ExtendableTextComponent.Extension> extensions = super.getExtensions();
+                final KeyStroke keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.SHIFT_DOWN_MASK);
+                final String tooltip = String.format("Open file (%s)", KeymapUtil.getKeystrokeText(keyStroke));
+                final ExtendableTextComponent.Extension openEx = ExtendableTextComponent.Extension.create(AllIcons.General.OpenDisk, tooltip, this::onSelectFile);
+                this.registerShortcut(keyStroke, openEx);
+                extensions.add(openEx);
+                return extensions;
+            }
+
+            private void onSelectFile() {
+                final FileChooserDescriptor fileDescriptor = FileChooserDescriptorFactory.createSingleFileDescriptor("json");
+                fileDescriptor.withTitle(message("function.appSettings.import.title"));
+                final VirtualFile file = FileChooser.chooseFile(fileDescriptor, project, null);
+                if (file != null && file.exists()) {
+                    final VirtualFile existingFile = getItems().stream().filter(o -> o instanceof VirtualFile).map(o -> (VirtualFile) o)
+                                                               .filter(f -> Objects.equals(file, f))
+                                                               .findFirst().orElse(null);
+                    if (Objects.nonNull(existingFile)) {
+                        setValue(existingFile);
+                    } else {
+                        addItem(file);
+                        setValue(file);
+                    }
+                }
+            }
         };
     }
 
@@ -179,7 +214,7 @@ public class ImportAppSettingsDialog extends AzureDialog<ImportAppSettingsDialog
 
     @Data
     @AllArgsConstructor
-    static class Result {
+    public static class Result {
         private Map<String, String> appSettings;
         private boolean eraseExistingSettings;
     }

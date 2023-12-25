@@ -163,7 +163,7 @@
             <dependency>
                 <groupId>org.htmlunit</groupId>
                 <artifactId>htmlunit</artifactId>
-                <version>3.0.0</version>
+                <version>3.9.0</version>
                 <exclusions>
                     <!--xml-apis has conflict with azure-storage,-->
                     <exclusion>
