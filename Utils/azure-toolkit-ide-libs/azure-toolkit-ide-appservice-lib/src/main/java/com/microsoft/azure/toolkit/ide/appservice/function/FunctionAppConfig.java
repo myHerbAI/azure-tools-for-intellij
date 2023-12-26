@@ -45,7 +45,7 @@ import static com.microsoft.azure.toolkit.lib.Azure.az;
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
 public class FunctionAppConfig extends AppServiceConfig {
-    public static final FunctionAppRuntime DEFAULT_RUNTIME = FunctionAppRuntime.DEFAULT;
+    public static final FunctionAppRuntime DEFAULT_RUNTIME = FunctionAppRuntime.getDefault();
     @Builder.Default
     protected Runtime runtime = DEFAULT_RUNTIME;
     @Builder.Default
