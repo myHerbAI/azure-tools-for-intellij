@@ -42,7 +42,7 @@ import static com.microsoft.azure.toolkit.lib.Azure.az;
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
 public class WebAppConfig extends AppServiceConfig {
-    public static final Runtime DEFAULT_RUNTIME = WebAppRuntime.DEFAULT_JAVASE_RUNTIME;
+    public static final Runtime DEFAULT_RUNTIME = WebAppRuntime.getDefaultJavaseRuntime();
     public static final PricingTier DEFAULT_PRICING_TIER = PricingTier.BASIC_B2;
     @Builder.Default
     protected Runtime runtime = DEFAULT_RUNTIME;

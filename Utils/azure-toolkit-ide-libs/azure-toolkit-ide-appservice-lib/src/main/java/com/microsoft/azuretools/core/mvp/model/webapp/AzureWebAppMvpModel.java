@@ -94,7 +94,7 @@ public class AzureWebAppMvpModel {
         final WebAppDraft draft = Azure.az(AzureWebApp.class).webApps(model.getSubscriptionId())
             .create(model.getWebAppName(), model.getResourceGroupName());
         draft.setAppServicePlan(appServicePlan);
-        draft.setRuntime(WebAppRuntime.DOCKER);
+        draft.setRuntime(WebAppDockerRuntime.INSTANCE);
         draft.setDockerConfiguration(dockerConfiguration);
         return draft.createIfNotExist();
     }
