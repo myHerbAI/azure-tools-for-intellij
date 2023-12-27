@@ -13,8 +13,7 @@ import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContri
 import com.microsoft.azure.toolkit.intellij.samples.view.AzureSamplesCloneDialogExtension;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.AzComponent;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang3.StringUtils;
 
@@ -26,8 +25,10 @@ import java.util.Objects;
 public class IntelliJAzureSamplesActionsContributor implements IActionsContributor {
     private static final Map<String, String> SERVICE_KEYWORDS = new HashMap<>() {
         {
-            put("Microsoft.ContainerService", "Container App");
-            put("Microsoft.ContainerService/managedClusters", "Container App");
+            put("Microsoft.App", "Container App");
+            put("Microsoft.App/containerApps", "Container App");
+            put("Microsoft.ContainerService", "Kubernetes");
+            put("Microsoft.ContainerService/managedClusters", "Kubernetes");
             put("Microsoft.Resources", "Resource Group");
             put("Microsoft.Resources/resourceGroups", "Resource Group");
             put("Microsoft.Web", "WebApp");
@@ -84,7 +85,7 @@ public class IntelliJAzureSamplesActionsContributor implements IActionsContribut
 
         new Action<>(ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES)
             .withLabel("Browse Sample Projects...")
-            .withIdParam(c -> c.getResourceTypeName())
+            .withIdParam(AzComponent::getResourceTypeName)
             .withHandler((c, e) -> AzureTaskManager.getInstance().runLater(() -> {
                 final AnActionEvent event = (AnActionEvent) e;
                 final VcsCloneDialog dialog = new VcsCloneDialog.Builder(Objects.requireNonNull(event.getProject()))
@@ -92,14 +93,10 @@ public class IntelliJAzureSamplesActionsContributor implements IActionsContribut
                 final JComponent component = dialog.getPreferredFocusedComponent();
                 if (Objects.nonNull(component)) {
                     final SearchTextField search = (SearchTextField) component;
-                    if (StringUtils.containsIgnoreCase(c.getClass().getName(), "functions")) {
+                    if (StringUtils.containsIgnoreCase(c.getClass().getName(), "function")) {
                         search.setText("Functions");
                     } else {
-                        if (c instanceof AzResourceModule<?>) {
-                            search.setText(SERVICE_KEYWORDS.get(((AzResourceModule<?>) c).getFullResourceType()));
-                        } else if (c instanceof AbstractAzResource<?, ?, ?>) {
-                            search.setText(SERVICE_KEYWORDS.get(((AbstractAzResource<?, ?, ?>) c).getFullResourceType()));
-                        }
+                        search.setText(SERVICE_KEYWORDS.get(c.getFullResourceType()));
                     }
                 }
                 dialog.show();
