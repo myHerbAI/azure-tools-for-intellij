@@ -3,6 +3,7 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.84.0](#3840)
   - [3.83.0](#3830)
   - [3.82.0](#3820)
   - [3.81.0](#3810)
@@ -104,6 +105,14 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.8](#308)
   - [3.0.7](#307)
   - [3.0.6](#306)
+
+## 3.84.0
+### Added
+- Browse Azure sample projects and create new project from them.     
+- More "shortcut" actions to manage Azure Kubernetes Service (AKS) resources with bundled Kubernetes plugin (2023.3).     
+
+### Updated
+- Migrate to use App Service stack API to get supported runtimes for Azure WebApps/Functions.
 
 ## 3.83.0
 ### Added
