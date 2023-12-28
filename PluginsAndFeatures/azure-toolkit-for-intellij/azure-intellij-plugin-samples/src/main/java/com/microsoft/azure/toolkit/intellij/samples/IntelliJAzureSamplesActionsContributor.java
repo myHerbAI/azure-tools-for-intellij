@@ -6,6 +6,8 @@
 package com.microsoft.azure.toolkit.intellij.samples;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.vcs.CheckoutProvider;
+import com.intellij.openapi.vcs.ProjectLevelVcsManager;
 import com.intellij.ui.SearchTextField;
 import com.intellij.util.ui.cloneDialog.VcsCloneDialog;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
@@ -77,8 +79,13 @@ public class IntelliJAzureSamplesActionsContributor implements IActionsContribut
             .withLabel("Browse Sample Projects...")
             .withHandler((c, e) -> AzureTaskManager.getInstance().runLater(() -> {
                 final AnActionEvent event = (AnActionEvent) e;
-                new VcsCloneDialog.Builder(Objects.requireNonNull(event.getProject()))
-                    .forExtension(AzureSamplesCloneDialogExtension.class).show();
+                final VcsCloneDialog cloneDialog = new VcsCloneDialog.Builder(Objects.requireNonNull(event.getProject()))
+                    .forExtension(AzureSamplesCloneDialogExtension.class);
+                // refer to GetFromVersionControlAction.actionPerformed
+                if (cloneDialog.showAndGet()) {
+                    final CheckoutProvider.Listener listener = ProjectLevelVcsManager.getInstance(event.getProject()).getCompositeCheckoutListener();
+                    cloneDialog.doClone(listener);
+                }
             }))
             .withAuthRequired(false)
             .register(am);
