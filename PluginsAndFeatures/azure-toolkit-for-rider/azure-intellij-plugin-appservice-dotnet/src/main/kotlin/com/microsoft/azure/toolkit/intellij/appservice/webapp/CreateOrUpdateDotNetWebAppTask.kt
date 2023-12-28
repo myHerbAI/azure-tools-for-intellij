@@ -4,6 +4,8 @@
 
 package com.microsoft.azure.toolkit.intellij.appservice.webapp
 
+import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntime
+import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration
@@ -28,7 +30,7 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
     private fun createOrUpdateResource(): WebAppBase<*, *, *> {
         val az = Azure.az(AzureWebApp::class.java)
         val target = az.webApps(config.subscriptionId()).getOrDraft(config.appName(), config.resourceGroup())
-        if (!isDeployToDeploymentSlot()) {
+        if (config.deploymentSlotName().isNullOrEmpty()) {
             if (!target.exists()) {
                 val availability = az.get(config.subscriptionId(), null)?.checkNameAvailability(config.appName())
                 if (availability?.isAvailable != true) {
@@ -151,11 +153,13 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
                 runtimeConfig.os(),
                 runtimeConfig.stack,
                 runtimeConfig.frameworkVersion,
+                null,
                 false
             )
         } else {
             DotNetRuntime(
                 runtimeConfig.os(),
+                null,
                 null,
                 null,
                 true
@@ -174,8 +178,6 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
             .startUpCommand(runtimeConfig.startUpCommand())
             .build()
     }
-
-    private fun isDeployToDeploymentSlot() = !config.deploymentSlotName().isNullOrEmpty()
 
     private fun getAppSettingsToRemove(targetSettings: Map<String, String>, newSettings: Map<String, String>) =
         targetSettings.keys.filter { !newSettings.containsKey(it) }.toSet()

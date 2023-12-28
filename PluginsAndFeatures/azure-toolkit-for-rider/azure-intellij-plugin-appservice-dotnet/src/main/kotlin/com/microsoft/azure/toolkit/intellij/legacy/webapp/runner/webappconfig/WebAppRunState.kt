@@ -12,11 +12,12 @@ import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.CreateOrUpdateDotNetWebAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetAppServiceConfig
-import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetRuntimeConfig
+import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetWebAppDeploymentSlotDraft
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileState
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.WebAppArtifactService
+import com.microsoft.azure.toolkit.intellij.legacy.getStackAndVersion
+import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.*
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployWebAppTask
@@ -35,6 +36,8 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
     override fun executeSteps(processHandler: RunProcessHandler): WebAppBase<*, *, *> {
         OperationContext.current().setMessager(processHandlerMessenger)
 
+        processHandler.setText("Start Web App deployment")
+
         val publishableProjectPath = webAppConfiguration.publishableProjectPath
             ?: throw RuntimeException("Project is not defined")
         val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
@@ -45,12 +48,13 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
         val createTask = CreateOrUpdateDotNetWebAppTask(config)
         val deployTarget = createTask.execute()
 
-        val zipFile = WebAppArtifactService.getInstance(project)
+        val zipFile = ArtifactService.getInstance(project)
             .prepareArtifact(
                 publishableProject,
                 webAppConfiguration.projectConfiguration,
                 webAppConfiguration.projectPlatform,
-                processHandler
+                processHandler,
+                true
             )
         val artifact = WebAppArtifact.builder()
             .file(zipFile)
@@ -131,8 +135,8 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
             applicationSettings = app.appSettings ?: emptyMap()
             webAppName = app.name
             resourceGroup = app.resourceGroupName
-            appServicePlanName = app.getAppServicePlan()?.name
-            appServicePlanResourceGroupName = app.getAppServicePlan()?.resourceGroupName
+            appServicePlanName = app.appServicePlan?.name
+            appServicePlanResourceGroupName = app.appServicePlan?.resourceGroupName
         }
     }
 
@@ -143,7 +147,6 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
             when (ex) {
                 is IOException,
                 is URISyntaxException -> processHandler.println(ex.message, ProcessOutputTypes.STDERR)
-
                 else -> throw ex
             }
         }

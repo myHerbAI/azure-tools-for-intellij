@@ -10,7 +10,6 @@ import java.util.*
 class WebAppPublishModel : WebAppSettingModel() {
     var appSettingsKey: String = UUID.randomUUID().toString()
     var appSettings: Map<String, String> = mapOf()
-    var appSettingsToRemove: Set<String> = setOf()
     var isOpenBrowserAfterDeployment: Boolean = true
     var slotPanelVisible: Boolean = true
     var publishableProjectPath: String? = null

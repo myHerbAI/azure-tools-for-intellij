@@ -1,8 +1,8 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner
+package com.microsoft.azure.toolkit.intellij.legacy
 
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -29,23 +29,25 @@ import java.nio.file.Path
 import java.util.zip.ZipOutputStream
 
 @Service(Service.Level.PROJECT)
-class WebAppArtifactService(private val project: Project) {
+class ArtifactService(private val project: Project) {
     companion object {
-        fun getInstance(project: Project): WebAppArtifactService = project.service()
-        private val LOG = logger<WebAppArtifactService>()
+        fun getInstance(project: Project): ArtifactService = project.service()
+        private val LOG = logger<ArtifactService>()
     }
 
     fun prepareArtifact(
         publishableProject: PublishableProjectModel,
         configuration: String,
         platform: String,
-        processHandler: RunProcessHandler
+        processHandler: RunProcessHandler,
+        zipArtifact: Boolean
     ): File {
         processHandler.setText("Collecting ${publishableProject.projectName} project artifacts...")
         if (configuration.isNotEmpty() && platform.isNotEmpty()) {
             processHandler.setText("Using configuration: $configuration and platform: $platform")
         }
         val outDir = collectProjectArtifacts(publishableProject, configuration, platform)
+        if (!zipArtifact) return outDir
 
         processHandler.setText("Creating ${publishableProject.projectName} project ZIP...")
         return zipProjectArtifacts(outDir, processHandler)

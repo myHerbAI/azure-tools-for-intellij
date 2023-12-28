@@ -7,7 +7,7 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontaine
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.CreateOrUpdateDotNetWebAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetAppServiceConfig
-import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetRuntimeConfig
+import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileState
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase

@@ -1,16 +1,22 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
+package com.microsoft.azure.toolkit.intellij.legacy
 
+import com.azure.resourcemanager.appservice.models.FunctionRuntimeStack
 import com.azure.resourcemanager.appservice.models.NetFrameworkVersion
 import com.azure.resourcemanager.appservice.models.RuntimeStack
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.rd.util.withUiContext
 import com.intellij.openapi.util.SystemInfo
 import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.projectModelTasks
 import com.jetbrains.rider.projectView.solution
+import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsMsBuildService
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionLocalSettingsUtil
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionWorkerRuntime
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 
 fun PublishableProjectModel.canBePublishedToAzure() = isWeb && (isDotNetCore || SystemInfo.isWindows)
@@ -52,6 +58,28 @@ fun PublishableProjectModel.getStackAndVersion(
 
         return null to version
     }
+}
+
+suspend fun PublishableProjectModel.getFunctionStack(
+    project: Project
+): FunctionRuntimeStack {
+    val functionLocalSettings = readAction {
+        FunctionLocalSettingsUtil.readFunctionLocalSettings(project, this)
+    }
+    val workerRuntime = functionLocalSettings?.values?.workerRuntime ?: FunctionWorkerRuntime.DotNetIsolated
+    val coreToolsVersion = withUiContext {
+        FunctionCoreToolsMsBuildService
+            .getInstance()
+            .requestAzureFunctionsVersion(project, this@getFunctionStack.projectFilePath)
+            ?.trimStart('v', 'V')
+            ?: "4"
+    }
+    val dotnetVersion = getProjectDotNetVersion(project, this)
+    return FunctionRuntimeStack(
+        workerRuntime.value,
+        "~$coreToolsVersion",
+        "${workerRuntime.value}|$dotnetVersion"
+    )
 }
 
 private fun getProjectDotNetVersion(project: Project, publishableProject: PublishableProjectModel): String? {
