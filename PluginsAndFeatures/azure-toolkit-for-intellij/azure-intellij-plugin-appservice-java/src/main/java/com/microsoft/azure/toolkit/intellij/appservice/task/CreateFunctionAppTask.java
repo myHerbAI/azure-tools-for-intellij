@@ -43,7 +43,7 @@ public class CreateFunctionAppTask implements Task {
         final FunctionAppConfig functionAppConfig = FunctionAppConfig.getFunctionAppDefaultConfig(name);
         functionAppConfig.setName(name);
         functionAppConfig.setSubscription(subscription);
-        functionAppConfig.setRuntime(FunctionAppRuntime.DEFAULT);
+        functionAppConfig.setRuntime(FunctionAppRuntime.getDefault());
         final FunctionAppBase<?, ?, ?> app =  FunctionAppService.getInstance().createOrUpdateFunctionApp(functionAppConfig);
         context.applyResult(FUNCTION_ID, app.getId());
         context.applyResult(RESOURCE_GROUP, app.getResourceGroupName());

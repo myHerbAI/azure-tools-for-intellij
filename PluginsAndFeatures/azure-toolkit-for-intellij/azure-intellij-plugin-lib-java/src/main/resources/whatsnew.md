@@ -1,6 +1,18 @@
 <!-- Version: 3.83.0 -->
 # What's new in Azure Toolkit for IntelliJ
 
+## 3.84.0
+### Added
+- Browse Azure sample projects and create new project from them.     
+  <img alt="browse azure sample projects" src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202312/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib-java/src/main/resources/whatsnew.assets/202312.azure-samples.gif" width="1000"/>
+
+- More "shortcut" actions to manage Azure Kubernetes Service (AKS) resources with bundled Kubernetes plugin (2023.3).     
+  <img alt="add AKS into Kubernetes Explorer" src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202312/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib-java/src/main/resources/whatsnew.assets/202312.k8s-1.png" width="600"/>     
+  <img alt="open AKS in Kubernetes Explorer" src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202312/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib-java/src/main/resources/whatsnew.assets/202312.k8s-2.png" width="600"/>
+
+### Updated
+- Migrate to use App Service stack API to get supported runtimes for Azure WebApps/Functions.
+
 ## 3.83.0
 ### Added
 - Add Azure Key Vault support in Azure Toolkits

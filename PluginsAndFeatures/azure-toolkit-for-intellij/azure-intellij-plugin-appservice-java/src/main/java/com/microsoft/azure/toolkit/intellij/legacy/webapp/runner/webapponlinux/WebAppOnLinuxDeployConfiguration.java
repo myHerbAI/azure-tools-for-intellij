@@ -333,7 +333,7 @@ public class WebAppOnLinuxDeployConfiguration extends AzureRunConfigurationBase<
                 .resourceId(this.getWebAppId())
                 .subscription(subscription)
                 .resourceGroup(resourceGroup)
-                .runtime(WebAppRuntime.DOCKER)
+                .runtime(WebAppDockerRuntime.INSTANCE)
                 .servicePlan(plan);
         return !this.isCreatingNewWebAppOnLinux() ? configBuilder.build() : configBuilder.region(region).pricingTier(pricingTier)
                 .monitorConfig(monitorConfig).build();

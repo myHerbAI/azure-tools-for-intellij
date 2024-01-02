@@ -80,9 +80,11 @@ public abstract class WebAppBasePropertyViewPresenter<V extends WebAppBaseProper
         propertyMap.put(KEY_URL, appService.getHostName());
         final PricingTier pricingTier = plan.getPricingTier();
         propertyMap.put(KEY_PRICING, String.format("%s_%s", pricingTier.getTier(), pricingTier.getSize()));
-        final WebAppRuntime runtime = (WebAppRuntime) appService.getRuntime();
-        propertyMap.put(KEY_JAVA_VERSION, Optional.ofNullable(runtime).map(WebAppRuntime::getJavaVersionNumber).orElse(null));
-        propertyMap.put(KEY_JAVA_CONTAINER, Optional.ofNullable(runtime).map(WebAppRuntime::getContainerUserText).orElse(null));
+        final Runtime runtime = appService.getRuntime();
+        propertyMap.put(KEY_JAVA_VERSION, Optional.ofNullable(runtime).map(Runtime::getJavaVersionNumber).orElse(null));
+        if (runtime instanceof WebAppRuntime wr) {
+            propertyMap.put(KEY_JAVA_CONTAINER, wr.getContainerUserText());
+        }
         propertyMap.put(KEY_OPERATING_SYS, Optional.ofNullable(runtime).map(Runtime::getOperatingSystem).orElse(null));
         propertyMap.put(KEY_APP_SETTING, appSettingsMap);
 
