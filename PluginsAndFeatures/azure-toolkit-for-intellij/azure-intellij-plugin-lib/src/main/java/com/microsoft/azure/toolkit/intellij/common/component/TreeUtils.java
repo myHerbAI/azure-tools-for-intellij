@@ -137,12 +137,13 @@ public class TreeUtils {
             @AzureOperation(name = "user/$resource.click_node.resource", params = {"node.inner.getValue()"}, source = "node.inner.getValue()")
             private static void clickNode(final MouseEvent e, final Tree.TreeNode<?> node) {
                 final JTree tree = node.tree;
-                final String place = TreeUtils.getPlace(tree) + "." + (TreeUtils.underAppGroups(node) ? "app" : "type");
+                String place = TreeUtils.getPlace(tree) + "." + (TreeUtils.underAppGroups(node) ? "app" : "type");
                 if (SwingUtilities.isRightMouseButton(e) || e.isPopupTrigger()) {
                     final IActionGroup actions = node.inner.getActions();
                     if (Objects.nonNull(actions)) {
                         final ActionManager am = ActionManager.getInstance();
                         final IntellijAzureActionManager.ActionGroupWrapper group = toIntellijActionGroup(actions);
+                        place += ".menu";
                         final ActionPopupMenu menu = am.createActionPopupMenu(place, group);
                         menu.setTargetComponent(tree);
                         final JPopupMenu popupMenu = menu.getComponent();
@@ -150,6 +151,7 @@ public class TreeUtils {
                     }
                 } else {
                     final DataContext context = DataManager.getInstance().getDataContext(tree);
+                    place += ".node";
                     final AnActionEvent event = AnActionEvent.createFromAnAction(new EmptyAction(), e, place, context);
                     if (e.getClickCount() == 1) {
                         node.inner.click(event);
@@ -166,7 +168,7 @@ public class TreeUtils {
                     .map(Tree.TreeNode::getInlineActionViews).orElse(new ArrayList<>());
                 final int inlineActionIndex = getHoverInlineActionIndex(tree, e, inlineActionViews.size());
                 if (Objects.nonNull(node) && e.getClickCount() == 1 && inlineActionIndex > -1) {
-                    final String place = TreeUtils.getPlace(tree) + "." + (TreeUtils.underAppGroups(node) ? "app" : "type");
+                    final String place = TreeUtils.getPlace(tree) + "." + (TreeUtils.underAppGroups(node) ? "app" : "type") + ".inline";
                     final DataContext context = DataManager.getInstance().getDataContext(tree);
                     final AnActionEvent event = AnActionEvent.createFromAnAction(new EmptyAction(), e, place, context);
                     node.inner.triggerInlineAction(event, inlineActionIndex, TreeUtils.getPlace(tree));

@@ -62,12 +62,7 @@ public class ApplicationUtils {
         } catch (final Exception ignored) {
         }
         EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                EXECUTOR_SERVICE.shutdownNow();
-            }
-        });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> EXECUTOR_SERVICE.shutdownNow()));
     }
 
     static public <T> T computableReadAction(Computable<T> computable) {

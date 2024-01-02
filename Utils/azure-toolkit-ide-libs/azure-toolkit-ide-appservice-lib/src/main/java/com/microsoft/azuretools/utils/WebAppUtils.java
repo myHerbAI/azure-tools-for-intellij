@@ -7,6 +7,7 @@ package com.microsoft.azuretools.utils;
 
 
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.UnsupportedEncodingException;
@@ -17,13 +18,15 @@ public class WebAppUtils {
 
     // todo: move to app service library utils
     public static boolean isSupportedArtifactType(Runtime runtime, String ext) {
-        final String container = runtime.getWebContainer().getValue();
-        if (StringUtils.startsWithIgnoreCase(container, "java")) {
-            return "jar".equalsIgnoreCase(ext);
-        } else if (StringUtils.startsWithIgnoreCase(container, "tomcat")) {
-            return "war".equalsIgnoreCase(ext);
-        } else if (StringUtils.startsWithIgnoreCase(container, "jboss")) {
-            return StringUtils.equalsAnyIgnoreCase(ext, "war", "ear");
+        if (runtime instanceof WebAppRuntime) {
+            final String container = ((WebAppRuntime) runtime).getContainerName();
+            if (StringUtils.startsWithIgnoreCase(container, "java")) {
+                return "jar".equalsIgnoreCase(ext);
+            } else if (StringUtils.startsWithIgnoreCase(container, "tomcat")) {
+                return "war".equalsIgnoreCase(ext);
+            } else if (StringUtils.startsWithIgnoreCase(container, "jboss")) {
+                return StringUtils.equalsAnyIgnoreCase(ext, "war", "ear");
+            }
         }
         return true;
     }
