@@ -147,12 +147,12 @@ public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguratio
     protected void apply(@NotNull WebAppConfiguration configuration) {
         final WebAppDeployRunConfigurationModel runConfigurationModel = pnlDeployment.getValue();
         configuration.setAppSettingKey(appSettingsKey);
-        Optional.ofNullable(runConfigurationModel.getWebAppConfig()).ifPresent(webAppConfig -> {
+        Optional.ofNullable(runConfigurationModel).map(WebAppDeployRunConfigurationModel::getWebAppConfig).ifPresent(webAppConfig -> {
             configuration.setWebAppId(webAppConfig.getResourceId());
             configuration.setSubscriptionId(webAppConfig.getSubscriptionId());
             configuration.setResourceGroup(webAppConfig.getResourceGroupName());
             configuration.setWebAppName(webAppConfig.getName());
-            configuration.saveRuntime(webAppConfig.getRuntime());
+            configuration.setRuntime(webAppConfig.getRuntime());
             configuration.setApplicationSettings(webAppConfig.getAppSettings());
             configuration.setAppSettingsToRemove(webAppConfig.getAppSettingsToRemove());
             configuration.setCreatingNew(StringUtils.isEmpty(webAppConfig.getResourceId()));
@@ -189,7 +189,7 @@ public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguratio
                 }
             });
         });
-        Optional.ofNullable(runConfigurationModel.getArtifactConfig()).ifPresent(artifactConfig -> {
+        Optional.ofNullable(runConfigurationModel).map(WebAppDeployRunConfigurationModel::getArtifactConfig).ifPresent(artifactConfig -> {
             final AzureArtifact azureArtifact = AzureArtifactManager.getInstance(project)
                     .getAzureArtifactById(AzureArtifactType.valueOf(artifactConfig.getArtifactType()), artifactConfig.getArtifactIdentifier());
             configuration.saveArtifact(azureArtifact);
@@ -199,9 +199,9 @@ public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguratio
                 ApplicationManager.getApplication().invokeLater(() -> syncBeforeRunTasks(azureArtifact, configuration));
             }
         });
-        configuration.setDeployToRoot(runConfigurationModel.isDeployToRoot());
-        configuration.setSlotPanelVisible(runConfigurationModel.isSlotPanelVisible());
-        configuration.setOpenBrowserAfterDeployment(runConfigurationModel.isOpenBrowserAfterDeployment());
+        configuration.setDeployToRoot(Optional.ofNullable(runConfigurationModel).map(WebAppDeployRunConfigurationModel::isDeployToRoot).orElse(true));
+        configuration.setSlotPanelVisible(Optional.ofNullable(runConfigurationModel).map(WebAppDeployRunConfigurationModel::isSlotPanelVisible).orElse(false));
+        configuration.setOpenBrowserAfterDeployment(Optional.ofNullable(runConfigurationModel).map(WebAppDeployRunConfigurationModel::isOpenBrowserAfterDeployment).orElse(true));
     }
 
     private void createUIComponents() {

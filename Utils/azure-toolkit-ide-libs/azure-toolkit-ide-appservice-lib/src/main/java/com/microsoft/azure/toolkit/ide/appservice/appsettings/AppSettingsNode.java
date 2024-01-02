@@ -37,14 +37,15 @@ public class AppSettingsNode extends AzResourceNode<AppServiceAppBase<?, ?, ?>> 
 
     @Override
     public void onEvent(AzureEvent event) {
-        super.onEvent(event);
         final String type = event.getType();
         final Object source = event.getSource();
         // workaround to update app settings when app service properties is updated
         // todo: add new event for azure resource created/updated
-        if (source instanceof AzResource && StringUtils.equals(type, "resource.status_changed.resource") &&
+        if (source instanceof AzResource app && StringUtils.equals(type, "resource.status_changed.resource") &&
                 StringUtils.equals(((AzResource) source).getId(), getValue().getId())) {
-            this.refreshChildrenLater();
+            if (app.getFormalStatus().isRunning() || app.getFormalStatus().isStopped()) {
+                this.refreshChildrenLater();
+            }
         }
     }
 

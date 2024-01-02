@@ -239,6 +239,8 @@ public class ContainerAppsActionsContributor implements IActionsContributor {
 
         final ActionGroup serviceActionGroup = new ActionGroup(
             ResourceCommonActionsContributor.REFRESH,
+            ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
             "---",
             ContainerAppsActionsContributor.CREATE_CONTAINER_APPS_ENVIRONMENT
         );

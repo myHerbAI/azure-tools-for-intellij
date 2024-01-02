@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
@@ -78,7 +77,7 @@ public class FunctionAppService {
         result.pricingTier(Optional.ofNullable(config.getServicePlan()).map(AppServicePlanConfig::getPricingTier).orElseGet(config::getPricingTier));
         result.servicePlanName(Optional.ofNullable(config.getServicePlan()).map(AppServicePlanConfig::getName).orElseGet(config::getName));
         result.servicePlanResourceGroup(Optional.ofNullable(config.getServicePlan()).map(AppServicePlanConfig::getResourceGroupName).orElseGet(config::getResourceGroupName));
-        result.runtime(convertToRuntimeConfig(config.getRuntime()));
+        result.runtime(new RuntimeConfig().os(config.getRuntime().getOperatingSystem()).javaVersion(config.getRuntime().getJavaVersionUserText()));
         result.appSettings(config.getAppSettings());
         result.appSettingsToRemove(getAppSettingsToRemove(config));
         final ApplicationInsightsConfig applicationInsightsConfig =
@@ -110,10 +109,6 @@ public class FunctionAppService {
         return target == null || !target.exists() ? Collections.emptySet() : Optional.ofNullable(target.getAppSettings())
                 .map(settings -> settings.keySet().stream().filter(key -> !applicationSettings.containsKey(key)).collect(Collectors.toSet()))
                 .orElseGet(Collections::emptySet);
-    }
-
-    private RuntimeConfig convertToRuntimeConfig(Runtime runtime) {
-        return new RuntimeConfig().os(runtime.getOperatingSystem()).webContainer(runtime.getWebContainer()).javaVersion(runtime.getJavaVersion());
     }
 
     public void deployFunctionApp(final FunctionAppBase<?, ?, ?> functionApp, final File stagingFolder) {

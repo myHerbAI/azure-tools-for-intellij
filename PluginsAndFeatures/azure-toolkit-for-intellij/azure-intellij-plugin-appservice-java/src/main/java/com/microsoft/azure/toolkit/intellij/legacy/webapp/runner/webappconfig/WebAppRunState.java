@@ -21,7 +21,6 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.*;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -135,8 +134,8 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
 
     private void updateAppServiceVMOptions(WebAppBase<?, ?, ?> deployTarget, String targetPath) {
         final Map<String, String> applicationSettings = webAppConfiguration.getApplicationSettings();
-        final WebContainer webContainer = Objects.requireNonNull(deployTarget.getRuntime()).getWebContainer();
-        final String javaOptsParameter = (webContainer == WebContainer.JAVA_SE || webContainer == WebContainer.JBOSS_7) ? JAVA_OPTS : CATALINA_OPTS;
+        final String containerName = Objects.requireNonNull(deployTarget.getRuntime()).getContainerName().toLowerCase();
+        final String javaOptsParameter = (StringUtils.startsWithAny(containerName, "java", "jboss")) ? JAVA_OPTS : CATALINA_OPTS;
         final String javaOpts = Optional.ofNullable(webAppConfiguration.getApplicationSettings())
                 .map(settings -> settings.get(javaOptsParameter)).orElse(StringUtils.EMPTY);
         final String javaAgentValue = String.format("-javaagent:%s", targetPath);

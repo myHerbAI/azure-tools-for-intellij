@@ -103,6 +103,7 @@ public class ApplicationInsightsActionsContributor implements IActionsContributo
         final ActionGroup serviceActionGroup = new ActionGroup(
             ResourceCommonActionsContributor.REFRESH,
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
             "---",
             ResourceCommonActionsContributor.CREATE
         );
@@ -113,6 +114,7 @@ public class ApplicationInsightsActionsContributor implements IActionsContributo
             "---",
             ResourceCommonActionsContributor.REFRESH,
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
             ResourceCommonActionsContributor.OPEN_PORTAL_URL,
             "---",
             ApplicationInsightsActionsContributor.COPY_CONNECTION_STRING,

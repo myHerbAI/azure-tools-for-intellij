@@ -6,10 +6,8 @@
 package com.microsoft.azuretools.core.mvp.model.webapp;
 
 import com.azure.resourcemanager.appservice.models.LogLevel;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import lombok.Data;
 import org.apache.commons.io.FilenameUtils;
@@ -63,22 +61,17 @@ public class WebAppSettingModel {
     private String applicationLogLevel = LogLevel.ERROR.toString();
 
     @Nullable
-    public Runtime getRuntime() {
+    public WebAppRuntime getRuntime() {
         if (StringUtils.isAllEmpty(operatingSystem, webAppContainer, webAppJavaVersion)) {
             return null;
         }
-        final OperatingSystem system =
-                OperatingSystem.fromString(operatingSystem);
-        final WebContainer container = WebContainer.fromString(webAppContainer);
-        final JavaVersion javaVersion =
-                JavaVersion.fromString(webAppJavaVersion);
-        return Runtime.getRuntime(system, container, javaVersion);
+        return WebAppRuntime.fromUserText(operatingSystem, webAppContainer, webAppJavaVersion);
     }
 
-    public void saveRuntime(Runtime runtime) {
-        this.operatingSystem = Optional.ofNullable(runtime).map(Runtime::getOperatingSystem).map(OperatingSystem::getValue).orElse(null);
-        this.webAppContainer = Optional.ofNullable(runtime).map(Runtime::getWebContainer).map(WebContainer::getValue).orElse(null);
-        this.webAppJavaVersion = Optional.ofNullable(runtime).map(Runtime::getJavaVersion).map(JavaVersion::getValue).orElse(null);
+    public void saveRuntime(WebAppRuntime runtime) {
+        this.operatingSystem = Optional.ofNullable(runtime).map(WebAppRuntime::getOperatingSystem).map(OperatingSystem::getValue).orElse(null);
+        this.webAppContainer = Optional.ofNullable(runtime).map(WebAppRuntime::getContainerUserText).orElse(null);
+        this.webAppJavaVersion = Optional.ofNullable(runtime).map(WebAppRuntime::getJavaVersionNumber).orElse(null);
     }
 
     public Map<String, String> getTelemetryProperties(Map<String, String> properties) {
@@ -87,12 +80,10 @@ public class WebAppSettingModel {
             if (properties != null) {
                 result.putAll(properties);
             }
-            final Runtime runtime = getRuntime();
-            final String osValue = Optional.ofNullable(runtime.getOperatingSystem())
-                    .map(OperatingSystem::toString).orElse(StringUtils.EMPTY);
-            final String webContainerValue = Optional.ofNullable(runtime.getWebContainer()).map(WebContainer::getValue).orElse(StringUtils.EMPTY);
-            final String javaVersionValue = Optional.ofNullable(runtime.getJavaVersion())
-                    .map(JavaVersion::getValue).orElse(StringUtils.EMPTY);
+            final WebAppRuntime runtime = getRuntime();
+            final String osValue = Optional.ofNullable(runtime.getOperatingSystem()).map(OperatingSystem::toString).orElse(StringUtils.EMPTY);
+            final String webContainerValue = Optional.ofNullable(runtime.getContainerUserText()).orElse(StringUtils.EMPTY);
+            final String javaVersionValue = Optional.ofNullable(runtime.getJavaVersionNumber()).orElse(StringUtils.EMPTY);
             result.put(TelemetryConstants.RUNTIME, String.format("%s-%s-%s", osValue, webContainerValue, javaVersionValue));
             result.put(TelemetryConstants.WEBAPP_DEPLOY_TO_SLOT, String.valueOf(isDeployToSlot()));
             result.put(TelemetryConstants.SUBSCRIPTIONID, getSubscriptionId());

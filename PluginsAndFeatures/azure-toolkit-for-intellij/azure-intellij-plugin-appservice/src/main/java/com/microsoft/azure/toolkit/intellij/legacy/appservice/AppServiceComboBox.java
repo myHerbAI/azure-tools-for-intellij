@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.appservice;
 
+import com.azure.resourcemanager.appservice.models.JavaVersion;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
@@ -14,10 +15,8 @@ import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azure.toolkit.lib.legacy.webapp.WebAppService;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -162,8 +161,13 @@ public abstract class AppServiceComboBox<T extends AppServiceConfig> extends Azu
         private String getAppServiceLabel(AppServiceConfig appServiceModel) {
             final String appServiceName = isDraftResource(appServiceModel) ?
                 String.format("(New) %s", appServiceModel.getName()) : appServiceModel.getName();
-            final String runtime = appServiceModel.getRuntime() == null ?
-                "Loading:" : WebAppService.getInstance().getRuntimeDisplayName(appServiceModel.getRuntime());
+            final String runtime;
+            if (appServiceModel.getRuntime() == null) {
+                runtime = "Loading:";
+            } else {
+                final Runtime runtime1 = appServiceModel.getRuntime();
+                runtime = runtime1.getDisplayName();
+            }
             final String resourceGroup = Optional.ofNullable(appServiceModel.getResourceGroupName()).orElse(StringUtils.EMPTY);
             if (Objects.isNull(appServiceModel.getSubscription())) {
                 return String.format("<html><div>[DELETED] %s</div></html>", appServiceName);

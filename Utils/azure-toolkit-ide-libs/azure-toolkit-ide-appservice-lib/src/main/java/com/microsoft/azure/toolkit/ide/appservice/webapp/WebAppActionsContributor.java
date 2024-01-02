@@ -38,6 +38,7 @@ public class WebAppActionsContributor implements IActionsContributor {
             "---",
             ResourceCommonActionsContributor.GETTING_STARTED,
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
             "---",
             ResourceCommonActionsContributor.CREATE
         );
@@ -48,6 +49,7 @@ public class WebAppActionsContributor implements IActionsContributor {
             "---",
             ResourceCommonActionsContributor.REFRESH,
             ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
             ResourceCommonActionsContributor.OPEN_PORTAL_URL,
             AppServiceActionsContributor.OPEN_IN_BROWSER,
             ResourceCommonActionsContributor.SHOW_PROPERTIES,

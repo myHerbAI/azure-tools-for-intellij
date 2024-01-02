@@ -21,7 +21,6 @@ import com.microsoft.azure.toolkit.intellij.container.model.DockerPushConfigurat
 import com.microsoft.azure.toolkit.intellij.containerregistry.IDockerPushConfiguration;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunConfigurationBase;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.*;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
@@ -334,7 +333,7 @@ public class WebAppOnLinuxDeployConfiguration extends AzureRunConfigurationBase<
                 .resourceId(this.getWebAppId())
                 .subscription(subscription)
                 .resourceGroup(resourceGroup)
-                .runtime(Runtime.DOCKER)
+                .runtime(WebAppDockerRuntime.INSTANCE)
                 .servicePlan(plan);
         return !this.isCreatingNewWebAppOnLinux() ? configBuilder.build() : configBuilder.region(region).pricingTier(pricingTier)
                 .monitorConfig(monitorConfig).build();
