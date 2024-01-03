@@ -23,11 +23,11 @@
     </extensions>
     <actions>
         <action id="Actions.SubmitCosmosSparkApplicationAction"
-                class="com.microsoft.azure.cosmos.spark.actions.CosmosSparkSelectAndSubmitAction"
+                class="com.microsoft.azure.hdinsight.spark.actions.CosmosSparkSelectAndSubmitAction"
                 text="Apache Spark on Cosmos"
                 description="Submit Apache Spark on Cosmos Application" icon="/icons/Spark.png"/>
         <action id="Actions.SubmitCosmosServerlessSparkApplicationAction"
-                class="com.microsoft.azure.cosmos.spark.actions.CosmosServerlessSparkSelectAndSubmitAction" text="Apache Spark on Cosmos Serverless"
+                class="com.microsoft.azure.hdinsight.spark.actions.CosmosServerlessSparkSelectAndSubmitAction" text="Apache Spark on Cosmos Serverless"
                 description="Submit Apache Spark on Cosmos Serverless Application" icon="/icons/Spark.png"/>
         <action id="Actions.RunCosmosSparkConsoleAction"
                 class="com.microsoft.azure.hdinsight.spark.console.SelectCosmosSparkTypeThenRunLivyConsoleAction" text="Apache Spark on Cosmos"

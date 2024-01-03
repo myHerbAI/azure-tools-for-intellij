@@ -3,10 +3,24 @@
         <explorerNodeProvider implementation="com.microsoft.azure.toolkit.ide.synapse.spark.SynapseNodeProvider"/>
         <actions implementation="com.microsoft.azure.toolkit.ide.synapse.spark.SynapseActionsContributor"/>
     </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <configurationType implementation="com.microsoft.azure.hdinsight.spark.run.configuration.ArcadiaSparkConfigurationType"/>
+        <runConfigurationProducer implementation="com.microsoft.azure.hdinsight.spark.run.ArcadiaSparkRunConfigurationProducer"/>
+        <programRunner implementation="com.microsoft.azure.hdinsight.spark.run.ArcadiaSparkBatchRunner"/>
+    </extensions>
     <actions>
         <action id="Actions.SubmitArcadiaSparkApplicationAction"
-                class="com.microsoft.azure.synapse.spark.actions.ArcadiaSparkSelectAndSubmitAction"
+                class="com.microsoft.azure.hdinsight.spark.actions.ArcadiaSparkSelectAndSubmitAction"
                 text="Apache Spark on Azure Synapse"
                 description="Submit Apache Spark on Azure Synapse Application" icon="/icons/Spark.png"/>
+
+        <action id="Actions.RunArcadiaSparkConsoleAction"
+                class="com.microsoft.azure.hdinsight.spark.console.SelectArcadiaSparkTypeThenRunLivyConsoleAction"
+                text="Apache Spark on Azure Synapse"
+                description="Start an interactive console for Apache Spark on Azure Synapse Application" icon="/icons/Spark.png"/>
+
+        <action id="Actions.RunArcadiaSparkLocalConsoleAction"
+                class="com.microsoft.azure.hdinsight.spark.console.SelectArcadiaSparkTypeThenRunLocalConsoleAction" text="Apache Spark on Azure Synapse"
+                description="Start a Apache Spark local console for Apache Spark on Azure Synapse Application" icon="/icons/Spark.png"/>
     </actions>
 </idea-plugin>
