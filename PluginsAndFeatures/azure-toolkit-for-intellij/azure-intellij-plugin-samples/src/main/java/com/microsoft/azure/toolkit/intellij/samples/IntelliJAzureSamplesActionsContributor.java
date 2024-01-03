@@ -95,9 +95,9 @@ public class IntelliJAzureSamplesActionsContributor implements IActionsContribut
             .withIdParam(AzComponent::getResourceTypeName)
             .withHandler((c, e) -> AzureTaskManager.getInstance().runLater(() -> {
                 final AnActionEvent event = (AnActionEvent) e;
-                final VcsCloneDialog dialog = new VcsCloneDialog.Builder(Objects.requireNonNull(event.getProject()))
+                final VcsCloneDialog cloneDialog = new VcsCloneDialog.Builder(Objects.requireNonNull(event.getProject()))
                     .forExtension(AzureSamplesCloneDialogExtension.class);
-                final JComponent component = dialog.getPreferredFocusedComponent();
+                final JComponent component = cloneDialog.getPreferredFocusedComponent();
                 if (Objects.nonNull(component)) {
                     final SearchTextField search = (SearchTextField) component;
                     if (StringUtils.containsIgnoreCase(c.getClass().getName(), "function")) {
@@ -106,7 +106,11 @@ public class IntelliJAzureSamplesActionsContributor implements IActionsContribut
                         search.setText(SERVICE_KEYWORDS.get(c.getFullResourceType()));
                     }
                 }
-                dialog.show();
+                // refer to GetFromVersionControlAction.actionPerformed
+                if (cloneDialog.showAndGet()) {
+                    final CheckoutProvider.Listener listener = ProjectLevelVcsManager.getInstance(event.getProject()).getCompositeCheckoutListener();
+                    cloneDialog.doClone(listener);
+                }
             }))
             .withAuthRequired(false)
             .register(am);
