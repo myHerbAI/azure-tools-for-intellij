@@ -1,9 +1,9 @@
 package com.microsoft.azure.toolkit.lib.synapse;
 
 import com.azure.resourcemanager.hdinsight.HDInsightManager;
-import com.azure.resourcemanager.synapse.SynapseManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -27,8 +27,8 @@ public class SynapseServiceSubscription extends AbstractAzServiceSubscription<Sy
         return this.workspaceModule;
     }
 
-    protected SynapseServiceSubscription(@Nonnull HDInsightManager manager, @Nonnull AzureSynapseService service) {
-        this(manager.serviceClient().getSubscriptionId(), service);
+    protected SynapseServiceSubscription(@Nonnull SynapseManager manager, @Nonnull AzureSynapseService service) {
+        this(StringUtils.EMPTY, service);
     }
 
     @Override

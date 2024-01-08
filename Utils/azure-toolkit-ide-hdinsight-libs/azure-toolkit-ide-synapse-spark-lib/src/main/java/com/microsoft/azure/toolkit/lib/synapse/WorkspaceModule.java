@@ -1,21 +1,8 @@
 package com.microsoft.azure.toolkit.lib.synapse;
 
 import com.azure.core.util.paging.ContinuablePage;
-import com.azure.resourcemanager.hdinsight.HDInsightManager;
-import com.azure.resourcemanager.hdinsight.models.Cluster;
-import com.azure.resourcemanager.hdinsight.models.Clusters;
-import com.azure.resourcemanager.synapse.SynapseManager;
-import com.azure.resourcemanager.synapse.models.Workspace;
-import com.azure.resourcemanager.synapse.models.Workspaces;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedSet;
-import com.microsoft.azure.hdinsight.common.ClusterManagerEx;
-import com.microsoft.azure.hdinsight.common.JobViewManager;
-import com.microsoft.azure.hdinsight.sdk.cluster.*;
 import com.microsoft.azure.projectarcadia.common.ArcadiaSparkComputeManager;
 import com.microsoft.azure.projectarcadia.common.ArcadiaWorkSpace;
-import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.page.ItemPage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
