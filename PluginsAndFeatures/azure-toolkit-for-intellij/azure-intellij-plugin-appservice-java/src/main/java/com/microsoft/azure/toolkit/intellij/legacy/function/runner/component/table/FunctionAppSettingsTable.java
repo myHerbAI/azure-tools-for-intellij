@@ -11,8 +11,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 
 public class FunctionAppSettingsTable extends AppSettingsTable {
@@ -35,10 +33,6 @@ public class FunctionAppSettingsTable extends AppSettingsTable {
     public void loadLocalSetting() {
         final Map<String, String> appSettings = FunctionAppSettingsTableUtils.getAppSettingsFromLocalSettingsJson(new File(localSettingPath));
         setAppSettings(appSettings);
-    }
-
-    public Path getLocalSettingsPath() {
-        return Paths.get(localSettingPath);
     }
 
     public void loadRequiredSettings() {

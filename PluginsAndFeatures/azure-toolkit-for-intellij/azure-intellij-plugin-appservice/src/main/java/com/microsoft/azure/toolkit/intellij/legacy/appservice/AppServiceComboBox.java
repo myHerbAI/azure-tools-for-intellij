@@ -6,22 +6,33 @@
 package com.microsoft.azure.toolkit.intellij.legacy.appservice;
 
 import com.azure.resourcemanager.appservice.models.JavaVersion;
+import com.azure.resourcemanager.resources.fluentcore.model.Refreshable;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.fields.ExtendableTextComponent.Extension;
-import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
-import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceModule;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
+import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppModule;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -63,7 +74,7 @@ public abstract class AppServiceComboBox<T extends AppServiceConfig> extends Azu
         this.draftItems = this.draftItems.stream().filter(l -> !items.contains(l)).collect(Collectors.toList());
         items.addAll(this.draftItems);
         final boolean isConfigResourceCreated = !isDraftResource(configModel) ||
-            items.stream().anyMatch(item -> AppServiceConfig.isSameApp(item, configModel));
+            items.stream().anyMatch(item -> isSameApp(item, configModel));
         if (isConfigResourceCreated) {
             this.configModel = null;
         } else {
@@ -74,22 +85,19 @@ public abstract class AppServiceComboBox<T extends AppServiceConfig> extends Azu
 
     protected T convertAppServiceToConfig(final Supplier<T> supplier, AppServiceAppBase<?, ?, ?> appService) {
         final T config = supplier.get();
-        config.setResourceId(appService.getId());
-        config.setName(appService.getName());
-        config.setRuntime(null);
-        config.setSubscription(new com.microsoft.azure.toolkit.lib.common.model.Subscription(appService.getSubscriptionId()));
+        config.subscriptionId(appService.getSubscriptionId());
+        config.resourceGroup(appService.getResourceGroupName());
+        config.appName(appService.getName());
+        config.runtime(null);
         AzureTaskManager.getInstance().runOnPooledThread(() -> {
             try {
-                config.setResourceGroup(ResourceGroupConfig.fromResource(appService.getResourceGroup()));
-                config.setRuntime(appService.getRuntime());
-                config.setRegion(appService.getRegion());
-                config.setServicePlan(AppServicePlanConfig.fromResource(appService.getAppServicePlan()));
+                AppServiceConfigUtils.fromAppService(appService, appService.getAppServicePlan(), config);
                 if (config.equals(this.getValue())) {
                     this.setValue((T) null);
                     this.setValue(config);
                 }
             } catch (final Throwable ignored) {
-                config.setSubscription(null);
+                config.subscriptionId(null);
             }
         });
         return config;
@@ -121,13 +129,22 @@ public abstract class AppServiceComboBox<T extends AppServiceConfig> extends Azu
     protected String getItemText(final Object item) {
         if (item instanceof AppServiceConfig) {
             final AppServiceConfig selectedItem = (AppServiceConfig) item;
-            return isDraftResource(selectedItem) ? String.format("(New) %s", selectedItem.getName()) : selectedItem.getName();
+            return isDraftResource(selectedItem) ? String.format("(New) %s", selectedItem.appName()) : selectedItem.appName();
         } else {
             return Objects.toString(item, StringUtils.EMPTY);
         }
     }
 
     protected abstract void createResource();
+
+    public static boolean isSameApp(@Nullable final AppServiceConfig first, @Nullable final AppServiceConfig second) {
+        if (Objects.isNull(first) || Objects.isNull(second)) {
+            return first == second;
+        }
+        return (StringUtils.equalsIgnoreCase(first.appName(), second.appName()) &&
+            StringUtils.equalsIgnoreCase(first.resourceGroup(), second.resourceGroup()) &&
+            StringUtils.equalsIgnoreCase(first.subscriptionId(), second.subscriptionId()));
+    }
 
     public static class AppComboBoxRender extends SimpleListCellRenderer<AppServiceConfig> {
 
@@ -141,18 +158,23 @@ public abstract class AppServiceComboBox<T extends AppServiceConfig> extends Azu
         @Override
         public void customize(JList<? extends AppServiceConfig> list, AppServiceConfig app, int index, boolean isSelected, boolean cellHasFocus) {
             if (app != null) {
-                final boolean isJavaApp = Optional.of(app).filter(a -> Objects.nonNull(a.getSubscription()))
-                    .map(AppServiceConfig::getRuntime).map(Runtime::getJavaVersion)
+                final Runtime runtime = Optional.of(app)
+                                                .filter(a -> Objects.nonNull(a.subscriptionId()))
+                                                .filter(r -> Objects.nonNull(r.runtime()))
+                                                .map(c -> c instanceof FunctionAppConfig ?
+                                                          RuntimeConfig.toFunctionAppRuntime(c.runtime()) : RuntimeConfig.toWebAppRuntime(c.runtime()))
+                                                .orElse(null);
+                final boolean isJavaApp = Optional.ofNullable(runtime)
+                    .map(Runtime::getJavaVersion)
                     .map(javaVersion -> !Objects.equals(javaVersion, JavaVersion.OFF)).orElse(false);
-                final boolean isDocker = Optional.of(app).filter(a -> Objects.nonNull(a.getSubscription()))
-                    .map(AppServiceConfig::getRuntime).map(Runtime::isDocker).orElse(false);
+                final boolean isDocker = Optional.ofNullable(runtime).map(Runtime::isDocker).orElse(false);
                 setEnabled(isJavaApp || (isDocker && enableDocker));
                 setFocusable(isJavaApp);
 
                 if (index >= 0) {
                     setText(getAppServiceLabel(app));
                 } else {
-                    setText(app.getName());
+                    setText(app.appName());
                 }
                 this.repaint();
             }
@@ -160,24 +182,33 @@ public abstract class AppServiceComboBox<T extends AppServiceConfig> extends Azu
 
         private String getAppServiceLabel(AppServiceConfig appServiceModel) {
             final String appServiceName = isDraftResource(appServiceModel) ?
-                String.format("(New) %s", appServiceModel.getName()) : appServiceModel.getName();
-            final String runtime;
+                String.format("(New) %s", appServiceModel.appName()) : appServiceModel.appName();
+            final String label;
             if (appServiceModel.getRuntime() == null) {
-                runtime = "Loading:";
+                label = "Loading:";
             } else {
-                final Runtime runtime1 = appServiceModel.getRuntime();
-                runtime = runtime1.getDisplayName();
+                // todo: refine code here
+                final Runtime runtime = appServiceModel instanceof FunctionAppConfig ?
+                                         RuntimeConfig.toFunctionAppRuntime(appServiceModel.getRuntime()) :
+                                         RuntimeConfig.toWebAppRuntime(appServiceModel.getRuntime());
+                label = runtime.getDisplayName();
             }
-            final String resourceGroup = Optional.ofNullable(appServiceModel.getResourceGroupName()).orElse(StringUtils.EMPTY);
-            if (Objects.isNull(appServiceModel.getSubscription())) {
+            final String resourceGroup = Optional.ofNullable(appServiceModel.getResourceGroup()).orElse(StringUtils.EMPTY);
+            if (Objects.isNull(appServiceModel.subscriptionId())) {
                 return String.format("<html><div>[DELETED] %s</div></html>", appServiceName);
             }
             return String.format("<html><div>%s</div></div><small>Runtime: %s | Resource Group: %s</small></html>",
-                appServiceName, runtime, resourceGroup);
+                appServiceName, label, resourceGroup);
         }
     }
 
-    private static boolean isDraftResource(final AppServiceConfig config) {
-        return config != null && StringUtils.isEmpty(config.getResourceId());
+    private static boolean isDraftResource(@Nullable final AppServiceConfig config) {
+        if (Objects.isNull(config) || StringUtils.isBlank(config.subscriptionId())) {
+            return false;
+        }
+        final AbstractAzResourceModule<?, ?, ?> module = config instanceof FunctionAppConfig ?
+                                                         Azure.az(AzureFunctions.class).functionApps(config.subscriptionId()) :
+                                                         Azure.az(AzureWebApp.class).webApps(config.subscriptionId());
+        return !module.exists(config.appName(), config.resourceGroup());
     }
 }

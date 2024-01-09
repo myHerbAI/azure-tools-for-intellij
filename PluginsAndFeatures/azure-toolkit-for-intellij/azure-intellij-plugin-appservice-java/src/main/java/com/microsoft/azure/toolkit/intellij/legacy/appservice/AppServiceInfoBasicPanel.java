@@ -7,27 +7,28 @@ package com.microsoft.azure.toolkit.intellij.legacy.appservice;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.TitledSeparator;
-import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifact;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifactComboBox;
-import com.microsoft.azure.toolkit.intellij.common.AzureArtifactManager;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.platform.RuntimeComboBox;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.auth.Account;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import lombok.SneakyThrows;
 import org.apache.commons.compress.utils.FileNameUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static com.microsoft.azuretools.utils.WebAppUtils.isSupportedArtifactType;
@@ -83,26 +84,36 @@ public class AppServiceInfoBasicPanel<T extends AppServiceConfig> extends JPanel
         final String name = this.textName.getValue();
         final Runtime platform = this.selectorRuntime.getValue();
         final AzureArtifact artifact = this.selectorApplication.getValue();
-
+        final Account account = Azure.az(AzureAccount.class).account();
+        final Subscription subscription = Optional.ofNullable(config).map(AppServiceConfig::subscriptionId)
+                                                  .map(account::getSubscription)
+                                                  .orElseGet(() -> account.getSelectedSubscriptions().stream().findFirst().orElse(null));
         final T result = this.config == null ? supplier.get() : this.config;
-        result.setName(name);
-        result.setRuntime(platform);
-
-        if (Objects.nonNull(artifact)) {
-            final AzureArtifactManager manager = AzureArtifactManager.getInstance(this.project);
-            final String path = this.selectorApplication.getValue().getFileForDeployment();
-            result.setApplication(Paths.get(path));
-        }
+        result.appName(name);
+        Optional.ofNullable(platform).map(RuntimeConfig::fromRuntime).ifPresent(result::runtime);
+        Optional.ofNullable(subscription).map(Subscription::getId).ifPresent(result::subscriptionId);
+        // todo: web app creation dialog should use run/deploy configuration, which should be parent of info panel
+//        if (Objects.nonNull(artifact)) {
+//            final AzureArtifactManager manager = AzureArtifactManager.getInstance(this.project);
+//            final String path = this.selectorApplication.getValue().getFileForDeployment();
+//            result.setApplication(Paths.get(path));
+//        }
         this.config = result;
+        this.config.appSettings(ObjectUtils.firstNonNull(this.config.appSettings(), new HashMap<>()));
         return result;
     }
 
     @Override
     public void setValue(final T config) {
         this.config = config;
-        this.textName.setValue(config.getName());
-        this.textName.setSubscription(config.getSubscription());
-        this.selectorRuntime.setValue(config.getRuntime());
+        this.textName.setValue(config.appName());
+        final Subscription subscription = Optional.ofNullable(config.subscriptionId())
+                                                  .map(Azure.az(AzureAccount.class).account()::getSubscription)
+                                                  .orElse(null);
+        this.textName.setSubscription(subscription);
+        Optional.ofNullable(config.runtime())
+                .map(c -> config instanceof FunctionAppConfig ? RuntimeConfig.toFunctionAppRuntime(c) : RuntimeConfig.toWebAppRuntime(c))
+                .ifPresent(this.selectorRuntime::setValue);
     }
 
     @Override

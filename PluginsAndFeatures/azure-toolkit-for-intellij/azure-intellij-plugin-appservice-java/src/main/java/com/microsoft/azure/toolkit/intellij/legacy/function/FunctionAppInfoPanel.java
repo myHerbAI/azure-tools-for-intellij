@@ -11,8 +11,6 @@ import com.intellij.ui.TitledSeparator;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
-import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig;
-import com.microsoft.azure.toolkit.intellij.common.AzureArtifact;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifactComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.component.RegionComboBox;
@@ -23,8 +21,15 @@ import com.microsoft.azure.toolkit.intellij.containerapps.component.ImageForm;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppNameInput;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.platform.RuntimeComboBox;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.ServicePlanComboBox;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
-import com.microsoft.azure.toolkit.lib.appservice.model.*;
+import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
@@ -33,26 +38,26 @@ import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerAppDraft;
 import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
-import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
-import com.microsoft.azure.toolkit.lib.legacy.function.FunctionAppService;
+import com.microsoft.azure.toolkit.lib.containerregistry.AzureContainerRegistry;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
-import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig;
 import com.microsoft.azuretools.utils.WebAppUtils;
 import lombok.Getter;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.compress.utils.FileNameUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.event.ItemEvent;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Getter
 public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<FunctionAppConfig> {
     public static final ContainerAppDraft.ImageConfig QUICK_START_IMAGE =
-            new ContainerAppDraft.ImageConfig(FunctionAppService.DEFAULT_IMAGE);
+            new ContainerAppDraft.ImageConfig("FunctionAppService.DEFAULT_IMAGE");
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyMMddHHmmss");
     private static final String NOT_APPLICABLE = "N/A";
@@ -90,6 +95,8 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
     private JPanel pnlAppServicePlan;
     private JPanel pnlImageContainer;
 
+    private FunctionAppConfig config;
+
     public FunctionAppInfoPanel(final Project project) {
         super();
         this.project = project;
@@ -100,58 +107,71 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
     @Override
     @Nonnull
     public FunctionAppConfig getValue() {
-        final FunctionAppConfig config = FunctionAppConfig.builder().build();
-        config.setSubscription(this.selectorSubscription.getValue());
-        config.setResourceGroup(ResourceGroupConfig.fromResource(this.selectorGroup.getValue()));
-        config.setName(this.textName.getValue());
-        final Runtime runtime = this.selectorRuntime.getValue();
-        config.setRuntime(runtime);
+        this.config = this.config == null ? FunctionAppConfig.builder().build() : this.config;
+        config.appName(this.textName.getValue());
         config.setRegion(this.selectorRegion.getValue());
+        Optional.ofNullable(this.selectorSubscription.getValue()).map(Subscription::getId).ifPresent(config::subscriptionId);
+        Optional.ofNullable(this.selectorGroup.getValue()).map(ResourceGroup::getResourceGroupName).ifPresent(config::resourceGroup);
+        Optional.ofNullable(this.selectorRuntime.getValue()).map(RuntimeConfig::fromRuntime).ifPresent(config::runtime);
         if (rdoServicePlan.isSelected()) {
-            final AppServicePlan servicePlan = this.selectorServicePlan.getValue();
-            final AppServicePlanConfig planConfig = AppServicePlanConfig.fromResource(servicePlan);
-            if (Objects.nonNull(planConfig) && servicePlan.isDraftForCreating()) {
-                planConfig.setResourceGroupName(config.getResourceGroupName());
-                planConfig.setRegion(config.getRegion());
-                final boolean isWindows = Optional.ofNullable(runtime).map(Runtime::isWindows).orElse(false);
-                planConfig.setOs(isWindows ? OperatingSystem.WINDOWS : OperatingSystem.LINUX);
-            }
-            config.setServicePlan(planConfig);
+            Optional.ofNullable(this.selectorServicePlan.getValue()).map(AppServicePlanConfig::fromResource).ifPresent(plan ->{
+                config.servicePlanName(plan.getName());
+                config.servicePlanResourceGroup(StringUtils.firstNonBlank(plan.getResourceGroupName(), config.getResourceGroup()));
+                config.pricingTier(plan.getPricingTier());
+            });
         } else if (rdoContainerAppsEnvironment.isSelected()) {
-            config.setRuntime(FunctionAppDockerRuntime.INSTANCE);
             // environment
             final ContainerAppsEnvironment env = cbEnvironment.getValue();
-            Optional.ofNullable(env).ifPresent(environment -> config.setEnvironment(environment.getName()));
+            Optional.ofNullable(env).ifPresent(environment -> config.environment(environment.getName()));
             // image
+            final RuntimeConfig runtime = new RuntimeConfig();
             final ContainerAppDraft.ImageConfig image = chkUseQuickStart.isSelected() ? QUICK_START_IMAGE : pnlContainer.getValue();
-            Optional.ofNullable(image).ifPresent(config::setImage);
+            runtime.setOs(OperatingSystem.DOCKER);
+            Optional.ofNullable(image).map(ContainerAppDraft.ImageConfig::getFullImageName).ifPresent(runtime::setImage);
+            Optional.ofNullable(image).map(ContainerAppDraft.ImageConfig::getContainerRegistry).ifPresent(registry -> {
+                runtime.registryUrl(registry.getLoginServerUrl());
+                runtime.username(registry.getUserName());
+                runtime.password(registry.getPrimaryCredential());
+            });
         }
-        Optional.ofNullable(this.selectorApplication.getValue())
-                .map(AzureArtifact::getFileForDeployment).map(Paths::get).ifPresent(config::setApplication);
-        return config;
+//        config.appSettings(ObjectUtils.firstNonNull(config.appSettings(), new HashMap<>()));
+//        Optional.ofNullable(this.selectorApplication.getValue())
+//                .map(AzureArtifact::getFileForDeployment).map(Paths::get).ifPresent(config::setApplication);
+        return this.config;
     }
 
     @Override
     public void setValue(final FunctionAppConfig config) {
-        this.selectorSubscription.setValue(config.getSubscription());
-        this.textName.setValue(config.getName());
+        this.config = config;
+        this.selectorSubscription.setValue(s -> StringUtils.equalsIgnoreCase(config.subscriptionId(), s.getId()));
+        this.textName.setValue(config.appName());
         AzureTaskManager.getInstance().runOnPooledThread(() -> {
-            this.selectorGroup.setValue(Optional.ofNullable(config.getResourceGroup()).map(ResourceGroupConfig::toResource).orElse(null));
-            this.selectorRuntime.setValue(config.getRuntime());
+            Optional.ofNullable(AppServiceConfig.getResourceGroup(config)).ifPresent(this.selectorGroup::setValue);
+            this.selectorRuntime.setValue(RuntimeConfig.toFunctionAppRuntime(config.getRuntime()));
             this.selectorRegion.setValue(config.getRegion());
-            final boolean useEnvironment = StringUtils.isNotEmpty(config.getEnvironment());
+            final boolean useEnvironment = StringUtils.isNotEmpty(config.environment());
             this.rdoContainerAppsEnvironment.setSelected(useEnvironment);
             this.rdoServicePlan.setSelected(!useEnvironment);
             toggleHostingConfiguration(!useEnvironment);
-
-            Optional.ofNullable(config.getServicePlan()).filter(ignore -> !useEnvironment)
-                    .map(AppServicePlanConfig::toResource).ifPresent(selectorServicePlan::setValue);
-            Optional.ofNullable(config.getEnvironment()).filter(ignore -> useEnvironment)
+            Optional.ofNullable(AppServiceConfig.getServicePlanConfig(config)).filter(ignore -> !useEnvironment)
+                    .map(AppServicePlanConfig::getAppServicePlan)
+                    .ifPresent(selectorServicePlan::setValue);
+            Optional.ofNullable(config.environment()).filter(ignore -> useEnvironment)
                     .ifPresent(env -> cbEnvironment.setValue(r -> StringUtils.equalsIgnoreCase(r.getName(), env)));
-            chkUseQuickStart.setSelected(Objects.isNull(config.getImage()) || StringUtils.equals(FunctionAppService.DEFAULT_IMAGE, config.getImage().getFullImageName()));
-            toggleImageType(Objects.isNull(config.getImage()));
-            Optional.ofNullable(config.getImage()).filter(ignore -> useEnvironment).ifPresent(pnlContainer::setValue);
+            final boolean useDefaultImage = false;
+            chkUseQuickStart.setSelected(useDefaultImage);
+            toggleImageType(useDefaultImage);
+            Optional.of(convertToImageConfig(config.getRuntime())).filter(ignore -> useEnvironment).ifPresent(pnlContainer::setValue);
         });
+    }
+
+    private static ContainerAppDraft.ImageConfig convertToImageConfig(@Nonnull final RuntimeConfig config) {
+        final ContainerAppDraft.ImageConfig imageConfig = new ContainerAppDraft.ImageConfig(config.getImage());
+        Azure.az(AzureContainerRegistry.class).list().stream()
+             .flatMap(s -> s.getAzureContainerRegistryModule().list().stream())
+             .filter(registry -> StringUtils.equalsIgnoreCase(registry.getLoginServerUrl(), config.getRegistryUrl()))
+             .findFirst().ifPresent(imageConfig::setContainerRegistry);
+        return imageConfig;
     }
 
     @Override

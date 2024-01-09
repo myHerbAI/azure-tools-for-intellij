@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapponlinux;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
-import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
@@ -19,14 +18,12 @@ import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateWebAppTask;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerregistry.AzureContainerRegistry;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
-import com.microsoft.azure.toolkit.lib.legacy.webapp.WebAppService;
 import com.microsoft.azuretools.core.mvp.model.webapp.WebAppOnLinuxDeployModel;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
@@ -59,31 +56,29 @@ public class WebAppOnLinuxDeployState extends AzureRunProfileState<AppServiceApp
         final ContainerRegistry registry = Objects.requireNonNull(Azure.az(AzureContainerRegistry.class).getById(configuration.getContainerRegistryId()),
                 String.format("Registry (%s) was not found", configuration.getContainerRegistryId()));
         ContainerService.getInstance().pushDockerImage(configuration);
-        // deploy
-        final WebAppConfig webAppConfig = configuration.getWebAppConfig();
+        // workaround: update image data, as we need to get password by api
+        final AppServiceConfig webAppConfig = configuration.getAppServiceConfig();
+        final RuntimeConfig runtime = webAppConfig.getRuntime();
+        runtime.registryUrl(registry.getLoginServerUrl()).image(configuration.getFinalImageName()).username(registry.getUserName()).password(registry.getPrimaryCredential());
+        // update port configuration
         final Map<String, String> appSettings = ObjectUtils.firstNonNull(webAppConfig.getAppSettings(), new HashMap<>());
         appSettings.put(WEBSITES_PORT, String.valueOf(configuration.getPort()));
         webAppConfig.setAppSettings(appSettings);
-        final AppServiceConfig appServiceConfig = WebAppService.convertToTaskConfig(webAppConfig);
-        final WebApp webapp = Azure.az(AzureWebApp.class).webApps(appServiceConfig.subscriptionId()).getOrDraft(appServiceConfig.appName(), appServiceConfig.resourceGroup());
-
+        // update image configuration
+        final CreateOrUpdateWebAppTask task = new CreateOrUpdateWebAppTask(webAppConfig);
+        final WebAppBase<?,?,?> webapp = task.execute();
         final AzureTaskManager tm = AzureTaskManager.getInstance();
         tm.runOnPooledThread(() -> Optional.ofNullable(image)
-            .map(DockerImage::getDockerFile)
-            .map(f -> VfsUtil.findFileByIoFile(f, true))
-            .map(f -> AzureModule.from(f, this.project))
-            .ifPresent(module -> tm.runLater(() -> tm.write(() -> {
-                final Profile p = module.initializeWithDefaultProfileIfNot();
-                Optional.of(registry).ifPresent(p::addApp);
-                Optional.of(webapp).ifPresent(p::addApp);
-                p.save();
-            }))));
-        // update image configuration
-        final RuntimeConfig runtime = appServiceConfig.runtime();
-        final DockerImage dockerImageConfiguration = configuration.getDockerImageConfiguration();
-        runtime.registryUrl(registry.getLoginServerUrl()).image(configuration.getFinalImageName()).username(registry.getUserName()).password(registry.getPrimaryCredential());
-        final CreateOrUpdateWebAppTask task = new CreateOrUpdateWebAppTask(appServiceConfig);
-        return task.execute();
+                                           .map(DockerImage::getDockerFile)
+                                           .map(f -> VfsUtil.findFileByIoFile(f, true))
+                                           .map(f -> AzureModule.from(f, this.project))
+                                           .ifPresent(module -> tm.runLater(() -> tm.write(() -> {
+                                               final Profile p = module.initializeWithDefaultProfileIfNot();
+                                               Optional.of(registry).ifPresent(p::addApp);
+                                               Optional.of(webapp).ifPresent(p::addApp);
+                                               p.save();
+                                           }))));
+        return webapp;
     }
 
     @Override

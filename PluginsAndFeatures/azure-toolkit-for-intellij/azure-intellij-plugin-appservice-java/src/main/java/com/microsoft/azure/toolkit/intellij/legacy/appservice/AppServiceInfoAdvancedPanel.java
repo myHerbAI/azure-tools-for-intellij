@@ -9,27 +9,28 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.util.ui.JBUI;
-import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig;
-import com.microsoft.azure.toolkit.intellij.common.AzureArtifact;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifactComboBox;
-import com.microsoft.azure.toolkit.intellij.common.AzureArtifactManager;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.component.RegionComboBox;
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox;
 import com.microsoft.azure.toolkit.intellij.common.component.resourcegroup.ResourceGroupComboBox;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.platform.RuntimeComboBox;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.ServicePlanComboBox;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
-import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig;
 import com.microsoft.azuretools.utils.WebAppUtils;
 import lombok.Getter;
 import org.apache.commons.compress.utils.FileNameUtils;
@@ -37,7 +38,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.event.ItemEvent;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Supplier;
@@ -48,16 +48,14 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
     private static final String NOT_APPLICABLE = "N/A";
     private final Project project;
     private final Supplier<? extends T> supplier;
+    private T config;
 
     private JPanel contentPanel;
-
     private SubscriptionComboBox selectorSubscription;
     private ResourceGroupComboBox selectorGroup;
-
     private AppNameInput textName;
     private RuntimeComboBox selectorRuntime;
     private RegionComboBox selectorRegion;
-
     private JLabel textSku;
     private AzureArtifactComboBox selectorApplication;
     private ServicePlanComboBox selectorServicePlan;
@@ -81,45 +79,41 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
 
     @Override
     public T getValue() {
-        final Subscription subscription = this.selectorSubscription.getValue();
-        final ResourceGroup resourceGroup = this.selectorGroup.getValue();
-        final String name = this.textName.getValue();
-        final Runtime runtime = this.selectorRuntime.getValue();
-        final Region region = this.selectorRegion.getValue();
-        final AppServicePlan servicePlan = this.selectorServicePlan.getValue();
-        final AzureArtifact artifact = this.selectorApplication.getValue();
-
-        final T config = supplier.get();
-        config.setSubscription(subscription);
-        config.setResourceGroup(ResourceGroupConfig.fromResource(resourceGroup));
-        config.setName(name);
-        config.setRuntime(runtime);
-        config.setRegion(region);
-        final AppServicePlanConfig planConfig = AppServicePlanConfig.fromResource(servicePlan);
-        if (Objects.nonNull(planConfig) && servicePlan.isDraftForCreating()) {
-            planConfig.setResourceGroupName(config.getResourceGroupName());
-            planConfig.setRegion(region);
-            final Boolean isWindows = Optional.ofNullable(runtime).map(Runtime::isWindows).orElse(false);
-            planConfig.setOs(isWindows ? OperatingSystem.WINDOWS : OperatingSystem.LINUX);
-        }
-        config.setServicePlan(planConfig);
-        if (Objects.nonNull(artifact)) {
-            final AzureArtifactManager manager = AzureArtifactManager.getInstance(this.project);
-            final String path = artifact.getFileForDeployment();
-            config.setApplication(Paths.get(path));
-        }
-        return config;
+        final T result = this.config == null ? supplier.get() : this.config;
+        result.appName(textName.getValue());
+        result.region(selectorRegion.getValue());
+        Optional.ofNullable(selectorSubscription.getValue()).map(Subscription::getId).ifPresent(result::subscriptionId);
+        Optional.ofNullable(selectorGroup.getValue()).map(ResourceGroup::getName).ifPresent(result::resourceGroup);
+        Optional.ofNullable(selectorRuntime.getValue()).map(RuntimeConfig::fromRuntime).ifPresent(result::runtime);
+        Optional.ofNullable(selectorServicePlan.getValue()).map(AppServicePlan::getName).ifPresent(result::servicePlanName);
+        Optional.ofNullable(selectorServicePlan.getValue()).map(AppServicePlan::getPricingTier).ifPresent(result::pricingTier);
+        Optional.ofNullable(selectorServicePlan.getValue()).map(AppServicePlan::getResourceGroup)
+                .map(ResourceGroup::getResourceGroupName).ifPresentOrElse(result::servicePlanResourceGroup, () -> result.servicePlanResourceGroup(result.resourceGroup()));
+//        if (Objects.nonNull(artifact)) {
+//            final AzureArtifactManager manager = AzureArtifactManager.getInstance(this.project);
+//            final String path = artifact.getFileForDeployment();
+//            config.setApplication(Paths.get(path));
+//        }
+        this.config = result;
+        return result;
     }
 
     @Override
     public void setValue(final T config) {
-        this.selectorSubscription.setValue(config.getSubscription());
-        this.textName.setValue(config.getName());
+        this.config = config;
+        final Subscription subscription = Optional.ofNullable(config.subscriptionId())
+                                                  .map(Azure.az(AzureAccount.class).account()::getSubscription)
+                                                  .orElse(null);
+        Optional.ofNullable(subscription).ifPresent(selectorSubscription::setValue);
+        this.textName.setValue(config.appName());
+        this.textName.setSubscription(subscription);
         AzureTaskManager.getInstance().runOnPooledThread(() -> {
-            this.selectorGroup.setValue(Optional.ofNullable(config.getResourceGroup()).map(ResourceGroupConfig::toResource).orElse(null));
-            this.selectorServicePlan.setValue(Optional.ofNullable(config.getServicePlan()).map(AppServicePlanConfig::toResource).orElse(null));
-            this.selectorRuntime.setValue(config.getRuntime());
-            this.selectorRegion.setValue(config.getRegion());
+            this.selectorRegion.setValue(config.region());
+            Optional.ofNullable(AppServiceConfig.getResourceGroup(config)).ifPresent(this.selectorGroup::setValue);
+            Optional.ofNullable(AppServiceConfig.getServicePlanConfig(config)).map(AppServicePlanConfig::getAppServicePlan).ifPresent(this.selectorServicePlan::setValue);
+            Optional.ofNullable(config.runtime())
+                    .map(c -> config instanceof FunctionAppConfig ? RuntimeConfig.toFunctionAppRuntime(c) : RuntimeConfig.toWebAppRuntime(c))
+                    .ifPresent(this.selectorRuntime::setValue);
         });
     }
 

@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.ide.appservice.function;
 
 import com.azure.core.util.ExpandableStringEnum;
 import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig;
-import com.microsoft.azure.toolkit.ide.appservice.model.ApplicationInsightsConfig;
 import com.microsoft.azure.toolkit.ide.appservice.model.MonitorConfig;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
@@ -96,7 +95,9 @@ public class FunctionAppConfig extends AppServiceConfig {
                 .os(FunctionAppConfig.DEFAULT_RUNTIME.getOperatingSystem())
                 .pricingTier(PricingTier.CONSUMPTION).build());
 
-        final ApplicationInsightsConfig insightsConfig = ApplicationInsightsConfig.builder().name(appName).newCreate(true).workspaceConfig(LogAnalyticsWorkspaceConfig.createConfig(subscription, region)).build();
+        final ApplicationInsightsConfig insightsConfig =
+            ApplicationInsightsConfig.builder().name(appName).createNewInstance(true)
+                                     .workspaceConfig(LogAnalyticsWorkspaceConfig.createConfig(subscription, region)).build();
         final MonitorConfig monitorConfig = MonitorConfig.builder().applicationInsightsConfig(insightsConfig).build();
         return FunctionAppConfig.builder()
                 .subscription(subscription)

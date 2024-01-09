@@ -7,16 +7,17 @@ package com.microsoft.azure.toolkit.intellij.legacy.appservice.insights;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.ui.components.fields.ExtendableTextComponent.Extension;
-import com.microsoft.azure.toolkit.ide.appservice.model.ApplicationInsightsConfig;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.component.CreateApplicationInsightsDialog;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.applicationinsights.AzureApplicationInsights;
+import com.microsoft.azure.toolkit.lib.appservice.model.ApplicationInsightsConfig;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Setter;
 import org.apache.commons.collections.ListUtils;
+import org.apache.commons.lang.BooleanUtils;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
@@ -52,7 +53,7 @@ public class ApplicationInsightsComboBox extends AzureComboBox<ApplicationInsigh
 
     @Override
     public void setValue(final ApplicationInsightsConfig val, Boolean fixed) {
-        if (val != null && val.isNewCreate()) {
+        if (val != null && val.getCreateNewInstance()) {
             this.draftItems.remove(val);
             this.draftItems.add(0, val);
             this.reloadItems();
@@ -67,7 +68,7 @@ public class ApplicationInsightsComboBox extends AzureComboBox<ApplicationInsigh
         final List<ApplicationInsightsConfig> existingItems =
             subscription == null ? Collections.emptyList() :
                 Azure.az(AzureApplicationInsights.class).applicationInsights(subscription.getId()).list().stream()
-                    .map(instance -> new ApplicationInsightsConfig(instance.getName(), instance.getInstrumentationKey()))
+                    .map(instance -> ApplicationInsightsConfig.builder().name(instance.getName()).instrumentationKey(instance.getInstrumentationKey()).createNewInstance(false).build())
                     .collect(Collectors.toList());
         return ListUtils.union(this.draftItems, existingItems);
     }
@@ -96,14 +97,14 @@ public class ApplicationInsightsComboBox extends AzureComboBox<ApplicationInsigh
             return EMPTY_ITEM;
         }
         final ApplicationInsightsConfig model = (ApplicationInsightsConfig) item;
-        return ((ApplicationInsightsConfig) item).isNewCreate() ? String.format("(New) %s", model.getName()) : model.getName();
+        return BooleanUtils.isTrue(model.getCreateNewInstance()) ? String.format("(New) %s", model.getName()) : model.getName();
     }
 
     private void onCreateApplicationInsights() {
         final CreateApplicationInsightsDialog dialog = new CreateApplicationInsightsDialog(subscription, region);
         dialog.pack();
         if (dialog.showAndGet()) {
-            final ApplicationInsightsConfig config = ApplicationInsightsConfig.builder().newCreate(true).name(dialog.getApplicationInsightsName())
+            final ApplicationInsightsConfig config = ApplicationInsightsConfig.builder().createNewInstance(true).name(dialog.getApplicationInsightsName())
                     .workspaceConfig(dialog.getWorkspaceConfig()).build();
             this.setValue(config);
         }

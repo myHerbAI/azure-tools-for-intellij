@@ -5,203 +5,66 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.appservice;
 
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.TitledSeparator;
-import com.microsoft.azure.toolkit.ide.appservice.model.ApplicationInsightsConfig;
 import com.microsoft.azure.toolkit.ide.appservice.model.MonitorConfig;
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.insights.ApplicationInsightsComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
-import com.microsoft.azure.toolkit.intellij.common.AzureIntegerInput;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.insights.ApplicationInsightsComboBox;
+import com.microsoft.azure.toolkit.lib.appservice.model.ApplicationInsightsConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 
 import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class AppServiceMonitorPanel extends JPanel implements AzureFormPanel<MonitorConfig> {
     private JPanel pnlRoot;
-    private JRadioButton rdoDisableApplicationInsights;
-    private JRadioButton rdoEnableApplicationInsights;
-    private JLabel lblApplicationInsights;
-    private ApplicationInsightsComboBox applicationInsightsComboBox;
-    private JRadioButton rdoDisableDetailError;
-    private JRadioButton rdoEnableDetailError;
-    private JRadioButton rdoDisableFailedRequest;
-    private JRadioButton rdoEnableFailedRequest;
-    private JRadioButton rdoDisableApplicationLog;
-    private JRadioButton rdoEnableApplicationLog;
-    private JLabel lblInsightsEnable;
-    private JLabel lblWebServerLog;
-    private JRadioButton rdoDisableWebServerLog;
-    private JRadioButton rdoEnableWebServerLog;
-    private JPanel pnlWebServerLog;
-    private JLabel lblQuota;
-    private JLabel lblRetention;
-    private JLabel lblDetailedErrorMessage;
-    private JLabel lblFailedRequest;
-    private JPanel pnlApplicationLog;
     private TitledSeparator titleApplicationInsights;
     private TitledSeparator titleAppServiceLog;
-    private AzureIntegerInput txtQuota;
-    private AzureIntegerInput txtRetention;
-    private LogLevelComboBox cbLogLevel;
-    private JLabel lblApplicationLog;
+    private ApplicationInsightsPanel applicationInsightsPanel;
+    private AppServiceLogsPanel appServiceLogsPanel;
 
-    private Project project;
+    private final Project project;
 
     public AppServiceMonitorPanel(final Project project) {
+        super();
         this.project = project;
-        init();
     }
 
     public void setApplicationInsightsVisible(boolean visible) {
         titleApplicationInsights.setVisible(visible);
-        lblInsightsEnable.setVisible(visible);
-        lblApplicationInsights.setVisible(visible);
-        applicationInsightsComboBox.setVisible(visible);
-        rdoEnableApplicationInsights.setVisible(visible);
-        rdoDisableApplicationInsights.setVisible(visible);
-        rdoEnableApplicationInsights.setSelected(visible);
-    }
-
-    public void setAppServiceLogVisible(boolean visible) {
-        setApplicationInsightsVisible(visible);
-        setWebServerLogVisible(visible);
-        titleAppServiceLog.setVisible(visible);
+        applicationInsightsPanel.setVisible(visible);
     }
 
     public void setApplicationLogVisible(boolean visible) {
-        lblApplicationLog.setVisible(visible);
-        rdoEnableApplicationLog.setVisible(visible);
-        rdoDisableApplicationLog.setVisible(visible);
-        pnlApplicationLog.setVisible(visible);
-        rdoEnableApplicationLog.setSelected(visible);
-        titleAppServiceLog.setVisible(lblApplicationLog.isVisible() || lblWebServerLog.isVisible());
+        appServiceLogsPanel.setApplicationLogVisible(visible);
     }
 
-    public void setWebServerLogVisible(boolean visible) {
-        lblWebServerLog.setVisible(visible);
-        rdoEnableWebServerLog.setVisible(visible);
-        rdoDisableWebServerLog.setVisible(visible);
-        pnlWebServerLog.setVisible(visible);
-        rdoEnableWebServerLog.setSelected(visible);
-        titleAppServiceLog.setVisible(lblApplicationLog.isVisible() || lblWebServerLog.isVisible());
+    public void setWebServerLogVisible(boolean enable) {
+        appServiceLogsPanel.setWebServerLogVisible(enable);
     }
 
     @Override
     public MonitorConfig getValue() {
-        final ApplicationInsightsConfig insightsConfig = (rdoEnableApplicationInsights.isSelected() && titleApplicationInsights.isVisible()) ?
-                applicationInsightsComboBox.getValue() : null;
-        final DiagnosticConfig diagnosticConfig = DiagnosticConfig.builder()
-                .enableWebServerLogging(rdoEnableWebServerLog.isSelected() && lblWebServerLog.isVisible())
-                .webServerLogQuota(txtQuota.getValue())
-                .webServerRetentionPeriod(txtRetention.getValue())
-                .enableDetailedErrorMessage(rdoEnableDetailError.isSelected())
-                .enableFailedRequestTracing(rdoEnableFailedRequest.isSelected())
-                .enableApplicationLog(rdoEnableApplicationLog.isSelected() && lblApplicationLog.isVisible())
-                .applicationLogLevel(cbLogLevel.getValue()).build();
+        final ApplicationInsightsConfig insightsConfig = applicationInsightsPanel.getValue();
+        final DiagnosticConfig diagnosticConfig = appServiceLogsPanel.getValue();
         return MonitorConfig.builder().applicationInsightsConfig(insightsConfig).diagnosticConfig(diagnosticConfig).build();
     }
 
     @Override
     public void setValue(final MonitorConfig data) {
-        if (titleApplicationInsights.isVisible()) {
-            if (data.getApplicationInsightsConfig() != null) {
-                rdoEnableApplicationLog.setSelected(true);
-                applicationInsightsComboBox.setValue(data.getApplicationInsightsConfig());
-            } else {
-                rdoDisableApplicationLog.setSelected(true);
-                applicationInsightsComboBox.setSelectedItem(null);
-            }
-        }
-        if (titleAppServiceLog.isVisible()) {
-            final DiagnosticConfig diagnosticConfig = data.getDiagnosticConfig();
-            if (lblWebServerLog.isVisible()) {
-                rdoEnableWebServerLog.setSelected(diagnosticConfig.isEnableWebServerLogging());
-                txtQuota.setValue(diagnosticConfig.getWebServerLogQuota());
-                txtRetention.setValue(diagnosticConfig.getWebServerRetentionPeriod());
-                rdoEnableDetailError.setSelected(diagnosticConfig.isEnableDetailedErrorMessage());
-                rdoEnableFailedRequest.setSelected(diagnosticConfig.isEnableFailedRequestTracing());
-            }
-            if (lblApplicationInsights.isVisible()) {
-                rdoEnableApplicationLog.setSelected(diagnosticConfig.isEnableApplicationLog());
-                cbLogLevel.setSelectedItem(diagnosticConfig.getApplicationLogLevel());
-            }
-        }
-        this.repaint();
+        Optional.ofNullable(data.getDiagnosticConfig()).ifPresent(appServiceLogsPanel::setValue);
+        Optional.ofNullable(data.getApplicationInsightsConfig()).ifPresent(applicationInsightsPanel::setValue);
     }
 
     public ApplicationInsightsComboBox getApplicationInsightsComboBox() {
-        return applicationInsightsComboBox;
+        return applicationInsightsPanel.getApplicationInsightsComboBox();
     }
 
     @Override
     public List<AzureFormInput<?>> getInputs() {
-        return Arrays.asList(applicationInsightsComboBox, cbLogLevel, txtQuota, txtRetention);
-    }
-
-    private void createUIComponents() {
-        // TODO: place custom component creation code here
-        cbLogLevel = new LogLevelComboBox();
-        applicationInsightsComboBox = new ApplicationInsightsComboBox();
-
-        txtQuota = new AzureIntegerInput();
-        txtQuota.setMinValue(25);
-        txtQuota.setMaxValue(100);
-
-        txtRetention = new AzureIntegerInput();
-        txtRetention.setMinValue(0);
-        txtRetention.setMaxValue(99999);
-        txtRetention.setRequired(false);
-    }
-
-    private void init() {
-        final ButtonGroup insightsGroup = new ButtonGroup();
-        insightsGroup.add(rdoEnableApplicationInsights);
-        insightsGroup.add(rdoDisableApplicationInsights);
-        rdoEnableApplicationInsights.addItemListener(e -> setApplicationInsightsEnabled(rdoEnableApplicationInsights.isSelected()));
-        rdoDisableApplicationInsights.addItemListener(e -> setApplicationInsightsEnabled(rdoEnableApplicationInsights.isSelected()));
-
-        final ButtonGroup webServerGroup = new ButtonGroup();
-        webServerGroup.add(rdoEnableWebServerLog);
-        webServerGroup.add(rdoDisableWebServerLog);
-        rdoEnableWebServerLog.addItemListener(e -> setWebServerLogEnabled(rdoEnableWebServerLog.isSelected()));
-        rdoDisableWebServerLog.addItemListener(e -> setWebServerLogEnabled(rdoEnableWebServerLog.isSelected()));
-
-        final ButtonGroup detailedErrorMessageGroup = new ButtonGroup();
-        detailedErrorMessageGroup.add(rdoEnableDetailError);
-        detailedErrorMessageGroup.add(rdoDisableDetailError);
-        final ButtonGroup failedRequestGroup = new ButtonGroup();
-        failedRequestGroup.add(rdoEnableFailedRequest);
-        failedRequestGroup.add(rdoDisableFailedRequest);
-        final ButtonGroup applicationLogGroup = new ButtonGroup();
-        applicationLogGroup.add(rdoEnableApplicationLog);
-        applicationLogGroup.add(rdoDisableApplicationLog);
-        rdoEnableApplicationLog.addItemListener(e -> setApplicationLogEnabled(rdoEnableApplicationLog.isSelected()));
-        rdoDisableApplicationLog.addItemListener(e -> setApplicationLogEnabled(rdoEnableApplicationLog.isSelected()));
-
-        this.lblApplicationInsights.setIcon(AllIcons.General.ContextHelp);
-        this.lblWebServerLog.setIcon(AllIcons.General.ContextHelp);
-        this.lblQuota.setIcon(AllIcons.General.ContextHelp);
-        this.lblRetention.setIcon(AllIcons.General.ContextHelp);
-        this.lblApplicationLog.setIcon(AllIcons.General.ContextHelp);
-    }
-
-    private void setApplicationInsightsEnabled(boolean enable) {
-        lblApplicationInsights.setVisible(enable);
-        applicationInsightsComboBox.setVisible(enable);
-        applicationInsightsComboBox.setRequired(enable);
-    }
-
-    public void setWebServerLogEnabled(boolean enable) {
-        pnlWebServerLog.setVisible(enable);
-        txtQuota.setRequired(enable);
-        txtRetention.setRequired(enable);
-    }
-
-    private void setApplicationLogEnabled(boolean enable) {
-        pnlApplicationLog.setVisible(enable);
+        return Arrays.asList(applicationInsightsPanel, appServiceLogsPanel);
     }
 }

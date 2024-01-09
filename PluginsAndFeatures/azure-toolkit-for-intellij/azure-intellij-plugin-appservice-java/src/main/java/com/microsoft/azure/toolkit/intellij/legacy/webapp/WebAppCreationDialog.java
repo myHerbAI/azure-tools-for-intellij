@@ -6,10 +6,11 @@
 package com.microsoft.azure.toolkit.intellij.legacy.webapp;
 
 import com.intellij.openapi.project.Project;
-import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig;
+import com.microsoft.azure.toolkit.intellij.appservice.AppServiceIntelliJActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.ConfigDialog;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoBasicPanel;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.IAccountActions;
@@ -24,11 +25,11 @@ import java.util.List;
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 import static com.microsoft.azure.toolkit.lib.Azure.az;
 
-public class WebAppCreationDialog extends ConfigDialog<WebAppConfig> {
+public class WebAppCreationDialog extends ConfigDialog<AppServiceConfig> {
     private static final PricingTier DEFAULT_PRICING_TIER = PricingTier.BASIC_B2;
     private JPanel panel;
     protected WebAppConfigFormPanelAdvance advancedForm;
-    protected AppServiceInfoBasicPanel<WebAppConfig> basicForm;
+    protected AppServiceInfoBasicPanel<AppServiceConfig> basicForm;
 
     public WebAppCreationDialog(Project project) {
         super(project);
@@ -43,12 +44,12 @@ public class WebAppCreationDialog extends ConfigDialog<WebAppConfig> {
     }
 
     @Override
-    protected AzureFormPanel<WebAppConfig> getAdvancedFormPanel() {
+    protected AzureFormPanel<AppServiceConfig> getAdvancedFormPanel() {
         return advancedForm;
     }
 
     @Override
-    protected AzureFormPanel<WebAppConfig> getBasicFormPanel() {
+    protected AzureFormPanel<AppServiceConfig> getBasicFormPanel() {
         return basicForm;
     }
 
@@ -71,7 +72,8 @@ public class WebAppCreationDialog extends ConfigDialog<WebAppConfig> {
             this.close();
             throw new AzureToolkitRuntimeException("there are no subscriptions selected in your account.", IAccountActions.SELECT_SUBS);
         }
-        basicForm = new AppServiceInfoBasicPanel(project, selectedSubscriptions.get(0), () -> WebAppConfig.getWebAppDefaultConfig(project.getName()));
+        basicForm = new AppServiceInfoBasicPanel<>(project, selectedSubscriptions.get(0),
+                                                 () -> AppServiceIntelliJActionsContributor.getDefaultWebAppConfig(null));
         basicForm.setDeploymentVisible(false);
     }
 }
