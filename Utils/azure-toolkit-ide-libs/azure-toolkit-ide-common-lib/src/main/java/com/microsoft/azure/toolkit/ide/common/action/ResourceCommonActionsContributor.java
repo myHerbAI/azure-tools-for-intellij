@@ -59,6 +59,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
     public static final Action.Id<Object> CREATE = AzResource.CREATE_RESOURCE;
     public static final Action.Id<AzService> CREATE_IN_PORTAL = Action.Id.of("user/$resource.create_resource_in_portal.type");
     public static final Action.Id<AbstractAzResource<?, ?, ?>> PIN = Action.Id.of("user/$resource.pin");
+    public static final Action.Id<AbstractAzResource<?, ?, ?>> OPEN_IN_SERVICES_VIEW = Action.Id.of("user/$resource.open_in_services_view.resource");
     public static final Action.Id<String> OPEN_URL = Action.Id.of("user/common.open_url.url");
     public static final Action.Id<String> COPY_STRING = Action.Id.of("user/common.copy_string");
     public static final Action.Id<Object> OPEN_AZURE_SETTINGS = Action.OPEN_AZURE_SETTINGS;
@@ -380,6 +381,13 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
         new Action<>(ENABLE_PLUGIN_AND_RESTART)
             .withLabel("Enable plugin and Restart")
             .withIdParam(s -> s)
+            .withAuthRequired(false)
+            .register(am);
+
+        new Action<>(OPEN_IN_SERVICES_VIEW)
+            .withIcon(AzureIcons.Common.SERVICES.getIconPath())
+            .withLabel("Open in \"Services\" View")
+            .withIdParam(AbstractAzResource::getName)
             .withAuthRequired(false)
             .register(am);
     }

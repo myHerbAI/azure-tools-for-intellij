@@ -11,4 +11,7 @@
         <docker.registry.provider
                 implementation="com.microsoft.azure.toolkit.intellij.containerregistry.servicesview.AzureContainerRegistryProvider"/>
     </extensions>
+    <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
+        <actions implementation="com.microsoft.azure.toolkit.intellij.containerregistry.IntelliJContainerRegistryActionsContributorForDockerPlugin"/>
+    </extensions>
 </idea-plugin>

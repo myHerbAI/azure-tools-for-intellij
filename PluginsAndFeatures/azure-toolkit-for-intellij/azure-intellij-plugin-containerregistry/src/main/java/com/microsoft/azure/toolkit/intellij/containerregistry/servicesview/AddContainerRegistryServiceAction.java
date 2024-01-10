@@ -14,8 +14,7 @@ import com.intellij.openapi.options.ShowSettingsUtil;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.function.Predicate;
 
 public class AddContainerRegistryServiceAction extends AnAction {
     @Override
@@ -26,8 +25,8 @@ public class AddContainerRegistryServiceAction extends AnAction {
         final DockerRegistryConfigurable configurable = new DockerRegistryConfigurable(registry, null, false);
         if (ShowSettingsUtil.getInstance().editConfigurable(e.getProject(), configurable)) {
             final DockerRegistryManager registryManager = DockerRegistryManager.getInstance();
-            final Set<DockerRegistryConfiguration> registries = new HashSet<>(registryManager.getRegistries());
-            if (!registries.contains(registry)) {
+            final Predicate<DockerRegistryConfiguration> exists = r -> r.getAddress().equals(registry.getAddress()) && r.getUsername().equalsIgnoreCase(registry.getUsername());
+            if (registryManager.getRegistries().stream().noneMatch(exists)) {
                 registryManager.addRegistry(registry);
             }
         }
