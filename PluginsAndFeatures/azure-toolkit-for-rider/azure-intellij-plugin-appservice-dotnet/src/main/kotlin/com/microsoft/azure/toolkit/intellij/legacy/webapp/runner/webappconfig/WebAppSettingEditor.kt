@@ -8,7 +8,8 @@ import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureSettingsEditor
 
 class WebAppSettingEditor(project: Project, configuration: WebAppConfiguration) :
-        RiderAzureSettingsEditor<WebAppConfiguration>() {
+    RiderAzureSettingsEditor<WebAppConfiguration>() {
+
     private val panel = WebAppSettingPanel(project, configuration)
     override fun getPanel() = panel
 }

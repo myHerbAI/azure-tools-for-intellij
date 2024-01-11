@@ -22,7 +22,7 @@ import com.microsoft.azure.toolkit.intellij.common.dotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.ServicePlanComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.canBePublishedToAzure
+import com.microsoft.azure.toolkit.intellij.legacy.canBePublishedToAzure
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.*
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
@@ -85,7 +85,7 @@ class AppServiceInfoAdvancedPanel<T>(
     private lateinit var configurationAndPlatformComboBox: Cell<LabeledComponent<ComboBox<PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform?>>>
 
     init {
-        operatingSystem = OperatingSystem.WINDOWS
+        operatingSystem = OperatingSystem.LINUX
 
         panel = panel {
             group("Project Details") {

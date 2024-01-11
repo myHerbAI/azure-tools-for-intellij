@@ -14,7 +14,7 @@ import com.jetbrains.rider.projectView.solution
 @Service
 class FunctionCoreToolsMsBuildService {
     companion object {
-        fun getInstance(): FunctionCoreToolsMsBuildService = service()
+        fun getInstance() = service<FunctionCoreToolsMsBuildService>()
         const val PROPERTY_AZURE_FUNCTIONS_VERSION = "AzureFunctionsVersion"
     }
 

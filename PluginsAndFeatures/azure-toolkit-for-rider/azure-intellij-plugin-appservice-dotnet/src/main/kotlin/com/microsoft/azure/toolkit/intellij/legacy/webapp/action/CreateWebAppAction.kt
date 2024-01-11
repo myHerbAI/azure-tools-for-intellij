@@ -14,14 +14,14 @@ import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.CreateOrUpdateDotNetWebAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetAppServiceConfig
-import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetRuntimeConfig
+import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandlerMessenger
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.WebAppArtifactService
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.getStackAndVersion
+import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
+import com.microsoft.azure.toolkit.intellij.legacy.getStackAndVersion
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType
 import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion
@@ -150,8 +150,8 @@ class CreateWebAppAction {
             val messenger = RunProcessHandlerMessenger(processHandler)
             OperationContext.current().messager = messenger
 
-            val zipFile = WebAppArtifactService.getInstance(project)
-                .prepareArtifact(projectModel, projectConfiguration, projectPlatform, processHandler)
+            val zipFile = ArtifactService.getInstance(project)
+                .prepareArtifact(projectModel, projectConfiguration, projectPlatform, processHandler, true)
             val artifact = WebAppArtifact.builder()
                 .file(zipFile)
                 .deployType(DeployType.ZIP)

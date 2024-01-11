@@ -2,7 +2,7 @@
  * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-package com.microsoft.azure.toolkit.intellij.appservice.webapp
+package com.microsoft.azure.toolkit.intellij.appservice
 
 import com.azure.resourcemanager.appservice.models.OperatingSystem
 import com.azure.resourcemanager.appservice.models.RuntimeStack
@@ -18,6 +18,7 @@ fun WebAppBase.getDotNetRuntime(): DotNetRuntime {
                 com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem.LINUX,
                 null,
                 null,
+                null,
                 true
             )
         } else {
@@ -27,6 +28,7 @@ fun WebAppBase.getDotNetRuntime(): DotNetRuntime {
                 com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem.LINUX,
                 RuntimeStack(stack, version),
                 null,
+                null,
                 false
             )
         }
@@ -35,9 +37,10 @@ fun WebAppBase.getDotNetRuntime(): DotNetRuntime {
             com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem.WINDOWS,
             null,
             netFrameworkVersion(),
+            null,
             false
         )
     }
 }
 
-fun AppServiceAppBase<*, *, *>.getDotNetRuntime() = getRemote()?.getDotNetRuntime()
+fun AppServiceAppBase<*, *, *>.getDotNetRuntime() = remote?.getDotNetRuntime()

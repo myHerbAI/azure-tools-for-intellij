@@ -31,10 +31,16 @@ open class WebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(p
         val selectedSubscriptions = Azure.az(AzureAccount::class.java).account().selectedSubscriptions
         if (selectedSubscriptions.isEmpty()) {
             this.close()
-            throw AzureToolkitRuntimeException("There are no subscriptions selected in your account.", IAccountActions.SELECT_SUBS)
+            throw AzureToolkitRuntimeException(
+                "There are no subscriptions selected in your account.",
+                IAccountActions.SELECT_SUBS
+            )
         }
 
-        basicPanel = AppServiceInfoBasicPanel(project, selectedSubscriptions[0]) { WebAppConfig.getWebAppDefaultConfig(project.name) }
+        basicPanel = AppServiceInfoBasicPanel(
+            project,
+            selectedSubscriptions[0]
+        ) { WebAppConfig.getWebAppDefaultConfig(project.name) }
         advancedPanel = AppServiceInfoAdvancedPanel(project) { WebAppConfig.getWebAppDefaultConfig(project.name) }
 
         panel = panel {

@@ -1,8 +1,8 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner
+package com.microsoft.azure.toolkit.intellij.legacy
 
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -29,23 +29,25 @@ import java.nio.file.Path
 import java.util.zip.ZipOutputStream
 
 @Service(Service.Level.PROJECT)
-class WebAppArtifactService(private val project: Project) {
+class ArtifactService(private val project: Project) {
     companion object {
-        fun getInstance(project: Project): WebAppArtifactService = project.service()
-        private val LOG = logger<WebAppArtifactService>()
+        fun getInstance(project: Project): ArtifactService = project.service()
+        private val LOG = logger<ArtifactService>()
     }
 
     fun prepareArtifact(
-            publishableProject: PublishableProjectModel,
-            configuration: String,
-            platform: String,
-            processHandler: RunProcessHandler
+        publishableProject: PublishableProjectModel,
+        configuration: String,
+        platform: String,
+        processHandler: RunProcessHandler,
+        zipArtifact: Boolean
     ): File {
         processHandler.setText("Collecting ${publishableProject.projectName} project artifacts...")
         if (configuration.isNotEmpty() && platform.isNotEmpty()) {
             processHandler.setText("Using configuration: $configuration and platform: $platform")
         }
         val outDir = collectProjectArtifacts(publishableProject, configuration, platform)
+        if (!zipArtifact) return outDir
 
         processHandler.setText("Creating ${publishableProject.projectName} project ZIP...")
         return zipProjectArtifacts(outDir, processHandler)
@@ -63,23 +65,28 @@ class WebAppArtifactService(private val project: Project) {
      * @return [File] to project content to be published
      */
     private fun collectProjectArtifacts(
-            publishableProject: PublishableProjectModel,
-            configuration: String?,
-            platform: String?
+        publishableProject: PublishableProjectModel,
+        configuration: String?,
+        platform: String?
     ): File {
         val publishService = MsBuildPublishingService.getInstance(project)
         val (tempDirMsBuildProperty, outPath) = publishService.getPublishToTempDirParameterAndPath()
 
         val extraProperties = mutableListOf<CustomTargetExtraProperty>()
-        if (!configuration.isNullOrEmpty()) extraProperties.add(CustomTargetExtraProperty("Configuration", configuration))
+        if (!configuration.isNullOrEmpty()) extraProperties.add(
+            CustomTargetExtraProperty(
+                "Configuration",
+                configuration
+            )
+        )
         if (!platform.isNullOrEmpty()) extraProperties.add(CustomTargetExtraProperty("Platform", platform))
 
         val buildStatus =
-                if (publishableProject.isDotNetCore) {
-                    invokeMsBuild(publishableProject, listOf(tempDirMsBuildProperty) + extraProperties, false, true, true)
-                } else {
-                    webPublishToFileSystem(publishableProject.projectFilePath, outPath, extraProperties, false, true)
-                }
+            if (publishableProject.isDotNetCore) {
+                invokeMsBuild(publishableProject, listOf(tempDirMsBuildProperty) + extraProperties, false, true, true)
+            } else {
+                webPublishToFileSystem(publishableProject.projectFilePath, outPath, extraProperties, false, true)
+            }
 
         val buildResult = buildStatus.buildResultKind
         if (buildResult != BuildResultKind.Successful && buildResult != BuildResultKind.HasWarnings) {
@@ -94,36 +101,37 @@ class WebAppArtifactService(private val project: Project) {
     }
 
     private fun invokeMsBuild(
-            projectModel: PublishableProjectModel,
-            extraProperties: List<CustomTargetExtraProperty>,
-            diagnosticsMode: Boolean,
-            silentMode: Boolean = false,
-            noRestore: Boolean = false
+        projectModel: PublishableProjectModel,
+        extraProperties: List<CustomTargetExtraProperty>,
+        diagnosticsMode: Boolean,
+        silentMode: Boolean = false,
+        noRestore: Boolean = false
     ): BuildStatus {
         val buildParameters = BuildParameters(
-                CustomTargetWithExtraProperties(
-                        "Publish",
-                        extraProperties
-                ), listOf(projectModel.projectFilePath), diagnosticsMode, silentMode, noRestore = noRestore
+            CustomTargetWithExtraProperties(
+                "Publish",
+                extraProperties
+            ), listOf(projectModel.projectFilePath), diagnosticsMode, silentMode, noRestore = noRestore
         )
 
         return BuildTaskThrottler.getInstance(project).buildSequentiallySync(buildParameters)
     }
 
     private fun webPublishToFileSystem(
-            pathToProject: String,
-            outPath: Path,
-            extraProperties: List<CustomTargetExtraProperty>,
-            diagnosticsMode: Boolean = false,
-            silentMode: Boolean = false
+        pathToProject: String,
+        outPath: Path,
+        extraProperties: List<CustomTargetExtraProperty>,
+        diagnosticsMode: Boolean = false,
+        silentMode: Boolean = false
     ): BuildStatus {
         val buildParameters = BuildParameters(
-                CustomTargetWithExtraProperties(
-                        "WebPublish",
-                        extraProperties + listOf(
-                                CustomTargetExtraProperty("WebPublishMethod", "FileSystem"),
-                                CustomTargetExtraProperty("PublishUrl", outPath.toString()))
-                ), listOf(pathToProject), diagnosticsMode, silentMode
+            CustomTargetWithExtraProperties(
+                "WebPublish",
+                extraProperties + listOf(
+                    CustomTargetExtraProperty("WebPublishMethod", "FileSystem"),
+                    CustomTargetExtraProperty("PublishUrl", outPath.toString())
+                )
+            ), listOf(pathToProject), diagnosticsMode, silentMode
         )
 
         return BuildTaskThrottler.getInstance(project).buildSequentiallySync(buildParameters)
@@ -145,9 +153,9 @@ class WebAppArtifactService(private val project: Project) {
     }
 
     private fun zipProjectArtifacts(
-            fromFile: File,
-            processHandler: RunProcessHandler,
-            deleteOriginal: Boolean = true
+        fromFile: File,
+        processHandler: RunProcessHandler,
+        deleteOriginal: Boolean = true
     ): File {
         if (!fromFile.exists())
             throw FileNotFoundException("Original file '${fromFile.path}' not found")
@@ -170,9 +178,9 @@ class WebAppArtifactService(private val project: Project) {
     }
 
     private fun packToZip(
-            fileToZip: File,
-            zipFileToCreate: File,
-            filter: FileFilter? = null
+        fileToZip: File,
+        zipFileToCreate: File,
+        filter: FileFilter? = null
     ) {
         if (!fileToZip.exists()) {
             val message = "Source file or directory '${fileToZip.path}' does not exist"

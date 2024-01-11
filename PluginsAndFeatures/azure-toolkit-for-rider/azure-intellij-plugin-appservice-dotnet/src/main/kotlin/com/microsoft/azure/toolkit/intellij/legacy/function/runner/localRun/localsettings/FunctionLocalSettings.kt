@@ -17,9 +17,13 @@ data class FunctionValuesModel(
     val webJobsHttpExampleDisabled: Boolean?,
     val bindingConnection: String?)
 
-data class FunctionHostModel(val localHttpPort: Int?, val cors: String?, val corsCredentials: Boolean?)
+data class FunctionHostModel(
+    val localHttpPort: Int?,
+    val cors: String?,
+    val corsCredentials: Boolean?
+)
 
 enum class FunctionWorkerRuntime(val value: String) {
-    DotNetDefault("dotnet"),
-    DotNetIsolated("dotnet-isolated")
+    DotNetDefault("DOTNET"),
+    DotNetIsolated("DOTNET-ISOLATED")
 }

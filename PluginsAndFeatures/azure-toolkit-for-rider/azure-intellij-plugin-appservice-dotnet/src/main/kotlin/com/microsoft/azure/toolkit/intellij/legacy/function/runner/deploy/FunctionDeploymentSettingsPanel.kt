@@ -16,17 +16,14 @@ import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
 import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig
 import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig
-import com.microsoft.azure.toolkit.intellij.common.AzureDotnetProjectComboBox
-import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel
-import com.microsoft.azure.toolkit.intellij.common.configurationAndPlatformComboBox
-import com.microsoft.azure.toolkit.intellij.common.dotnetProjectComboBox
+import com.microsoft.azure.toolkit.intellij.common.*
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureSettingPanel
 import com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.function.functionAppComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.ui.components.DeploymentSlotComboBox
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.canBePublishedToAzure
+import com.microsoft.azure.toolkit.intellij.legacy.canBePublishedToAzure
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
@@ -34,12 +31,11 @@ import java.util.*
 import javax.swing.JPanel
 
 class FunctionDeploymentSettingsPanel(private val project: Project, configuration: FunctionDeploymentConfiguration) :
-    RiderAzureSettingPanel<FunctionDeploymentConfiguration>(), AzureFormPanel<FunctionDeploymentConfiguration> {
+    RiderAzureSettingPanel<FunctionDeploymentConfiguration>() {
+
     private val panel: JPanel
     private var appSettingsKey: String = configuration.appSettingsKey ?: UUID.randomUUID().toString()
-
     private var appSettingsResourceId: String? = null
-
     private lateinit var functionAppComboBox: Cell<FunctionAppComboBox>
     private lateinit var deployToSlotCheckBox: Cell<JBCheckBox>
     private lateinit var deploymentSlotComboBox: Cell<DeploymentSlotComboBox>
@@ -160,72 +156,61 @@ class FunctionDeploymentSettingsPanel(private val project: Project, configuratio
 
     override fun apply(configuration: FunctionDeploymentConfiguration) {
         configuration.appSettingsKey = appSettingsKey
-        configuration.setAppSettings(appSettingsTable.appSettings)
-        dotnetProjectComboBox.component.value?.let { configuration.saveProject(it) }
-        configuration.projectConfiguration = getSelectedConfiguration()
-        configuration.projectPlatform = getSelectedPlatform()
+
         val functionConfig = functionAppComboBox.component.value
-        val isDeploymentSlotSelected = deployToSlotCheckBox.component.isSelected
-        val deploymentSlotConfig = deploymentSlotComboBox.component.value
-        functionConfig
-            ?.toBuilder()
-            ?.deploymentSlot(if (isDeploymentSlotSelected) deploymentSlotConfig else null)
-            ?.appSettings(appSettingsTable.appSettings)
-            ?.build()
-            ?.let { configuration.saveConfig(it) }
+        functionConfig?.let {
+            val builder = it.toBuilder()
+
+            if (deployToSlotCheckBox.component.isSelected) builder.deploymentSlot(deploymentSlotComboBox.component.value)
+            else builder.deploymentSlot(null)
+
+            builder.appSettings(appSettingsTable.appSettings)
+
+            configuration.functionAppConfig = it
+        }
+
+        val publishableProject = dotnetProjectComboBox.component.value
+        configuration.publishableProjectPath = publishableProject?.projectFilePath
+        val (projectConfiguration, projectPlatform) = configurationAndPlatformComboBox.component.component.getPublishConfiguration()
+        configuration.projectConfiguration = projectConfiguration
+        configuration.projectPlatform = projectPlatform
     }
 
     override fun reset(configuration: FunctionDeploymentConfiguration) {
-        val appSettings = configuration.getAppSettings()
-        if (appSettings.isNotEmpty()) appSettingsTable.setAppSettings(appSettings)
+        if (configuration.resourceId.isNullOrEmpty() || configuration.functionAppName.isNullOrEmpty()) return
 
         val settingsKey = configuration.appSettingsKey
         if (!settingsKey.isNullOrEmpty()) appSettingsKey = settingsKey
 
-        val config = configuration.getConfig()
-        if (config != null && (!config.resourceId.isNullOrEmpty() || !config.name.isNullOrEmpty())) {
-            functionAppComboBox.component.value = config
-            functionAppComboBox.component.setConfigModel(config)
-            deployToSlotCheckBox.component.isSelected = config.deploymentSlot != null
-            toggleDeploymentSlot(config.deploymentSlot != null)
+        val functionConfig = configuration.functionAppConfig
+        functionConfig.let { functionApp ->
+            functionAppComboBox.component.value = functionApp
+            functionAppComboBox.component.setConfigModel(functionApp)
+
+            deployToSlotCheckBox.component.isSelected = functionApp.deploymentSlot != null
+            toggleDeploymentSlot(functionApp.deploymentSlot != null)
+            functionApp.deploymentSlot?.let { deploymentSlotComboBox.component.value = it }
+
             appSettingsResourceId =
-                if (config.resourceId.isNullOrEmpty() && config.name.isNullOrEmpty()) null
-                else getResourceId(config, config.deploymentSlot)
-            config.deploymentSlot?.let { deploymentSlotComboBox.component.value = it }
-            config.appSettings?.let { appSettingsTable.setAppSettings(it) }
+                if (functionApp.resourceId.isNullOrEmpty() && functionApp.name.isNullOrEmpty()) null
+                else getResourceId(functionApp, functionApp.deploymentSlot)
+
+            functionApp.appSettings?.let { appSettingsTable.setAppSettings(it) }
         }
 
-        val projectId = configuration.getPublishableProject()?.projectModelId
-        if (projectId != null) {
-            project.solution.publishableProjectsModel.publishableProjects.values
-                .firstOrNull { p -> p.projectModelId == projectId }
-                ?.let { p -> dotnetProjectComboBox.component.setProject(p) }
+        val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
+            .firstOrNull { p -> p.projectFilePath == configuration.publishableProjectPath }
+        if (publishableProject != null) {
+            dotnetProjectComboBox.component.setProject(publishableProject)
         }
-        setConfigurationAndPlatform(configuration.projectConfiguration, configuration.projectPlatform)
+        configurationAndPlatformComboBox.component.component.setPublishConfiguration(
+            configuration.projectConfiguration,
+            configuration.projectPlatform
+        )
     }
 
     override fun getMainPanel() = panel
 
     override fun disposeEditor() {
-    }
-
-    override fun setValue(data: FunctionDeploymentConfiguration) = reset(data)
-
-    override fun getInputs() =
-        listOf(functionAppComboBox.component, deploymentSlotComboBox.component, dotnetProjectComboBox.component)
-
-    private fun getSelectedConfiguration() = getSelectedConfigurationAndPlatform()?.configuration ?: ""
-    private fun getSelectedPlatform() = getSelectedConfigurationAndPlatform()?.platform ?: ""
-    private fun getSelectedConfigurationAndPlatform(): PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform? =
-        configurationAndPlatformComboBox.component.component.selectedItem as? PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform
-
-    fun setConfigurationAndPlatform(configuration: String, platform: String) {
-        for (i in 0 until configurationAndPlatformComboBox.component.component.model.size) {
-            val item = configurationAndPlatformComboBox.component.component.model.getElementAt(i)
-            if (item?.configuration == configuration && item.platform == platform) {
-                configurationAndPlatformComboBox.component.component.selectedItem = item
-                break
-            }
-        }
     }
 }

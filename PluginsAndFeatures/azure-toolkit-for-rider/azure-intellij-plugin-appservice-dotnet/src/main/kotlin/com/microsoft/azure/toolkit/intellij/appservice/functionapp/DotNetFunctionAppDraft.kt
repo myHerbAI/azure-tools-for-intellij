@@ -1,38 +1,38 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-package com.microsoft.azure.toolkit.intellij.appservice.webapp
+package com.microsoft.azure.toolkit.intellij.appservice.functionapp
 
-import com.azure.resourcemanager.appservice.models.WebApp.DefinitionStages
 import com.azure.resourcemanager.appservice.models.WebAppRuntimeStack
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntime
 import com.microsoft.azure.toolkit.intellij.appservice.getDotNetRuntime
-import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppModule
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration
+import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppModule
-import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager
 import com.microsoft.azure.toolkit.lib.common.model.AzResource
+import com.microsoft.azure.toolkit.lib.storage.StorageAccount
 
-class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourcemanager.appservice.models.WebApp> {
-    constructor(name: String, resourceGroupName: String, module: WebAppModule) :
+class DotNetFunctionAppDraft : FunctionApp,
+    AzResource.Draft<FunctionApp, com.azure.resourcemanager.appservice.models.FunctionApp> {
+    constructor(name: String, resourceGroupName: String, module: FunctionAppModule) :
             super(name, resourceGroupName, module) {
         origin = null
     }
 
-    constructor(origin: WebApp) : super(origin) {
+    constructor(origin: FunctionApp) : super(origin) {
         this.origin = origin
     }
 
-    private val origin: WebApp?
+    private val origin: FunctionApp?
 
     private var config: Config? = null
 
@@ -65,101 +65,76 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
         return !notModified
     }
 
-    override fun createResourceInAzure(): com.azure.resourcemanager.appservice.models.WebApp {
-        val newRuntime = requireNotNull(dotNetRuntime) { "'runtime' is required to create Azure Web App" }
-        val newPlan = requireNotNull(appServicePlan) { "'service plan' is required to create Azure Web App" }
+    override fun createResourceInAzure(): com.azure.resourcemanager.appservice.models.FunctionApp {
+        val newRuntime = requireNotNull(dotNetRuntime) { "'runtime' is required to create a Function App" }
+        val newPlan = requireNotNull(appServicePlan) { "'service plan' is required to create a Function App" }
         val os = newRuntime.operatingSystem
         if (os != newPlan.operatingSystem) {
             throw AzureToolkitRuntimeException("Could not create $os app service in ${newPlan.operatingSystem} service plan")
         }
         val newAppSettings = appSettings
         val newDiagnosticConfig = diagnosticConfig
+        val newFlexConsumptionConfiguration = flexConsumptionConfiguration
+        val newStorageAccount = storageAccount
 
         val manager = requireNotNull(parent.remote)
-        val blank = manager.webApps().define(name)
-        val withCreate =
-            if (!newRuntime.isDocker) createWebApp(blank, os, newPlan, newRuntime)
-            else createDockerWebApp(blank, os, newPlan)
+        val blank = manager.functionApps().define(name)
+        val withCreate = createFunctionApp(blank, os, newPlan, newRuntime)
 
         if (!newAppSettings.isNullOrEmpty())
             withCreate.withAppSettings(newAppSettings)
+        if (newStorageAccount != null)
+            withCreate.withExistingStorageAccount(newStorageAccount.remote)
         if (newDiagnosticConfig != null)
             AppServiceUtils.defineDiagnosticConfigurationForWebAppBase(withCreate, newDiagnosticConfig)
 
+        val updateFlexConsumptionConfiguration =
+            newFlexConsumptionConfiguration != null && newPlan.pricingTier.isFlexConsumption
+        if (updateFlexConsumptionConfiguration) {
+            withCreate.withContainerSize(newFlexConsumptionConfiguration!!.instanceSize)
+            withCreate.withWebAppAlwaysOn(false)
+        }
+
         val messager = AzureMessager.getMessager()
-        messager.info(AzureString.format("Start creating Web App ({0})...", name))
+        messager.info(AzureString.format("Start creating Function App ({0})...", name))
 
-        val webApp = withCreate.create()
+        val functionApp = withCreate.create()
+        if (updateFlexConsumptionConfiguration) {
+            updateFlexConsumptionConfiguration(functionApp, newFlexConsumptionConfiguration!!)
+        }
 
-        val open = AzureActionManager.getInstance().getAction(AppServiceAppBase.OPEN_IN_BROWSER)?.bind(this)
-        messager.success(AzureString.format("Web App ({0}) is successfully created", name), open)
+        messager.success(AzureString.format("Function App ({0}) is successfully created", name))
 
-        return webApp
+        return functionApp
     }
 
-    private fun createWebApp(
-        blank: DefinitionStages.Blank,
+    private fun createFunctionApp(
+        blank: com.azure.resourcemanager.appservice.models.FunctionApp.DefinitionStages.Blank,
         os: OperatingSystem,
         plan: AppServicePlan,
         runtime: DotNetRuntime
     ) = when (os) {
         OperatingSystem.LINUX -> {
-            val stack = requireNotNull(runtime.stack) { "Unable to configure web app runtime" }
+            val functionStack = requireNotNull(runtime.functionStack) { "Unable to configure function runtime" }
             blank
-                .withExistingLinuxPlan(plan.remote)
+                .withExistingLinuxAppServicePlan(plan.remote)
                 .withExistingResourceGroup(resourceGroupName)
-                .withBuiltInImage(stack)
+                .withBuiltInImage(functionStack)
         }
 
         OperatingSystem.WINDOWS -> {
-            val frameworkVersion = requireNotNull(runtime.frameworkVersion) { "Unable to configure web app runtime" }
+            val functionStack = requireNotNull(runtime.functionStack) { "Unable to configure function runtime" }
             blank
-                .withExistingWindowsPlan(plan.remote)
+                .withExistingAppServicePlan(plan.remote)
                 .withExistingResourceGroup(resourceGroupName)
-                .withRuntimeStack(WebAppRuntimeStack.NET)
-                .withNetFrameworkVersion(frameworkVersion)
+                .withRuntime(functionStack.runtime())
+                .withRuntimeVersion(functionStack.version())
         }
 
         OperatingSystem.DOCKER -> throw AzureToolkitRuntimeException("Unsupported operating system $os")
     }
 
-    private fun createDockerWebApp(
-        blank: DefinitionStages.Blank,
-        os: OperatingSystem,
-        plan: AppServicePlan
-    ): DefinitionStages.WithCreate {
-        val dockerConfig =
-            requireNotNull(dockerConfiguration) { "Docker configuration is required to create a docker based Azure Web App" }
-        val withFramework = when (os) {
-            OperatingSystem.LINUX -> {
-                blank
-                    .withExistingLinuxPlan(plan.remote)
-                    .withExistingResourceGroup(resourceGroupName)
-            }
-
-            OperatingSystem.WINDOWS -> {
-                blank
-                    .withExistingWindowsPlan(plan.remote)
-                    .withExistingResourceGroup(resourceGroupName)
-            }
-
-            OperatingSystem.DOCKER -> throw AzureToolkitRuntimeException("Unsupported operating system $os")
-        }
-
-        val draft =
-            if (dockerConfig.userName.isNullOrEmpty() && dockerConfig.password.isNullOrEmpty())
-                withFramework.withPublicDockerHubImage(dockerConfig.image)
-            else if (dockerConfig.registryUrl.isNullOrEmpty())
-                withFramework.withPrivateDockerHubImage(dockerConfig.image)
-                    .withCredentials(dockerConfig.userName, dockerConfig.password)
-            else
-                withFramework.withPrivateRegistryImage(dockerConfig.image, dockerConfig.registryUrl)
-                    .withCredentials(dockerConfig.userName, dockerConfig.password)
-
-        return draft.withStartUpCommand(dockerConfig.startUpCommand)
-    }
-
-    override fun updateResourceInAzure(remote: com.azure.resourcemanager.appservice.models.WebApp): com.azure.resourcemanager.appservice.models.WebApp {
+    override fun updateResourceInAzure(remote: com.azure.resourcemanager.appservice.models.FunctionApp): com.azure.resourcemanager.appservice.models.FunctionApp {
         if (origin == null)
             throw AzureToolkitRuntimeException("Updating target is not specified")
 
@@ -167,10 +142,14 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
         val newRuntime = ensureConfig().runtime
         val newDockerConfig = ensureConfig().dockerConfiguration
         val newDiagnosticConfig = ensureConfig().diagnosticConfig
+        val newFlexConsumptionConfiguration = ensureConfig().flexConsumptionConfiguration
+        val storageAccount = storageAccount
         val settingsToAdd = ensureConfig().appSettings?.toMutableMap()
 
         val oldPlan = origin.appServicePlan
         val oldRuntime = requireNotNull(origin.getDotNetRuntime())
+        val oldDiagnosticConfig = super.getDiagnosticConfig()
+        val oldFlexConsumptionConfiguration = origin.flexConsumptionConfiguration
         val oldAppSettings = requireNotNull(origin.appSettings)
 
         settingsToAdd?.entries?.removeAll(oldAppSettings.entries)
@@ -182,10 +161,14 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
         val planModified = newPlan != null && newPlan != oldPlan
         val runtimeModified = !oldRuntime.isDocker && newRuntime != null && newRuntime != oldRuntime
         val dockerModified = oldRuntime.isDocker && newDockerConfig != null
-        val diagnosticModified = newDiagnosticConfig != null
+        val diagnosticModified = newDiagnosticConfig != null && newDiagnosticConfig != oldDiagnosticConfig
+        val flexConsumptionModified = appServicePlan?.pricingTier?.isFlexConsumption == true &&
+                newFlexConsumptionConfiguration != null &&
+                !newFlexConsumptionConfiguration.isEmpty &&
+                newFlexConsumptionConfiguration != oldFlexConsumptionConfiguration
         val isAppSettingsModified = !settingsToAdd.isNullOrEmpty() || settingsToRemove.isNotEmpty()
         val isModified =
-            planModified || runtimeModified || dockerModified || diagnosticModified || isAppSettingsModified
+            planModified || runtimeModified || dockerModified || diagnosticModified || flexConsumptionModified || isAppSettingsModified
 
         var result = remote
         if (isModified) {
@@ -200,27 +183,32 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
                     it
                 )
             }
+            if (flexConsumptionModified) newFlexConsumptionConfiguration?.let { update.withContainerSize(it.instanceSize) }
+            storageAccount?.let { update.withExistingStorageAccount(it.remote) }
             settingsToAdd?.let { update.withAppSettings(it) }
             settingsToRemove.let { if (settingsToRemove.isNotEmpty()) it.forEach { key -> update.withoutAppSetting(key) } }
 
             val messager = AzureMessager.getMessager()
-            messager.info(AzureString.format("Start updating Web App ({0})...", remote.name()))
+            messager.info("Start updating Function App (${remote.name()})")
 
             result = update.apply()
 
-            val open = AzureActionManager.getInstance().getAction(AppServiceAppBase.OPEN_IN_BROWSER)?.bind(this)
-            messager.success(AzureString.format("Web App ({0}) is successfully updated", result.name()), open)
+            if (flexConsumptionModified && newFlexConsumptionConfiguration != null) {
+                updateFlexConsumptionConfiguration(remote, newFlexConsumptionConfiguration)
+            }
+
+            messager.success("Function App (${remote.name()}) is successfully updated")
         }
 
         return result
     }
 
     private fun updateAppServicePlan(
-        update: com.azure.resourcemanager.appservice.models.WebApp.Update,
+        update: com.azure.resourcemanager.appservice.models.FunctionApp.Update,
         newPlan: AppServicePlan
     ) {
         val plan = requireNotNull(newPlan.remote) { "Target app service plan doesn't exist" }
-        val runtime = requireNotNull(dotNetRuntime) { "Unable to find web app runtime" }
+        val runtime = requireNotNull(dotNetRuntime) { "Unable to find function app runtime" }
         if (runtime.operatingSystem != newPlan.operatingSystem) {
             throw AzureToolkitRuntimeException("Could not migrate ${runtime.operatingSystem} app service to ${newPlan.operatingSystem} service plan")
         }
@@ -228,7 +216,7 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
     }
 
     private fun updateRuntime(
-        update: com.azure.resourcemanager.appservice.models.WebApp.Update,
+        update: com.azure.resourcemanager.appservice.models.FunctionApp.Update,
         newRuntime: DotNetRuntime
     ) {
         val oldRuntime = requireNotNull(origin?.getDotNetRuntime())
@@ -236,16 +224,15 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
             throw AzureToolkitRuntimeException("Can not update the operation system for existing app service")
         }
 
+        val functionStack = requireNotNull(newRuntime.functionStack) { "Unable to configure function runtime" }
         when (oldRuntime.operatingSystem) {
             OperatingSystem.LINUX -> {
-                val stack = requireNotNull(newRuntime.stack) { "Unable to configure web app runtime" }
-                update.withBuiltInImage(stack)
+                update.withBuiltInImage(functionStack)
             }
 
             OperatingSystem.WINDOWS -> {
-                val frameworkVersion = requireNotNull(newRuntime.frameworkVersion) { "Unable to configure web app runtime" }
-                update.withRuntimeStack(WebAppRuntimeStack.NET)
-                    .withNetFrameworkVersion(frameworkVersion)
+                update.withRuntime(functionStack.runtime())
+                    .withRuntimeVersion(functionStack.version())
             }
 
             OperatingSystem.DOCKER -> return
@@ -253,20 +240,36 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
     }
 
     private fun updateDockerConfiguration(
-        update: com.azure.resourcemanager.appservice.models.WebApp.Update,
+        update: com.azure.resourcemanager.appservice.models.FunctionApp.Update,
         newConfig: DockerConfiguration
     ) {
-        val draft =
-            if (newConfig.userName.isNullOrEmpty() && newConfig.password.isNullOrEmpty()) {
-                update.withPublicDockerHubImage(newConfig.image)
-            } else if (newConfig.registryUrl.isNullOrEmpty()) {
-                update.withPrivateDockerHubImage(newConfig.image)
-                    .withCredentials(newConfig.userName, newConfig.password)
-            } else {
-                update.withPrivateRegistryImage(newConfig.image, newConfig.registryUrl)
-                    .withCredentials(newConfig.userName, newConfig.password)
+        if (newConfig.userName.isNullOrEmpty() && newConfig.password.isNullOrEmpty()) {
+            update.withPublicDockerHubImage(newConfig.image)
+        } else if (newConfig.registryUrl.isNullOrEmpty()) {
+            update.withPrivateDockerHubImage(newConfig.image)
+                .withCredentials(newConfig.userName, newConfig.password)
+        } else {
+            update.withPrivateRegistryImage(newConfig.image, newConfig.registryUrl)
+                .withCredentials(newConfig.userName, newConfig.password)
+        }
+    }
+
+    private fun updateFlexConsumptionConfiguration(
+        app: com.azure.resourcemanager.appservice.models.FunctionApp,
+        flexConfiguration: FlexConsumptionConfiguration
+    ) {
+        val webApps = app.manager().serviceClient().webApps
+        if (flexConfiguration.maximumInstances != null || flexConfiguration.alwaysReadyInstances != null) {
+            val configuration = webApps.getConfiguration(app.resourceGroupName(), app.name())
+            if (flexConfiguration.maximumInstances != configuration.functionAppScaleLimit() ||
+                flexConfiguration.alwaysReadyInstances != configuration.minimumElasticInstanceCount()
+            ) {
+                configuration
+                    .withFunctionAppScaleLimit(flexConfiguration.maximumInstances)
+                    .withMinimumElasticInstanceCount(flexConfiguration.alwaysReadyInstances)
+                webApps.updateConfiguration(app.resourceGroupName(), app.name(), configuration)
             }
-        draft.withStartUpCommand(newConfig.startUpCommand)
+        }
     }
 
     var dotNetRuntime: DotNetRuntime?
@@ -274,13 +277,16 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
         set(value) {
             ensureConfig().runtime = value
         }
-
+    var storageAccount: StorageAccount?
+        get() = config?.storageAccount
+        set(value) {
+            ensureConfig().storageAccount = value
+        }
     var dockerConfiguration: DockerConfiguration?
         get() = config?.dockerConfiguration
         set(value) {
             ensureConfig().dockerConfiguration = value
         }
-
     var appSettingsToRemove: Set<String>?
         get() = config?.appSettingsToRemove
         set(value) {
@@ -302,12 +308,20 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
         ensureConfig().diagnosticConfig = value
     }
 
+    override fun getFlexConsumptionConfiguration() = config?.flexConsumptionConfiguration ?: super.getFlexConsumptionConfiguration()
+    fun setFlexConsumptionConfiguration(value: FlexConsumptionConfiguration?) {
+        ensureConfig().flexConsumptionConfiguration = value
+    }
+
     data class Config(
         var runtime: DotNetRuntime? = null,
         var plan: AppServicePlan? = null,
+        var storageAccount: StorageAccount? = null,
+        var enableDistributedTracing: Boolean? = null,
         var dockerConfiguration: DockerConfiguration? = null,
         var diagnosticConfig: DiagnosticConfig? = null,
         var appSettings: Map<String, String>? = null,
-        var appSettingsToRemove: Set<String>? = null
+        var appSettingsToRemove: Set<String>? = null,
+        var flexConsumptionConfiguration: FlexConsumptionConfiguration? = null
     )
 }

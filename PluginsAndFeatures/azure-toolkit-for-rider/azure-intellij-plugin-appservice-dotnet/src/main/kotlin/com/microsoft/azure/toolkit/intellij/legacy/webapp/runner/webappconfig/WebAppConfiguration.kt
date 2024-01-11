@@ -111,17 +111,12 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         set(value) {
             webAppPublishModel.appSettingsKey = value
         }
-    var appSettingsToRemove: Set<String>
-        get() = webAppPublishModel.appSettingsToRemove
-        set(value) {
-            webAppPublishModel.appSettingsToRemove = value
-        }
     var runtime: Runtime?
         get() = webAppPublishModel.runtime
         set(value) {
             webAppPublishModel.saveRuntime(value)
         }
-    var operatingSystem : OperatingSystem
+    var operatingSystem: OperatingSystem
         get() = OperatingSystem.fromString(webAppPublishModel.operatingSystem)
         set(value) {
             webAppPublishModel.operatingSystem = value.toString()

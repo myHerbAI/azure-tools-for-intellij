@@ -4,6 +4,8 @@
 
 package com.microsoft.azure.toolkit.intellij.appservice.webapp
 
+import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntime
+import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration
@@ -28,7 +30,7 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
     private fun createOrUpdateResource(): WebAppBase<*, *, *> {
         val az = Azure.az(AzureWebApp::class.java)
         val target = az.webApps(config.subscriptionId()).getOrDraft(config.appName(), config.resourceGroup())
-        if (!isDeployToDeploymentSlot()) {
+        if (config.deploymentSlotName().isNullOrEmpty()) {
             if (!target.exists()) {
                 val availability = az.get(config.subscriptionId(), null)?.checkNameAvailability(config.appName())
                 if (availability?.isAvailable != true) {
@@ -52,9 +54,8 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
             val slotDraft = target.slots()
                 .updateOrCreate<WebAppDeploymentSlotDraft>(config.deploymentSlotName(), config.resourceGroup())
                 .toDotNetWebAppDeploymentSlotDraft()
-            val slotExists = slotDraft.exists()
 
-            return if (slotExists) updateDeploymentSlot(slotDraft)
+            return if (slotDraft.exists()) updateDeploymentSlot(slotDraft)
             else createDeploymentSlot(slotDraft)
         }
     }
@@ -77,8 +78,8 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
         appDraft.dotNetRuntime = getRuntime(config.dotnetRuntime)
         appDraft.dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
         appDraft.diagnosticConfig = config.diagnosticConfig()
+        appDraft.appSettingsToRemove = emptySet()
         appDraft.appSettings = config.appSettings()
-        appDraft.appSettingsToRemove = config.appSettingsToRemove()
 
         return appDraft.createIfNotExist()
     }
@@ -96,8 +97,8 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
         appDraft.dotNetRuntime = getRuntime(config.dotnetRuntime)
         appDraft.dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
         appDraft.diagnosticConfig = config.diagnosticConfig()
+        appDraft.appSettingsToRemove = getAppSettingsToRemove(webApp.appSettings ?: emptyMap(), config.appSettings())
         appDraft.appSettings = config.appSettings()
-        appDraft.appSettingsToRemove = config.appSettingsToRemove()
 
         val result = appDraft.updateIfExist()
             ?: throw AzureToolkitRuntimeException("Unable to update Web App")
@@ -114,7 +115,7 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
         return draft
     }
 
-    private fun WebAppDeploymentSlotDraft.toDotNetWebAppDeploymentSlotDraft(): DotNetWebAppDeploymentSlotDraft{
+    private fun WebAppDeploymentSlotDraft.toDotNetWebAppDeploymentSlotDraft(): DotNetWebAppDeploymentSlotDraft {
         val draftOrigin = origin
         val draft =
             if (draftOrigin != null) DotNetWebAppDeploymentSlotDraft(draftOrigin)
@@ -128,8 +129,8 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
         draft.dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
         draft.diagnosticConfig = config.diagnosticConfig()
         draft.configurationSource = config.deploymentSlotConfigurationSource()
+        draft.appSettingsToRemove = emptySet()
         draft.appSettings = config.appSettings()
-        draft.appSettingsToRemove = config.appSettingsToRemove()
 
         return draft.commit()
     }
@@ -138,8 +139,8 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
         draft.dotNetRuntime = getRuntime(config.dotnetRuntime)
         draft.dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
         draft.diagnosticConfig = config.diagnosticConfig()
+        draft.appSettingsToRemove = getAppSettingsToRemove(draft.appSettings ?: emptyMap(), config.appSettings())
         draft.appSettings = config.appSettings()
-        draft.appSettingsToRemove = config.appSettingsToRemove()
 
         return draft.commit()
     }
@@ -152,11 +153,13 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
                 runtimeConfig.os(),
                 runtimeConfig.stack,
                 runtimeConfig.frameworkVersion,
+                null,
                 false
             )
         } else {
             DotNetRuntime(
                 runtimeConfig.os(),
+                null,
                 null,
                 null,
                 true
@@ -176,7 +179,8 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
             .build()
     }
 
-    private fun isDeployToDeploymentSlot() = !config.deploymentSlotName().isNullOrEmpty()
+    private fun getAppSettingsToRemove(targetSettings: Map<String, String>, newSettings: Map<String, String>) =
+        targetSettings.keys.filter { !newSettings.containsKey(it) }.toSet()
 
     override fun doExecute(): WebAppBase<*, *, *> {
         var result: Any? = null
