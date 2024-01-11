@@ -19,8 +19,11 @@ import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
+import com.microsoft.azure.toolkit.ide.containerregistry.ContainerRegistryActionsContributor;
 import com.microsoft.azure.toolkit.intellij.containerregistry.servicesview.AzureContainerRegistryProvider;
+import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -32,6 +35,8 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+
+import static com.microsoft.azure.toolkit.intellij.containerregistry.servicesview.AzureContainerRegistryConfigurator.ENABLE_ADMIN_USER_DOC_LINK;
 
 @SuppressWarnings("UnstableApiUsage")
 public class IntelliJContainerRegistryActionsContributorForDockerPlugin implements IActionsContributor {
@@ -55,7 +60,8 @@ public class IntelliJContainerRegistryActionsContributorForDockerPlugin implemen
             .filter(serviceView -> StringUtils.equalsIgnoreCase(serviceView.getViewDescriptor(project).getId(), "Docker Registries"))
             .findFirst().orElse(null);
         if (Objects.isNull(root)) {
-            AzureMessager.getMessager().warning(NULL_SERVICE_MESSAGE);
+            final Action<String> installAction = AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.SEARCH_MARKETPLACE_PLUGIN).bind("Docker").withLabel("Install");
+            AzureMessager.getMessager().warning(NULL_SERVICE_MESSAGE, installAction);
             return;
         }
         final ServiceViewContributor<?> registry = getRegistryService(data, project, root).orElse(null);
@@ -70,6 +76,13 @@ public class IntelliJContainerRegistryActionsContributorForDockerPlugin implemen
         final DockerRegistryManager registryManager = DockerRegistryManager.getInstance();
         final Predicate<DockerRegistryConfiguration> exists = r -> r.getAddress().equals(data.getLoginServerUrl()) && r.getUsername().equalsIgnoreCase(data.getUserName());
         if (registryManager.getRegistries().stream().noneMatch(exists)) {
+            if (!data.isAdminUserEnabled()) {
+                final Action<ContainerRegistry> enableAdminUser = AzureActionManager.getInstance().getAction(ContainerRegistryActionsContributor.ENABLE_ADMIN_USER).bind(data);
+                final Action<String> learnMore = AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).bind(ENABLE_ADMIN_USER_DOC_LINK).withLabel("Learn More");
+                final AzureString message = AzureString.format("Admin user is not enabled for (%s), but it is required to login a Azure Container Registry.", data.getName());
+                AzureMessager.getMessager().error(message, enableAdminUser, learnMore);
+                return;
+            }
             final DockerRegistryConfiguration config = new DockerRegistryConfiguration().withName(data.getName());
             config.setRegistryProviderId(AzureContainerRegistryProvider.ID);
             config.setAddress(data.getLoginServerUrl());
