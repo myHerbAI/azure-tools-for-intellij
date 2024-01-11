@@ -23,7 +23,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -74,15 +74,16 @@ public class AzureContainerRegistryConfigurator implements DockerRegistryProvide
     }
 
     private void init() {
+        this.selectorSubscription.setRequired(true);
+        this.selectorRegistry.setRequired(true);
+
         final AzureAccount account = Azure.az(AzureAccount.class);
         this.notSignInLabel.setVisible(!account.isLoggedIn());
         this.notSignInLabel.setText(NOT_SIGN_IN_TIPS);
         this.noRegistryLabel.setText(NO_REGISTRY_TIPS);
 
-        this.selectorSubscription.setRequired(true);
         this.selectorSubscription.putClientProperty(AccessibleRelation.LABELED_BY, this.lblSubscription);
         this.selectorSubscription.addItemListener(this::onSubscriptionChanged);
-        this.selectorRegistry.setRequired(true);
         this.selectorRegistry.putClientProperty(AccessibleRelation.LABELED_BY, this.lblRegistry);
         this.selectorRegistry.addItemListener(e -> {
             final ContainerRegistry registry = this.selectorRegistry.getValue();
@@ -105,12 +106,14 @@ public class AzureContainerRegistryConfigurator implements DockerRegistryProvide
     public void applyDataToRegistry(@Nonnull final DockerRegistryConfiguration registry) {
         final ContainerRegistry data = this.selectorRegistry.getValue();
         // ConfigurationException would be handled at `com.intellij.openapi.options.newEditor.ConfigurableEditor.apply(com.intellij.openapi.options.Configurable)`
-        if (Objects.isNull(data) || !this.contentPanel.isDisplayable()) {
+        if (!this.contentPanel.isDisplayable()) {
             return;
+        }
+        if (Objects.isNull(data)) {
+            throw new ConfigurationException("Please select a valid Azure container registry.");
         } else if (!data.isAdminUserEnabled()) {
             final Action<ContainerRegistry> enableAdminUser = AzureActionManager.getInstance().getAction(ContainerRegistryActionsContributor.ENABLE_ADMIN_USER).bind(data);
             final AzureString message = AzureString.format(ERROR_MESSAGE_PATTERN_ADMIN_DISABLED, data.getName());
-            AzureMessager.getMessager().warning(message, enableAdminUser);
             final ConfigurationException exception = new ConfigurationException(message.toString());
             exception.setQuickFix(dataContext -> enableAdminUser.handle(null, AnActionEvent.createFromDataContext("", null, dataContext)));
             throw exception;
@@ -159,6 +162,8 @@ public class AzureContainerRegistryConfigurator implements DockerRegistryProvide
                 return items;
             }
         };
+        this.selectorRegistry.addValidator(this::validateAdminUserEnableStatus);
+
         this.notSignInLabel = new JBLabel() {
             protected HyperlinkListener createHyperlinkListener() {
                 return new HyperlinkAdapter() {
@@ -166,14 +171,14 @@ public class AzureContainerRegistryConfigurator implements DockerRegistryProvide
                         notSignInLabel.setIcon(AnimatedIcon.Default.INSTANCE);
                         AzureActionManager.getInstance().getAction(Action.REQUIRE_AUTH).handle((a) -> {
                             notSignInLabel.setVisible(Objects.isNull(a));
-                            notSignInLabel.setIcon(AllIcons.General.Information);
+                            notSignInLabel.setIcon(AllIcons.General.Error);
                         });
                     }
                 };
             }
         };
         this.notSignInLabel.setCopyable(true);
-        this.notSignInLabel.setIcon(AllIcons.General.Information);
+        this.notSignInLabel.setIcon(AllIcons.General.Error);
 
         this.noRegistryLabel = new JBLabel() {
             protected HyperlinkListener createHyperlinkListener() {
@@ -185,7 +190,7 @@ public class AzureContainerRegistryConfigurator implements DockerRegistryProvide
             }
         };
         this.noRegistryLabel.setCopyable(true);
-        this.noRegistryLabel.setIcon(AllIcons.General.Information);
+        this.noRegistryLabel.setIcon(AllIcons.General.Error);
 
         this.enableAdminLabel = new JBLabel() {
             protected HyperlinkListener createHyperlinkListener() {
@@ -202,16 +207,26 @@ public class AzureContainerRegistryConfigurator implements DockerRegistryProvide
                             AzureTaskManager.getInstance().runInBackground(view.getLabel(), () -> {
                                 enableAdminUser.handleSync(registry);
                                 selectorRegistry.reloadItems();
+                                selectorRegistry.setValidationInfo(validateAdminUserEnableStatus());
                                 enableAdminLabel.setVisible(!registry.isAdminUserEnabled());
-                                enableAdminLabel.setIcon(AllIcons.General.Information);
+                                enableAdminLabel.setIcon(AllIcons.General.Error);
                             });
                         }
                     }
                 };
             }
         };
-        this.enableAdminLabel.setIcon(AllIcons.General.Information);
+        this.enableAdminLabel.setIcon(AllIcons.General.Error);
         this.enableAdminLabel.setCopyable(true);
+    }
+
+    private AzureValidationInfo validateAdminUserEnableStatus() {
+        final ContainerRegistry value = selectorRegistry.getValue();
+        if (Objects.isNull(value)) {
+            return AzureValidationInfo.success(selectorRegistry);
+        }
+        return value.isAdminUserEnabled() ? AzureValidationInfo.success(selectorRegistry) :
+            AzureValidationInfo.error(String.format("Admin user is not enabled for registry (%s)", value.getName()), selectorRegistry);
     }
 
     @Override
