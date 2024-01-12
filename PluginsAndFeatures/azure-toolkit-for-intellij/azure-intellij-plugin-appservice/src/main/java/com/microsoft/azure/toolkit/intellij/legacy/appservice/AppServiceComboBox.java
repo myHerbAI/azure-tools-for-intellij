@@ -6,7 +6,6 @@
 package com.microsoft.azure.toolkit.intellij.legacy.appservice;
 
 import com.azure.resourcemanager.appservice.models.JavaVersion;
-import com.azure.resourcemanager.resources.fluentcore.model.Refreshable;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
@@ -15,17 +14,14 @@ import com.intellij.ui.components.fields.ExtendableTextComponent.Extension;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
-import com.microsoft.azure.toolkit.lib.appservice.AppServiceResourceModule;
-import com.microsoft.azure.toolkit.lib.appservice.AppServiceServiceSubscription;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
-import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppModule;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import lombok.Setter;
@@ -203,7 +199,7 @@ public abstract class AppServiceComboBox<T extends AppServiceConfig> extends Azu
     }
 
     private static boolean isDraftResource(@Nullable final AppServiceConfig config) {
-        if (Objects.isNull(config) || StringUtils.isBlank(config.subscriptionId())) {
+        if (Objects.isNull(config) || StringUtils.isBlank(config.subscriptionId()) || !Azure.az(AzureAccount.class).isLoggedIn()) {
             return false;
         }
         final AbstractAzResourceModule<?, ?, ?> module = config instanceof FunctionAppConfig ?
