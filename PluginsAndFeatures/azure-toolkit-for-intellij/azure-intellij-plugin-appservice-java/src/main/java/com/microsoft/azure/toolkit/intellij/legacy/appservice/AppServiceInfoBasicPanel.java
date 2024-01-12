@@ -149,6 +149,6 @@ public class AppServiceInfoBasicPanel<T extends AppServiceConfig> extends JPanel
     public void setFixedRuntime(final Runtime runtime) {
         selectorRuntime.setPlatformList(Collections.singletonList(runtime));
         lblPlatform.setVisible(false);
-        selectorRuntime.setVisible(false);
+        selectorRuntime.setEditable(false);
     }
 }

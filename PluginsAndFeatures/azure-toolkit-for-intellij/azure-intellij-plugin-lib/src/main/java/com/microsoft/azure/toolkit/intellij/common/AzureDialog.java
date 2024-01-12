@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.operation.Operation;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NonNls;
@@ -44,9 +45,13 @@ public abstract class AzureDialog<T> extends DialogWrapper {
     @Setter
     protected Action<T> closeAction;
     protected String helpId;
+    @Getter
+    protected Project project;
 
     public AzureDialog(Project project) {
         super(project, true);
+        this.project = project;
+
         setTitle(this.getDialogTitle());
         setModal(true);
     }

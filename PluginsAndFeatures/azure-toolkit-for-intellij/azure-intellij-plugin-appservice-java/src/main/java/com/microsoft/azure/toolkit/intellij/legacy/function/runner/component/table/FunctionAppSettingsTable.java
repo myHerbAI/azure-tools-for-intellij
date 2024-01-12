@@ -9,7 +9,9 @@ import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 
@@ -20,19 +22,29 @@ public class FunctionAppSettingsTable extends AppSettingsTable {
     public static final String AZURE_WEB_JOB_STORAGE_VALUE = "";
     @Getter
     @Setter
+    @Nullable
     private String localSettingPath;
     @Getter
     @Setter
     private Project project;
 
-    public FunctionAppSettingsTable(String localSettingPath) {
+    public FunctionAppSettingsTable() {
+        this(null);
+    }
+
+    public FunctionAppSettingsTable(@Nullable String localSettingPath) {
         super();
         this.localSettingPath = localSettingPath;
     }
 
     public void loadLocalSetting() {
-        final Map<String, String> appSettings = FunctionAppSettingsTableUtils.getAppSettingsFromLocalSettingsJson(new File(localSettingPath));
-        setAppSettings(appSettings);
+        if (StringUtils.isNotBlank(localSettingPath)) {
+            final File localSettingsFile = new File(localSettingPath);
+            if (localSettingsFile.exists()) {
+                final Map<String, String> appSettings = FunctionAppSettingsTableUtils.getAppSettingsFromLocalSettingsJson(localSettingsFile);
+                setAppSettings(appSettings);
+            }
+        }
     }
 
     public void loadRequiredSettings() {

@@ -40,6 +40,8 @@ public class ContainerAppsActionsContributor implements IActionsContributor {
     public static final String REVISION_ACTIONS = "actions.containerapps.revision";
     public static final String REVISION_MODULE_ACTIONS = "actions.containerapps.revision_module";
     public static final String STREAMING_LOG_ACTIONS = "actions.containerapps.streaming_log.group";
+    public static final String CONTAINER_APPS_ENVIRONMENT_CREATE_ACTIONS = "actions.resource.create.container_apps_environment";
+
     public static final Action.Id<ContainerAppsEnvironment> CREATE_CONTAINER_APP = ContainerAppsEnvironment.CREATE_CONTAINER_APP;
     public static final Action.Id<ContainerAppsEnvironment> START_ENV_LOG_STREAM = Action.Id.of("user/containerapps.start_log_streams.environment");
     public static final Action.Id<ContainerAppsEnvironment> STOP_ENV_LOG_STREAM = Action.Id.of("user/containerapps.stop_log_streams.environment");
@@ -63,9 +65,7 @@ public class ContainerAppsActionsContributor implements IActionsContributor {
     @Override
     public void registerActions(AzureActionManager am) {
         new Action<>(CREATE_CONTAINER_APP)
-            .withLabel("Create Container App")
-            .withIcon(AzureIcons.Action.CREATE.getIconPath())
-            .withShortcut(am.getIDEDefaultShortcuts().add())
+            .withLabel("Container App")
             .register(am);
 
         new Action<>(START_ENV_LOG_STREAM)
@@ -231,6 +231,11 @@ public class ContainerAppsActionsContributor implements IActionsContributor {
 
     @Override
     public void registerGroups(AzureActionManager am) {
+        final IView.Label.Static createView = new IView.Label.Static("Create", "/icons/action/create.svg");
+        final ActionGroup environmentCreateActions = new ActionGroup(new ArrayList<>(), createView);
+        environmentCreateActions.addAction(CREATE_CONTAINER_APP);
+        am.registerGroup(CONTAINER_APPS_ENVIRONMENT_CREATE_ACTIONS, environmentCreateActions);
+
         final IView.Label.Static view = new IView.Label.Static("Start Streaming Logs", AzureIcons.Action.LOG.getIconPath());
         final ActionGroup streamingLogActionGroup = new ActionGroup(new ArrayList<>(), view);
         streamingLogActionGroup.addAction(START_CONSOLE_LOG_STREAMS);
@@ -252,7 +257,7 @@ public class ContainerAppsActionsContributor implements IActionsContributor {
             ResourceCommonActionsContributor.REFRESH,
             ResourceCommonActionsContributor.OPEN_PORTAL_URL,
             "---",
-            ContainerAppsActionsContributor.CREATE_CONTAINER_APP,
+            ContainerAppsActionsContributor.CONTAINER_APPS_ENVIRONMENT_CREATE_ACTIONS,
             ResourceCommonActionsContributor.DELETE,
             "---",
             ContainerAppsActionsContributor.START_ENV_LOG_STREAM,

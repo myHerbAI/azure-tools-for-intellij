@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -29,6 +30,7 @@ public class CreateFunctionAppAction {
             final FunctionAppCreationDialog dialog = new FunctionAppCreationDialog(project);
             if (Objects.nonNull(data)) {
                 dialog.setData(data);
+                dialog.toggleAdvancedMode(StringUtils.isNotBlank(data.environment()));
             }
             final Action.Id<FunctionAppConfig> actionId = Action.Id.of("user/function.create_app.app");
             dialog.setOkAction(new Action<>(actionId)
