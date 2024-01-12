@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun
@@ -52,10 +52,12 @@ class FunctionRunExecutorFactory(
             .tryPatchHostJsonFile(parameters.workingDirectory, parameters.functionNames)
 
         LOG.debug("Determine worker runtime from local.settings.json")
-        val functionLocalSettings = FunctionLocalSettingsUtil.readFunctionLocalSettings(
-            parameters.project,
-            File(parameters.projectFilePath).parent
-        )
+        val functionLocalSettings = withBackgroundContext {
+            FunctionLocalSettingsUtil.readFunctionLocalSettings(
+                parameters.project,
+                File(parameters.projectFilePath).parent
+            )
+        }
         val workerRuntime = functionLocalSettings?.values?.workerRuntime ?: FunctionWorkerRuntime.DotNetDefault
         LOG.debug("Worker runtime: $workerRuntime")
 

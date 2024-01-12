@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings
@@ -46,10 +46,12 @@ class FunctionLocalSettingsParser {
             jsonFileFromVirtualFile(virtualFile, project)
         }) ?: return null
 
-        return readFunctionLocalSettingsFrom(jsonFile)
+        return application.runReadAction(Computable {
+            readFunctionLocalSettingsFrom(jsonFile)
+        })
     }
 
-    fun readFunctionLocalSettingsFrom(jsonFile: JsonFile): FunctionLocalSettings? {
+    private fun readFunctionLocalSettingsFrom(jsonFile: JsonFile): FunctionLocalSettings? {
         val topLevelObject = JsonUtil.getTopLevelObject(jsonFile) ?: return null
 
         val isEncrypted = findBooleanProperty(topLevelObject, PROPERTY_IS_ENCRYPTED)
