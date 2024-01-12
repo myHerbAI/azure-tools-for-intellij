@@ -45,7 +45,8 @@ public class IntelliJWebAppSettingModel extends WebAppSettingModel {
 		if (StringUtils.isAllEmpty(getWebAppId(), getWebAppName())) {
 			return new AppServiceConfig();
 		}
-		final WebApp app = isCreatingNew() || StringUtils.isBlank(getWebAppId()) ? null : Azure.az(AzureWebApp.class).getById(getWebAppId());
+		final WebApp app = isCreatingNew() || StringUtils.isBlank(getWebAppId()) ? null :
+				Azure.az(AzureWebApp.class).getById(getWebAppId());
 		this.config = Optional.ofNullable(app)
 							  .map(a -> AppServiceConfigUtils.fromAppService(app, Objects.requireNonNull(app.getAppServicePlan())))
 							  .orElseGet(AppServiceConfig::new);

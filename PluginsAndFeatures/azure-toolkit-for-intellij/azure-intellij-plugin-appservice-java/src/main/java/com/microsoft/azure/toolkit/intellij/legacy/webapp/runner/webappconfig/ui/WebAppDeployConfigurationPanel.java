@@ -23,6 +23,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.In
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfiguration;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.DeploymentSlotConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
@@ -35,6 +36,7 @@ import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.idea.maven.model.MavenConstants;
 import reactor.core.publisher.Mono;
@@ -155,7 +157,6 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
     @Override
     protected void apply(@Nonnull final WebAppConfiguration configuration) {
         final IntelliJWebAppSettingModel model = this.getValue();
-        configuration.setAppSettingKey(appSettingsKey);
         Optional.ofNullable(model).ifPresent(configuration::setWebAppSettingModel);
     }
 
@@ -196,10 +197,11 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
     // merge local app settings with remote if draft web app has been created
     private Map<String, String> loadDraftAppSettings(AppServiceConfig value) {
         final WebApp webApp = Azure.az(AzureWebApp.class).webApps(value.subscriptionId()).get(value.appName(), value.resourceGroup());
-        return webApp != null && webApp.exists() ? MapUtils.putAll(webApp.getAppSettings(), value.appSettings().entrySet().toArray()) : value.appSettings();
+        return webApp != null && webApp.exists() ? MapUtils.putAll(ObjectUtils.firstNonNull(webApp.getAppSettings(), new HashMap<>()), value.appSettings().entrySet().toArray()) : value.appSettings();
     }
 
     private void setComboBoxDefaultValue(JComboBox<?> comboBox, Object value) {
+        //noinspection unchecked
         UIUtils.listComboBoxItems(comboBox).stream().filter(item -> item.equals(value)).findFirst().ifPresent(defaultItem -> comboBox.setSelectedItem(value));
     }
 
@@ -302,6 +304,21 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
             }
             comboBoxWebApp.setConfigModel(webApp);
             comboBoxWebApp.setValue(c -> AppServiceComboBox.isSameApp(c, webApp));
+            chkDeployToSlot.setSelected(Objects.nonNull(webApp.getSlotConfig()));
+            Optional.ofNullable(webApp.getSlotConfig()).ifPresent(c -> {
+                final WebApp app = getWebApp(webApp);
+                final WebAppDeploymentSlot slot = Optional.ofNullable(app)
+                        .map(a -> a.slots().get(c.getName(), a.getResourceGroupName())).orElse(null);
+                final boolean exists = Optional.ofNullable(slot).map(WebAppDeploymentSlot::exists).orElse(false);
+                if (exists) {
+                    rbtExistingSlot.setSelected(true);
+                    cbxSlotName.setSelectedItem(c.getName());
+                } else {
+                    rbtNewSlot.setSelected(true);
+                    txtNewSlotName.setText(c.getName());
+                    cbxSlotConfigurationSource.setSelectedItem(c.getConfigurationSource());
+                }
+            });
             appSettingsTable.setAppSettings(webApp.appSettings());
         });
         // configuration
@@ -319,15 +336,13 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
             model.setArtifactIdentifier(a.getIdentifier());
             model.setPackaging(a.getPackaging());
         });
-        model.setDeployToSlot(chkDeployToSlot.isSelected());
-        if (chkDeployToSlot.isSelected()) {
-            if (rbtExistingSlot.isSelected()) {
-                model.setSlotName(Objects.toString(cbxSlotName.getSelectedItem(), null));
-            } else {
-                model.setSlotName(txtNewSlotName.getText());
-                model.setNewSlotConfigurationSource(Objects.toString(cbxSlotConfigurationSource.getSelectedItem(), null));
-            }
+        final DeploymentSlotConfig slotConfig = chkDeployToSlot.isSelected() ? new DeploymentSlotConfig() : null;
+        if (Objects.nonNull(slotConfig)) {
+            final boolean useExistingSlot = rbtExistingSlot.isSelected();
+            slotConfig.setName(useExistingSlot ? Objects.toString(cbxSlotName.getSelectedItem(), null) : txtNewSlotName.getText());
+            slotConfig.setConfigurationSource(useExistingSlot ? null : Objects.toString(cbxSlotConfigurationSource.getSelectedItem(), null));
         }
+        model.getConfig().setSlotConfig(slotConfig);
         model.getConfig().setAppSettings(appSettingsTable.getAppSettings());
         model.setOpenBrowserAfterDeployment(chkOpenBrowser.isSelected());
         model.setSlotPanelVisible(slotDecorator.isExpanded());
@@ -344,6 +359,6 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
     }
 
     private boolean isDraftWebApp(@Nonnull final AppServiceConfig config) {
-        return Azure.az(AzureWebApp.class).webApps(config.subscriptionId()).exists(config.appName(), config.resourceGroup());
+        return !Azure.az(AzureWebApp.class).webApps(config.subscriptionId()).exists(config.appName(), config.resourceGroup());
     }
 }

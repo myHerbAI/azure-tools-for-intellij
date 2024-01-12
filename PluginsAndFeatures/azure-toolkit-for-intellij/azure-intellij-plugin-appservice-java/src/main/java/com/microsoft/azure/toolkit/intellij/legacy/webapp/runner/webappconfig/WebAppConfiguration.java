@@ -70,25 +70,6 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
         return new WebAppSettingEditor(getProject(), this);
     }
 
-    @Override
-    public void setApplicationSettings(Map<String, String> env) {
-        webAppSettingModel.getConfig().setAppSettings(env);
-        FunctionUtils.saveAppSettingsToSecurityStorage(getAppSettingsKey(), env);
-    }
-
-    @Override
-    public Map<String, String> getApplicationSettings() {
-        return webAppSettingModel.getConfig().getAppSettings();
-    }
-
-    public String getAppSettingsKey() {
-        return webAppSettingModel.getAppSettingsKey();
-    }
-
-    public void setAppSettingKey(final String appSettingsKey) {
-        this.webAppSettingModel.setAppSettingsKey(appSettingsKey);
-    }
-
     @Nullable
     public Module getModule() {
         final AzureArtifact azureArtifact = AzureArtifactManager.getInstance(this.getProject())
@@ -108,8 +89,6 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
         Optional.ofNullable(element.getChild(JAVA_VERSION))
                 .map(javaVersionElement -> javaVersionElement.getAttributeValue(JAVA_VERSION))
                 .ifPresent(webAppSettingModel::setWebAppJavaVersion);
-        Optional.ofNullable(this.getAppSettingsKey())
-                .ifPresent(key -> webAppSettingModel.getConfig().setAppSettings(FunctionUtils.loadAppSettingsFromSecurityStorage(getAppSettingsKey())));
     }
 
     @Override
@@ -187,25 +166,20 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
         return webAppSettingModel.getArtifactIdentifier();
     }
 
-    public void saveArtifact(AzureArtifact azureArtifact) {
+    public void setWebApp(@Nonnull WebApp webApp) {
+        final AppServiceConfig config = AppServiceConfigUtils.fromAppService(webApp, Objects.requireNonNull(webApp.getAppServicePlan()));
+        this.webAppSettingModel.setConfig(config);
+    }
+
+    public void setArtifact(AzureArtifact azureArtifact) {
         final AzureArtifactManager azureArtifactManager = AzureArtifactManager.getInstance(getProject());
         webAppSettingModel.setArtifactIdentifier(azureArtifact == null ? null : azureArtifact.getIdentifier());
         webAppSettingModel.setAzureArtifactType(azureArtifact == null ? null : azureArtifact.getType());
         webAppSettingModel.setPackaging(azureArtifact == null ? null : azureArtifact.getPackaging());
     }
 
-    public void setWebApp(@Nonnull WebApp webApp) {
-        final AppServiceConfig appServiceConfig = AppServiceConfigUtils.fromAppService(webApp, Objects.requireNonNull(webApp.getAppServicePlan()));
-        this.setWebAppConfig(appServiceConfig);
-    }
-
-    public void setWebAppConfig(@Nonnull final AppServiceConfig config) {
-        this.webAppSettingModel.setConfig(config);
-    }
-
     public void setWebAppSettingModel(@Nonnull final IntelliJWebAppSettingModel value) {
-        this.webAppSettingModel.setAppSettingsKey(value.getAppSettingsKey());
-        this.setApplicationSettings(value.getConfig().getAppSettings());
+        this.saveAppSettings(value.getAppSettingsKey(), value.getConfig().appSettings());
         this.webAppSettingModel.setConfig(value.getConfig());
         this.webAppSettingModel.setDeployToRoot(value.isDeployToRoot());
         this.webAppSettingModel.setAzureArtifactType(value.getAzureArtifactType());
@@ -213,5 +187,20 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
         this.webAppSettingModel.setSlotPanelVisible(value.isSlotPanelVisible());
         this.webAppSettingModel.setArtifactIdentifier(value.getArtifactIdentifier());
         this.webAppSettingModel.setPackaging(value.getPackaging());
+    }
+
+    public AppServiceConfig getAppServiceConfig() {
+        final AppServiceConfig config = getModel().getConfig();
+        config.setAppSettings(FunctionUtils.loadAppSettingsFromSecurityStorage(getAppSettingsKey()));
+        return config;
+    }
+
+    public void saveAppSettings(@Nonnull final String appSettingsKey, @Nonnull final Map<String, String> appSettings) {
+        this.webAppSettingModel.setAppSettingsKey(appSettingsKey);
+        FunctionUtils.saveAppSettingsToSecurityStorage(appSettingsKey, appSettings);
+    }
+
+    public String getAppSettingsKey() {
+        return webAppSettingModel.getAppSettingsKey();
     }
 }
