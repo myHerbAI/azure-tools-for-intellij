@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 @file:OptIn(ExperimentalCoroutinesApi::class)
@@ -20,6 +20,7 @@ import com.jetbrains.rider.runtime.dotNetCore.DotNetCoreRuntimeType
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsInfo
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionWorkerRuntime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlin.io.path.absolutePathString
 
 class FunctionNetCoreRuntime(
     private val coreToolsInfo: FunctionCoreToolsInfo,
@@ -30,10 +31,10 @@ class FunctionNetCoreRuntime(
         executionEnvironment: ExecutionEnvironment
     ) = when (workerRuntime) {
         FunctionWorkerRuntime.DotNetDefault -> DotNetCoreDebugProfile(
-            DotNetCoreRuntime(coreToolsInfo.coreToolsExecutable),
+            DotNetCoreRuntime(coreToolsInfo.coreToolsExecutable.absolutePathString()),
             dotNetExecutable,
             executionEnvironment,
-            coreToolsInfo.coreToolsExecutable
+            coreToolsInfo.coreToolsExecutable.absolutePathString()
         )
 
         FunctionWorkerRuntime.DotNetIsolated -> FunctionIsolatedDebugProfileState(
@@ -56,7 +57,7 @@ class FunctionNetCoreRuntime(
             ) {
                 commandLine.parametersList.prepend(exePath)
             }
-            commandLine.exePath = coreToolsInfo.coreToolsExecutable
+            commandLine.exePath = coreToolsInfo.coreToolsExecutable.absolutePathString()
         }
     }
 

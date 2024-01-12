@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.templates
@@ -12,6 +12,8 @@ import com.jetbrains.rider.projectView.actions.projectTemplating.backend.ReSharp
 import com.microsoft.azure.toolkit.intellij.legacy.function.FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsInfoProvider
 import java.io.File
+import kotlin.io.path.exists
+import kotlin.io.path.listDirectoryEntries
 
 @Service
 class FunctionTemplateManager {
@@ -46,28 +48,27 @@ class FunctionTemplateManager {
 
         // Add available templates
         val templateFolders = listOf(
-            File(coreToolsInfo.coreToolsPath)
-                .resolve("templates"), // Default worker
-            File(coreToolsInfo.coreToolsPath)
-                .resolve("templates").resolve("net5-isolated"), // Isolated worker - .NET 5
-            File(coreToolsInfo.coreToolsPath)
-                .resolve("templates").resolve("net6-isolated"), // Isolated worker - .NET 6
-            File(coreToolsInfo.coreToolsPath)
-                .resolve("templates").resolve("net-isolated")   // Isolated worker - .NET 5 - .NET 8
+            coreToolsInfo.coreToolsPath.resolve("templates"), // Default worker
+            coreToolsInfo.coreToolsPath.resolve("templates").resolve("net5-isolated"), // Isolated worker - .NET 5
+            coreToolsInfo.coreToolsPath.resolve("templates").resolve("net6-isolated"), // Isolated worker - .NET 6
+            coreToolsInfo.coreToolsPath.resolve("templates").resolve("net-isolated")   // Isolated worker - .NET 5 - .NET 8
         ).filter { it.exists() }
 
         for (templateFolder in templateFolders) {
             try {
-                val templateFiles = templateFolder.listFiles { f: File? -> isFunctionsProjectTemplate(f) }
-                    ?: emptyArray<File>()
+                val templateFiles = templateFolder.listDirectoryEntries()
+                    .asSequence()
+                    .map { it.toFile() }
+                    .sortedBy { isFunctionsProjectTemplate(it) }
+                    .toList()
 
-                LOG.info("Found ${templateFiles.size} function template(s) in ${templateFolder.path}")
+                LOG.info("Found ${templateFiles.size} function template(s) in $templateFolder")
 
                 templateFiles.forEach { file ->
                     ReSharperProjectTemplateProvider.addUserTemplateSource(file)
                 }
             } catch (e: Exception) {
-                LOG.error("Could not register project templates from ${templateFolder.path}", e)
+                LOG.error("Could not register project templates from $templateFolder", e)
             }
         }
     }
