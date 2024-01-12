@@ -3,13 +3,15 @@
   <img alt="Logo" src="./PluginsAndFeatures/azure-toolkit-for-rider/src/main/resources/META-INF/pluginIcon_dark.svg#gh-dark-mode-only" width="100">
   <h2>Azure Toolkit for Rider</h2>
 
+The Azure Toolkit for JetBrains Rider is an open-source project that helps .NET
+developers easily create, develop, configure, test, manage, and deploy highly available and scalable web apps to Azure.
+
   <a href="https://github.com/JetBrains"><img src="http://jb.gg/badges/official-flat-square.svg" alt="JetBrains Official"></a>
   <a href="https://plugins.jetbrains.com/plugin/11220-azure-toolkit-for-rider"><img src="https://img.shields.io/jetbrains/plugin/v/11220-azure-toolkit-for-rider.svg?label=plugin&logo=rider" alt="Version"></a>
   <a href="https://plugins.jetbrains.com/plugin/11220-azure-toolkit-for-rider"><img src="https://img.shields.io/jetbrains/plugin/d/11220-azure-toolkit-for-rider.svg" alt="Downloads"></a>
 </div>
 
-The Azure Toolkit for [JetBrains Rider](https://www.jetbrains.com/rider) is an open-source project that helps .NET
-developers easily create, develop, configure, test, manage, and deploy highly available and scalable web apps to Azure.
+---
 
 The plugin can be downloaded and installed in JetBrains Rider and is
 available [from the JetBrains plugins repository](https://plugins.jetbrains.com/plugin/11220-azure-toolkit-for-rider).
