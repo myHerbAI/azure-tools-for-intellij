@@ -1,6 +1,8 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
+
+@file:Suppress("UnstableApiUsage")
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun
 
@@ -19,7 +21,6 @@ import com.intellij.openapi.util.JDOMExternalizerUtil
 import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.util.execution.ParametersListUtil
-import com.jetbrains.rider.model.ProjectOutput
 import com.jetbrains.rider.model.RunnableProject
 import com.jetbrains.rider.model.RunnableProjectKind
 import com.jetbrains.rider.model.runnableProjectsModel
@@ -37,6 +38,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCo
 import org.jdom.Element
 import java.io.File
 import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 
 class FunctionRunConfigurationParameters(
     project: Project,
@@ -139,7 +141,7 @@ class FunctionRunConfigurationParameters(
             }
 
         return DotNetExecutable(
-            exePath = coreToolsInfo.coreToolsExecutable,
+            exePath = coreToolsInfo.coreToolsExecutable.absolutePathString(),
             projectTfm = projectOutput?.tfm,
             workingDirectory = effectiveWorkingDirectory,
             programParameterString = effectiveArguments,
@@ -149,7 +151,7 @@ class FunctionRunConfigurationParameters(
             environmentVariables = envs,
             isPassParentEnvs = isPassParentEnvs,
             onBeforeProcessStarted = startBrowserAction,
-            assemblyToDebug = coreToolsInfo.coreToolsExecutable,
+            assemblyToDebug = coreToolsInfo.coreToolsExecutable.absolutePathString(),
             runtimeArguments = runtimeArguments,
             executeAsIs = true
         )

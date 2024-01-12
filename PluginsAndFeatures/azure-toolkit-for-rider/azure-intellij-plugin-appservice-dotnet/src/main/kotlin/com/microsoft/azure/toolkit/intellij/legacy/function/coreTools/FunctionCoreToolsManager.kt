@@ -260,7 +260,7 @@ class FunctionCoreToolsManager {
                         "Download path: ${downloadFolderForTagRelease.path}"
             )
 
-            return downloadFolderForTagRelease.path
+            return downloadFolderForTagRelease.absolutePath
         }
 
         LOG.warn(
