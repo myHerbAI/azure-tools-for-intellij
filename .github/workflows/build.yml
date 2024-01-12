@@ -192,12 +192,139 @@ jobs:
           name: ${{ steps.artifact.outputs.filename }}
           path: ${{ github.workspace }}/PluginsAndFeatures/azure-toolkit-for-rider/build/distributions/content/*/*
 
+  # Run tests and upload a code coverage report
+  test:
+    name: Test
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    steps:
+
+      # Download azure artifacts
+      - name: Download library artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: azure-artifacts
+          path: /home/runner/.m2/repository/com/microsoft/azure/
+
+      # Download hdinsight artifacts
+      - name: Download library artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: hdinsight-artifacts
+          path: /home/runner/.m2/repository/com/microsoft/hdinsight/
+
+      # Download azuretools artifacts
+      - name: Download library artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: azuretools-artifacts
+          path: /home/runner/.m2/repository/com/microsoft/azuretools/
+
+      # Check out current repository
+      - name: Fetch Sources
+        uses: actions/checkout@v4
+
+      # Set up Java environment for the next steps
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+
+      # Setup Gradle
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          build-root-directory: ${{ github.workspace }}/PluginsAndFeatures/azure-toolkit-for-rider
+          gradle-home-cache-cleanup: true
+
+      # Setup .NET 8 environment
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.x'
+
+      # Run tests
+      - name: Run Tests
+        working-directory: ${{ github.workspace }}/PluginsAndFeatures/azure-toolkit-for-rider
+        run: ./gradlew check
+
+      # Collect Tests Result of failed tests
+      - name: Collect Tests Result
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests-result
+          path: ${{ github.workspace }}/PluginsAndFeatures/azure-toolkit-for-rider/build/reports/tests
+
+  # Run Qodana inspections and provide report
+  inspectCode:
+    name: Inspect code
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      checks: write
+      pull-requests: write
+    steps:
+
+      # Free GitHub Actions Environment Disk Space
+      - name: Maximize Build Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          large-packages: false
+
+      # Download azure artifacts
+      - name: Download library artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: azure-artifacts
+          path: /home/runner/.m2/repository/com/microsoft/azure/
+
+      # Download hdinsight artifacts
+      - name: Download library artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: hdinsight-artifacts
+          path: /home/runner/.m2/repository/com/microsoft/hdinsight/
+
+      # Download azuretools artifacts
+      - name: Download library artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: azuretools-artifacts
+          path: /home/runner/.m2/repository/com/microsoft/azuretools/
+
+      # Check out current repository
+      - name: Fetch Sources
+        uses: actions/checkout@v4
+
+      # Set up Java environment for the next steps
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+
+      # Setup .NET 8 environment for the next steps
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      # Run Qodana inspections
+      - name: Qodana - Code Inspection
+        uses: JetBrains/qodana-action@v2023.3.0
+        with:
+          cache-default-branch-only: true
+
   # Prepare a draft release for GitHub Releases page for the manual verification
   # If accepted and published, release workflow would be triggered
   releaseDraft:
     name: Release draft
     if: github.event_name != 'pull_request'
-    needs: [ build ]
+    needs: [ build, test, inspectCode ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
