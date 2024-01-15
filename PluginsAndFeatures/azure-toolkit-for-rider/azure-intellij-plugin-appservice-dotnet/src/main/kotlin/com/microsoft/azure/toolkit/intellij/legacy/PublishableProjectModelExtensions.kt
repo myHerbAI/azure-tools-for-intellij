@@ -61,7 +61,8 @@ fun PublishableProjectModel.getStackAndVersion(
 }
 
 suspend fun PublishableProjectModel.getFunctionStack(
-    project: Project
+    project: Project,
+    operatingSystem: OperatingSystem
 ): FunctionRuntimeStack {
     val functionLocalSettings = readAction {
         FunctionLocalSettingsUtil.readFunctionLocalSettings(project, this)
@@ -78,7 +79,7 @@ suspend fun PublishableProjectModel.getFunctionStack(
     return FunctionRuntimeStack(
         workerRuntime.value,
         "~$coreToolsVersion",
-        "${workerRuntime.value}|$dotnetVersion"
+        if (operatingSystem == OperatingSystem.LINUX) "${workerRuntime.value}|$dotnetVersion" else ""
     )
 }
 

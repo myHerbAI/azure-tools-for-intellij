@@ -90,7 +90,7 @@ class FunctionDeploymentState(
         webContainer(WebContainer.JAVA_OFF)
         isDocker = false
         functionStack = runBlockingCancellable {
-            publishableProject.getFunctionStack(project)
+            publishableProject.getFunctionStack(project, operatingSystem)
         }
     }
 
