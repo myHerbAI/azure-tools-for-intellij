@@ -1,13 +1,13 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers
 
 import com.intellij.openapi.project.Project
+import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.CreateOrUpdateDotNetWebAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetAppServiceConfig
-import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileState
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
@@ -29,6 +29,9 @@ class WebAppContainersRunState(
 
     override fun executeSteps(processHandler: RunProcessHandler): AppServiceAppBase<*, *, *> {
         OperationContext.current().setMessager(processHandlerMessenger)
+
+        processHandler.setText("Start Web App for Containers deployment...")
+
         //push image
 
 

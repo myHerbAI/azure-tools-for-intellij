@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 @file:Suppress("UnstableApiUsage")
@@ -34,7 +34,7 @@ class FunctionDeploymentState(
     override fun executeSteps(processHandler: RunProcessHandler): FunctionAppBase<*, *, *> {
         OperationContext.current().setMessager(processHandlerMessenger)
 
-        processHandler.setText("Start Function App deployment")
+        processHandler.setText("Start Function App deployment...")
 
         val publishableProjectPath = functionDeploymentConfiguration.publishableProjectPath
             ?: throw RuntimeException("Project is not defined")
@@ -70,6 +70,8 @@ class FunctionDeploymentState(
             servicePlanResourceGroup(functionDeploymentConfiguration.appServicePlanResourceGroupName)
             pricingTier(functionDeploymentConfiguration.pricingTier)
             appName(functionDeploymentConfiguration.functionAppName)
+            storageAccountName(functionDeploymentConfiguration.storageAccountName)
+            storageAccountResourceGroup(functionDeploymentConfiguration.storageAccountResourceGroup)
             runtime(createRuntimeConfig())
             dotnetRuntime = createDotNetRuntimeConfig(publishableProject)
             appSettings(functionDeploymentConfiguration.appSettings)
@@ -93,7 +95,17 @@ class FunctionDeploymentState(
     }
 
     override fun onSuccess(result: FunctionAppBase<*, *, *>, processHandler: RunProcessHandler) {
-        result.appSettings?.let { functionDeploymentConfiguration.appSettings = it }
+        updateConfigurationDataModel(result)
         processHandler.notifyComplete()
+    }
+
+    private fun updateConfigurationDataModel(app: FunctionAppBase<*, *, *>) {
+        functionDeploymentConfiguration.apply {
+//            if (app is FunctionAppDeploymentSlot) {
+//            } else {
+//                resourceId = app.id
+//            }
+            appSettings = app.appSettings ?: mutableMapOf()
+        }
     }
 }

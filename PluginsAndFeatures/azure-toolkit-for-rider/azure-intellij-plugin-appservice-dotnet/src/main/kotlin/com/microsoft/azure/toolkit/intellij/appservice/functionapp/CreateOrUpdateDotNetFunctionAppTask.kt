@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.appservice.functionapp
@@ -37,9 +37,9 @@ class CreateOrUpdateDotNetFunctionAppTask(private val config: DotNetFunctionAppC
 
     private val subTasks: MutableList<AzureTask<*>> = mutableListOf()
 
-    private lateinit var appServicePlan: AppServicePlan
-    private lateinit var storageAccount: StorageAccount
-    private lateinit var functionApp: FunctionAppBase<*, *, *>
+    private var appServicePlan: AppServicePlan? = null
+    private var storageAccount: StorageAccount? = null
+    private var functionApp: FunctionAppBase<*, *, *>? = null
 
     init {
         initTasks()
@@ -264,6 +264,6 @@ class CreateOrUpdateDotNetFunctionAppTask(private val config: DotNetFunctionAppC
             task.body.call()
         }
 
-        return functionApp
+        return requireNotNull(functionApp)
     }
 }
