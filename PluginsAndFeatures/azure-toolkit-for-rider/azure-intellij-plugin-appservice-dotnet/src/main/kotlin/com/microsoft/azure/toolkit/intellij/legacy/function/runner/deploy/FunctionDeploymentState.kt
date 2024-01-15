@@ -20,9 +20,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileSt
 import com.microsoft.azure.toolkit.intellij.legacy.getFunctionStack
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
-import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer
+import com.microsoft.azure.toolkit.lib.appservice.model.*
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployFunctionAppTask
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
 
@@ -30,6 +28,9 @@ class FunctionDeploymentState(
     project: Project,
     private val functionDeploymentConfiguration: FunctionDeploymentConfiguration
 ) : RiderAzureRunProfileState<FunctionAppBase<*, *, *>>(project) {
+    companion object {
+        private const val SCM_DO_BUILD_DURING_DEPLOYMENT = "SCM_DO_BUILD_DURING_DEPLOYMENT"
+    }
 
     override fun executeSteps(processHandler: RunProcessHandler): FunctionAppBase<*, *, *> {
         OperationContext.current().setMessager(processHandlerMessenger)
@@ -74,6 +75,11 @@ class FunctionDeploymentState(
             storageAccountResourceGroup(functionDeploymentConfiguration.storageAccountResourceGroup)
             runtime(createRuntimeConfig())
             dotnetRuntime = createDotNetRuntimeConfig(publishableProject)
+            if (functionDeploymentConfiguration.pricingTier == PricingTier.CONSUMPTION &&
+                functionDeploymentConfiguration.operatingSystem == OperatingSystem.LINUX
+            ) {
+                functionDeploymentConfiguration.appSettings[SCM_DO_BUILD_DURING_DEPLOYMENT] = "false"
+            }
             appSettings(functionDeploymentConfiguration.appSettings)
         }
 
