@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy
@@ -19,11 +19,12 @@ import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig
 import com.microsoft.azure.toolkit.intellij.common.*
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
+import com.microsoft.azure.toolkit.intellij.legacy.canBePublishedToAzure
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureSettingPanel
 import com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.function.functionAppComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.ui.components.DeploymentSlotComboBox
-import com.microsoft.azure.toolkit.intellij.legacy.canBePublishedToAzure
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
@@ -159,6 +160,11 @@ class FunctionDeploymentSettingsPanel(private val project: Project, configuratio
 
         val functionConfig = functionAppComboBox.component.value
         functionConfig?.let {
+            if (it.appSettings.containsKey(WebAppCreationDialog.RIDER_PROJECT_CONFIGURATION))
+                it.appSettings.remove(WebAppCreationDialog.RIDER_PROJECT_CONFIGURATION)
+            if (it.appSettings.containsKey(WebAppCreationDialog.RIDER_PROJECT_PLATFORM))
+                it.appSettings.remove(WebAppCreationDialog.RIDER_PROJECT_PLATFORM)
+
             val builder = it.toBuilder()
 
             if (deployToSlotCheckBox.component.isSelected) builder.deploymentSlot(deploymentSlotComboBox.component.value)
