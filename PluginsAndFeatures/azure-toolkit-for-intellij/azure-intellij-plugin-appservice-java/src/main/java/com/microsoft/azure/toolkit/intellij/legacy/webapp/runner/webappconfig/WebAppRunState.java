@@ -82,7 +82,7 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
 
     @Nullable
     @Override
-    @AzureOperation(name = "user/webapp.deploy_artifact.app", params = {"this.webAppConfiguration.getWebAppName()"})
+    @AzureOperation(name = "user/webapp.deploy_artifact.app", params = {"this.webAppConfiguration.getAppServiceConfig().getAppName()"})
     public WebAppBase<?, ?, ?> executeSteps(@NotNull RunProcessHandler processHandler, @NotNull Operation operation) throws Exception {
         OperationContext.current().setMessager(getProcessHandlerMessenger());
         final File artifact = new File(getTargetPath());

@@ -32,7 +32,6 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -43,7 +42,6 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.FocusEvent;
@@ -60,6 +58,8 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
     private static final String[] FILE_NAME_EXT = {"war", "jar", "ear"};
     private static final String DEPLOYMENT_SLOT = "&Deployment Slot";
     private static final String DEFAULT_SLOT_NAME = "slot-%s";
+    public static final String DO_NOT_CLONE_SLOT_CONFIGURATION = "Don't clone configuration from an existing slot";
+    public static final String NEW_CONFIGURATION_SOURCE = "new";
 
     private JPanel pnlSlotCheckBox;
     private JTextField txtNewSlotName;
@@ -92,6 +92,7 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
     private final HideableDecorator slotDecorator;
     private final Project project;
     private String appSettingsKey;
+    private AppServiceConfig appSettingsSource;
 
     public WebAppDeployConfigurationPanel(@Nonnull Project project, @Nonnull WebAppConfiguration webAppConfiguration) {
         super(project);
@@ -177,21 +178,17 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
             return;
         }
         this.loadDeploymentSlot(value);
-        this.loadAppSettings(value, before);
+        this.loadAppSettings(value);
     }
 
-    private synchronized void loadAppSettings(@Nonnull AppServiceConfig value, @Nullable AppServiceConfig before) {
-        final AppServiceConfig rawValue = comboBoxWebApp.getRawValue() instanceof AppServiceConfig ? (AppServiceConfig) comboBoxWebApp.getRawValue() : value;
-        if (Objects.isNull(before) && value != rawValue) {
-            // when reset from configuration, leverage app settings from configuration
-            if (isDraftWebApp(value)) {
-                // if draft has been created, merge local configuration with remote
-                appSettingsTable.loadAppSettings(() -> loadDraftAppSettings(rawValue));
-            }
-        } else if (!Objects.equals(value, before)) {
-            appSettingsTable.loadAppSettings(() -> isDraftWebApp(value) ? value.appSettings() :
-                                                   Optional.ofNullable(getWebApp(value)).map(WebApp::getAppSettings).orElse(Collections.emptyMap()));
+    private synchronized void loadAppSettings(@Nonnull AppServiceConfig value) {
+        final boolean sameApp = AppServiceComboBox.isSameApp(value, appSettingsSource);
+        if (sameApp) {
+            return;
         }
+        this.appSettingsSource = value;
+        appSettingsTable.loadAppSettings(() -> isDraftWebApp(value) ? value.appSettings() :
+                Optional.ofNullable(getWebApp(value)).map(WebApp::getAppSettings).orElse(Collections.emptyMap()));
     }
 
     // merge local app settings with remote if draft web app has been created
@@ -278,7 +275,7 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
         final String defaultConfigurationSource = (String) cbxSlotConfigurationSource.getSelectedItem();
         cbxSlotName.removeAllItems();
         cbxSlotConfigurationSource.removeAllItems();
-        cbxSlotConfigurationSource.addItem(AzureWebAppMvpModel.DO_NOT_CLONE_SLOT_CONFIGURATION);
+        cbxSlotConfigurationSource.addItem(DO_NOT_CLONE_SLOT_CONFIGURATION);
         cbxSlotConfigurationSource.addItem(selectedWebApp.appName());
         slotList.stream().filter(Objects::nonNull).forEach(slot -> {
             cbxSlotName.addItem(slot.getName());
@@ -316,9 +313,11 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
                 } else {
                     rbtNewSlot.setSelected(true);
                     txtNewSlotName.setText(c.getName());
-                    cbxSlotConfigurationSource.setSelectedItem(c.getConfigurationSource());
+                    final String source = c.getConfigurationSource();
+                    cbxSlotConfigurationSource.setSelectedItem(StringUtils.equals(source, NEW_CONFIGURATION_SOURCE) ? DO_NOT_CLONE_SLOT_CONFIGURATION : source);
                 }
             });
+            WebAppDeployConfigurationPanel.this.appSettingsSource = webApp;
             appSettingsTable.setAppSettings(webApp.appSettings());
         });
         // configuration
@@ -340,7 +339,9 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
         if (Objects.nonNull(slotConfig)) {
             final boolean useExistingSlot = rbtExistingSlot.isSelected();
             slotConfig.setName(useExistingSlot ? Objects.toString(cbxSlotName.getSelectedItem(), null) : txtNewSlotName.getText());
-            slotConfig.setConfigurationSource(useExistingSlot ? null : Objects.toString(cbxSlotConfigurationSource.getSelectedItem(), null));
+            final String source = Optional.ofNullable(cbxSlotConfigurationSource.getSelectedItem()).map(String.class::cast)
+                    .map(value -> StringUtils.equalsIgnoreCase(value, DO_NOT_CLONE_SLOT_CONFIGURATION) ? NEW_CONFIGURATION_SOURCE : value).orElse(null);
+            slotConfig.setConfigurationSource(useExistingSlot ? null : source);
         }
         model.getConfig().setSlotConfig(slotConfig);
         model.getConfig().setAppSettings(appSettingsTable.getAppSettings());

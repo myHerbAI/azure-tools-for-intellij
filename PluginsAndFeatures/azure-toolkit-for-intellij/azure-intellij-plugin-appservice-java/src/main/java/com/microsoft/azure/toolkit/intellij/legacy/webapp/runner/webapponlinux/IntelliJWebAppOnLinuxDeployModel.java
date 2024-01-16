@@ -48,7 +48,7 @@ public class IntelliJWebAppOnLinuxDeployModel extends WebAppOnLinuxDeployModel {
                                                 .map(a -> AppServiceConfigUtils.fromAppService(app, Objects.requireNonNull(app.getAppServicePlan())))
                                                 .orElseGet(AppServiceConfig::new);
         Optional.ofNullable(getSubscriptionId()).ifPresent(result::subscriptionId);
-        Optional.ofNullable(getWebAppName()).ifPresent(result::subscriptionId);
+        Optional.ofNullable(getWebAppName()).ifPresent(result::appName);
         Optional.ofNullable(getResourceGroupName()).ifPresent(result::resourceGroup);
         Optional.ofNullable(getLocationName()).map(Region::fromName).ifPresent(result::region);
         final PricingTier pricingTier = StringUtils.isAnyEmpty(this.getPricingSkuTier(), this.getPricingSkuSize()) ? null :
