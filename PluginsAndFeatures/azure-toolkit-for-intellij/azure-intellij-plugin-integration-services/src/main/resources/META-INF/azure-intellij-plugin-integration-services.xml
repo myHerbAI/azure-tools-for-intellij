@@ -1,0 +1,6 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <serviceViewContributor
+                implementation="com.microsoft.azure.toolkit.intellij.integration.services.AzureServiceViewContributor"/>
+    </extensions>
+</idea-plugin>

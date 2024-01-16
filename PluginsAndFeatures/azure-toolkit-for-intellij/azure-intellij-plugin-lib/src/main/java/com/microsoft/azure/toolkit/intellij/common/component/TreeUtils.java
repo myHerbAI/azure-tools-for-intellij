@@ -211,7 +211,7 @@ public class TreeUtils {
         return index < actionCount ? index : -1;
     }
 
-    private static IntellijAzureActionManager.ActionGroupWrapper toIntellijActionGroup(IActionGroup actions) {
+    public static IntellijAzureActionManager.ActionGroupWrapper toIntellijActionGroup(IActionGroup actions) {
         final ActionManager am = ActionManager.getInstance();
         if (actions instanceof IntellijAzureActionManager.ActionGroupWrapper) {
             return (IntellijAzureActionManager.ActionGroupWrapper) actions;
