@@ -8,6 +8,7 @@ import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.LabeledComponent
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.Cell
@@ -53,6 +54,7 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
                 functionAppComboBox = functionAppComboBox(project)
                     .align(Align.FILL)
                     .resizableColumn()
+                Disposer.register(this@FunctionDeploymentSettingsEditor, functionAppComboBox.component)
             }
             row {
                 deployToSlotCheckBox = checkBox("Deploy to Slot:")

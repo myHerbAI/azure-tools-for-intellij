@@ -5,6 +5,7 @@
 package com.microsoft.azure.toolkit.intellij.legacy.function
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
 import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig
@@ -29,6 +30,7 @@ class FunctionAppComboBox(project: Project) : AppServiceComboBox<FunctionAppConf
 
     override fun createResource() {
         val dialog = FunctionAppCreationDialog(project)
+        Disposer.register(this, dialog)
         val actionId: Action.Id<FunctionAppConfig> = Action.Id.of("user/function.create_app.app")
         dialog.setOkAction(
             Action(actionId)
