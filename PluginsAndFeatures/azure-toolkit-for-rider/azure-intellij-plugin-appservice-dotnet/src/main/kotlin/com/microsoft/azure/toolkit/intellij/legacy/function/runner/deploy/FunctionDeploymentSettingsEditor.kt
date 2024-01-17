@@ -111,7 +111,7 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
 
         val functionAppConfig = functionAppComboBox.component.value
         if (deployToSlotCheckBox.component.isSelected && functionAppConfig != null) {
-//            loadAppSettings(getResourceId(functionAppConfig, value), value.isNewCreate)
+            loadFunctionSlotSettings(functionAppConfig, value)
         }
     }
 
@@ -120,9 +120,9 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
         val slotConfig = deploymentSlotComboBox.component.value
 
         if (deployToSlotCheckBox.component.isSelected && functionAppConfig != null && slotConfig != null) {
-//            loadAppSettings(getResourceId(functionAppConfig, slotConfig), slotConfig.isNewCreate)
+            loadFunctionSlotSettings(functionAppConfig, slotConfig)
         } else if (!deployToSlotCheckBox.component.isSelected && functionAppConfig != null) {
-//            loadAppSettings(getResourceId(functionAppConfig, null), functionAppConfig.resourceId.isNullOrEmpty())
+            loadFunctionAppSettings(functionAppConfig)
         }
     }
 
@@ -135,6 +135,32 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
         } else {
             appSettingsTable.loadAppSettings {
                 functionAppConfig.appSettings
+            }
+        }
+    }
+
+    private fun loadFunctionSlotSettings(
+        functionAppConfig: FunctionAppConfig,
+        deploymentSlotConfig: DeploymentSlotConfig
+    ) {
+        if (deploymentSlotConfig.isNewCreate) {
+            val resourceId = functionAppConfig.resourceId
+            if (resourceId != null) {
+                appSettingsTable.loadAppSettings {
+                    Azure.az(AzureFunctions::class.java).functionApp(resourceId)?.appSettings
+                }
+            } else {
+                appSettingsTable.loadAppSettings {
+                    functionAppConfig.appSettings
+                }
+            }
+        } else {
+            appSettingsTable.loadAppSettings {
+                Azure.az(AzureFunctions::class.java)
+                    .functionApp(functionAppConfig.resourceId)
+                    ?.slots()
+                    ?.get(deploymentSlotConfig.name, null)
+                    ?.appSettings
             }
         }
     }
@@ -164,21 +190,21 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             .os(operatingSystem)
             .pricingTier(pricingTier)
             .build()
-//        val slotConfig = if (configuration.isDeployToSlot) {
-//            if (configuration.slotName.isNullOrEmpty())
-//                DeploymentSlotConfig
-//                    .builder()
-//                    .newCreate(true)
-//                    .name(configuration.newSlotName)
-//                    .configurationSource(configuration.newSlotConfigurationSource)
-//                    .build()
-//            else
-//                DeploymentSlotConfig
-//                    .builder()
-//                    .newCreate(false)
-//                    .name(configuration.slotName)
-//                    .build()
-//        } else null
+        val slotConfig = if (state.isDeployToSlot) {
+            if (state.slotName.isNullOrEmpty())
+                DeploymentSlotConfig
+                    .builder()
+                    .newCreate(true)
+                    .name(state.newSlotName)
+                    .configurationSource(state.newSlotConfigurationSource)
+                    .build()
+            else
+                DeploymentSlotConfig
+                    .builder()
+                    .newCreate(false)
+                    .name(state.slotName)
+                    .build()
+        } else null
         val configBuilder = FunctionAppConfig
             .builder()
             .name(state.functionAppName)
@@ -187,13 +213,20 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             .resourceGroup(resourceGroup)
             .servicePlan(plan)
             .runtime(Runtime(operatingSystem, WebContainer.JAVA_OFF, JavaVersion.OFF))
-            //.deploymentSlot(slotConfig)
+            .deploymentSlot(slotConfig)
             .appSettings(state.appSettings)
         val functionAppConfig =
             if (state.resourceId.isNullOrEmpty()) configBuilder.region(region).pricingTier(pricingTier).build()
             else configBuilder.build()
-        functionAppComboBox.component.value = functionAppConfig
 
+        functionAppComboBox.component.value = functionAppConfig
+        if (state.isDeployToSlot) {
+            deployToSlotCheckBox.selected(true)
+            deploymentSlotComboBox.component.value = slotConfig
+        } else {
+            deployToSlotCheckBox.selected(false)
+            deploymentSlotComboBox.component.value = null
+        }
         appSettingsTable.setAppSettings(state.appSettings)
 
         val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
@@ -205,26 +238,6 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             state.projectConfiguration ?: "",
             state.projectPlatform ?: ""
         )
-//        if (configuration.resourceId.isNullOrEmpty() && configuration.functionAppName.isNullOrEmpty()) return
-//
-//        val settingsKey = configuration.appSettingsKey
-//        if (!settingsKey.isNullOrEmpty()) appSettingsKey = settingsKey
-//
-//        val functionConfig = configuration.functionAppConfig
-//        functionConfig.let { functionApp ->
-//            functionAppComboBox.component.value = functionApp
-//            functionAppComboBox.component.setConfigModel(functionApp)
-//
-//            deployToSlotCheckBox.component.isSelected = functionApp.deploymentSlot != null
-//            toggleDeploymentSlot(functionApp.deploymentSlot != null)
-//            functionApp.deploymentSlot?.let { deploymentSlotComboBox.component.value = it }
-//
-//            appSettingsResourceId =
-//                if (functionApp.resourceId.isNullOrEmpty() && functionApp.name.isNullOrEmpty()) null
-//                else getResourceId(functionApp, functionApp.deploymentSlot)
-//
-//            functionApp.appSettings?.let { appSettingsTable.setAppSettings(it) }
-//        }
     }
 
     override fun applyEditorTo(configuration: FunctionDeploymentConfiguration) {
@@ -235,6 +248,9 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             functionConfig.appSettings?.remove(WebAppCreationDialog.RIDER_PROJECT_CONFIGURATION)
         if (functionConfig?.appSettings?.containsKey(WebAppCreationDialog.RIDER_PROJECT_PLATFORM) == true)
             functionConfig.appSettings?.remove(WebAppCreationDialog.RIDER_PROJECT_PLATFORM)
+
+        val deployToSlot = deployToSlotCheckBox.component.isSelected
+        val slotConfig = deploymentSlotComboBox.component.value
 
         state.apply {
             resourceId = functionConfig?.resourceId
@@ -247,6 +263,22 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             pricingTier = functionConfig?.servicePlan?.pricingTier?.tier
             pricingSize = functionConfig?.servicePlan?.pricingTier?.size
             operatingSystem = functionConfig?.runtime?.operatingSystem?.toString()
+            isDeployToSlot = deployToSlot
+            if (!deployToSlot || slotConfig == null) {
+                slotName = null
+                newSlotName = null
+                newSlotConfigurationSource = null
+            } else {
+                if (slotConfig.isNewCreate) {
+                    slotName = null
+                    newSlotName = slotConfig.name
+                    newSlotConfigurationSource = slotConfig.configurationSource
+                } else {
+                    slotName = slotConfig.name
+                    newSlotName = null
+                    newSlotConfigurationSource = null
+                }
+            }
             storageAccountName = null
             storageAccountResourceGroup = null
             appSettings = appSettingsTable.appSettings

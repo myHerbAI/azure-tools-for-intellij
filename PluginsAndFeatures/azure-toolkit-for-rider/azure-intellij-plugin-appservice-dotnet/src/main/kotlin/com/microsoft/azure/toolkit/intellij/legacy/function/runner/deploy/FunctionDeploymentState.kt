@@ -14,6 +14,7 @@ import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.CreateOrUpdateDotNetFunctionAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctionAppConfig
+import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctionAppDeploymentSlotDraft
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileState
@@ -77,6 +78,17 @@ class FunctionDeploymentState(
         val pricingTier = PricingTier(state.pricingTier, state.pricingSize)
         pricingTier(pricingTier)
         appName(state.functionAppName)
+        val slotName =
+            if (state.isDeployToSlot) state.newSlotName ?: state.slotName
+            else null
+        deploymentSlotName(slotName)
+        val configurationSource = when (state.newSlotConfigurationSource) {
+            "Do not clone settings" -> DotNetFunctionAppDeploymentSlotDraft.CONFIGURATION_SOURCE_NEW
+            "parent" -> DotNetFunctionAppDeploymentSlotDraft.CONFIGURATION_SOURCE_PARENT
+            null -> null
+            else -> state.newSlotConfigurationSource
+        }
+        deploymentSlotConfigurationSource(configurationSource)
         storageAccountName(state.storageAccountName)
         storageAccountResourceGroup(state.storageAccountResourceGroup)
         val os = OperatingSystem.fromString(state.operatingSystem)
@@ -113,6 +125,10 @@ class FunctionDeploymentState(
     private fun updateConfigurationDataModel(app: FunctionAppBase<*, *, *>) {
         functionDeploymentConfiguration.state?.apply {
             if (app is FunctionAppDeploymentSlot) {
+                resourceId = app.parent.id
+                slotName = app.name
+                newSlotName = null
+                newSlotConfigurationSource = null
             } else {
                 resourceId = app.id
             }
