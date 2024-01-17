@@ -20,8 +20,10 @@ import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileSt
 import com.microsoft.azure.toolkit.intellij.legacy.getFunctionStack
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot
 import com.microsoft.azure.toolkit.lib.appservice.model.*
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployFunctionAppTask
+import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
 
 class FunctionDeploymentState(
@@ -37,21 +39,22 @@ class FunctionDeploymentState(
 
         processHandler.setText("Start Function App deployment...")
 
-        val publishableProjectPath = functionDeploymentConfiguration.publishableProjectPath
+        val state = requireNotNull(functionDeploymentConfiguration.state)
+        val publishableProjectPath = state.publishableProjectPath
             ?: throw RuntimeException("Project is not defined")
         val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
             .firstOrNull { it.projectFilePath == publishableProjectPath }
             ?: throw RuntimeException("Project is not defined")
 
-        val config = creatDotNetFunctionAppConfig(publishableProject)
+        val config = creatDotNetFunctionAppConfig(publishableProject, state)
         val createTask = CreateOrUpdateDotNetFunctionAppTask(config)
         val deployTarget = createTask.execute()
 
         val artifactDirectory = ArtifactService.getInstance(project)
             .prepareArtifact(
                 publishableProject,
-                functionDeploymentConfiguration.projectConfiguration,
-                functionDeploymentConfiguration.projectPlatform,
+                requireNotNull(state.projectConfiguration),
+                requireNotNull(state.projectPlatform),
                 processHandler,
                 false
             )
@@ -62,43 +65,45 @@ class FunctionDeploymentState(
         return deployTarget
     }
 
-    private fun creatDotNetFunctionAppConfig(publishableProject: PublishableProjectModel) =
-        DotNetFunctionAppConfig().apply {
-            subscriptionId(functionDeploymentConfiguration.subscriptionId)
-            resourceGroup(functionDeploymentConfiguration.resourceGroup)
-            region(functionDeploymentConfiguration.region)
-            servicePlanName(functionDeploymentConfiguration.appServicePlanName)
-            servicePlanResourceGroup(functionDeploymentConfiguration.appServicePlanResourceGroupName)
-            pricingTier(functionDeploymentConfiguration.pricingTier)
-            appName(functionDeploymentConfiguration.functionAppName)
-            storageAccountName(functionDeploymentConfiguration.storageAccountName)
-            storageAccountResourceGroup(functionDeploymentConfiguration.storageAccountResourceGroup)
-            runtime(createRuntimeConfig())
-            dotnetRuntime = createDotNetRuntimeConfig(publishableProject)
-            if (functionDeploymentConfiguration.pricingTier == PricingTier.CONSUMPTION &&
-                functionDeploymentConfiguration.operatingSystem == OperatingSystem.LINUX
-            ) {
-                functionDeploymentConfiguration.appSettings[SCM_DO_BUILD_DURING_DEPLOYMENT] = "false"
+    private fun creatDotNetFunctionAppConfig(
+        publishableProject: PublishableProjectModel,
+        state: FunctionDeploymentConfigurationOptions
+    ) = DotNetFunctionAppConfig().apply {
+        subscriptionId(state.subscriptionId)
+        resourceGroup(state.resourceGroupName)
+        region(Region.fromName(requireNotNull(state.region)))
+        servicePlanName(state.appServicePlanName)
+        servicePlanResourceGroup(state.appServicePlanResourceGroupName)
+        val pricingTier = PricingTier(state.pricingTier, state.pricingSize)
+        pricingTier(pricingTier)
+        appName(state.functionAppName)
+        storageAccountName(state.storageAccountName)
+        storageAccountResourceGroup(state.storageAccountResourceGroup)
+        val os = OperatingSystem.fromString(state.operatingSystem)
+        runtime(createRuntimeConfig(os))
+        dotnetRuntime = createDotNetRuntimeConfig(publishableProject, os)
+        if (pricingTier == PricingTier.CONSUMPTION && os == OperatingSystem.LINUX) {
+            state.appSettings[SCM_DO_BUILD_DURING_DEPLOYMENT] = "false"
+        }
+        appSettings(state.appSettings)
+    }
+
+    private fun createRuntimeConfig(os: OperatingSystem) = RuntimeConfig().apply {
+        os(os)
+        javaVersion(JavaVersion.OFF)
+        webContainer(WebContainer.JAVA_OFF)
+    }
+
+    private fun createDotNetRuntimeConfig(publishableProject: PublishableProjectModel, os: OperatingSystem) =
+        DotNetRuntimeConfig().apply {
+            os(os)
+            javaVersion(JavaVersion.OFF)
+            webContainer(WebContainer.JAVA_OFF)
+            isDocker = false
+            functionStack = runBlockingCancellable {
+                publishableProject.getFunctionStack(project, os)
             }
-            appSettings(functionDeploymentConfiguration.appSettings)
         }
-
-    private fun createRuntimeConfig() = RuntimeConfig().apply {
-        os(functionDeploymentConfiguration.operatingSystem)
-        javaVersion(JavaVersion.OFF)
-        webContainer(WebContainer.JAVA_OFF)
-    }
-
-    private fun createDotNetRuntimeConfig(publishableProject: PublishableProjectModel) = DotNetRuntimeConfig().apply {
-        val operatingSystem = functionDeploymentConfiguration.operatingSystem
-        os(operatingSystem)
-        javaVersion(JavaVersion.OFF)
-        webContainer(WebContainer.JAVA_OFF)
-        isDocker = false
-        functionStack = runBlockingCancellable {
-            publishableProject.getFunctionStack(project, operatingSystem)
-        }
-    }
 
     override fun onSuccess(result: FunctionAppBase<*, *, *>, processHandler: RunProcessHandler) {
         updateConfigurationDataModel(result)
@@ -106,11 +111,11 @@ class FunctionDeploymentState(
     }
 
     private fun updateConfigurationDataModel(app: FunctionAppBase<*, *, *>) {
-        functionDeploymentConfiguration.apply {
-//            if (app is FunctionAppDeploymentSlot) {
-//            } else {
-//                resourceId = app.id
-//            }
+        functionDeploymentConfiguration.state?.apply {
+            if (app is FunctionAppDeploymentSlot) {
+            } else {
+                resourceId = app.id
+            }
             appSettings = app.appSettings ?: mutableMapOf()
         }
     }

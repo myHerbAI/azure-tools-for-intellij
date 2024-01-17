@@ -27,4 +27,6 @@ class FunctionDeploymentConfigurationType : SimpleConfigurationType(
 
     override fun createConfiguration(name: String?, template: RunConfiguration) =
         FunctionDeploymentConfiguration(template.project, this, name)
+
+    override fun getOptionsClass() = FunctionDeploymentConfigurationOptions::class.java
 }
