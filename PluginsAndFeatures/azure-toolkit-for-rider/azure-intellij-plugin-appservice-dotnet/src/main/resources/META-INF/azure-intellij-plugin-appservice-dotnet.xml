@@ -30,6 +30,8 @@
 
         <rider.publishConfigurationProvider
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppContextPublishProvider"/>
+        <rider.publishConfigurationProvider
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppContextPublishProvider"/>
 
         <projectTemplateProvider
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.FunctionTemplateProvider"

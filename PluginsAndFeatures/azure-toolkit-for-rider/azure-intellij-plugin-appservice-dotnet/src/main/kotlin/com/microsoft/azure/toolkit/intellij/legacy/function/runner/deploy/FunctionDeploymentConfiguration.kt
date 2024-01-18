@@ -14,6 +14,12 @@ import com.intellij.openapi.project.Project
 class FunctionDeploymentConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
     LocatableConfigurationBase<FunctionDeploymentConfigurationOptions>(project, factory, name) {
 
+    var publishableProjectPath: String?
+        get() = getState()?.publishableProjectPath
+        set(value) {
+            getState()?.publishableProjectPath = value
+        }
+
     override fun getState() =
         options as? FunctionDeploymentConfigurationOptions
 
