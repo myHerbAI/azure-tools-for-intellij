@@ -23,7 +23,6 @@ import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig
 import com.microsoft.azure.toolkit.intellij.common.*
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
-import com.microsoft.azure.toolkit.intellij.legacy.canBePublishedToAzure
 import com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.function.functionAppComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.ui.components.DeploymentSlotComboBox
@@ -66,7 +65,7 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
                     .align(Align.FILL)
             }
             row("Project:") {
-                dotnetProjectComboBox = dotnetProjectComboBox(project) { it.canBePublishedToAzure() }
+                dotnetProjectComboBox = dotnetProjectComboBox(project) { it.isAzureFunction }
                     .align(Align.FILL)
             }
             row("Configuration:") {
