@@ -40,22 +40,22 @@ class FunctionDeploymentState(
 
         processHandler.setText("Start Function App deployment...")
 
-        val state = requireNotNull(functionDeploymentConfiguration.state)
-        val publishableProjectPath = state.publishableProjectPath
+        val options = requireNotNull(functionDeploymentConfiguration.state)
+        val publishableProjectPath = options.publishableProjectPath
             ?: throw RuntimeException("Project is not defined")
         val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
             .firstOrNull { it.projectFilePath == publishableProjectPath }
             ?: throw RuntimeException("Project is not defined")
 
-        val config = creatDotNetFunctionAppConfig(publishableProject, state)
+        val config = creatDotNetFunctionAppConfig(publishableProject, options)
         val createTask = CreateOrUpdateDotNetFunctionAppTask(config)
         val deployTarget = createTask.execute()
 
         val artifactDirectory = ArtifactService.getInstance(project)
             .prepareArtifact(
                 publishableProject,
-                requireNotNull(state.projectConfiguration),
-                requireNotNull(state.projectPlatform),
+                requireNotNull(options.projectConfiguration),
+                requireNotNull(options.projectPlatform),
                 processHandler,
                 false
             )
@@ -68,36 +68,36 @@ class FunctionDeploymentState(
 
     private fun creatDotNetFunctionAppConfig(
         publishableProject: PublishableProjectModel,
-        state: FunctionDeploymentConfigurationOptions
+        options: FunctionDeploymentConfigurationOptions
     ) = DotNetFunctionAppConfig().apply {
-        subscriptionId(state.subscriptionId)
-        resourceGroup(state.resourceGroupName)
-        region(Region.fromName(requireNotNull(state.region)))
-        servicePlanName(state.appServicePlanName)
-        servicePlanResourceGroup(state.appServicePlanResourceGroupName)
-        val pricingTier = PricingTier(state.pricingTier, state.pricingSize)
+        subscriptionId(options.subscriptionId)
+        resourceGroup(options.resourceGroupName)
+        region(Region.fromName(requireNotNull(options.region)))
+        servicePlanName(options.appServicePlanName)
+        servicePlanResourceGroup(options.appServicePlanResourceGroupName)
+        val pricingTier = PricingTier(options.pricingTier, options.pricingSize)
         pricingTier(pricingTier)
-        appName(state.functionAppName)
+        appName(options.functionAppName)
         val slotName =
-            if (state.isDeployToSlot) state.newSlotName ?: state.slotName
+            if (options.isDeployToSlot) options.newSlotName ?: options.slotName
             else null
         deploymentSlotName(slotName)
-        val configurationSource = when (state.newSlotConfigurationSource) {
+        val configurationSource = when (options.newSlotConfigurationSource) {
             "Do not clone settings" -> DotNetFunctionAppDeploymentSlotDraft.CONFIGURATION_SOURCE_NEW
             "parent" -> DotNetFunctionAppDeploymentSlotDraft.CONFIGURATION_SOURCE_PARENT
             null -> null
-            else -> state.newSlotConfigurationSource
+            else -> options.newSlotConfigurationSource
         }
         deploymentSlotConfigurationSource(configurationSource)
-        storageAccountName(state.storageAccountName)
-        storageAccountResourceGroup(state.storageAccountResourceGroup)
-        val os = OperatingSystem.fromString(state.operatingSystem)
+        storageAccountName(options.storageAccountName)
+        storageAccountResourceGroup(options.storageAccountResourceGroup)
+        val os = OperatingSystem.fromString(options.operatingSystem)
         runtime(createRuntimeConfig(os))
         dotnetRuntime = createDotNetRuntimeConfig(publishableProject, os)
         if (pricingTier == PricingTier.CONSUMPTION && os == OperatingSystem.LINUX) {
-            state.appSettings[SCM_DO_BUILD_DURING_DEPLOYMENT] = "false"
+            options.appSettings[SCM_DO_BUILD_DURING_DEPLOYMENT] = "false"
         }
-        appSettings(state.appSettings)
+        appSettings(options.appSettings)
     }
 
     private fun createRuntimeConfig(os: OperatingSystem) = RuntimeConfig().apply {
