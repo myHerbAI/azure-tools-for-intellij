@@ -4,9 +4,11 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.appservice
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.LabeledComponent
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.dsl.builder.*
 import com.intellij.util.ui.JBUI
@@ -20,9 +22,9 @@ import com.microsoft.azure.toolkit.intellij.common.component.resourcegroup.Resou
 import com.microsoft.azure.toolkit.intellij.common.configurationAndPlatformComboBox
 import com.microsoft.azure.toolkit.intellij.common.dotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.ServicePlanComboBox
+import com.microsoft.azure.toolkit.intellij.legacy.canBePublishedToAzure
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
-import com.microsoft.azure.toolkit.intellij.legacy.canBePublishedToAzure
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.*
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
@@ -43,7 +45,7 @@ import kotlin.io.path.Path
 class AppServiceInfoAdvancedPanel<T>(
         private val project: Project,
         private val defaultConfigSupplier: Supplier<T>
-) : JPanel(), AzureFormPanel<T> where T : AppServiceConfig {
+) : JPanel(), Disposable, AzureFormPanel<T> where T : AppServiceConfig {
     companion object {
         private const val NOT_APPLICABLE = "N/A"
     }
@@ -86,6 +88,8 @@ class AppServiceInfoAdvancedPanel<T>(
 
     init {
         operatingSystem = OperatingSystem.LINUX
+
+        Disposer.register(this, textName)
 
         panel = panel {
             group("Project Details") {
@@ -265,4 +269,7 @@ class AppServiceInfoAdvancedPanel<T>(
 
     private fun getSelectedConfigurationAndPlatform(): PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform? =
             configurationAndPlatformComboBox.component.component.selectedItem as? PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform
+
+    override fun dispose() {
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 @file:Suppress("UnstableApiUsage")
@@ -14,43 +14,48 @@ import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.CreateOrUpdateDotNetFunctionAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctionAppConfig
+import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctionAppDeploymentSlotDraft
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileState
 import com.microsoft.azure.toolkit.intellij.legacy.getFunctionStack
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
-import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot
+import com.microsoft.azure.toolkit.lib.appservice.model.*
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployFunctionAppTask
+import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
 
 class FunctionDeploymentState(
     project: Project,
     private val functionDeploymentConfiguration: FunctionDeploymentConfiguration
 ) : RiderAzureRunProfileState<FunctionAppBase<*, *, *>>(project) {
+    companion object {
+        private const val SCM_DO_BUILD_DURING_DEPLOYMENT = "SCM_DO_BUILD_DURING_DEPLOYMENT"
+    }
 
     override fun executeSteps(processHandler: RunProcessHandler): FunctionAppBase<*, *, *> {
         OperationContext.current().setMessager(processHandlerMessenger)
 
-        processHandler.setText("Start Function App deployment")
+        processHandler.setText("Start Function App deployment...")
 
-        val publishableProjectPath = functionDeploymentConfiguration.publishableProjectPath
+        val options = requireNotNull(functionDeploymentConfiguration.state)
+        val publishableProjectPath = options.publishableProjectPath
             ?: throw RuntimeException("Project is not defined")
         val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
             .firstOrNull { it.projectFilePath == publishableProjectPath }
             ?: throw RuntimeException("Project is not defined")
 
-        val config = creatDotNetFunctionAppConfig(publishableProject)
+        val config = creatDotNetFunctionAppConfig(publishableProject, options)
         val createTask = CreateOrUpdateDotNetFunctionAppTask(config)
         val deployTarget = createTask.execute()
 
         val artifactDirectory = ArtifactService.getInstance(project)
             .prepareArtifact(
                 publishableProject,
-                functionDeploymentConfiguration.projectConfiguration,
-                functionDeploymentConfiguration.projectPlatform,
+                requireNotNull(options.projectConfiguration),
+                requireNotNull(options.projectPlatform),
                 processHandler,
                 false
             )
@@ -61,39 +66,73 @@ class FunctionDeploymentState(
         return deployTarget
     }
 
-    private fun creatDotNetFunctionAppConfig(publishableProject: PublishableProjectModel) =
-        DotNetFunctionAppConfig().apply {
-            subscriptionId(functionDeploymentConfiguration.subscriptionId)
-            resourceGroup(functionDeploymentConfiguration.resourceGroup)
-            region(functionDeploymentConfiguration.region)
-            servicePlanName(functionDeploymentConfiguration.appServicePlanName)
-            servicePlanResourceGroup(functionDeploymentConfiguration.appServicePlanResourceGroupName)
-            pricingTier(functionDeploymentConfiguration.pricingTier)
-            appName(functionDeploymentConfiguration.functionAppName)
-            runtime(createRuntimeConfig())
-            dotnetRuntime = createDotNetRuntimeConfig(publishableProject)
-            appSettings(functionDeploymentConfiguration.appSettings)
+    private fun creatDotNetFunctionAppConfig(
+        publishableProject: PublishableProjectModel,
+        options: FunctionDeploymentConfigurationOptions
+    ) = DotNetFunctionAppConfig().apply {
+        subscriptionId(options.subscriptionId)
+        resourceGroup(options.resourceGroupName)
+        region(Region.fromName(requireNotNull(options.region)))
+        servicePlanName(options.appServicePlanName)
+        servicePlanResourceGroup(options.appServicePlanResourceGroupName)
+        val pricingTier = PricingTier(options.pricingTier, options.pricingSize)
+        pricingTier(pricingTier)
+        appName(options.functionAppName)
+        val slotName =
+            if (options.isDeployToSlot) options.newSlotName ?: options.slotName
+            else null
+        deploymentSlotName(slotName)
+        val configurationSource = when (options.newSlotConfigurationSource) {
+            "Do not clone settings" -> DotNetFunctionAppDeploymentSlotDraft.CONFIGURATION_SOURCE_NEW
+            "parent" -> DotNetFunctionAppDeploymentSlotDraft.CONFIGURATION_SOURCE_PARENT
+            null -> null
+            else -> options.newSlotConfigurationSource
         }
+        deploymentSlotConfigurationSource(configurationSource)
+        storageAccountName(options.storageAccountName)
+        storageAccountResourceGroup(options.storageAccountResourceGroup)
+        val os = OperatingSystem.fromString(options.operatingSystem)
+        runtime(createRuntimeConfig(os))
+        dotnetRuntime = createDotNetRuntimeConfig(publishableProject, os)
+        if (pricingTier == PricingTier.CONSUMPTION && os == OperatingSystem.LINUX) {
+            options.appSettings[SCM_DO_BUILD_DURING_DEPLOYMENT] = "false"
+        }
+        appSettings(options.appSettings)
+    }
 
-    private fun createRuntimeConfig() = RuntimeConfig().apply {
-        os(functionDeploymentConfiguration.operatingSystem)
+    private fun createRuntimeConfig(os: OperatingSystem) = RuntimeConfig().apply {
+        os(os)
         javaVersion(JavaVersion.OFF)
         webContainer(WebContainer.JAVA_OFF)
     }
 
-    private fun createDotNetRuntimeConfig(publishableProject: PublishableProjectModel) = DotNetRuntimeConfig().apply {
-        val operatingSystem = functionDeploymentConfiguration.operatingSystem
-        os(operatingSystem)
-        javaVersion(JavaVersion.OFF)
-        webContainer(WebContainer.JAVA_OFF)
-        isDocker = false
-        functionStack = runBlockingCancellable {
-            publishableProject.getFunctionStack(project)
+    private fun createDotNetRuntimeConfig(publishableProject: PublishableProjectModel, os: OperatingSystem) =
+        DotNetRuntimeConfig().apply {
+            os(os)
+            javaVersion(JavaVersion.OFF)
+            webContainer(WebContainer.JAVA_OFF)
+            isDocker = false
+            functionStack = runBlockingCancellable {
+                publishableProject.getFunctionStack(project, os)
+            }
         }
-    }
 
     override fun onSuccess(result: FunctionAppBase<*, *, *>, processHandler: RunProcessHandler) {
-        result.appSettings?.let { functionDeploymentConfiguration.appSettings = it }
+        updateConfigurationDataModel(result)
         processHandler.notifyComplete()
+    }
+
+    private fun updateConfigurationDataModel(app: FunctionAppBase<*, *, *>) {
+        functionDeploymentConfiguration.state?.apply {
+            if (app is FunctionAppDeploymentSlot) {
+                resourceId = app.parent.id
+                slotName = app.name
+                newSlotName = null
+                newSlotConfigurationSource = null
+            } else {
+                resourceId = app.id
+            }
+            appSettings = app.appSettings ?: mutableMapOf()
+        }
     }
 }

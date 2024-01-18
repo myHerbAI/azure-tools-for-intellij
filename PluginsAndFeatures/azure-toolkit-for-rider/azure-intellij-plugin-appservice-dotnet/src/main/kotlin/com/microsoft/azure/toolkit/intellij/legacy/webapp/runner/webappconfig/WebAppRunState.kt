@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
@@ -10,14 +10,14 @@ import com.intellij.openapi.util.io.FileUtil
 import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
+import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.CreateOrUpdateDotNetWebAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetAppServiceConfig
-import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetWebAppDeploymentSlotDraft
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
+import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileState
 import com.microsoft.azure.toolkit.intellij.legacy.getStackAndVersion
-import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.*
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployWebAppTask
@@ -36,7 +36,7 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
     override fun executeSteps(processHandler: RunProcessHandler): WebAppBase<*, *, *> {
         OperationContext.current().setMessager(processHandlerMessenger)
 
-        processHandler.setText("Start Web App deployment")
+        processHandler.setText("Start Web App deployment...")
 
         val publishableProjectPath = webAppConfiguration.publishableProjectPath
             ?: throw RuntimeException("Project is not defined")
@@ -132,11 +132,11 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
             } else {
                 webAppId = app.id
             }
-            applicationSettings = app.appSettings ?: emptyMap()
             webAppName = app.name
             resourceGroup = app.resourceGroupName
             appServicePlanName = app.appServicePlan?.name
             appServicePlanResourceGroupName = app.appServicePlan?.resourceGroupName
+            applicationSettings = app.appSettings ?: emptyMap()
         }
     }
 

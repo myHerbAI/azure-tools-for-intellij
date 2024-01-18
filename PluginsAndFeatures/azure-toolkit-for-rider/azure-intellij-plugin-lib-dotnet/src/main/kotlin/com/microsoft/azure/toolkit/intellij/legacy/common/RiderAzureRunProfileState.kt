@@ -62,7 +62,7 @@ abstract class RiderAzureRunProfileState<T>(protected val project: Project) : Ru
 
     protected abstract fun onSuccess(result: T, processHandler: RunProcessHandler)
 
-    protected fun onFail(error: Throwable?, processHandler: RunProcessHandler) {
+    private fun onFail(error: Throwable?, processHandler: RunProcessHandler) {
         processHandler.putUserData(RunConfigurationUtils.AZURE_RUN_STATE_RESULT, false)
         processHandler.putUserData(RunConfigurationUtils.AZURE_RUN_STATE_EXCEPTION, error)
         processHandler.notifyProcessTerminated(-1)

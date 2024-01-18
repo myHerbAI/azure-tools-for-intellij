@@ -4,7 +4,9 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.panel
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig
 import com.microsoft.azure.toolkit.intellij.common.ConfigDialog
@@ -17,7 +19,7 @@ import com.microsoft.azure.toolkit.lib.auth.IAccountActions
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
 import javax.swing.JPanel
 
-open class WebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(project) {
+open class WebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(project), Disposable {
     private val basicPanel: AppServiceInfoBasicPanel<WebAppConfig>
     private val advancedPanel: AppServiceInfoAdvancedPanel<WebAppConfig>
     private val panel: JPanel
@@ -37,11 +39,15 @@ open class WebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(p
             )
         }
 
-        basicPanel = AppServiceInfoBasicPanel(
-            project,
-            selectedSubscriptions[0]
-        ) { WebAppConfig.getWebAppDefaultConfig(project.name) }
-        advancedPanel = AppServiceInfoAdvancedPanel(project) { WebAppConfig.getWebAppDefaultConfig(project.name) }
+        basicPanel = AppServiceInfoBasicPanel(project, selectedSubscriptions[0]) {
+            WebAppConfig.getWebAppDefaultConfig(project.name)
+        }
+        Disposer.register(this, basicPanel)
+
+        advancedPanel = AppServiceInfoAdvancedPanel(project) {
+            WebAppConfig.getWebAppDefaultConfig(project.name)
+        }
+        Disposer.register(this, advancedPanel)
 
         panel = panel {
             row { cell(basicPanel) }
@@ -67,5 +73,9 @@ open class WebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(p
         basicPanel.setDeploymentVisible(visible)
         advancedPanel.setDeploymentVisible(visible)
         pack()
+    }
+
+    override fun dispose() {
+        super.dispose()
     }
 }

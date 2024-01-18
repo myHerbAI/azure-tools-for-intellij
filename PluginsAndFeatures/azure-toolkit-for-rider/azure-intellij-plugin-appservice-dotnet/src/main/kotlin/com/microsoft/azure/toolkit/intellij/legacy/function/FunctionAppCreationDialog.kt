@@ -4,7 +4,9 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.panel
 import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig
 import com.microsoft.azure.toolkit.intellij.common.ConfigDialog
@@ -17,7 +19,7 @@ import com.microsoft.azure.toolkit.lib.auth.IAccountActions
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
 import javax.swing.JPanel
 
-class FunctionAppCreationDialog(project: Project): ConfigDialog<FunctionAppConfig>(project) {
+class FunctionAppCreationDialog(project: Project) : ConfigDialog<FunctionAppConfig>(project), Disposable {
     private val basicPanel: AppServiceInfoBasicPanel<FunctionAppConfig>
     private val advancedPanel: AppServiceInfoAdvancedPanel<FunctionAppConfig>
     private val panel: JPanel
@@ -26,11 +28,21 @@ class FunctionAppCreationDialog(project: Project): ConfigDialog<FunctionAppConfi
         val selectedSubscriptions = Azure.az(AzureAccount::class.java).account().selectedSubscriptions
         if (selectedSubscriptions.isEmpty()) {
             this.close()
-            throw AzureToolkitRuntimeException("There are no subscriptions selected in your account.", IAccountActions.SELECT_SUBS)
+            throw AzureToolkitRuntimeException(
+                "There are no subscriptions selected in your account.",
+                IAccountActions.SELECT_SUBS
+            )
         }
 
-        basicPanel = AppServiceInfoBasicPanel(project, selectedSubscriptions[0]) { FunctionAppConfig.getFunctionAppDefaultConfig(project.name) }
-        advancedPanel = AppServiceInfoAdvancedPanel(project) { FunctionAppConfig.builder().build() }
+        basicPanel = AppServiceInfoBasicPanel(project, selectedSubscriptions[0]) {
+            FunctionAppConfig.getFunctionAppDefaultConfig(project.name)
+        }
+        Disposer.register(this, basicPanel)
+
+        advancedPanel = AppServiceInfoAdvancedPanel(project) {
+            FunctionAppConfig.builder().build()
+        }
+        Disposer.register(this, advancedPanel)
 
         panel = panel {
             row { cell(basicPanel) }
@@ -52,4 +64,8 @@ class FunctionAppCreationDialog(project: Project): ConfigDialog<FunctionAppConfi
     override fun getBasicFormPanel() = basicPanel
 
     override fun getAdvancedFormPanel() = advancedPanel
+
+    override fun dispose() {
+        super.dispose()
+    }
 }

@@ -4,7 +4,6 @@
 
 package com.microsoft.azure.toolkit.intellij.appservice.functionapp
 
-import com.azure.resourcemanager.appservice.models.WebAppRuntimeStack
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntime
 import com.microsoft.azure.toolkit.intellij.appservice.getDotNetRuntime
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp
@@ -178,10 +177,7 @@ class DotNetFunctionAppDraft : FunctionApp,
             if (runtimeModified) newRuntime?.let { updateRuntime(update, it) }
             if (dockerModified) newDockerConfig?.let { updateDockerConfiguration(update, it) }
             if (diagnosticModified) newDiagnosticConfig?.let {
-                AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(
-                    update,
-                    it
-                )
+                AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, it)
             }
             if (flexConsumptionModified) newFlexConsumptionConfiguration?.let { update.withContainerSize(it.instanceSize) }
             storageAccount?.let { update.withExistingStorageAccount(it.remote) }
@@ -308,7 +304,9 @@ class DotNetFunctionAppDraft : FunctionApp,
         ensureConfig().diagnosticConfig = value
     }
 
-    override fun getFlexConsumptionConfiguration() = config?.flexConsumptionConfiguration ?: super.getFlexConsumptionConfiguration()
+    override fun getFlexConsumptionConfiguration() =
+        config?.flexConsumptionConfiguration ?: super.getFlexConsumptionConfiguration()
+
     fun setFlexConsumptionConfiguration(value: FlexConsumptionConfiguration?) {
         ensureConfig().flexConsumptionConfiguration = value
     }
