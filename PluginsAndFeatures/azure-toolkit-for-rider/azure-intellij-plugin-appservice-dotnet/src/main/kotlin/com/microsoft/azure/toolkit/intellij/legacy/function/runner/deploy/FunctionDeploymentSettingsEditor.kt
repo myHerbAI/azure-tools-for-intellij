@@ -21,12 +21,13 @@ import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsC
 import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig
 import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig
 import com.microsoft.azure.toolkit.intellij.common.*
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.RIDER_PROJECT_CONFIGURATION
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.RIDER_PROJECT_PLATFORM
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
 import com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.function.functionAppComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.ui.components.DeploymentSlotComboBox
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
@@ -243,10 +244,10 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
         val state = configuration.state ?: return
 
         val functionConfig = functionAppComboBox.component.value
-        if (functionConfig?.appSettings?.containsKey(WebAppCreationDialog.RIDER_PROJECT_CONFIGURATION) == true)
-            functionConfig.appSettings?.remove(WebAppCreationDialog.RIDER_PROJECT_CONFIGURATION)
-        if (functionConfig?.appSettings?.containsKey(WebAppCreationDialog.RIDER_PROJECT_PLATFORM) == true)
-            functionConfig.appSettings?.remove(WebAppCreationDialog.RIDER_PROJECT_PLATFORM)
+        if (functionConfig?.appSettings?.containsKey(RIDER_PROJECT_CONFIGURATION) == true)
+            functionConfig.appSettings?.remove(RIDER_PROJECT_CONFIGURATION)
+        if (functionConfig?.appSettings?.containsKey(RIDER_PROJECT_PLATFORM) == true)
+            functionConfig.appSettings?.remove(RIDER_PROJECT_PLATFORM)
 
         val deployToSlot = deployToSlotCheckBox.component.isSelected
         val slotConfig = deploymentSlotComboBox.component.value

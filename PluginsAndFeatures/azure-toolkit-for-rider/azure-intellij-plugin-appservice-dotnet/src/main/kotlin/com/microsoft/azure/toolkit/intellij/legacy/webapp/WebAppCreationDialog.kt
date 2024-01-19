@@ -24,11 +24,6 @@ open class WebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(p
     private val advancedPanel: AppServiceInfoAdvancedPanel<WebAppConfig>
     private val panel: JPanel
 
-    companion object {
-        const val RIDER_PROJECT_CONFIGURATION = "RIDER_PROJECT_CONFIGURATION"
-        const val RIDER_PROJECT_PLATFORM = "RIDER_PROJECT_PLATFORM"
-    }
-
     init {
         val selectedSubscriptions = Azure.az(AzureAccount::class.java).account().selectedSubscriptions
         if (selectedSubscriptions.isEmpty()) {
