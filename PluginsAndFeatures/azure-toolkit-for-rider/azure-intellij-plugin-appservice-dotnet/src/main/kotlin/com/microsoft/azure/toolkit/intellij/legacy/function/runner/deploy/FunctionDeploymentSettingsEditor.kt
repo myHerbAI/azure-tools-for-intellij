@@ -21,8 +21,6 @@ import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsC
 import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig
 import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig
 import com.microsoft.azure.toolkit.intellij.common.*
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.RIDER_PROJECT_CONFIGURATION
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.RIDER_PROJECT_PLATFORM
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
 import com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppComboBox
@@ -225,7 +223,7 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             deploymentSlotComboBox.component.value = slotConfig
         } else {
             deployToSlotCheckBox.selected(false)
-            deploymentSlotComboBox.component.value = null
+            deploymentSlotComboBox.component.clear()
         }
         appSettingsTable.setAppSettings(state.appSettings)
 
@@ -244,11 +242,6 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
         val state = configuration.state ?: return
 
         val functionConfig = functionAppComboBox.component.value
-        if (functionConfig?.appSettings?.containsKey(RIDER_PROJECT_CONFIGURATION) == true)
-            functionConfig.appSettings?.remove(RIDER_PROJECT_CONFIGURATION)
-        if (functionConfig?.appSettings?.containsKey(RIDER_PROJECT_PLATFORM) == true)
-            functionConfig.appSettings?.remove(RIDER_PROJECT_PLATFORM)
-
         val deployToSlot = deployToSlotCheckBox.component.isSelected
         val slotConfig = deploymentSlotComboBox.component.value
 

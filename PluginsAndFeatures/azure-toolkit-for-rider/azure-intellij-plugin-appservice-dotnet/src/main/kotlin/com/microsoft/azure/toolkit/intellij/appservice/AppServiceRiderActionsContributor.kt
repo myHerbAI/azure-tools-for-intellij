@@ -12,9 +12,11 @@ import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContri
 import com.microsoft.azure.toolkit.ide.containerregistry.ContainerRegistryActionsContributor
 import com.microsoft.azure.toolkit.intellij.appservice.actions.AppServiceFileAction
 import com.microsoft.azure.toolkit.intellij.legacy.function.actions.CreateFunctionAppAction
+import com.microsoft.azure.toolkit.intellij.legacy.function.actions.DeployFunctionAppAction
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.action.CreateWebAppAction
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.action.DeployWebAppAction
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
@@ -72,5 +74,9 @@ class AppServiceRiderActionsContributor : IActionsContributor {
             ResourceCommonActionsContributor.DEPLOY,
             { r, _ -> r is WebApp },
             { c, e: AnActionEvent -> DeployWebAppAction.deploy(c as? WebApp, e.project) })
+        am.registerHandler(
+            ResourceCommonActionsContributor.DEPLOY,
+            { r, _ -> r is FunctionApp },
+            { c, e: AnActionEvent -> DeployFunctionAppAction.deploy(c as? FunctionApp, e.project) })
     }
 }

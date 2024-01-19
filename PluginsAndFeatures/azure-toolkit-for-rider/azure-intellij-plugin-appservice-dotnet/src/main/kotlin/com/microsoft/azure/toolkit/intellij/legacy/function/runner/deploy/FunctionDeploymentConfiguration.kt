@@ -10,6 +10,7 @@ import com.intellij.execution.configurations.LocatableConfigurationBase
 import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp
 
 class FunctionDeploymentConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
     LocatableConfigurationBase<FunctionDeploymentConfigurationOptions>(project, factory, name) {
@@ -51,6 +52,27 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
             if (publishableProjectPath.isNullOrEmpty()) throw RuntimeConfigurationError("Choose a project to deploy")
             if (projectPlatform.isNullOrEmpty()) throw RuntimeConfigurationError("Choose a project platform")
             if (projectConfiguration.isNullOrEmpty()) throw RuntimeConfigurationError("Choose a project configuration")
+        }
+    }
+
+    fun setFunctionApp(functionApp: FunctionApp) {
+        getState()?.apply {
+            functionAppName = functionApp.name
+            subscriptionId = functionApp.subscriptionId
+            resourceGroupName = functionApp.resourceGroupName
+            region = functionApp.region.toString()
+            appServicePlanName = functionApp.appServicePlan?.name
+            appServicePlanResourceGroupName = functionApp.appServicePlan?.resourceGroupName
+            pricingTier = functionApp.appServicePlan?.pricingTier?.tier
+            pricingSize = functionApp.appServicePlan?.pricingTier?.size
+            operatingSystem = functionApp.runtime?.operatingSystem?.toString()
+            isDeployToSlot = false
+            slotName = null
+            newSlotName = null
+            newSlotConfigurationSource = null
+            storageAccountName = null
+            storageAccountResourceGroup = null
+            appSettings = functionApp.appSettings ?: mutableMapOf()
         }
     }
 }

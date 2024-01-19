@@ -23,16 +23,17 @@ object CreateFunctionAppAction {
                 ConfigurationTypeUtil.findConfigurationType(FunctionDeploymentConfigurationType::class.java)
             val configurationFactory = configurationType.configurationFactories.first()
             val uniqueName = runManager.suggestUniqueName(project.name, configurationType)
-            val runnerAndConfigurationSettings = runManager.createConfiguration(uniqueName, configurationFactory)
+            val settings = runManager.createConfiguration(uniqueName, configurationFactory)
             val result = withUiContext {
-                RunDialog.editConfiguration(project, runnerAndConfigurationSettings, "Create a Function App")
+                RunDialog.editConfiguration(project, settings, "Create a Function App")
             }
             if (!result) return@launch
 
-            ProgramRunnerUtil.executeConfiguration(
-                runnerAndConfigurationSettings,
-                DefaultRunExecutor.getRunExecutorInstance()
-            )
+            settings.storeInLocalWorkspace()
+            runManager.addConfiguration(settings)
+            runManager.selectedConfiguration = settings
+
+            ProgramRunnerUtil.executeConfiguration(settings, DefaultRunExecutor.getRunExecutorInstance())
         }
     }
 }

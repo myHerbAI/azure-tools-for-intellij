@@ -25,8 +25,6 @@ import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppDeployRunConfigurationModel
 import com.microsoft.azure.toolkit.intellij.common.*
 import com.microsoft.azure.toolkit.intellij.common.component.UIUtils
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.RIDER_PROJECT_CONFIGURATION
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.RIDER_PROJECT_PLATFORM
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
 import com.microsoft.azure.toolkit.intellij.legacy.canBePublishedToAzure
@@ -275,11 +273,6 @@ class WebAppDeployConfigurationPanel(private val project: Project) :
                         .build()
                 }
             } else null
-
-        if (webAppComboBox.component.value?.appSettings?.containsKey(RIDER_PROJECT_CONFIGURATION) == true)
-            webAppComboBox.component.value?.appSettings?.remove(RIDER_PROJECT_CONFIGURATION)
-        if (webAppComboBox.component.value?.appSettings?.containsKey(RIDER_PROJECT_PLATFORM) == true)
-            webAppComboBox.component.value?.appSettings?.remove(RIDER_PROJECT_PLATFORM)
 
         val webAppConfig = webAppComboBox.component.value
             ?.toBuilder()

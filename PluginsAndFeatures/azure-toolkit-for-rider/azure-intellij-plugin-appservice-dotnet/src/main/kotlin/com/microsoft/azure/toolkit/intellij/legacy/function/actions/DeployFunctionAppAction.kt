@@ -1,8 +1,8 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.action
+package com.microsoft.azure.toolkit.intellij.legacy.function.actions
 
 import com.intellij.execution.ProgramRunnerUtil
 import com.intellij.execution.RunManagerEx
@@ -14,16 +14,17 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.common.auth.AzureLoginHelper
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfiguration
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfigurationType
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.FunctionDeploymentConfiguration
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.FunctionDeploymentConfigurationType
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 
-class DeployWebAppAction : AnAction() {
+class DeployFunctionAppAction : AnAction() {
     companion object {
-        private val configType = ConfigurationTypeUtil.findConfigurationType(WebAppConfigurationType::class.java)
+        private val configType =
+            ConfigurationTypeUtil.findConfigurationType(FunctionDeploymentConfigurationType::class.java)
 
-        fun deploy(webApp: WebApp?, project: Project?) {
+        fun deploy(webApp: FunctionApp?, project: Project?) {
             if (webApp == null || project == null) return
             val settings = getOrCreateRunConfigurationSettings(project, webApp)
             runConfiguration(project, settings)
@@ -34,16 +35,19 @@ class DeployWebAppAction : AnAction() {
             runConfiguration(project, settings)
         }
 
-        private fun getOrCreateRunConfigurationSettings(project: Project, webApp: WebApp?): RunnerAndConfigurationSettings {
+        private fun getOrCreateRunConfigurationSettings(
+            project: Project,
+            functionApp: FunctionApp?
+        ): RunnerAndConfigurationSettings {
             val manager = RunManagerEx.getInstanceEx(project)
-            val name = webApp?.name ?: ""
+            val name = functionApp?.name ?: ""
             val type = configType
             val runConfigurationName = "${type.name}: ${project.name} $name"
             val settings = manager.findConfigurationByName(runConfigurationName)
-                    ?: manager.createConfiguration(runConfigurationName, type)
+                ?: manager.createConfiguration(runConfigurationName, type)
             val runConfiguration = settings.configuration
-            if (runConfiguration is WebAppConfiguration && webApp != null) {
-                runConfiguration.setWebApp(webApp)
+            if (runConfiguration is FunctionDeploymentConfiguration && functionApp != null) {
+                runConfiguration.setFunctionApp(functionApp)
             }
             return settings
         }
@@ -51,7 +55,7 @@ class DeployWebAppAction : AnAction() {
         private fun runConfiguration(project: Project, settings: RunnerAndConfigurationSettings) {
             val manager = RunManagerEx.getInstanceEx(project)
             AzureTaskManager.getInstance().runLater {
-                if (RunDialog.editConfiguration(project, settings, "Deploy To Web App", DefaultRunExecutor.getRunExecutorInstance())) {
+                if (RunDialog.editConfiguration(project, settings, "Deploy To Function App")) {
                     settings.storeInLocalWorkspace()
                     manager.addConfiguration(settings)
                     manager.selectedConfiguration = settings

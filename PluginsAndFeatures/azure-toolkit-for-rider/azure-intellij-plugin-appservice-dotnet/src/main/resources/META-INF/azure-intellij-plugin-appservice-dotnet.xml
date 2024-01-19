@@ -96,5 +96,10 @@
                 text="Deploy to Azure Web Apps for Containers..." description="Deploy image to Azure WebApp"
                 icon="/icons/WebApp/Deploy.svg">
         </action>
+        <action id="Actions.FunctionAppDeployAction"
+                class="com.microsoft.azure.toolkit.intellij.legacy.function.actions.DeployFunctionAppAction"
+                text="Deploy to Azure Functions..." description="Deploy selected module to Azure Functions"
+                icon="/icons/FunctionApp/Deploy.svg">
+        </action>
     </actions>
 </idea-plugin>
