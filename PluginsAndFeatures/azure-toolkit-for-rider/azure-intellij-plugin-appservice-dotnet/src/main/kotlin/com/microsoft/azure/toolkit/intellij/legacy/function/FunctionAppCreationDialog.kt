@@ -34,12 +34,12 @@ class FunctionAppCreationDialog(project: Project) : ConfigDialog<FunctionAppConf
             )
         }
 
-        basicPanel = AppServiceInfoBasicPanel(project, selectedSubscriptions[0]) {
+        basicPanel = AppServiceInfoBasicPanel(selectedSubscriptions[0]) {
             FunctionAppConfig.getFunctionAppDefaultConfig(project.name)
         }
         Disposer.register(this, basicPanel)
 
-        advancedPanel = AppServiceInfoAdvancedPanel(project) {
+        advancedPanel = AppServiceInfoAdvancedPanel(project.name) {
             FunctionAppConfig.builder().build()
         }
         Disposer.register(this, advancedPanel)
@@ -50,7 +50,6 @@ class FunctionAppCreationDialog(project: Project) : ConfigDialog<FunctionAppConf
         }
 
         advancedPanel.setValidPricingTier(PricingTier.FUNCTION_PRICING.toList(), PricingTier.CONSUMPTION)
-        advancedPanel.setDeploymentVisible(false)
 
         this.init()
 

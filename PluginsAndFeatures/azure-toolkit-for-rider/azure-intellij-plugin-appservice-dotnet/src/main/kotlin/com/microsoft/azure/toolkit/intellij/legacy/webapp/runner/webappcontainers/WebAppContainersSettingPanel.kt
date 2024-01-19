@@ -4,12 +4,16 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBIntSpinner
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.*
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig
-import com.microsoft.azure.toolkit.intellij.common.*
+import com.microsoft.azure.toolkit.intellij.common.AzureContainerRegistryComboBox
+import com.microsoft.azure.toolkit.intellij.common.ContainerRegistryModel
+import com.microsoft.azure.toolkit.intellij.common.dockerContainerRegistryComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureSettingPanel
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
@@ -22,7 +26,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 
 class WebAppContainersSettingPanel(private val project: Project) :
-    RiderAzureSettingPanel<WebAppContainersConfiguration>() {
+    RiderAzureSettingPanel<WebAppContainersConfiguration>(), Disposable {
 
     private val panel: JPanel
     private lateinit var containerRegistryComboBox: Cell<AzureContainerRegistryComboBox>
@@ -47,6 +51,7 @@ class WebAppContainersSettingPanel(private val project: Project) :
             row("Web App:") {
                 webAppContainersComboBox = dockerWebAppComboBox(project)
                     .align(Align.FILL)
+                Disposer.register(this@WebAppContainersSettingPanel, webAppContainersComboBox.component)
             }
             row("Website Port:") {
                 portSpinner = spinner(80..65535)
@@ -141,5 +146,8 @@ class WebAppContainersSettingPanel(private val project: Project) :
     override fun getMainPanel() = panel
 
     override fun disposeEditor() {
+    }
+
+    override fun dispose() {
     }
 }

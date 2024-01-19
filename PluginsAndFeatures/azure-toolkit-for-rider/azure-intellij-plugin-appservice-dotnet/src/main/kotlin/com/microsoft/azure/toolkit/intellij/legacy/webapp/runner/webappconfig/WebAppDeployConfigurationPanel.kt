@@ -4,9 +4,11 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.LabeledComponent
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBRadioButton
@@ -42,7 +44,8 @@ import java.time.format.DateTimeFormatter
 import javax.swing.JComboBox
 import javax.swing.JPanel
 
-class WebAppDeployConfigurationPanel(private val project: Project) : AzureFormPanel<WebAppDeployRunConfigurationModel> {
+class WebAppDeployConfigurationPanel(private val project: Project) :
+    AzureFormPanel<WebAppDeployRunConfigurationModel>, Disposable {
     companion object {
         private const val DEFAULT_SLOT_NAME = "slot"
     }
@@ -73,6 +76,7 @@ class WebAppDeployConfigurationPanel(private val project: Project) : AzureFormPa
                 webAppComboBox = webAppComboBox(project)
                     .align(Align.FILL)
                     .resizableColumn()
+                Disposer.register(this@WebAppDeployConfigurationPanel, webAppComboBox.component)
             }
             row("Project:") {
                 dotnetProjectComboBox = dotnetProjectComboBox(project) { it.canBePublishedToAzure() }
@@ -300,5 +304,8 @@ class WebAppDeployConfigurationPanel(private val project: Project) : AzureFormPa
     private fun setComboBoxDefaultValue(comboBox: JComboBox<*>, value: Any?) {
         UIUtils.listComboBoxItems(comboBox).stream().filter { it == value }.findFirst()
             .ifPresent { comboBox.selectedItem = value }
+    }
+
+    override fun dispose() {
     }
 }

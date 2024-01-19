@@ -34,12 +34,12 @@ open class WebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(p
             )
         }
 
-        basicPanel = AppServiceInfoBasicPanel(project, selectedSubscriptions[0]) {
+        basicPanel = AppServiceInfoBasicPanel(selectedSubscriptions[0]) {
             WebAppConfig.getWebAppDefaultConfig(project.name)
         }
         Disposer.register(this, basicPanel)
 
-        advancedPanel = AppServiceInfoAdvancedPanel(project) {
+        advancedPanel = AppServiceInfoAdvancedPanel(project.name) {
             WebAppConfig.getWebAppDefaultConfig(project.name)
         }
         Disposer.register(this, advancedPanel)
@@ -63,12 +63,6 @@ open class WebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(p
     override fun getBasicFormPanel() = basicPanel
 
     override fun getAdvancedFormPanel() = advancedPanel
-
-    fun setDeploymentVisible(visible: Boolean) {
-        basicPanel.setDeploymentVisible(visible)
-        advancedPanel.setDeploymentVisible(visible)
-        pack()
-    }
 
     override fun dispose() {
         super.dispose()
