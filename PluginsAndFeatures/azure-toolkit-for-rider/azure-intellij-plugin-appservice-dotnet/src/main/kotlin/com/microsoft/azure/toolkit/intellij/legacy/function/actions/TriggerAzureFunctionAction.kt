@@ -23,6 +23,8 @@ class TriggerAzureFunctionAction(private val functionName: String) : AnAction(
 ) {
     companion object {
         private val LOG = logger<TriggerAzureFunctionAction>()
+
+        private const val TEMPLATE_NAME = "Trigger Azure Function"
     }
 
     override fun actionPerformed(e: AnActionEvent) {
@@ -38,11 +40,7 @@ class TriggerAzureFunctionAction(private val functionName: String) : AnAction(
                     project,
                     scratchFileName,
                     HttpRequestLanguage.INSTANCE,
-                    createContentFromTemplate(
-                        project,
-                        "Trigger Azure Function",
-                        functionName
-                    ) ?: "",
+                    createContentFromTemplate(project, functionName) ?: "",
                     ScratchFileService.Option.create_if_missing
                 )
 
@@ -51,8 +49,8 @@ class TriggerAzureFunctionAction(private val functionName: String) : AnAction(
         }
     }
 
-    private fun createContentFromTemplate(project: Project, templateName: String, functionName: String): String? {
-        val template = FileTemplateManager.getInstance(project).findInternalTemplate(templateName)
+    private fun createContentFromTemplate(project: Project, functionName: String): String? {
+        val template = FileTemplateManager.getInstance(project).findInternalTemplate(TEMPLATE_NAME)
         if (template != null) {
             try {
                 val properties = FileTemplateManager.getInstance(project).defaultProperties
