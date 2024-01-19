@@ -26,7 +26,6 @@ import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsT
 import com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.function.functionAppComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.ui.components.DeploymentSlotComboBox
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
@@ -224,7 +223,7 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             deploymentSlotComboBox.component.value = slotConfig
         } else {
             deployToSlotCheckBox.selected(false)
-            deploymentSlotComboBox.component.value = null
+            deploymentSlotComboBox.component.clear()
         }
         appSettingsTable.setAppSettings(state.appSettings)
 
@@ -243,11 +242,6 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
         val state = configuration.state ?: return
 
         val functionConfig = functionAppComboBox.component.value
-        if (functionConfig?.appSettings?.containsKey(WebAppCreationDialog.RIDER_PROJECT_CONFIGURATION) == true)
-            functionConfig.appSettings?.remove(WebAppCreationDialog.RIDER_PROJECT_CONFIGURATION)
-        if (functionConfig?.appSettings?.containsKey(WebAppCreationDialog.RIDER_PROJECT_PLATFORM) == true)
-            functionConfig.appSettings?.remove(WebAppCreationDialog.RIDER_PROJECT_PLATFORM)
-
         val deployToSlot = deployToSlotCheckBox.component.isSelected
         val slotConfig = deploymentSlotComboBox.component.value
 

@@ -2,11 +2,8 @@
  * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-@file:Suppress("CompanionObjectInExtension")
-
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
-import com.intellij.execution.configurations.ConfigurationTypeUtil
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.SimpleConfigurationType
 import com.intellij.openapi.project.Project
@@ -20,10 +17,6 @@ class WebAppConfigurationType : SimpleConfigurationType(
     "Azure Publish Web App configuration",
     NotNullLazyValue.createValue { IntelliJAzureIcons.getIcon(AzureIcons.WebApp.DEPLOY) }
 ) {
-    companion object {
-        fun getInstance() = ConfigurationTypeUtil.findConfigurationType(WebAppConfigurationType::class.java)
-    }
-
     override fun createTemplateConfiguration(project: Project) =
         WebAppConfiguration(project, this, project.name)
 

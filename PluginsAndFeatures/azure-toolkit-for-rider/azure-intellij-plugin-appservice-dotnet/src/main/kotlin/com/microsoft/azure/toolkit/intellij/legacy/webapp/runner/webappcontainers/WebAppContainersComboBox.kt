@@ -5,6 +5,7 @@
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig
@@ -30,7 +31,7 @@ class WebAppContainersComboBox(project: Project) : WebAppComboBox(project) {
 
     override fun createResource() {
         val dialog = WebAppContainersCreationDialog(project)
-        dialog.setDeploymentVisible(false)
+        Disposer.register(this, dialog)
         val actionId: Action.Id<WebAppConfig> = Action.Id.of("user/webapp.create_app.app")
         dialog.setOkAction(Action(actionId)
             .withLabel("Create")

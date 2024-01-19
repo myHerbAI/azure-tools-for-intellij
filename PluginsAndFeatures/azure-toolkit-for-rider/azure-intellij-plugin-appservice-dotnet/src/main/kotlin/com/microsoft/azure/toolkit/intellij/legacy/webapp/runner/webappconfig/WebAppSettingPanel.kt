@@ -4,7 +4,9 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.panel
 import com.jetbrains.rider.model.publishableProjectsModel
@@ -22,7 +24,7 @@ import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig
 import javax.swing.JPanel
 
 class WebAppSettingPanel(private val project: Project, configuration: WebAppConfiguration) :
-    RiderAzureSettingPanel<WebAppConfiguration>() {
+    RiderAzureSettingPanel<WebAppConfiguration>(), Disposable {
 
     private val panel: JPanel
     private val webAppPanel = WebAppDeployConfigurationPanel(project)
@@ -36,6 +38,7 @@ class WebAppSettingPanel(private val project: Project, configuration: WebAppConf
                     .resizableColumn()
             }
         }
+        Disposer.register(this, webAppPanel)
     }
 
     override fun apply(configuration: WebAppConfiguration) {
@@ -161,5 +164,8 @@ class WebAppSettingPanel(private val project: Project, configuration: WebAppConf
     override fun getMainPanel() = panel
 
     override fun disposeEditor() {
+    }
+
+    override fun dispose() {
     }
 }

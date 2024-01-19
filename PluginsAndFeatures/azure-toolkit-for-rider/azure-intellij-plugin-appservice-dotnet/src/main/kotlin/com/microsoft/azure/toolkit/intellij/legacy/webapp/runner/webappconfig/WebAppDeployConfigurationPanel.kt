@@ -4,9 +4,11 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.LabeledComponent
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBRadioButton
@@ -26,8 +28,6 @@ import com.microsoft.azure.toolkit.intellij.common.component.UIUtils
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
 import com.microsoft.azure.toolkit.intellij.legacy.canBePublishedToAzure
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot
@@ -42,7 +42,8 @@ import java.time.format.DateTimeFormatter
 import javax.swing.JComboBox
 import javax.swing.JPanel
 
-class WebAppDeployConfigurationPanel(private val project: Project) : AzureFormPanel<WebAppDeployRunConfigurationModel> {
+class WebAppDeployConfigurationPanel(private val project: Project) :
+    AzureFormPanel<WebAppDeployRunConfigurationModel>, Disposable {
     companion object {
         private const val DEFAULT_SLOT_NAME = "slot"
     }
@@ -73,6 +74,7 @@ class WebAppDeployConfigurationPanel(private val project: Project) : AzureFormPa
                 webAppComboBox = webAppComboBox(project)
                     .align(Align.FILL)
                     .resizableColumn()
+                Disposer.register(this@WebAppDeployConfigurationPanel, webAppComboBox.component)
             }
             row("Project:") {
                 dotnetProjectComboBox = dotnetProjectComboBox(project) { it.canBePublishedToAzure() }
@@ -272,11 +274,6 @@ class WebAppDeployConfigurationPanel(private val project: Project) : AzureFormPa
                 }
             } else null
 
-        if (webAppComboBox.component.value?.appSettings?.containsKey(RIDER_PROJECT_CONFIGURATION) == true)
-            webAppComboBox.component.value?.appSettings?.remove(RIDER_PROJECT_CONFIGURATION)
-        if (webAppComboBox.component.value?.appSettings?.containsKey(RIDER_PROJECT_PLATFORM) == true)
-            webAppComboBox.component.value?.appSettings?.remove(RIDER_PROJECT_PLATFORM)
-
         val webAppConfig = webAppComboBox.component.value
             ?.toBuilder()
             ?.appSettings(appSettingsTable.appSettings)
@@ -300,5 +297,8 @@ class WebAppDeployConfigurationPanel(private val project: Project) : AzureFormPa
     private fun setComboBoxDefaultValue(comboBox: JComboBox<*>, value: Any?) {
         UIUtils.listComboBoxItems(comboBox).stream().filter { it == value }.findFirst()
             .ifPresent { comboBox.selectedItem = value }
+    }
+
+    override fun dispose() {
     }
 }

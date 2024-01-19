@@ -5,26 +5,16 @@
 package com.microsoft.azure.toolkit.intellij.legacy.appservice
 
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.ui.LabeledComponent
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.dsl.builder.*
 import com.intellij.util.ui.JBUI
-import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
 import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig
-import com.microsoft.azure.toolkit.intellij.common.AzureDotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel
 import com.microsoft.azure.toolkit.intellij.common.component.RegionComboBox
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox
 import com.microsoft.azure.toolkit.intellij.common.component.resourcegroup.ResourceGroupComboBox
-import com.microsoft.azure.toolkit.intellij.common.configurationAndPlatformComboBox
-import com.microsoft.azure.toolkit.intellij.common.dotnetProjectComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.ServicePlanComboBox
-import com.microsoft.azure.toolkit.intellij.legacy.canBePublishedToAzure
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_CONFIGURATION
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog.Companion.RIDER_PROJECT_PLATFORM
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.*
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
@@ -40,10 +30,9 @@ import java.time.format.DateTimeFormatter
 import java.util.function.Supplier
 import javax.swing.JLabel
 import javax.swing.JPanel
-import kotlin.io.path.Path
 
 class AppServiceInfoAdvancedPanel<T>(
-        private val project: Project,
+        private val projectName: String,
         private val defaultConfigSupplier: Supplier<T>
 ) : JPanel(), Disposable, AzureFormPanel<T> where T : AppServiceConfig {
     companion object {
@@ -55,7 +44,7 @@ class AppServiceInfoAdvancedPanel<T>(
     private val panel: JPanel
     private val textName = AppNameInput().apply {
         isRequired = true
-        value = "app-${project.name}-${LocalDateTime.now().format(formatter)}"
+        value = "app-${projectName}-${LocalDateTime.now().format(formatter)}"
     }
     private val selectorSubscription = SubscriptionComboBox().apply {
         isRequired = true
@@ -82,9 +71,6 @@ class AppServiceInfoAdvancedPanel<T>(
     private lateinit var operatingSystemGroup: ButtonsGroup
     private lateinit var windowsRadioButton: Cell<JBRadioButton>
     private lateinit var linuxRadioButton: Cell<JBRadioButton>
-    private lateinit var deploymentGroup: Row
-    private lateinit var dotnetProjectComboBox: Cell<AzureDotnetProjectComboBox>
-    private lateinit var configurationAndPlatformComboBox: Cell<LabeledComponent<ComboBox<PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform?>>>
 
     init {
         operatingSystem = OperatingSystem.LINUX
@@ -128,18 +114,7 @@ class AppServiceInfoAdvancedPanel<T>(
                     cell(textSku)
                 }
             }
-            deploymentGroup = group("Deployment") {
-                row("Project:") {
-                    dotnetProjectComboBox = dotnetProjectComboBox(project) { it.canBePublishedToAzure() }
-                            .align(Align.FILL)
-                }
-                row("Configuration:") {
-                    configurationAndPlatformComboBox = configurationAndPlatformComboBox(project)
-                            .align(Align.FILL)
-                }
-            }
         }
-        dotnetProjectComboBox.component.reloadItems()
 
         add(panel)
     }
@@ -151,8 +126,6 @@ class AppServiceInfoAdvancedPanel<T>(
         val os = if (windowsRadioButton.component.isSelected) OperatingSystem.WINDOWS else OperatingSystem.LINUX
         val region = selectorRegion.value
         val servicePlan = selectorServicePlan.value
-        val projectModel = dotnetProjectComboBox.component.value
-        val configurationAndPlatform = getSelectedConfigurationAndPlatform()
 
         val config = defaultConfigSupplier.get()
         config.subscription = subscription
@@ -167,14 +140,6 @@ class AppServiceInfoAdvancedPanel<T>(
             planConfig.os = os
         }
         config.servicePlan = planConfig
-
-        if (projectModel != null) {
-            config.application = Path(projectModel.projectFilePath)
-        }
-        if (configurationAndPlatform != null) {
-            config.appSettings[RIDER_PROJECT_CONFIGURATION] = configurationAndPlatform.configuration
-            config.appSettings[RIDER_PROJECT_PLATFORM] = configurationAndPlatform.platform
-        }
 
         return config
     }
@@ -254,10 +219,6 @@ class AppServiceInfoAdvancedPanel<T>(
         selectorServicePlan.setValidPricingTierList(pricingTier, defaultPricingTier)
     }
 
-    fun setDeploymentVisible(visible: Boolean) {
-        deploymentGroup.visible(visible)
-    }
-
     fun setFixedRuntime(runtime: Runtime) {
         if (runtime.operatingSystem == OperatingSystem.WINDOWS) {
             windowsRadioButton.component.isSelected = true
@@ -266,9 +227,6 @@ class AppServiceInfoAdvancedPanel<T>(
         }
         operatingSystemGroup.visible(false)
     }
-
-    private fun getSelectedConfigurationAndPlatform(): PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform? =
-            configurationAndPlatformComboBox.component.component.selectedItem as? PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform
 
     override fun dispose() {
     }
