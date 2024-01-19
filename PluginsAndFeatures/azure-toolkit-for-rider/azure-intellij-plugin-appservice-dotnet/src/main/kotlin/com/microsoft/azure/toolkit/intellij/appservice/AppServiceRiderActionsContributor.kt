@@ -11,8 +11,10 @@ import com.microsoft.azure.toolkit.ide.common.IActionsContributor
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor
 import com.microsoft.azure.toolkit.ide.containerregistry.ContainerRegistryActionsContributor
 import com.microsoft.azure.toolkit.intellij.appservice.actions.AppServiceFileAction
+import com.microsoft.azure.toolkit.intellij.legacy.function.actions.CreateFunctionAppAction
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.action.CreateWebAppAction
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.action.DeployWebAppAction
+import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
@@ -61,7 +63,11 @@ class AppServiceRiderActionsContributor : IActionsContributor {
         am.registerHandler(
             ResourceCommonActionsContributor.CREATE,
             { r, _ -> r is AzureWebApp },
-            { _, e: AnActionEvent -> e.project?.let { CreateWebAppAction.openDialog(it, null) } })
+            { _, e: AnActionEvent -> e.project?.let { CreateWebAppAction.openDialog(it) } })
+        am.registerHandler(
+            ResourceCommonActionsContributor.CREATE,
+            { r, _ -> r is AzureFunctions },
+            { _, e: AnActionEvent -> e.project?.let { CreateFunctionAppAction.openDialog(it) } })
         am.registerHandler(
             ResourceCommonActionsContributor.DEPLOY,
             { r, _ -> r is WebApp },
