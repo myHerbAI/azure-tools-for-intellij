@@ -87,8 +87,7 @@ public class FunctionAppActionsContributor implements IActionsContributor {
             FunctionAppActionsContributor.FOCUS_CONTAINER_ENVIRONMENT,
             "---",
             am.getAction(ResourceCommonActionsContributor.DEPLOY).bind(null)
-                    .visibleWhen(s -> s instanceof AppServiceAppBase<?,?,?> app && !app.getFormalStatus().isReading() &&
-                            Optional.ofNullable(app.getRuntime()).map(r -> !r.isDocker()).orElse(false)),
+                    .visibleWhen(s -> s instanceof FunctionApp app && StringUtils.isBlank(app.getEnvironmentId())),
             AppServiceActionsContributor.UPDATE_IMAGE,
             "---",
             FunctionAppActionsContributor.REMOTE_DEBUGGING,
