@@ -33,7 +33,7 @@ public abstract class ConfigDialog<T> extends AzureDialog<T> {
 
     @AzureOperation(name = "internal/common.toggle_config_mode.ui")
     public void toggleAdvancedMode(boolean advancedMode) {
-        if (checkboxMode.isSelected() == advancedMode) {
+        if (this.advancedMode == advancedMode) {
             return;
         }
         this.advancedMode = advancedMode;
