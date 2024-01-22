@@ -17,13 +17,12 @@ import com.microsoft.azure.toolkit.ide.appservice.function.coretools.FunctionsCo
 import com.microsoft.azure.toolkit.ide.appservice.webapp.WebAppActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
-import com.microsoft.azure.toolkit.ide.containerapps.ContainerAppsActionsContributor;
 import com.microsoft.azure.toolkit.ide.containerregistry.ContainerRegistryActionsContributor;
 import com.microsoft.azure.toolkit.ide.guidance.GuidanceViewManager;
 import com.microsoft.azure.toolkit.intellij.appservice.actions.AppServiceFileAction;
-import com.microsoft.azure.toolkit.intellij.function.actions.FunctionAppUpdateImageAction;
 import com.microsoft.azure.toolkit.intellij.appservice.actions.OpenAppServicePropertyViewAction;
 import com.microsoft.azure.toolkit.intellij.containerregistry.pushimage.PushImageAction;
+import com.microsoft.azure.toolkit.intellij.function.actions.FunctionAppUpdateImageAction;
 import com.microsoft.azure.toolkit.intellij.function.remotedebug.FunctionEnableRemoteDebuggingAction;
 import com.microsoft.azure.toolkit.intellij.function.remotedebug.FunctionRemoteDebuggingAction;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.action.*;

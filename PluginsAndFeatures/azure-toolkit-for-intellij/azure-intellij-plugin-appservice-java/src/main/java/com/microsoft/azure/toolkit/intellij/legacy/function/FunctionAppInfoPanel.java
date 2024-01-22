@@ -135,7 +135,7 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
                 this.selectorGroup.setValue(group);
                 this.cbEnvironment.setResourceGroup(group);
             });
-            this.selectorRuntime.setValue(RuntimeConfig.toFunctionAppRuntime(config.getRuntime()));
+            Optional.ofNullable(config.getRuntime()).map(RuntimeConfig::toFunctionAppRuntime).ifPresent(this.selectorRuntime::setValue);
             this.selectorRegion.setValue(config.getRegion());
             this.cbEnvironment.setRegion(config.getRegion());
             final boolean useEnvironment = StringUtils.isNotEmpty(config.environment());
@@ -233,8 +233,9 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
         this.selectorServicePlan.revalidate();
         this.cbEnvironment.setRequired(!useServicePlan);
         this.cbEnvironment.revalidate();
-
-        this.selectorRuntime.setValue(useServicePlan ? selectorRuntime.getValue() : FunctionAppDockerRuntime.INSTANCE);
+        if (!useServicePlan) {
+            this.selectorRuntime.setValue(FunctionAppDockerRuntime.INSTANCE);
+        }
     }
 
     private void onGroupChanged(ItemEvent e) {

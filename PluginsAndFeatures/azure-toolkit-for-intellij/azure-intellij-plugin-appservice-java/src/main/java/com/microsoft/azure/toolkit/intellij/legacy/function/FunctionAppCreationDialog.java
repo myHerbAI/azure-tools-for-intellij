@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.legacy.function;
 
 import com.intellij.openapi.project.Project;
+import com.microsoft.azure.toolkit.intellij.appservice.AppServiceIntelliJActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.ConfigDialog;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoBasicPanel;
@@ -16,7 +17,6 @@ import com.microsoft.azure.toolkit.lib.auth.IAccountActions;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.ExceptionNotification;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
@@ -68,14 +68,12 @@ public class FunctionAppCreationDialog extends ConfigDialog<FunctionAppConfig> {
             this.close();
             throw new AzureToolkitRuntimeException("there are no subscriptions selected in your account.", IAccountActions.SELECT_SUBS);
         }
-        final String function = Utils.generateRandomResourceName("function", 32);
-        final String rg = "rg-" + function;
-        basicPanel = new AppServiceInfoBasicPanel<>(project, selectedSubscriptions.get(0), () -> FunctionAppConfig.buildDefaultFunctionConfig(rg, function)) {
+        basicPanel = new AppServiceInfoBasicPanel<>(project, () -> AppServiceIntelliJActionsContributor.getDefaultFunctionAppConfig(null)) {
             @Override
             public FunctionAppConfig getValue() {
                 // Create AI instance with same name by default
                 final FunctionAppConfig config = super.getValue();
-                Optional.ofNullable(config.applicationInsightsConfig()).ifPresent(insightConfig -> {
+                Optional.ofNullable(config).map(FunctionAppConfig::applicationInsightsConfig).ifPresent(insightConfig -> {
                     if (insightConfig.getCreateNewInstance() && !StringUtils.equals(insightConfig.getName(), config.appName())) {
                         insightConfig.setName(config.appName());
                     }

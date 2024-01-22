@@ -25,7 +25,6 @@ import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -34,15 +33,11 @@ import java.util.function.Supplier;
 import static com.microsoft.azuretools.utils.WebAppUtils.isSupportedArtifactType;
 
 public class AppServiceInfoBasicPanel<T extends AppServiceConfig> extends JPanel implements AzureFormPanel<T> {
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyMMddHHmmss");
-    private static final int RG_NAME_MAX_LENGTH = 90;
-    private static final int SP_NAME_MAX_LENGTH = 40;
     private final Project project;
     private final Supplier<? extends T> supplier;
     private T config;
 
     private JPanel contentPanel;
-
     private AppNameInput textName;
     private RuntimeComboBox selectorRuntime;
     private AzureArtifactComboBox selectorApplication;
@@ -51,17 +46,16 @@ public class AppServiceInfoBasicPanel<T extends AppServiceConfig> extends JPanel
     private JLabel lblName;
     private JLabel lblPlatform;
 
-    public AppServiceInfoBasicPanel(final Project project, @Nonnull final Subscription subscription, final Supplier<? extends T> defaultConfigSupplier) {
+    public AppServiceInfoBasicPanel(final Project project, final Supplier<? extends T> defaultConfigSupplier) {
         super();
         this.project = project;
         this.supplier = defaultConfigSupplier;
         $$$setupUI$$$(); // tell IntelliJ to call createUIComponents() here.
-        this.init(subscription);
+        this.init();
     }
 
-    private void init(Subscription subscription) {
+    private void init() {
         this.textName.setRequired(true);
-        this.textName.setSubscription(subscription);
         this.selectorRuntime.setRequired(true);
 
         this.selectorApplication.setFileFilter(virtualFile -> {
@@ -70,8 +64,6 @@ public class AppServiceInfoBasicPanel<T extends AppServiceConfig> extends JPanel
             return StringUtils.isNotBlank(ext) && isSupportedArtifactType(platform, ext);
         });
         this.setDeploymentVisible(false);
-        this.config = supplier.get();
-        setValue(this.config);
 
         this.lblName.setLabelFor(textName);
         this.lblPlatform.setLabelFor(selectorRuntime);
@@ -100,16 +92,16 @@ public class AppServiceInfoBasicPanel<T extends AppServiceConfig> extends JPanel
 //        }
         this.config = result;
         this.config.appSettings(ObjectUtils.firstNonNull(this.config.appSettings(), new HashMap<>()));
-        return result;
+        return config;
     }
 
     @Override
     public void setValue(final T config) {
         this.config = config;
-        this.textName.setValue(config.appName());
         final Subscription subscription = Optional.ofNullable(config.subscriptionId())
                                                   .map(Azure.az(AzureAccount.class).account()::getSubscription)
                                                   .orElse(null);
+        this.textName.setValue(config.appName());
         this.textName.setSubscription(subscription);
         Optional.ofNullable(config.runtime())
                 .map(c -> config instanceof FunctionAppConfig ? RuntimeConfig.toFunctionAppRuntime(c) : RuntimeConfig.toWebAppRuntime(c))
