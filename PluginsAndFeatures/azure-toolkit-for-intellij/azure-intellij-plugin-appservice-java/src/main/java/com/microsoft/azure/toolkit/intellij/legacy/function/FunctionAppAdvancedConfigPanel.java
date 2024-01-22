@@ -87,7 +87,6 @@ public class FunctionAppAdvancedConfigPanel extends JPanel implements AzureFormP
         // TODO: place custom component creation code here
         appServiceConfigPanelAdvanced = new FunctionAppInfoPanel(project);
         // Function does not support file deployment
-        appServiceConfigPanelAdvanced.setDeploymentVisible(false);
         insightsConfig = ApplicationInsightsConfig.builder().createNewInstance(true)
                 .name(appServiceConfigPanelAdvanced.getTextName().getValue())
                 .build();

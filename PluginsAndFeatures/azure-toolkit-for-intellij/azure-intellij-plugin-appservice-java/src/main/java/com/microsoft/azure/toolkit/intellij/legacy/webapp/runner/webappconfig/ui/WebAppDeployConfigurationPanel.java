@@ -6,8 +6,11 @@
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.ui;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.IdeTooltip;
 import com.intellij.ide.IdeTooltipManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
+import com.intellij.ui.ClientProperty;
 import com.intellij.ui.HideableDecorator;
 import com.intellij.ui.HyperlinkLabel;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifact;
@@ -115,6 +118,9 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
         btnSlotHover.setHorizontalAlignment(SwingConstants.CENTER);
         btnSlotHover.setPreferredSize(new Dimension(informationIcon.getIconWidth(), informationIcon.getIconHeight()));
         btnSlotHover.setToolTipText(message("webapp.deploy.hint.deploymentSlot"));
+        // workaround to support the hover notification
+        // todo: validate whether tooltip could be read by screen reader, if so, the workaround could be removed
+        ClientProperty.get(btnSlotHover, Key.create("custom.tooltip"));
         btnSlotHover.addFocusListener(new FocusListener() {
             private final IdeTooltipManager instance = IdeTooltipManager.getInstance();
 
@@ -123,7 +129,12 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
                 btnSlotHover.setBorderPainted(true);
                 final MouseEvent phantom = new MouseEvent(btnSlotHover, MouseEvent.MOUSE_ENTERED,
                         System.currentTimeMillis(), 0, 10, 10, 0, false);
-                AzureTaskManager.getInstance().runLater(() -> instance.show(instance.getCustomTooltip(btnSlotHover), true));
+                AzureTaskManager.getInstance().runLater(() -> {
+                    final IdeTooltip tooltip = instance.getCustomTooltip(btnSlotHover);
+                    if (tooltip != null) {
+                        instance.show(tooltip, true);
+                    }
+                });
             }
 
             @Override

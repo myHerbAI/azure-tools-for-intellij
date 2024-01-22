@@ -23,7 +23,7 @@ public class RuntimeComboBox extends AzureComboBox<Runtime> {
     private List<? extends Runtime> platformList;
 
     public RuntimeComboBox() {
-        this(WebAppRuntime.getMajorRuntimes().stream().filter(r -> !r.isDocker()).collect(Collectors.toList()));
+        this(new ArrayList<>(WebAppRuntime.getMajorRuntimes()));
     }
 
     public RuntimeComboBox(List<? extends Runtime> platformList) {
