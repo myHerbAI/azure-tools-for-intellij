@@ -18,6 +18,7 @@ import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
@@ -156,7 +157,8 @@ public abstract class AppServiceComboBox<T extends AppServiceConfig> extends Azu
             if (app != null) {
                 final Runtime runtime = Optional.of(app)
                                                 .filter(a -> Objects.nonNull(a.subscriptionId()))
-                                                .filter(r -> Objects.nonNull(r.runtime()))
+                                                .filter(r -> Objects.nonNull(r.runtime()) &&
+                                                        (r.runtime().os() == OperatingSystem.DOCKER || StringUtils.isNotBlank(r.runtime().getJavaVersion())))
                                                 .map(c -> c instanceof FunctionAppConfig ?
                                                           RuntimeConfig.toFunctionAppRuntime(c.runtime()) : RuntimeConfig.toWebAppRuntime(c.runtime()))
                                                 .orElse(null);
@@ -168,7 +170,7 @@ public abstract class AppServiceComboBox<T extends AppServiceConfig> extends Azu
                 setFocusable(isJavaApp);
 
                 if (index >= 0) {
-                    setText(getAppServiceLabel(app));
+                    setText(getAppServiceLabel(app, runtime));
                 } else {
                     setText(app.appName());
                 }
@@ -176,25 +178,16 @@ public abstract class AppServiceComboBox<T extends AppServiceConfig> extends Azu
             }
         }
 
-        private String getAppServiceLabel(AppServiceConfig appServiceModel) {
+        private String getAppServiceLabel(@Nonnull AppServiceConfig appServiceModel, @Nullable Runtime runtime) {
+            if (Objects.isNull(appServiceModel.subscriptionId())) {
+                return String.format("<html><div>[UNKNOWN] %s</div></html>", appServiceModel.appName());
+            }
             final String appServiceName = isDraftResource(appServiceModel) ?
                 String.format("(New) %s", appServiceModel.appName()) : appServiceModel.appName();
-            final String label;
-            if (appServiceModel.getRuntime() == null) {
-                label = "Loading:";
-            } else {
-                // todo: refine code here
-                final Runtime runtime = appServiceModel instanceof FunctionAppConfig ?
-                                         RuntimeConfig.toFunctionAppRuntime(appServiceModel.getRuntime()) :
-                                         RuntimeConfig.toWebAppRuntime(appServiceModel.getRuntime());
-                label = runtime.getDisplayName();
-            }
+            final String label = appServiceModel.getRuntime() == null ? "Loading:" :
+                    Optional.ofNullable(runtime).map(Runtime::getDisplayName).orElse("UNKNOWN");
             final String resourceGroup = Optional.ofNullable(appServiceModel.getResourceGroup()).orElse(StringUtils.EMPTY);
-            if (Objects.isNull(appServiceModel.subscriptionId())) {
-                return String.format("<html><div>[DELETED] %s</div></html>", appServiceName);
-            }
-            return String.format("<html><div>%s</div></div><small>Runtime: %s | Resource Group: %s</small></html>",
-                appServiceName, label, resourceGroup);
+            return String.format("<html><div>%s</div></div><small>Runtime: %s | Resource Group: %s</small></html>", appServiceName, label, resourceGroup);
         }
     }
 
