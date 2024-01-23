@@ -87,9 +87,9 @@ public class AzureContainerRegistryConfigurator implements DockerRegistryProvide
         this.selectorRegistry.putClientProperty(AccessibleRelation.LABELED_BY, this.lblRegistry);
         this.selectorRegistry.addItemListener(e -> {
             final ContainerRegistry registry = this.selectorRegistry.getValue();
-            if (Objects.nonNull(registry) && !registry.isAdminUserEnabled()) {
+            if (Objects.nonNull(registry)) {
                 this.enableAdminLabel.setText(String.format(ENABLE_ADMIN_TIPS_TEMPLATE, registry.getName()));
-                this.enableAdminLabel.setVisible(true);
+                this.enableAdminLabel.setVisible(!registry.isAdminUserEnabled());
             }
         });
     }
