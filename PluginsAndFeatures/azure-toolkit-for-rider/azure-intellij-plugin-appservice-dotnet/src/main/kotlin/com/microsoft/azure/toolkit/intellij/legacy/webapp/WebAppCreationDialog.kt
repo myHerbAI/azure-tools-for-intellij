@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig
 import com.microsoft.azure.toolkit.intellij.common.ConfigDialog
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdvancedPanel
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoBasicPanel
+import com.microsoft.azure.toolkit.intellij.legacy.utils.removeInvalidCharacters
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
@@ -34,13 +35,14 @@ open class WebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(p
             )
         }
 
+        val projectName = removeInvalidCharacters(project.name)
         basicPanel = AppServiceInfoBasicPanel(selectedSubscriptions[0]) {
-            WebAppConfig.getWebAppDefaultConfig(project.name)
+            WebAppConfig.getWebAppDefaultConfig(projectName)
         }
         Disposer.register(this, basicPanel)
 
-        advancedPanel = AppServiceInfoAdvancedPanel(project.name) {
-            WebAppConfig.getWebAppDefaultConfig(project.name)
+        advancedPanel = AppServiceInfoAdvancedPanel(projectName) {
+            WebAppConfig.getWebAppDefaultConfig(projectName)
         }
         Disposer.register(this, advancedPanel)
 
