@@ -54,7 +54,6 @@ public class Tree extends SimpleTree implements DataProvider {
         this.putClientProperty(ANIMATION_IN_RENDERER_ALLOWED, true);
         this.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         TreeUtil.installActions(this);
-        TreeUIHelper.getInstance().installTreeSpeedSearch(this);
         TreeUIHelper.getInstance().installSmartExpander(this);
         TreeUIHelper.getInstance().installSelectionSaver(this);
         TreeUIHelper.getInstance().installEditSourceOnEnterKeyHandler(this);
@@ -260,6 +259,11 @@ public class Tree extends SimpleTree implements DataProvider {
                     ((LoadMoreNode) c).removeFromParent();
                 }
             });
+        }
+
+        @Override
+        public String toString() {
+            return this.inner.getView().getLabel();
         }
     }
 
