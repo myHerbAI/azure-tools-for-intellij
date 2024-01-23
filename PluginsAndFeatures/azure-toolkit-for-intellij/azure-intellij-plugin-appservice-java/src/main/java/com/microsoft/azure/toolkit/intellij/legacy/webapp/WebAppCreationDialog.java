@@ -72,8 +72,7 @@ public class WebAppCreationDialog extends ConfigDialog<AppServiceConfig> {
             this.close();
             throw new AzureToolkitRuntimeException("there are no subscriptions selected in your account.", IAccountActions.SELECT_SUBS);
         }
-        basicForm = new AppServiceInfoBasicPanel<>(project, selectedSubscriptions.get(0),
-                                                 () -> AppServiceIntelliJActionsContributor.getDefaultWebAppConfig(null));
+        basicForm = new AppServiceInfoBasicPanel<>(project, () -> AppServiceIntelliJActionsContributor.getDefaultWebAppConfig(null));
         basicForm.setDeploymentVisible(false);
     }
 }

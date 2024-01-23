@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.ide.guidance.GuidanceViewManager;
 import com.microsoft.azure.toolkit.intellij.appservice.actions.AppServiceFileAction;
 import com.microsoft.azure.toolkit.intellij.appservice.actions.OpenAppServicePropertyViewAction;
 import com.microsoft.azure.toolkit.intellij.containerregistry.pushimage.PushImageAction;
+import com.microsoft.azure.toolkit.intellij.function.actions.FunctionAppUpdateImageAction;
 import com.microsoft.azure.toolkit.intellij.function.remotedebug.FunctionEnableRemoteDebuggingAction;
 import com.microsoft.azure.toolkit.intellij.function.remotedebug.FunctionRemoteDebuggingAction;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.action.*;
@@ -33,12 +34,14 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppDockerRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
@@ -54,11 +57,13 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Objects;
@@ -219,6 +224,21 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
             final String INSTALL_SUCCEED_MESSAGE = "Download and install Azure Functions Core Tools successfully. Auto configured Azure Functions Core Tools path in Azure Settings";
             AzureMessager.getMessager().success(INSTALL_SUCCEED_MESSAGE, null, openSettingsActionInMessage);
         }));
+
+        am.registerHandler(AppServiceActionsContributor.UPDATE_IMAGE, (c, e) -> c instanceof FunctionApp,
+                (AppServiceAppBase<?, ?, ?> c, AnActionEvent e) -> FunctionAppUpdateImageAction.updateImage((FunctionApp) c, e.getProject()));
+
+        final BiConsumer<ContainerAppsEnvironment, AnActionEvent> createFunctionInEnvironmentHandler = (r, e) ->
+                CreateFunctionAppAction.openDialog(e.getProject(), getDefaultContainerHostedFunctionAppConfig(r));
+        am.registerHandler(FunctionAppActionsContributor.ENVIRONMENT_CREATE_FUNCTION, (c, e) -> c != null, createFunctionInEnvironmentHandler);
+    }
+
+    private FunctionAppConfig getDefaultContainerHostedFunctionAppConfig(@Nonnull final ContainerAppsEnvironment environment) {
+        final FunctionAppConfig config = getDefaultFunctionAppConfig(environment.getResourceGroup());
+        config.region(environment.getRegion());
+        config.environment(environment.getName());
+        config.runtime(RuntimeConfig.fromRuntime(FunctionAppDockerRuntime.INSTANCE));
+        return config;
     }
 
     public static AppServiceConfig getDefaultWebAppConfig(@Nullable final ResourceGroup group) {

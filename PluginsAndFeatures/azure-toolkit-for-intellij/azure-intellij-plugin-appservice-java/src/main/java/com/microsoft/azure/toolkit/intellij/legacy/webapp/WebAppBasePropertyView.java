@@ -41,7 +41,7 @@ import java.util.Map;
 public abstract class WebAppBasePropertyView extends BaseEditor implements WebAppBasePropertyMvpView {
     protected final String id;
     protected boolean loading = false;
-    protected final WebAppBasePropertyViewPresenter<WebAppBasePropertyMvpView> presenter;
+    protected final WebAppBasePropertyViewPresenter<WebAppBasePropertyMvpView, AppServiceAppBase<?,?,?>> presenter;
     private final Map<String, String> cachedAppSettings;
     private final Map<String, String> editedAppSettings;
     private static final String PNL_OVERVIEW = "Overview";
@@ -66,13 +66,14 @@ public abstract class WebAppBasePropertyView extends BaseEditor implements WebAp
     private JTextField txtStatus;
     private JTextField txtLocation;
     private JTextField txtSubscription;
-    private JTextField txtAppServicePlan;
+    protected JTextField txtAppServicePlan;
     private HyperlinkLabel lnkUrl;
     private JTextField txtPricingTier;
     private JTextField txtJavaVersion;
     private JTextField txtContainer;
     private JLabel lblJavaVersion;
     private JLabel lblContainer;
+    protected JLabel lblServicePlan;
     private AppSettingsTable tblAppSetting;
     protected String subscriptionId;
     protected String resourceId;

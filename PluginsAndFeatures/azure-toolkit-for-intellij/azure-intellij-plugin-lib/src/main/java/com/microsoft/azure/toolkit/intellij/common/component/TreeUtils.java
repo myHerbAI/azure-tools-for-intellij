@@ -30,6 +30,7 @@ import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzComponent;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import com.microsoft.azure.toolkit.lib.resource.AzureResources;
 import org.apache.commons.lang3.StringUtils;
@@ -348,7 +349,7 @@ public class TreeUtils {
             tree.getModel().removeTreeModelListener(listener);
         }).onProcessed(path -> {
             if (Objects.nonNull(checkpoint.get())) {
-                TreeUtil.selectPath(tree, checkpoint.get(), true);
+                AzureTaskManager.getInstance().runLater(() -> TreeUtil.selectPath(tree, checkpoint.get(), true));
             }
         });
     }

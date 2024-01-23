@@ -11,7 +11,7 @@ import com.intellij.ui.TitledSeparator;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
-import com.microsoft.azure.toolkit.intellij.common.AzureArtifactComboBox;
+import com.microsoft.azure.toolkit.intellij.appservice.DockerUtils;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.component.RegionComboBox;
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox;
@@ -21,31 +21,20 @@ import com.microsoft.azure.toolkit.intellij.containerapps.component.ImageForm;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppNameInput;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.platform.RuntimeComboBox;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.ServicePlanComboBox;
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils;
-import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
-import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
-import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
-import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.model.*;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerAppDraft;
-import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
-import com.microsoft.azure.toolkit.lib.containerregistry.AzureContainerRegistry;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
-import com.microsoft.azuretools.utils.WebAppUtils;
 import lombok.Getter;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.compress.utils.FileNameUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -57,7 +46,7 @@ import java.util.*;
 @Getter
 public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<FunctionAppConfig> {
     public static final ContainerAppDraft.ImageConfig QUICK_START_IMAGE =
-            new ContainerAppDraft.ImageConfig("FunctionAppService.DEFAULT_IMAGE");
+            new ContainerAppDraft.ImageConfig("mcr.microsoft.com/azure-functions/dotnet7-quickstart-demo:1.0");
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyMMddHHmmss");
     private static final String NOT_APPLICABLE = "N/A";
@@ -69,10 +58,8 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
     private RuntimeComboBox selectorRuntime;
     private RegionComboBox selectorRegion;
     private JLabel textSku;
-    private AzureArtifactComboBox selectorApplication;
     private ServicePlanComboBox selectorServicePlan;
-    private TitledSeparator deploymentTitle;
-    private JLabel lblArtifact;
+    private TitledSeparator imageTitle;
     private JLabel lblSubscription;
     private JLabel lblResourceGroup;
     private JLabel lblName;
@@ -94,6 +81,7 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
     private JPanel pnlContainerAppsEnvironment;
     private JPanel pnlAppServicePlan;
     private JPanel pnlImageContainer;
+    private JPanel pnlImage;
 
     private FunctionAppConfig config;
 
@@ -120,23 +108,20 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
                 config.pricingTier(plan.getPricingTier());
             });
         } else if (rdoContainerAppsEnvironment.isSelected()) {
-            // environment
-            final ContainerAppsEnvironment env = cbEnvironment.getValue();
-            Optional.ofNullable(env).ifPresent(environment -> config.environment(environment.getName()));
-            // image
-            final RuntimeConfig runtime = new RuntimeConfig();
-            final ContainerAppDraft.ImageConfig image = chkUseQuickStart.isSelected() ? QUICK_START_IMAGE : pnlContainer.getValue();
-            runtime.setOs(OperatingSystem.DOCKER);
-            Optional.ofNullable(image).map(ContainerAppDraft.ImageConfig::getFullImageName).ifPresent(runtime::setImage);
-            Optional.ofNullable(image).map(ContainerAppDraft.ImageConfig::getContainerRegistry).ifPresent(registry -> {
-                runtime.registryUrl(registry.getLoginServerUrl());
-                runtime.username(registry.getUserName());
-                runtime.password(registry.getPrimaryCredential());
-            });
+            config.diagnosticConfig(null);
+            Optional.ofNullable(cbEnvironment.getValue()).ifPresent(environment -> config.environment(environment.getName()));
         }
-//        config.appSettings(ObjectUtils.firstNonNull(config.appSettings(), new HashMap<>()));
-//        Optional.ofNullable(this.selectorApplication.getValue())
-//                .map(AzureArtifact::getFileForDeployment).map(Paths::get).ifPresent(config::setApplication);
+        final Boolean isDocker = Optional.ofNullable(selectorRuntime.getValue()).map(Runtime::isDocker).orElse(false);
+        if (isDocker) {
+            final ContainerAppDraft.ImageConfig image = chkUseQuickStart.isSelected() ? QUICK_START_IMAGE : pnlContainer.getValue();
+            Optional.ofNullable(image).map(DockerUtils::convertImageConfigToRuntimeConfig).ifPresent(config::runtime);
+            // workaround to fix worker runtime issue of default image, as it was a dot net one
+            if (chkUseQuickStart.isSelected()) {
+                final Map<String, String> appSettings = new HashMap<>(config.appSettings());
+                appSettings.put("FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated");
+                config.appSettings(appSettings);
+            }
+        }
         return this.config;
     }
 
@@ -146,9 +131,13 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
         this.selectorSubscription.setValue(s -> StringUtils.equalsIgnoreCase(config.subscriptionId(), s.getId()));
         this.textName.setValue(config.appName());
         AzureTaskManager.getInstance().runOnPooledThread(() -> {
-            Optional.ofNullable(AppServiceConfig.getResourceGroup(config)).ifPresent(this.selectorGroup::setValue);
-            this.selectorRuntime.setValue(RuntimeConfig.toFunctionAppRuntime(config.getRuntime()));
+            Optional.ofNullable(AppServiceConfig.getResourceGroup(config)).ifPresent(group -> {
+                this.selectorGroup.setValue(group);
+                this.cbEnvironment.setResourceGroup(group);
+            });
+            Optional.ofNullable(config.getRuntime()).map(RuntimeConfig::toFunctionAppRuntime).ifPresent(this.selectorRuntime::setValue);
             this.selectorRegion.setValue(config.getRegion());
+            this.cbEnvironment.setRegion(config.getRegion());
             final boolean useEnvironment = StringUtils.isNotEmpty(config.environment());
             this.rdoContainerAppsEnvironment.setSelected(useEnvironment);
             this.rdoServicePlan.setSelected(!useEnvironment);
@@ -158,20 +147,12 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
                     .ifPresent(selectorServicePlan::setValue);
             Optional.ofNullable(config.environment()).filter(ignore -> useEnvironment)
                     .ifPresent(env -> cbEnvironment.setValue(r -> StringUtils.equalsIgnoreCase(r.getName(), env)));
-            final boolean useDefaultImage = false;
+            final ContainerAppDraft.ImageConfig imageConfig = DockerUtils.convertRuntimeConfigToImageConfig(config.getRuntime());
+            final boolean useDefaultImage = Objects.isNull(imageConfig) || StringUtils.equalsIgnoreCase(QUICK_START_IMAGE.getFullImageName(), imageConfig.getFullImageName());
             chkUseQuickStart.setSelected(useDefaultImage);
             toggleImageType(useDefaultImage);
-            Optional.of(convertToImageConfig(config.getRuntime())).filter(ignore -> useEnvironment).ifPresent(pnlContainer::setValue);
+            Optional.ofNullable(imageConfig).ifPresent(pnlContainer::setValue);
         });
-    }
-
-    private static ContainerAppDraft.ImageConfig convertToImageConfig(@Nonnull final RuntimeConfig config) {
-        final ContainerAppDraft.ImageConfig imageConfig = new ContainerAppDraft.ImageConfig(config.getImage());
-        Azure.az(AzureContainerRegistry.class).list().stream()
-             .flatMap(s -> s.getAzureContainerRegistryModule().list().stream())
-             .filter(registry -> StringUtils.equalsIgnoreCase(registry.getLoginServerUrl(), config.getRegistryUrl()))
-             .findFirst().ifPresent(imageConfig::setContainerRegistry);
-        return imageConfig;
     }
 
     @Override
@@ -182,7 +163,6 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
             this.selectorGroup,
             this.selectorRuntime,
             this.selectorRegion,
-            this.selectorApplication,
             this.selectorServicePlan,
             this.cbEnvironment
         };
@@ -193,12 +173,6 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
     public void setVisible(final boolean visible) {
         this.contentPanel.setVisible(visible);
         super.setVisible(visible);
-    }
-
-    public void setDeploymentVisible(boolean visible) {
-        this.deploymentTitle.setVisible(visible);
-        this.lblArtifact.setVisible(visible);
-        this.selectorApplication.setVisible(visible);
     }
 
     private void init() {
@@ -239,12 +213,6 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
         this.lblPlatform.setLabelFor(selectorRuntime);
         this.lblRegion.setLabelFor(selectorRegion);
         this.lblAppServicePlan.setLabelFor(selectorServicePlan);
-        this.lblArtifact.setLabelFor(selectorApplication);
-        this.selectorApplication.setFileFilter(virtualFile -> {
-            final String ext = FileNameUtils.getExtension(virtualFile.getPath());
-            final Runtime runtime = this.selectorRuntime.getValue();
-            return StringUtils.isNotBlank(ext) && (runtime == null || WebAppUtils.isSupportedArtifactType(runtime, ext));
-        });
 
         this.lblSubscription.setIcon(AllIcons.General.ContextHelp);
         this.lblResourceGroup.setIcon(AllIcons.General.ContextHelp);
@@ -265,9 +233,9 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
         this.selectorServicePlan.revalidate();
         this.cbEnvironment.setRequired(!useServicePlan);
         this.cbEnvironment.revalidate();
-
-        this.lblPlatform.setVisible(useServicePlan);
-        this.selectorRuntime.setVisible(useServicePlan); // for container based function, only docker is supported
+        if (!useServicePlan) {
+            this.selectorRuntime.setValue(FunctionAppDockerRuntime.INSTANCE);
+        }
     }
 
     private void onGroupChanged(ItemEvent e) {
@@ -293,6 +261,10 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
                                                     // Docker runtime use Linux service plan too
                                                     runtime.isWindows() ? OperatingSystem.WINDOWS : OperatingSystem.LINUX;
             this.selectorServicePlan.setOperatingSystem(operatingSystem);
+
+            final boolean isDocker = Optional.ofNullable(runtime).map(Runtime::isDocker).orElse(false);
+            this.imageTitle.setVisible(isDocker);
+            this.pnlImage.setVisible(isDocker);
         }
     }
 
@@ -323,9 +295,6 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
-        this.selectorApplication = new AzureArtifactComboBox(project, true);
-        this.selectorApplication.reloadItems();
-
         this.pnlImageContainer = new JPanel(new GridLayoutManager(1, 1));
         this.pnlContainer = new ImageForm();
         this.pnlImageContainer.add(this.pnlContainer.getContentPanel(), new GridConstraints(0, 0, 1, 1, 0,

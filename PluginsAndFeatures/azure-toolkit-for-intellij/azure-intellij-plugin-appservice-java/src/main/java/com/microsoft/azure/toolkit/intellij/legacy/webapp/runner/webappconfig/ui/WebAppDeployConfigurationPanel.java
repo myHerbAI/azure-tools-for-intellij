@@ -6,8 +6,11 @@
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.ui;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.IdeTooltip;
 import com.intellij.ide.IdeTooltipManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
+import com.intellij.ui.ClientProperty;
 import com.intellij.ui.HideableDecorator;
 import com.intellij.ui.HyperlinkLabel;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifact;
@@ -23,6 +26,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.In
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfiguration;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.DeploymentSlotConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
@@ -31,17 +35,16 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.idea.maven.model.MavenConstants;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.FocusEvent;
@@ -58,6 +61,8 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
     private static final String[] FILE_NAME_EXT = {"war", "jar", "ear"};
     private static final String DEPLOYMENT_SLOT = "&Deployment Slot";
     private static final String DEFAULT_SLOT_NAME = "slot-%s";
+    public static final String DO_NOT_CLONE_SLOT_CONFIGURATION = "Don't clone configuration from an existing slot";
+    public static final String NEW_CONFIGURATION_SOURCE = "new";
 
     private JPanel pnlSlotCheckBox;
     private JTextField txtNewSlotName;
@@ -90,6 +95,7 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
     private final HideableDecorator slotDecorator;
     private final Project project;
     private String appSettingsKey;
+    private AppServiceConfig appSettingsSource;
 
     public WebAppDeployConfigurationPanel(@Nonnull Project project, @Nonnull WebAppConfiguration webAppConfiguration) {
         super(project);
@@ -112,6 +118,9 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
         btnSlotHover.setHorizontalAlignment(SwingConstants.CENTER);
         btnSlotHover.setPreferredSize(new Dimension(informationIcon.getIconWidth(), informationIcon.getIconHeight()));
         btnSlotHover.setToolTipText(message("webapp.deploy.hint.deploymentSlot"));
+        // workaround to support the hover notification
+        // todo: validate whether tooltip could be read by screen reader, if so, the workaround could be removed
+        ClientProperty.get(btnSlotHover, Key.create("custom.tooltip"));
         btnSlotHover.addFocusListener(new FocusListener() {
             private final IdeTooltipManager instance = IdeTooltipManager.getInstance();
 
@@ -120,7 +129,12 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
                 btnSlotHover.setBorderPainted(true);
                 final MouseEvent phantom = new MouseEvent(btnSlotHover, MouseEvent.MOUSE_ENTERED,
                         System.currentTimeMillis(), 0, 10, 10, 0, false);
-                AzureTaskManager.getInstance().runLater(() -> instance.show(instance.getCustomTooltip(btnSlotHover), true));
+                AzureTaskManager.getInstance().runLater(() -> {
+                    final IdeTooltip tooltip = instance.getCustomTooltip(btnSlotHover);
+                    if (tooltip != null) {
+                        instance.show(tooltip, true);
+                    }
+                });
             }
 
             @Override
@@ -155,7 +169,6 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
     @Override
     protected void apply(@Nonnull final WebAppConfiguration configuration) {
         final IntelliJWebAppSettingModel model = this.getValue();
-        configuration.setAppSettingKey(appSettingsKey);
         Optional.ofNullable(model).ifPresent(configuration::setWebAppSettingModel);
     }
 
@@ -176,30 +189,27 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
             return;
         }
         this.loadDeploymentSlot(value);
-        this.loadAppSettings(value, before);
+        this.loadAppSettings(value);
     }
 
-    private synchronized void loadAppSettings(@Nonnull AppServiceConfig value, @Nullable AppServiceConfig before) {
-        final AppServiceConfig rawValue = comboBoxWebApp.getRawValue() instanceof AppServiceConfig ? (AppServiceConfig) comboBoxWebApp.getRawValue() : value;
-        if (Objects.isNull(before) && value != rawValue) {
-            // when reset from configuration, leverage app settings from configuration
-            if (isDraftWebApp(value)) {
-                // if draft has been created, merge local configuration with remote
-                appSettingsTable.loadAppSettings(() -> loadDraftAppSettings(rawValue));
-            }
-        } else if (!Objects.equals(value, before)) {
-            appSettingsTable.loadAppSettings(() -> isDraftWebApp(value) ? value.appSettings() :
-                                                   Optional.ofNullable(getWebApp(value)).map(WebApp::getAppSettings).orElse(Collections.emptyMap()));
+    private synchronized void loadAppSettings(@Nonnull AppServiceConfig value) {
+        final boolean sameApp = AppServiceComboBox.isSameApp(value, appSettingsSource);
+        if (sameApp) {
+            return;
         }
+        this.appSettingsSource = value;
+        appSettingsTable.loadAppSettings(() -> isDraftWebApp(value) ? value.appSettings() :
+                Optional.ofNullable(getWebApp(value)).map(WebApp::getAppSettings).orElse(Collections.emptyMap()));
     }
 
     // merge local app settings with remote if draft web app has been created
     private Map<String, String> loadDraftAppSettings(AppServiceConfig value) {
         final WebApp webApp = Azure.az(AzureWebApp.class).webApps(value.subscriptionId()).get(value.appName(), value.resourceGroup());
-        return webApp != null && webApp.exists() ? MapUtils.putAll(webApp.getAppSettings(), value.appSettings().entrySet().toArray()) : value.appSettings();
+        return webApp != null && webApp.exists() ? MapUtils.putAll(ObjectUtils.firstNonNull(webApp.getAppSettings(), new HashMap<>()), value.appSettings().entrySet().toArray()) : value.appSettings();
     }
 
     private void setComboBoxDefaultValue(JComboBox<?> comboBox, Object value) {
+        //noinspection unchecked
         UIUtils.listComboBoxItems(comboBox).stream().filter(item -> item.equals(value)).findFirst().ifPresent(defaultItem -> comboBox.setSelectedItem(value));
     }
 
@@ -276,7 +286,7 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
         final String defaultConfigurationSource = (String) cbxSlotConfigurationSource.getSelectedItem();
         cbxSlotName.removeAllItems();
         cbxSlotConfigurationSource.removeAllItems();
-        cbxSlotConfigurationSource.addItem(AzureWebAppMvpModel.DO_NOT_CLONE_SLOT_CONFIGURATION);
+        cbxSlotConfigurationSource.addItem(DO_NOT_CLONE_SLOT_CONFIGURATION);
         cbxSlotConfigurationSource.addItem(selectedWebApp.appName());
         slotList.stream().filter(Objects::nonNull).forEach(slot -> {
             cbxSlotName.addItem(slot.getName());
@@ -302,6 +312,23 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
             }
             comboBoxWebApp.setConfigModel(webApp);
             comboBoxWebApp.setValue(c -> AppServiceComboBox.isSameApp(c, webApp));
+            chkDeployToSlot.setSelected(Objects.nonNull(webApp.getSlotConfig()));
+            Optional.ofNullable(webApp.getSlotConfig()).ifPresent(c -> {
+                final WebApp app = getWebApp(webApp);
+                final WebAppDeploymentSlot slot = Optional.ofNullable(app)
+                        .map(a -> a.slots().get(c.getName(), a.getResourceGroupName())).orElse(null);
+                final boolean exists = Optional.ofNullable(slot).map(WebAppDeploymentSlot::exists).orElse(false);
+                if (exists) {
+                    rbtExistingSlot.setSelected(true);
+                    cbxSlotName.setSelectedItem(c.getName());
+                } else {
+                    rbtNewSlot.setSelected(true);
+                    txtNewSlotName.setText(c.getName());
+                    final String source = c.getConfigurationSource();
+                    cbxSlotConfigurationSource.setSelectedItem(StringUtils.equals(source, NEW_CONFIGURATION_SOURCE) ? DO_NOT_CLONE_SLOT_CONFIGURATION : source);
+                }
+            });
+            WebAppDeployConfigurationPanel.this.appSettingsSource = webApp;
             appSettingsTable.setAppSettings(webApp.appSettings());
         });
         // configuration
@@ -319,15 +346,15 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
             model.setArtifactIdentifier(a.getIdentifier());
             model.setPackaging(a.getPackaging());
         });
-        model.setDeployToSlot(chkDeployToSlot.isSelected());
-        if (chkDeployToSlot.isSelected()) {
-            if (rbtExistingSlot.isSelected()) {
-                model.setSlotName(Objects.toString(cbxSlotName.getSelectedItem(), null));
-            } else {
-                model.setSlotName(txtNewSlotName.getText());
-                model.setNewSlotConfigurationSource(Objects.toString(cbxSlotConfigurationSource.getSelectedItem(), null));
-            }
+        final DeploymentSlotConfig slotConfig = chkDeployToSlot.isSelected() ? new DeploymentSlotConfig() : null;
+        if (Objects.nonNull(slotConfig)) {
+            final boolean useExistingSlot = rbtExistingSlot.isSelected();
+            slotConfig.setName(useExistingSlot ? Objects.toString(cbxSlotName.getSelectedItem(), null) : txtNewSlotName.getText());
+            final String source = Optional.ofNullable(cbxSlotConfigurationSource.getSelectedItem()).map(String.class::cast)
+                    .map(value -> StringUtils.equalsIgnoreCase(value, DO_NOT_CLONE_SLOT_CONFIGURATION) ? NEW_CONFIGURATION_SOURCE : value).orElse(null);
+            slotConfig.setConfigurationSource(useExistingSlot ? null : source);
         }
+        model.getConfig().setSlotConfig(slotConfig);
         model.getConfig().setAppSettings(appSettingsTable.getAppSettings());
         model.setOpenBrowserAfterDeployment(chkOpenBrowser.isSelected());
         model.setSlotPanelVisible(slotDecorator.isExpanded());
@@ -344,6 +371,6 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
     }
 
     private boolean isDraftWebApp(@Nonnull final AppServiceConfig config) {
-        return Azure.az(AzureWebApp.class).webApps(config.subscriptionId()).exists(config.appName(), config.resourceGroup());
+        return !Azure.az(AzureWebApp.class).webApps(config.subscriptionId()).exists(config.appName(), config.resourceGroup());
     }
 }

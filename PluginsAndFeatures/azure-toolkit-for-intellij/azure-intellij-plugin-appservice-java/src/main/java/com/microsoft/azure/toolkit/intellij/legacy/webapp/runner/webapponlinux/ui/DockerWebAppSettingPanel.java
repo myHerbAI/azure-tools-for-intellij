@@ -15,9 +15,12 @@ import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerPushConfiguration;
 import com.microsoft.azure.toolkit.intellij.containerregistry.buildimage.DockerBuildTaskUtils;
 import com.microsoft.azure.toolkit.intellij.containerregistry.component.DockerImageConfigurationPanel;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceComboBox;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureSettingPanel;
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapponlinux.WebAppOnLinuxDeployConfiguration;
+import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang3.StringUtils;
@@ -76,11 +79,16 @@ public class DockerWebAppSettingPanel extends AzureSettingPanel<WebAppOnLinuxDep
 
     @Override
     protected void resetFromConfig(@Nonnull WebAppOnLinuxDeployConfiguration configuration) {
-        final AppServiceConfig appServiceConfig = configuration.getAppServiceConfig();
-        if (StringUtils.isBlank(appServiceConfig.getAppName())) {
+        final AppServiceConfig config = configuration.getAppServiceConfig();
+        if (StringUtils.isBlank(config.getAppName())) {
             return;
         }
-        cbWebApp.setValue(appServiceConfig);
+        if (Azure.az(AzureAccount.class).account().getSubscriptions().stream().noneMatch(s -> s.getId().equals(config.subscriptionId()))) {
+            cbWebApp.setValue((AppServiceConfig) null);
+            return;
+        }
+        cbWebApp.setConfigModel(config);
+        cbWebApp.setValue(c -> AppServiceComboBox.isSameApp(c, config));
         pnlDockerConfiguration.setValue(configuration.getDockerPushConfiguration());
         Optional.ofNullable(configuration.getPort()).ifPresent(txtTargetPort::setNumber);
     }

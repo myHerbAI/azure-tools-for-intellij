@@ -10,13 +10,16 @@ import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContri
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
+import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
@@ -37,6 +40,7 @@ public class AppServiceActionsContributor implements IActionsContributor {
     public static final Action.Id<AppServiceAppBase<?, ?, ?>> SSH_INTO_WEBAPP = Action.Id.of("user/webapp.connect_ssh.app");
     public static final Action.Id<AppServiceAppBase<?, ?, ?>> PROFILE_FLIGHT_RECORD = Action.Id.of("user/webapp.profile_flight_recorder.app");
     public static final Action.Id<AppServiceAppBase<?, ?, ?>> COPY_FULL_APP_SETTINGS = Action.Id.of("user/$appservice.copy_app_settings.app");
+    public static final Action.Id<AppServiceAppBase<?, ?, ?>> UPDATE_IMAGE = Action.Id.of("user/$appservice.update_image.app");
     public static final Action.Id<Map.Entry<String, String>> COPY_APP_SETTING = Action.Id.of("user/$appservice.copy_app_setting");
     public static final Action.Id<Map.Entry<String, String>> COPY_APP_SETTING_KEY = Action.Id.of("user/$appservice.copy_app_setting_key.key");
     public static final String APP_SETTINGS_ACTIONS = "actions.appservice.app_settings";
@@ -111,6 +115,16 @@ public class AppServiceActionsContributor implements IActionsContributor {
             })
             .withAuthRequired(false)
             .register(am);
+
+        new Action<>(UPDATE_IMAGE)
+                .withLabel("Update Image")
+                .withIdParam(AbstractAzResource::getName)
+                .withIcon(AzureIcons.Action.UPLOAD.getIconPath())
+                .withAuthRequired(true)
+                .visibleWhen(s -> s instanceof AppServiceAppBase<?,?,?> app && !app.getFormalStatus().isReading() &&
+                        Optional.ofNullable(app.getRuntime()).map(Runtime::isDocker).orElse(false))
+                .enableWhen(s -> s.getFormalStatus().isConnected())
+                .register(am);
 
         new Action<>(COPY_APP_SETTING)
                 .withLabel("Copy")

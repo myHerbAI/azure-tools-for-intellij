@@ -8,12 +8,17 @@ package com.microsoft.azure.toolkit.intellij.legacy.appservice;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.TitledSeparator;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
+import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig;
+import com.microsoft.azure.toolkit.intellij.appservice.DockerUtils;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifactComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.component.RegionComboBox;
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox;
 import com.microsoft.azure.toolkit.intellij.common.component.resourcegroup.ResourceGroupComboBox;
+import com.microsoft.azure.toolkit.intellij.containerapps.component.ImageForm;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.platform.RuntimeComboBox;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.ServicePlanComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -30,6 +35,7 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerAppDraft;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azuretools.utils.WebAppUtils;
 import lombok.Getter;
@@ -44,6 +50,8 @@ import java.util.function.Supplier;
 
 @Getter
 public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPanel implements AzureFormPanel<T> {
+    public static final ContainerAppDraft.ImageConfig QUICK_START_IMAGE =
+            new ContainerAppDraft.ImageConfig("mcr.microsoft.com/azuredocs/containerapps-helloworld:latest");
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyMMddHHmmss");
     private static final String NOT_APPLICABLE = "N/A";
     private final Project project;
@@ -68,6 +76,12 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
     private JLabel lblRegion;
     private JLabel lblAppServicePlan;
     private JLabel lblSku;
+    private TitledSeparator imageTitle;
+    private JPanel pnlImage;
+    private JPanel pnlImageContainer;
+    private JLabel lblQuickStart;
+    private JCheckBox chkUseQuickStart;
+    private ImageForm pnlContainer;
 
     public AppServiceInfoAdvancedPanel(final Project project, final Supplier<? extends T> supplier) {
         super();
@@ -89,6 +103,11 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
         Optional.ofNullable(selectorServicePlan.getValue()).map(AppServicePlan::getPricingTier).ifPresent(result::pricingTier);
         Optional.ofNullable(selectorServicePlan.getValue()).map(AppServicePlan::getResourceGroup)
                 .map(ResourceGroup::getResourceGroupName).ifPresentOrElse(result::servicePlanResourceGroup, () -> result.servicePlanResourceGroup(result.resourceGroup()));
+        final Boolean isDocker = Optional.ofNullable(selectorRuntime.getValue()).map(Runtime::isDocker).orElse(false);
+        if (isDocker) {
+            final ContainerAppDraft.ImageConfig image = chkUseQuickStart.isSelected() ? QUICK_START_IMAGE : pnlContainer.getValue();
+            Optional.ofNullable(image).map(DockerUtils::convertImageConfigToRuntimeConfig).ifPresent(config::runtime);
+        }
 //        if (Objects.nonNull(artifact)) {
 //            final AzureArtifactManager manager = AzureArtifactManager.getInstance(this.project);
 //            final String path = artifact.getFileForDeployment();
@@ -114,6 +133,11 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
             Optional.ofNullable(config.runtime())
                     .map(c -> config instanceof FunctionAppConfig ? RuntimeConfig.toFunctionAppRuntime(c) : RuntimeConfig.toWebAppRuntime(c))
                     .ifPresent(this.selectorRuntime::setValue);
+            final ContainerAppDraft.ImageConfig imageConfig = DockerUtils.convertRuntimeConfigToImageConfig(config.getRuntime());
+            final boolean useDefaultImage = Objects.isNull(imageConfig) || StringUtils.equalsIgnoreCase(QUICK_START_IMAGE.getFullImageName(), imageConfig.getFullImageName());
+            chkUseQuickStart.setSelected(useDefaultImage);
+            toggleImageType(useDefaultImage);
+            Optional.ofNullable(imageConfig).ifPresent(pnlContainer::setValue);
         });
     }
 
@@ -150,6 +174,7 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
         this.textSku.setBorder(JBUI.Borders.emptyLeft(5));
         this.textSku.setText(NOT_APPLICABLE);
         this.selectorServicePlan.addItemListener(this::onServicePlanChanged);
+        this.selectorServicePlan.setValidPricingTierList(new ArrayList<>(PricingTier.WEB_APP_PRICING), WebAppConfig.DEFAULT_PRICING_TIER);
         this.selectorSubscription.addItemListener(this::onSubscriptionChanged);
         this.selectorRuntime.addItemListener(this::onRuntimeChanged);
         this.selectorRegion.addItemListener(this::onRegionChanged);
@@ -168,6 +193,10 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
         this.lblRegion.setLabelFor(selectorRegion);
         this.lblAppServicePlan.setLabelFor(selectorServicePlan);
         this.lblArtifact.setLabelFor(selectorApplication);
+
+        lblQuickStart.setLabelFor(chkUseQuickStart);
+        chkUseQuickStart.addItemListener(ignore -> toggleImageType(chkUseQuickStart.isSelected()));
+
         this.selectorApplication.setFileFilter(virtualFile -> {
             final String ext = FileNameUtils.getExtension(virtualFile.getPath());
             final Runtime runtime = this.selectorRuntime.getValue();
@@ -199,6 +228,10 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
                     // Docker runtime use Linux service plan too
                     runtime.isWindows() ? OperatingSystem.WINDOWS : OperatingSystem.LINUX;
             this.selectorServicePlan.setOperatingSystem(operatingSystem);
+
+            final boolean isDocker = Optional.ofNullable(runtime).map(Runtime::isDocker).orElse(false);
+            this.imageTitle.setVisible(isDocker);
+            this.pnlImage.setVisible(isDocker);
         }
     }
 
@@ -231,19 +264,21 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
         // TODO: place custom component creation code here
         this.selectorApplication = new AzureArtifactComboBox(project, true);
         this.selectorApplication.reloadItems();
-    }
 
-    public void setValidPricingTier(List<PricingTier> pricingTier, PricingTier defaultPricingTier) {
-        selectorServicePlan.setValidPricingTierList(pricingTier, defaultPricingTier);
-    }
-
-    public void setValidRuntime(List<? extends Runtime> runtimes) {
-        selectorRuntime.setPlatformList(runtimes);
+        // TODO: place custom component creation code here
+        this.pnlImageContainer = new JPanel(new GridLayoutManager(1, 1));
+        this.pnlContainer = new ImageForm();
+        this.pnlImageContainer.add(this.pnlContainer.getContentPanel(), new GridConstraints(0, 0, 1, 1, 0,
+                GridConstraints.FILL_BOTH, 7, 7, null, null, null, 0));
     }
 
     public void setFixedRuntime(final Runtime runtime) {
         selectorRuntime.setPlatformList(Collections.singletonList(runtime));
         lblPlatform.setVisible(false);
-        selectorRuntime.setVisible(false);
+        selectorRuntime.setEditable(false);
+    }
+
+    private void toggleImageType(final boolean useQuickStart){
+        pnlContainer.setVisible(!useQuickStart);
     }
 }
