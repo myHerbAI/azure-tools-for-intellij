@@ -27,6 +27,7 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlotModule;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -63,17 +64,19 @@ public class FunctionAppNodeProvider implements IExplorerNodeProvider {
                 .withLabel(NAME)
                 .withActions(FunctionAppActionsContributor.SERVICE_ACTIONS)
                 .addChildren(AzureFunctions::functionApps, (d, p) -> this.createNode(d, p, manager));
-        } else if (data instanceof FunctionApp) {
-            return new AzResourceNode<>((FunctionApp) data)
+        } else if (data instanceof FunctionApp function) {
+            final Node<FunctionApp> appNode = new AzResourceNode<>(function)
                 .withIcon(FUNCTIONAPP_ICON_PROVIDER::getIcon)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .addInlineAction(ResourceCommonActionsContributor.DEPLOY)
                 .withActions(FunctionAppActionsContributor.FUNCTION_APP_ACTIONS)
-                .addChildren(Arrays::asList, (app, webAppNode) -> new FunctionsNode(app))
-                .addChild(FunctionApp::getDeploymentModule, (module, functionAppNode) -> createNode(module, functionAppNode, manager))
-                .addChild(AppServiceFileNode::getRootFileNodeForAppService, (d, p) -> this.createNode(d, p, manager)) // Files
-                .addChild(AppServiceFileNode::getRootLogNodeForAppService, (d, p) -> this.createNode(d, p, manager))
-                .addChild(app -> new AppSettingsNode(app.getValue()));
+                .addChildren(Arrays::asList, (app, webAppNode) -> new FunctionsNode(app));
+            if (StringUtils.isBlank(function.getEnvironmentId())) {
+                appNode.addChild(FunctionApp::getDeploymentModule, (module, functionAppNode) -> createNode(module, functionAppNode, manager))
+                       .addChild(AppServiceFileNode::getRootFileNodeForAppService, (d, p) -> this.createNode(d, p, manager)) // Files
+                       .addChild(AppServiceFileNode::getRootLogNodeForAppService, (d, p) -> this.createNode(d, p, manager));
+            }
+            return appNode.addChild(app -> new AppSettingsNode(app.getValue()));
         } else if (data instanceof FunctionAppDeploymentSlotModule) {
             return new AzModuleNode<>((FunctionAppDeploymentSlotModule) data)
                 .withIcon(AzureIcons.WebApp.DEPLOYMENT_SLOT)

@@ -32,14 +32,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
-public abstract class WebAppBasePropertyViewPresenter<V extends WebAppBasePropertyMvpView> extends MvpPresenter<V> {
+public abstract class WebAppBasePropertyViewPresenter<V extends WebAppBasePropertyMvpView, R extends AppServiceAppBase<?,?,?>> extends MvpPresenter<V> {
     public static final String KEY_NAME = "name";
     public static final String KEY_RESOURCE_GRP = "resourceGroup";
     public static final String KEY_LOCATION = "location";
@@ -54,11 +49,11 @@ public abstract class WebAppBasePropertyViewPresenter<V extends WebAppBaseProper
     public static final String KEY_APP_SETTING = "appSetting";
     public static final String KEY_JAVA_CONTAINER_VERSION = "javaContainerVersion";
 
-    public void onLoadWebAppProperty(AppServiceAppBase<?, ?, ?> app) {
-        if (Objects.isNull(app) || app.isDraftForCreating() || Objects.isNull(app.getAppServicePlan())) {
+    public void onLoadWebAppProperty(R app) {
+        if (Objects.isNull(app) || app.isDraftForCreating()) {
             return;
         }
-        final WebAppProperty property = generateProperty(app, app.getAppServicePlan());
+        final WebAppProperty property = generateProperty(app);
         AzureTaskManager.getInstance().runLater(() -> Optional.ofNullable(getMvpView()).ifPresent(v -> v.showProperty(property)));
     }
 
@@ -68,7 +63,7 @@ public abstract class WebAppBasePropertyViewPresenter<V extends WebAppBaseProper
         AzureTaskManager.getInstance().runInBackground(title, () -> onLoadWebAppProperty(getWebAppBase(sid, appId, slotName)));
     }
 
-    protected WebAppProperty generateProperty(@Nonnull final AppServiceAppBase<?, ?, ?> appService, @Nonnull final AppServicePlan plan) {
+    protected WebAppProperty generateProperty(@Nonnull final R appService) {
         final Map<String, String> appSettingsMap = appService.getAppSettings();
         final Map<String, Object> propertyMap = new HashMap<>();
         propertyMap.put(KEY_NAME, appService.getName());
@@ -76,22 +71,32 @@ public abstract class WebAppBasePropertyViewPresenter<V extends WebAppBaseProper
         propertyMap.put(KEY_LOCATION, Optional.ofNullable(appService.getRegion()).map(Region::getLabel).orElse("N/A"));
         propertyMap.put(KEY_SUB_ID, appService.getSubscriptionId());
         propertyMap.put(KEY_STATUS, StringUtils.capitalize(StringUtils.lowerCase(appService.getStatus())));
-        propertyMap.put(KEY_PLAN, plan.getName());
         propertyMap.put(KEY_URL, appService.getHostName());
-        final PricingTier pricingTier = plan.getPricingTier();
-        propertyMap.put(KEY_PRICING, String.format("%s_%s", pricingTier.getTier(), pricingTier.getSize()));
+        updateHostConfiguration(appService, propertyMap);
         final Runtime runtime = appService.getRuntime();
-        propertyMap.put(KEY_JAVA_VERSION, Optional.ofNullable(runtime).map(Runtime::getJavaVersionNumber).orElse(null));
-        if (runtime instanceof WebAppRuntime wr) {
-            propertyMap.put(KEY_JAVA_CONTAINER, wr.getContainerUserText());
-        }
         propertyMap.put(KEY_OPERATING_SYS, Optional.ofNullable(runtime).map(Runtime::getOperatingSystem).orElse(null));
+        if (runtime != null && !runtime.isDocker()) {
+            propertyMap.put(KEY_JAVA_VERSION, runtime.getJavaVersionNumber());
+            if (runtime instanceof WebAppRuntime wr) {
+                propertyMap.put(KEY_JAVA_CONTAINER, wr.getContainerUserText());
+            }
+        }
         propertyMap.put(KEY_APP_SETTING, appSettingsMap);
 
         return new WebAppProperty(propertyMap);
     }
 
-    protected abstract AppServiceAppBase<?, ?, ?> getWebAppBase(@Nonnull String sid, @Nonnull String appId,
+    protected void updateHostConfiguration(@Nonnull final R appService, final Map<String, Object> propertyMap) {
+        final AppServicePlan plan = appService.getAppServicePlan();
+        if (Objects.isNull(plan)) {
+            return;
+        }
+        propertyMap.put(KEY_PLAN, plan.getName());
+        final PricingTier pricingTier = plan.getPricingTier();
+        propertyMap.put(KEY_PRICING, String.format("%s_%s", pricingTier.getTier(), pricingTier.getSize()));
+    }
+
+    protected abstract R getWebAppBase(@Nonnull String sid, @Nonnull String appId,
                                                                 @Nullable String slotName);
 
     protected abstract void updateAppSettings(@Nonnull String sid, @Nonnull String webAppId, @Nullable String name,
@@ -126,7 +131,7 @@ public abstract class WebAppBasePropertyViewPresenter<V extends WebAppBaseProper
         telemetryMap.put("SubscriptionId", sid);
         Observable.fromCallable(() -> {
             final Set<String> toRemove = new HashSet<>();
-            for (String key : cacheSettings.keySet()) {
+            for (final String key : cacheSettings.keySet()) {
                 if (!editedSettings.containsKey(key)) {
                     toRemove.add(key);
                 }

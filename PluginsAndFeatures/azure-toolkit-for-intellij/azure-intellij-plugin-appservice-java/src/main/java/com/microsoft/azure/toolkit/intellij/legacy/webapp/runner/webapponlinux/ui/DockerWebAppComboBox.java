@@ -5,10 +5,14 @@
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapponlinux.ui;
 
 import com.intellij.openapi.project.Project;
-import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig;
+import com.microsoft.azure.toolkit.ide.appservice.AppServiceActionsContributor;
+import com.microsoft.azure.toolkit.intellij.appservice.AppServiceIntelliJActionsContributor;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceComboBox;
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.slimui.WebAppComboBox;
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.ui.WebAppComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppDockerRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
@@ -24,12 +28,12 @@ public class DockerWebAppComboBox extends WebAppComboBox {
     }
 
     @Override
-    protected List<WebAppConfig> loadAppServiceModels() {
+    protected List<AppServiceConfig> loadAppServiceModels() {
         final List<WebApp> webApps = Azure.az(AzureWebApp.class).webApps();
         return webApps.stream().parallel()
             .filter(a -> a.getRuntime() != null && !a.getRuntime().isWindows())
             .sorted((a, b) -> a.getName().compareToIgnoreCase(b.getName()))
-            .map(webApp -> convertAppServiceToConfig(WebAppConfig::new, webApp))
+            .map(webApp -> convertAppServiceToConfig(AppServiceConfig::new, webApp))
             .collect(Collectors.toList());
     }
 
@@ -37,11 +41,14 @@ public class DockerWebAppComboBox extends WebAppComboBox {
     protected void createResource() {
         // todo: hide deployment part in creation dialog
         final DockerWebAppCreationDialog dialog = new DockerWebAppCreationDialog(project);
+        final AppServiceConfig defaultConfig = AppServiceIntelliJActionsContributor.getDefaultWebAppConfig(null);
+        defaultConfig.setRuntime(RuntimeConfig.fromRuntime(WebAppDockerRuntime.INSTANCE));
+        dialog.setData(defaultConfig);
         dialog.setDeploymentVisible(false);
-        final Action.Id<WebAppConfig> actionId = Action.Id.of("user/webapp.create_app.app");
+        final Action.Id<AppServiceConfig> actionId = Action.Id.of("user/webapp.create_app.app");
         dialog.setOkAction(new Action<>(actionId)
             .withLabel("Create")
-            .withIdParam(WebAppConfig::getName)
+            .withIdParam(AppServiceConfig::appName)
             .withSource(s -> s)
             .withAuthRequired(false)
             .withHandler(config -> this.setValue(config)));

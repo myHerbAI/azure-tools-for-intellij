@@ -55,6 +55,7 @@ public class WebAppActionsContributor implements IActionsContributor {
             ResourceCommonActionsContributor.SHOW_PROPERTIES,
             "---",
             ResourceCommonActionsContributor.DEPLOY,
+            AppServiceActionsContributor.UPDATE_IMAGE,
             "---",
             ResourceCommonActionsContributor.START,
             ResourceCommonActionsContributor.STOP,

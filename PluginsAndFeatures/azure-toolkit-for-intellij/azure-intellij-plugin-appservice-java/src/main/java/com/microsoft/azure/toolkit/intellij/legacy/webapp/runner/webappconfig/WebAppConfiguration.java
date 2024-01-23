@@ -23,11 +23,14 @@ import com.microsoft.azure.toolkit.intellij.common.runconfig.IWebAppRunConfigura
 import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunConfigurationBase;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.Constants;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.DeploymentSlotConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom.Element;
 
@@ -36,12 +39,11 @@ import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 
 public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAppSettingModel>
-        implements IWebAppRunConfiguration, IConnectionAware {
+    implements IWebAppRunConfiguration, IConnectionAware {
 
     // const string
     private static final String SLOT_NAME_REGEX = "[a-zA-Z0-9-]{1,60}";
@@ -49,6 +51,7 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
     private static final String JAVA = "java";
     private static final String JBOSS = "jboss";
     public static final String JAVA_VERSION = "javaVersion";
+    @Getter
     private final IntelliJWebAppSettingModel webAppSettingModel;
 
     public WebAppConfiguration(@Nonnull Project project, @Nonnull ConfigurationFactory factory, String name) {
@@ -67,29 +70,10 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
         return new WebAppSettingEditor(getProject(), this);
     }
 
-    @Override
-    public void setApplicationSettings(Map<String, String> env) {
-        webAppSettingModel.setAppSettings(env);
-        FunctionUtils.saveAppSettingsToSecurityStorage(getAppSettingsKey(), env);
-    }
-
-    @Override
-    public Map<String, String> getApplicationSettings() {
-        return webAppSettingModel.getAppSettings();
-    }
-
-    public String getAppSettingsKey() {
-        return webAppSettingModel.getAppSettingsKey();
-    }
-
-    public void setAppSettingKey(final String appSettingsKey) {
-        this.webAppSettingModel.setAppSettingsKey(appSettingsKey);
-    }
-
     @Nullable
     public Module getModule() {
         final AzureArtifact azureArtifact = AzureArtifactManager.getInstance(this.getProject())
-                .getAzureArtifactById(this.getAzureArtifactType(), this.getArtifactIdentifier());
+                                                                .getAzureArtifactById(this.getAzureArtifactType(), this.getArtifactIdentifier());
         return Optional.ofNullable(azureArtifact).map(AzureArtifact::getModule).orElse(null);
     }
 
@@ -105,58 +89,36 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
         Optional.ofNullable(element.getChild(JAVA_VERSION))
                 .map(javaVersionElement -> javaVersionElement.getAttributeValue(JAVA_VERSION))
                 .ifPresent(webAppSettingModel::setWebAppJavaVersion);
-        Optional.ofNullable(this.getAppSettingsKey())
-                .ifPresent(key -> webAppSettingModel.setAppSettings(FunctionUtils.loadAppSettingsFromSecurityStorage(getAppSettingsKey())));
     }
 
     @Override
     public void validate() throws ConfigurationException {
-        if (webAppSettingModel.isCreatingNew()) {
-            if (StringUtils.isEmpty(webAppSettingModel.getWebAppName())) {
-                throw new ConfigurationException(message("webapp.deploy.validate.noWebAppName"));
+        final AppServiceConfig config = this.webAppSettingModel.getConfig();
+        if (StringUtils.isEmpty(config.getAppName())) {
+            throw new ConfigurationException(message("webapp.deploy.validate.noWebAppName"));
+        }
+        if (StringUtils.isEmpty(config.getSubscriptionId())) {
+            throw new ConfigurationException(message("webapp.deploy.validate.noSubscription"));
+        }
+        if (StringUtils.isEmpty(config.getResourceGroup())) {
+            throw new ConfigurationException(message("webapp.deploy.validate.noResourceGroup"));
+        }
+        if (StringUtils.isEmpty(config.getServicePlanName())) {
+            throw new ConfigurationException(message("webapp.deploy.validate.noAppServicePlan"));
+        }
+        final DeploymentSlotConfig slotConfig = config.getSlotConfig();
+        if (Objects.nonNull(slotConfig)) {
+            if (StringUtils.isEmpty(slotConfig.getName())) {
+                throw new ConfigurationException(message("webapp.deploy.validate.noSlotName"));
             }
-            if (StringUtils.isEmpty(webAppSettingModel.getSubscriptionId())) {
-                throw new ConfigurationException(message("webapp.deploy.validate.noSubscription"));
-            }
-            if (StringUtils.isEmpty(webAppSettingModel.getResourceGroup())) {
-                throw new ConfigurationException(message("webapp.deploy.validate.noResourceGroup"));
-            }
-            if (webAppSettingModel.isCreatingAppServicePlan()) {
-                if (StringUtils.isEmpty(webAppSettingModel.getRegion())) {
-                    throw new ConfigurationException(message("webapp.deploy.validate.noLocation"));
-                }
-                if (StringUtils.isEmpty(webAppSettingModel.getPricing())) {
-                    throw new ConfigurationException(message("webapp.deploy.validate.noPricingTier"));
-                }
-            }
-            if (StringUtils.isEmpty(webAppSettingModel.getAppServicePlanName())) {
-                throw new ConfigurationException(message("webapp.deploy.validate.noAppServicePlan"));
-            }
-        } else {
-            if (StringUtils.isEmpty(webAppSettingModel.getWebAppId())) {
-                throw new ConfigurationException(message("webapp.deploy.validate.noWebApp"));
-            }
-            if (StringUtils.isEmpty(webAppSettingModel.getAppServicePlanName())) {
-                // Service plan could be null as lazy loading, throw exception in this case
-                throw new ConfigurationException(message("webapp.validate_deploy_configuration.loading"));
-            }
-            if (webAppSettingModel.isDeployToSlot()) {
-                if (Constants.CREATE_NEW_SLOT.equals(webAppSettingModel.getSlotName())) {
-                    if (StringUtils.isEmpty(webAppSettingModel.getNewSlotName())) {
-                        throw new ConfigurationException(message("webapp.deploy.validate.noSlotName"));
-                    }
-                    if (!webAppSettingModel.getNewSlotName().matches(SLOT_NAME_REGEX)) {
-                        throw new ConfigurationException(message("webapp.deploy.validate.invalidSlotName"));
-                    }
-                } else if (StringUtils.isEmpty(webAppSettingModel.getSlotName())) {
-                    throw new ConfigurationException(message("webapp.deploy.validate.noSlotName"));
-                }
+            if (!slotConfig.getName().matches(SLOT_NAME_REGEX)) {
+                throw new ConfigurationException(message("webapp.deploy.validate.invalidSlotName"));
             }
         }
         // validate runtime with artifact
-        final WebAppRuntime runtime = (WebAppRuntime) webAppSettingModel.getRuntime();
-        final OperatingSystem operatingSystem = Optional.ofNullable(runtime).map(Runtime::getOperatingSystem).orElse(null);
-        final JavaVersion javaVersion = Optional.ofNullable(runtime).map(Runtime::getJavaVersion).orElse(JavaVersion.OFF);
+        final WebAppRuntime runtime = (WebAppRuntime)RuntimeConfig.toWebAppRuntime(config.getRuntime());
+        final OperatingSystem operatingSystem = runtime.getOperatingSystem();
+        final JavaVersion javaVersion = runtime.getJavaVersion();
         if (operatingSystem == OperatingSystem.DOCKER) {
             throw new ConfigurationException(message("webapp.validate_deploy_configuration.dockerRuntime"));
         }
@@ -177,138 +139,14 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
         }
     }
 
-    public String getWebAppId() {
-        return webAppSettingModel.getWebAppId();
-    }
-
-    public void setWebAppId(String id) {
-        webAppSettingModel.setWebAppId(id);
-    }
-
-    @Override
-    public String getSubscriptionId() {
-        return webAppSettingModel.getSubscriptionId();
-    }
-
-    public void setSubscriptionId(String sid) {
-        webAppSettingModel.setSubscriptionId(sid);
-    }
-
-    public boolean isDeployToRoot() {
-        return webAppSettingModel.isDeployToRoot();
-    }
-
-    public void setDeployToRoot(boolean toRoot) {
-        webAppSettingModel.setDeployToRoot(toRoot);
-    }
-
-    public boolean isDeployToSlot() {
-        return webAppSettingModel.isDeployToSlot();
-    }
-
-    public void setDeployToSlot(final boolean deployToSlot) {
-        webAppSettingModel.setDeployToSlot(deployToSlot);
-    }
-
-    public String getSlotName() {
-        return webAppSettingModel.getSlotName();
-    }
-
-    public void setSlotName(final String slotName) {
-        webAppSettingModel.setSlotName(slotName);
-    }
-
-    public String getNewSlotName() {
-        return webAppSettingModel.getNewSlotName();
-    }
-
-    public void setNewSlotName(final String newSlotName) {
-        webAppSettingModel.setNewSlotName(newSlotName);
-    }
-
-    public String getNewSlotConfigurationSource() {
-        return webAppSettingModel.getNewSlotConfigurationSource();
-    }
-
-    public void setNewSlotConfigurationSource(final String newSlotConfigurationSource) {
-        webAppSettingModel.setNewSlotConfigurationSource(newSlotConfigurationSource);
-    }
-
-    public boolean isCreatingNew() {
-        return webAppSettingModel.isCreatingNew();
-    }
-
-    public void setCreatingNew(boolean isCreating) {
-        webAppSettingModel.setCreatingNew(isCreating);
-    }
-
-    public String getWebAppName() {
-        return webAppSettingModel.getWebAppName();
-    }
-
-    public void setWebAppName(String name) {
-        webAppSettingModel.setWebAppName(name);
-    }
-
-    public String getResourceGroup() {
-        return webAppSettingModel.getResourceGroup();
-    }
-
-    public void setResourceGroup(String name) {
-        webAppSettingModel.setResourceGroup(name);
-    }
-
-    public boolean isCreatingAppServicePlan() {
-        return webAppSettingModel.isCreatingAppServicePlan();
-    }
-
-    public void setCreatingAppServicePlan(boolean isCreating) {
-        webAppSettingModel.setCreatingAppServicePlan(isCreating);
-    }
-
-    public String getAppServicePlanName() {
-        return webAppSettingModel.getAppServicePlanName();
-    }
-
-    public String getAppServicePlanResourceGroupName() {
-        return webAppSettingModel.getAppServicePlanResourceGroupName();
-    }
-
-    public void setAppServicePlanName(String name) {
-        webAppSettingModel.setAppServicePlanName(name);
-    }
-
-    public void setAppServicePlanResourceGroupName(String name) {
-        webAppSettingModel.setAppServicePlanResourceGroupName(name);
-    }
-
-    public String getRegion() {
-        return webAppSettingModel.getRegion();
-    }
-
-    public void setRegion(String region) {
-        webAppSettingModel.setRegion(region);
-    }
-
-    public String getPricing() {
-        return webAppSettingModel.getPricing();
-    }
-
-    public void setPricing(String price) {
-        webAppSettingModel.setPricing(price);
-    }
-
     @Override
     public String getTargetPath() {
         return webAppSettingModel.getTargetPath();
     }
 
-    public void setTargetPath(String path) {
-        webAppSettingModel.setTargetPath(path);
-    }
-
-    public void setTargetName(String name) {
-        webAppSettingModel.setTargetName(name);
+    @Override
+    public String getSubscriptionId() {
+        return webAppSettingModel.getConfig().subscriptionId();
     }
 
     @Override
@@ -316,67 +154,53 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
         return webAppSettingModel.getTargetName();
     }
 
-    public boolean isOpenBrowserAfterDeployment() {
-        return webAppSettingModel.isOpenBrowserAfterDeployment();
-    }
-
     public void setOpenBrowserAfterDeployment(boolean openBrowserAfterDeployment) {
         webAppSettingModel.setOpenBrowserAfterDeployment(openBrowserAfterDeployment);
-    }
-
-    public boolean isSlotPanelVisible() {
-        return webAppSettingModel.isSlotPanelVisible();
-    }
-
-    public void setSlotPanelVisible(boolean slotPanelVisible) {
-        webAppSettingModel.setSlotPanelVisible(slotPanelVisible);
     }
 
     public AzureArtifactType getAzureArtifactType() {
         return webAppSettingModel.getAzureArtifactType();
     }
 
-    public void setAzureArtifactType(final AzureArtifactType azureArtifactType) {
-        webAppSettingModel.setAzureArtifactType(azureArtifactType);
-    }
-
     public String getArtifactIdentifier() {
         return webAppSettingModel.getArtifactIdentifier();
     }
 
-    public void setArtifactIdentifier(final String artifactIdentifier) {
-        webAppSettingModel.setArtifactIdentifier(artifactIdentifier);
+    public void setWebApp(@Nonnull WebApp webApp) {
+        final AppServiceConfig config = AppServiceConfigUtils.fromAppService(webApp, Objects.requireNonNull(webApp.getAppServicePlan()));
+        this.webAppSettingModel.setConfig(config);
     }
 
-    public void saveArtifact(AzureArtifact azureArtifact) {
+    public void setArtifact(AzureArtifact azureArtifact) {
         final AzureArtifactManager azureArtifactManager = AzureArtifactManager.getInstance(getProject());
         webAppSettingModel.setArtifactIdentifier(azureArtifact == null ? null : azureArtifact.getIdentifier());
         webAppSettingModel.setAzureArtifactType(azureArtifact == null ? null : azureArtifact.getType());
         webAppSettingModel.setPackaging(azureArtifact == null ? null : azureArtifact.getPackaging());
     }
 
-    public void setRuntime(final Runtime runtime) {
-        webAppSettingModel.saveRuntime((WebAppRuntime) runtime);
+    public void setWebAppSettingModel(@Nonnull final IntelliJWebAppSettingModel value) {
+        this.saveAppSettings(value.getAppSettingsKey(), value.getConfig().appSettings());
+        this.webAppSettingModel.setConfig(value.getConfig());
+        this.webAppSettingModel.setDeployToRoot(value.isDeployToRoot());
+        this.webAppSettingModel.setAzureArtifactType(value.getAzureArtifactType());
+        this.webAppSettingModel.setOpenBrowserAfterDeployment(value.isOpenBrowserAfterDeployment());
+        this.webAppSettingModel.setSlotPanelVisible(value.isSlotPanelVisible());
+        this.webAppSettingModel.setArtifactIdentifier(value.getArtifactIdentifier());
+        this.webAppSettingModel.setPackaging(value.getPackaging());
     }
 
-    public Set<String> getAppSettingsToRemove() {
-        return webAppSettingModel.getAppSettingsToRemove();
+    public AppServiceConfig getAppServiceConfig() {
+        final AppServiceConfig config = getModel().getConfig();
+        config.setAppSettings(FunctionUtils.loadAppSettingsFromSecurityStorage(getAppSettingsKey()));
+        return config;
     }
 
-    public void setAppSettingsToRemove(@Nonnull Set<String> appSettingsToRemove) {
-        webAppSettingModel.setAppSettingsToRemove(appSettingsToRemove);
+    public void saveAppSettings(@Nonnull final String appSettingsKey, @Nonnull final Map<String, String> appSettings) {
+        this.webAppSettingModel.setAppSettingsKey(appSettingsKey);
+        FunctionUtils.saveAppSettingsToSecurityStorage(appSettingsKey, appSettings);
     }
 
-    public void setWebApp(@Nonnull WebApp webApp) {
-        this.setWebAppId(webApp.getId());
-        this.setWebAppName(webApp.getName());
-        this.setSubscriptionId(webApp.getSubscriptionId());
-        this.setResourceGroup(webApp.getResourceGroupName());
-        Optional.ofNullable(webApp.getAppServicePlan()).ifPresent(plan -> {
-            this.setAppServicePlanName(plan.getName());
-            this.setAppServicePlanResourceGroupName(plan.getResourceGroupName());
-        });
-        Optional.ofNullable(webApp.getRegion()).ifPresent(r -> this.setRegion(r.getName()));
-        this.setApplicationSettings(webApp.getAppSettings());
+    public String getAppSettingsKey() {
+        return webAppSettingModel.getAppSettingsKey();
     }
 }
