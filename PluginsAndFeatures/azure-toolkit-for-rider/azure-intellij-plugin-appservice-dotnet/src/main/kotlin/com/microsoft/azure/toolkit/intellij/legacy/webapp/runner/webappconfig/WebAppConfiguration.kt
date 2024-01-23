@@ -15,6 +15,7 @@ import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.common.runconfig.IWebAppRunConfiguration
 import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunConfigurationBase
+import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidResourceName
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
@@ -158,6 +159,7 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         with(webAppPublishModel) {
             if (isCreatingNew) {
                 if (webAppName.isNullOrEmpty()) throw RuntimeConfigurationError("Web App name not provided")
+                if (!isValidResourceName(webAppName)) throw RuntimeConfigurationError("Web App names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
                 if (subscriptionId.isNullOrEmpty()) throw RuntimeConfigurationError("Subscription not provided")
                 if (resourceGroup.isNullOrEmpty()) throw RuntimeConfigurationError("Resource Group not provided")
                 if (isCreatingAppServicePlan) {
@@ -165,6 +167,7 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
                     if (pricing.isNullOrEmpty()) throw RuntimeConfigurationError("Pricing Tier not provided")
                 }
                 if (appServicePlanName.isNullOrEmpty()) throw RuntimeConfigurationError("App Service Plan not provided")
+                if (!isValidResourceName(appServicePlanName)) throw RuntimeConfigurationError("App Service plan names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
             } else {
                 if (webAppId.isNullOrEmpty()) throw RuntimeConfigurationError("Choose a web app to deploy")
                 if (appServicePlanName.isNullOrEmpty()) throw RuntimeConfigurationError("Meta-data of target webapp is still loading...")

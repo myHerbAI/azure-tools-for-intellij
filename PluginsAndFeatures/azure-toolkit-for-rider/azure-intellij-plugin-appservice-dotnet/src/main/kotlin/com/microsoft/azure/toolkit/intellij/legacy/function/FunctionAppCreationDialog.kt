@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig
 import com.microsoft.azure.toolkit.intellij.common.ConfigDialog
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdvancedPanel
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoBasicPanel
+import com.microsoft.azure.toolkit.intellij.legacy.utils.removeInvalidCharacters
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
@@ -34,12 +35,13 @@ class FunctionAppCreationDialog(project: Project) : ConfigDialog<FunctionAppConf
             )
         }
 
+        val projectName = removeInvalidCharacters(project.name)
         basicPanel = AppServiceInfoBasicPanel(selectedSubscriptions[0]) {
-            FunctionAppConfig.getFunctionAppDefaultConfig(project.name)
+            FunctionAppConfig.getFunctionAppDefaultConfig(projectName)
         }
         Disposer.register(this, basicPanel)
 
-        advancedPanel = AppServiceInfoAdvancedPanel(project.name) {
+        advancedPanel = AppServiceInfoAdvancedPanel(projectName) {
             FunctionAppConfig.builder().build()
         }
         Disposer.register(this, advancedPanel)

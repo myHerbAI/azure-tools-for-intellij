@@ -14,6 +14,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunConfigurationBase
+import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidResourceName
 import com.microsoft.azuretools.core.mvp.model.webapp.WebAppOnLinuxDeployModel
 
 class WebAppContainersConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
@@ -107,12 +108,15 @@ class WebAppContainersConfiguration(private val project: Project, factory: Confi
         validateDockerImageConfiguration()
         with(webAppContainersModel) {
             if (isCreatingNewWebAppOnLinux) {
-                if (webAppName.isNullOrEmpty()) throw RuntimeConfigurationError("Please specify a Web App for Containers.")
-                if (subscriptionId.isNullOrEmpty()) throw RuntimeConfigurationError("Please specify a Subscription.")
-                if (resourceGroupName.isNullOrEmpty()) throw RuntimeConfigurationError("Please specify a Resource Group.")
-                if (appServicePlanName.isNullOrEmpty()) throw RuntimeConfigurationError("Please specify an App Service Plan.")
+                if (webAppName.isNullOrEmpty()) throw RuntimeConfigurationError("Please specify a Web App for Containers")
+                if (!isValidResourceName(webAppName)) throw RuntimeConfigurationError("Web App names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
+                if (subscriptionId.isNullOrEmpty()) throw RuntimeConfigurationError("Please specify a Subscription")
+                if (resourceGroupName.isNullOrEmpty()) throw RuntimeConfigurationError("Please specify a Resource Group")
+                if (!isValidResourceName(resourceGroupName)) throw RuntimeConfigurationError("Resource group names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
+                if (appServicePlanName.isNullOrEmpty()) throw RuntimeConfigurationError("Please specify an App Service plan")
+                if (appServicePlanName.isNullOrEmpty()) throw RuntimeConfigurationError("App Service plan name is not provided")
             } else {
-                if (webAppId.isNullOrEmpty()) throw RuntimeConfigurationError("Please specify Web App for Containers.")
+                if (webAppId.isNullOrEmpty()) throw RuntimeConfigurationError("Please specify Web App for Containers")
             }
         }
     }
