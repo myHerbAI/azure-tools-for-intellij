@@ -12,15 +12,12 @@ import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.intellij.common.SwingUtils;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
-import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanDraft;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
-import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo.AzureValidationInfoBuilder;
-import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.intellij.util.ValidationUtils;
@@ -29,6 +26,7 @@ import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 
@@ -90,7 +88,7 @@ public class ServicePlanCreationDialog extends AzureDialog<AppServicePlanDraft>
     @Override
     public AppServicePlanDraft getValue() {
         final AppServicePlanDraft draft = Azure.az(AzureAppService.class).plans(this.subscription.getId())
-            .create(this.textName.getValue(), "<none>");
+            .create(this.textName.getValue(), Optional.ofNullable(resourceGroup).map(ResourceGroup::getName).orElse("<none>"));
         draft.setPricingTier(this.comboBoxPricingTier.getValue());
         return draft;
     }

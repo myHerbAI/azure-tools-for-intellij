@@ -5,29 +5,40 @@
 
 package com.microsoft.azure.toolkit.ide.appservice.function;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.ide.appservice.AppServiceActionsContributor;
 import com.microsoft.azure.toolkit.ide.appservice.function.node.TriggerFunctionInBrowserAction;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
+import com.microsoft.azure.toolkit.ide.containerapps.ContainerAppsActionsContributor;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.action.IActionGroup;
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
+import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
+import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Objects;
+import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS;
 
 public class FunctionAppActionsContributor implements IActionsContributor {
-    public static final int INITIALIZE_ORDER = AppServiceActionsContributor.INITIALIZE_ORDER + 1;
+    public static final int INITIALIZE_ORDER = Math.max(AppServiceActionsContributor.INITIALIZE_ORDER, ContainerAppsActionsContributor.INITIALIZE_ORDER) + 1;
 
     public static final String SERVICE_ACTIONS = "actions.function.service";
     public static final String FUNCTION_APP_ACTIONS = "actions.function.function_app";
@@ -41,6 +52,7 @@ public class FunctionAppActionsContributor implements IActionsContributor {
     public static final Action.Id<FunctionAppBase<?, ?, ?>> REMOTE_DEBUGGING = Action.Id.of("user/function.start_remote_debugging.app");
     public static final Action.Id<FunctionAppDeploymentSlot> SWAP_DEPLOYMENT_SLOT = Action.Id.of("user/function.swap_deployment.deployment|app");
     public static final Action.Id<FunctionApp> REFRESH_FUNCTIONS = Action.Id.of("user/function.refresh_functions.app");
+    public static final Action.Id<FunctionApp> FOCUS_CONTAINER_ENVIRONMENT = Action.Id.of("user/function.focus_environment.app");
     public static final Action.Id<FunctionEntity> TRIGGER_FUNCTION = FunctionEntity.TRIGGER_FUNCTION;
     public static final Action.Id<FunctionEntity> TRIGGER_FUNCTION_IN_BROWSER = FunctionEntity.TRIGGER_FUNCTION_IN_BROWSER;
     public static final Action.Id<FunctionEntity> TRIGGER_FUNCTION_WITH_HTTP_CLIENT = Action.Id.of("user/function.trigger_function_with_http_client.trigger");
@@ -48,6 +60,7 @@ public class FunctionAppActionsContributor implements IActionsContributor {
     public static final Action.Id<Object> CONFIG_CORE_TOOLS = Action.Id.of("user/function.config_core_tools");
     public static final String CORE_TOOLS_URL = "https://aka.ms/azfunc-install";
 
+    public static final Action.Id<ContainerAppsEnvironment> ENVIRONMENT_CREATE_FUNCTION = Action.Id.of("user/function.create_app.environment");
     public static final Action.Id<ResourceGroup> GROUP_CREATE_FUNCTION = Action.Id.of("user/function.create_app.group");
 
     @Override
@@ -71,8 +84,11 @@ public class FunctionAppActionsContributor implements IActionsContributor {
             ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
             ResourceCommonActionsContributor.OPEN_PORTAL_URL,
             ResourceCommonActionsContributor.SHOW_PROPERTIES,
+            FunctionAppActionsContributor.FOCUS_CONTAINER_ENVIRONMENT,
             "---",
-            ResourceCommonActionsContributor.DEPLOY,
+            am.getAction(ResourceCommonActionsContributor.DEPLOY).bind(null)
+                    .visibleWhen(s -> s instanceof FunctionApp app && StringUtils.isBlank(app.getEnvironmentId())),
+            AppServiceActionsContributor.UPDATE_IMAGE,
             "---",
             FunctionAppActionsContributor.REMOTE_DEBUGGING,
             FunctionAppActionsContributor.ENABLE_REMOTE_DEBUGGING,
@@ -115,6 +131,9 @@ public class FunctionAppActionsContributor implements IActionsContributor {
 
         final IActionGroup group = am.getGroup(ResourceCommonActionsContributor.RESOURCE_GROUP_CREATE_ACTIONS);
         group.addAction(GROUP_CREATE_FUNCTION);
+
+        final IActionGroup environment = am.getGroup(ContainerAppsActionsContributor.CONTAINER_APPS_ENVIRONMENT_CREATE_ACTIONS);
+        environment.addAction(ENVIRONMENT_CREATE_FUNCTION);
     }
 
     @Override
@@ -165,11 +184,32 @@ public class FunctionAppActionsContributor implements IActionsContributor {
             .withAuthRequired(false)
             .register(am);
 
+        new Action<>(FOCUS_CONTAINER_ENVIRONMENT)
+                .withLabel(s -> "Navigate to Environment")
+                .withIcon(AzureIcons.ContainerApps.MODULE.getIconPath())
+                .visibleWhen(s -> s instanceof FunctionApp app && StringUtils.isNotBlank(app.getEnvironmentId()))
+                .withHandler((r) -> {
+                    final AzResource resource = Azure.az().getById(r.getEnvironmentId());
+                    if (Objects.isNull(resource)) {
+                        final String environment = ResourceId.fromString(r.getEnvironmentId()).name();
+                        AzureMessager.getMessager().info(AzureString.format("Cannot find Azure Container Apps environment (%s).", environment));
+                        return;
+                    }
+                    AzureEventBus.emit("azure.explorer.select_resource", resource);
+                })
+                .withAuthRequired(false)
+                .register(am);
+
         new Action<>(GROUP_CREATE_FUNCTION)
             .withLabel("Function App")
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ResourceGroup)
             .enableWhen(s -> s.getFormalStatus().isConnected())
+            .register(am);
+
+        new Action<>(ENVIRONMENT_CREATE_FUNCTION)
+            .withLabel("Function App")
+            .withIdParam(AzResource::getName)
             .register(am);
 
         new Action<>(ENABLE_REMOTE_DEBUGGING)

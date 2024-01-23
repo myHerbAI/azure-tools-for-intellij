@@ -21,9 +21,5 @@ public interface IWebAppRunConfiguration {
         void artifactMayChanged(@Nonnull RunConfiguration config, @Nullable ConfigurationSettingsEditorWrapper editor);
     }
 
-    void setApplicationSettings(Map<String, String> env);
-
-    Map<String, String> getApplicationSettings();
-
     Module getModule();
 }

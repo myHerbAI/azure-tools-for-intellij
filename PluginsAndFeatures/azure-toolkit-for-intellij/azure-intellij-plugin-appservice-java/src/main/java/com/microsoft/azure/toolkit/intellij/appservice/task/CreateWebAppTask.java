@@ -1,20 +1,20 @@
 package com.microsoft.azure.toolkit.intellij.appservice.task;
 
-import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig;
 import com.microsoft.azure.toolkit.ide.guidance.ComponentContext;
 import com.microsoft.azure.toolkit.ide.guidance.Task;
 import com.microsoft.azure.toolkit.ide.guidance.task.SignInTask;
+import com.microsoft.azure.toolkit.intellij.appservice.AppServiceIntelliJActionsContributor;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import com.microsoft.azure.toolkit.lib.legacy.webapp.WebAppService;
-import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -45,14 +45,15 @@ public class CreateWebAppTask implements Task {
         final Subscription subscription = Optional.ofNullable((String) context.getParameter(SignInTask.SUBSCRIPTION_ID))
                 .map(id -> Azure.az(AzureAccount.class).account().getSubscription(id))
                 .orElseThrow(() -> new AzureToolkitRuntimeException("Failed to get subscription to create web app"));
-        final WebAppConfig webAppConfig = WebAppConfig.getWebAppDefaultConfig(name);
-        webAppConfig.setName(name);
-        webAppConfig.setSubscription(subscription);
-        webAppConfig.setRuntime(WebAppRuntime.getDefaultJavaseRuntime());
+
+        final AppServiceConfig webAppConfig = AppServiceIntelliJActionsContributor.getDefaultWebAppConfig(null);
+        webAppConfig.appName(name);
+        webAppConfig.subscriptionId(subscription.getId());
+        webAppConfig.runtime(RuntimeConfig.fromRuntime(WebAppRuntime.getDefaultJavaseRuntime()));
+
         final String rgName = Utils.generateRandomResourceName(String.format("rg-%s", name), 90);
-        final ResourceGroupConfig newGroupConfig = ResourceGroupConfig.builder().subscriptionId(subscription.getId()).name(rgName).region(webAppConfig.getRegion()).build();
-        webAppConfig.setResourceGroup(newGroupConfig);
-        final WebApp webApp = WebAppService.getInstance().createWebApp(webAppConfig);
+        webAppConfig.resourceGroup(rgName);
+	    final WebAppBase<?, ?, ?> webApp = WebAppService.getInstance().createWebApp(webAppConfig);
         context.applyResult(WEBAPP_ID, webApp.getId());
         context.applyResult(RESOURCE_GROUP, webApp.getResourceGroupName());
     }

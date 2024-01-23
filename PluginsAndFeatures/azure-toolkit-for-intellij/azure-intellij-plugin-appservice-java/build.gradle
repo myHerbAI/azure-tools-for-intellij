@@ -26,6 +26,7 @@ dependencies {
     implementation 'com.github.docker-java:docker-java:3.3.0'
     implementation 'com.microsoft.azure:azure-toolkit-appservice-lib'
     implementation 'com.microsoft.azure:azure-toolkit-ide-appservice-lib'
+    implementation 'com.microsoft.azure:azure-toolkit-ide-containerapps-lib'
     implementation 'com.microsoft.azure:azure-toolkit-ide-containerregistry-lib'
     implementation 'com.jcraft:jsch:0.1.55'
     implementation 'org.codehaus.plexus:plexus-archiver:4.2.7'

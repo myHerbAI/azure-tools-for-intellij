@@ -8,9 +8,10 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.appservice.model.MonitorConfig;
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig;
+import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdvancedPanel;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceMonitorPanel;
-import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
@@ -20,15 +21,14 @@ import org.apache.commons.collections4.ListUtils;
 
 import javax.swing.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class WebAppConfigFormPanelAdvance extends JPanel implements AzureFormPanel<WebAppConfig> {
+public class WebAppConfigFormPanelAdvance extends JPanel implements AzureFormPanel<AppServiceConfig> {
     private final Project project;
     private JTabbedPane tabPane;
     private JPanel pnlRoot;
-    private AppServiceInfoAdvancedPanel<WebAppConfig> appServiceConfigPanelAdvanced;
+    private AppServiceInfoAdvancedPanel<AppServiceConfig> appServiceConfigPanelAdvanced;
     private AppServiceMonitorPanel appServiceMonitorPanel;
     private JPanel pnlMonitoring;
     private JPanel pnlAppService;
@@ -39,16 +39,17 @@ public class WebAppConfigFormPanelAdvance extends JPanel implements AzureFormPan
     }
 
     @Override
-    public WebAppConfig getValue() {
-        final WebAppConfig data = appServiceConfigPanelAdvanced.getValue();
-        data.setMonitorConfig(appServiceMonitorPanel.getValue());
+    public AppServiceConfig getValue() {
+        final AppServiceConfig data = appServiceConfigPanelAdvanced.getValue();
+        final MonitorConfig monitor = appServiceMonitorPanel.getValue();
+        data.diagnosticConfig(monitor.getDiagnosticConfig());
         return data;
     }
 
     @Override
-    public void setValue(final WebAppConfig data) {
+    public void setValue(final AppServiceConfig data) {
         appServiceConfigPanelAdvanced.setValue(data);
-        appServiceMonitorPanel.setValue(data.getMonitorConfig());
+        appServiceMonitorPanel.setValue(MonitorConfig.builder().diagnosticConfig(data.diagnosticConfig()).build());
     }
 
     @Override
@@ -60,15 +61,9 @@ public class WebAppConfigFormPanelAdvance extends JPanel implements AzureFormPan
         this.appServiceConfigPanelAdvanced.setDeploymentVisible(visible);
     }
 
-    public void setValidPricingTier(final List<PricingTier> validPricingTiers, final PricingTier defaultPricingTier) {
-        this.appServiceConfigPanelAdvanced.setValidPricingTier(validPricingTiers, defaultPricingTier);
-    }
-
     private void createUIComponents() {
         // TODO: place custom component creation code here
-        appServiceConfigPanelAdvanced = new AppServiceInfoAdvancedPanel<>(project, WebAppConfig::getWebAppDefaultConfig);
-        final List<PricingTier> validPricing = new ArrayList<>(PricingTier.WEB_APP_PRICING);
-        appServiceConfigPanelAdvanced.setValidPricingTier(validPricing, WebAppConfig.DEFAULT_PRICING_TIER);
+        appServiceConfigPanelAdvanced = new AppServiceInfoAdvancedPanel<>(project, AppServiceConfig::new);
 
         appServiceMonitorPanel = new AppServiceMonitorPanel(project);
         // Application Insights is not supported in Web App
