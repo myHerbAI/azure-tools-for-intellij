@@ -72,7 +72,7 @@ public class AzureContainerAppsEnvironmentComboBox extends AzureComboBox<Contain
     }
 
     public void setResourceGroup(ResourceGroup resourceGroup) {
-        if (Objects.equals(resourceGroup, this.region)) {
+        if (Objects.equals(resourceGroup, this.resourceGroup)) {
             return;
         }
         this.resourceGroup = resourceGroup;
@@ -85,7 +85,7 @@ public class AzureContainerAppsEnvironmentComboBox extends AzureComboBox<Contain
 
     @Override
     public void setValue(@Nullable ContainerAppsEnvironment val, Boolean fixed) {
-        if (Objects.nonNull(val) && val.isDraftForCreating() && !val.exists()) {
+        if (Objects.nonNull(val) && val.isDraftForCreating() && !val.exists() && !this.draftItems.contains(val)) {
             this.draftItems.remove(val);
             this.draftItems.add(0, val);
             this.reloadItems();
@@ -110,6 +110,7 @@ public class AzureContainerAppsEnvironmentComboBox extends AzureComboBox<Contain
         final List<ContainerAppsEnvironment> remoteEnvironments = stream.flatMap(s -> s.environments().list().stream())
                 .filter(env -> env.getFormalStatus().isConnected())
                 .filter(env -> Objects.equals(env.getRegion(), this.region))
+                .filter(env -> Objects.isNull(env.getResourceGroup()) || Objects.equals(env.getResourceGroup(), this.resourceGroup))
                 .sorted(Comparator.comparing(ContainerAppsEnvironment::getName)).toList();
         final List<ContainerAppsEnvironment> environments = new ArrayList<>(remoteEnvironments);
         final ContainerAppsEnvironment draftItem = this.draftItems.stream()

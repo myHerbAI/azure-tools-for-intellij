@@ -10,14 +10,17 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.ui.JBIntSpinner;
 import com.intellij.uiDesigner.core.GridConstraints;
-import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig;
 import com.microsoft.azure.toolkit.intellij.container.AzureDockerClient;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerPushConfiguration;
 import com.microsoft.azure.toolkit.intellij.containerregistry.buildimage.DockerBuildTaskUtils;
 import com.microsoft.azure.toolkit.intellij.containerregistry.component.DockerImageConfigurationPanel;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceComboBox;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureSettingPanel;
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapponlinux.WebAppOnLinuxDeployConfiguration;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import org.apache.commons.lang3.StringUtils;
@@ -76,10 +79,16 @@ public class DockerWebAppSettingPanel extends AzureSettingPanel<WebAppOnLinuxDep
 
     @Override
     protected void resetFromConfig(@Nonnull WebAppOnLinuxDeployConfiguration configuration) {
-        if (StringUtils.isAllEmpty(configuration.getWebAppId(), configuration.getAppName())) {
+        final AppServiceConfig config = configuration.getAppServiceConfig();
+        if (StringUtils.isBlank(config.getAppName())) {
             return;
         }
-        cbWebApp.setValue(configuration.getWebAppConfig());
+        if (Azure.az(AzureAccount.class).account().getSubscriptions().stream().noneMatch(s -> s.getId().equals(config.subscriptionId()))) {
+            cbWebApp.setValue((AppServiceConfig) null);
+            return;
+        }
+        cbWebApp.setConfigModel(config);
+        cbWebApp.setValue(c -> AppServiceComboBox.isSameApp(c, config));
         pnlDockerConfiguration.setValue(configuration.getDockerPushConfiguration());
         Optional.ofNullable(configuration.getPort()).ifPresent(txtTargetPort::setNumber);
     }
@@ -87,7 +96,7 @@ public class DockerWebAppSettingPanel extends AzureSettingPanel<WebAppOnLinuxDep
     @Override
     protected void apply(@Nonnull WebAppOnLinuxDeployConfiguration configuration) {
         final DockerPushConfiguration value = pnlDockerConfiguration.getValue();
-        final WebAppConfig webappConfig = cbWebApp.getValue();
+        final AppServiceConfig webappConfig = cbWebApp.getValue();
         Optional.ofNullable(webappConfig).ifPresent(configuration::setWebAppConfig);
         Optional.ofNullable(value).ifPresent(configuration::setDockerPushConfiguration);
         Optional.of(txtTargetPort.getNumber()).ifPresent(configuration::setPort);

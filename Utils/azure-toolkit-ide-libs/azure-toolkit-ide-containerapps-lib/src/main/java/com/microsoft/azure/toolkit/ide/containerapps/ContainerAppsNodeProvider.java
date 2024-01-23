@@ -37,7 +37,7 @@ import static com.microsoft.azure.toolkit.ide.common.component.AzureResourceIcon
 import static com.microsoft.azure.toolkit.lib.Azure.az;
 
 public class ContainerAppsNodeProvider implements IExplorerNodeProvider {
-    private static final String NAME = "Container Apps";
+    private static final String NAME = "Container Apps Environment";
     private static final String ICON = AzureIcons.ContainerApps.MODULE.getIconPath();
 
     @Nullable
@@ -67,7 +67,11 @@ public class ContainerAppsNodeProvider implements IExplorerNodeProvider {
         } else if (data instanceof ContainerAppsEnvironment) {
             return new ContainerAppsEnvironmentNode((ContainerAppsEnvironment) data)
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
-                .addChildren(ContainerAppsEnvironment::listContainerApps, (app, envNode) -> this.createNode(app, envNode, manager))
+                .addChildren(env -> env.listContainerApps().stream()
+                                       .filter(app -> StringUtils.isBlank(app.getManagedBy()) || Objects.nonNull(app.getManagedByResource()))
+                                       .collect(Collectors.toList()),
+                             (app, envNode) -> StringUtils.isBlank(app.getManagedBy()) ? this.createNode(app, envNode, manager) :
+                                               manager.createNode(Objects.requireNonNull(app.getManagedByResource()), envNode, null))
                 .withActions(ContainerAppsActionsContributor.ENVIRONMENT_ACTIONS);
         } else if (data instanceof ContainerApp) {
             return new AzResourceNode<>((ContainerApp) data)

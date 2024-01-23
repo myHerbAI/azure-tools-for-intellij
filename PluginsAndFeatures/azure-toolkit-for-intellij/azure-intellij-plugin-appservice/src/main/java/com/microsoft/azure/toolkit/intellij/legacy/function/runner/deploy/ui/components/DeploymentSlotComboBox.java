@@ -8,10 +8,10 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
-import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.IDeploymentSlotModule;
+import com.microsoft.azure.toolkit.lib.appservice.config.DeploymentSlotConfig;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import org.apache.commons.lang3.StringUtils;
@@ -70,7 +70,7 @@ public class DeploymentSlotComboBox extends AzureComboBox<DeploymentSlotConfig> 
 
     private void createResource() {
         final List<DeploymentSlotConfig> existingSlots = this.getItems().stream()
-            .filter(config -> !config.isNewCreate())
+            .filter(config -> false)
             .collect(Collectors.toList());
         final DeploymentSlotCreationDialog dialog = new DeploymentSlotCreationDialog(project, existingSlots);
         final Action.Id<DeploymentSlotConfig> actionId = Action.Id.of("user/function.create_slot.slot");
@@ -93,7 +93,7 @@ public class DeploymentSlotComboBox extends AzureComboBox<DeploymentSlotConfig> 
             return Collections.emptyList();
         }
         final List<DeploymentSlotConfig> result = module.list().stream().map(slot ->
-            DeploymentSlotConfig.builder().name(slot.getName()).newCreate(false).build()).collect(Collectors.toList());
+            DeploymentSlotConfig.builder().name(slot.getName()).build()).collect(Collectors.toList());
         this.draftItems.stream().filter(config -> !result.contains(config)).forEach(result::add);
         return result;
     }
@@ -109,6 +109,6 @@ public class DeploymentSlotComboBox extends AzureComboBox<DeploymentSlotConfig> 
     }
 
     private boolean isDraftResource(DeploymentSlotConfig val) {
-        return StringUtils.isNotEmpty(val.getConfigurationSource()) || val.isNewCreate();
+        return StringUtils.isNotEmpty(val.getConfigurationSource());
     }
 }

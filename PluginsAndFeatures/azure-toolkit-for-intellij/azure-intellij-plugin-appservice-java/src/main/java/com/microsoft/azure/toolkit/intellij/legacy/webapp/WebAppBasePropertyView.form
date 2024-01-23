@@ -100,7 +100,7 @@
                               <text value="&lt;Loading...&gt;"/>
                             </properties>
                           </component>
-                          <component id="5446f" class="javax.swing.JLabel">
+                          <component id="5446f" class="javax.swing.JLabel" binding="lblServicePlan">
                             <constraints>
                               <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                               <gridbag weightx="1.0" weighty="0.0"/>

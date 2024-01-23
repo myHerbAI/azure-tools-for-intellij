@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.ide.appservice.model;
 
+import com.microsoft.azure.toolkit.lib.appservice.model.ApplicationInsightsConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

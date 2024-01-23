@@ -5,10 +5,10 @@
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.ui.components;
 
 import com.intellij.openapi.project.Project;
-import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
+import com.microsoft.azure.toolkit.lib.appservice.config.DeploymentSlotConfig;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
@@ -69,7 +69,6 @@ public class DeploymentSlotCreationDialog extends AzureDialog<DeploymentSlotConf
         return DeploymentSlotConfig.builder()
                 .name(txtName.getValue())
                 .configurationSource(source)
-                .newCreate(true)
                 .build();
     }
 

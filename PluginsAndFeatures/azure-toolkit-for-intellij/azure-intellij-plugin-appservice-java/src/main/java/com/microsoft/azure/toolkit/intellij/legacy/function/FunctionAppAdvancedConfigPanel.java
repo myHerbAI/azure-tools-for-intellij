@@ -7,38 +7,35 @@ package com.microsoft.azure.toolkit.intellij.legacy.function;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.DocumentAdapter;
-import com.microsoft.azure.toolkit.ide.appservice.model.ApplicationInsightsConfig;
 import com.microsoft.azure.toolkit.ide.appservice.model.MonitorConfig;
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdvancedPanel;
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceMonitorPanel;
-import com.microsoft.azure.toolkit.lib.appservice.model.*;
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.insights.ApplicationInsightsComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceMonitorPanel;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.insights.ApplicationInsightsComboBox;
+import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
+import com.microsoft.azure.toolkit.lib.appservice.model.ApplicationInsightsConfig;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
-import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig;
 import org.apache.commons.collections4.ListUtils;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFormPanel<FunctionAppConfig> {
+public class FunctionAppAdvancedConfigPanel extends JPanel implements AzureFormPanel<FunctionAppConfig> {
     private final Project project;
     private JTabbedPane tabPane;
     private JPanel pnlRoot;
-    private AppServiceInfoAdvancedPanel<FunctionAppConfig> appServiceConfigPanelAdvanced;
+    private FunctionAppInfoPanel appServiceConfigPanelAdvanced;
     private AppServiceMonitorPanel appServiceMonitorPanel;
     private JPanel pnlMonitoring;
     private JPanel pnlAppService;
 
     private ApplicationInsightsConfig insightsConfig;
 
-    public FunctionAppConfigFormPanelAdvance(final Project project) {
+    public FunctionAppAdvancedConfigPanel(final Project project) {
         super();
         this.project = project;
         $$$setupUI$$$(); // tell IntelliJ to call createUIComponents() here.
@@ -53,14 +50,18 @@ public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFo
     @Override
     public FunctionAppConfig getValue() {
         final FunctionAppConfig data = appServiceConfigPanelAdvanced.getValue();
-        data.setMonitorConfig(appServiceMonitorPanel.getValue());
+        final MonitorConfig value = appServiceMonitorPanel.getValue();
+        data.applicationInsightsConfig(value.getApplicationInsightsConfig());
+        data.diagnosticConfig(value.getDiagnosticConfig());
         return data;
     }
 
     @Override
     public void setValue(final FunctionAppConfig data) {
         appServiceConfigPanelAdvanced.setValue(data);
-        appServiceMonitorPanel.setValue(data.getMonitorConfig());
+        final MonitorConfig value = MonitorConfig.builder().diagnosticConfig(data.diagnosticConfig())
+            .applicationInsightsConfig(data.applicationInsightsConfig()).build();
+        appServiceMonitorPanel.setValue(value);
     }
 
     @Override
@@ -84,17 +85,14 @@ public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFo
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
-        appServiceConfigPanelAdvanced = new AppServiceInfoAdvancedPanel<>(project, () -> FunctionAppConfig.builder().build());
-        appServiceConfigPanelAdvanced.setValidRuntime(FunctionAppRuntime.getMajorRuntimes().stream().filter(r-> !r.isDocker()).collect(Collectors.toList()));
-        appServiceConfigPanelAdvanced.setValidPricingTier(new ArrayList<>(PricingTier.FUNCTION_PRICING), PricingTier.CONSUMPTION);
+        appServiceConfigPanelAdvanced = new FunctionAppInfoPanel(project);
         // Function does not support file deployment
-        appServiceConfigPanelAdvanced.setDeploymentVisible(false);
-        insightsConfig = ApplicationInsightsConfig.builder().newCreate(true)
+        insightsConfig = ApplicationInsightsConfig.builder().createNewInstance(true)
                 .name(appServiceConfigPanelAdvanced.getTextName().getValue())
                 .build();
 
         appServiceMonitorPanel = new AppServiceMonitorPanel(project);
-        appServiceMonitorPanel.setWebServerLogEnabled(false);
+        appServiceMonitorPanel.setWebServerLogVisible(false);
         appServiceMonitorPanel.setValue(MonitorConfig.builder().applicationInsightsConfig(insightsConfig).build());
 
         appServiceConfigPanelAdvanced.getSelectorSubscription().addActionListener(event ->
@@ -107,6 +105,6 @@ public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFo
         });
 
         appServiceConfigPanelAdvanced.getSelectorRegion().addItemListener(event ->
-                appServiceMonitorPanel.getApplicationInsightsComboBox().setRegion(appServiceConfigPanelAdvanced.getValue().getRegion()));
+                appServiceMonitorPanel.getApplicationInsightsComboBox().setRegion(appServiceConfigPanelAdvanced.getValue().region()));
     }
 }

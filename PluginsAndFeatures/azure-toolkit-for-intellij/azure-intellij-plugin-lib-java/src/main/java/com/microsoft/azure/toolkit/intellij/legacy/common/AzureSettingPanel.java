@@ -162,7 +162,9 @@ public abstract class AzureSettingPanel<T extends AzureRunConfigurationBase> {
     @NotNull
     public abstract String getPanelName();
 
-    public abstract void disposeEditor();
+    public void disposeEditor() {
+
+    }
 
     protected abstract void resetFromConfig(@NotNull T configuration);
 
@@ -172,13 +174,19 @@ public abstract class AzureSettingPanel<T extends AzureRunConfigurationBase> {
     public abstract JPanel getMainPanel();
 
     @NotNull
-    protected abstract JComboBox<Artifact> getCbArtifact();
+    protected JComboBox<Artifact> getCbArtifact() {
+        return new ComboBox<>();
+    };
 
     @NotNull
-    protected abstract JLabel getLblArtifact();
+    protected JLabel getLblArtifact() {
+        return EMPTY_LABEL;
+    }
 
     @NotNull
-    protected abstract JComboBox<MavenProject> getCbMavenProject();
+    protected JComboBox<MavenProject> getCbMavenProject() {
+        return new ComboBox<>();
+    }
 
     @NotNull
     protected JLabel getLblMavenProject() {

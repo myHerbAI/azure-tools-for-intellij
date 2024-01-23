@@ -43,7 +43,7 @@ public class DeployWebAppTask extends BaseDeployTask {
             final List<AzureArtifact> allSupportedAzureArtifacts = AzureArtifactManager.getInstance(project).getAllSupportedAzureArtifacts();
             // todo: change to use artifact build by maven in last step if not exist
             final AzureArtifact azureArtifact = allSupportedAzureArtifacts.get(0);
-            ((WebAppConfiguration) runConfiguration).saveArtifact(azureArtifact);
+            ((WebAppConfiguration) runConfiguration).setArtifact(azureArtifact);
             final List<BeforeRunTask> beforeRunTasks = new ArrayList<>();
             beforeRunTasks.add(BuildArtifactBeforeRunTaskUtils.createBuildTask(azureArtifact, runConfiguration, true));
             beforeRunTasks.addAll(runConfiguration.getBeforeRunTasks());

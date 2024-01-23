@@ -50,6 +50,7 @@
           </grid>
         </constraints>
         <properties>
+          <labelFor value="2bbdf"/>
           <text value="Module: "/>
         </properties>
       </component>

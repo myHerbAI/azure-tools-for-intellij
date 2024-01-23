@@ -16,7 +16,7 @@ import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 
-public class WebAppPropertyViewPresenter extends WebAppBasePropertyViewPresenter {
+public class WebAppPropertyViewPresenter extends WebAppBasePropertyViewPresenter<WebAppBasePropertyMvpView, WebApp> {
 
     @Override
     protected WebApp getWebAppBase(@Nonnull final String sid, @Nonnull final String appId,
