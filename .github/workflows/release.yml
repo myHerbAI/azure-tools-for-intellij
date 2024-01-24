@@ -28,6 +28,7 @@ jobs:
       - name: Fetch Sources
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.release.tag_name }}
           path: azure-tools-for-intellij
 
       # Setup Java environment
@@ -82,6 +83,7 @@ jobs:
   # Prepare and publish the plugin to JetBrains Marketplace repository
   release:
     if: ${{ startsWith(github.event.release.tag_name, 'v4') }}
+    needs: [ build-dependencies ]
     name: Publish Plugin
     runs-on: ubuntu-latest
     permissions:
