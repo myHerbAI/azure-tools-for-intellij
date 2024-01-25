@@ -23,15 +23,25 @@ public class RuntimeComboBox extends AzureComboBox<Runtime> {
     private List<? extends Runtime> platformList;
 
     public RuntimeComboBox() {
-        this(new ArrayList<>(WebAppRuntime.getMajorRuntimes()));
+        this(WebAppRuntime.getMajorRuntimes());
     }
 
     public RuntimeComboBox(List<? extends Runtime> platformList) {
         super();
         this.platformList = platformList.stream()
-            .sorted(Comparator.comparing(Runtime::getOperatingSystem).thenComparing(Runtime::getJavaMajorVersionNumber).reversed())
-            .collect(Collectors.toList());
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(RuntimeComboBox::getOperatingSystemOrder).thenComparing(Runtime::getJavaMajorVersionNumber).reversed())
+                .collect(Collectors.toList());
         setGroupRender();
+    }
+
+    // get order of operating system, order should be Linux, Windows, Docker
+    private static Integer getOperatingSystemOrder(@Nonnull final Runtime runtime) {
+        return switch (runtime.getOperatingSystem()) {
+            case LINUX -> 0;
+            case WINDOWS -> 1;
+            case DOCKER -> 2;
+        };
     }
 
     public void setPlatformList(final List<? extends Runtime> platformList) {
