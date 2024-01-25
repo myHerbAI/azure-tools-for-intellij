@@ -101,8 +101,9 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
         Optional.ofNullable(selectorRuntime.getValue()).map(RuntimeConfig::fromRuntime).ifPresent(result::runtime);
         Optional.ofNullable(selectorServicePlan.getValue()).map(AppServicePlan::getName).ifPresent(result::servicePlanName);
         Optional.ofNullable(selectorServicePlan.getValue()).map(AppServicePlan::getPricingTier).ifPresent(result::pricingTier);
-        Optional.ofNullable(selectorServicePlan.getValue()).map(AppServicePlan::getResourceGroup)
-                .map(ResourceGroup::getResourceGroupName).ifPresentOrElse(result::servicePlanResourceGroup, () -> result.servicePlanResourceGroup(result.resourceGroup()));
+        Optional.ofNullable(selectorServicePlan.getValue())
+                .map(plan -> plan.isDraftForCreating() ? result.getResourceGroup() : plan.getResourceGroupName())
+                .ifPresent(result::resourceGroup);
         final Boolean isDocker = Optional.ofNullable(selectorRuntime.getValue()).map(Runtime::isDocker).orElse(false);
         if (isDocker) {
             final ContainerAppDraft.ImageConfig image = chkUseQuickStart.isSelected() ? QUICK_START_IMAGE : pnlContainer.getValue();
@@ -274,8 +275,6 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
 
     public void setFixedRuntime(final Runtime runtime) {
         selectorRuntime.setPlatformList(Collections.singletonList(runtime));
-        lblPlatform.setVisible(false);
-        selectorRuntime.setEditable(false);
     }
 
     private void toggleImageType(final boolean useQuickStart){
