@@ -38,6 +38,8 @@
     <dependencySupport kind="executable" coordinate="az"/>
 
     <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
+
+    <iconMapper mappingFile="AzureIconMappings.json"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
