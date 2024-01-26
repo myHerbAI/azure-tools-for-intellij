@@ -53,17 +53,9 @@
   <actions>
     <group id="AzurePopupGroup" text="Azure" description="Azure" icon="/icons/Rider/Azure.svg" popup="true">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
-      <reference ref="Connector.ShowAzureNode"/>
-      <reference ref="AzureToolkit.ConnectToAzureResource"/>
-    </group>
-
-    <group id="AzureToolbarGroup" text="Azure" description="Azure">
-      <add-to-group group-id="MainToolBar" anchor="last"/>
-      <group id="PublishToAzureGroup" text="Publish Group" description="Publish Group" popup="true" icon="/icons/Publish_16.png">
-          <reference ref="Actions.WebAppDeployAction"/>
-      </group>
-      <reference ref="Actions.AzureExplorerOpenAction"/>
-      <reference ref="AzureToolkit.OpenResourceConnectionExplorerAction"/>
+      <reference ref="Actions.WebAppDeployAction"/>
+      <reference ref="Actions.WebAppContainersDeployAction"/>
+      <reference ref="Actions.FunctionAppDeployAction"/>
     </group>
 
     <group id="AzureToolkit.AzureActionGroup"
@@ -76,6 +68,8 @@
         <reference ref="AzureToolkit.SelectSubscriptions"/>
         <separator/>
         <reference ref="Actions.WebAppDeployAction"/>
+        <reference ref="Actions.WebAppContainersDeployAction"/>
+        <reference ref="Actions.FunctionAppDeployAction"/>
         <separator/>
         <reference ref="AzureToolkit.AzureSignIn"/>
     </group>
