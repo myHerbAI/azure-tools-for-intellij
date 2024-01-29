@@ -4,6 +4,7 @@ package com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox;
 
 import com.azure.ai.openai.models.ChatChoice;
 import com.azure.ai.openai.models.ChatMessage;
+import com.azure.ai.openai.models.ChatResponseMessage;
 import com.azure.ai.openai.models.ChatRole;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -165,7 +166,7 @@ public class ChatBox {
                 this.addMessage(new MarkdownText(prompt), ChatRole.USER);
                 tm.runLater(() -> this.promptInput.setText(""));
                 final ChatChoice response = this.chatBot.send(prompt);
-                final ChatMessage message = response.getMessage();
+                final ChatResponseMessage message = response.getMessage();
                 final String content = message.getContent();
                 this.addMessage(new MarkdownText(content), ChatRole.ASSISTANT);
             } finally {
