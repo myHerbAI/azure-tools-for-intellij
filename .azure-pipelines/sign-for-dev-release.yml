@@ -85,7 +85,7 @@ extends:
                     ls ~/.m2/repository/com/microsoft/azure/azure-toolkit-*
                     cd ..
                     git clone https://github.com/microsoft/azure-maven-plugins.git
-                    cd azure-maven-plugins
+                    cd azure-maven-plugins/azure-toolkit-libs
 
                     echo "build azure-toolkit-libs: $TARGET_BRANCH"
                     git fetch origin $TARGET_BRANCH
@@ -96,7 +96,7 @@ extends:
 
                     ls ~/.m2/repository/com/microsoft/azure/azure-toolkit-*
                     echo "cleaning up battlefield."
-                    cd ../
+                    cd ../../
                     rm -rf ./azure-maven-plugins
                     exit 0
               - task: Bash@3
