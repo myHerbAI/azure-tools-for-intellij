@@ -2,11 +2,7 @@ package com.microsoft.azure.toolkit.intellij.cognitiveservices.chatbox;
 
 import com.azure.ai.openai.OpenAIClient;
 import com.azure.ai.openai.OpenAIClientBuilder;
-import com.azure.ai.openai.models.ChatChoice;
-import com.azure.ai.openai.models.ChatCompletions;
-import com.azure.ai.openai.models.ChatCompletionsOptions;
-import com.azure.ai.openai.models.ChatMessage;
-import com.azure.ai.openai.models.ChatRole;
+import com.azure.ai.openai.models.*;
 import com.azure.core.credential.AzureKeyCredential;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.model.Configuration;
 import com.microsoft.azure.toolkit.intellij.cognitiveservices.model.SystemMessage;
@@ -18,6 +14,7 @@ import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 public class ChatBot {
     @Getter
@@ -71,12 +68,12 @@ public class ChatBot {
         final String deploymentName = this.deployment.getName();
         final ChatCompletions chatCompletions = this.client.getChatCompletions(deploymentName, buildChatOptions());
         final ChatChoice chatChoice = chatCompletions.getChoices().get(0);
-        this.chatMessages.push(chatChoice.getMessage());
+        this.chatMessages.push(ChatMessage.fromResponse(chatChoice.getMessage()));
         return chatChoice;
     }
 
     private ChatCompletionsOptions buildChatOptions() {
-        final ChatCompletionsOptions result = new ChatCompletionsOptions(this.chatMessages);
+        final ChatCompletionsOptions result = new ChatCompletionsOptions(this.chatMessages.stream().map(ChatMessage::toRequest).filter(Objects::nonNull).collect(Collectors.toList()));
         Optional.ofNullable(configuration).ifPresent(c -> {
             result.setFrequencyPenalty(c.getFrequencyPenalty());
             result.setPresencePenalty(c.getPresencePenalty());
