@@ -13,6 +13,7 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
 import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig;
 import com.microsoft.azure.toolkit.intellij.appservice.DockerUtils;
+import com.microsoft.azure.toolkit.intellij.common.AzureArtifact;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifactComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.component.RegionComboBox;
@@ -24,7 +25,6 @@ import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.Servic
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
-import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
@@ -44,6 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.event.ItemEvent;
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Supplier;
@@ -109,11 +110,13 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
             final ContainerAppDraft.ImageConfig image = chkUseQuickStart.isSelected() ? QUICK_START_IMAGE : pnlContainer.getValue();
             Optional.ofNullable(image).map(DockerUtils::convertImageConfigToRuntimeConfig).ifPresent(config::runtime);
         }
-//        if (Objects.nonNull(artifact)) {
-//            final AzureArtifactManager manager = AzureArtifactManager.getInstance(this.project);
-//            final String path = artifact.getFileForDeployment();
-//            config.setApplication(Paths.get(path));
-//        }
+
+        if (deploymentTitle.isVisible()) {
+            Optional.ofNullable(selectorApplication.getValue()).map(AzureArtifact::getFileForDeployment)
+                    .map(File::new)
+                    .filter(File::exists)
+                    .ifPresent(result::file);
+        }
         this.config = result;
         return result;
     }
@@ -132,8 +135,12 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
             Optional.ofNullable(AppServiceConfig.getResourceGroup(config)).ifPresent(this.selectorGroup::setValue);
             Optional.ofNullable(AppServiceConfig.getServicePlanConfig(config)).map(AppServicePlanConfig::getAppServicePlan).ifPresent(this.selectorServicePlan::setValue);
             Optional.ofNullable(config.runtime())
-                    .map(c -> config instanceof FunctionAppConfig ? RuntimeConfig.toFunctionAppRuntime(c) : RuntimeConfig.toWebAppRuntime(c))
+                    .map(RuntimeConfig::toWebAppRuntime)
                     .ifPresent(this.selectorRuntime::setValue);
+            Optional.ofNullable(config.file())
+                    .filter(File::exists)
+                    .map(f -> AzureArtifact.createFromFile(f.getPath(), project))
+                    .ifPresent(selectorApplication::setValue);
             final ContainerAppDraft.ImageConfig imageConfig = DockerUtils.convertRuntimeConfigToImageConfig(config.getRuntime());
             final boolean useDefaultImage = Objects.isNull(imageConfig) || StringUtils.equalsIgnoreCase(QUICK_START_IMAGE.getFullImageName(), imageConfig.getFullImageName());
             chkUseQuickStart.setSelected(useDefaultImage);
@@ -233,6 +240,9 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
             final boolean isDocker = Optional.ofNullable(runtime).map(Runtime::isDocker).orElse(false);
             this.imageTitle.setVisible(isDocker);
             this.pnlImage.setVisible(isDocker);
+            this.deploymentTitle.setVisible(!isDocker);
+            this.lblArtifact.setVisible(!isDocker);
+            this.selectorApplication.setVisible(!isDocker);
         }
     }
 
