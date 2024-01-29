@@ -38,9 +38,9 @@ public class RuntimeComboBox extends AzureComboBox<Runtime> {
     // get order of operating system, order should be Linux, Windows, Docker
     private static Integer getOperatingSystemOrder(@Nonnull final Runtime runtime) {
         return switch (runtime.getOperatingSystem()) {
-            case LINUX -> 0;
+            case LINUX -> 2;
             case WINDOWS -> 1;
-            case DOCKER -> 2;
+            case DOCKER -> 0;
         };
     }
 
