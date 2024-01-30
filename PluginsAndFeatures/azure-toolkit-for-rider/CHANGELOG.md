@@ -4,6 +4,9 @@
 
 ## [Unreleased]
 
+### Changed
+- Update tool window icon
+
 ## [4.0.0-preview.1] - 2024-01-24
 
 ### Changed
