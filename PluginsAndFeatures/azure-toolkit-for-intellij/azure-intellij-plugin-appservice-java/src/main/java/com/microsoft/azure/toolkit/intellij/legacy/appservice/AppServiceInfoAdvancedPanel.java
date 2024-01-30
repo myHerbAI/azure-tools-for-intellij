@@ -104,7 +104,7 @@ public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPa
         Optional.ofNullable(selectorServicePlan.getValue()).map(AppServicePlan::getPricingTier).ifPresent(result::pricingTier);
         Optional.ofNullable(selectorServicePlan.getValue())
                 .map(plan -> plan.isDraftForCreating() ? result.getResourceGroup() : plan.getResourceGroupName())
-                .ifPresent(result::resourceGroup);
+                .ifPresent(result::servicePlanResourceGroup);
         final Boolean isDocker = Optional.ofNullable(selectorRuntime.getValue()).map(Runtime::isDocker).orElse(false);
         if (isDocker) {
             final ContainerAppDraft.ImageConfig image = chkUseQuickStart.isSelected() ? QUICK_START_IMAGE : pnlContainer.getValue();
