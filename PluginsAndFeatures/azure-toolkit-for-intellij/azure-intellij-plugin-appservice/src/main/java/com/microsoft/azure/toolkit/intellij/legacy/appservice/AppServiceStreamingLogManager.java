@@ -21,18 +21,13 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDraft;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlotDraft;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDraft;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.*;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -152,10 +147,7 @@ public enum AppServiceStreamingLogManager {
 
         @Override
         public boolean isLogStreamingEnabled() {
-            final OperatingSystem operatingSystem = Optional.ofNullable(functionApp.getRuntime()).map(Runtime::getOperatingSystem).orElse(null);
-            final boolean isEnableApplicationLog = Optional.ofNullable(functionApp.getDiagnosticConfig())
-                    .map(DiagnosticConfig::isEnableApplicationLog).orElse(false);
-            return operatingSystem == OperatingSystem.LINUX || isEnableApplicationLog;
+            return true;
         }
 
         @Override
