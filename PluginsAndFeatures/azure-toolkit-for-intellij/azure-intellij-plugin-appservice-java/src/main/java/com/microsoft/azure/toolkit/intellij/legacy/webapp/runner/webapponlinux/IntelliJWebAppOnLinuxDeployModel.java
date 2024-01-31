@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapponlinux;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
@@ -12,9 +13,6 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.LogLevel;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppDockerRuntime;
-import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.containerregistry.AzureContainerRegistry;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
@@ -32,24 +30,23 @@ public class IntelliJWebAppOnLinuxDeployModel extends WebAppOnLinuxDeployModel {
 
     @Nonnull
     public AppServiceConfig getConfig() {
-        if (Objects.isNull(this.config)) {
-            this.config = getConfigFromDeprecatedModel();
+        if (Objects.nonNull(config) && StringUtils.isNotBlank(config.appName())) {
+            return config;
         }
+        if (StringUtils.isAllEmpty(getWebAppId(), getWebAppName())) {
+            return new AppServiceConfig();
+        }
+        this.config = getConfigFromDeprecatedModel();
         return this.config;
     }
 
     @Nonnull
     private AppServiceConfig getConfigFromDeprecatedModel() {
-        if (StringUtils.isAllEmpty(getWebAppId(), getWebAppName())) {
-            return new AppServiceConfig();
-        }
-        final WebApp app = this.isCreatingNewWebAppOnLinux() || StringUtils.isBlank(getWebAppId()) ? null : Azure.az(AzureWebApp.class).getById(getWebAppId());
-        final AppServiceConfig result = Optional.ofNullable(app)
-                                                .map(a -> AppServiceConfigUtils.fromAppService(app, Objects.requireNonNull(app.getAppServicePlan())))
-                                                .orElseGet(AppServiceConfig::new);
-        Optional.ofNullable(getSubscriptionId()).ifPresent(result::subscriptionId);
-        Optional.ofNullable(getWebAppName()).ifPresent(result::appName);
-        Optional.ofNullable(getResourceGroupName()).ifPresent(result::resourceGroup);
+        final AppServiceConfig result = new AppServiceConfig();
+        final ResourceId id = StringUtils.isBlank(getWebAppId()) ? null : ResourceId.fromString(getWebAppId());
+        result.appName(Optional.ofNullable(id).map(ResourceId::name).orElseGet(this::getWebAppName));
+        result.resourceGroup(Optional.ofNullable(id).map(ResourceId::resourceGroupName).orElseGet(this::getResourceGroupName));
+        result.subscriptionId(Optional.ofNullable(id).map(ResourceId::subscriptionId).orElseGet(this::getSubscriptionId));
         Optional.ofNullable(getLocationName()).map(Region::fromName).ifPresent(result::region);
         final PricingTier pricingTier = StringUtils.isAnyEmpty(this.getPricingSkuTier(), this.getPricingSkuSize()) ? null :
                                         PricingTier.fromString(this.getPricingSkuTier(), this.getPricingSkuSize());

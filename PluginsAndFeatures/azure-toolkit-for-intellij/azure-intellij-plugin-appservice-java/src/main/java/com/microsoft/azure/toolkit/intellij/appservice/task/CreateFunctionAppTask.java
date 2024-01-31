@@ -3,6 +3,7 @@ package com.microsoft.azure.toolkit.intellij.appservice.task;
 import com.microsoft.azure.toolkit.ide.guidance.ComponentContext;
 import com.microsoft.azure.toolkit.ide.guidance.Task;
 import com.microsoft.azure.toolkit.ide.guidance.task.SignInTask;
+import com.microsoft.azure.toolkit.intellij.appservice.AppServiceIntelliJActionsContributor;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
@@ -42,10 +43,9 @@ public class CreateFunctionAppTask implements Task {
                 .map(id -> Azure.az(AzureAccount.class).account().getSubscription(id))
                 .orElseThrow(() -> new AzureToolkitRuntimeException("Failed to get subscription to create function app"));
 
-        final FunctionAppConfig functionAppConfig =  FunctionAppConfig.buildDefaultFunctionConfig("rg-" + name, name);
+        final FunctionAppConfig functionAppConfig = AppServiceIntelliJActionsContributor.getDefaultFunctionAppConfig(null);
         functionAppConfig.appName(name);
         functionAppConfig.subscriptionId(subscription.getId());
-        functionAppConfig.setRuntime(RuntimeConfig.fromRuntime(FunctionAppRuntime.getDefault()));
 
         final FunctionAppBase<?, ?, ?> app = new CreateOrUpdateFunctionAppTask(functionAppConfig).execute();
         context.applyResult(FUNCTION_ID, app.getId());

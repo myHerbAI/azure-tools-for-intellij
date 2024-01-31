@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy;
 
+import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig;
 import com.microsoft.azure.toolkit.ide.appservice.model.MonitorConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
@@ -14,6 +15,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -38,9 +40,13 @@ public class FunctionDeployModel {
 
     @Nonnull
     public FunctionAppConfig getConfig() {
-        if (Objects.isNull(this.config)) {
-            this.config = Objects.isNull(functionAppConfig) ? new FunctionAppConfig() : getConfigFromIDEConfig(functionAppConfig);
+        if (Objects.nonNull(config) && StringUtils.isNotBlank(config.appName())) {
+            return config;
         }
+        if (Objects.isNull(functionAppConfig)) {
+            return new FunctionAppConfig();
+        }
+        this.config = getConfigFromIDEConfig(functionAppConfig);
         return this.config;
     }
 
@@ -48,7 +54,7 @@ public class FunctionDeployModel {
     private FunctionAppConfig getConfigFromIDEConfig(@Nonnull com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig config) {
         final FunctionAppConfig result = new FunctionAppConfig();
         Optional.ofNullable(config.getSubscription()).map(Subscription::getId).ifPresent(result::subscriptionId);
-        Optional.ofNullable(config.getName()).ifPresent(result::subscriptionId);
+        Optional.ofNullable(config.getName()).ifPresent(result::appName);
         Optional.ofNullable(config.getResourceGroupName()).ifPresent(result::resourceGroup);
         Optional.ofNullable(config.getRegion()).ifPresent(result::region);
         Optional.ofNullable(config.getPricingTier()).ifPresent(result::pricingTier);
@@ -59,6 +65,8 @@ public class FunctionDeployModel {
         Optional.ofNullable(config.getMonitorConfig()).map(MonitorConfig::getApplicationInsightsConfig).ifPresent(result::applicationInsightsConfig);
         Optional.ofNullable(config.getMonitorConfig()).map(MonitorConfig::getDiagnosticConfig).ifPresent(result::diagnosticConfig);
         Optional.ofNullable(config.getFlexConsumptionConfiguration()).ifPresent(result::flexConsumptionConfiguration);
+        Optional.ofNullable(config.getDeploymentSlot()).map(DeploymentSlotConfig::getName).ifPresent(result::deploymentSlotName);
+        Optional.ofNullable(config.getDeploymentSlot()).map(DeploymentSlotConfig::getConfigurationSource).ifPresent(result::deploymentSlotConfigurationSource);
         return result;
     }
 

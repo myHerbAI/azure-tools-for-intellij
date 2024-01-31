@@ -21,6 +21,7 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIconProvider;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
@@ -30,6 +31,7 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlotModule;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinker;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -111,7 +113,14 @@ public class WebAppNodeProvider implements IExplorerNodeProvider {
         if (resource.getFormalStatus().isWaiting() || !resource.getFormalStatus().isConnected()) {
             return null;
         }
-        final OperatingSystem os = Optional.ofNullable(resource.getRuntime()).map(Runtime::getOperatingSystem).orElse(null);
-        return os != OperatingSystem.WINDOWS ? AzureIcon.Modifier.LINUX : null;
+        if (resource instanceof FunctionApp app && StringUtils.isNoneBlank(app.getEnvironmentId())) {
+            return AzureIcon.Modifier.CONTAINER;
+        }
+        final OperatingSystem os = Optional.ofNullable(resource.getRuntime()).map(Runtime::getOperatingSystem).orElse(OperatingSystem.WINDOWS);
+        return switch (os) {
+            case LINUX -> AzureIcon.Modifier.LINUX;
+            case DOCKER -> AzureIcon.Modifier.DOCKER;
+            default -> null;
+        };
     }
 }

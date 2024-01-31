@@ -5,23 +5,19 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifactType;
-import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.LogLevel;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
-import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azuretools.core.mvp.model.webapp.WebAppSettingModel;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 
 @Data
@@ -39,26 +35,33 @@ public class IntelliJWebAppSettingModel extends WebAppSettingModel {
 
 	@Nonnull
 	public AppServiceConfig getConfig() {
-		if (Objects.nonNull(config)) {
+		if (Objects.nonNull(config) && StringUtils.isNotBlank(config.appName())) {
 			return config;
 		}
 		if (StringUtils.isAllEmpty(getWebAppId(), getWebAppName())) {
 			return new AppServiceConfig();
 		}
-		final WebApp app = isCreatingNew() || StringUtils.isBlank(getWebAppId()) ? null :
-				Azure.az(AzureWebApp.class).getById(getWebAppId());
-		this.config = Optional.ofNullable(app)
-							  .map(a -> AppServiceConfigUtils.fromAppService(app, Objects.requireNonNull(app.getAppServicePlan())))
-							  .orElseGet(AppServiceConfig::new);
-		this.config.appName(getWebAppName());
-		this.config.resourceGroup(getResourceGroup());
-		this.config.region(StringUtils.isEmpty(getRegion()) ? null : Region.fromName(getRegion()));
-		this.config.runtime(Optional.ofNullable(getRuntime()).map(RuntimeConfig::fromRuntime).orElse(null));
-		this.config.pricingTier(StringUtils.isEmpty(getPricing()) ? null : PricingTier.fromString(getPricing()));
-		this.config.servicePlanName(getAppServicePlanName());
-		this.config.servicePlanResourceGroup(getAppServicePlanResourceGroupName());
-		this.config.deploymentSlotName(isDeployToSlot() ? getSlotName() : null);
-		this.config.deploymentSlotConfigurationSource(isDeployToSlot() ? getNewSlotConfigurationSource() : null);
+		this.config = getConfigFromDeprecatedModel();
+		return this.config;
+	}
+
+	@Nonnull
+	public AppServiceConfig getConfigFromDeprecatedModel() {
+		final AppServiceConfig result = new AppServiceConfig();
+		final ResourceId id = StringUtils.isBlank(getWebAppId()) ? null : ResourceId.fromString(getWebAppId());
+		result.appName(Optional.ofNullable(id).map(ResourceId::name).orElseGet(this::getWebAppName));
+		result.resourceGroup(Optional.ofNullable(id).map(ResourceId::resourceGroupName).orElseGet(this::getResourceGroup));
+		result.subscriptionId(Optional.ofNullable(id).map(ResourceId::subscriptionId).orElseGet(this::getSubscriptionId));
+		Optional.ofNullable(getRegion()).filter(StringUtils::isNotBlank).map(Region::fromName).ifPresent(result::region);
+		Optional.ofNullable(getRuntime()).map(RuntimeConfig::fromRuntime).ifPresent(result::runtime);
+		Optional.ofNullable(getPricing()).filter(StringUtils::isNotBlank).map(PricingTier::fromString).ifPresent(result::pricingTier);
+		Optional.ofNullable(getAppServicePlanName()).filter(StringUtils::isNotBlank).ifPresent(result::servicePlanName);
+		Optional.ofNullable(getAppServicePlanResourceGroupName()).filter(StringUtils::isNotBlank).ifPresent(result::servicePlanResourceGroup);
+
+		if (isDeployToSlot()) {
+			Optional.ofNullable(getSlotName()).filter(StringUtils::isNotBlank).ifPresent(result::deploymentSlotName);
+			Optional.ofNullable(getNewSlotConfigurationSource()).filter(StringUtils::isNotBlank).ifPresent(result::deploymentSlotConfigurationSource);
+		}
 
 		final DiagnosticConfig diagnosticConfig = DiagnosticConfig.builder().enableApplicationLog(isEnableApplicationLog())
 																  .applicationLogLevel(LogLevel.fromString(getApplicationLogLevel()))
@@ -67,7 +70,7 @@ public class IntelliJWebAppSettingModel extends WebAppSettingModel {
 																  .enableWebServerLogging(isEnableWebServerLogging())
 																  .webServerRetentionPeriod(getWebServerRetentionPeriod())
 																  .webServerLogQuota(getWebServerLogQuota()).build();
-		this.config.diagnosticConfig(diagnosticConfig);
-		return this.config;
+		result.diagnosticConfig(diagnosticConfig);
+		return result;
 	}
 }

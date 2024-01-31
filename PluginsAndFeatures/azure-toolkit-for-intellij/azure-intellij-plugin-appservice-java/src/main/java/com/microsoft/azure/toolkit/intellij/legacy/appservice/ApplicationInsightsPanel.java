@@ -15,6 +15,7 @@ import org.apache.commons.lang.BooleanUtils;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 public class ApplicationInsightsPanel implements AzureFormPanel<ApplicationInsightsConfig> {
@@ -54,10 +55,12 @@ public class ApplicationInsightsPanel implements AzureFormPanel<ApplicationInsig
 	}
 
 	@Override
-	public void setValue(final ApplicationInsightsConfig data) {
-		applicationInsightsComboBox.setValue(data);
-		rdoEnableApplicationInsights.setSelected(BooleanUtils.isNotTrue(data.getDisableAppInsights()));
-		rdoDisableApplicationInsights.setSelected(BooleanUtils.isTrue(data.getDisableAppInsights()));
+	public void setValue(@Nullable final ApplicationInsightsConfig data) {
+		final Boolean enableApplicationInsights = Optional.ofNullable(data)
+				.map(config -> BooleanUtils.isNotTrue(config.getDisableAppInsights())).orElse(false);
+		rdoEnableApplicationInsights.setSelected(enableApplicationInsights);
+		rdoDisableApplicationInsights.setSelected(!enableApplicationInsights);
+		Optional.ofNullable(data).filter(ignore -> enableApplicationInsights).ifPresent(applicationInsightsComboBox::setValue);
 	}
 
 	@Override
