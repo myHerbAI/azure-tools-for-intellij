@@ -7,33 +7,39 @@ package com.microsoft.azure.toolkit.intellij.legacy.function;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.DocumentAdapter;
-import com.microsoft.azure.toolkit.ide.appservice.model.MonitorConfig;
+import com.intellij.ui.TitledSeparator;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceMonitorPanel;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceLogsPanel;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.ApplicationInsightsPanel;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.insights.ApplicationInsightsComboBox;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.ApplicationInsightsConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
-import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang.BooleanUtils;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FunctionAppAdvancedConfigPanel extends JPanel implements AzureFormPanel<FunctionAppConfig> {
     private final Project project;
     private JTabbedPane tabPane;
     private JPanel pnlRoot;
     private FunctionAppInfoPanel appServiceConfigPanelAdvanced;
-    private AppServiceMonitorPanel appServiceMonitorPanel;
     private JPanel pnlMonitoring;
     private JPanel pnlAppService;
-
-    private ApplicationInsightsConfig insightsConfig;
+    private TitledSeparator titleApplicationInsights;
+    private ApplicationInsightsPanel applicationInsightsPanel;
+    private TitledSeparator titleAppServiceLog;
+    private AppServiceLogsPanel appServiceLogsPanel;
 
     public FunctionAppAdvancedConfigPanel(final Project project) {
         super();
@@ -50,34 +56,56 @@ public class FunctionAppAdvancedConfigPanel extends JPanel implements AzureFormP
     @Override
     public FunctionAppConfig getValue() {
         final FunctionAppConfig data = appServiceConfigPanelAdvanced.getValue();
-        final MonitorConfig value = appServiceMonitorPanel.getValue();
-        data.applicationInsightsConfig(value.getApplicationInsightsConfig());
-        data.diagnosticConfig(value.getDiagnosticConfig());
+        data.applicationInsightsConfig(applicationInsightsPanel.getValue());
+        data.diagnosticConfig(appServiceLogsPanel.getValue());
         return data;
     }
 
     @Override
     public void setValue(final FunctionAppConfig data) {
         appServiceConfigPanelAdvanced.setValue(data);
-        final MonitorConfig value = MonitorConfig.builder().diagnosticConfig(data.diagnosticConfig())
-            .applicationInsightsConfig(data.applicationInsightsConfig()).build();
-        appServiceMonitorPanel.setValue(value);
+        Optional.ofNullable(data.diagnosticConfig()).ifPresent(appServiceLogsPanel::setValue);
+        Optional.ofNullable(data.applicationInsightsConfig()).ifPresent(applicationInsightsPanel::setValue);
     }
 
     @Override
     public List<AzureFormInput<?>> getInputs() {
-        return ListUtils.union(appServiceConfigPanelAdvanced.getInputs(), appServiceMonitorPanel.getInputs());
+        return Stream.of(appServiceConfigPanelAdvanced.getInputs(), applicationInsightsPanel.getInputs(), appServiceLogsPanel.getInputs())
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 
     private void init() {
+        appServiceLogsPanel.setWebServerLogVisible(false);
+        appServiceLogsPanel.setApplicationLogVisible(true);
+
+        appServiceConfigPanelAdvanced.getSelectorSubscription().addActionListener(event ->
+                applicationInsightsPanel.getApplicationInsightsComboBox().setSubscription(appServiceConfigPanelAdvanced.getSelectorSubscription().getValue()));
+
+        appServiceConfigPanelAdvanced.getSelectorRuntime().addValueChangedListener(runtime -> {
+            final OperatingSystem operatingSystem = Optional.ofNullable(runtime).map(Runtime::getOperatingSystem).orElse(OperatingSystem.WINDOWS);
+            titleAppServiceLog.setVisible(operatingSystem == OperatingSystem.WINDOWS);
+            appServiceLogsPanel.setVisible(operatingSystem == OperatingSystem.WINDOWS);
+        });
+
+        appServiceConfigPanelAdvanced.getSelectorRegion().addItemListener(event ->
+                applicationInsightsPanel.getApplicationInsightsComboBox().setRegion(appServiceConfigPanelAdvanced.getValue().region()));
+
         appServiceConfigPanelAdvanced.getTextName().getDocument().addDocumentListener(new DocumentAdapter() {
             @Override
             protected void textChanged(@Nonnull final DocumentEvent documentEvent) {
                 // ai name pattern is the subset of function name pattern, so no need to validate the ai instance name
-                insightsConfig.setName(appServiceConfigPanelAdvanced.getTextName().getValue());
-                final ApplicationInsightsComboBox insightsComboBox = appServiceMonitorPanel.getApplicationInsightsComboBox();
-                insightsComboBox.removeItem(insightsConfig);
-                insightsComboBox.setValue(insightsConfig);
+
+                final ApplicationInsightsComboBox insightsComboBox = applicationInsightsPanel.getApplicationInsightsComboBox();
+                final ApplicationInsightsConfig value = insightsComboBox.getValue();
+                if (Objects.isNull(value)) {
+                    final ApplicationInsightsConfig config = ApplicationInsightsConfig.builder().createNewInstance(true)
+                            .name(appServiceConfigPanelAdvanced.getTextName().getValue())
+                            .build();
+                    insightsComboBox.setValue(config);
+                } else if (BooleanUtils.isTrue(value.getCreateNewInstance())) {
+                    value.setName(appServiceConfigPanelAdvanced.getTextName().getValue());
+                }
                 insightsComboBox.reloadItems();
             }
         });
@@ -86,25 +114,5 @@ public class FunctionAppAdvancedConfigPanel extends JPanel implements AzureFormP
     private void createUIComponents() {
         // TODO: place custom component creation code here
         appServiceConfigPanelAdvanced = new FunctionAppInfoPanel(project);
-        // Function does not support file deployment
-        insightsConfig = ApplicationInsightsConfig.builder().createNewInstance(true)
-                .name(appServiceConfigPanelAdvanced.getTextName().getValue())
-                .build();
-
-        appServiceMonitorPanel = new AppServiceMonitorPanel(project);
-        appServiceMonitorPanel.setWebServerLogVisible(false);
-        appServiceMonitorPanel.setValue(MonitorConfig.builder().applicationInsightsConfig(insightsConfig).build());
-
-        appServiceConfigPanelAdvanced.getSelectorSubscription().addActionListener(event ->
-                appServiceMonitorPanel.getApplicationInsightsComboBox().setSubscription(appServiceConfigPanelAdvanced.getSelectorSubscription().getValue()));
-
-        appServiceConfigPanelAdvanced.getSelectorRuntime().addActionListener(event -> {
-            final OperatingSystem operatingSystem = Optional.ofNullable(appServiceConfigPanelAdvanced.getSelectorRuntime().getValue())
-                    .map(Runtime::getOperatingSystem).orElse(null);
-            appServiceMonitorPanel.setApplicationLogVisible(operatingSystem == OperatingSystem.WINDOWS);
-        });
-
-        appServiceConfigPanelAdvanced.getSelectorRegion().addItemListener(event ->
-                appServiceMonitorPanel.getApplicationInsightsComboBox().setRegion(appServiceConfigPanelAdvanced.getValue().region()));
     }
 }

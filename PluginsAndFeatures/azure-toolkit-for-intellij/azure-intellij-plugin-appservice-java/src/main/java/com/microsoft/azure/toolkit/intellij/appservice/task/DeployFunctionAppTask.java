@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.appservice.task;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -23,6 +24,7 @@ import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 public class DeployFunctionAppTask extends BaseDeployTask {
     private final AzureFunctionSupportConfigurationType functionType = AzureFunctionSupportConfigurationType.getInstance();
@@ -41,8 +43,9 @@ public class DeployFunctionAppTask extends BaseDeployTask {
         if (runConfiguration instanceof FunctionDeployConfiguration) {
             final Module[] functionModules = FunctionUtils.listFunctionModules(project);
             ((FunctionDeployConfiguration) runConfiguration).saveTargetModule(functionModules[0]);
-            final FunctionApp functionApp = Azure.az(AzureFunctions.class).functionApp(appId);
-            ((FunctionDeployConfiguration) runConfiguration).saveConfig(AppServiceConfigUtils.fromFunctionApp(functionApp, functionApp.getAppServicePlan()));
+            final FunctionApp functionApp = Objects.requireNonNull(Azure.az(AzureFunctions.class).functionApp(appId),
+                    String.format("Can not find target app %s, please check whether app is created successfully", ResourceId.fromString(appId).name()));
+            ((FunctionDeployConfiguration) runConfiguration).saveConfig(AppServiceConfigUtils.fromFunctionApp(functionApp));
         }
         return settings;
     }
