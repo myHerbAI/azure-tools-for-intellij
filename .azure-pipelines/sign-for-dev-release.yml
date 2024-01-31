@@ -80,16 +80,29 @@ extends:
                 inputs:
                   targetType: inline
                   script: |-
-                    TARGET_BRANCH=$(TOOLKIT_BRANCH)
+                    CUSTOM_BRANCH=$(TOOLKIT_BRANCH)
+                    SOURCE_BRANCH=$(System.PullRequest.SourceBranch 2>/dev/null)
+                    TARGET_BRANCH=$(System.PullRequest.TargetBranch 2>/dev/null)
 
                     ls ~/.m2/repository/com/microsoft/azure/azure-toolkit-*
                     cd ..
                     git clone https://github.com/microsoft/azure-maven-plugins.git
                     cd azure-maven-plugins/azure-toolkit-libs
 
-                    echo "build azure-toolkit-libs: $TARGET_BRANCH"
-                    git fetch origin $TARGET_BRANCH
-                    git checkout $TARGET_BRANCH
+                    custom_existed_in_remote=$(git ls-remote --heads origin ${CUSTOM_BRANCH})
+                    source_existed_in_remote=$(git ls-remote --heads origin ${SOURCE_BRANCH})
+                    target_existed_in_remote=$(git ls-remote --heads origin ${TARGET_BRANCH})
+                    if [[ -n ${custom_existed_in_remote} ]]; then
+                        BRANCH=$CUSTOM_BRANCH
+                    elif [[ -n ${source_existed_in_remote} ]]; then
+                        BRANCH=$SOURCE_BRANCH
+                    elif [[ -n ${target_existed_in_remote} ]]; then
+                        BRANCH=$TARGET_BRANCH
+                    fi
+
+                    echo "build azure-toolkit-libs: $BRANCH"
+                    git fetch origin $BRANCH
+                    git checkout $BRANCH
 
                     git branch
                     mvn clean install -T 4 -Dmaven.test.skip=true -Dmdep.analyze.skip=true -Dmaven.source.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip -B|| exit -1
