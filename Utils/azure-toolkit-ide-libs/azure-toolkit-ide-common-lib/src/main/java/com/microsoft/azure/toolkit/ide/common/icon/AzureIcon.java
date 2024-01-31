@@ -41,6 +41,8 @@ public class AzureIcon {
     @EqualsAndHashCode
     public static class Modifier {
         public static final Modifier LINUX = new AzureIcon.Modifier("linux", ModifierLocation.BOTTOM_LEFT);
+        public static final Modifier DOCKER = new AzureIcon.Modifier("docker", ModifierLocation.BOTTOM_LEFT);
+        public static final Modifier CONTAINER = new AzureIcon.Modifier("container", ModifierLocation.BOTTOM_LEFT);
         public static final Modifier RUNNING = new AzureIcon.Modifier("running", ModifierLocation.BOTTOM_RIGHT);
         public static final Modifier STOPPED = new AzureIcon.Modifier("stopped", ModifierLocation.BOTTOM_RIGHT);
         public static final Modifier FAILED = new AzureIcon.Modifier("failed", ModifierLocation.BOTTOM_RIGHT);

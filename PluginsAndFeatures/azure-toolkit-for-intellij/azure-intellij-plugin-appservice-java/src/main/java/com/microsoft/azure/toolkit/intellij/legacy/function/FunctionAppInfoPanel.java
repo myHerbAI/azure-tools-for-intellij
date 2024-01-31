@@ -102,9 +102,9 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
         Optional.ofNullable(this.selectorGroup.getValue()).map(ResourceGroup::getResourceGroupName).ifPresent(config::resourceGroup);
         Optional.ofNullable(this.selectorRuntime.getValue()).map(RuntimeConfig::fromRuntime).ifPresent(config::runtime);
         if (rdoServicePlan.isSelected()) {
-            Optional.ofNullable(this.selectorServicePlan.getValue()).map(AppServicePlanConfig::fromResource).ifPresent(plan ->{
+            Optional.ofNullable(this.selectorServicePlan.getValue()).ifPresent(plan -> {
                 config.servicePlanName(plan.getName());
-                config.servicePlanResourceGroup(StringUtils.firstNonBlank(plan.getResourceGroupName(), config.getResourceGroup()));
+                config.servicePlanResourceGroup(plan.isDraftForCreating() ? config.getResourceGroup() : plan.getResourceGroupName());
                 config.pricingTier(plan.getPricingTier());
             });
         } else if (rdoContainerAppsEnvironment.isSelected()) {
