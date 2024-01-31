@@ -62,7 +62,6 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
     private static final String NO_TRIGGERS_FOUNDED = "No triggers found in deployed function app";
 
     private final FunctionDeployConfiguration functionDeployConfiguration;
-    private final FunctionDeployModel deployModel;
     private File stagingFolder;
 
     /**
@@ -71,7 +70,6 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
     public FunctionDeploymentState(Project project, FunctionDeployConfiguration functionDeployConfiguration) {
         super(project);
         this.functionDeployConfiguration = functionDeployConfiguration;
-        this.deployModel = functionDeployConfiguration.getModel();
     }
 
     @Nullable
@@ -177,6 +175,6 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
 
     @Override
     protected Map<String, String> getTelemetryMap() {
-        return deployModel.getTelemetryProperties();
+        return OperationContext.action().getTelemetryProperties();
     }
 }
