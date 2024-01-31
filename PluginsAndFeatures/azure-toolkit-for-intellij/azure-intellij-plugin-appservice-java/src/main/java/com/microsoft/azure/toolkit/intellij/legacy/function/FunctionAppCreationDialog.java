@@ -10,8 +10,14 @@ import com.microsoft.azure.toolkit.intellij.appservice.AppServiceIntelliJActions
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.ConfigDialog;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoBasicPanel;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.IAccountActions;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -25,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
+import static com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppInfoPanel.QUICK_START_IMAGE;
 import static com.microsoft.azure.toolkit.lib.Azure.az;
 
 public class FunctionAppCreationDialog extends ConfigDialog<FunctionAppConfig> {
@@ -78,10 +85,27 @@ public class FunctionAppCreationDialog extends ConfigDialog<FunctionAppConfig> {
                         insightConfig.setName(config.appName());
                     }
                 });
+
+                final OperatingSystem os = Optional.ofNullable(config)
+                        .map(FunctionAppConfig::runtime).map(RuntimeConfig::os).orElse(null);
+                final PricingTier pricingTier = Optional.ofNullable(config)
+                        .map(FunctionAppConfig::getPricingTier).orElse(null);
+                final Boolean isConsumption = Optional.ofNullable(pricingTier)
+                        .map(tier -> tier.isConsumption() || tier.isFlexConsumption()).orElse(false);
+                // set draft plan pricing tier to premium if runtime is docker
+                if (os == OperatingSystem.DOCKER && isConsumption) {
+                    Optional.of(config)
+                            .map(AppServiceConfig::getServicePlanConfig)
+                            .map(AppServicePlanConfig::getAppServicePlan)
+                            .filter(AppServicePlan::isDraftForCreating).ifPresent(ignore -> {
+                                config.pricingTier(PricingTier.PREMIUM_P1V2);
+                            });
+                }
                 return config;
             }
         };
         basicPanel.getSelectorRuntime().setPlatformList(FunctionAppRuntime.getMajorRuntimes());
+        basicPanel.setDefaultImage(QUICK_START_IMAGE.getFullImageName());
         advancePanel = new FunctionAppAdvancedConfigPanel(project);
     }
 }
