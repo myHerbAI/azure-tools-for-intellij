@@ -10,12 +10,14 @@ import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.AzureIntegerInput;
 import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import lombok.Getter;
 
 import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
 
-public class AppServiceLogsPanel extends JPanel implements AzureFormPanel<DiagnosticConfig> {
+@Getter
+public class AppServiceLogsPanel implements AzureFormPanel<DiagnosticConfig> {
 	private JPanel pnlRoot;
 	private JRadioButton rdoDisableDetailError;
 	private JRadioButton rdoEnableDetailError;
@@ -36,6 +38,8 @@ public class AppServiceLogsPanel extends JPanel implements AzureFormPanel<Diagno
 	private AzureIntegerInput txtRetention;
 	private LogLevelComboBox cbLogLevel;
 	private JLabel lblApplicationLog;
+	private JPanel pnlWebServer;
+	private JPanel pnlApplication;
 
 	public AppServiceLogsPanel() {
 		super();
@@ -43,20 +47,12 @@ public class AppServiceLogsPanel extends JPanel implements AzureFormPanel<Diagno
 	}
 
 	public void setApplicationLogVisible(boolean visible) {
-		lblApplicationLog.setVisible(visible);
-		rdoEnableApplicationLog.setVisible(visible);
-		rdoDisableApplicationLog.setVisible(visible);
-		pnlApplicationLog.setVisible(visible);
+		pnlApplication.setVisible(visible);
 		rdoEnableApplicationLog.setSelected(visible);
 	}
 
 	public void setWebServerLogVisible(boolean visible) {
-		lblWebServerLog.setVisible(visible);
-		rdoEnableWebServerLog.setVisible(visible);
-		rdoDisableWebServerLog.setVisible(visible);
-		pnlWebServerLog.setVisible(visible);
-		rdoEnableWebServerLog.setSelected(visible);
-
+		pnlWebServer.setVisible(visible);
 		txtQuota.setRequired(visible);
 		txtQuota.revalidate();
 	}
@@ -64,29 +60,28 @@ public class AppServiceLogsPanel extends JPanel implements AzureFormPanel<Diagno
 	@Override
 	public DiagnosticConfig getValue() {
 		return DiagnosticConfig.builder()
-		                       .enableWebServerLogging(rdoEnableWebServerLog.isSelected() && lblWebServerLog.isVisible())
+		                       .enableWebServerLogging(rdoEnableWebServerLog.isSelected() && pnlWebServer.isVisible())
 		                       .webServerLogQuota(txtQuota.getValue())
 		                       .webServerRetentionPeriod(txtRetention.getValue())
 		                       .enableDetailedErrorMessage(rdoEnableDetailError.isSelected())
 		                       .enableFailedRequestTracing(rdoEnableFailedRequest.isSelected())
-		                       .enableApplicationLog(rdoEnableApplicationLog.isSelected() && lblApplicationLog.isVisible())
+		                       .enableApplicationLog(rdoEnableApplicationLog.isSelected() && pnlApplication.isVisible())
 		                       .applicationLogLevel(cbLogLevel.getValue()).build();
 	}
 
 	@Override
 	public void setValue(final DiagnosticConfig config) {
-		if (lblWebServerLog.isVisible()) {
+		if (pnlWebServer.isVisible()) {
 			rdoEnableWebServerLog.setSelected(config.isEnableWebServerLogging());
 			txtQuota.setValue(config.getWebServerLogQuota());
 			txtRetention.setValue(config.getWebServerRetentionPeriod());
 			rdoEnableDetailError.setSelected(config.isEnableDetailedErrorMessage());
 			rdoEnableFailedRequest.setSelected(config.isEnableFailedRequestTracing());
 		}
-		if (lblApplicationLog.isVisible()) {
+		if (pnlApplication.isVisible()) {
 			rdoEnableApplicationLog.setSelected(config.isEnableApplicationLog());
 			cbLogLevel.setSelectedItem(config.getApplicationLogLevel());
 		}
-		this.repaint();
 	}
 
 	@Override
@@ -145,5 +140,10 @@ public class AppServiceLogsPanel extends JPanel implements AzureFormPanel<Diagno
 
 	public void setApplicationLogEnabled(boolean enable) {
 		pnlApplicationLog.setVisible(enable);
+	}
+
+	@Override
+	public void setVisible(boolean visible) {
+		this.pnlRoot.setVisible(visible);
 	}
 }

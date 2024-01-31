@@ -210,6 +210,8 @@ public class FunctionAppActionsContributor implements IActionsContributor {
         new Action<>(ENVIRONMENT_CREATE_FUNCTION)
             .withLabel("Function App")
             .withIdParam(AzResource::getName)
+            .visibleWhen(resource -> resource instanceof ContainerAppsEnvironment)
+            .enableWhen(resource -> resource.getFormalStatus().isConnected())
             .register(am);
 
         new Action<>(ENABLE_REMOTE_DEBUGGING)

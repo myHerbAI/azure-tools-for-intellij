@@ -16,6 +16,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
+import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.util.xmlb.XmlSerializer;
 import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunConfigurationBase;
@@ -148,14 +149,23 @@ public class FunctionDeployConfiguration extends AzureRunConfigurationBase<Funct
     }
 
     @Override
+    public void writeExternal(Element element) throws WriteExternalException {
+        if (Objects.isNull(this.functionDeployModel)) {
+            return;
+        }
+        super.writeExternal(element);
+    }
+
+    @Override
     @SuppressWarnings("deprecation")
-    public void readExternal(Element modelEle) throws InvalidDataException {
+    public void readExternal(Element element) throws InvalidDataException {
+        final Element modelEle = Optional.ofNullable(element.getChild("FunctionDeployModel")).orElse(element);
         if (Objects.isNull(this.functionDeployModel)) {
             this.functionDeployModel = new FunctionDeployModel();
         }
         try {
             final Element runtime =
-                (Element) XPath.newInstance("option[@name='functionAppConfig']/FunctionAppConfig/option[@name='runtime']/Runtime").selectSingleNode(modelEle);
+                    (Element) XPath.newInstance("option[@name='functionAppConfig']/FunctionAppConfig/option[@name='runtime']/Runtime").selectSingleNode(modelEle);
             if (runtime != null) {
                 runtime.detach();
             }
@@ -163,7 +173,7 @@ public class FunctionDeployConfiguration extends AzureRunConfigurationBase<Funct
             if (runtime != null) {
                 final Attribute osAttr = (Attribute) XPath.newInstance("option[@name='operatingSystem']/@value").selectSingleNode(runtime);
                 Attribute javaAttr = (Attribute) XPath.newInstance("option[@name='javaVersion']/JavaVersion/option[@name='value']/@value").selectSingleNode(
-                    runtime);
+                        runtime);
                 if (Objects.isNull(javaAttr)) {
                     javaAttr = (Attribute) XPath.newInstance("option[@name='javaVersion']/@value").selectSingleNode(runtime);
                     if (ObjectUtils.allNotNull(osAttr, javaAttr)) {
@@ -174,11 +184,10 @@ public class FunctionDeployConfiguration extends AzureRunConfigurationBase<Funct
                 }
             }
         } catch (final Throwable ignored) {
+            // swallow exception when deserialize
         }
-
-
         Optional.ofNullable(this.getAppSettingsKey())
-            .ifPresent(key -> functionDeployModel.getConfig().setAppSettings(FunctionUtils.loadAppSettingsFromSecurityStorage(getAppSettingsKey())));
+                .ifPresent(key -> functionDeployModel.getConfig().setAppSettings(FunctionUtils.loadAppSettingsFromSecurityStorage(getAppSettingsKey())));
     }
 
     public void setAppSettings(Map<String, String> appSettings) {

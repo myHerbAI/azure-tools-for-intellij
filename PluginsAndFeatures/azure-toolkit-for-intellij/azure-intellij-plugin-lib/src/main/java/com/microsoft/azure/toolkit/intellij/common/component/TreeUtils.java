@@ -274,10 +274,10 @@ public class TreeUtils {
 
     public static void selectResourceNode(@Nonnull JTree tree, @Nonnull AzComponent resource) {
         final DefaultMutableTreeNode r = (DefaultMutableTreeNode) tree.getModel().getRoot();
-        DefaultMutableTreeNode root = ((DefaultMutableTreeNode) r.getChildAt(1)); // apps root
+        DefaultMutableTreeNode root = r.getChildCount() > 1 ? ((DefaultMutableTreeNode) r.getChildAt(1)) : null; // apps root
         if (resource instanceof Favorite) {
             resource = ((Favorite) resource).getResource();
-            root = (DefaultMutableTreeNode) r.getChildAt(0); // favorite root
+            root = r.getChildCount() > 0 ? (DefaultMutableTreeNode) r.getFirstChild() : null; // favorite root
         }
         if (Objects.nonNull(resource)) {
             selectResourceNode(tree, resource, root);

@@ -40,9 +40,7 @@ import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
-import com.microsoft.azure.toolkit.lib.appservice.model.AppServiceFile;
-import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppDockerRuntime;
-import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
+import com.microsoft.azure.toolkit.lib.appservice.model.*;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
@@ -249,6 +247,7 @@ public class AppServiceIntelliJActionsContributor implements IActionsContributor
         final AppServiceConfig result = AppServiceConfig.buildDefaultWebAppConfig(rgName, appName, "jar");
         result.appSettings(new HashMap<>());
         result.pricingTier(PricingTier.BASIC_B2);
+        result.diagnosticConfig(DiagnosticConfig.builder().build());
         Optional.ofNullable(subscription).map(Subscription::getId).ifPresent(result::subscriptionId);
         Optional.ofNullable(group).map(ResourceGroup::getRegion).ifPresent(result::region);
         return result;
