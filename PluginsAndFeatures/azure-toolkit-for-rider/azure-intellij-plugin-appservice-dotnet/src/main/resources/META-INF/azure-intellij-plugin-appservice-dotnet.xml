@@ -45,6 +45,10 @@
                                  displayName="Functions"
                                  id="com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionConfigurable"
                                  instance="com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionConfigurable"/>
+        <applicationConfigurable parentId="com.microsoft.intellij.AzureConfigurable"
+                                 displayName="Azurite"
+                                 id="com.microsoft.azure.toolkit.intellij.azurite.settings.AzuriteConfigurable"
+                                 instance="com.microsoft.azure.toolkit.intellij.azurite.settings.AzuriteConfigurable"/>
 
         <projectConfigurable parentId="FileTemplatesSettingsId"
                              displayName="Azure (C#)"
