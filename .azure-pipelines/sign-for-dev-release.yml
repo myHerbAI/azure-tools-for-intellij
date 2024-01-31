@@ -49,15 +49,6 @@ extends:
             steps:
               - checkout: self
                 fetchTags: false
-              - script: |
-                  CUSTOM_BRANCH=$(BRANCH)
-                  if [[ -n ${CUSTOM_BRANCH} ]]; then
-                    git fetch origin $(BRANCH)
-                    git checkout $(BRANCH)
-                  else
-                    echo "no need to switch branch"
-                  fi
-                displayName: switch to $(BRANCH)
               - task: JavaToolInstaller@0
                 displayName: Use Java 17
                 inputs:
