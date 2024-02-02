@@ -3,6 +3,7 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.85.0](#3850)
   - [3.84.0](#3840)
   - [3.83.0](#3830)
   - [3.82.0](#3820)
@@ -105,6 +106,24 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.8](#308)
   - [3.0.7](#307)
   - [3.0.6](#306)
+
+## 3.85.0
+### Added
+- Support for containerized FunctionApps (based on Azure Container Apps) 
+- Support for creating docker WebApp/FunctionApp
+- Support for Managing Azure Container Registries (ACR) with bundled Docker plugin (2023.3) in integrated `Services` view.     
+- Warn user when creating/deploying WebApps/FunctionApps of (to-be-) deprected runtime.
+
+### Updated
+- Update icon of WebApp/FunctionApp to indicate its runtime.
+
+### Fixed
+- [#8118](https://github.com/microsoft/azure-tools-for-java/issues/8118): NPE at EnvVarLineMarkerProvider.
+- [#8113](https://github.com/microsoft/azure-tools-for-java/issues/8113): java.nio.file.NoSuchFileException at AzureModule.getDefaultProfileName.
+- [#8109](https://github.com/microsoft/azure-tools-for-java/issues/8109): java.lang.ClassCastException at StoragePathPrefixCompletionProvider.addCompletions.
+- [#8093](https://github.com/microsoft/azure-tools-for-java/issues/8093): Speed Search not working correctly.
+- [#8081](https://github.com/microsoft/azure-tools-for-java/issues/8081): java.lang.AssertionError at AzureCognitiveServices.accounts.
+- [#8063](https://github.com/microsoft/azure-tools-for-java/issues/8063): java.lang.ArrayIndexOutOfBoundsException at TreeUtils.selectResourceNode.
 
 ## 3.84.0
 ### Added
