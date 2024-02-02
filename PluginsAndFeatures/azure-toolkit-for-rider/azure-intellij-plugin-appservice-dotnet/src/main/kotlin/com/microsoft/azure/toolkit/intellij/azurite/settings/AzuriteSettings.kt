@@ -4,8 +4,16 @@
 
 package com.microsoft.azure.toolkit.intellij.azurite.settings
 
+import com.intellij.execution.configurations.PathEnvironmentVariableUtil
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.*
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.findOrCreateDirectory
+import com.jetbrains.rider.projectView.solutionPath
+import java.nio.file.Path
+import kotlin.io.path.Path
 
 @State(
     name = "com.microsoft.azure.toolkit.intellij.azurite.settings.AzuriteSettings",
@@ -14,6 +22,9 @@ import com.intellij.openapi.util.io.FileUtil
 @Service
 class AzuriteSettings : SimplePersistentStateComponent<AzuriteSettingsState>(AzuriteSettingsState()) {
     companion object {
+        private const val MANAGED_PATH_SUFFIX = "azurite"
+        private const val PROJECT_PATH_SUFFIX = ".idea/azurite"
+
         fun getInstance() = service<AzuriteSettings>()
     }
 
@@ -94,4 +105,54 @@ class AzuriteSettings : SimplePersistentStateComponent<AzuriteSettingsState>(Azu
         set(value) {
             state.certificatePassword = value
         }
+
+    fun getAzuriteExecutablePath(): Path? {
+        val azuritePath = executablePath
+
+        val path = azuritePath.ifEmpty {
+            val environmentPath = if (SystemInfo.isWindows) {
+                val azuriteCmd = PathEnvironmentVariableUtil.findInPath("azurite.cmd")?.absolutePath
+                if (azuriteCmd.isNullOrEmpty()) {
+                    PathEnvironmentVariableUtil.findInPath("azurite.exe")?.absolutePath
+                } else {
+                    azuriteCmd
+                }
+            } else {
+                PathEnvironmentVariableUtil.findInPath("azurite")?.absolutePath
+            }
+
+            if (!environmentPath.isNullOrEmpty()) {
+                executablePath = environmentPath
+            }
+
+            environmentPath
+        } ?: return null
+
+        return Path(path)
+    }
+
+    fun getAzuriteWorkspacePath(project: Project): Path = when (locationMode) {
+        AzuriteLocationMode.Managed -> {
+            val configPath = PathManager.getConfigPath()
+            val workspacePath = Path(configPath).resolve(MANAGED_PATH_SUFFIX)
+            workspacePath.findOrCreateDirectory()
+            workspacePath
+        }
+        AzuriteLocationMode.Project -> {
+            val workspacePath = Path(project.basePath ?: project.solutionPath).resolve(PROJECT_PATH_SUFFIX)
+            workspacePath.findOrCreateDirectory()
+            workspacePath
+        }
+        AzuriteLocationMode.Custom -> {
+            val customPath = workspacePath
+            if (customPath.isNotEmpty()) {
+                Path(customPath)
+            } else {
+                val configPath = PathManager.getConfigPath()
+                val workspacePath = Path(configPath).resolve(MANAGED_PATH_SUFFIX)
+                workspacePath.findOrCreateDirectory()
+                workspacePath
+            }
+        }
+    }
 }
