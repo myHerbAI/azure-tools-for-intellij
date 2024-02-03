@@ -62,6 +62,8 @@
 
         <serviceViewContributor implementation="com.microsoft.azure.toolkit.intellij.azurite.services.AzuriteServiceViewContributor" />
 
+        <stepsBeforeRunProvider implementation="com.microsoft.azure.toolkit.intellij.azurite.AzuriteBeforeRunTaskProvider"/>
+
         <registryKey key="azure.function_app.core_tools.feed.enabled"
                      defaultValue="true"
                      description="Enable downloading from Azure Functions Core Tools releases feed URL."/>
