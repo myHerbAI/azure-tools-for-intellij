@@ -52,7 +52,7 @@ import java.util.function.Supplier;
 @Getter
 public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPanel implements AzureFormPanel<T> {
     public static final ContainerAppDraft.ImageConfig QUICK_START_IMAGE =
-            new ContainerAppDraft.ImageConfig("mcr.microsoft.com/azuredocs/containerapps-helloworld:latest");
+            new ContainerAppDraft.ImageConfig("mcr.microsoft.com/appsvc/staticsite:latest");
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyMMddHHmmss");
     private static final String NOT_APPLICABLE = "N/A";
     private final Project project;

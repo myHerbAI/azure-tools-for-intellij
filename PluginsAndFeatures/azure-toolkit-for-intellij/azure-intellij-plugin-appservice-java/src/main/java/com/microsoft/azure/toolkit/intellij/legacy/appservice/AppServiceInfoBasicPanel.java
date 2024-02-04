@@ -15,18 +15,20 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.auth.Account;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -45,6 +47,9 @@ public class AppServiceInfoBasicPanel<T extends AppServiceConfig> extends JPanel
     private JLabel lblArtifact;
     private JLabel lblName;
     private JLabel lblPlatform;
+    @Setter
+    @Getter
+    private String defaultImage;
 
     public AppServiceInfoBasicPanel(final Project project, final Supplier<? extends T> defaultConfigSupplier) {
         super();
@@ -82,16 +87,16 @@ public class AppServiceInfoBasicPanel<T extends AppServiceConfig> extends JPanel
                                                   .orElseGet(() -> account.getSelectedSubscriptions().stream().findFirst().orElse(null));
         final T result = this.config == null ? supplier.get() : this.config;
         result.appName(name);
-        Optional.ofNullable(platform).map(RuntimeConfig::fromRuntime).ifPresent(result::runtime);
         Optional.ofNullable(subscription).map(Subscription::getId).ifPresent(result::subscriptionId);
-        // todo: web app creation dialog should use run/deploy configuration, which should be parent of info panel
-//        if (Objects.nonNull(artifact)) {
-//            final AzureArtifactManager manager = AzureArtifactManager.getInstance(this.project);
-//            final String path = this.selectorApplication.getValue().getFileForDeployment();
-//            result.setApplication(Paths.get(path));
-//        }
+        Optional.ofNullable(platform).filter(r -> !r.isDocker()).map(RuntimeConfig::fromRuntime).ifPresent(result::runtime);
+        if (Objects.nonNull(platform) && platform.isDocker()) {
+            final RuntimeConfig runtime = Optional.ofNullable(result.runtime()).orElseGet(RuntimeConfig::new);
+            runtime.os(OperatingSystem.DOCKER);
+            runtime.image(StringUtils.firstNonBlank(runtime.image(), defaultImage));
+            result.runtime(runtime);
+        }
+        result.appSettings(ObjectUtils.firstNonNull(this.config.appSettings(), new HashMap<>()));
         this.config = result;
-        this.config.appSettings(ObjectUtils.firstNonNull(this.config.appSettings(), new HashMap<>()));
         return config;
     }
 

@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.appservice.AppServiceIntelliJActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.intellij.common.ConfigDialog;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdvancedPanel;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoBasicPanel;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
@@ -74,5 +75,6 @@ public class WebAppCreationDialog extends ConfigDialog<AppServiceConfig> {
         }
         basicForm = new AppServiceInfoBasicPanel<>(project, () -> AppServiceIntelliJActionsContributor.getDefaultWebAppConfig(null));
         basicForm.setDeploymentVisible(false);
+        basicForm.setDefaultImage(AppServiceInfoAdvancedPanel.QUICK_START_IMAGE.getFullImageName());
     }
 }
