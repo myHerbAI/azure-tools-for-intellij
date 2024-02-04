@@ -174,9 +174,8 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
 
     @Override
     protected Map<String, String> getTelemetryMap() {
-        final Map<String, String> properties = new HashMap<>();
+        final Map<String, String> properties = new HashMap<>(OperationContext.action().getTelemetryProperties());
         properties.put("artifactType", webAppConfiguration.getAzureArtifactType() == null ? null : webAppConfiguration.getAzureArtifactType().name());
-        properties.putAll(webAppSettingModel.getTelemetryProperties(Collections.EMPTY_MAP));
         return properties;
     }
 

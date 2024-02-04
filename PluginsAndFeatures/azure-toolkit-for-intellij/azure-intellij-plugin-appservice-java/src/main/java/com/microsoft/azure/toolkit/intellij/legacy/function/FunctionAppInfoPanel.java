@@ -115,12 +115,6 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
         if (isDocker) {
             final ContainerAppDraft.ImageConfig image = chkUseQuickStart.isSelected() ? QUICK_START_IMAGE : pnlContainer.getValue();
             Optional.ofNullable(image).map(DockerUtils::convertImageConfigToRuntimeConfig).ifPresent(config::runtime);
-            // workaround to fix worker runtime issue of default image, as it was a dot net one
-            if (chkUseQuickStart.isSelected()) {
-                final Map<String, String> appSettings = new HashMap<>(config.appSettings());
-                appSettings.put("FUNCTIONS_WORKER_RUNTIME", "dotnet-isolated");
-                config.appSettings(appSettings);
-            }
         }
         return this.config;
     }
