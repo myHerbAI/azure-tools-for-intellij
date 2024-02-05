@@ -80,7 +80,7 @@ class FunctionIsolatedDebugProfileState(
             LOG.warn("Azure Functions host process terminated before the debugger could attach.")
 
             Notification(
-                "Azure Functions",
+                "Azure AppServices",
                 "Azure Functions - debug",
                 "Azure Functions host process terminated before the debugger could attach.",
                 NotificationType.ERROR
@@ -94,7 +94,7 @@ class FunctionIsolatedDebugProfileState(
             LOG.warn("Azure Functions host did not return isolated worker process id.")
 
             Notification(
-                "Azure Functions",
+                "Azure AppServices",
                 "Azure Functions - debug",
                 "Azure Functions host did not return isolated worker process id. Could not attach the debugger. Check the process output for more information.",
                 NotificationType.ERROR

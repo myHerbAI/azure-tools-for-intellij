@@ -18,7 +18,7 @@ class AzureFunctionSettings : SimplePersistentStateComponent<AzureFunctionSettin
     )
 ) {
     companion object {
-        fun getInstance(): AzureFunctionSettings = service()
+        fun getInstance() = service<AzureFunctionSettings>()
 
         const val DISMISS_NOTIFICATION_AZURE_FUNCTIONS_MISSING_NUPKG = "DismissAzureFunctionsMissingNupkg"
 
