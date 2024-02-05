@@ -6,195 +6,81 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
-import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.configurations.LocatableConfigurationBase
 import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
-import com.microsoft.azure.toolkit.intellij.common.runconfig.IWebAppRunConfiguration
-import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware
-import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunConfigurationBase
+import com.microsoft.azure.toolkit.intellij.legacy.utils.RESOURCE_GROUP_MESSAGE
+import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidResourceGroupName
 import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidResourceName
-import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
 
-
 class WebAppConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
-    RiderAzureRunConfigurationBase<WebAppPublishModel>(project, factory, name), IWebAppRunConfiguration,
-    IConnectionAware {
-    companion object {
-        private const val SLOT_NAME_REGEX_PATTERN = "[a-zA-Z0-9-]{1,60}"
-    }
+    LocatableConfigurationBase<WebAppConfigurationOptions>(project, factory, name) {
 
-    private val webAppPublishModel = WebAppPublishModel()
-
-    private val slotNameRegex = Regex(SLOT_NAME_REGEX_PATTERN)
-
-    var webAppId: String?
-        get() = webAppPublishModel.webAppId
-        set(value) {
-            webAppPublishModel.webAppId = value
-        }
-    var webAppName: String
-        get() = webAppPublishModel.webAppName
-        set(value) {
-            webAppPublishModel.webAppName = value
-        }
-    var subscriptionId: String
-        get() = webAppPublishModel.subscriptionId
-        set(value) {
-            webAppPublishModel.subscriptionId = value
-        }
-    var region: String
-        get() = webAppPublishModel.region
-        set(value) {
-            webAppPublishModel.region = value
-        }
-    var resourceGroup: String
-        get() = webAppPublishModel.resourceGroup
-        set(value) {
-            webAppPublishModel.resourceGroup = value
-        }
-    var pricing: String
-        get() = webAppPublishModel.pricing
-        set(value) {
-            webAppPublishModel.pricing = value
-        }
-    var appServicePlanName: String?
-        get() = webAppPublishModel.appServicePlanName
-        set(value) {
-            webAppPublishModel.appServicePlanName = value
-        }
-    var appServicePlanResourceGroupName: String?
-        get() = webAppPublishModel.appServicePlanResourceGroupName
-        set(value) {
-            webAppPublishModel.appServicePlanResourceGroupName = value
-        }
-    var isCreatingNew: Boolean
-        get() = webAppPublishModel.isCreatingNew
-        set(value) {
-            webAppPublishModel.isCreatingNew = value
-        }
-    var isOpenBrowserAfterDeployment: Boolean
-        get() = webAppPublishModel.isOpenBrowserAfterDeployment
-        set(value) {
-            webAppPublishModel.isOpenBrowserAfterDeployment = value
-        }
-    var isSlotPanelVisible: Boolean
-        get() = webAppPublishModel.slotPanelVisible
-        set(value) {
-            webAppPublishModel.slotPanelVisible = value
-        }
-    var isDeployToSlot: Boolean
-        get() = webAppPublishModel.isDeployToSlot
-        set(value) {
-            webAppPublishModel.isDeployToSlot = value
-        }
-    var newSlotConfigurationSource: String?
-        get() = webAppPublishModel.newSlotConfigurationSource
-        set(value) {
-            webAppPublishModel.newSlotConfigurationSource = value
-        }
-    var slotName: String?
-        get() = webAppPublishModel.slotName
-        set(value) {
-            webAppPublishModel.slotName = value
-        }
-    var newSlotName: String?
-        get() = webAppPublishModel.newSlotName
-        set(value) {
-            webAppPublishModel.newSlotName = value
-        }
-    var appSettingsKey: String
-        get() = webAppPublishModel.appSettingsKey
-        set(value) {
-            webAppPublishModel.appSettingsKey = value
-        }
-    var runtime: Runtime?
-        get() = webAppPublishModel.runtime
-        set(value) {
-            webAppPublishModel.saveRuntime(value)
-        }
-    var operatingSystem: OperatingSystem
-        get() = OperatingSystem.fromString(webAppPublishModel.operatingSystem)
-        set(value) {
-            webAppPublishModel.operatingSystem = value.toString()
-        }
-    var projectConfiguration: String
-        get() = webAppPublishModel.projectConfiguration
-        set(value) {
-            webAppPublishModel.projectConfiguration = value
-        }
-    var projectPlatform: String
-        get() = webAppPublishModel.projectPlatform
-        set(value) {
-            webAppPublishModel.projectPlatform = value
-        }
     var publishableProjectPath: String?
-        get() = webAppPublishModel.publishableProjectPath
+        get() = getState()?.publishableProjectPath
         set(value) {
-            webAppPublishModel.publishableProjectPath = value
+            getState()?.publishableProjectPath = value
         }
 
-    override fun setApplicationSettings(env: Map<String, String>) {
-        webAppPublishModel.appSettings = env
-    }
+    override fun suggestedName() = "Publish Web App"
 
-    override fun getApplicationSettings(): Map<String, String> = webAppPublishModel.appSettings
+    override fun getState() = options as? WebAppConfigurationOptions
 
     override fun getState(executor: Executor, executionEnvironment: ExecutionEnvironment) =
         WebAppRunState(project, this)
 
-    override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> =
-        WebAppSettingEditor(project, this)
-
-    override fun getModel() = webAppPublishModel
-
-    override fun getModule(): Module? = null
+    override fun getConfigurationEditor() = WebAppSettingEditor(project)
 
     override fun checkConfiguration() {
-        checkAzurePreconditions()
-        with(webAppPublishModel) {
-            if (isCreatingNew) {
-                if (webAppName.isNullOrEmpty()) throw RuntimeConfigurationError("Web App name not provided")
-                if (!isValidResourceName(webAppName)) throw RuntimeConfigurationError("Web App names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
-                if (subscriptionId.isNullOrEmpty()) throw RuntimeConfigurationError("Subscription not provided")
-                if (resourceGroup.isNullOrEmpty()) throw RuntimeConfigurationError("Resource Group not provided")
-                if (isCreatingAppServicePlan) {
-                    if (region.isNullOrEmpty()) throw RuntimeConfigurationError("Location not provided")
-                    if (pricing.isNullOrEmpty()) throw RuntimeConfigurationError("Pricing Tier not provided")
-                }
-                if (appServicePlanName.isNullOrEmpty()) throw RuntimeConfigurationError("App Service Plan not provided")
-                if (!isValidResourceName(appServicePlanName)) throw RuntimeConfigurationError("App Service plan names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
-            } else {
-                if (webAppId.isNullOrEmpty()) throw RuntimeConfigurationError("Choose a web app to deploy")
-                if (appServicePlanName.isNullOrEmpty()) throw RuntimeConfigurationError("Meta-data of target webapp is still loading...")
-                if (isDeployToSlot) {
-                    if (slotName.isNullOrEmpty()) {
-                        if (newSlotName.isNullOrEmpty()) throw RuntimeConfigurationError("The deployment slot name is not provided")
-                        if (!slotNameRegex.matches(newSlotName)) throw RuntimeConfigurationError("The slot name is invalid")
-                    } else if (slotName.isNullOrEmpty()) throw RuntimeConfigurationError("The deployment slot name is not provided")
+        val options = getState() ?: return
+        with(options) {
+            if (webAppName.isNullOrEmpty()) throw RuntimeConfigurationError("Web App name is not provided")
+            if (!isValidResourceName(webAppName)) throw RuntimeConfigurationError("Web App names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
+            if (subscriptionId.isNullOrEmpty()) throw RuntimeConfigurationError("Subscription is not provided")
+            if (resourceGroupName.isNullOrEmpty()) throw RuntimeConfigurationError("Resource group is not provided")
+            if (!isValidResourceGroupName(resourceGroupName)) throw RuntimeConfigurationError(RESOURCE_GROUP_MESSAGE)
+            if (region.isNullOrEmpty()) throw RuntimeConfigurationError("Region is not provided")
+            if (appServicePlanName.isNullOrEmpty()) throw RuntimeConfigurationError("App Service plan name is not provided")
+            if (!isValidResourceName(appServicePlanName)) throw RuntimeConfigurationError("App Service plan names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
+            if (appServicePlanResourceGroupName.isNullOrEmpty()) throw RuntimeConfigurationError("App Service plan resource group is not provided")
+            if (!isValidResourceName(appServicePlanResourceGroupName)) throw RuntimeConfigurationError("Resource group names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
+            if (pricingTier.isNullOrEmpty()) throw RuntimeConfigurationError("Pricing tier is not provided")
+            if (pricingSize.isNullOrEmpty()) throw RuntimeConfigurationError("Pricing size is not provided")
+
+            if (isDeployToSlot) {
+                if (slotName.isNullOrEmpty()) {
+                    if (newSlotName.isNullOrEmpty()) throw RuntimeConfigurationError("Deployment slot name is not provided")
+                    if (!isValidResourceName(newSlotName)) throw RuntimeConfigurationError("Deployment slot names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
+                    if (newSlotConfigurationSource.isNullOrEmpty()) throw RuntimeConfigurationError("Deployment slot configuration source name is not provided")
                 }
             }
 
-            if (OperatingSystem.fromString(operatingSystem) == OperatingSystem.DOCKER) throw RuntimeConfigurationError("Invalid target, please change to use `Deploy Image to Web App` for docker web app")
-            if (publishableProjectPath == null) throw RuntimeConfigurationError("Choose a project to deploy")
+            if (operatingSystem.isNullOrEmpty()) throw RuntimeConfigurationError("Operating system is not provided")
+            if (publishableProjectPath.isNullOrEmpty()) throw RuntimeConfigurationError("Choose a project to deploy")
+            if (projectPlatform.isNullOrEmpty()) throw RuntimeConfigurationError("Choose a project platform")
+            if (projectConfiguration.isNullOrEmpty()) throw RuntimeConfigurationError("Choose a project configuration")
         }
     }
 
     fun setWebApp(webApp: WebApp) {
-        webAppId = webApp.id
-        webAppName = webApp.name
-        subscriptionId = webApp.subscriptionId
-        resourceGroup = webApp.resourceGroupName
-        webApp.runtime?.let { runtime = it }
-        webApp.appServicePlan?.let {
-            appServicePlanName = it.name
-            appServicePlanResourceGroupName = it.resourceGroupName
+        getState()?.apply {
+            resourceId = webApp.id
+            webAppName = webApp.name
+            subscriptionId = webApp.subscriptionId
+            resourceGroupName = webApp.resourceGroupName
+            region = webApp.region.toString()
+            appServicePlanName = webApp.appServicePlan?.name
+            appServicePlanResourceGroupName = webApp.appServicePlan?.resourceGroupName
+            pricingTier = webApp.appServicePlan?.pricingTier?.tier
+            pricingSize = webApp.appServicePlan?.pricingTier?.size
+            operatingSystem = webApp.runtime?.operatingSystem?.toString()
+            isDeployToSlot = false
+            slotName = null
+            newSlotName = null
+            newSlotConfigurationSource = null
+            appSettings = webApp.appSettings ?: mutableMapOf()
         }
-        webApp.region?.let { region = it.name }
-        webApp.appSettings?.let { applicationSettings = it }
     }
 }

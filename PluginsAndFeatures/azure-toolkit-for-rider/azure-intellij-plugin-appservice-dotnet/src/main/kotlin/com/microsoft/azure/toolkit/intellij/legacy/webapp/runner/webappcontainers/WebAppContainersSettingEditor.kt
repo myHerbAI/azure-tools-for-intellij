@@ -24,8 +24,7 @@ import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-class WebAppContainersSettingEditor(private val project: Project) :
-        SettingsEditor<WebAppContainersConfiguration>() {
+class WebAppContainersSettingEditor(private val project: Project) : SettingsEditor<WebAppContainersConfiguration>() {
 
     private val panel: JPanel
     private lateinit var containerRegistryComboBox: Cell<AzureContainerRegistryComboBox>

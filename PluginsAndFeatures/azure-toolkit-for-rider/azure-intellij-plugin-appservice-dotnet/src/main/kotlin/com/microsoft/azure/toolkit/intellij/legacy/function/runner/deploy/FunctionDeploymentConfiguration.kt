@@ -10,6 +10,8 @@ import com.intellij.execution.configurations.LocatableConfigurationBase
 import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
+import com.microsoft.azure.toolkit.intellij.legacy.utils.RESOURCE_GROUP_MESSAGE
+import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidResourceGroupName
 import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidResourceName
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp
 
@@ -24,8 +26,7 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
 
     override fun suggestedName() = "Publish Function App"
 
-    override fun getState() =
-        options as? FunctionDeploymentConfigurationOptions
+    override fun getState() = options as? FunctionDeploymentConfigurationOptions
 
     override fun getState(executor: Executor, environment: ExecutionEnvironment) =
         FunctionDeploymentState(project, this)
@@ -39,7 +40,7 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
             if (!isValidResourceName(functionAppName)) throw RuntimeConfigurationError("Function App names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
             if (subscriptionId.isNullOrEmpty()) throw RuntimeConfigurationError("Subscription is not provided")
             if (resourceGroupName.isNullOrEmpty()) throw RuntimeConfigurationError("Resource group is not provided")
-            if (!isValidResourceName(resourceGroupName)) throw RuntimeConfigurationError("Resource group names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
+            if (!isValidResourceGroupName(resourceGroupName)) throw RuntimeConfigurationError(RESOURCE_GROUP_MESSAGE)
             if (region.isNullOrEmpty()) throw RuntimeConfigurationError("Region is not provided")
             if (appServicePlanName.isNullOrEmpty()) throw RuntimeConfigurationError("App Service plan name is not provided")
             if (!isValidResourceName(appServicePlanName)) throw RuntimeConfigurationError("App Service plan names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
@@ -65,6 +66,7 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
 
     fun setFunctionApp(functionApp: FunctionApp) {
         getState()?.apply {
+            resourceId = functionApp.id
             functionAppName = functionApp.name
             subscriptionId = functionApp.subscriptionId
             resourceGroupName = functionApp.resourceGroupName

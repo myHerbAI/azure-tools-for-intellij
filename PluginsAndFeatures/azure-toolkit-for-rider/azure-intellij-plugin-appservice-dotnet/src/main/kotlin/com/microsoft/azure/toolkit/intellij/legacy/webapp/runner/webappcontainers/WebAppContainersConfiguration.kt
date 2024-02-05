@@ -12,6 +12,8 @@ import com.intellij.execution.configurations.LocatableConfigurationBase
 import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
+import com.microsoft.azure.toolkit.intellij.legacy.utils.RESOURCE_GROUP_MESSAGE
+import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidResourceGroupName
 import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidResourceName
 
 class WebAppContainersConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
@@ -27,8 +29,7 @@ class WebAppContainersConfiguration(private val project: Project, factory: Confi
 
     override fun suggestedName() = "Publish Web App for Containers"
 
-    override fun getState() =
-        options as? WebAppContainersConfigurationOptions
+    override fun getState() = options as? WebAppContainersConfigurationOptions
 
     override fun getState(executor: Executor, environment: ExecutionEnvironment) =
         WebAppContainersRunState(project, this)
@@ -42,7 +43,7 @@ class WebAppContainersConfiguration(private val project: Project, factory: Confi
             if (!isValidResourceName(webAppName)) throw RuntimeConfigurationError("Web App names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
             if (subscriptionId.isNullOrEmpty()) throw RuntimeConfigurationError("Subscription is not provided")
             if (resourceGroupName.isNullOrEmpty()) throw RuntimeConfigurationError("Resource group is not provided")
-            if (!isValidResourceName(resourceGroupName)) throw RuntimeConfigurationError("Resource group names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
+            if (!isValidResourceGroupName(resourceGroupName)) throw RuntimeConfigurationError(RESOURCE_GROUP_MESSAGE)
             if (region.isNullOrEmpty()) throw RuntimeConfigurationError("Region is not provided")
             if (appServicePlanName.isNullOrEmpty()) throw RuntimeConfigurationError("App Service plan name is not provided")
             if (!isValidResourceName(appServicePlanName)) throw RuntimeConfigurationError("App Service plan names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
@@ -54,15 +55,15 @@ class WebAppContainersConfiguration(private val project: Project, factory: Confi
             if (repository.isNullOrEmpty()) throw RuntimeConfigurationError("Image repository is not provided")
             if (repository.length > 255) throw RuntimeConfigurationError("The length of image repository must be less than 256 characters")
             if (repository.endsWith('/')) throw RuntimeConfigurationError("The repository name should not end with '/'")
+            val tag = imageTag
+            if (tag.isNullOrEmpty()) throw RuntimeConfigurationError("Image tag is not provided")
+            if (tag.length > 127) throw RuntimeConfigurationError("The length of tag name must be less than 128 characters")
+            if (!tagRegex.matches(tag)) throw RuntimeConfigurationError("Invalid tag: $tag, should follow: $TAG_REGEX_PATTERN")
             val repositoryParts = repository.split('/')
             if (repositoryParts.last().isEmpty()) throw RuntimeConfigurationError("Image name is not provided")
             repositoryParts.forEach {
                 if (!repoComponentRegex.matches(it)) throw RuntimeConfigurationError("Invalid repository component: $it, should follow: $REPO_COMPONENT_REGEX_PATTERN")
             }
-            val tag = imageTag
-            if (tag.isNullOrEmpty()) throw RuntimeConfigurationError("Image tag is not provided")
-            if (tag.length > 127) throw RuntimeConfigurationError("The length of tag name must be less than 128 characters")
-            if (!tagRegex.matches(tag)) throw RuntimeConfigurationError("Invalid tag: $tag, should follow: $TAG_REGEX_PATTERN")
         }
     }
 }
