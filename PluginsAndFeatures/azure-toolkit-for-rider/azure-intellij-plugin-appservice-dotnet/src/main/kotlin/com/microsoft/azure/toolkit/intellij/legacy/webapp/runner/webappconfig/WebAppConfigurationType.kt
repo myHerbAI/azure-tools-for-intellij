@@ -22,4 +22,6 @@ class WebAppConfigurationType : SimpleConfigurationType(
 
     override fun createConfiguration(name: String?, template: RunConfiguration) =
         WebAppConfiguration(template.project, this, name)
+
+    override fun getOptionsClass() = WebAppConfigurationOptions::class.java
 }

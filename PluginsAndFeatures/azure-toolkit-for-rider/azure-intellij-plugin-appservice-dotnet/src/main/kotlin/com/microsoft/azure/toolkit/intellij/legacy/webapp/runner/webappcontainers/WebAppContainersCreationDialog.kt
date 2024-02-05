@@ -4,13 +4,72 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog
+import com.intellij.openapi.util.Disposer
+import com.intellij.ui.dsl.builder.panel
+import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig
+import com.microsoft.azure.toolkit.intellij.common.ConfigDialog
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdvancedPanel
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoBasicPanel
+import com.microsoft.azure.toolkit.intellij.legacy.utils.removeInvalidCharacters
+import com.microsoft.azure.toolkit.lib.Azure
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount
+import com.microsoft.azure.toolkit.lib.auth.IAccountActions
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
+import javax.swing.JPanel
 
-class WebAppContainersCreationDialog(project: Project) : WebAppCreationDialog(project) {
+class WebAppContainersCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(project), Disposable {
+    private val basicPanel: AppServiceInfoBasicPanel<WebAppConfig>
+    private val advancedPanel: AppServiceInfoAdvancedPanel<WebAppConfig>
+    private val panel: JPanel
+
     init {
-        basicFormPanel.setFixedRuntime(Runtime.DOCKER)
-        advancedFormPanel.setFixedRuntime(Runtime.DOCKER)
+        val selectedSubscriptions = Azure.az(AzureAccount::class.java).account().selectedSubscriptions
+        if (selectedSubscriptions.isEmpty()) {
+            this.close()
+            throw AzureToolkitRuntimeException(
+                "There are no subscriptions selected in your account.",
+                IAccountActions.SELECT_SUBS
+            )
+        }
+
+        val projectName = removeInvalidCharacters(project.name)
+        basicPanel = AppServiceInfoBasicPanel(selectedSubscriptions[0]) {
+            WebAppConfig.getWebAppDefaultConfig(projectName)
+        }
+        basicPanel.setFixedRuntime(Runtime.DOCKER)
+        Disposer.register(this, basicPanel)
+
+        advancedPanel = AppServiceInfoAdvancedPanel(projectName) {
+            WebAppConfig.getWebAppDefaultConfig(projectName)
+        }
+        advancedPanel.setFixedRuntime(Runtime.DOCKER)
+        Disposer.register(this, advancedPanel)
+
+        panel = panel {
+            row { cell(basicPanel) }
+            row { cell(advancedPanel) }
+        }
+
+        advancedPanel.setValidPricingTier(PricingTier.WEB_APP_PRICING.toList(), WebAppConfig.DEFAULT_PRICING_TIER)
+
+        this.init()
+
+        setFrontPanel(basicFormPanel)
+    }
+
+    override fun createCenterPanel() = panel
+
+    override fun getDialogTitle() = "Create Web App for Containers"
+
+    override fun getBasicFormPanel() = basicPanel
+
+    override fun getAdvancedFormPanel() = advancedPanel
+
+    override fun dispose() {
+        super.dispose()
     }
 }

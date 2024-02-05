@@ -8,6 +8,9 @@
 - Update tool window icon
 - Reimplement Azurite support
 
+### Fixed
+- Unable to deploy to the existing WebApp ([#782](https://github.com/JetBrains/azure-tools-for-intellij/issues/782))
+
 ## [4.0.0-preview.1] - 2024-01-24
 
 ### Changed

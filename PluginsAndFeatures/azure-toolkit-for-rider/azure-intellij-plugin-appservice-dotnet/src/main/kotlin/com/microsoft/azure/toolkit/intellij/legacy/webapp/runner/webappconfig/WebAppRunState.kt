@@ -11,9 +11,9 @@ import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
+import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctionAppDeploymentSlotDraft
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.CreateOrUpdateDotNetWebAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetAppServiceConfig
-import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetWebAppDeploymentSlotDraft
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileState
@@ -30,29 +30,32 @@ import java.io.IOException
 import java.net.URISyntaxException
 import java.net.URL
 
-class WebAppRunState(project: Project, private val webAppConfiguration: WebAppConfiguration) :
-    RiderAzureRunProfileState<WebAppBase<*, *, *>>(project) {
+class WebAppRunState(
+    project: Project,
+    private val webAppConfiguration: WebAppConfiguration
+) : RiderAzureRunProfileState<WebAppBase<*, *, *>>(project) {
 
     override fun executeSteps(processHandler: RunProcessHandler): WebAppBase<*, *, *> {
         OperationContext.current().setMessager(processHandlerMessenger)
 
         processHandler.setText("Start Web App deployment...")
 
-        val publishableProjectPath = webAppConfiguration.publishableProjectPath
+        val options = requireNotNull(webAppConfiguration.state)
+        val publishableProjectPath = options.publishableProjectPath
             ?: throw RuntimeException("Project is not defined")
         val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
             .firstOrNull { it.projectFilePath == publishableProjectPath }
             ?: throw RuntimeException("Project is not defined")
 
-        val config = createDotNetAppServiceConfig(publishableProject)
+        val config = createDotNetAppServiceConfig(publishableProject, options)
         val createTask = CreateOrUpdateDotNetWebAppTask(config)
         val deployTarget = createTask.execute()
 
         val zipFile = ArtifactService.getInstance(project)
             .prepareArtifact(
                 publishableProject,
-                webAppConfiguration.projectConfiguration,
-                webAppConfiguration.projectPlatform,
+                requireNotNull(options.projectConfiguration),
+                requireNotNull(options.projectPlatform),
                 processHandler,
                 true
             )
@@ -69,74 +72,76 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
         return deployTarget
     }
 
-    private fun createDotNetAppServiceConfig(publishableProject: PublishableProjectModel) =
-        DotNetAppServiceConfig().apply {
-            subscriptionId(webAppConfiguration.subscriptionId)
-            resourceGroup(webAppConfiguration.resourceGroup)
-            region(Region.fromName(webAppConfiguration.region))
-            servicePlanName(webAppConfiguration.appServicePlanName)
-            servicePlanResourceGroup(webAppConfiguration.appServicePlanResourceGroupName)
-            pricingTier(PricingTier.fromString(webAppConfiguration.pricing))
-            appName(webAppConfiguration.webAppName)
-            runtime(createRuntimeConfig())
-            dotnetRuntime = createDotNetRuntimeConfig(publishableProject)
-            appSettings(webAppConfiguration.applicationSettings)
-            val slotName =
-                if (webAppConfiguration.isDeployToSlot) webAppConfiguration.newSlotName ?: webAppConfiguration.slotName
-                else null
-            deploymentSlotName(slotName)
-            val configurationSource = when (webAppConfiguration.newSlotConfigurationSource) {
-                "Don't clone configuration from an existing slot" -> DotNetWebAppDeploymentSlotDraft.CONFIGURATION_SOURCE_NEW
-                webAppConfiguration.webAppName -> DotNetWebAppDeploymentSlotDraft.CONFIGURATION_SOURCE_PARENT
-                else -> webAppConfiguration.newSlotConfigurationSource
-            }
-            deploymentSlotConfigurationSource(configurationSource)
+    private fun createDotNetAppServiceConfig(
+        publishableProject: PublishableProjectModel,
+        options: WebAppConfigurationOptions
+    ) = DotNetAppServiceConfig().apply {
+        subscriptionId(options.subscriptionId)
+        resourceGroup(options.resourceGroupName)
+        region(Region.fromName(requireNotNull(options.region)))
+        servicePlanName(options.appServicePlanName)
+        servicePlanResourceGroup(options.appServicePlanResourceGroupName)
+        val pricingTier = PricingTier(options.pricingTier, options.pricingSize)
+        pricingTier(pricingTier)
+        appName(options.webAppName)
+        val slotName =
+            if (options.isDeployToSlot) options.newSlotName ?: options.slotName
+            else null
+        deploymentSlotName(slotName)
+        val configurationSource = when (options.newSlotConfigurationSource) {
+            "Do not clone settings" -> DotNetFunctionAppDeploymentSlotDraft.CONFIGURATION_SOURCE_NEW
+            "parent" -> DotNetFunctionAppDeploymentSlotDraft.CONFIGURATION_SOURCE_PARENT
+            null -> null
+            else -> options.newSlotConfigurationSource
+        }
+        deploymentSlotConfigurationSource(configurationSource)
+        val os = OperatingSystem.fromString(options.operatingSystem)
+        runtime(createRuntimeConfig(os))
+        dotnetRuntime = createDotNetRuntimeConfig(publishableProject, os)
+        appSettings(options.appSettings)
+    }
+
+    private fun createRuntimeConfig(os: OperatingSystem) = RuntimeConfig().apply {
+        os(os)
+        javaVersion(JavaVersion.OFF)
+        webContainer(WebContainer.JAVA_OFF)
+    }
+
+    private fun createDotNetRuntimeConfig(publishableProject: PublishableProjectModel, os: OperatingSystem) =
+        DotNetRuntimeConfig().apply {
+            os(os)
+            javaVersion(JavaVersion.OFF)
+            webContainer(WebContainer.JAVA_OFF)
+            isDocker = false
+            val stackAndVersion = publishableProject.getStackAndVersion(project, os)
+            stack = stackAndVersion?.first
+            frameworkVersion = stackAndVersion?.second
         }
 
-    private fun createRuntimeConfig() = RuntimeConfig().apply {
-        os(webAppConfiguration.operatingSystem)
-        javaVersion(JavaVersion.OFF)
-        webContainer(WebContainer.JAVA_OFF)
-    }
-
-    private fun createDotNetRuntimeConfig(publishableProject: PublishableProjectModel) = DotNetRuntimeConfig().apply {
-        val operatingSystem = webAppConfiguration.operatingSystem
-        os(operatingSystem)
-        javaVersion(JavaVersion.OFF)
-        webContainer(WebContainer.JAVA_OFF)
-        isDocker = false
-        val stackAndVersion = publishableProject.getStackAndVersion(project, operatingSystem)
-        stack = stackAndVersion?.first
-        frameworkVersion = stackAndVersion?.second
-    }
-
     override fun onSuccess(result: WebAppBase<*, *, *>, processHandler: RunProcessHandler) {
+        val options = requireNotNull(webAppConfiguration.state)
+
         updateConfigurationDataModel(result)
         processHandler.setText("Deployment was successful, but the app may still be starting.")
         val url = "https://${result.hostName}"
         processHandler.setText("URL: $url")
-        if (webAppConfiguration.isOpenBrowserAfterDeployment) {
+        if (options.openBrowser) {
             openWebAppInBrowser(url, processHandler)
         }
         processHandler.notifyComplete()
     }
 
     private fun updateConfigurationDataModel(app: WebAppBase<*, *, *>) {
-        webAppConfiguration.apply {
-            isCreatingNew = false
+        webAppConfiguration.state?.apply {
             if (app is WebAppDeploymentSlot) {
+                resourceId = app.parent.id
                 slotName = app.name
-                newSlotConfigurationSource = null
                 newSlotName = null
-                webAppId = app.parent.id
+                newSlotConfigurationSource = null
             } else {
-                webAppId = app.id
+                resourceId = app.id
             }
-            webAppName = app.name
-            resourceGroup = app.resourceGroupName
-            appServicePlanName = app.appServicePlan?.name
-            appServicePlanResourceGroupName = app.appServicePlan?.resourceGroupName
-            applicationSettings = app.appSettings ?: emptyMap()
+            appSettings = app.appSettings ?: mutableMapOf()
         }
     }
 
@@ -147,6 +152,7 @@ class WebAppRunState(project: Project, private val webAppConfiguration: WebAppCo
             when (ex) {
                 is IOException,
                 is URISyntaxException -> processHandler.println(ex.message, ProcessOutputTypes.STDERR)
+
                 else -> throw ex
             }
         }

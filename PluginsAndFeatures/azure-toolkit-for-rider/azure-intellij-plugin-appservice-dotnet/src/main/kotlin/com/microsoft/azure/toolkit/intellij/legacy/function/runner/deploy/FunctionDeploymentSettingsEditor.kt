@@ -23,8 +23,6 @@ import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig
 import com.microsoft.azure.toolkit.intellij.common.*
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
-import com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppComboBox
-import com.microsoft.azure.toolkit.intellij.legacy.function.functionAppComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.ui.components.DeploymentSlotComboBox
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
@@ -170,11 +168,10 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
 
         val subscription = Subscription(requireNotNull(state.subscriptionId))
         val region = if (state.region.isNullOrEmpty()) null else Region.fromName(requireNotNull(state.region))
-        val resourceGroupName = state.resourceGroupName
         val resourceGroup = ResourceGroupConfig
             .builder()
             .subscriptionId(subscription.id)
-            .name(resourceGroupName)
+            .name(state.resourceGroupName)
             .region(region)
             .build()
         val pricingTier = PricingTier(state.pricingTier, state.pricingSize)
@@ -183,7 +180,7 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             .builder()
             .subscriptionId(subscription.id)
             .name(state.appServicePlanName)
-            .resourceGroupName(resourceGroupName)
+            .resourceGroupName(state.appServicePlanResourceGroupName)
             .region(region)
             .os(operatingSystem)
             .pricingTier(pricingTier)

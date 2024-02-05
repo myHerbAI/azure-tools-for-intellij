@@ -10,7 +10,7 @@ import com.intellij.execution.configurations.LocatableConfigurationBase
 import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
-import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidResourceName
+import com.microsoft.azure.toolkit.intellij.legacy.utils.*
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp
 
 class FunctionDeploymentConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
@@ -22,8 +22,9 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
             getState()?.publishableProjectPath = value
         }
 
-    override fun getState() =
-        options as? FunctionDeploymentConfigurationOptions
+    override fun suggestedName() = "Publish Function App"
+
+    override fun getState() = options as? FunctionDeploymentConfigurationOptions
 
     override fun getState(executor: Executor, environment: ExecutionEnvironment) =
         FunctionDeploymentState(project, this)
@@ -34,22 +35,22 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
         val options = getState() ?: return
         with(options) {
             if (functionAppName.isNullOrEmpty()) throw RuntimeConfigurationError("Function App name is not provided")
-            if (!isValidResourceName(functionAppName)) throw RuntimeConfigurationError("Function App names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
+            if (!isValidApplicationName(functionAppName)) throw RuntimeConfigurationError(APPLICATION_VALIDATION_MESSAGE)
             if (subscriptionId.isNullOrEmpty()) throw RuntimeConfigurationError("Subscription is not provided")
             if (resourceGroupName.isNullOrEmpty()) throw RuntimeConfigurationError("Resource group is not provided")
-            if (!isValidResourceName(resourceGroupName)) throw RuntimeConfigurationError("Resource group names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
+            if (!isValidResourceGroupName(resourceGroupName)) throw RuntimeConfigurationError(RESOURCE_GROUP_VALIDATION_MESSAGE)
             if (region.isNullOrEmpty()) throw RuntimeConfigurationError("Region is not provided")
             if (appServicePlanName.isNullOrEmpty()) throw RuntimeConfigurationError("App Service plan name is not provided")
-            if (!isValidResourceName(appServicePlanName)) throw RuntimeConfigurationError("App Service plan names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
+            if (!isValidApplicationName(appServicePlanName)) throw RuntimeConfigurationError("App Service plan names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
             if (appServicePlanResourceGroupName.isNullOrEmpty()) throw RuntimeConfigurationError("App Service plan resource group is not provided")
-            if (!isValidResourceName(appServicePlanResourceGroupName)) throw RuntimeConfigurationError("Resource group names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
+            if (!isValidResourceGroupName(appServicePlanResourceGroupName)) throw RuntimeConfigurationError(RESOURCE_GROUP_VALIDATION_MESSAGE)
             if (pricingTier.isNullOrEmpty()) throw RuntimeConfigurationError("Pricing tier is not provided")
             if (pricingSize.isNullOrEmpty()) throw RuntimeConfigurationError("Pricing size is not provided")
 
             if (isDeployToSlot) {
                 if (slotName.isNullOrEmpty()) {
                     if (newSlotName.isNullOrEmpty()) throw RuntimeConfigurationError("Deployment slot name is not provided")
-                    if (!isValidResourceName(newSlotName)) throw RuntimeConfigurationError("Deployment slot names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
+                    if (!isValidApplicationSlotName(newSlotName)) throw RuntimeConfigurationError(APPLICATION_SLOT_VALIDATION_MESSAGE)
                     if (newSlotConfigurationSource.isNullOrEmpty()) throw RuntimeConfigurationError("Deployment slot configuration source name is not provided")
                 }
             }
@@ -63,6 +64,7 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
 
     fun setFunctionApp(functionApp: FunctionApp) {
         getState()?.apply {
+            resourceId = functionApp.id
             functionAppName = functionApp.name
             subscriptionId = functionApp.subscriptionId
             resourceGroupName = functionApp.resourceGroupName
