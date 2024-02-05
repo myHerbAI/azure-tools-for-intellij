@@ -22,6 +22,8 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
             getState()?.publishableProjectPath = value
         }
 
+    override fun suggestedName() = "Publish Function App"
+
     override fun getState() =
         options as? FunctionDeploymentConfigurationOptions
 

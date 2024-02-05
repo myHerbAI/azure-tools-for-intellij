@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.action
 import com.intellij.execution.ProgramRunnerUtil
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.RunnerAndConfigurationSettings
+import com.intellij.execution.configurations.ConfigurationTypeUtil
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.RunDialog
 import com.intellij.openapi.actionSystem.AnAction
@@ -18,7 +19,8 @@ import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 
 class DeployWebAppContainersAction : AnAction() {
     companion object {
-        private val configType = WebAppContainersConfigurationType.getInstance()
+        private val configType =
+            ConfigurationTypeUtil.findConfigurationType(WebAppContainersConfigurationType::class.java)
 
         private fun deploy(project: Project) {
             val settings = getOrCreateRunConfigurationSettings(project)

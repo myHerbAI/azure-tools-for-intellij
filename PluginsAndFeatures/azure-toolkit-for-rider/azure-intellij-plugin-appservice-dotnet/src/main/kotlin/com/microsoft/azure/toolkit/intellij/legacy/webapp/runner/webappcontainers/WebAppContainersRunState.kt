@@ -32,52 +32,52 @@ class WebAppContainersRunState(
 
         processHandler.setText("Start Web App for Containers deployment...")
 
+        val options = requireNotNull(webAppContainersConfiguration.state)
+
         //push image
 
 
         //create web app
-        val config = createDotNetAppServiceConfig()
+        val config = createDotNetAppServiceConfig(options)
         val task = CreateOrUpdateDotNetWebAppTask(config)
         return task.execute()
     }
 
-    private fun createDotNetAppServiceConfig() =
-        DotNetAppServiceConfig().apply {
-            subscriptionId(webAppContainersConfiguration.subscriptionId)
-            resourceGroup(webAppContainersConfiguration.resourceGroupName)
-            region(Region.fromName(webAppContainersConfiguration.locationName))
-            servicePlanName(webAppContainersConfiguration.appServicePlanName)
-            servicePlanResourceGroup(webAppContainersConfiguration.appServicePlanResourceGroupName)
-            pricingTier(
-                PricingTier.fromString(
-                    webAppContainersConfiguration.pricingSkuTier,
-                    webAppContainersConfiguration.pricingSkuSize
-                )
-            )
-            appName(webAppContainersConfiguration.webAppName)
-            runtime(createRuntimeConfig())
-            dotnetRuntime = createDotNetRuntimeConfig()
-            appSettings(mapOf(WEBSITES_PORT to webAppContainersConfiguration.port.toString()))
-        }
+    private fun createDotNetAppServiceConfig(
+        options: WebAppContainersConfigurationOptions
+    ) = DotNetAppServiceConfig().apply {
+        subscriptionId(options.subscriptionId)
+        resourceGroup(options.resourceGroupName)
+        region(Region.fromName(requireNotNull(options.region)))
+        servicePlanName(options.appServicePlanName)
+        servicePlanResourceGroup(options.appServicePlanResourceGroupName)
+        val pricingTier = PricingTier(options.pricingTier, options.pricingSize)
+        pricingTier(pricingTier)
+        appName(options.webAppName)
+        runtime(createRuntimeConfig(options))
+        dotnetRuntime = createDotNetRuntimeConfig(options)
+        appSettings(mapOf(WEBSITES_PORT to options.port.toString()))
+    }
 
-    private fun createRuntimeConfig() = RuntimeConfig().apply {
+    private fun createRuntimeConfig(options: WebAppContainersConfigurationOptions) = RuntimeConfig().apply {
         os(OperatingSystem.DOCKER)
         javaVersion(JavaVersion.OFF)
         webContainer(WebContainer.JAVA_OFF)
-        image("${webAppContainersConfiguration.finalRepositoryName}:${webAppContainersConfiguration.finalTagName}")
+        image("${options.imageRepository}:${options.imageTag}")
     }
 
-    private fun createDotNetRuntimeConfig() = DotNetRuntimeConfig().apply {
+    private fun createDotNetRuntimeConfig(options: WebAppContainersConfigurationOptions) = DotNetRuntimeConfig().apply {
         os(OperatingSystem.LINUX)
         javaVersion(JavaVersion.OFF)
         webContainer(WebContainer.JAVA_OFF)
-        image("${webAppContainersConfiguration.finalRepositoryName}:${webAppContainersConfiguration.finalTagName}")
+        image("${options.imageRepository}:${options.imageTag}")
         isDocker = true
     }
 
     override fun onSuccess(result: AppServiceAppBase<*, *, *>, processHandler: RunProcessHandler) {
-        val imageRepository = webAppContainersConfiguration.finalRepositoryName
-        val imageTag = webAppContainersConfiguration.finalTagName
+        val options = requireNotNull(webAppContainersConfiguration.state)
+        val imageRepository = options.imageRepository
+        val imageTag = options.imageTag
 
         updateConfigurationDataModel(result)
         processHandler.setText("Image $imageRepository:$imageTag has been deployed to Web App ${result.name}")
@@ -87,10 +87,8 @@ class WebAppContainersRunState(
     }
 
     private fun updateConfigurationDataModel(app: AppServiceAppBase<*, *, *>) {
-        webAppContainersConfiguration.apply {
-            isCreatingNewWebAppOnLinux = false
-            webAppId = app.id
-            resourceGroupName = app.resourceGroupName
+        webAppContainersConfiguration.state?.apply {
+            resourceId = app.id
         }
     }
 }

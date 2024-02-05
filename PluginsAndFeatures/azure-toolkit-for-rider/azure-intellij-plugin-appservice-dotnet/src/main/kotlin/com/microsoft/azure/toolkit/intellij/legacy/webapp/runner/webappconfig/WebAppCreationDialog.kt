@@ -2,7 +2,7 @@
  * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-package com.microsoft.azure.toolkit.intellij.legacy.webapp
+package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -20,7 +20,7 @@ import com.microsoft.azure.toolkit.lib.auth.IAccountActions
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
 import javax.swing.JPanel
 
-open class WebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(project), Disposable {
+class WebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(project), Disposable {
     private val basicPanel: AppServiceInfoBasicPanel<WebAppConfig>
     private val advancedPanel: AppServiceInfoAdvancedPanel<WebAppConfig>
     private val panel: JPanel

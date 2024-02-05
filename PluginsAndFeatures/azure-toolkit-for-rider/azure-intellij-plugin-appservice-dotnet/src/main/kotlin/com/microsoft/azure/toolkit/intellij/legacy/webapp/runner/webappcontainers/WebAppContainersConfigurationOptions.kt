@@ -12,4 +12,7 @@ class WebAppContainersConfigurationOptions : LocatableRunConfigurationOptions() 
     var appServicePlanResourceGroupName by string()
     var pricingTier by string()
     var pricingSize by string()
+    var imageRepository by string()
+    var imageTag by string()
+    var port by property(80)
 }
