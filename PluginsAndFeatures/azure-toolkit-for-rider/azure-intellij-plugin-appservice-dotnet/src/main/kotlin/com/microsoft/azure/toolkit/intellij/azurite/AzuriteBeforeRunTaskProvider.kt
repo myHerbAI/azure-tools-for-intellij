@@ -13,6 +13,7 @@ import com.intellij.openapi.util.Key
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.azurite.services.AzuriteService
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.FunctionRunConfiguration
 import javax.swing.Icon
 
 class AzuriteBeforeRunTask : BeforeRunTask<AzuriteBeforeRunTask>(AzuriteBeforeRunTaskProvider.ID)
@@ -26,11 +27,13 @@ class AzuriteBeforeRunTaskProvider : BeforeRunTaskProvider<AzuriteBeforeRunTask>
 
     override fun getName() = "Start Azurite"
 
+    override fun getDescription(task: AzuriteBeforeRunTask) = "Start Azurite Storage Emulator"
+
     override fun getIcon(): Icon = IntelliJAzureIcons.getIcon(AzureIcons.StorageAccount.AZURITE)
 
     override fun createTask(runConfiguration: RunConfiguration): AzuriteBeforeRunTask {
         val task = AzuriteBeforeRunTask()
-        task.isEnabled = true
+        task.isEnabled = runConfiguration is FunctionRunConfiguration
         return task
     }
 
