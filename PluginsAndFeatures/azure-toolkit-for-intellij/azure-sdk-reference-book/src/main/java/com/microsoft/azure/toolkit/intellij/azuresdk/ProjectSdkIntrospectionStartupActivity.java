@@ -62,7 +62,7 @@ public class ProjectSdkIntrospectionStartupActivity implements ProjectActivity {
                 trackWorkspaceTagging(workspaceTags);
                 final Set<String> machineTags = getMachineTags(project);
                 trackMachineTagging(machineTags);
-                showCustomerSurvey(project, workspaceTags);
+                Mono.delay(Duration.ofMinutes(60)).subscribe(next -> showCustomerSurvey(project, workspaceTags));
             } catch (final Exception e) {
                 // swallow exception for workspace tagging
                 log.warn(e.getMessage());
