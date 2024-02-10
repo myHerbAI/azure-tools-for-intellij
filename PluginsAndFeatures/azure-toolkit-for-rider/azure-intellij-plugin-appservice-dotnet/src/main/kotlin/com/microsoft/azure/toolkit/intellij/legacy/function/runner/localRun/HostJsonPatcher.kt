@@ -8,7 +8,8 @@ import com.google.gson.*
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
-import java.io.File
+import java.nio.file.Path
+import kotlin.io.path.*
 
 @Service
 class HostJsonPatcher {
@@ -17,11 +18,20 @@ class HostJsonPatcher {
 
         private const val FUNCTION_PROPERTY_NAME = "functions"
 
-        private fun determineHostJsonFile(workingDirectory: String) = listOf(
-            File(workingDirectory, "host.json"),
-            File(workingDirectory, "../host.json"),
-            File(workingDirectory, "../../host.json")
-        ).firstOrNull { it.exists() }?.canonicalFile
+        private fun determineHostJsonFile(workingDirectory: String): Path? {
+            val workingDirectoryPath = Path(workingDirectory)
+
+            var path = workingDirectoryPath.resolve("host.json")
+            if (path.exists()) return path
+
+            path = workingDirectoryPath.resolve("../host.json")
+            if (path.exists()) return path
+
+            path = workingDirectoryPath.resolve("../../host.json")
+            if (path.exists()) return path
+
+            return null
+        }
 
         private val LOG = logger<HostJsonPatcher>()
     }
@@ -31,8 +41,8 @@ class HostJsonPatcher {
         functionNames.split(',', ';', '|', ' ')
     )
 
-    private fun tryPatchHostJsonFile(hostJsonFile: File?, functionNames: List<String>) {
-        if (hostJsonFile == null || !hostJsonFile.exists()) {
+    private fun tryPatchHostJsonFile(hostJsonFile: Path?, functionNames: List<String>) {
+        if (hostJsonFile == null) {
             LOG.warn("Could not find host.json file to patch.")
             return
         }
@@ -42,7 +52,7 @@ class HostJsonPatcher {
             .filter { it.isNotBlank() }
             .sortedBy { it }
 
-        LOG.info("Patching " + hostJsonFile.absolutePath + " with function names: ${functions.joinToString(", ")}")
+        LOG.info("Patching " + hostJsonFile.absolutePathString() + " with function names: ${functions.joinToString(", ")}")
         try {
             val gson = GsonBuilder().setPrettyPrinting().create()
             val hostJson = gson.fromJson(hostJsonFile.readText(), JsonElement::class.java).asJsonObject

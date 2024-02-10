@@ -7,10 +7,8 @@ package com.microsoft.azure.toolkit.intellij.legacy
 import com.azure.resourcemanager.appservice.models.FunctionRuntimeStack
 import com.azure.resourcemanager.appservice.models.NetFrameworkVersion
 import com.azure.resourcemanager.appservice.models.RuntimeStack
-import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.rd.util.withUiContext
-import com.intellij.openapi.util.SystemInfo
 import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.projectModelTasks
 import com.jetbrains.rider.projectView.solution
@@ -18,8 +16,6 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCo
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionLocalSettingsUtil
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionWorkerRuntime
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
-
-fun PublishableProjectModel.canBePublishedToAzure() = isWeb && (isDotNetCore || SystemInfo.isWindows)
 
 private val netCoreAppVersionRegex = Regex("\\.NETCoreApp,Version=v([0-9](?:\\.[0-9])*)", RegexOption.IGNORE_CASE)
 private val netAppVersionRegex = Regex("net([0-9](?:\\.[0-9])*)", RegexOption.IGNORE_CASE)
@@ -64,10 +60,8 @@ suspend fun PublishableProjectModel.getFunctionStack(
     project: Project,
     operatingSystem: OperatingSystem
 ): FunctionRuntimeStack {
-    val functionLocalSettings = readAction {
-        FunctionLocalSettingsUtil.readFunctionLocalSettings(project, this)
-    }
-    val workerRuntime = functionLocalSettings?.values?.workerRuntime ?: FunctionWorkerRuntime.DotNetIsolated
+    val functionLocalSettings = FunctionLocalSettingsUtil.readFunctionLocalSettings(this)
+    val workerRuntime = functionLocalSettings?.values?.workerRuntime ?: FunctionWorkerRuntime.DOTNET_ISOLATED
     val coreToolsVersion = withUiContext {
         FunctionCoreToolsMsBuildService
             .getInstance()
@@ -77,9 +71,9 @@ suspend fun PublishableProjectModel.getFunctionStack(
     }
     val dotnetVersion = getProjectDotNetVersion(project, this)
     return FunctionRuntimeStack(
-        workerRuntime.value,
+        workerRuntime.value(),
         "~$coreToolsVersion",
-        if (operatingSystem == OperatingSystem.LINUX) "${workerRuntime.value}|$dotnetVersion" else ""
+        if (operatingSystem == OperatingSystem.LINUX) "${workerRuntime.value()}|$dotnetVersion" else ""
     )
 }
 

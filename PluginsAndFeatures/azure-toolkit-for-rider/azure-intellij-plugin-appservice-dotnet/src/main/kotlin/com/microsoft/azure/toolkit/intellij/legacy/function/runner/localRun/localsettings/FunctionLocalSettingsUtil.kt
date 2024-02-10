@@ -4,26 +4,35 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings
 
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.readText
 import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.RunnableProject
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
 
 object FunctionLocalSettingsUtil {
-    fun readFunctionLocalSettings(project: Project, publishableProject: PublishableProjectModel): FunctionLocalSettings? =
-        readFunctionLocalSettings(project, Path(publishableProject.projectFilePath).parent.absolutePathString())
+    @OptIn(ExperimentalSerializationApi::class)
+    private val jsonFormat = Json {
+        decodeEnumsCaseInsensitive = true
+        explicitNulls = false
+    }
 
-    fun readFunctionLocalSettings(project: Project, runnableProject: RunnableProject): FunctionLocalSettings? =
-        readFunctionLocalSettings(project, Path(runnableProject.projectFilePath).parent.absolutePathString())
+    fun readFunctionLocalSettings(publishableProject: PublishableProjectModel): FunctionLocalSettings? =
+        readFunctionLocalSettings(Path(publishableProject.projectFilePath).parent.absolutePathString())
 
-    fun readFunctionLocalSettings(project: Project, basePath: String): FunctionLocalSettings? {
+    fun readFunctionLocalSettings(runnableProject: RunnableProject): FunctionLocalSettings? =
+        readFunctionLocalSettings(Path(runnableProject.projectFilePath).parent.absolutePathString())
+
+    fun readFunctionLocalSettings(basePath: String): FunctionLocalSettings? {
         val localSettingsFile = getLocalSettingsVirtualFile(basePath) ?: return null
-        return FunctionLocalSettingsParser.getInstance().readLocalSettingsJsonFrom(localSettingsFile, project)
+        val content = localSettingsFile.readText()
+        return jsonFormat.decodeFromString<FunctionLocalSettings>(content)
     }
 
     private fun getLocalSettingsVirtualFile(basePath: String): VirtualFile? {
