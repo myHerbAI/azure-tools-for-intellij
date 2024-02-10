@@ -53,12 +53,9 @@ class FunctionRunExecutorFactory(
 
         LOG.debug("Determine worker runtime from local.settings.json")
         val functionLocalSettings = withBackgroundContext {
-            FunctionLocalSettingsUtil.readFunctionLocalSettings(
-                parameters.project,
-                File(parameters.projectFilePath).parent
-            )
+            FunctionLocalSettingsUtil.readFunctionLocalSettings(File(parameters.projectFilePath).parent)
         }
-        val workerRuntime = functionLocalSettings?.values?.workerRuntime ?: FunctionWorkerRuntime.DotNetDefault
+        val workerRuntime = functionLocalSettings?.values?.workerRuntime ?: FunctionWorkerRuntime.DOTNET
         LOG.debug("Worker runtime: $workerRuntime")
 
         val dotNetExecutable = parameters.toDotNetExecutable(coreToolsInfo)

@@ -4,26 +4,41 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class FunctionLocalSettings(
-    val isEncrypted: Boolean?,
-    val values: FunctionValuesModel?,
-    val host: FunctionHostModel?,
-    val connectionStrings: Map<String, String>?)
-
-data class FunctionValuesModel(
-    val workerRuntime: FunctionWorkerRuntime?,
-    val webJobsStorage: String?,
-    val webJobsDashboard: String?,
-    val webJobsHttpExampleDisabled: Boolean?,
-    val bindingConnection: String?)
-
-data class FunctionHostModel(
-    val localHttpPort: Int?,
-    val cors: String?,
-    val corsCredentials: Boolean?
+    @SerialName("IsEncrypted") val isEncrypted: Boolean?,
+    @SerialName("Values") val values: FunctionValuesModel?,
+    @SerialName("Host") val host: FunctionHostModel?,
+    @SerialName("ConnectionStrings") val connectionStrings: Map<String, String>?
 )
 
-enum class FunctionWorkerRuntime(val value: String) {
-    DotNetDefault("DOTNET"),
-    DotNetIsolated("DOTNET-ISOLATED")
+@Serializable
+data class FunctionValuesModel(
+    @SerialName("FUNCTIONS_WORKER_RUNTIME") val workerRuntime: FunctionWorkerRuntime?,
+    @SerialName("AzureWebJobsStorage") val webJobsStorage: String?,
+    @SerialName("AzureWebJobsDashboard") val webJobsDashboard: String?,
+    @SerialName("AzureWebJobs.HttpExample.Disabled") val webJobsHttpExampleDisabled: Boolean?,
+    @SerialName("MyBindingConnection") val bindingConnection: String?
+)
+
+@Serializable
+data class FunctionHostModel(
+    @SerialName("LocalHttpPort") val localHttpPort: Int?,
+    @SerialName("CORS") val cors: String?,
+    @SerialName("CORSCredentials") val corsCredentials: Boolean?
+)
+
+@Serializable
+enum class FunctionWorkerRuntime {
+    @SerialName("DOTNET") DOTNET {
+        override fun value() = "DOTNET"
+    },
+    @SerialName("DOTNET-ISOLATED") DOTNET_ISOLATED {
+        override fun value() = "DOTNET-ISOLATED"
+    };
+
+    abstract fun value(): String
 }

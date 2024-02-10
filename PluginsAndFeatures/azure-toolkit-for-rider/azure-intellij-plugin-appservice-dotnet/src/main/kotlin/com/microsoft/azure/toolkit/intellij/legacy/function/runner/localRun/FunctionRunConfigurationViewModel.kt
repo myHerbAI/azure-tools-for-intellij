@@ -25,7 +25,7 @@ import java.io.File
 
 class FunctionRunConfigurationViewModel(
     private val lifetime: Lifetime,
-    private val project: Project,
+    project: Project,
     private val runnableProjectsModel: RunnableProjectsModel,
     val projectSelector: ProjectSelector,
     val tfmSelector: StringSelector,
@@ -208,7 +208,7 @@ class FunctionRunConfigurationViewModel(
     }
 
     private fun readLocalSettingsForProject(runnableProject: RunnableProject) {
-        functionLocalSettings = FunctionLocalSettingsUtil.readFunctionLocalSettings(project, runnableProject)
+        functionLocalSettings = FunctionLocalSettingsUtil.readFunctionLocalSettings(runnableProject)
     }
 
     fun reset(
@@ -308,8 +308,7 @@ class FunctionRunConfigurationViewModel(
                 }?.let { runnableProject ->
                     projectSelector.project.set(runnableProject)
 
-                    functionLocalSettings =
-                        FunctionLocalSettingsUtil.readFunctionLocalSettings(project, runnableProject)
+                    functionLocalSettings = FunctionLocalSettingsUtil.readFunctionLocalSettings(runnableProject)
 
                     reloadTfmSelector(runnableProject)
                     val projectTfmExists = runnableProject.projectOutputs.any { it.tfm?.presentableName == projectTfm }
@@ -337,9 +336,8 @@ class FunctionRunConfigurationViewModel(
 
 
                     // Disable "Use external console" for Isolated worker
-                    val workerRuntime =
-                        functionLocalSettings?.values?.workerRuntime ?: FunctionWorkerRuntime.DotNetDefault
-                    val workerRuntimeSupportsExternalConsole = workerRuntime != FunctionWorkerRuntime.DotNetIsolated
+                    val workerRuntime = functionLocalSettings?.values?.workerRuntime ?: FunctionWorkerRuntime.DOTNET
+                    val workerRuntimeSupportsExternalConsole = workerRuntime != FunctionWorkerRuntime.DOTNET_ISOLATED
                     useExternalConsoleEditor.isVisible.set(workerRuntimeSupportsExternalConsole)
 
                     resetProperties(

@@ -9,7 +9,8 @@ fun properties(key: String) = providers.gradleProperty(key)
 fun environment(key: String) = providers.environmentVariable(key)
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.9.20"
+    kotlin("jvm") version "1.9.20"
+    kotlin("plugin.serialization") version "1.9.20"
     // https://search.maven.org/artifact/com.jetbrains.rd/rd-gen
     id("com.jetbrains.rdgen") version "2023.3.0"
     id("org.jetbrains.intellij") version "1.15.0"
@@ -50,6 +51,7 @@ val azureToolkitVersion = properties("azureToolkitVersion").get()
 allprojects {
     apply {
         plugin("org.jetbrains.kotlin.jvm")
+        plugin("org.jetbrains.kotlin.plugin.serialization")
         plugin("org.jetbrains.intellij")
         plugin("io.freefair.aspectj.post-compile-weaving")
         plugin("io.spring.dependency-management")
@@ -90,6 +92,7 @@ allprojects {
         implementation("com.microsoft.azure:azure-toolkit-common-lib")
         aspect("com.microsoft.azure:azure-toolkit-common-lib")
         compileOnly("org.jetbrains:annotations")
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     }
 
     configurations {

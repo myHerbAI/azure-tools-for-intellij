@@ -30,14 +30,14 @@ class FunctionNetCoreRuntime(
         dotNetExecutable: DotNetExecutable,
         executionEnvironment: ExecutionEnvironment
     ) = when (workerRuntime) {
-        FunctionWorkerRuntime.DotNetDefault -> DotNetCoreDebugProfile(
+        FunctionWorkerRuntime.DOTNET -> DotNetCoreDebugProfile(
             DotNetCoreRuntime(coreToolsInfo.coreToolsExecutable.absolutePathString()),
             dotNetExecutable,
             executionEnvironment,
             coreToolsInfo.coreToolsExecutable.absolutePathString()
         )
 
-        FunctionWorkerRuntime.DotNetIsolated -> FunctionIsolatedDebugProfileState(
+        FunctionWorkerRuntime.DOTNET_ISOLATED -> FunctionIsolatedDebugProfileState(
             dotNetExecutable,
             this,
             executionEnvironment
