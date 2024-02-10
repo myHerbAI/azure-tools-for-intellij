@@ -20,10 +20,10 @@ class CleanAzuriteAction : AnAction() {
         val shouldPerformClean = ConfirmationDialog.requestForConfirmation(
             VcsShowConfirmationOption.STATIC_SHOW_CONFIRMATION,
             project,
-            "This will remove all existing data in the Azurite workspace.\n\nAre you sure you want to clean data in Azurite Storage Emulator?",
-            "Clean Data in Azurite Storage Emulator",
+            "This will remove all existing data in the Azurite workspace.\n\nAre you sure you want to clean data in Azurite Emulator?",
+            "Clean Data in Azurite Emulator",
             IntelliJAzureIcons.getIcon(AzureIcons.StorageAccount.AZURITE),
-            "Yes, remove existing data",
+            "Yes, Remove Existing Data",
             "Cancel"
         )
 

@@ -24,7 +24,7 @@ import com.microsoft.azure.toolkit.intellij.AppServiceDisposable
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 
 class AzuriteSessionDescriptor(project: Project) : SimpleServiceViewDescriptor(
-    "Azurite Storage Emulator", IntelliJAzureIcons.getIcon(AzureIcons.StorageAccount.AZURITE)
+    "Azurite Emulator", IntelliJAzureIcons.getIcon(AzureIcons.StorageAccount.AZURITE)
 ), Disposable, AzuriteSessionListener {
     companion object {
         private val defaultToolbarActions = DefaultActionGroup(

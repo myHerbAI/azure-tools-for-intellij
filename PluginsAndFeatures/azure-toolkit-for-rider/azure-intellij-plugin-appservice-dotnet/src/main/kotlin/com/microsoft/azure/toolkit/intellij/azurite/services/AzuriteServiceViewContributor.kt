@@ -14,7 +14,7 @@ class AzuriteServiceViewContributor : ServiceViewContributor<AzuriteSession> {
     override fun getServices(project: Project) = mutableListOf(AzuriteService.getInstance().session)
 
     override fun getViewDescriptor(project: Project) =
-        SimpleServiceViewDescriptor("Azurite Storage Emulator", IntelliJAzureIcons.getIcon(AzureIcons.StorageAccount.AZURITE))
+        SimpleServiceViewDescriptor("Azurite Emulator", IntelliJAzureIcons.getIcon(AzureIcons.StorageAccount.AZURITE))
 
     override fun getServiceDescriptor(project: Project, session: AzuriteSession) =
         when (session) {

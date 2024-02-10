@@ -101,7 +101,7 @@ class AzuriteService(private val scope: CoroutineScope) : LifetimedService() {
         LOG.debug("Azurite executable: ${azuritePath.absolutePathString()}, Azurite workspace: ${workspacePath.absolutePathString()}")
 
         scope.launch {
-            withBackgroundProgress(project, "Starting Azurite Storage Emulator...") {
+            withBackgroundProgress(project, "Starting Azurite Emulator...") {
                 val includeTableStorageParameters = supportsTableStorage(azuritePath)
                 LOG.info("Azurite supports table storage: $includeTableStorageParameters")
 
