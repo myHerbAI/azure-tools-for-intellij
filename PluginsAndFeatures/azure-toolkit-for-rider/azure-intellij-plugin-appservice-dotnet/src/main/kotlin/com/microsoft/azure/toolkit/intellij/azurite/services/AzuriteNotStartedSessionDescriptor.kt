@@ -14,7 +14,7 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 
 class AzuriteNotStartedSessionDescriptor : SimpleServiceViewDescriptor(
-    "Azurite Storage Emulator", IntelliJAzureIcons.getIcon(AzureIcons.StorageAccount.AZURITE)
+    "Azurite Emulator", IntelliJAzureIcons.getIcon(AzureIcons.StorageAccount.AZURITE)
 ) {
     companion object {
         private val defaultToolbarActions = DefaultActionGroup(
@@ -25,14 +25,13 @@ class AzuriteNotStartedSessionDescriptor : SimpleServiceViewDescriptor(
         )
     }
 
-    @Suppress("DialogTitleCapitalization")
     override fun getPresentation() = PresentationData().apply {
         setIcon(IntelliJAzureIcons.getIcon(AzureIcons.StorageAccount.AZURITE))
-        addText("Azurite Storage Emulator", SimpleTextAttributes.REGULAR_ATTRIBUTES)
+        addText("Azurite emulator", SimpleTextAttributes.REGULAR_ATTRIBUTES)
     }
 
     override fun getContentComponent() =
-        JBPanelWithEmptyText().withEmptyText("Azurite Storage Emulator has not been started.")
+        JBPanelWithEmptyText().withEmptyText("Azurite emulator has not been started.")
 
     override fun getToolbarActions() = defaultToolbarActions
 }

@@ -113,19 +113,19 @@
         <action id="AzureToolkit.Azurite.Start"
                 class="com.microsoft.azure.toolkit.intellij.azurite.actions.StartAzuriteAction"
                 text="Start Azurite"
-                description="Start Azurite Storage Emulator"
+                description="Start Azurite emulator"
                 icon="AllIcons.Actions.Execute">
         </action>
         <action id="AzureToolkit.Azurite.Stop"
                 class="com.microsoft.azure.toolkit.intellij.azurite.actions.StopAzuriteAction"
                 text="Stop Azurite"
-                description="Stop Azurite Storage Emulator"
+                description="Stop Azurite emulator"
                 icon="AllIcons.Actions.Suspend">
         </action>
         <action id="AzureToolkit.Azurite.Clean"
                 class="com.microsoft.azure.toolkit.intellij.azurite.actions.CleanAzuriteAction"
                 text="Clean Azurite"
-                description="Clean data in Azurite Storage Emulator"
+                description="Clean data in Azurite emulator"
                 icon="AllIcons.Actions.GC">
         </action>
         <action id="AzureToolkit.Azurite.ShowSettings"
