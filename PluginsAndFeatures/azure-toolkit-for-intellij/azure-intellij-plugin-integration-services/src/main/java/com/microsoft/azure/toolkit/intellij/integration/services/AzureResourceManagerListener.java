@@ -10,9 +10,15 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.util.messages.MessageBus;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 
+import java.util.List;
+
 public class AzureResourceManagerListener implements AzureResourceManager.Listener {
     @Override
     public void resourceAdded(final AbstractAzResource<?, ?, ?> resource) {
+        resourceChanged();
+    }
+
+    public void resourcesAdded(List<AbstractAzResource<?, ?, ?>> resources) {
         resourceChanged();
     }
 

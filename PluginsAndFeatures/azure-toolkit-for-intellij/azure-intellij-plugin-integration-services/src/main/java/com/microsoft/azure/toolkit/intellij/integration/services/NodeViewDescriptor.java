@@ -23,9 +23,9 @@ import com.microsoft.azure.toolkit.intellij.explorer.TypeGroupedServicesRootNode
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.awt.event.MouseEvent;
 import java.util.Objects;
 import java.util.Optional;
@@ -39,7 +39,7 @@ public class NodeViewDescriptor implements ServiceViewDescriptor {
     private final NodeViewContributor contributor;
 
     @Override
-    public @NotNull ItemPresentation getPresentation() {
+    public @Nonnull ItemPresentation getPresentation() {
         final Node.View view = node.getView();
         final PresentationData presentation = new PresentationData();
         if (node instanceof ActionNode<?>) {
@@ -87,7 +87,7 @@ public class NodeViewDescriptor implements ServiceViewDescriptor {
     }
 
     @Override
-    public boolean handleDoubleClick(@NotNull final MouseEvent e) {
+    public boolean handleDoubleClick(@Nonnull final MouseEvent e) {
         final DataContext context = DataManager.getInstance().getDataContext(e.getComponent());
         final AnActionEvent event = AnActionEvent.createFromInputEvent(e, "ServicesNode.click", null, context);
         if (node instanceof ActionNode<?>) {

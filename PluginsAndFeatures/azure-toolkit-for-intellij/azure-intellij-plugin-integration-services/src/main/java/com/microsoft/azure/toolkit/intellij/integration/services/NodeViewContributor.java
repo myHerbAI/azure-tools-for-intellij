@@ -16,7 +16,6 @@ import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.intellij.explorer.TypeGroupedServicesRootNode;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -41,24 +40,24 @@ public class NodeViewContributor implements ServiceViewProvidingContributor<Node
     }
 
     @Override
-    public @NotNull ServiceViewDescriptor getViewDescriptor(@NotNull final Project project) {
+    public @Nonnull ServiceViewDescriptor getViewDescriptor(@Nonnull final Project project) {
         return new NodeViewDescriptor(project, this.node, this);
     }
 
     @Override
-    public @NotNull List<NodeViewContributor> getServices(@NotNull final Project project) {
+    public @Nonnull List<NodeViewContributor> getServices(@Nonnull final Project project) {
         return this.node.getChildren().stream()
             .map(n -> new NodeViewContributor(n, this.node instanceof TypeGroupedServicesRootNode))
             .collect(Collectors.toList());
     }
 
     @Override
-    public @NotNull ServiceViewDescriptor getServiceDescriptor(@NotNull final Project project, @NotNull final NodeViewContributor contributor) {
+    public @Nonnull ServiceViewDescriptor getServiceDescriptor(@Nonnull final Project project, @Nonnull final NodeViewContributor contributor) {
         return contributor.getViewDescriptor(project);
     }
 
     @Override
-    public @NotNull Node<?> asService() {
+    public @Nonnull Node<?> asService() {
         return this.node;
     }
 

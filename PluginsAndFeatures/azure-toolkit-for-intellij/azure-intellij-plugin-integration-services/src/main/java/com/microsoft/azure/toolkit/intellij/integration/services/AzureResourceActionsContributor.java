@@ -1,5 +1,6 @@
 package com.microsoft.azure.toolkit.intellij.integration.services;
 
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
@@ -7,6 +8,7 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 
 import java.util.Objects;
 
@@ -20,13 +22,18 @@ public class AzureResourceActionsContributor implements IActionsContributor {
         new Action<>(ADD_RESOURCE)
             .withIcon(AzureIcons.Action.ADD.getIconPath())
             .withLabel("Add Resource...")
-            .withHandler(s -> {
-                final AzureResourceManager manager = AzureResourceManager.getInstance();
-                final AbstractAzResource<?, ?, ?> resource = Azure.az().getById("/subscriptions/685ba005-af8d-4b04-8f16-a7bf38b2eb5a/resourceGroups/rg-app-240131155805/providers/Microsoft.Web/sites/hanli-test-default-docker");
-                if (Objects.nonNull(resource)) {
-                    manager.addResource(resource);
-                }
-            })
+            .withHandler((s, e) -> AzureTaskManager.getInstance().runLater(() -> {
+                final AnActionEvent event = (AnActionEvent) e;
+                final AzureResourceSelectDialog dialog = new AzureResourceSelectDialog(event.getProject());
+                dialog.setOkActionListener((resources) -> {
+                    dialog.close();
+                    if (Objects.nonNull(resources)) {
+                        final AzureResourceManager manager = AzureResourceManager.getInstance();
+                        manager.addResources(resources);
+                    }
+                });
+                dialog.show();
+            }))
             .register(am);
         new Action<>(REMOVE_RESOURCE)
             .withIcon(AzureIcons.Action.REMOVE.getIconPath())

@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.integration.services;
 
-import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.execution.services.ServiceViewContributor;
 import com.intellij.execution.services.ServiceViewDescriptor;
 import com.intellij.execution.services.ServiceViewLazyContributor;
@@ -82,7 +81,6 @@ public class AzureServiceViewContributor implements ServiceViewContributor<NodeV
     public static List<Node<?>> buildResourceNodes() {
         final AzureResourceManager resourceManager = AzureResourceManager.getInstance();
         final List<AbstractAzResource<?, ?, ?>> resources = resourceManager.getResources().stream()
-            .map(ResourceId::id)
             .map(String::toLowerCase).distinct()
             .parallel().map(id -> Azure.az().getById(id))
             .filter(Objects::nonNull)
