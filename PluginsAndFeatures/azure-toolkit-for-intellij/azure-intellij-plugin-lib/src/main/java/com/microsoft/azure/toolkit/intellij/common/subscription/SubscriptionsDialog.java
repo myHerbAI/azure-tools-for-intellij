@@ -85,7 +85,7 @@ public class SubscriptionsDialog extends AzureDialogWrapper implements TableMode
     private JLabel selectionInfo;
 
     public SubscriptionsDialog(@Nonnull Project project) {
-        super(project, true, IdeModalityType.PROJECT);
+        super(project, true, IdeModalityType.IDE);
         this.project = project;
         this.filter = new TailingDebouncer(() -> AzureTaskManager.getInstance().runLater(this::updateTableView, AzureTask.Modality.ANY), 300);
         this.updateSelectionInfo = new TailingDebouncer(this::updateSelectionInfoInner, 300);
