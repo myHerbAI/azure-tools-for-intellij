@@ -34,6 +34,7 @@ public class AzureResourceActionsContributor implements IActionsContributor {
                 });
                 dialog.show();
             }))
+            .withAuthRequired(true)
             .register(am);
         new Action<>(REMOVE_RESOURCE)
             .withIcon(AzureIcons.Action.REMOVE.getIconPath())
