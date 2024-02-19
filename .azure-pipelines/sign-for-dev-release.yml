@@ -5,7 +5,7 @@
 # Agent Queue 'Azure Pipelines' was used with unrecognized Agent Specification, vmImage property must be specified to determine image - https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/hosted?view=azure-devops&tabs=yaml#software
 # No trigger found, defaulting to 'none'. Update the trigger as needed.
 # No name found, setting the default value '$(Date:yyyyMMdd).$(Rev:r)'. This value determines how your pipeline runs are numbered. Update the name as needed: https://learn.microsoft.com/en-us/azure/devops/pipelines/process/run-number?view=azure-devops&tabs=yaml
-# The pipeline uses service connection "vscjavaci_codesign", you will need to grant the new pipeline access: https://dev.azure.com/mseng/VSJava/_settings/adminservices?resourceId=d5f51b85-6feb-48f6-a077-37426b5911f4
+# The pipeline uses service connection "vscjavaci_esrp_codesign", you will need to grant the new pipeline access: https://dev.azure.com/mseng/VSJava/_settings/adminservices?resourceId=d5f51b85-6feb-48f6-a077-37426b5911f4
 
 name: $(Date:yyyyMMdd).$(Rev:r)
 variables:
@@ -113,7 +113,7 @@ extends:
               - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@3
                 displayName: Sign IntelliJ
                 inputs:
-                  ConnectedServiceName: vscjavaci_codesign
+                  ConnectedServiceName: vscjavaci_esrp_codesign
                   FolderPath: artifacts/intellij/folder
                   Pattern: azure-intellij-*.jar, azure-toolkit-*.jar, azuretools-core-*.jar,azure-explorer-common-*.jar,hdinsight-node-common-*.jar, azure-sdk-reference-book.jar
                   signConfigType: inlineSignParams
