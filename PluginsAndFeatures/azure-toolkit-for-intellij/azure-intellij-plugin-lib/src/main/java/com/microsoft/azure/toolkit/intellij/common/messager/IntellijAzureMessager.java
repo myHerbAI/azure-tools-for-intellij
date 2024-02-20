@@ -159,7 +159,7 @@ public class IntellijAzureMessager implements IAzureMessager {
         private static volatile long lastTime = 0;
         private static final PriorityQueue<IntellijAzureMessage> queue = new PriorityQueue<>(Comparator.comparing(IntellijAzureMessage::getPriority));
         private static final int MINUTE = 60 * 1000;
-        private static final int[] INTERVALS = new int[]{5 * 1000, 5 * MINUTE, 15 * MINUTE, 30 * MINUTE};
+        private static final int[] INTERVALS = new int[]{5 * 1000, 5 * MINUTE, 30 * MINUTE, 60 * MINUTE};
         private static final AtomicBoolean started = new AtomicBoolean(false);
 
         static void start() {
