@@ -73,7 +73,7 @@ public class FeatureAdvertisementService {
 
         final Action<Object> focusService = AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.SELECT_RESOURCE_IN_EXPLORER);
         final Action<Object> openExplorer = AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_AZURE_EXPLORER);
-        final Action<Object> startAzurite = AzureActionManager.getInstance().getAction(Action.Id.of("user/storage.start_azurite"));
+        final Action<Object> startAzurite = AzureActionManager.getInstance().getAction(Action.Id.of("user/storage.start_azurite_instance"));
         final List<AzService> services = Azure.getServices(service);
         final Action<Object> openExplorerAction = services.isEmpty() ? openExplorer : focusService.bind(services.get(0)).withLabel("Open in Azure Explorer");
 
