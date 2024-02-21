@@ -14,15 +14,14 @@ import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessage;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import org.apache.commons.collections4.ListUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class FeatureAdvertisementService {
+    private static final String ADVERTISED_SERVICES = "azure.advertised_services";
 
     private static final Map<String, String> MACHINE_SERVICES = new LinkedHashMap<>() {{
         put("docker", "Microsoft.ContainerRegistry");
@@ -37,7 +36,6 @@ public class FeatureAdvertisementService {
         put("azurite", "Microsoft.Storage");
         put("Microsoft.Azure.Cosmos.Emulator", "Microsoft.DocumentDB");
     }};
-
 
     private static final Map<String, String> PROJECT_SERVICES = new LinkedHashMap<>() {{
         put("openai", "Microsoft.CognitiveServices");
@@ -63,7 +61,9 @@ public class FeatureAdvertisementService {
         final IntellijAzureMessage message = (IntellijAzureMessage) buildMessage(service);
         if (message != null) {
             message.setProject(project).setPriority(IntellijAzureMessage.PRIORITY_HIGH).show(AzureMessager.getMessager());
-            PropertiesComponent.getInstance().setValue("azure.advertisement.project.service", service);
+            final List<String> advertisedServices = Optional.ofNullable(PropertiesComponent.getInstance().getList(ADVERTISED_SERVICES)).orElse(new ArrayList<>());
+            advertisedServices.add(service);
+            PropertiesComponent.getInstance().setList(ADVERTISED_SERVICES, advertisedServices);
         }
     }
 
@@ -73,6 +73,7 @@ public class FeatureAdvertisementService {
 
         final Action<Object> focusService = AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.SELECT_RESOURCE_IN_EXPLORER);
         final Action<Object> openExplorer = AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_AZURE_EXPLORER);
+        final Action<Object> startAzurite = AzureActionManager.getInstance().getAction(Action.Id.of("user/storage.start_azurite"));
         final List<AzService> services = Azure.getServices(service);
         final Action<Object> openExplorerAction = services.isEmpty() ? openExplorer : focusService.bind(services.get(0)).withLabel("Open in Azure Explorer");
 
@@ -90,10 +91,10 @@ public class FeatureAdvertisementService {
                 AzureString.format(MSG_TEMPLATE + ", and send messages to or monitor messages with the integrated %s. <a href='https://azure.microsoft.com/en-us/products/service-bus/?_ijop_=servicebus.learn_more'>Learn more</a> about Azure Service Bus Messaging.",
                     "Azure Service Bus Messaging", "Azure Explorer", "Service Bus Explorer"), openExplorerAction, signInAction);
             case "Microsoft.Storage" -> AzureMessager.getMessager().buildInfoMessage(
-                AzureString.format(MSG_TEMPLATE + " with rich functions for browsing and management of blobs and files. <a href='https://azure.microsoft.com/en-us/products/storage/blobs/?_ijop_=storage.learn_more'>Learn more</a> about Azure Storage.",
-                    "Azure Storage", "Azure Explorer"), openExplorerAction, signInAction);
+                AzureString.format(MSG_TEMPLATE + " with rich functions for browsing and managing blobs and files. And also an integrated <a href='https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite'>Azurite emulator</a> for local Azure Storage development. <a href='https://azure.microsoft.com/en-us/products/storage/blobs/?_ijop_=storage.learn_more'>Learn more</a> about Azure Storage.",
+                    "Azure Storage", "Azure Explorer"), openExplorerAction, startAzurite, signInAction);
             case "Microsoft.DocumentDB" -> AzureMessager.getMessager().buildInfoMessage(
-                AzureString.format(MSG_TEMPLATE + " with rich functions for browsing and management of documents. <a href='https://azure.microsoft.com/en-us/products/cosmos-db?_ijop_=cosmos.learn_more'>Learn more</a> about Azure Cosmos DB.",
+                AzureString.format(MSG_TEMPLATE + " with rich functions for browsing and managing documents. <a href='https://azure.microsoft.com/en-us/products/cosmos-db?_ijop_=cosmos.learn_more'>Learn more</a> about Azure Cosmos DB.",
                     "Azure Cosmos DB", "Azure Explorer"), openExplorerAction, signInAction);
             case "Microsoft.Web" -> AzureMessager.getMessager().buildInfoMessage(
                 AzureString.format(MSG_TEMPLATE + " with rich features for debugging, streaming logs, and browsing online files. Learn more about <a href='https://azure.microsoft.com/en-us/products/functions?_ijop_=function.learn_more'>Azure Functions</a>/<a href='https://azure.microsoft.com/en-us/products/app-service/web?_ijop_=webapp.learn_more'>App Service</a>.",
@@ -119,23 +120,14 @@ public class FeatureAdvertisementService {
     }
 
     @Nullable
-    public static String getNextProjectAdService(@Nonnull final Project project) {
+    private static String getNextProjectAdService(@Nonnull final Project project) {
         final List<String> services = getProjectServices(project);
         if (!services.isEmpty()) {
-            final String lastService = PropertiesComponent.getInstance().getValue("azure.advertisement.project.service", "");
-            final int index = services.indexOf(lastService);
-            return services.get((index + 1) % services.size());
-        }
-        return null;
-    }
-
-    @Nullable
-    public static String getNextMachineAdService() {
-        final List<String> services = getMachineServices();
-        if (!services.isEmpty()) {
-            final String lastService = PropertiesComponent.getInstance().getValue("azure.advertisement.machine.service", "");
-            final int index = services.indexOf(lastService);
-            return services.get((index + 1) % services.size());
+            final List<String> advertisedServices = Optional.ofNullable(PropertiesComponent.getInstance().getList(ADVERTISED_SERVICES)).orElse(new ArrayList<>());
+            final List<String> nonAdvertisedServices = ListUtils.subtract(services, advertisedServices);
+            if (!nonAdvertisedServices.isEmpty()) {
+                return nonAdvertisedServices.get(0);
+            }
         }
         return null;
     }

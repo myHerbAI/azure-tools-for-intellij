@@ -53,7 +53,12 @@ public class IntellijAccountActionsContributor implements IActionsContributor, I
             .withIcon((a) -> AzureIcons.Common.SIGN_IN.getIconPath())
             .withLabel((a) -> "Sign in...")
             .enableWhen((a) -> !Azure.az(AzureAccount.class).isLoggedIn())
-            .withHandler((Object v, AnActionEvent e) -> AzureTaskManager.getInstance().runLater(() -> SignInAction.authActionPerformed(e.getProject())))
+            .withHandler((Object v, AnActionEvent e) -> {
+                if (Azure.az(AzureAccount.class).isLoggedIn()) {
+                    return;
+                }
+                AzureTaskManager.getInstance().runLater(() -> SignInAction.authActionPerformed(e.getProject()));
+            })
             .withAuthRequired(false)
             .register(am);
 
@@ -61,7 +66,12 @@ public class IntellijAccountActionsContributor implements IActionsContributor, I
             .withIcon((a) -> AzureIcons.Common.SIGN_OUT.getIconPath())
             .withLabel((a) -> "Sign out...")
             .enableWhen((a) -> Azure.az(AzureAccount.class).isLoggedIn())
-            .withHandler((Object v, AnActionEvent e) -> AzureTaskManager.getInstance().runLater(() -> SignInAction.authActionPerformed(e.getProject())))
+            .withHandler((Object v, AnActionEvent e) -> AzureTaskManager.getInstance().runLater(() -> {
+                if (!Azure.az(AzureAccount.class).isLoggedIn()) {
+                    return;
+                }
+                SignInAction.authActionPerformed(e.getProject());
+            }))
             .withAuthRequired(false)
             .register(am);
 
