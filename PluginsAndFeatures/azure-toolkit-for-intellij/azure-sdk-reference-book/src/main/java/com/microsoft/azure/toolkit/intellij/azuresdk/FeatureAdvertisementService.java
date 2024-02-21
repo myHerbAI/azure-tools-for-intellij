@@ -47,6 +47,7 @@ public class FeatureAdvertisementService {
         put("servicebus", "Microsoft.ServiceBus");
         put("azure_storage", "Microsoft.Storage");
         put("cosmos", "Microsoft.DocumentDB");
+        put("functions", "Microsoft.Web");
     }};
     public static final String MSG_TEMPLATE = "Current project is detected as possibly using %s. You can managed them in %s after signing-in";
 
@@ -68,7 +69,7 @@ public class FeatureAdvertisementService {
 
     @Nullable
     private static IAzureMessage buildMessage(@Nonnull String service) {
-        final Action<Object> signInAction = AzureActionManager.getInstance().getAction(Action.AUTHENTICATE);
+        final Action<Object> signInAction = AzureActionManager.getInstance().getAction(Action.SIGN_IN);
 
         final Action<Object> focusService = AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.SELECT_RESOURCE_IN_EXPLORER);
         final Action<Object> openExplorer = AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_AZURE_EXPLORER);
@@ -77,23 +78,26 @@ public class FeatureAdvertisementService {
 
         return switch (service) {
             case "Microsoft.CognitiveServices" -> AzureMessager.getMessager().buildInfoMessage(
-                AzureString.format(MSG_TEMPLATE + ", and try your own \"%s\" with \"%s\" model deployments in the integrated %s.", "Azure OpenAI", "Azure Explorer",
-                    "Copilot", "GPT*", "AI playground"), signInAction, openExplorerAction);
+                AzureString.format(MSG_TEMPLATE + ", and try your own \"%s\" with \"%s\" model deployments in the integrated %s. <a href='https://azure.microsoft.com/en-us/products/ai-services/openai-service?_ijop_=openai.learn_more'>Learn more</a> about Azure OpenAI service.",
+                    "Azure OpenAI service", "Azure Explorer", "Copilot", "GPT*", "AI playground"), openExplorerAction, signInAction);
             case "Microsoft.Cache" -> AzureMessager.getMessager().buildInfoMessage(
-                AzureString.format(MSG_TEMPLATE + ", and explore or manage cached data in the integrated %s.", "Azure Redis Cache", "Azure Explorer",
-                    "Redis Explorer"), signInAction, openExplorerAction);
+                AzureString.format(MSG_TEMPLATE + ", and explore or manage cached data in the integrated %s. <a href='https://azure.microsoft.com/en-us/products/cache/?_ijop_=redis.learn_more'>Learn more</a> about Azure Cache for Redis.",
+                    "Azure Cache for Redis", "Azure Explorer", "Redis Explorer"), openExplorerAction, signInAction);
             case "Microsoft.EventHub" -> AzureMessager.getMessager().buildInfoMessage(
-                AzureString.format(MSG_TEMPLATE + ", and send messages to or monitor messages with the integrated %s.", "Azure EventHubs", "Azure Explorer",
-                    "Event Hub Explorer"), signInAction, openExplorerAction);
+                AzureString.format(MSG_TEMPLATE + ", and send messages to or monitor messages with the integrated %s. <a href='https://azure.microsoft.com/en-us/products/event-hubs?_ijop_=eventhubs.learn_more'>Learn more</a> about Azure Event Hubs.",
+                    "Azure Event Hubs", "Azure Explorer", "Event Hub Explorer"), openExplorerAction, signInAction);
             case "Microsoft.ServiceBus" -> AzureMessager.getMessager().buildInfoMessage(
-                AzureString.format(MSG_TEMPLATE + ", and send messages to or monitor messages with the integrated %s.", "Azure ServiceBus", "Azure Explorer",
-                    "Service Bus Explorer"), signInAction, openExplorerAction);
+                AzureString.format(MSG_TEMPLATE + ", and send messages to or monitor messages with the integrated %s. <a href='https://azure.microsoft.com/en-us/products/service-bus/?_ijop_=servicebus.learn_more'>Learn more</a> about Azure Service Bus Messaging.",
+                    "Azure Service Bus Messaging", "Azure Explorer", "Service Bus Explorer"), openExplorerAction, signInAction);
             case "Microsoft.Storage" -> AzureMessager.getMessager().buildInfoMessage(
-                AzureString.format(MSG_TEMPLATE + " with rich functions for browsing and management of blobs and files.", "Azure Storage Accounts", "Azure Explorer"
-                ), signInAction, openExplorerAction);
+                AzureString.format(MSG_TEMPLATE + " with rich functions for browsing and management of blobs and files. <a href='https://azure.microsoft.com/en-us/products/storage/blobs/?_ijop_=storage.learn_more'>Learn more</a> about Azure Storage.",
+                    "Azure Storage", "Azure Explorer"), openExplorerAction, signInAction);
             case "Microsoft.DocumentDB" -> AzureMessager.getMessager().buildInfoMessage(
-                AzureString.format(MSG_TEMPLATE + " with rich functions for browsing and management of documents.", "Azure CosmosDB", "Azure Explorer"
-                ), signInAction, openExplorerAction);
+                AzureString.format(MSG_TEMPLATE + " with rich functions for browsing and management of documents. <a href='https://azure.microsoft.com/en-us/products/cosmos-db?_ijop_=cosmos.learn_more'>Learn more</a> about Azure Cosmos DB.",
+                    "Azure Cosmos DB", "Azure Explorer"), openExplorerAction, signInAction);
+            case "Microsoft.Web" -> AzureMessager.getMessager().buildInfoMessage(
+                AzureString.format(MSG_TEMPLATE + " with rich features for debugging, streaming logs, and browsing online files. Learn more about <a href='https://azure.microsoft.com/en-us/products/functions?_ijop_=function.learn_more'>Azure Functions</a>/<a href='https://azure.microsoft.com/en-us/products/app-service/web?_ijop_=webapp.learn_more'>App Service</a>.",
+                    "Azure Functions/App Service", "Azure Explorer"), openExplorerAction, signInAction);
             default -> null;
         };
     }

@@ -45,7 +45,23 @@ public class IntellijAccountActionsContributor implements IActionsContributor, I
         new Action<>(Action.AUTHENTICATE)
             .withIcon((a) -> Azure.az(AzureAccount.class).isLoggedIn() ? AzureIcons.Common.SIGN_OUT.getIconPath() : AzureIcons.Common.SIGN_IN.getIconPath())
             .withLabel((a) -> Azure.az(AzureAccount.class).isLoggedIn() ? "Sign out" : "Sign in...")
-            .withHandler((Object v, AnActionEvent e) -> AzureTaskManager.getInstance().runLater(()-> SignInAction.authActionPerformed(e.getProject())))
+            .withHandler((Object v, AnActionEvent e) -> AzureTaskManager.getInstance().runLater(() -> SignInAction.authActionPerformed(e.getProject())))
+            .withAuthRequired(false)
+            .register(am);
+
+        new Action<>(Action.SIGN_IN)
+            .withIcon((a) -> AzureIcons.Common.SIGN_IN.getIconPath())
+            .withLabel((a) -> "Sign in...")
+            .enableWhen((a) -> !Azure.az(AzureAccount.class).isLoggedIn())
+            .withHandler((Object v, AnActionEvent e) -> AzureTaskManager.getInstance().runLater(() -> SignInAction.authActionPerformed(e.getProject())))
+            .withAuthRequired(false)
+            .register(am);
+
+        new Action<>(Action.SIGN_OUT)
+            .withIcon((a) -> AzureIcons.Common.SIGN_OUT.getIconPath())
+            .withLabel((a) -> "Sign out...")
+            .enableWhen((a) -> Azure.az(AzureAccount.class).isLoggedIn())
+            .withHandler((Object v, AnActionEvent e) -> AzureTaskManager.getInstance().runLater(() -> SignInAction.authActionPerformed(e.getProject())))
             .withAuthRequired(false)
             .register(am);
 

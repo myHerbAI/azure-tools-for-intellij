@@ -11,6 +11,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageDialogBuilder;
+import com.intellij.openapi.util.registry.Registry;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
@@ -52,6 +53,10 @@ public class IntellijAzureMessager implements IAzureMessager {
         Map.entry(IAzureMessage.Type.WARNING, NotificationType.WARNING),
         Map.entry(IAzureMessage.Type.ERROR, NotificationType.ERROR)
     );
+
+    public IntellijAzureMessager() {
+        Scheduler.start();
+    }
 
     private static Notification createNotification(@Nonnull String title, @Nonnull String content, NotificationType type) {
         return new Notification(NOTIFICATION_GROUP_ID, title, content, type, new NotificationListener.UrlOpeningListener(false) {
@@ -156,7 +161,7 @@ public class IntellijAzureMessager implements IAzureMessager {
     }
 
     static class Scheduler {
-        private static volatile long lastTime = 0;
+        private static volatile long lastTime = -1;
         private static final PriorityQueue<IntellijAzureMessage> queue = new PriorityQueue<>(Comparator.comparing(IntellijAzureMessage::getPriority));
         private static final int MINUTE = 60 * 1000;
         private static final int[] INTERVALS = new int[]{5 * 1000, 5 * MINUTE, 30 * MINUTE, 60 * MINUTE};
@@ -169,7 +174,7 @@ public class IntellijAzureMessager implements IAzureMessager {
                     .subscribe(m -> {
                         final IntellijAzureMessage message = queue.peek();
                         if (message != null) {
-                            final int delay = lastTime >= 0 ? INTERVALS[message.getPriority()] : 5 * 1000; // show message immediately(5s delayed) if it's the first message
+                            final int delay = lastTime < 0 || Registry.is("ide.debugMode") ? 5 * 1000 : INTERVALS[message.getPriority()]; // show message immediately(5s delayed) if it's the first message
                             if (lastTime + delay < System.currentTimeMillis()) {
                                 queue.poll();
                                 lastTime = System.currentTimeMillis();
