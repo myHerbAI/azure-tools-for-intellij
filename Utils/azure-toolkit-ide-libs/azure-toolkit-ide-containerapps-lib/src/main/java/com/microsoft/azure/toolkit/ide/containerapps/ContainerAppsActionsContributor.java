@@ -99,7 +99,7 @@ public class ContainerAppsActionsContributor implements IActionsContributor {
                         .withHandler(r -> am.getAction(ResourceCommonActionsContributor.SHOW_PROPERTIES).handle(s, e));
                     AzureMessager.getMessager().warning("Ingress is not enabled for this container app.", null, action);
                 } else {
-                    am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle("https://" + s.getIngressFqdn());
+                    am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle("https://" + s.getIngressFqdn(), e);
                 }
             })
             .register(am);
@@ -206,7 +206,7 @@ public class ContainerAppsActionsContributor implements IActionsContributor {
             .withIdParam(AbstractAzResource::getName)
             .visibleWhen(s -> s instanceof Revision)
             .enableWhen(s -> s.getFormalStatus().isConnected())
-            .withHandler(s -> am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle("https://" + s.getFqdn()))
+            .withHandler((s, e) -> am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle("https://" + s.getFqdn(), e))
             .register(am);
 
         new Action<>(GROUP_CREATE_CONTAINER_APP)
@@ -214,10 +214,10 @@ public class ContainerAppsActionsContributor implements IActionsContributor {
             .withIdParam(AzResource::getName)
             .visibleWhen(s -> s instanceof ResourceGroup)
             .enableWhen(s -> s.getFormalStatus().isConnected())
-            .withHandler(s -> {
+            .withHandler((s, e) -> {
                 final IAccount account = Azure.az(IAzureAccount.class).account();
                 final String url = String.format("%s/#create/Microsoft.ContainerApp", account.getPortalUrl());
-                am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(url);
+                am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(url, e);
             })
             .register(am);
 

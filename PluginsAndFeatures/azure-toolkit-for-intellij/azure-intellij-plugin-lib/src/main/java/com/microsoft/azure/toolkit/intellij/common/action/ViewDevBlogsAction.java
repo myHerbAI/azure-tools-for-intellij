@@ -31,7 +31,7 @@ public class ViewDevBlogsAction extends AnAction implements DumbAware {
     @AzureOperation(name = "user/common.view_dev_blogs")
     public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
         OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(anActionEvent.getPlace(), EMPTY_PLACE));
-        AzureActionManager.getInstance().getAction(OPEN_URL).handle(DEV_BLOGS_URL);
+        AzureActionManager.getInstance().getAction(OPEN_URL).handle(DEV_BLOGS_URL, anActionEvent);
     }
 
     @Override

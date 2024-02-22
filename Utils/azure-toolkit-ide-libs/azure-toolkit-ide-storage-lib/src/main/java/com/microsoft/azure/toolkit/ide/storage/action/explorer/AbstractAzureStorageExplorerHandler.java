@@ -116,22 +116,22 @@ public abstract class AbstractAzureStorageExplorerHandler {
             .withLabel("Open in Azure")
             .withIcon(AzureIcons.Action.PORTAL.getIconPath())
             .withIdParam(storageAccount.getId())
-            .withHandler(ignore -> am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(storageAccount.getPortalUrl() + "/storagebrowser"))
+            .withHandler((ignore, e) -> am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(storageAccount.getPortalUrl() + "/storagebrowser", e))
             .withAuthRequired(false);
 
         final Action<Void> downloadAction = new Action<>(Action.Id.<Void>of("user/storage.download_explorer"))
             .withLabel("Download")
-            .withHandler(ignore -> am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(STORAGE_EXPLORER_DOWNLOAD_URL))
+            .withHandler((ignore, e) -> am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(STORAGE_EXPLORER_DOWNLOAD_URL, e))
             .withAuthRequired(false);
 
         final Action<Void> configureAction = new Action<>(Action.Id.<Void>of("user/storage.config_explorer_path"))
             .withLabel("Configure")
-            .withHandler(ignore -> {
+            .withHandler((ignore,e) -> {
                 final Action<Object> openSettingsAction = am.getAction(ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS);
                 final Action<AzResource> openExplorerAction = am.getAction(StorageActionsContributor.OPEN_AZURE_STORAGE_EXPLORER);
                 openSettingsAction.handleSync(null, null); // Open Azure Settings Panel sync
                 if (StringUtils.isNotBlank(Azure.az().config().getStorageExplorerPath())) {
-                    openExplorerAction.handle(storageAccount);
+                    openExplorerAction.handle(storageAccount, e);
                 }
             })
             .withAuthRequired(false);

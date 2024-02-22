@@ -108,7 +108,7 @@ public class StorageActionsContributor implements IActionsContributor {
             .register(am);
 
         new Action<>(START_AZURITE_INSTANCE)
-            .withLabel("Start Azurite")
+            .withLabel("Start Azurite Emulator")
             .enableWhen(s -> !AzuriteStorageAccount.AZURITE_STORAGE_ACCOUNT.getFormalStatus().isRunning())
             .withHandler((s, e) -> AzureActionManager.getInstance().getAction(START_AZURITE).handle(AzuriteStorageAccount.AZURITE_STORAGE_ACCOUNT, e))
             .withAuthRequired(false)

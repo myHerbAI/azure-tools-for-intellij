@@ -31,7 +31,7 @@ public class IntellijAccountActionsContributor implements IActionsContributor, I
     public void registerActions(AzureActionManager am) {
         new Action<>(IAccountActions.TRY_AZURE)
             .withLabel("Try Azure for Free")
-            .withHandler((Object v, AnActionEvent e) -> AzureActionManager.getInstance().getAction(OPEN_URL).handle(URL_TRY_AZURE_FOR_FREE))
+            .withHandler((Object v, AnActionEvent e) -> AzureActionManager.getInstance().getAction(OPEN_URL).handle(URL_TRY_AZURE_FOR_FREE, e))
             .withAuthRequired(false)
             .register(am);
 
