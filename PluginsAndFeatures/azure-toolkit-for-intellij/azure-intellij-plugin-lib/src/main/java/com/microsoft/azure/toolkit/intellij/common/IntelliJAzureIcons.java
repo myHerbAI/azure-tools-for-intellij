@@ -135,7 +135,7 @@ public class IntelliJAzureIcons {
     private static Icon getAzureIcon(@Nonnull AzureIcon azureIcon) {
         final String pathWithModifier = AzureIcon.getIconPathWithModifier(azureIcon);
         final String path = azureIcon.getIconPath();
-        if (StringUtils.isAnyBlank(pathWithModifier, path)) {
+        if (StringUtils.isBlank(path)) {
             return null;
         }
         return doGetIcon(pathWithModifier, path, IntelliJAzureIcons.class);

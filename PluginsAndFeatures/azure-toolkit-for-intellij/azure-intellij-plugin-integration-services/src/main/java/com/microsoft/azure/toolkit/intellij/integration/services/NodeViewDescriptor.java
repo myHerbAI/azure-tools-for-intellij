@@ -42,17 +42,16 @@ public class NodeViewDescriptor implements ServiceViewDescriptor {
     public @Nonnull ItemPresentation getPresentation() {
         final Node.View view = node.getView();
         final PresentationData presentation = new PresentationData();
+        if (Objects.nonNull(view.getIcon())) {
+            presentation.setIcon(IntelliJAzureIcons.getIcon(view.getIcon()));
+        }
         if (node instanceof ActionNode<?>) {
-            if (Objects.nonNull(view.getIcon())) {
-                presentation.setIcon(IntelliJAzureIcons.getIcon(view.getIcon()));
-            }
             final SimpleTextAttributes attributes = view.isEnabled() && view.isVisible() ?
                 SimpleTextAttributes.LINK_ATTRIBUTES : SimpleTextAttributes.GRAYED_ATTRIBUTES;
             presentation.addText(StringUtils.capitalize(view.getLabel()), attributes);
             presentation.setTooltip(view.getDescription());
             presentation.addText(" (Double click)", SimpleTextAttributes.GRAYED_ATTRIBUTES);
         } else {
-            presentation.setIcon(IntelliJAzureIcons.getIcon(view.getIcon()));
             final SimpleTextAttributes attributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
             presentation.addText(view.getLabel(), attributes);
             presentation.setTooltip(view.getTips());

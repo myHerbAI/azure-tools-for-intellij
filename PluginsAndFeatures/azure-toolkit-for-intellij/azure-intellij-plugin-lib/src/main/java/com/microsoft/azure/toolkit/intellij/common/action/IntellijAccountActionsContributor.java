@@ -52,6 +52,7 @@ public class IntellijAccountActionsContributor implements IActionsContributor, I
         new Action<>(Action.SIGN_IN)
             .withIcon((a) -> AzureIcons.Common.SIGN_IN.getIconPath())
             .withLabel((a) -> "Sign in...")
+            .visibleWhen((a) -> !Azure.az(AzureAccount.class).isLoggedIn())
             .enableWhen((a) -> !Azure.az(AzureAccount.class).isLoggedIn())
             .withHandler((Object v, AnActionEvent e) -> {
                 if (Azure.az(AzureAccount.class).isLoggedIn()) {
@@ -65,6 +66,7 @@ public class IntellijAccountActionsContributor implements IActionsContributor, I
         new Action<>(Action.SIGN_OUT)
             .withIcon((a) -> AzureIcons.Common.SIGN_OUT.getIconPath())
             .withLabel((a) -> "Sign out...")
+            .visibleWhen((a) -> Azure.az(AzureAccount.class).isLoggedIn())
             .enableWhen((a) -> Azure.az(AzureAccount.class).isLoggedIn())
             .withHandler((Object v, AnActionEvent e) -> AzureTaskManager.getInstance().runLater(() -> {
                 if (!Azure.az(AzureAccount.class).isLoggedIn()) {
