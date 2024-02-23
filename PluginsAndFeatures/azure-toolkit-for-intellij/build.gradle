@@ -154,6 +154,7 @@ dependencies {
     implementation project(path: ':azure-intellij-plugin-synapse', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-sparkoncosmos', configuration: 'instrumentedJar')
     implementation project(path: ':azure-intellij-plugin-hdinsight-base', configuration: 'instrumentedJar')
+    implementation project(path: ':azure-intellij-plugin-integration-services', configuration: 'instrumentedJar')
 
     implementation 'commons-io:commons-io'
     implementation 'org.apache.commons:commons-lang3'

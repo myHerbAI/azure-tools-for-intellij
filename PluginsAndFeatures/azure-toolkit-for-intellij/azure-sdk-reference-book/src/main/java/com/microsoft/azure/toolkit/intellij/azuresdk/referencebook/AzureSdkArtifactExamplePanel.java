@@ -122,7 +122,7 @@ public class AzureSdkArtifactExamplePanel {
                 OperationContext.action().setTelemetryProperty("example_id", String.valueOf(Optional.ofNullable(cbExample.getValue())
                     .filter(v -> v != ExampleComboBox.NONE)
                     .map(AzureJavaSdkArtifactExampleEntity::getId).orElse(-1)));
-                Optional.ofNullable(value).ifPresent(v -> AzureActionManager.getInstance().getAction(OPEN_URL).handle(v.getGithubUrl()));
+                Optional.ofNullable(value).ifPresent(v -> AzureActionManager.getInstance().getAction(OPEN_URL).handle(v.getGithubUrl(), e));
             }
         });
         final ActionToolbarImpl result = new ActionToolbarImpl("toolbar", group, true);

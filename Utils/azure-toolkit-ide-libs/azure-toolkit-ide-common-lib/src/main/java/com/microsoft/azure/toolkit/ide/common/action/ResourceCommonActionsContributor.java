@@ -159,7 +159,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withIdParam(AzResource::getName)
             .withShortcut("control alt O")
             .visibleWhen(s -> s instanceof AzResource)
-            .withHandler(s -> am.getAction(OPEN_URL).handle(s.getPortalUrl()))
+            .withHandler((s, e) -> am.getAction(OPEN_URL).handle(s.getPortalUrl(), e))
             .register(am);
 
         new Action<>(OPEN_URL)
@@ -243,10 +243,10 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withLabel("Create In Azure Portal")
             .withIcon(AzureIcons.Action.CREATE.getIconPath())
             .visibleWhen(s -> s instanceof AzService)
-            .withHandler(s -> {
+            .withHandler((s, e) -> {
                 final IAccount account = Azure.az(IAzureAccount.class).account();
                 final String url = String.format("%s/#create/%s", account.getPortalUrl(), s.getName());
-                am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(url);
+                am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(url, e);
             })
             .withShortcut(shortcuts.add())
             .register(am);
@@ -302,7 +302,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withLabel(s -> "Create In Azure Portal")
             .withIcon(AzureIcons.Action.CREATE.getIconPath())
             .visibleWhen(s -> s instanceof ServiceLinkerModule)
-            .withHandler((r) -> {
+            .withHandler((r, e) -> {
                 if (r.getParent() instanceof SpringCloudDeployment) {
                     final SpringCloudApp app = ((SpringCloudDeployment) r.getParent()).getParent();
                     final String appUrl = app.getParent().getPortalUrl();
@@ -311,7 +311,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
                     return;
                 }
                 final String parentUrl = r.getParent().getPortalUrl();
-                am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(String.format("%s/serviceConnector", parentUrl));
+                am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(String.format("%s/serviceConnector", parentUrl), e);
             })
             .register(am);
 

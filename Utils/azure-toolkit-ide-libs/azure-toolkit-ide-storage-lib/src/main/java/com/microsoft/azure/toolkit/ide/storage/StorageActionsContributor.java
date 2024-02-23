@@ -47,6 +47,7 @@ public class StorageActionsContributor implements IActionsContributor {
     public static final Action.Id<StorageAccount> COPY_PRIMARY_KEY = Action.Id.of("user/storage.copy_primary_key.account");
     public static final Action.Id<ResourceGroup> GROUP_CREATE_ACCOUNT = Action.Id.of("user/storage.create_account.group");
     public static final Action.Id<AzuriteStorageAccount> START_AZURITE = Action.Id.of("user/storage.start_azurite");
+    public static final Action.Id<Object> START_AZURITE_INSTANCE = Action.Id.of("user/storage.start_azurite_instance");
     public static final Action.Id<AzuriteStorageAccount> STOP_AZURITE = Action.Id.of("user/storage.stop_azurite");
     public static final Action.Id<AzuriteStorageAccount> COPY_CONNECTION_STRING_AZURITE = Action.Id.of("user/storage.copy_connection_string_azurite");
     public static final Action.Id<AzuriteStorageAccount> COPY_PRIMARY_KEY_AZURITE = Action.Id.of("user/storage.copy_primary_key_azurite");
@@ -95,30 +96,37 @@ public class StorageActionsContributor implements IActionsContributor {
             .register(am);
 
         new Action<>(COPY_CONNECTION_STRING_AZURITE)
-                .withLabel("Copy Connection String")
-                .withIdParam(AzResource::getName)
-                .visibleWhen(s -> s instanceof AzuriteStorageAccount)
-                .enableWhen(s -> s.getFormalStatus().isConnected())
-                .withHandler(r -> {
-                    copyContentToClipboard(r.getConnectionString());
-                    AzureMessager.getMessager().info("Connection string copied");
-                })
-                .withAuthRequired(false)
-                .register(am);
+            .withLabel("Copy Connection String")
+            .withIdParam(AzResource::getName)
+            .visibleWhen(s -> s instanceof AzuriteStorageAccount)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .withHandler(r -> {
+                copyContentToClipboard(r.getConnectionString());
+                AzureMessager.getMessager().info("Connection string copied");
+            })
+            .withAuthRequired(false)
+            .register(am);
+
+        new Action<>(START_AZURITE_INSTANCE)
+            .withLabel("Start Azurite Emulator")
+            .enableWhen(s -> !AzuriteStorageAccount.AZURITE_STORAGE_ACCOUNT.getFormalStatus().isRunning())
+            .withHandler((s, e) -> AzureActionManager.getInstance().getAction(START_AZURITE).handle(AzuriteStorageAccount.AZURITE_STORAGE_ACCOUNT, e))
+            .withAuthRequired(false)
+            .register(am);
 
         new Action<>(START_AZURITE)
-                .withLabel("Start Azurite")
-                .visibleWhen(s -> s instanceof AzuriteStorageAccount)
-                .enableWhen(s -> !s.getFormalStatus().isRunning())
-                .withAuthRequired(false)
-                .register(am);
+            .withLabel("Start Azurite")
+            .visibleWhen(s -> s instanceof AzuriteStorageAccount)
+            .enableWhen(s -> !s.getFormalStatus().isRunning())
+            .withAuthRequired(false)
+            .register(am);
 
         new Action<>(STOP_AZURITE)
-                .withLabel("Stop Azurite")
-                .visibleWhen(s -> s instanceof AzuriteStorageAccount)
-                .enableWhen(s -> s.getFormalStatus().isRunning())
-                .withAuthRequired(false)
-                .register(am);
+            .withLabel("Stop Azurite")
+            .visibleWhen(s -> s instanceof AzuriteStorageAccount)
+            .enableWhen(s -> s.getFormalStatus().isRunning())
+            .withAuthRequired(false)
+            .register(am);
 
         new Action<>(COPY_PRIMARY_KEY)
             .withLabel("Copy Primary Key")
@@ -132,15 +140,15 @@ public class StorageActionsContributor implements IActionsContributor {
             .register(am);
 
         new Action<>(COPY_PRIMARY_KEY_AZURITE)
-                .withLabel("Copy Primary Key")
-                .visibleWhen(s -> s instanceof AzuriteStorageAccount)
-                .enableWhen(s -> s.getFormalStatus().isConnected())
-                .withHandler(resource -> {
-                    copyContentToClipboard(resource.getKey());
-                    AzureMessager.getMessager().info("Primary key copied");
-                })
-                .withAuthRequired(false)
-                .register(am);
+            .withLabel("Copy Primary Key")
+            .visibleWhen(s -> s instanceof AzuriteStorageAccount)
+            .enableWhen(s -> s.getFormalStatus().isConnected())
+            .withHandler(resource -> {
+                copyContentToClipboard(resource.getKey());
+                AzureMessager.getMessager().info("Primary key copied");
+            })
+            .withAuthRequired(false)
+            .register(am);
 
         new Action<>(OPEN_FILE)
             .withLabel("Open in Editor")
@@ -268,19 +276,19 @@ public class StorageActionsContributor implements IActionsContributor {
         am.registerGroup(ACCOUNT_ACTIONS, accountActionGroup);
 
         final ActionGroup azuriteActionGroup = new ActionGroup(
-                ResourceCommonActionsContributor.PIN,
-                StorageActionsContributor.OPEN_AZURE_STORAGE_EXPLORER,
-                "---",
-                ResourceCommonActionsContributor.REFRESH,
-                ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
-                ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
-                "---",
-                StorageActionsContributor.START_AZURITE,
-                StorageActionsContributor.STOP_AZURITE,
-                StorageActionsContributor.COPY_CONNECTION_STRING_AZURITE,
-                StorageActionsContributor.COPY_PRIMARY_KEY_AZURITE,
-                "---",
-                ResourceCommonActionsContributor.CONNECT
+            ResourceCommonActionsContributor.PIN,
+            StorageActionsContributor.OPEN_AZURE_STORAGE_EXPLORER,
+            "---",
+            ResourceCommonActionsContributor.REFRESH,
+            ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
+            "---",
+            StorageActionsContributor.START_AZURITE,
+            StorageActionsContributor.STOP_AZURITE,
+            StorageActionsContributor.COPY_CONNECTION_STRING_AZURITE,
+            StorageActionsContributor.COPY_PRIMARY_KEY_AZURITE,
+            "---",
+            ResourceCommonActionsContributor.CONNECT
         );
         am.registerGroup(AZURITE_ACTIONS, azuriteActionGroup);
 

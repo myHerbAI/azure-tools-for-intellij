@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.common.subscription;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -84,7 +85,7 @@ public class SubscriptionsDialog extends AzureDialogWrapper implements TableMode
     private JLabel selectionInfo;
 
     public SubscriptionsDialog(@Nonnull Project project) {
-        super(project, true, IdeModalityType.PROJECT);
+        super(project, true, IdeModalityType.IDE);
         this.project = project;
         this.filter = new TailingDebouncer(() -> AzureTaskManager.getInstance().runLater(this::updateTableView, AzureTask.Modality.ANY), 300);
         this.updateSelectionInfo = new TailingDebouncer(this::updateSelectionInfoInner, 300);
@@ -220,6 +221,11 @@ public class SubscriptionsDialog extends AzureDialogWrapper implements TableMode
         };
         table.registerKeyboardAction(actionListener, KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         final AnActionButton refreshAction = new AnActionButton("Refresh", AllIcons.Actions.Refresh) {
+            @Override
+            public @NotNull ActionUpdateThread getActionUpdateThread() {
+                return ActionUpdateThread.BGT;
+            }
+
             @Override
             @AzureOperation("user/account.refresh_subscriptions")
             public void actionPerformed(AnActionEvent anActionEvent) {
