@@ -202,6 +202,7 @@ ext.getPatchedVersion = {
 
 patchPluginXml {
     version = getPatchedVersion()
+    sinceBuild = patchPluginXmlSinceBuild
 }
 
 task prepareBicepBinariesForSandbox(type: Copy) {

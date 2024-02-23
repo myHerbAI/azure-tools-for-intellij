@@ -141,6 +141,7 @@ ext.getPatchedVersion = {
 
 patchPluginXml {
     version = getPatchedVersion()
+    sinceBuild = patchPluginXmlSinceBuild
 }
 
 buildPlugin {
