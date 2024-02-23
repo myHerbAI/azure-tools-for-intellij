@@ -70,7 +70,7 @@ public class AzureServiceViewContributor implements ServiceViewContributor<NodeV
     public static List<Node<?>> buildChildrenNodes() {
         final AzureResourceManager resourceManager = AzureResourceManager.getInstance();
         if (!Azure.az(AzureAccount.class).isLoggedIn()) {
-            final Action<Object> action = AzureActionManager.getInstance().getAction(Action.SIGN_IN).withLabel("Sign in to manage Azure resources...");
+            final Action<Object> action = AzureActionManager.getInstance().getAction(Action.SIGN_IN).bind(new Object()).withLabel("Sign in to manage Azure resources...");
             return Collections.singletonList(new ActionNode<>(action));
         } else if (resourceManager.getResources().isEmpty()) {
             return Collections.singletonList(new ActionNode<>(AzureResourceActionsContributor.ADD_RESOURCE));
