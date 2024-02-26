@@ -79,11 +79,13 @@ public class VirtualFileActions {
                 AzureMessager.getMessager().alert("Binary file is not supported to open in editor.");
                 return;
             }
-            final FileEditor[] editors = manager.openFile(file, true, true);
-            if (editors.length == 0) {
-                throw new AzureToolkitRuntimeException(String.format("Failed to open file %s in editor. Try downloading it first and open it manually.", file.getName()));
-            }
-            Arrays.stream(editors).filter(e -> e instanceof TextEditor).forEach(e -> addFileListeners(file, onSave, onClose, manager, (TextEditor) e));
+            taskManager.runLater(() -> {
+                final FileEditor[] editors = manager.openFile(file, true, true);
+                if (editors.length == 0) {
+                    throw new AzureToolkitRuntimeException(String.format("Failed to open file %s in editor. Try downloading it first and open it manually.", file.getName()));
+                }
+                Arrays.stream(editors).filter(e -> e instanceof TextEditor).forEach(e -> addFileListeners(file, onSave, onClose, manager, (TextEditor) e));
+            });
         });
     }
 
