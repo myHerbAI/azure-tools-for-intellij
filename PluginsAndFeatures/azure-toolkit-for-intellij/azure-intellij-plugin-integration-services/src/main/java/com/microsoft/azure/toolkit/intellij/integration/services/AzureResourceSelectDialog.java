@@ -85,6 +85,10 @@ public class AzureResourceSelectDialog extends AzureDialog<List<AbstractAzResour
                 });
             }
         });
+        this.listResources.addListSelectionListener(e -> {
+            this.setOKActionEnabled(!this.listResources.getSelectedValuesList().isEmpty());
+        });
+        this.setOKActionEnabled(false);
     }
 
     @Nonnull

@@ -40,6 +40,7 @@ public class AzureResourceActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Action.REMOVE.getIconPath())
             .withLabel("Remove Resource")
             .withHandler(s -> AzureResourceManager.getInstance().removeResource(s))
+            .withAuthRequired(false)
             .register(am);
     }
 

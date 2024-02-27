@@ -4,8 +4,7 @@ import com.microsoft.azure.toolkit.ide.guidance.ComponentContext;
 import com.microsoft.azure.toolkit.ide.guidance.Task;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsight;
-import com.microsoft.azure.toolkit.lib.applicationinsights.ApplicationInsightDraft;
-import com.microsoft.azure.toolkit.lib.applicationinsights.AzureApplicationInsights;
+import com.microsoft.azure.toolkit.lib.applicationinsights.task.GetOrCreateApplicationInsightsTask;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -35,7 +34,7 @@ public class CreateApplicationInsightsTask implements Task {
 
     @Override
     @AzureOperation(name = "internal/guidance.create_ai")
-    public void execute() throws Exception {
+    public void execute() {
         final String name = (String) Objects.requireNonNull(context.getParameter(APPLICATION_INSIGHTS_NAME),
                 "`name` is required to create application insights");
         final Subscription subscription = Optional.ofNullable((String) context.getParameter(SUBSCRIPTION_ID))
@@ -44,11 +43,10 @@ public class CreateApplicationInsightsTask implements Task {
         final ResourceGroup resourceGroup = Optional.ofNullable((String) context.getParameter(RESOURCE_GROUP))
                 .map(rg -> Azure.az(AzureResources.class).groups(subscription.getId()).get(rg, rg))
                 .orElseThrow(() -> new AzureToolkitRuntimeException("Failed to get resource group to create application insights"));
-        final Region region = resourceGroup.getRegion();
-        final ApplicationInsightDraft applicationInsightDraft = Azure.az(AzureApplicationInsights.class).applicationInsights(subscription.getId())
-                .create(name, resourceGroup.getName());
-        applicationInsightDraft.setRegion(region);
-        final ApplicationInsight result = applicationInsightDraft.commit();
+        final Region region = Objects.requireNonNull(resourceGroup.getRegion());
+
+        final ApplicationInsight result = new GetOrCreateApplicationInsightsTask(subscription.getId(),
+                resourceGroup.getName(), region, name).execute();
         context.applyResult(RESOURCE_ID, result.getId());
     }
 
