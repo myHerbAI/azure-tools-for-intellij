@@ -72,10 +72,10 @@ public class AzureServiceViewContributor implements ServiceViewContributor<NodeV
         if (!Azure.az(AzureAccount.class).isLoggedIn()) {
             final Action<Object> action = AzureActionManager.getInstance().getAction(Action.SIGN_IN).bind(new Object()).withLabel("Sign in to manage Azure resources...");
             return Collections.singletonList(new ActionNode<>(action));
-        } else if (resourceManager.getResources().isEmpty()) {
-            return Collections.singletonList(new ActionNode<>(AzureResourceActionsContributor.ADD_RESOURCE));
         } else {
-            return buildResourceNodes();
+            final List<Node<?>> nodes = buildResourceNodes();
+            final ActionNode<Azure> addResource = new ActionNode<>(AzureResourceActionsContributor.ADD_RESOURCE);
+            return nodes.isEmpty() ? Collections.singletonList(addResource) : nodes;
         }
     }
 
@@ -84,7 +84,14 @@ public class AzureServiceViewContributor implements ServiceViewContributor<NodeV
         final AzureResourceManager resourceManager = AzureResourceManager.getInstance();
         final List<AbstractAzResource<?, ?, ?>> resources = resourceManager.getResources().stream()
             .map(String::toLowerCase).distinct()
-            .parallel().map(id -> Azure.az().getById(id))
+            .parallel().map(id -> {
+                try {
+                    return Azure.az().getById(id);
+                } catch (final Throwable e) {
+                    //noinspection ReturnOfNull
+                    return null;
+                }
+            })
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
         final AzureExplorer.AzureExplorerNodeProviderManager manager = AzureExplorer.getManager();
