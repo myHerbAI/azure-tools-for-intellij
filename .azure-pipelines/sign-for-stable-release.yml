@@ -39,7 +39,6 @@ extends:
       - stage: Build
         jobs:
           - job: Job_1
-            timeoutInMinutes: 0
             displayName: Build and Sign Azure Plugin for IntelliJ
             templateContext:
               outputs:
