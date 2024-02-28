@@ -56,17 +56,6 @@ extends:
                   jdkArchitectureOption: x64
                   jdkSourceOption: PreInstalled
               - task: Bash@3
-                displayName: Set up environment and resources
-                inputs:
-                  targetType: inline
-                  script: |-
-                    # Set Environment Variables
-                    export JAVA_HOME=$JAVA_HOME_17_X64
-                    export PATH=$JAVA_HOME/bin:$PATH
-
-                    echo "##vso[task.setvariable variable=JAVA_HOME]$JAVA_HOME"
-                    echo "##vso[task.setvariable variable=PATH]$PATH"
-              - task: Bash@3
                 displayName: Build Toolkit Libs@$(TOOLKIT_BRANCH)
                 inputs:
                   targetType: inline
@@ -100,7 +89,7 @@ extends:
                     # ./gradlew buildUtils || exit -1
                     mvn install -f ./Utils/pom.xml -T 1C -Dcheckstyle.skip=true
               - task: Bash@3
-                displayName: Build IntelliJ
+                displayName: Build Plugin
                 inputs:
                   targetType: inline
                   script: |
@@ -111,7 +100,7 @@ extends:
                     unzip ./artifacts/intellij/azure-toolkit-for-intellij.zip -d ./artifacts/intellij/folder
                     rm  ./artifacts/intellij/azure-toolkit-for-intellij.zip
               - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@3
-                displayName: Sign IntelliJ
+                displayName: Sign Plugin
                 inputs:
                   ConnectedServiceName: vscjavaci_esrp_codesign
                   FolderPath: artifacts/intellij/folder
@@ -138,7 +127,7 @@ extends:
                             }
                     ]
               - task: Bash@3
-                displayName: Build IntelliJ Package
+                displayName: Repackage
                 inputs:
                   targetType: inline
                   script: |
@@ -151,7 +140,3 @@ extends:
                   SourceFolder: $(system.defaultworkingdirectory)/artifacts
                   Contents: "*.zip"
                   TargetFolder: $(build.artifactstagingdirectory)
-              - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
-                displayName: "Manifest Generator "
-                inputs:
-                  BuildDropPath: $(build.artifactstagingdirectory)
