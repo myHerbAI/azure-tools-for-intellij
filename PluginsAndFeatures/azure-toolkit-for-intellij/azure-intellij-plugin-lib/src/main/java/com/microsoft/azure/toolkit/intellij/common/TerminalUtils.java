@@ -40,13 +40,20 @@ public class TerminalUtils {
     @AzureOperation(name = "boundary/common.execute_in_terminal.command", params = "command")
     public static void executeInTerminal(@Nonnull Project project, @Nonnull String command, @Nullable Path workingDir, @Nullable String terminalTabTitle) {
         AzureTaskManager.getInstance().runLater(() -> {
-            final TerminalWidget terminalWidget = getOrCreateTerminalWidget(project, workingDir, terminalTabTitle);
+            final TerminalWidget terminalWidget = createTerminalWidget(project, workingDir, terminalTabTitle);
             AzureTaskManager.getInstance().runInBackground(OperationBundle.description("boundary/common.execute_in_terminal.command", command), () -> {
                 terminalWidget.getTtyConnectorAccessor().executeWithTtyConnector((connector) -> {
                     terminalWidget.sendCommandToExecute(command);
                 });
             });
         }, AzureTask.Modality.ANY);
+    }
+
+    @Nonnull
+    private static TerminalWidget createTerminalWidget(@Nonnull Project project, @Nullable Path workingDir, String terminalTabTitle) {
+        final TerminalToolWindowManager manager = TerminalToolWindowManager.getInstance(project);
+        final String workingDirectory = Optional.ofNullable(workingDir).map(Path::toString).orElse(null);
+        return manager.createShellWidget(workingDirectory, terminalTabTitle, true, true);
     }
 
     @Nonnull
