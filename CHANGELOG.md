@@ -3,6 +3,7 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.86.0](#3860)
   - [3.85.0](#3850)
   - [3.84.0](#3840)
   - [3.83.0](#3830)
@@ -106,6 +107,18 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.8](#308)
   - [3.0.7](#307)
   - [3.0.6](#306)
+
+## 3.86.0
+### Added
+- Support for managing Azure resources in integrated `Services` view.     
+- Feature recommendation based on user project dependencies.
+
+### Updated
+- Startup notifications are quequed to prevent distraction.
+
+### Fixed
+- The link in warning for java 21 goes to a wrong page
+- Function fails running using cli downloaded with the plugin.
 
 ## 3.85.0
 ### Added
