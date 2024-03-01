@@ -117,8 +117,9 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
 - Startup notifications are quequed to prevent distraction.
 
 ### Fixed
-- The link in warning for java 21 goes to a wrong page
+- The link in warning for java 21 goes to a wrong page.
 - Function fails running using cli downloaded with the plugin.
+- [#8139](https://github.com/microsoft/azure-tools-for-java/issues/8139): NPE at web app configuration validation.
 
 ## 3.85.0
 ### Added

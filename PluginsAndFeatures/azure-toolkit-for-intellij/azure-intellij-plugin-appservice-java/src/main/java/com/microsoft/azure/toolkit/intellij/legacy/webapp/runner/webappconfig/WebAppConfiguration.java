@@ -116,7 +116,12 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
             }
         }
         // validate runtime with artifact
-        final WebAppRuntime runtime = (WebAppRuntime)RuntimeConfig.toWebAppRuntime(config.getRuntime());
+        final WebAppRuntime runtime;
+        try {
+            runtime = (WebAppRuntime) RuntimeConfig.toWebAppRuntime(config.getRuntime());
+        } catch (final RuntimeException e) {
+            throw new ConfigurationException(message("webapp.validate_deploy_configuration.invalidRuntime"));
+        }
         final OperatingSystem operatingSystem = runtime.getOperatingSystem();
         final JavaVersion javaVersion = runtime.getJavaVersion();
         if (operatingSystem == OperatingSystem.DOCKER) {
