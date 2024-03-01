@@ -1,5 +1,17 @@
 <!-- Version: 3.83.0 -->
 # What's new in Azure Toolkit for IntelliJ
+## 3.86.0
+### Added
+- Support for managing Azure resources in integrated `Services` view.     
+- Feature recommendation based on user project dependencies.
+
+### Updated
+- Startup notifications are quequed to prevent distraction.
+
+### Fixed
+- The link in warning for java 21 goes to a wrong page
+- Function fails running using cli downloaded with the plugin.
+
 ## 3.85.0
 ### Added
 - Support for containerized FunctionApps (based on Azure Container Apps) 
