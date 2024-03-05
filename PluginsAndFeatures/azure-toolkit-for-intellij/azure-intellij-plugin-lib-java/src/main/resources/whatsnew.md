@@ -1,5 +1,10 @@
 <!-- Version: 3.83.0 -->
 # What's new in Azure Toolkit for IntelliJ
+
+## 3.86.1
+### Fixed
+- [#8206](https://github.com/microsoft/azure-tools-for-java/issues/8206): After saving the web app run configuration, the app settings will be cleared.
+
 ## 3.86.0
 ### Added
 - Support for managing Azure resources in integrated `Services` view.     

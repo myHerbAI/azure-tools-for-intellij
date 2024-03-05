@@ -30,6 +30,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom.Element;
@@ -173,9 +174,10 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
         return webAppSettingModel.getArtifactIdentifier();
     }
 
-    public void setWebApp(@Nonnull WebApp webApp) {
-        final AppServiceConfig config = AppServiceConfigUtils.fromAppService(webApp, Objects.requireNonNull(webApp.getAppServicePlan()));
+    public void setWebApp(@Nonnull WebAppBase<?,?,?> webApp) {
+        final AppServiceConfig config = AppServiceConfigUtils.fromAppService(webApp);
         this.webAppSettingModel.setConfig(config);
+        Optional.ofNullable(webApp.getAppSettings()).ifPresent(values -> this.saveAppSettings(getAppSettingsKey(), values));
     }
 
     public void setArtifact(AzureArtifact azureArtifact) {
@@ -204,6 +206,7 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
 
     public void saveAppSettings(@Nonnull final String appSettingsKey, @Nonnull final Map<String, String> appSettings) {
         this.webAppSettingModel.setAppSettingsKey(appSettingsKey);
+        this.webAppSettingModel.getConfig().setAppSettings(appSettings);
         FunctionUtils.saveAppSettingsToSecurityStorage(appSettingsKey, appSettings);
     }
 
