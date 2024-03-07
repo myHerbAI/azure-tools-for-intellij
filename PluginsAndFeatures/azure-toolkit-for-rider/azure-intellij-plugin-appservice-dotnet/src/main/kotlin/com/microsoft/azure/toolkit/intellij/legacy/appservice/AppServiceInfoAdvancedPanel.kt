@@ -131,7 +131,7 @@ class AppServiceInfoAdvancedPanel<T>(
         config.subscription = subscription
         config.resourceGroup = ResourceGroupConfig.fromResource(resourceGroup)
         config.name = name
-        config.runtime = Runtime(os, WebContainer.JAVA_OFF, JavaVersion.OFF)
+        config.runtime = if (os == OperatingSystem.LINUX) WebAppLinuxRuntime.JAVASE_JAVA17 else WebAppWindowsRuntime.JAVASE_JAVA17
         config.region = region
         val planConfig = AppServicePlanConfig.fromResource(servicePlan)
         if (planConfig != null && servicePlan?.isDraftForCreating == true) {

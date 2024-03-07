@@ -22,7 +22,9 @@ import com.microsoft.azure.toolkit.intellij.legacy.getFunctionStack
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot
-import com.microsoft.azure.toolkit.lib.appservice.model.*
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployFunctionAppTask
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
@@ -102,15 +104,11 @@ class FunctionDeploymentState(
 
     private fun createRuntimeConfig(os: OperatingSystem) = RuntimeConfig().apply {
         os(os)
-        javaVersion(JavaVersion.OFF)
-        webContainer(WebContainer.JAVA_OFF)
     }
 
     private fun createDotNetRuntimeConfig(publishableProject: PublishableProjectModel, os: OperatingSystem) =
         DotNetRuntimeConfig().apply {
             os(os)
-            javaVersion(JavaVersion.OFF)
-            webContainer(WebContainer.JAVA_OFF)
             isDocker = false
             functionStack = runBlockingCancellable {
                 publishableProject.getFunctionStack(project, os)

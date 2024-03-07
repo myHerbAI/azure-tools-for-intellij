@@ -13,10 +13,10 @@ import com.intellij.ui.dsl.builder.bind
 import com.intellij.ui.dsl.builder.panel
 import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppLinuxRuntime
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppWindowsRuntime
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput
 import com.microsoft.azure.toolkit.lib.common.model.Subscription
 import java.util.function.Supplier
@@ -71,7 +71,7 @@ class AppServiceInfoBasicPanel<T>(
 
         val result = config ?: defaultConfigSupplier.get()
         result.name = name
-        result.runtime = Runtime(os, WebContainer.JAVA_OFF, JavaVersion.OFF)
+        result.runtime = if (os == OperatingSystem.LINUX) WebAppLinuxRuntime.JAVASE_JAVA17 else WebAppWindowsRuntime.JAVASE_JAVA17
 
         config = result
 

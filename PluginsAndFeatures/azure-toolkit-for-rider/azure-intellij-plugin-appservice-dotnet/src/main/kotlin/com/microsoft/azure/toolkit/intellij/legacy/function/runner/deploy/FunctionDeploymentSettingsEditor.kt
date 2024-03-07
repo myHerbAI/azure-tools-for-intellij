@@ -27,7 +27,10 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.ui.com
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
-import com.microsoft.azure.toolkit.lib.appservice.model.*
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppLinuxRuntime
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppWindowsRuntime
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.model.Subscription
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig
@@ -207,7 +210,7 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             .subscription(subscription)
             .resourceGroup(resourceGroup)
             .servicePlan(plan)
-            .runtime(Runtime(operatingSystem, WebContainer.JAVA_OFF, JavaVersion.OFF))
+            .runtime(if (operatingSystem == OperatingSystem.LINUX) FunctionAppLinuxRuntime.FUNCTION_JAVA17 else FunctionAppWindowsRuntime.FUNCTION_JAVA17)
             .deploymentSlot(slotConfig)
             .appSettings(state.appSettings)
         val functionAppConfig =
