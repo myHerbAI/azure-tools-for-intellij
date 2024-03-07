@@ -99,6 +99,7 @@ public class EventHubsActionsContributor implements IActionsContributor {
         final ActionGroup serviceGroup = new ActionGroup(
                 ResourceCommonActionsContributor.REFRESH,
                 ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+                ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
                 "---",
                 ResourceCommonActionsContributor.CREATE_IN_PORTAL
                 );
@@ -109,6 +110,7 @@ public class EventHubsActionsContributor implements IActionsContributor {
                 "---",
                 ResourceCommonActionsContributor.REFRESH,
                 ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+                ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES,
                 EventHubsActionsContributor.COPY_CONNECTION_STRING_NAMESPACE,
                 ResourceCommonActionsContributor.OPEN_PORTAL_URL,
                 "---",

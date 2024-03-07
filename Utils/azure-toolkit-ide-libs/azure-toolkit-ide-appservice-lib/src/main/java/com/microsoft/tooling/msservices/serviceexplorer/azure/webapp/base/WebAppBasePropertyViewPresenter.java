@@ -7,10 +7,9 @@ package com.microsoft.tooling.msservices.serviceexplorer.azure.webapp.base;
 
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
-import com.microsoft.azure.toolkit.lib.appservice.model.WebContainer;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -22,14 +21,12 @@ import com.microsoft.azuretools.core.mvp.ui.base.MvpPresenter;
 import com.microsoft.azuretools.core.mvp.ui.webapp.WebAppProperty;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.webapp.WebAppBasePropertyMvpView;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import rx.Observable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -84,10 +81,10 @@ public abstract class WebAppBasePropertyViewPresenter<V extends WebAppBaseProper
         final PricingTier pricingTier = plan.getPricingTier();
         propertyMap.put(KEY_PRICING, String.format("%s_%s", pricingTier.getTier(), pricingTier.getSize()));
         final Runtime runtime = appService.getRuntime();
-        final JavaVersion javaVersion = Optional.ofNullable(runtime).map(Runtime::getJavaVersion).orElse(JavaVersion.OFF);
-        final WebContainer webContainer = Optional.ofNullable(runtime).map(Runtime::getWebContainer).orElse(WebContainer.JAVA_OFF);
-        propertyMap.put(KEY_JAVA_VERSION, Objects.equals(javaVersion, JavaVersion.OFF) ? null : javaVersion.getValue());
-        propertyMap.put(KEY_JAVA_CONTAINER, Objects.equals(webContainer, WebContainer.JAVA_OFF) ? null : webContainer.getValue());
+        propertyMap.put(KEY_JAVA_VERSION, Optional.ofNullable(runtime).map(Runtime::getJavaVersionNumber).orElse(null));
+        if (runtime instanceof WebAppRuntime wr) {
+            propertyMap.put(KEY_JAVA_CONTAINER, wr.getContainerUserText());
+        }
         propertyMap.put(KEY_OPERATING_SYS, Optional.ofNullable(runtime).map(Runtime::getOperatingSystem).orElse(null));
         propertyMap.put(KEY_APP_SETTING, appSettingsMap);
 
@@ -101,7 +98,7 @@ public abstract class WebAppBasePropertyViewPresenter<V extends WebAppBaseProper
                                               @Nonnull Map<String, String> toUpdate, @Nonnull Set<String> toRemove) throws Exception;
 
     protected boolean getPublishingProfile(@Nonnull String sid, @Nonnull String webAppId, @Nullable String name,
-                                           @Nonnull String filePath) throws Exception {
+                                           @Nonnull String filePath) {
         final ResourceId resourceId = ResourceId.fromString(webAppId);
         final File file = new File(Paths.get(filePath, String.format("%s_%s.PublishSettings", resourceId.name(), System.currentTimeMillis())).toString());
         try {

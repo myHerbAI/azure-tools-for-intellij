@@ -17,7 +17,7 @@ import com.microsoft.azure.toolkit.intellij.common.dockerContainerRegistryComboB
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppDockerRuntime
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.model.Subscription
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig
@@ -98,7 +98,7 @@ class WebAppContainersSettingEditor(private val project: Project) : SettingsEdit
             .subscription(subscription)
             .resourceGroup(resourceGroup)
             .servicePlan(plan)
-            .runtime(Runtime.DOCKER)
+            .runtime(WebAppDockerRuntime.INSTANCE)
         val webAppConfig =
             if (state.resourceId.isNullOrEmpty()) configBuilder.region(region).pricingTier(pricingTier).build()
             else configBuilder.build()

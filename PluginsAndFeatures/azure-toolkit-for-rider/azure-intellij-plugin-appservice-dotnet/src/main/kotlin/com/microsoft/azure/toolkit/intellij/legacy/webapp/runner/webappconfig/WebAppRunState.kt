@@ -19,7 +19,10 @@ import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileState
 import com.microsoft.azure.toolkit.intellij.legacy.getStackAndVersion
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
-import com.microsoft.azure.toolkit.lib.appservice.model.*
+import com.microsoft.azure.toolkit.lib.appservice.model.DeployType
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployWebAppTask
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot
@@ -103,15 +106,11 @@ class WebAppRunState(
 
     private fun createRuntimeConfig(os: OperatingSystem) = RuntimeConfig().apply {
         os(os)
-        javaVersion(JavaVersion.OFF)
-        webContainer(WebContainer.JAVA_OFF)
     }
 
     private fun createDotNetRuntimeConfig(publishableProject: PublishableProjectModel, os: OperatingSystem) =
         DotNetRuntimeConfig().apply {
             os(os)
-            javaVersion(JavaVersion.OFF)
-            webContainer(WebContainer.JAVA_OFF)
             isDocker = false
             val stackAndVersion = publishableProject.getStackAndVersion(project, os)
             stack = stackAndVersion?.first

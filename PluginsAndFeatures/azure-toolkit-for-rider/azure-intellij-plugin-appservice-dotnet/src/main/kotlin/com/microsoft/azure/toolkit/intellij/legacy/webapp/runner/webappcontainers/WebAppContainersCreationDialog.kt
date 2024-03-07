@@ -15,7 +15,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoBasi
 import com.microsoft.azure.toolkit.intellij.legacy.utils.removeInvalidCharacters
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppDockerRuntime
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.auth.IAccountActions
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
@@ -40,13 +40,13 @@ class WebAppContainersCreationDialog(project: Project) : ConfigDialog<WebAppConf
         basicPanel = AppServiceInfoBasicPanel(selectedSubscriptions[0]) {
             WebAppConfig.getWebAppDefaultConfig(projectName)
         }
-        basicPanel.setFixedRuntime(Runtime.DOCKER)
+        basicPanel.setFixedRuntime(WebAppDockerRuntime.INSTANCE)
         Disposer.register(this, basicPanel)
 
         advancedPanel = AppServiceInfoAdvancedPanel(projectName) {
             WebAppConfig.getWebAppDefaultConfig(projectName)
         }
-        advancedPanel.setFixedRuntime(Runtime.DOCKER)
+        advancedPanel.setFixedRuntime(WebAppDockerRuntime.INSTANCE)
         Disposer.register(this, advancedPanel)
 
         panel = panel {

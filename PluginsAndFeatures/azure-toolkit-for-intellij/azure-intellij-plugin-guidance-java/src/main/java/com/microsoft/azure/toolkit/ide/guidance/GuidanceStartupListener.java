@@ -1,5 +1,6 @@
 package com.microsoft.azure.toolkit.ide.guidance;
 
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.ProjectActivity;
 import com.microsoft.azure.toolkit.ide.common.store.AzureStoreManager;
@@ -38,9 +39,11 @@ public class GuidanceStartupListener implements ProjectActivity {
         }
         final List<CourseConfig> courseConfigs = GuidanceConfigManager.getInstance().loadCourses();
         final String shownCourses = ideStore.getProperty(GUIDANCE, GUIDANCE_COURSES);
+        // this property is set in GotItTooltip("azure.guidance.more.samples") in CoursesView.java
+        final boolean moreSamplesShown = PropertiesComponent.getInstance().getInt("got.it.tooltip.azure.guidance.more.samples", 0) > 0;
         final boolean isAllCoursesShownBefore = courseConfigs.stream().allMatch(courseConfig -> StringUtils.containsIgnoreCase(shownCourses, courseConfig.getName()));
         final boolean isGuidanceShownBefore = Optional.ofNullable(ideStore.getProperty(GUIDANCE, GUIDANCE_SHOWN)).map(Boolean::valueOf).orElse(false);
-        if (!(isGuidanceShownBefore && isAllCoursesShownBefore)) {
+        if (!isGuidanceShownBefore || !isAllCoursesShownBefore || !moreSamplesShown) {
             ideStore.setProperty(GUIDANCE, GUIDANCE_SHOWN, String.valueOf(true));
             ideStore.setProperty(GUIDANCE, GUIDANCE_COURSES, courseConfigs.stream().map(CourseConfig::getName).collect(Collectors.joining(",")));
             GuidanceViewManager.getInstance().showCoursesView(project);

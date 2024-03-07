@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy;
 
+import com.azure.resourcemanager.appservice.models.JavaVersion;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -16,19 +17,23 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.util.xmlb.SerializationFilter;
 import com.intellij.util.xmlb.XmlSerializer;
 import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig;
 import com.microsoft.azure.toolkit.intellij.connector.IConnectionAware;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunConfigurationBase;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
-import com.microsoft.azure.toolkit.lib.appservice.model.JavaVersion;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.JsonUtils;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jdom.Attribute;
 import org.jdom.Element;
+import org.jdom.xpath.XPath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -125,7 +130,7 @@ public class FunctionDeployConfiguration extends AzureRunConfigurationBase<Funct
         }
         final Runtime runtime = functionAppConfig.getRuntime();
         final OperatingSystem operatingSystem = Optional.ofNullable(runtime).map(Runtime::getOperatingSystem).orElse(null);
-        final JavaVersion javaVersion = Optional.ofNullable(runtime).map(Runtime::getJavaVersion).orElse(null);
+        final JavaVersion javaVersion = Optional.ofNullable(runtime).map(Runtime::getJavaVersion).orElse(JavaVersion.OFF);
         if (operatingSystem == OperatingSystem.DOCKER) {
             throw new ConfigurationException(message("function.validate_deploy_configuration.dockerRuntime"));
         }
@@ -133,7 +138,7 @@ public class FunctionDeployConfiguration extends AzureRunConfigurationBase<Funct
             // Service plan could be null as lazy loading, throw exception in this case
             throw new ConfigurationException(message("function.validate_deploy_configuration.loading"));
         }
-        if (javaVersion == null || Objects.equals(javaVersion, JavaVersion.OFF)) {
+        if (Objects.equals(javaVersion, JavaVersion.OFF)) {
             throw new ConfigurationException(message("function.validate_deploy_configuration.invalidRuntime"));
         }
     }
@@ -179,25 +184,60 @@ public class FunctionDeployConfiguration extends AzureRunConfigurationBase<Funct
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void readExternal(Element element) throws InvalidDataException {
-        this.functionDeployModel = Optional.ofNullable(element.getChild("FunctionDeployModel"))
-                .map(e -> {
-                    try {
-                        return XmlSerializer.deserialize(e, FunctionDeployModel.class);
-                    } catch (final Throwable t) {
-                        return null;
+        final Element modelEle = element.getChild("FunctionDeployModel");
+        if (Objects.isNull(this.functionDeployModel)) {
+            this.functionDeployModel = new FunctionDeployModel();
+        }
+        if (Objects.nonNull(modelEle)) {
+            try {
+                final Element runtime = (Element) XPath.newInstance("option[@name='functionAppConfig']/FunctionAppConfig/option[@name='runtime']/Runtime").selectSingleNode(modelEle);
+                if (runtime != null) {
+                    runtime.detach();
+                }
+                this.functionDeployModel = XmlSerializer.deserialize(modelEle, FunctionDeployModel.class);
+                if (runtime != null) {
+                    final Attribute osAttr = (Attribute) XPath.newInstance("option[@name='operatingSystem']/@value").selectSingleNode(runtime);
+                    Attribute javaAttr = (Attribute) XPath.newInstance("option[@name='javaVersion']/JavaVersion/option[@name='value']/@value").selectSingleNode(runtime);
+                    if (Objects.isNull(javaAttr)) {
+                        javaAttr = (Attribute) XPath.newInstance("option[@name='javaVersion']/@value").selectSingleNode(runtime);
+                        if (ObjectUtils.allNotNull(osAttr, javaAttr)) {
+                            final String os = osAttr.getValue();
+                            final String java = javaAttr.getValue();
+                            this.functionDeployModel.getFunctionAppConfig().setRuntime(FunctionAppRuntime.fromUserText(os, java));
+                        }
                     }
-                })
-                .orElseGet(FunctionDeployModel::new);
+                }
+            } catch (final Throwable ignored) {
+            }
+        }
         Optional.ofNullable(this.getAppSettingsKey())
-                .ifPresent(key -> functionDeployModel.getFunctionAppConfig().setAppSettings(FunctionUtils.loadAppSettingsFromSecurityStorage(getAppSettingsKey())));
+            .ifPresent(key -> functionDeployModel.getFunctionAppConfig().setAppSettings(FunctionUtils.loadAppSettingsFromSecurityStorage(getAppSettingsKey())));
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void writeExternal(Element element) throws WriteExternalException {
-        Optional.ofNullable(this.functionDeployModel)
-                .map(config -> XmlSerializer.serialize(config, (accessor, o) -> !"appSettings".equalsIgnoreCase(accessor.getName())))
-                .ifPresent(element::addContent);
+        if (Objects.isNull(this.functionDeployModel)) {
+            return;
+        }
+        final SerializationFilter filter = (accessor, o) -> !"appSettings".equalsIgnoreCase(accessor.getName()) && !"runtime".equalsIgnoreCase(accessor.getName());
+        final Element modelEle = XmlSerializer.serialize(this.functionDeployModel, filter);
+        final Runtime runtime = this.functionDeployModel.getFunctionAppConfig().getRuntime();
+        if (Objects.nonNull(runtime)) {
+            try {
+                final Element configEle = (Element) XPath.newInstance("option[@name='functionAppConfig']/FunctionAppConfig").selectSingleNode(modelEle);
+                configEle.addContent(
+                    new Element("option").setAttribute("name", "runtime")
+                        .addContent(new Element("Runtime")
+                            .addContent(new Element("option").setAttribute("name", "operatingSystem").setAttribute("value", runtime.getOperatingSystem().getValue()))
+                            .addContent(new Element("option").setAttribute("name", "javaVersion").setAttribute("value", runtime.getJavaVersion().toString()))));
+            } catch (final Throwable t) {
+                // ignore
+            }
+        }
+        element.addContent(modelEle);
     }
 
     public void setAppSettings(Map<String, String> appSettings) {

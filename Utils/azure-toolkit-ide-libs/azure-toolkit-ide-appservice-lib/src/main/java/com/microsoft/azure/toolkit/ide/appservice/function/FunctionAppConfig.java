@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.ide.appservice.function;
 
+import com.azure.core.util.ExpandableStringEnum;
 import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig;
 import com.microsoft.azure.toolkit.ide.appservice.model.ApplicationInsightsConfig;
 import com.microsoft.azure.toolkit.ide.appservice.model.MonitorConfig;
@@ -26,7 +27,6 @@ import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -35,7 +35,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.lib.Azure.az;
@@ -46,7 +45,7 @@ import static com.microsoft.azure.toolkit.lib.Azure.az;
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
 public class FunctionAppConfig extends AppServiceConfig {
-    public static final Runtime DEFAULT_RUNTIME = Runtime.FUNCTION_WINDOWS_JAVA17;
+    public static final FunctionAppRuntime DEFAULT_RUNTIME = FunctionAppRuntime.getDefault();
     @Builder.Default
     protected Runtime runtime = DEFAULT_RUNTIME;
     @Builder.Default
@@ -68,11 +67,11 @@ public class FunctionAppConfig extends AppServiceConfig {
 
         final String rgName = Utils.generateRandomResourceName(String.format("rg-%s", namePrefix), RG_NAME_MAX_LENGTH);
         final ResourceGroup historyRg = CacheManager.getUsageHistory(ResourceGroup.class)
-            .peek(r -> Objects.isNull(sub) ? subs.stream().anyMatch(s -> s.getId().equals(r.getSubscriptionId())) : r.getSubscriptionId().equals(sub.getId()));
+            .peek(r -> r.getSubscriptionId().equals(sub.getId()));
         final Subscription subscription = Optional.ofNullable(sub).orElseGet(() -> Optional.ofNullable(historyRg).map(AzResource::getSubscription).orElse(null));
         final ResourceGroupConfig group = Optional.ofNullable(historyRg).map(ResourceGroupConfig::fromResource).orElseGet(() -> ResourceGroupConfig.builder().subscriptionId(sub.getId()).name(rgName).region(region).build());
 
-        final Runtime historyRuntime = CacheManager.getUsageHistory(Runtime.class).peek(runtime -> Runtime.FUNCTION_APP_RUNTIME.contains(runtime));
+        final Runtime historyRuntime = CacheManager.getUsageHistory(Runtime.class).peek(runtime -> FunctionAppRuntime.getMajorRuntimes().contains(runtime));
         final Runtime runtime = Optional.ofNullable(historyRuntime).orElse(FunctionAppConfig.DEFAULT_RUNTIME);
 
         final String planName = Utils.generateRandomResourceName(String.format("sp-%s", namePrefix), SP_NAME_MAX_LENGTH);
@@ -114,8 +113,7 @@ public class FunctionAppConfig extends AppServiceConfig {
         result.servicePlanName(Optional.ofNullable(config.getServicePlan()).map(AppServicePlanConfig::getName).orElse(null));
         result.servicePlanResourceGroup(Optional.ofNullable(config.getServicePlan())
             .map(AppServicePlanConfig::getResourceGroupName).orElseGet(config::getResourceGroupName));
-        Optional.ofNullable(config.getRuntime()).ifPresent(runtime -> result.runtime(
-            new RuntimeConfig().os(runtime.getOperatingSystem()).javaVersion(runtime.getJavaVersion()).webContainer(runtime.getWebContainer())));
+        Optional.ofNullable(config.getRuntime()).ifPresent(runtime -> result.runtime(new RuntimeConfig().os(runtime.getOperatingSystem()).javaVersion(runtime.getJavaVersionUserText())));
         final ApplicationInsightsConfig insightsConfig = Optional.ofNullable(config.getMonitorConfig()).map(MonitorConfig::getApplicationInsightsConfig).orElse(null);
         result.disableAppInsights(insightsConfig == null);
         if (insightsConfig != null) {
@@ -131,7 +129,7 @@ public class FunctionAppConfig extends AppServiceConfig {
     public Map<String, String> getTelemetryProperties() {
         final Map<String, String> result = super.getTelemetryProperties();
         result.put("runtime", Optional.ofNullable(runtime).map(Runtime::getOperatingSystem).map(OperatingSystem::getValue).orElse(StringUtils.EMPTY));
-        result.put("functionJavaVersion", Optional.ofNullable(runtime).map(Runtime::getJavaVersion).map(JavaVersion::getValue).orElse(StringUtils.EMPTY));
+        result.put("functionJavaVersion", Optional.ofNullable(runtime).map(Runtime::getJavaVersion).map(ExpandableStringEnum::toString).orElse(StringUtils.EMPTY));
         return result;
     }
 }

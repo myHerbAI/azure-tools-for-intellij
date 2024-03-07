@@ -6,7 +6,7 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapponlinux.
 
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppCreationDialog;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.model.WebAppDockerRuntime;
 
 public class DockerWebAppCreationDialog extends WebAppCreationDialog {
     public DockerWebAppCreationDialog(Project project) {
@@ -16,7 +16,7 @@ public class DockerWebAppCreationDialog extends WebAppCreationDialog {
     @Override
     protected void init() {
         super.init();
-        this.basicForm.setFixedRuntime(Runtime.DOCKER);
-        this.advancedForm.setFixedRuntime(Runtime.DOCKER);
+        this.basicForm.setFixedRuntime(WebAppDockerRuntime.INSTANCE);
+        this.advancedForm.setFixedRuntime(WebAppDockerRuntime.INSTANCE);
     }
 }
