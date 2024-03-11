@@ -1,9 +1,8 @@
 package com.microsoft.azure.toolkit.lib.sparkoncosmos;
 
-import com.azure.resourcemanager.cosmos.CosmosManager;
-import com.azure.resourcemanager.hdinsight.HDInsightManager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzServiceSubscription;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -11,7 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class SparkOnCosmosServiceSubscription extends AbstractAzServiceSubscription<SparkOnCosmosServiceSubscription, CosmosManager> {
+public class SparkOnCosmosServiceSubscription extends AbstractAzServiceSubscription<SparkOnCosmosServiceSubscription, SparkOnCosmosManager> {
     @Nonnull
     private final String subscriptionId;
     @Nonnull
@@ -23,8 +22,8 @@ public class SparkOnCosmosServiceSubscription extends AbstractAzServiceSubscript
         this.sparkOnCosmosADLAccountModule = new SparkOnCosmosADLAccountModule(this);
     }
 
-    protected SparkOnCosmosServiceSubscription(@Nonnull CosmosManager manager, @Nonnull AzureSparkOnCosmosService service) {
-        this(manager.serviceClient().getSubscriptionId(), service);
+    protected SparkOnCosmosServiceSubscription(@Nonnull SparkOnCosmosManager manager, @Nonnull AzureSparkOnCosmosService service) {
+        this(StringUtils.EMPTY, service);
     }
 
     @Nonnull
@@ -34,7 +33,7 @@ public class SparkOnCosmosServiceSubscription extends AbstractAzServiceSubscript
 
     @Override
     @Nonnull
-    protected Optional<CosmosManager> remoteOptional() {
+    protected Optional<SparkOnCosmosManager> remoteOptional() {
         return Optional.ofNullable(this.getRemote());
     }
     @NotNull

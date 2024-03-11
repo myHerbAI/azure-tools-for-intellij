@@ -17,17 +17,20 @@ import com.microsoft.azure.toolkit.intellij.connector.dotazure.DotEnvBeforeRunTa
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
 import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition;
+import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
+import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateFunctionAppTask;
+import com.microsoft.azure.toolkit.lib.appservice.task.DeployFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessager;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
-import com.microsoft.azure.toolkit.lib.legacy.function.FunctionAppService;
 import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionConfiguration;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
@@ -40,6 +43,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBase<?, ?, ?>> {
@@ -58,7 +62,6 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
     private static final String NO_TRIGGERS_FOUNDED = "No triggers found in deployed function app";
 
     private final FunctionDeployConfiguration functionDeployConfiguration;
-    private final FunctionDeployModel deployModel;
     private File stagingFolder;
 
     /**
@@ -67,7 +70,6 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
     public FunctionDeploymentState(Project project, FunctionDeployConfiguration functionDeployConfiguration) {
         super(project);
         this.functionDeployConfiguration = functionDeployConfiguration;
-        this.deployModel = functionDeployConfiguration.getModel();
     }
 
     @Nullable
@@ -77,27 +79,11 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
         final IAzureMessager messenger = AzureMessager.getDefaultMessager();
         OperationContext.current().setMessager(new RunProcessHandlerMessenger(processHandler));
         applyResourceConnection();
-        final FunctionAppBase<?, ?, ?> target = FunctionAppService.getInstance().createOrUpdateFunctionApp(deployModel.getFunctionAppConfig());
-        final AzureTaskManager tm = AzureTaskManager.getInstance();
-        tm.runOnPooledThread(() -> Optional.ofNullable(this.functionDeployConfiguration.getModule()).map(AzureModule::from)
-            .ifPresent(module -> tm.runLater(() -> tm.write(() -> module
-                .initializeWithDefaultProfileIfNot()
-                .addApp(target instanceof FunctionAppDeploymentSlot ? target.getParent() : target).save()))));
+        final FunctionAppBase<?, ?, ?> target = createOrUpdateFunctionApp(functionDeployConfiguration.getConfig());
         stagingFolder = FunctionUtils.getTempStagingFolder();
         prepareStagingFolder(stagingFolder, operation);
         // deploy function to Azure
-        FunctionAppService.getInstance().deployFunctionApp(target, stagingFolder);
-        AzureTaskManager.getInstance().runInBackground("list HTTPTrigger url", () -> {
-            OperationContext.current().setMessager(AzureMessager.getDefaultMessager());
-            try {
-                if (target instanceof FunctionApp) {
-                    ((FunctionApp) target).listHTTPTriggerUrls();
-                }
-            } catch (final Exception e) {
-                messenger.warning("Failed to list http trigger urls.", null,
-                        AzureActionManager.getInstance().getAction(AppServiceActionsContributor.START_STREAM_LOG).bind(target));
-            }
-        });
+        deployFunctionApp(target, stagingFolder, messenger);
         operation.trackProperties(OperationContext.action().getTelemetryProperties());
         return target;
     }
@@ -105,12 +91,24 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
     private void applyResourceConnection() {
         if (functionDeployConfiguration.isConnectionEnabled()) {
             final DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask loadDotEnvBeforeRunTask = functionDeployConfiguration.getLoadDotEnvBeforeRunTask();
-            final Map<String, String> appSettings = functionDeployConfiguration.getConfig().getAppSettings();
+            final Map<String, String> appSettings = functionDeployConfiguration.getConfig().appSettings();
             loadDotEnvBeforeRunTask.loadEnv().stream()
-                    .filter(pair -> !(StringUtils.equalsIgnoreCase(pair.getKey(), "AzureWebJobsStorage") &&
-                            StringUtils.equalsIgnoreCase(pair.getValue(), StorageAccountResourceDefinition.LOCAL_STORAGE_CONNECTION_STRING))) // workaround to remove local connections
-                    .forEach(env -> appSettings.put(env.getKey(), env.getValue()));
+                                   .filter(pair -> !(StringUtils.equalsIgnoreCase(pair.getKey(), "AzureWebJobsStorage") &&
+                                       StringUtils.equalsIgnoreCase(pair.getValue(), StorageAccountResourceDefinition.LOCAL_STORAGE_CONNECTION_STRING))) // workaround to remove local connections
+                                   .forEach(env -> appSettings.put(env.getKey(), env.getValue()));
         }
+    }
+
+    public FunctionAppBase<?, ?, ?> createOrUpdateFunctionApp(final FunctionAppConfig config) {
+        final CreateOrUpdateFunctionAppTask task = new CreateOrUpdateFunctionAppTask(config);
+        final FunctionAppBase<?, ?, ?> result = task.execute();
+        final AzureModule module = Optional.ofNullable(this.functionDeployConfiguration.getModule()).map(AzureModule::from).orElse(null);
+        final AzureTaskManager tm = AzureTaskManager.getInstance();
+        if (Objects.nonNull(module)) {
+            final AbstractAzResource<?, ?, ?> target = result instanceof FunctionAppDeploymentSlot ? result.getParent() : result;
+            tm.runOnPooledThread(() -> tm.runLater(() -> tm.write(() -> module.initializeWithDefaultProfileIfNot().addApp(target).save())));
+        }
+        return result;
     }
 
     @AzureOperation(name = "boundary/function.prepare_staging_folder.folder|app", params = {"stagingFolder.getName()", "this.deployModel.getFunctionAppConfig().getName()"})
@@ -120,13 +118,13 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
             throw new AzureToolkitRuntimeException("Module was not valid in function deploy configuration.");
         }
         final Path hostJsonPath = Optional.ofNullable(functionDeployConfiguration.getHostJsonPath())
-                .filter(StringUtils::isNotEmpty).map(Paths::get)
-                .orElseGet(() -> Paths.get(FunctionUtils.getDefaultHostJsonPath(functionDeployConfiguration.getModule())));
+                                          .filter(StringUtils::isNotEmpty).map(Paths::get)
+                                          .orElseGet(() -> Paths.get(FunctionUtils.getDefaultHostJsonPath(functionDeployConfiguration.getModule())));
         final PsiMethod[] methods = ReadAction.compute(() -> FunctionUtils.findFunctionsByAnnotation(module));
         final Path folder = stagingFolder.toPath();
         try {
             final Map<String, FunctionConfiguration> configMap =
-                    FunctionUtils.prepareStagingFolder(folder, hostJsonPath, project, module, methods);
+                FunctionUtils.prepareStagingFolder(folder, hostJsonPath, project, module, methods);
             operation.trackProperty(TelemetryConstants.TRIGGER_TYPE, StringUtils.join(FunctionUtils.getFunctionBindingList(configMap), ","));
         } catch (final AzureToolkitRuntimeException e) {
             throw e;
@@ -134,6 +132,26 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
             final String error = String.format("failed prepare staging folder[%s]", folder);
             throw new AzureToolkitRuntimeException(error, e);
         }
+    }
+
+    public void deployFunctionApp(final FunctionAppBase<?, ?, ?> functionApp, final File stagingFolder, final IAzureMessager messenger) {
+        final DeployFunctionAppTask deployFunctionAppTask = new DeployFunctionAppTask(functionApp, stagingFolder, null);
+        deployFunctionAppTask.execute();
+        listHttpTriggers(functionApp, messenger);
+    }
+
+    private static void listHttpTriggers(final FunctionAppBase<?, ?, ?> target, final IAzureMessager messenger) {
+        AzureTaskManager.getInstance().runInBackground("list HTTPTrigger url", () -> {
+            OperationContext.current().setMessager(AzureMessager.getDefaultMessager());
+            try {
+                if (target instanceof FunctionApp) {
+                    ((FunctionApp) target).listHTTPTriggerUrls();
+                }
+            } catch (final Exception e) {
+                messenger.warning("Failed to list http trigger urls.", null,
+                                  AzureActionManager.getInstance().getAction(AppServiceActionsContributor.START_STREAM_LOG).bind(target));
+            }
+        });
     }
 
     @Override
@@ -157,6 +175,6 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
 
     @Override
     protected Map<String, String> getTelemetryMap() {
-        return deployModel.getTelemetryProperties();
+        return OperationContext.action().getTelemetryProperties();
     }
 }

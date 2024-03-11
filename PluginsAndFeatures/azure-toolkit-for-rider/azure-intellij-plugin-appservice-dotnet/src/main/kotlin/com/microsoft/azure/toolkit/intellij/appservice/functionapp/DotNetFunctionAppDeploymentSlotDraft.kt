@@ -5,7 +5,6 @@
 package com.microsoft.azure.toolkit.intellij.appservice.functionapp
 
 import com.azure.core.management.exception.ManagementException
-import com.azure.core.util.Context
 import com.azure.resourcemanager.appservice.fluent.models.SitePatchResourceInner
 import com.azure.resourcemanager.appservice.models.DeploymentSlotBase
 import com.azure.resourcemanager.appservice.models.FunctionApp
@@ -247,7 +246,8 @@ class DotNetFunctionAppDeploymentSlotDraft : FunctionAppDeploymentSlot,
             val patch = SitePatchResourceInner()
                 .withContainerSize(flexConfiguration.instanceSize)
             webApps
-                .updateWithResponse(slot.resourceGroupName(), name, patch, Context.NONE)
+                .updateWithResponseAsync(slot.resourceGroupName(), name, patch)
+                .block()
         }
     }
 

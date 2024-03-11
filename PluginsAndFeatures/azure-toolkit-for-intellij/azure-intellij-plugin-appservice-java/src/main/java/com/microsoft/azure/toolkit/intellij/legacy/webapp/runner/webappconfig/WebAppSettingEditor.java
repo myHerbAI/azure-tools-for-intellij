@@ -8,23 +8,22 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureSettingPanel;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureSettingsEditor;
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.slimui.WebAppSlimSettingPanel;
-import org.jetbrains.annotations.NotNull;
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.ui.WebAppDeployConfigurationPanel;
+
+import javax.annotation.Nonnull;
 
 public class WebAppSettingEditor extends AzureSettingsEditor<WebAppConfiguration> {
 
-    private final AzureSettingPanel mainPanel;
-    private final WebAppConfiguration webAppConfiguration;
+    private final AzureSettingPanel<?> mainPanel;
 
-    public WebAppSettingEditor(Project project, @NotNull WebAppConfiguration webAppConfiguration) {
+	public WebAppSettingEditor(Project project, @Nonnull WebAppConfiguration webAppConfiguration) {
         super(project);
-        mainPanel = new WebAppSlimSettingPanel(project, webAppConfiguration);
-        this.webAppConfiguration = webAppConfiguration;
-    }
+        mainPanel = new WebAppDeployConfigurationPanel(project, webAppConfiguration);
+	}
 
     @Override
-    @NotNull
-    protected AzureSettingPanel getPanel() {
+    @Nonnull
+    protected AzureSettingPanel<?> getPanel() {
         return this.mainPanel;
     }
 }

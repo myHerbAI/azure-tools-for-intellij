@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.microsoft.hdinsight</groupId>
         <artifactId>azure-toolkit-ide-hdinsight-libs</artifactId>
-        <version>0.1.0</version>
+        <version>0.1.1</version>
     </parent>
     <groupId>com.microsoft.azuretools</groupId>
     <artifactId>spark-localrun-mock</artifactId>
@@ -22,7 +22,7 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>4.4.0</version>
+                <version>4.8.1</version>
                 <executions>
                     <execution>
                         <id>scala-compile-first</id>
@@ -90,6 +90,7 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>3.0.2</version>
                 <executions>

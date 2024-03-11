@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.keyvault.code.spring;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
@@ -12,6 +13,7 @@ import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.SyntheticElement;
 import com.intellij.psi.impl.FakePsiElement;
 import com.microsoft.azure.toolkit.ide.common.component.AzureResourceIconProvider;
+import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.Resource;
@@ -24,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.keyvault.KeyVault;
 import com.microsoft.azure.toolkit.lib.keyvault.secret.Secret;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -104,7 +107,11 @@ public class EnvVarReference extends PsiReferenceBase<PsiElement> {
         @Override
         @Nonnull
         public Icon getIcon(final boolean open) {
-            return IntelliJAzureIcons.getIcon(AzureResourceIconProvider.getResourceBaseIconPath(this.secret));
+            final String iconPath = Optional.ofNullable(this.secret)
+                    .map(AzureResourceIconProvider::getResourceBaseIconPath)
+                    .orElse(AzureIcons.Common.AZURE.getIconPath());
+            return Optional.ofNullable(iconPath).filter(StringUtils::isNoneBlank)
+                    .map(IntelliJAzureIcons::getIcon).orElse(AllIcons.Providers.Azure);
         }
 
         @Override

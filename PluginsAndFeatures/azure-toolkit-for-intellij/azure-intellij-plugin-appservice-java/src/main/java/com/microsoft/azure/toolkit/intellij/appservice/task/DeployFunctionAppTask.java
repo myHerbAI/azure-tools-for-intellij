@@ -5,12 +5,12 @@
 
 package com.microsoft.azure.toolkit.intellij.appservice.task;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.module.Module;
-import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig;
 import com.microsoft.azure.toolkit.ide.guidance.ComponentContext;
 import com.microsoft.azure.toolkit.ide.guidance.task.BaseDeployTask;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.AzureFunctionSupportConfigurationType;
@@ -20,8 +20,8 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.Functi
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
+import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
-import com.microsoft.azure.toolkit.lib.legacy.function.FunctionAppService;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -43,9 +43,9 @@ public class DeployFunctionAppTask extends BaseDeployTask {
         if (runConfiguration instanceof FunctionDeployConfiguration) {
             final Module[] functionModules = FunctionUtils.listFunctionModules(project);
             ((FunctionDeployConfiguration) runConfiguration).saveTargetModule(functionModules[0]);
-            final FunctionApp functionApp = Azure.az(AzureFunctions.class).functionApp(appId);
-            final FunctionAppConfig config = FunctionAppService.getInstance().getFunctionAppConfigFromExistingFunction(Objects.requireNonNull(functionApp));
-            ((FunctionDeployConfiguration) runConfiguration).saveConfig(config);
+            final FunctionApp functionApp = Objects.requireNonNull(Azure.az(AzureFunctions.class).functionApp(appId),
+                    String.format("Can not find target app %s, please check whether app is created successfully", ResourceId.fromString(appId).name()));
+            ((FunctionDeployConfiguration) runConfiguration).saveConfig(AppServiceConfigUtils.fromFunctionApp(functionApp));
         }
         return settings;
     }

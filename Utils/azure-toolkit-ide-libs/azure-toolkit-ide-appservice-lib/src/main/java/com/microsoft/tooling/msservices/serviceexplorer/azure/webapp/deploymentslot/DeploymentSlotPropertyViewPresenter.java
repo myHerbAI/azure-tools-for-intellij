@@ -10,6 +10,7 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlotDraft;
+import com.microsoft.tooling.msservices.serviceexplorer.azure.webapp.WebAppBasePropertyMvpView;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.webapp.base.WebAppBasePropertyViewPresenter;
 
 import javax.annotation.Nonnull;
@@ -18,7 +19,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public class DeploymentSlotPropertyViewPresenter extends WebAppBasePropertyViewPresenter {
+public class DeploymentSlotPropertyViewPresenter extends WebAppBasePropertyViewPresenter<WebAppBasePropertyMvpView, WebAppDeploymentSlot> {
     @Override
     protected void updateAppSettings(@Nonnull final String sid, @Nonnull final String webAppId,
                                      @Nullable final String name, final Map toUpdate,

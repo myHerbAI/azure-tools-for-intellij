@@ -3,7 +3,6 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontaine
 import com.intellij.execution.configurations.LocatableRunConfigurationOptions
 
 class WebAppContainersConfigurationOptions : LocatableRunConfigurationOptions() {
-    var resourceId by string()
     var webAppName by string()
     var subscriptionId by string()
     var resourceGroupName by string()

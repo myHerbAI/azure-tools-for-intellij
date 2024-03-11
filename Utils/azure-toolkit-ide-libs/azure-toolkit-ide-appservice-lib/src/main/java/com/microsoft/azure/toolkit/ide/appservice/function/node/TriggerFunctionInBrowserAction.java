@@ -52,22 +52,13 @@ public class TriggerFunctionInBrowserAction {
 
     @AzureOperation(name = "internal/function.trigger_func_http.app", params = {"this.functionApp.name()"})
     public void trigger() {
-        final String authLevel = trigger.getProperty("authLevel");
-        final String targetUrl;
-        switch (authLevel) {
-            case ANONYMOUS:
-                targetUrl = getAnonymousHttpTriggerUrl();
-                break;
-            case FUNCTION:
-                targetUrl = getFunctionHttpTriggerUrl();
-                break;
-            case ADMIN:
-                targetUrl = getAdminHttpTriggerUrl();
-                break;
-            default:
-                final String format = String.format("Unsupported authorization level %s", authLevel);
-                throw new AzureToolkitRuntimeException(format);
-        }
+        final String authLevel = StringUtils.upperCase(trigger.getProperty("authLevel"));
+        final String targetUrl = switch (authLevel) {
+            case ANONYMOUS -> getAnonymousHttpTriggerUrl();
+            case FUNCTION -> getFunctionHttpTriggerUrl();
+            case ADMIN -> getAdminHttpTriggerUrl();
+            default -> throw new AzureToolkitRuntimeException(String.format("Unsupported authorization level %s", authLevel));
+        };
         AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).handle(targetUrl);
     }
 

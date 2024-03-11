@@ -179,7 +179,7 @@ public class AzureModule {
         if (Objects.nonNull(this.defaultProfile)) {
             return this.defaultProfile.getName();
         }
-        if (Objects.isNull(this.profilesXmlFile) || this.profilesXmlFile.contentsToByteArray().length < 1) {
+        if (Objects.isNull(this.profilesXmlFile) || !this.profilesXmlFile.exists() || this.profilesXmlFile.contentsToByteArray().length < 1) {
             return null;
         }
         final Element profilesEle = JDOMUtil.load(this.profilesXmlFile.toNioPath());

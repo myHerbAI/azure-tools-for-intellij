@@ -27,7 +27,11 @@ public class StoragePathPrefixCompletionProvider extends CompletionProvider<Comp
     @Override
     protected void addCompletions(@Nonnull CompletionParameters parameters, @Nonnull ProcessingContext context, @Nonnull CompletionResultSet result) {
         final PsiElement element = parameters.getPosition();
-        final PsiLiteralExpression literal = ((PsiLiteralExpression) element.getParent());
+        final PsiElement parent = element.getParent();
+        if (!(parent instanceof PsiLiteralExpression)) {
+            return;
+        }
+        final PsiLiteralExpression literal = ((PsiLiteralExpression) parent);
         final String value = literal.getValue() instanceof String ? (String) literal.getValue() : element.getText();
         final String fullPrefix = StringUtils.substringBefore(value, StoragePathCompletionContributor.DUMMY_IDENTIFIER);
         final boolean isBlobContainer = fullPrefix.startsWith("azure-blob://");

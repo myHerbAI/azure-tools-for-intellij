@@ -7,14 +7,13 @@ package com.microsoft.azure.toolkit.ide.appservice.function;
 
 import com.azure.core.util.ExpandableStringEnum;
 import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig;
-import com.microsoft.azure.toolkit.ide.appservice.model.ApplicationInsightsConfig;
 import com.microsoft.azure.toolkit.ide.appservice.model.MonitorConfig;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
-import com.microsoft.azure.toolkit.lib.appservice.model.*;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
+import com.microsoft.azure.toolkit.lib.appservice.model.*;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.cache.CacheManager;
@@ -22,6 +21,8 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
+import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerAppDraft;
+import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironmentDraft;
 import com.microsoft.azure.toolkit.lib.monitor.LogAnalyticsWorkspaceConfig;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig;
@@ -30,6 +31,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 
@@ -48,6 +50,10 @@ public class FunctionAppConfig extends AppServiceConfig {
     public static final FunctionAppRuntime DEFAULT_RUNTIME = FunctionAppRuntime.getDefault();
     @Builder.Default
     protected Runtime runtime = DEFAULT_RUNTIME;
+    protected String environment;
+    protected ContainerAppsEnvironmentDraft.Config environmentConfig;
+    protected ContainerAppDraft.ImageConfig image;
+    protected ContainerAppFunctionConfiguration containerConfiguration;
     @Builder.Default
     protected FlexConsumptionConfiguration flexConsumptionConfiguration = FlexConsumptionConfiguration.DEFAULT;
 
@@ -89,7 +95,9 @@ public class FunctionAppConfig extends AppServiceConfig {
                 .os(FunctionAppConfig.DEFAULT_RUNTIME.getOperatingSystem())
                 .pricingTier(PricingTier.CONSUMPTION).build());
 
-        final ApplicationInsightsConfig insightsConfig = ApplicationInsightsConfig.builder().name(appName).newCreate(true).workspaceConfig(LogAnalyticsWorkspaceConfig.createConfig(subscription, region)).build();
+        final ApplicationInsightsConfig insightsConfig =
+            ApplicationInsightsConfig.builder().name(appName).createNewInstance(true)
+                                     .workspaceConfig(LogAnalyticsWorkspaceConfig.createConfig(subscription, region)).build();
         final MonitorConfig monitorConfig = MonitorConfig.builder().applicationInsightsConfig(insightsConfig).build();
         return FunctionAppConfig.builder()
                 .subscription(subscription)

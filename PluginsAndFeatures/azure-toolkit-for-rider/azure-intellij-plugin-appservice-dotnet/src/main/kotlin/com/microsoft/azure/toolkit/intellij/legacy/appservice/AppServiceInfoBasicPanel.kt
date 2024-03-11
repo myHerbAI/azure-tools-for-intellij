@@ -11,19 +11,18 @@ import com.intellij.ui.dsl.builder.ButtonsGroup
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.bind
 import com.intellij.ui.dsl.builder.panel
-import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel
+import com.microsoft.azure.toolkit.lib.Azure
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
-import com.microsoft.azure.toolkit.lib.appservice.model.WebAppLinuxRuntime
-import com.microsoft.azure.toolkit.lib.appservice.model.WebAppWindowsRuntime
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput
-import com.microsoft.azure.toolkit.lib.common.model.Subscription
 import java.util.function.Supplier
 import javax.swing.JPanel
 
 class AppServiceInfoBasicPanel<T>(
-    private val subscription: Subscription,
     private val defaultConfigSupplier: Supplier<T>
 ) : JPanel(), Disposable, AzureFormPanel<T> where T : AppServiceConfig {
 
@@ -32,13 +31,13 @@ class AppServiceInfoBasicPanel<T>(
     private val panel: JPanel
     private val textName = AppNameInput().apply {
         isRequired = true
-        setSubscription(subscription)
     }
 
     private var operatingSystem: OperatingSystem
     private lateinit var operatingSystemGroup: ButtonsGroup
     private lateinit var windowsRadioButton: Cell<JBRadioButton>
     private lateinit var linuxRadioButton: Cell<JBRadioButton>
+    private lateinit var dockerRadioButton: Cell<JBRadioButton>
 
     init {
         operatingSystem = OperatingSystem.LINUX
@@ -55,6 +54,8 @@ class AppServiceInfoBasicPanel<T>(
                     row("Operating System:") {
                         linuxRadioButton = radioButton("Linux", OperatingSystem.LINUX)
                         windowsRadioButton = radioButton("Windows", OperatingSystem.WINDOWS)
+                        dockerRadioButton = radioButton("Docker", OperatingSystem.DOCKER)
+                            .visible(false)
                     }
                 }.bind(::operatingSystem)
             }
@@ -67,11 +68,22 @@ class AppServiceInfoBasicPanel<T>(
 
     override fun getValue(): T {
         val name = textName.value
-        val os = if (windowsRadioButton.component.isSelected) OperatingSystem.WINDOWS else OperatingSystem.LINUX
+        val operatingSystem =
+            if (windowsRadioButton.component.isSelected) OperatingSystem.WINDOWS
+            else if (linuxRadioButton.component.isSelected) OperatingSystem.LINUX
+            else OperatingSystem.DOCKER
+
+        val account = Azure.az(AzureAccount::class.java).account()
+        val subscription = config
+            ?.let { account.getSubscription(it.subscriptionId) }
+            ?: account.selectedSubscriptions.firstOrNull()
 
         val result = config ?: defaultConfigSupplier.get()
-        result.name = name
-        result.runtime = if (os == OperatingSystem.LINUX) WebAppLinuxRuntime.JAVASE_JAVA17 else WebAppWindowsRuntime.JAVASE_JAVA17
+        result.appName = name
+        subscription?.let { result.subscriptionId = it.id }
+        result.runtime = (result.runtime ?: RuntimeConfig()).apply {
+            os = operatingSystem
+        }
 
         config = result
 
@@ -80,12 +92,17 @@ class AppServiceInfoBasicPanel<T>(
 
     override fun setValue(config: T) {
         this.config = config
-        textName.value = config.name
-        textName.setSubscription(config.subscription)
-        if (config.runtime.operatingSystem == OperatingSystem.WINDOWS) {
-            windowsRadioButton.component.isSelected = true
-        } else {
-            linuxRadioButton.component.isSelected = true
+
+        val subscription =
+            config.subscriptionId?.let { Azure.az(AzureAccount::class.java).account().getSubscription(it) }
+
+        textName.value = config.appName
+        textName.setSubscription(subscription)
+        when (config.runtime.os) {
+            OperatingSystem.WINDOWS -> windowsRadioButton.component.isSelected = true
+            OperatingSystem.LINUX -> linuxRadioButton.component.isSelected = true
+            OperatingSystem.DOCKER -> dockerRadioButton.component.isSelected = true
+            else -> linuxRadioButton.component.isSelected = true
         }
     }
 
@@ -97,10 +114,22 @@ class AppServiceInfoBasicPanel<T>(
     }
 
     fun setFixedRuntime(runtime: Runtime) {
-        if (runtime.operatingSystem == OperatingSystem.WINDOWS) {
-            windowsRadioButton.component.isSelected = true
-        } else {
-            linuxRadioButton.component.isSelected = true
+        when (runtime.operatingSystem) {
+            OperatingSystem.WINDOWS -> {
+                windowsRadioButton.component.isSelected = true
+            }
+
+            OperatingSystem.LINUX -> {
+                linuxRadioButton.component.isSelected = true
+            }
+
+            OperatingSystem.DOCKER -> {
+                dockerRadioButton.component.isSelected = true
+            }
+
+            else -> {
+                linuxRadioButton.component.isSelected = true
+            }
         }
         operatingSystemGroup.visible(false)
     }

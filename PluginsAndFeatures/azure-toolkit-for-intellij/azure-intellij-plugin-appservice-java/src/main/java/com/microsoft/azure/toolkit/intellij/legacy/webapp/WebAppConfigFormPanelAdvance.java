@@ -6,32 +6,47 @@
 package com.microsoft.azure.toolkit.intellij.legacy.webapp;
 
 import com.intellij.openapi.project.Project;
-import com.microsoft.azure.toolkit.ide.appservice.model.MonitorConfig;
-import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig;
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdvancedPanel;
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceMonitorPanel;
+import com.intellij.ui.TitledSeparator;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdvancedPanel;
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceLogsPanel;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem;
-import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
 
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
-@RequiredArgsConstructor
-public class WebAppConfigFormPanelAdvance extends JPanel implements AzureFormPanel<WebAppConfig> {
+public class WebAppConfigFormPanelAdvance implements AzureFormPanel<AppServiceConfig> {
     private final Project project;
     private JTabbedPane tabPane;
     private JPanel pnlRoot;
-    private AppServiceInfoAdvancedPanel<WebAppConfig> appServiceConfigPanelAdvanced;
-    private AppServiceMonitorPanel appServiceMonitorPanel;
+    private AppServiceInfoAdvancedPanel<AppServiceConfig> appServiceConfigPanelAdvanced;
     private JPanel pnlMonitoring;
     private JPanel pnlAppService;
+    private TitledSeparator titleAppServiceLog;
+    private AppServiceLogsPanel appServiceLogsPanel;
+
+    public WebAppConfigFormPanelAdvance(final Project project) {
+        super();
+        this.project = project;
+        $$$setupUI$$$(); // tell IntelliJ to call createUIComponents() here.
+        this.init();
+    }
+
+    private void init() {
+        // Application Insights is not supported in Web App
+        appServiceLogsPanel.setApplicationLogVisible(false);
+
+        appServiceConfigPanelAdvanced.getSelectorRuntime().addActionListener(event -> {
+            final Runtime runtime = appServiceConfigPanelAdvanced.getSelectorRuntime().getValue();
+            appServiceLogsPanel.setApplicationLogVisible(runtime != null && runtime.getOperatingSystem() == OperatingSystem.WINDOWS);
+        });
+    }
 
     @Override
     public void setVisible(final boolean visible) {
@@ -39,46 +54,30 @@ public class WebAppConfigFormPanelAdvance extends JPanel implements AzureFormPan
     }
 
     @Override
-    public WebAppConfig getValue() {
-        final WebAppConfig data = appServiceConfigPanelAdvanced.getValue();
-        data.setMonitorConfig(appServiceMonitorPanel.getValue());
+    public AppServiceConfig getValue() {
+        final AppServiceConfig data = appServiceConfigPanelAdvanced.getValue();
+        Optional.ofNullable(data).ifPresent(config -> config.diagnosticConfig(appServiceLogsPanel.getValue()));
         return data;
     }
 
     @Override
-    public void setValue(final WebAppConfig data) {
-        appServiceConfigPanelAdvanced.setValue(data);
-        appServiceMonitorPanel.setValue(data.getMonitorConfig());
+    public void setValue(final AppServiceConfig data) {
+        Optional.ofNullable(data).ifPresent(appServiceConfigPanelAdvanced::setValue);
+        Optional.ofNullable(data).map(AppServiceConfig::diagnosticConfig).ifPresent(appServiceLogsPanel::setValue);
     }
 
     @Override
     public List<AzureFormInput<?>> getInputs() {
-        return ListUtils.union(appServiceConfigPanelAdvanced.getInputs(), appServiceMonitorPanel.getInputs());
+        return ListUtils.union(appServiceConfigPanelAdvanced.getInputs(), appServiceLogsPanel.getInputs());
     }
 
     public void setDeploymentVisible(final boolean visible) {
         this.appServiceConfigPanelAdvanced.setDeploymentVisible(visible);
     }
 
-    public void setValidPricingTier(final List<PricingTier> validPricingTiers, final PricingTier defaultPricingTier) {
-        this.appServiceConfigPanelAdvanced.setValidPricingTier(validPricingTiers, defaultPricingTier);
-    }
-
     private void createUIComponents() {
         // TODO: place custom component creation code here
-        appServiceConfigPanelAdvanced = new AppServiceInfoAdvancedPanel<>(project, WebAppConfig::getWebAppDefaultConfig);
-        final List<PricingTier> validPricing = new ArrayList<>(PricingTier.WEB_APP_PRICING);
-        appServiceConfigPanelAdvanced.setValidPricingTier(validPricing, WebAppConfig.DEFAULT_PRICING_TIER);
-
-        appServiceMonitorPanel = new AppServiceMonitorPanel(project);
-        // Application Insights is not supported in Web App
-        appServiceMonitorPanel.setApplicationInsightsVisible(false);
-        appServiceMonitorPanel.setValue(MonitorConfig.builder().build());
-
-        appServiceConfigPanelAdvanced.getSelectorRuntime().addActionListener(event -> {
-            final Runtime runtime = appServiceConfigPanelAdvanced.getSelectorRuntime().getValue();
-            appServiceMonitorPanel.setApplicationLogVisible(runtime != null && runtime.getOperatingSystem() == OperatingSystem.WINDOWS);
-        });
+        appServiceConfigPanelAdvanced = new AppServiceInfoAdvancedPanel<>(project, AppServiceConfig::new);
     }
 
     public void setFixedRuntime(final Runtime runtime) {

@@ -13,7 +13,9 @@ import com.microsoft.azure.toolkit.intellij.common.ConfigDialog
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdvancedPanel
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoBasicPanel
 import com.microsoft.azure.toolkit.intellij.legacy.utils.removeInvalidCharacters
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppConfigProducer
 import com.microsoft.azure.toolkit.lib.Azure
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppDockerRuntime
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
@@ -21,9 +23,9 @@ import com.microsoft.azure.toolkit.lib.auth.IAccountActions
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
 import javax.swing.JPanel
 
-class WebAppContainersCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(project), Disposable {
-    private val basicPanel: AppServiceInfoBasicPanel<WebAppConfig>
-    private val advancedPanel: AppServiceInfoAdvancedPanel<WebAppConfig>
+class WebAppContainersCreationDialog(project: Project) : ConfigDialog<AppServiceConfig>(project), Disposable {
+    private val basicPanel: AppServiceInfoBasicPanel<AppServiceConfig>
+    private val advancedPanel: AppServiceInfoAdvancedPanel<AppServiceConfig>
     private val panel: JPanel
 
     init {
@@ -37,14 +39,14 @@ class WebAppContainersCreationDialog(project: Project) : ConfigDialog<WebAppConf
         }
 
         val projectName = removeInvalidCharacters(project.name)
-        basicPanel = AppServiceInfoBasicPanel(selectedSubscriptions[0]) {
-            WebAppConfig.getWebAppDefaultConfig(projectName)
+        basicPanel = AppServiceInfoBasicPanel {
+            WebAppConfigProducer.getInstance().generateDefaultConfig()
         }
         basicPanel.setFixedRuntime(WebAppDockerRuntime.INSTANCE)
         Disposer.register(this, basicPanel)
 
         advancedPanel = AppServiceInfoAdvancedPanel(projectName) {
-            WebAppConfig.getWebAppDefaultConfig(projectName)
+            AppServiceConfig.builder().build()
         }
         advancedPanel.setFixedRuntime(WebAppDockerRuntime.INSTANCE)
         Disposer.register(this, advancedPanel)

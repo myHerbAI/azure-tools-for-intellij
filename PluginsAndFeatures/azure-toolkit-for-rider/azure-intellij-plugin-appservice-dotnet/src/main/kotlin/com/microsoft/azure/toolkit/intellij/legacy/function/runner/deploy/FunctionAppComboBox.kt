@@ -8,10 +8,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
-import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceComboBox
+import com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppConfigProducer
 import com.microsoft.azure.toolkit.lib.Azure
+import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.common.action.Action
 import java.util.stream.Collectors
 
@@ -21,21 +23,28 @@ class FunctionAppComboBox(project: Project) : AppServiceComboBox<FunctionAppConf
         super.refreshItems()
     }
 
-    override fun loadAppServiceModels(): MutableList<FunctionAppConfig> =
-        Azure.az(AzureFunctions::class.java).functionApps().parallelStream()
+    override fun loadAppServiceModels(): MutableList<FunctionAppConfig> {
+        val account = Azure.az(AzureAccount::class.java).account()
+        if (!account.isLoggedIn) {
+            return mutableListOf()
+        }
+
+        return Azure.az(AzureFunctions::class.java).functionApps().parallelStream()
             .map { functionApp -> convertAppServiceToConfig({ FunctionAppConfig() }, functionApp) }
-            .filter { a -> a.subscription != null }
-            .sorted { a, b -> a.name.compareTo(b.name, true) }
+            .filter { a -> a.subscriptionId != null }
+            .sorted { a, b -> a.appName().compareTo(b.appName(), true) }
             .collect(Collectors.toList())
+    }
 
     override fun createResource() {
         val dialog = FunctionAppCreationDialog(project)
         Disposer.register(this, dialog)
+        dialog.data = FunctionAppConfigProducer.getInstance().generateDefaultConfig()
         val actionId: Action.Id<FunctionAppConfig> = Action.Id.of("user/function.create_app.app")
         dialog.setOkAction(
             Action(actionId)
                 .withLabel("Create")
-                .withIdParam(FunctionAppConfig::getName)
+                .withIdParam(FunctionAppConfig::appName)
                 .withSource { it }
                 .withAuthRequired(false)
                 .withHandler(this::setValue)

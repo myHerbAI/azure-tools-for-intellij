@@ -87,15 +87,12 @@ class WebAppRunState(
         val pricingTier = PricingTier(options.pricingTier, options.pricingSize)
         pricingTier(pricingTier)
         appName(options.webAppName)
-        val slotName =
-            if (options.isDeployToSlot) options.newSlotName ?: options.slotName
-            else null
-        deploymentSlotName(slotName)
-        val configurationSource = when (options.newSlotConfigurationSource) {
+        deploymentSlotName(options.slotName)
+        val configurationSource = when (options.slotConfigurationSource) {
             "Do not clone settings" -> DotNetFunctionAppDeploymentSlotDraft.CONFIGURATION_SOURCE_NEW
             "parent" -> DotNetFunctionAppDeploymentSlotDraft.CONFIGURATION_SOURCE_PARENT
             null -> null
-            else -> options.newSlotConfigurationSource
+            else -> options.slotConfigurationSource
         }
         deploymentSlotConfigurationSource(configurationSource)
         val os = OperatingSystem.fromString(options.operatingSystem)
@@ -133,13 +130,10 @@ class WebAppRunState(
     private fun updateConfigurationDataModel(app: WebAppBase<*, *, *>) {
         webAppConfiguration.state?.apply {
             if (app is WebAppDeploymentSlot) {
-                resourceId = app.parent.id
                 slotName = app.name
-                newSlotName = null
-                newSlotConfigurationSource = null
-            } else {
-                resourceId = app.id
+                slotConfigurationSource = null
             }
+
             appSettings = app.appSettings ?: mutableMapOf()
         }
     }

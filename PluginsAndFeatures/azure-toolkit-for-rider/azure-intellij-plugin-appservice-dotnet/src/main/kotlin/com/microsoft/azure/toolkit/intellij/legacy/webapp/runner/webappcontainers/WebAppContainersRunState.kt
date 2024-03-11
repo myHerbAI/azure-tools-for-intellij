@@ -73,16 +73,9 @@ class WebAppContainersRunState(
         val imageRepository = options.imageRepository
         val imageTag = options.imageTag
 
-        updateConfigurationDataModel(result)
         processHandler.setText("Image $imageRepository:$imageTag has been deployed to Web App ${result.name}")
         val url = "https://${result.name}.azurewebsites.net/"
         processHandler.setText("URL: $url")
         processHandler.notifyComplete()
-    }
-
-    private fun updateConfigurationDataModel(app: AppServiceAppBase<*, *, *>) {
-        webAppContainersConfiguration.state?.apply {
-            resourceId = app.id
-        }
     }
 }

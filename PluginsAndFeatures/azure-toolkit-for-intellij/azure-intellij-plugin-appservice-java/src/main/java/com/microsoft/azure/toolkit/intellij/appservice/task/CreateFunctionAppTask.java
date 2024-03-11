@@ -1,18 +1,20 @@
 package com.microsoft.azure.toolkit.intellij.appservice.task;
 
-import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig;
 import com.microsoft.azure.toolkit.ide.guidance.ComponentContext;
 import com.microsoft.azure.toolkit.ide.guidance.Task;
 import com.microsoft.azure.toolkit.ide.guidance.task.SignInTask;
+import com.microsoft.azure.toolkit.intellij.appservice.AppServiceIntelliJActionsContributor;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
+import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.utils.Utils;
-import com.microsoft.azure.toolkit.lib.legacy.function.FunctionAppService;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -40,11 +42,12 @@ public class CreateFunctionAppTask implements Task {
         final Subscription subscription = Optional.ofNullable((String) context.getParameter(SignInTask.SUBSCRIPTION_ID))
                 .map(id -> Azure.az(AzureAccount.class).account().getSubscription(id))
                 .orElseThrow(() -> new AzureToolkitRuntimeException("Failed to get subscription to create function app"));
-        final FunctionAppConfig functionAppConfig = FunctionAppConfig.getFunctionAppDefaultConfig(name);
-        functionAppConfig.setName(name);
-        functionAppConfig.setSubscription(subscription);
-        functionAppConfig.setRuntime(FunctionAppRuntime.getDefault());
-        final FunctionAppBase<?, ?, ?> app =  FunctionAppService.getInstance().createOrUpdateFunctionApp(functionAppConfig);
+
+        final FunctionAppConfig functionAppConfig = AppServiceIntelliJActionsContributor.getDefaultFunctionAppConfig(null);
+        functionAppConfig.appName(name);
+        functionAppConfig.subscriptionId(subscription.getId());
+
+        final FunctionAppBase<?, ?, ?> app = new CreateOrUpdateFunctionAppTask(functionAppConfig).execute();
         context.applyResult(FUNCTION_ID, app.getId());
         context.applyResult(RESOURCE_GROUP, app.getResourceGroupName());
         context.applyResult(INSIGHTS_INSTRUMENT_KEY, app.getAppSettings().get(APPINSIGHTS_INSTRUMENTATION_KEY));

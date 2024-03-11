@@ -8,10 +8,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
-import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppComboBox
 import com.microsoft.azure.toolkit.lib.Azure
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.common.action.Action
 import java.util.stream.Collectors
 
@@ -20,22 +21,26 @@ class WebAppContainersComboBox(project: Project) : WebAppComboBox(project) {
         setRenderer(AppComboBoxRender(true))
     }
 
-    override fun loadAppServiceModels(): MutableList<WebAppConfig> {
-        val webApps = Azure.az(AzureWebApp::class.java).webApps()
-        return webApps.stream().parallel()
+    override fun loadAppServiceModels(): MutableList<AppServiceConfig> {
+        val account = Azure.az(AzureAccount::class.java).account()
+        if (!account.isLoggedIn) {
+            return mutableListOf()
+        }
+
+        return Azure.az(AzureWebApp::class.java).webApps().parallelStream()
             .filter { a -> a.runtime != null && a.runtime?.isWindows == false }
-            .sorted { a, b -> a.name.compareTo(b.name, true) }
-            .map { webApp -> convertAppServiceToConfig({ WebAppConfig() }, webApp) }
+            .map { webApp -> convertAppServiceToConfig({ AppServiceConfig() }, webApp) }
+            .sorted { a, b -> a.appName.compareTo(b.appName, true) }
             .collect(Collectors.toList())
     }
 
     override fun createResource() {
         val dialog = WebAppContainersCreationDialog(project)
         Disposer.register(this, dialog)
-        val actionId: Action.Id<WebAppConfig> = Action.Id.of("user/webapp.create_app.app")
+        val actionId: Action.Id<AppServiceConfig> = Action.Id.of("user/webapp.create_app.app")
         dialog.setOkAction(Action(actionId)
             .withLabel("Create")
-            .withIdParam(WebAppConfig::getName)
+            .withIdParam(AppServiceConfig::appName)
             .withSource { it }
             .withAuthRequired(false)
             .withHandler(this::setValue)

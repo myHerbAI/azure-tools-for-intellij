@@ -14,26 +14,22 @@ import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.selected
-import com.intellij.ui.layout.selectedValueMatches
 import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
-import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig
-import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig
 import com.microsoft.azure.toolkit.intellij.common.*
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.ui.components.DeploymentSlotComboBox
 import com.microsoft.azure.toolkit.lib.Azure
-import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
+import com.microsoft.azure.toolkit.lib.appservice.config.DeploymentSlotConfig
+import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
-import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppLinuxRuntime
-import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppWindowsRuntime
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.common.model.Region
-import com.microsoft.azure.toolkit.lib.common.model.Subscription
-import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig
 import javax.swing.JPanel
 
 class FunctionDeploymentSettingsEditor(private val project: Project) :
@@ -57,9 +53,6 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             }
             row {
                 deployToSlotCheckBox = checkBox("Deploy to Slot:")
-                    .enabledIf(functionAppComboBox.component.selectedValueMatches {
-                        it?.resourceId.isNullOrEmpty().not()
-                    })
                 deploymentSlotComboBox = cell(DeploymentSlotComboBox(project))
                     .enabledIf(deployToSlotCheckBox.selected)
                     .align(Align.FILL)
@@ -94,14 +87,18 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
     private fun onSelectFunctionApp(value: FunctionAppConfig?) {
         if (value == null) return
 
-        if (value.resourceId.isNullOrEmpty()) {
+        val resource = getResource(value, null)
+        val isDraftResource = resource == null || !resource.exists()
+
+        deployToSlotCheckBox.enabled(!isDraftResource)
+        if (isDraftResource) {
             deployToSlotCheckBox.component.isSelected = false
         }
 
-        deploymentSlotComboBox.component.setAppService(value.resourceId)
+        deploymentSlotComboBox.component.setAppService(resource?.id)
 
         if (!deployToSlotCheckBox.component.isSelected) {
-            loadFunctionAppSettings(value)
+            loadAppSettings(value, resource)
         }
     }
 
@@ -110,7 +107,8 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
 
         val functionAppConfig = functionAppComboBox.component.value
         if (deployToSlotCheckBox.component.isSelected && functionAppConfig != null) {
-            loadFunctionSlotSettings(functionAppConfig, value)
+            val resource = getResource(functionAppConfig, value.name)
+            loadAppSettings(functionAppConfig, resource)
         }
     }
 
@@ -119,112 +117,56 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
         val slotConfig = deploymentSlotComboBox.component.value
 
         if (deployToSlotCheckBox.component.isSelected && functionAppConfig != null && slotConfig != null) {
-            loadFunctionSlotSettings(functionAppConfig, slotConfig)
+            val resource = getResource(functionAppConfig, slotConfig.name)
+            loadAppSettings(functionAppConfig, resource)
         } else if (!deployToSlotCheckBox.component.isSelected && functionAppConfig != null) {
-            loadFunctionAppSettings(functionAppConfig)
+            val resource = getResource(functionAppConfig, null)
+            loadAppSettings(functionAppConfig, resource)
         }
     }
 
-    private fun loadFunctionAppSettings(functionAppConfig: FunctionAppConfig) {
-        val resourceId = functionAppConfig.resourceId
-        if (resourceId != null) {
-            appSettingsTable.loadAppSettings {
-                Azure.az(AzureFunctions::class.java).functionApp(resourceId)?.appSettings
-            }
+    private fun loadAppSettings(functionAppConfig: FunctionAppConfig, resource: FunctionAppBase<*, *, *>?) {
+        if (resource != null) {
+            appSettingsTable.loadAppSettings { resource.appSettings }
         } else {
-            appSettingsTable.loadAppSettings {
-                functionAppConfig.appSettings
-            }
-        }
-    }
-
-    private fun loadFunctionSlotSettings(
-        functionAppConfig: FunctionAppConfig,
-        deploymentSlotConfig: DeploymentSlotConfig
-    ) {
-        if (deploymentSlotConfig.isNewCreate) {
-            val resourceId = functionAppConfig.resourceId
-            if (resourceId != null) {
-                appSettingsTable.loadAppSettings {
-                    Azure.az(AzureFunctions::class.java).functionApp(resourceId)?.appSettings
-                }
-            } else {
-                appSettingsTable.loadAppSettings {
-                    functionAppConfig.appSettings
-                }
-            }
-        } else {
-            appSettingsTable.loadAppSettings {
-                Azure.az(AzureFunctions::class.java)
-                    .functionApp(functionAppConfig.resourceId)
-                    ?.slots()
-                    ?.get(deploymentSlotConfig.name, null)
-                    ?.appSettings
-            }
+            appSettingsTable.loadAppSettings { functionAppConfig.appSettings }
         }
     }
 
     override fun resetEditorFrom(configuration: FunctionDeploymentConfiguration) {
         val state = configuration.state ?: return
 
-        if (state.resourceId.isNullOrEmpty() && state.functionAppName.isNullOrEmpty()) return
-
-        val subscription = Subscription(requireNotNull(state.subscriptionId))
         val region = if (state.region.isNullOrEmpty()) null else Region.fromName(requireNotNull(state.region))
-        val resourceGroup = ResourceGroupConfig
-            .builder()
-            .subscriptionId(subscription.id)
-            .name(state.resourceGroupName)
-            .region(region)
-            .build()
         val pricingTier = PricingTier(state.pricingTier, state.pricingSize)
         val operatingSystem = OperatingSystem.fromString(state.operatingSystem)
-        val plan = AppServicePlanConfig
-            .builder()
-            .subscriptionId(subscription.id)
-            .name(state.appServicePlanName)
-            .resourceGroupName(state.appServicePlanResourceGroupName)
-            .region(region)
-            .os(operatingSystem)
-            .pricingTier(pricingTier)
-            .build()
-        val slotConfig = if (state.isDeployToSlot) {
-            if (state.slotName.isNullOrEmpty())
-                DeploymentSlotConfig
-                    .builder()
-                    .newCreate(true)
-                    .name(state.newSlotName)
-                    .configurationSource(state.newSlotConfigurationSource)
-                    .build()
-            else
-                DeploymentSlotConfig
-                    .builder()
-                    .newCreate(false)
-                    .name(state.slotName)
-                    .build()
-        } else null
-        val configBuilder = FunctionAppConfig
-            .builder()
-            .name(state.functionAppName)
-            .resourceId(state.resourceId)
-            .subscription(subscription)
-            .resourceGroup(resourceGroup)
-            .servicePlan(plan)
-            .runtime(if (operatingSystem == OperatingSystem.LINUX) FunctionAppLinuxRuntime.FUNCTION_JAVA17 else FunctionAppWindowsRuntime.FUNCTION_JAVA17)
-            .deploymentSlot(slotConfig)
-            .appSettings(state.appSettings)
-        val functionAppConfig =
-            if (state.resourceId.isNullOrEmpty()) configBuilder.region(region).pricingTier(pricingTier).build()
-            else configBuilder.build()
 
+        val functionAppConfig = FunctionAppConfig
+            .builder()
+            .appName(state.functionAppName)
+            .subscriptionId(state.subscriptionId)
+            .resourceGroup(state.resourceGroupName)
+            .region(region)
+            .servicePlanName(state.appServicePlanName)
+            .servicePlanResourceGroup(state.appServicePlanResourceGroupName)
+            .pricingTier(pricingTier)
+            .runtime(RuntimeConfig().apply { os = operatingSystem })
+            .appSettings(state.appSettings)
+            .build()
         functionAppComboBox.component.value = functionAppConfig
+
         if (state.isDeployToSlot) {
             deployToSlotCheckBox.selected(true)
+            val slotConfig = DeploymentSlotConfig
+                .builder()
+                .name(state.slotName)
+                .configurationSource(state.slotConfigurationSource)
+                .build()
             deploymentSlotComboBox.component.value = slotConfig
         } else {
             deployToSlotCheckBox.selected(false)
             deploymentSlotComboBox.component.clear()
         }
+
         appSettingsTable.setAppSettings(state.appSettings)
 
         val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
@@ -246,31 +188,22 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
         val slotConfig = deploymentSlotComboBox.component.value
 
         state.apply {
-            resourceId = functionConfig?.resourceId
-            functionAppName = functionConfig?.name
+            functionAppName = functionConfig?.appName
             subscriptionId = functionConfig?.subscriptionId
-            resourceGroupName = functionConfig?.resourceGroup?.name
+            resourceGroupName = functionConfig?.resourceGroup
             region = functionConfig?.region?.toString()
-            appServicePlanName = functionConfig?.servicePlan?.name
-            appServicePlanResourceGroupName = functionConfig?.servicePlan?.resourceGroupName
-            pricingTier = functionConfig?.servicePlan?.pricingTier?.tier
-            pricingSize = functionConfig?.servicePlan?.pricingTier?.size
-            operatingSystem = functionConfig?.runtime?.operatingSystem?.toString()
+            appServicePlanName = functionConfig?.servicePlanName
+            appServicePlanResourceGroupName = functionConfig?.servicePlanResourceGroup
+            pricingTier = functionConfig?.pricingTier?.tier
+            pricingSize = functionConfig?.pricingTier?.size
+            operatingSystem = functionConfig?.runtime?.os?.toString()
             isDeployToSlot = deployToSlot
             if (!deployToSlot || slotConfig == null) {
                 slotName = null
-                newSlotName = null
-                newSlotConfigurationSource = null
+                slotConfigurationSource = null
             } else {
-                if (slotConfig.isNewCreate) {
-                    slotName = null
-                    newSlotName = slotConfig.name
-                    newSlotConfigurationSource = slotConfig.configurationSource
-                } else {
-                    slotName = slotConfig.name
-                    newSlotName = null
-                    newSlotConfigurationSource = null
-                }
+                slotName = slotConfig.name
+                slotConfigurationSource = slotConfig.configurationSource
             }
             storageAccountName = null
             storageAccountResourceGroup = null
@@ -283,4 +216,15 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
     }
 
     override fun createEditor() = panel
+
+    private fun getResource(config: FunctionAppConfig, slot: String?): FunctionAppBase<*, *, *>? {
+        if (config.appName.isNullOrEmpty()) return null
+
+        val functionApp = Azure.az(AzureFunctions::class.java)
+            .functionApps(config.subscriptionId)
+            .get(config.appName, config.resourceGroup)
+
+        return if (slot.isNullOrEmpty() || functionApp == null) functionApp
+        else functionApp.slots().get(slot, config.resourceGroup)
+    }
 }

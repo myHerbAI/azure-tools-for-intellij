@@ -9,14 +9,13 @@ import com.intellij.openapi.ui.popup.ListItemDescriptorAdapter;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.intellij.ui.popup.list.GroupedItemsListRenderer;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
+import com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppRuntime;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppRuntime;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RuntimeComboBox extends AzureComboBox<Runtime> {
@@ -24,15 +23,25 @@ public class RuntimeComboBox extends AzureComboBox<Runtime> {
     private List<? extends Runtime> platformList;
 
     public RuntimeComboBox() {
-        this(WebAppRuntime.getMajorRuntimes().stream().filter(r -> !r.isDocker()).collect(Collectors.toList()));
+        this(WebAppRuntime.getMajorRuntimes());
     }
 
     public RuntimeComboBox(List<? extends Runtime> platformList) {
         super();
         this.platformList = platformList.stream()
-            .sorted(Comparator.comparing(Runtime::getOperatingSystem).thenComparing(Runtime::getJavaMajorVersionNumber).reversed())
-            .collect(Collectors.toList());
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(RuntimeComboBox::getOperatingSystemOrder).thenComparing(Runtime::getJavaMajorVersionNumber).reversed())
+                .collect(Collectors.toList());
         setGroupRender();
+    }
+
+    // get order of operating system, order should be Linux, Windows, Docker
+    private static Integer getOperatingSystemOrder(@Nonnull final Runtime runtime) {
+        return switch (runtime.getOperatingSystem()) {
+            case LINUX -> 2;
+            case WINDOWS -> 1;
+            case DOCKER -> 0;
+        };
     }
 
     public void setPlatformList(final List<? extends Runtime> platformList) {
@@ -68,16 +77,20 @@ public class RuntimeComboBox extends AzureComboBox<Runtime> {
     }
 
     private String getSeparatorCaption(Runtime item) {
+        if (Objects.isNull(item)) {
+            return StringUtils.EMPTY;
+        }
         if (item.isDocker()) {
             return "Docker";
         }
-        return String.format("%s & %s", item.getOperatingSystem().toString(), item.getJavaVersionUserText());
+        return item instanceof FunctionAppRuntime fun ? fun.getOperatingSystem().toString() :
+                String.format("%s & %s", item.getOperatingSystem().toString(), item.getJavaVersionUserText());
     }
 
     class RuntimeItemDescriptor extends ListItemDescriptorAdapter<Runtime> {
         @Override
         public String getTextFor(Runtime value) {
-            return value.getDisplayName();
+            return Optional.ofNullable(value).map(Runtime::getDisplayName).orElse(StringUtils.EMPTY);
         }
 
         @Override
@@ -93,7 +106,7 @@ public class RuntimeComboBox extends AzureComboBox<Runtime> {
             }
             final String currentCaption = getSeparatorCaption(value);
             final String lastCaption = getSeparatorCaption(platformList.get(index - 1));
-            return !Objects.equals(currentCaption, lastCaption);
+            return StringUtils.isNotBlank(currentCaption) && !Objects.equals(currentCaption, lastCaption);
         }
     }
 }

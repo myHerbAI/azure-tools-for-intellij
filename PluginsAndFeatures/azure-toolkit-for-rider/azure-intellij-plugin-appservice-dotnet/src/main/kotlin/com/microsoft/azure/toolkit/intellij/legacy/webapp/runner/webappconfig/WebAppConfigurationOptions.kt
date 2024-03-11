@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 import com.intellij.execution.configurations.LocatableRunConfigurationOptions
 
 class WebAppConfigurationOptions : LocatableRunConfigurationOptions() {
-    var resourceId by string()
     var webAppName by string()
     var subscriptionId by string()
     var resourceGroupName by string()
@@ -19,8 +18,7 @@ class WebAppConfigurationOptions : LocatableRunConfigurationOptions() {
     var operatingSystem by string()
     var isDeployToSlot by property(false)
     var slotName by string()
-    var newSlotName by string()
-    var newSlotConfigurationSource by string()
+    var slotConfigurationSource by string()
     var appSettings by map<String, String>()
     var projectConfiguration by string()
     var projectPlatform by string()

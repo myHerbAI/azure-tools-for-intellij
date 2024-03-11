@@ -27,10 +27,11 @@ import java.util.Optional;
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
 
 public class OpenLogsInMonitorAction {
+    private static final String APPLICATIONINSIGHTS_CONNECTION_STRING = "APPLICATIONINSIGHTS_CONNECTION_STRING";
+    private static final String APPINSIGHTS_INSTRUMENTATIONKEY = "APPINSIGHTS_INSTRUMENTATIONKEY";
     private final Project project;
     private final AppServiceAppBase<?, ?, ?> appService;
     private final String resourceId;
-    private static final String APPINSIGHTS_INSTRUMENTATIONKEY = "APPINSIGHTS_INSTRUMENTATIONKEY";
 
     public OpenLogsInMonitorAction(@Nonnull final AppServiceAppBase<?, ?, ?> appService, @Nullable final Project project) {
         this.project = project;
@@ -45,7 +46,10 @@ public class OpenLogsInMonitorAction {
 
     @Nullable
     private LogAnalyticsWorkspace getWorkspace() {
-        final String aiKey = Optional.ofNullable(appService.getAppSettings()).map(settings -> settings.get(APPINSIGHTS_INSTRUMENTATIONKEY)).orElse(null);
+        final String aiKey = Optional.ofNullable(appService.getAppSettings())
+                .map(settings -> Optional.ofNullable(settings.get(APPINSIGHTS_INSTRUMENTATIONKEY))
+                        .orElseGet(() -> getInstrumentationkeyFromConnectionString(settings.get(APPLICATIONINSIGHTS_CONNECTION_STRING))))
+                .orElse(null);
         if (StringUtils.isEmpty(aiKey)) {
             throw new AzureToolkitRuntimeException(message("azure.monitor.info.aiNotConfiged"));
         }
@@ -63,5 +67,22 @@ public class OpenLogsInMonitorAction {
             return null;
         }
         return Azure.az(AzureLogAnalyticsWorkspace.class).getById(workspaceResourceId);
+    }
+
+    // get the instrument key from connection
+    // r.g. input = InstrumentationKey=key;IngestionEndpoint=xxxxx output key
+    @Nullable
+    private String getInstrumentationkeyFromConnectionString(final String connectionString) {
+        if (StringUtils.isEmpty(connectionString)) {
+            return null;
+        }
+        final String[] parts = connectionString.split(";");
+        for (final String part : parts) {
+            final String[] kv = part.split("=");
+            if (kv.length == 2 && StringUtils.equalsIgnoreCase(kv[0], "InstrumentationKey")) {
+                return kv[1];
+            }
+        }
+        return null;
     }
 }

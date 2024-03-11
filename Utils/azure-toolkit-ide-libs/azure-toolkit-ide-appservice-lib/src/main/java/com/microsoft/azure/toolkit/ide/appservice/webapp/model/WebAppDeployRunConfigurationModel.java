@@ -5,6 +5,7 @@
 package com.microsoft.azure.toolkit.ide.appservice.webapp.model;
 
 import com.microsoft.azure.toolkit.ide.appservice.model.AzureArtifactConfig;
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -19,7 +20,7 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode()
 @SuperBuilder(toBuilder = true)
 public class WebAppDeployRunConfigurationModel {
-    private WebAppConfig webAppConfig;
+    private AppServiceConfig webAppConfig;
     private AzureArtifactConfig artifactConfig;
     private boolean slotPanelVisible = false;
     private boolean deployToRoot = true;

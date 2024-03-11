@@ -8,6 +8,7 @@ import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntime
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanDraft
 import com.microsoft.azure.toolkit.lib.appservice.webapp.*
@@ -63,7 +64,7 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
     private fun create(): WebApp {
         CreateResourceGroupTask(config.subscriptionId(), config.resourceGroup(), config.region()).doExecute()
 
-        val planConfig = config.servicePlanConfig
+        val planConfig = AppServiceConfig.getServicePlanConfig(config)
         val planDraft = Azure.az(AzureAppService::class.java)
             .plans(planConfig.subscriptionId)
             .updateOrCreate<AppServicePlanDraft>(planConfig.name, planConfig.resourceGroupName)
@@ -85,7 +86,7 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
     }
 
     private fun update(webApp: WebApp): WebApp {
-        val planConfig = config.servicePlanConfig
+        val planConfig = AppServiceConfig.getServicePlanConfig(config)
         val planDraft = Azure.az(AzureAppService::class.java)
             .plans(planConfig.subscriptionId)
             .updateOrCreate<AppServicePlanDraft>(planConfig.name, planConfig.resourceGroupName)
