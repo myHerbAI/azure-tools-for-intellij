@@ -14,26 +14,22 @@ import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.selected
-import com.intellij.ui.layout.selectedValueMatches
 import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
-import com.microsoft.azure.toolkit.ide.appservice.model.DeploymentSlotConfig
-import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig
 import com.microsoft.azure.toolkit.intellij.common.*
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.ui.components.DeploymentSlotComboBox
 import com.microsoft.azure.toolkit.lib.Azure
-import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
-import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
+import com.microsoft.azure.toolkit.lib.appservice.config.DeploymentSlotConfig
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
-import com.microsoft.azure.toolkit.lib.appservice.model.WebAppLinuxRuntime
-import com.microsoft.azure.toolkit.lib.appservice.model.WebAppWindowsRuntime
+import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase
 import com.microsoft.azure.toolkit.lib.common.model.Region
-import com.microsoft.azure.toolkit.lib.common.model.Subscription
-import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig
 import javax.swing.JPanel
 
 class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppConfiguration>() {
@@ -57,9 +53,6 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
             }
             row {
                 deployToSlotCheckBox = checkBox("Deploy to Slot:")
-                    .enabledIf(webAppComboBox.component.selectedValueMatches {
-                        it?.resourceId.isNullOrEmpty().not()
-                    })
                 deploymentSlotComboBox = cell(DeploymentSlotComboBox(project))
                     .enabledIf(deployToSlotCheckBox.selected)
                     .align(Align.FILL)
@@ -94,17 +87,21 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
         dotnetProjectComboBox.component.reloadItems()
     }
 
-    private fun onSelectWebApp(value: WebAppConfig?) {
+    private fun onSelectWebApp(value: AppServiceConfig?) {
         if (value == null) return
 
-        if (value.resourceId.isNullOrEmpty()) {
+        val resource = getResource(value, null)
+        val isDraftResource = resource == null || !resource.exists()
+
+        deployToSlotCheckBox.enabled(!isDraftResource)
+        if (isDraftResource) {
             deployToSlotCheckBox.component.isSelected = false
         }
 
-        deploymentSlotComboBox.component.setAppService(value.resourceId)
+        deploymentSlotComboBox.component.setAppService(resource?.id)
 
         if (!deployToSlotCheckBox.component.isSelected) {
-            loadWebAppSettings(value)
+            loadAppSettings(value, resource)
         }
     }
 
@@ -113,7 +110,8 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
 
         val webAppConfig = webAppComboBox.component.value
         if (deployToSlotCheckBox.component.isSelected && webAppConfig != null) {
-            loadWebSlotSettings(webAppConfig, value)
+            val resource = getResource(webAppConfig, value.name)
+            loadAppSettings(webAppConfig, resource)
         }
     }
 
@@ -122,113 +120,56 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
         val slotConfig = deploymentSlotComboBox.component.value
 
         if (deployToSlotCheckBox.component.isSelected && webAppConfig != null && slotConfig != null) {
-            loadWebSlotSettings(webAppConfig, slotConfig)
+            val resource = getResource(webAppConfig, slotConfig.name)
+            loadAppSettings(webAppConfig, resource)
         } else if (!deployToSlotCheckBox.component.isSelected && webAppConfig != null) {
-            loadWebAppSettings(webAppConfig)
+            val resource = getResource(webAppConfig, null)
+            loadAppSettings(webAppConfig, resource)
         }
     }
 
-    private fun loadWebAppSettings(webAppConfig: WebAppConfig) {
-        val resourceId = webAppConfig.resourceId
-        if (resourceId != null) {
-            appSettingsTable.loadAppSettings {
-                Azure.az(AzureFunctions::class.java).functionApp(resourceId)?.appSettings
-            }
+    private fun loadAppSettings(webAppConfig: AppServiceConfig, resource: WebAppBase<*, *, *>?) {
+        if (resource != null) {
+            appSettingsTable.loadAppSettings { resource.appSettings }
         } else {
-            appSettingsTable.loadAppSettings {
-                webAppConfig.appSettings
-            }
-        }
-    }
-
-    private fun loadWebSlotSettings(
-        webAppConfig: WebAppConfig,
-        deploymentSlotConfig: DeploymentSlotConfig
-    ) {
-        if (deploymentSlotConfig.isNewCreate) {
-            val resourceId = webAppConfig.resourceId
-            if (resourceId != null) {
-                appSettingsTable.loadAppSettings {
-                    Azure.az(AzureFunctions::class.java).functionApp(resourceId)?.appSettings
-                }
-            } else {
-                appSettingsTable.loadAppSettings {
-                    webAppConfig.appSettings
-                }
-            }
-        } else {
-            appSettingsTable.loadAppSettings {
-                Azure.az(AzureFunctions::class.java)
-                    .functionApp(webAppConfig.resourceId)
-                    ?.slots()
-                    ?.get(deploymentSlotConfig.name, null)
-                    ?.appSettings
-            }
+            appSettingsTable.loadAppSettings { webAppConfig.appSettings }
         }
     }
 
     override fun resetEditorFrom(configuration: WebAppConfiguration) {
         val state = configuration.state ?: return
 
-        if (state.resourceId.isNullOrEmpty() && state.webAppName.isNullOrEmpty()) return
-
-        val subscription = Subscription(requireNotNull(state.subscriptionId))
         val region = if (state.region.isNullOrEmpty()) null else Region.fromName(requireNotNull(state.region))
-        val resourceGroupName = state.resourceGroupName
-        val resourceGroup = ResourceGroupConfig
-            .builder()
-            .subscriptionId(subscription.id)
-            .name(resourceGroupName)
-            .region(region)
-            .build()
         val pricingTier = PricingTier(state.pricingTier, state.pricingSize)
         val operatingSystem = OperatingSystem.fromString(state.operatingSystem)
-        val plan = AppServicePlanConfig
-            .builder()
-            .subscriptionId(subscription.id)
-            .name(state.appServicePlanName)
-            .resourceGroupName(state.appServicePlanResourceGroupName)
-            .region(region)
-            .os(operatingSystem)
-            .pricingTier(pricingTier)
-            .build()
-        val slotConfig = if (state.isDeployToSlot) {
-            if (state.slotName.isNullOrEmpty())
-                DeploymentSlotConfig
-                    .builder()
-                    .newCreate(true)
-                    .name(state.newSlotName)
-                    .configurationSource(state.newSlotConfigurationSource)
-                    .build()
-            else
-                DeploymentSlotConfig
-                    .builder()
-                    .newCreate(false)
-                    .name(state.slotName)
-                    .build()
-        } else null
-        val configBuilder = WebAppConfig
-            .builder()
-            .name(state.webAppName)
-            .resourceId(state.resourceId)
-            .subscription(subscription)
-            .resourceGroup(resourceGroup)
-            .servicePlan(plan)
-            .runtime(if (operatingSystem == OperatingSystem.LINUX) WebAppLinuxRuntime.JAVASE_JAVA17 else WebAppWindowsRuntime.JAVASE_JAVA17)
-            .deploymentSlot(slotConfig)
-            .appSettings(state.appSettings)
-        val webAppConfig =
-            if (state.resourceId.isNullOrEmpty()) configBuilder.region(region).pricingTier(pricingTier).build()
-            else configBuilder.build()
 
+        val webAppConfig = AppServiceConfig
+            .builder()
+            .appName(state.webAppName)
+            .subscriptionId(state.subscriptionId)
+            .resourceGroup(state.resourceGroupName)
+            .region(region)
+            .servicePlanName(state.appServicePlanName)
+            .servicePlanResourceGroup(state.appServicePlanResourceGroupName)
+            .pricingTier(pricingTier)
+            .runtime(RuntimeConfig().apply { os = operatingSystem })
+            .appSettings(state.appSettings)
+            .build()
         webAppComboBox.component.value = webAppConfig
+
         if (state.isDeployToSlot) {
             deployToSlotCheckBox.selected(true)
+            val slotConfig = DeploymentSlotConfig
+                .builder()
+                .name(state.slotName)
+                .configurationSource(state.slotConfigurationSource)
+                .build()
             deploymentSlotComboBox.component.value = slotConfig
         } else {
             deployToSlotCheckBox.selected(false)
             deploymentSlotComboBox.component.clear()
         }
+
         appSettingsTable.setAppSettings(state.appSettings)
 
         val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
@@ -252,31 +193,22 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
         val slotConfig = deploymentSlotComboBox.component.value
 
         state.apply {
-            resourceId = webAppConfig?.resourceId
-            webAppName = webAppConfig?.name
+            webAppName = webAppConfig?.appName
             subscriptionId = webAppConfig?.subscriptionId
-            resourceGroupName = webAppConfig?.resourceGroup?.name
+            resourceGroupName = webAppConfig?.resourceGroup
             region = webAppConfig?.region?.toString()
-            appServicePlanName = webAppConfig?.servicePlan?.name
-            appServicePlanResourceGroupName = webAppConfig?.servicePlan?.resourceGroupName
-            pricingTier = webAppConfig?.servicePlan?.pricingTier?.tier
-            pricingSize = webAppConfig?.servicePlan?.pricingTier?.size
-            operatingSystem = webAppConfig?.runtime?.operatingSystem?.toString()
+            appServicePlanName = webAppConfig?.servicePlanName
+            appServicePlanResourceGroupName = webAppConfig?.servicePlanResourceGroup
+            pricingTier = webAppConfig?.pricingTier?.tier
+            pricingSize = webAppConfig?.pricingTier?.size
+            operatingSystem = webAppConfig?.runtime?.os?.toString()
             isDeployToSlot = deployToSlot
             if (!deployToSlot || slotConfig == null) {
                 slotName = null
-                newSlotName = null
-                newSlotConfigurationSource = null
+                slotConfigurationSource = null
             } else {
-                if (slotConfig.isNewCreate) {
-                    slotName = null
-                    newSlotName = slotConfig.name
-                    newSlotConfigurationSource = slotConfig.configurationSource
-                } else {
-                    slotName = slotConfig.name
-                    newSlotName = null
-                    newSlotConfigurationSource = null
-                }
+                slotName = slotConfig.name
+                slotConfigurationSource = slotConfig.configurationSource
             }
             appSettings = appSettingsTable.appSettings
             publishableProjectPath = dotnetProjectComboBox.component.value?.projectFilePath
@@ -288,4 +220,15 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
     }
 
     override fun createEditor() = panel
+
+    private fun getResource(config: AppServiceConfig, slot: String?): WebAppBase<*, *, *>? {
+        if (config.appName.isNullOrEmpty()) return null
+
+        val webApp = Azure.az(AzureWebApp::class.java)
+            .webApps(config.subscriptionId)
+            .get(config.appName, config.resourceGroup)
+
+        return if (slot.isNullOrEmpty() || webApp == null) webApp
+        else webApp.slots().get(slot, config.resourceGroup)
+    }
 }

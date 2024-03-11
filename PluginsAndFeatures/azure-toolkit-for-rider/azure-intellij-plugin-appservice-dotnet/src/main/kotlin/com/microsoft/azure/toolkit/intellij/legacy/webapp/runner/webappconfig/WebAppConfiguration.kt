@@ -48,11 +48,8 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
             if (pricingSize.isNullOrEmpty()) throw RuntimeConfigurationError("Pricing size is not provided")
 
             if (isDeployToSlot) {
-                if (slotName.isNullOrEmpty()) {
-                    if (newSlotName.isNullOrEmpty()) throw RuntimeConfigurationError("Deployment slot name is not provided")
-                    if (!isValidApplicationSlotName(newSlotName)) throw RuntimeConfigurationError(APPLICATION_SLOT_VALIDATION_MESSAGE)
-                    if (newSlotConfigurationSource.isNullOrEmpty()) throw RuntimeConfigurationError("Deployment slot configuration source name is not provided")
-                }
+                if (slotName.isNullOrEmpty()) throw RuntimeConfigurationError("Deployment slot name is not provided")
+                if (!isValidApplicationSlotName(slotName)) throw RuntimeConfigurationError(APPLICATION_SLOT_VALIDATION_MESSAGE)
             }
 
             if (operatingSystem.isNullOrEmpty()) throw RuntimeConfigurationError("Operating system is not provided")
@@ -64,7 +61,6 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
 
     fun setWebApp(webApp: WebApp) {
         getState()?.apply {
-            resourceId = webApp.id
             webAppName = webApp.name
             subscriptionId = webApp.subscriptionId
             resourceGroupName = webApp.resourceGroupName
@@ -76,8 +72,7 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
             operatingSystem = webApp.runtime?.operatingSystem?.toString()
             isDeployToSlot = false
             slotName = null
-            newSlotName = null
-            newSlotConfigurationSource = null
+            slotConfigurationSource = null
             appSettings = webApp.appSettings ?: mutableMapOf()
         }
     }

@@ -9,21 +9,22 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.dsl.builder.*
 import com.intellij.util.ui.JBUI
-import com.microsoft.azure.toolkit.ide.appservice.model.AppServiceConfig
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel
 import com.microsoft.azure.toolkit.intellij.common.component.RegionComboBox
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox
 import com.microsoft.azure.toolkit.intellij.common.component.resourcegroup.ResourceGroupComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.ServicePlanComboBox
-import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
+import com.microsoft.azure.toolkit.lib.Azure
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.*
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.model.Subscription
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup
-import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig
 import java.awt.event.ItemEvent
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -38,6 +39,8 @@ class AppServiceInfoAdvancedPanel<T>(
     companion object {
         private const val NOT_APPLICABLE = "N/A"
     }
+
+    private var config: T?
 
     private val formatter = DateTimeFormatter.ofPattern("yyMMddHHmmss")
 
@@ -71,6 +74,7 @@ class AppServiceInfoAdvancedPanel<T>(
     private lateinit var operatingSystemGroup: ButtonsGroup
     private lateinit var windowsRadioButton: Cell<JBRadioButton>
     private lateinit var linuxRadioButton: Cell<JBRadioButton>
+    private lateinit var dockerRadioButton: Cell<JBRadioButton>
 
     init {
         operatingSystem = OperatingSystem.LINUX
@@ -98,6 +102,8 @@ class AppServiceInfoAdvancedPanel<T>(
                         linuxRadioButton = radioButton("Linux", OperatingSystem.LINUX)
                         windowsRadioButton = radioButton("Windows", OperatingSystem.WINDOWS)
                         windowsRadioButton.component.addItemListener { onOperatingSystemChanged(it) }
+                        dockerRadioButton = radioButton("Docker", OperatingSystem.DOCKER)
+                            .visible(false)
                     }
                 }.bind(::operatingSystem)
                 row("Region:") {
@@ -117,45 +123,61 @@ class AppServiceInfoAdvancedPanel<T>(
         }
 
         add(panel)
+
+        config = defaultConfigSupplier.get().also { setValue(it) }
     }
 
     override fun getValue(): T {
+        val name = textName.value
+        val region = selectorRegion.value
         val subscription = selectorSubscription.value
         val resourceGroup = selectorGroup.value
-        val name = textName.value
-        val os = if (windowsRadioButton.component.isSelected) OperatingSystem.WINDOWS else OperatingSystem.LINUX
-        val region = selectorRegion.value
         val servicePlan = selectorServicePlan.value
+        val operatingSystem =
+            if (windowsRadioButton.component.isSelected) OperatingSystem.WINDOWS
+            else if (linuxRadioButton.component.isSelected) OperatingSystem.LINUX
+            else OperatingSystem.DOCKER
 
-        val config = defaultConfigSupplier.get()
-        config.subscription = subscription
-        config.resourceGroup = ResourceGroupConfig.fromResource(resourceGroup)
-        config.name = name
-        config.runtime = if (os == OperatingSystem.LINUX) WebAppLinuxRuntime.JAVASE_JAVA17 else WebAppWindowsRuntime.JAVASE_JAVA17
-        config.region = region
-        val planConfig = AppServicePlanConfig.fromResource(servicePlan)
-        if (planConfig != null && servicePlan?.isDraftForCreating == true) {
-            planConfig.resourceGroupName = config.resourceGroupName
-            planConfig.region = region
-            planConfig.os = os
+        val result = config ?: defaultConfigSupplier.get()
+        result.appName = name
+        result.region = region
+        result.runtime = (result.runtime ?: RuntimeConfig()).apply {
+            os = operatingSystem
         }
-        config.servicePlan = planConfig
+        subscription?.let { result.subscriptionId = it.id }
+        resourceGroup?.let { result.resourceGroup = it.name }
+        servicePlan?.let {
+            result.servicePlanName = it.name
+            result.pricingTier = it.pricingTier
+            val resourceGroupName = if (it.isDraftForCreating) result.resourceGroup else it.resourceGroupName
+            resourceGroupName?.let { rgn -> result.servicePlanResourceGroup = rgn }
+        }
 
-        return config
+        config = result
+
+        return result
     }
 
     override fun setValue(config: T) {
-        selectorSubscription.value = config.subscription
-        textName.value = config.name
-        if (config.runtime.operatingSystem == OperatingSystem.WINDOWS) {
-            windowsRadioButton.component.isSelected = true
-        } else {
-            linuxRadioButton.component.isSelected = true
+        this.config = config
+
+        val subscription =
+            config.subscriptionId?.let { Azure.az(AzureAccount::class.java).account().getSubscription(it) }
+
+        subscription?.let { selectorSubscription.value = it }
+        textName.value = config.appName
+        textName.setSubscription(subscription)
+        when (config.runtime.os) {
+            OperatingSystem.WINDOWS -> windowsRadioButton.component.isSelected = true
+            OperatingSystem.LINUX -> linuxRadioButton.component.isSelected = true
+            OperatingSystem.DOCKER -> dockerRadioButton.component.isSelected = true
+            else -> linuxRadioButton.component.isSelected = true
         }
+
         AzureTaskManager.getInstance().runOnPooledThread {
-            selectorGroup.value = config.resourceGroup?.toResource()
-            selectorServicePlan.value = config.servicePlan?.toResource()
             selectorRegion.value = config.region
+            AppServiceConfig.getResourceGroup(config)?.let { selectorGroup.value = it }
+            AppServiceConfig.getServicePlanConfig(config)?.let { selectorServicePlan.value = it.toResource() }
         }
     }
 
@@ -220,10 +242,22 @@ class AppServiceInfoAdvancedPanel<T>(
     }
 
     fun setFixedRuntime(runtime: Runtime) {
-        if (runtime.operatingSystem == OperatingSystem.WINDOWS) {
-            windowsRadioButton.component.isSelected = true
-        } else {
-            linuxRadioButton.component.isSelected = true
+        when (runtime.operatingSystem) {
+            OperatingSystem.WINDOWS -> {
+                windowsRadioButton.component.isSelected = true
+            }
+
+            OperatingSystem.LINUX -> {
+                linuxRadioButton.component.isSelected = true
+            }
+
+            OperatingSystem.DOCKER -> {
+                dockerRadioButton.component.isSelected = true
+            }
+
+            else -> {
+                linuxRadioButton.component.isSelected = true
+            }
         }
         operatingSystemGroup.visible(false)
     }

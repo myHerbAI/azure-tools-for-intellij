@@ -48,11 +48,8 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
             if (pricingSize.isNullOrEmpty()) throw RuntimeConfigurationError("Pricing size is not provided")
 
             if (isDeployToSlot) {
-                if (slotName.isNullOrEmpty()) {
-                    if (newSlotName.isNullOrEmpty()) throw RuntimeConfigurationError("Deployment slot name is not provided")
-                    if (!isValidApplicationSlotName(newSlotName)) throw RuntimeConfigurationError(APPLICATION_SLOT_VALIDATION_MESSAGE)
-                    if (newSlotConfigurationSource.isNullOrEmpty()) throw RuntimeConfigurationError("Deployment slot configuration source name is not provided")
-                }
+                if (slotName.isNullOrEmpty()) throw RuntimeConfigurationError("Deployment slot name is not provided")
+                if (!isValidApplicationSlotName(slotName)) throw RuntimeConfigurationError(APPLICATION_SLOT_VALIDATION_MESSAGE)
             }
 
             if (operatingSystem.isNullOrEmpty()) throw RuntimeConfigurationError("Operating system is not provided")
@@ -64,7 +61,6 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
 
     fun setFunctionApp(functionApp: FunctionApp) {
         getState()?.apply {
-            resourceId = functionApp.id
             functionAppName = functionApp.name
             subscriptionId = functionApp.subscriptionId
             resourceGroupName = functionApp.resourceGroupName
@@ -76,8 +72,7 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
             operatingSystem = functionApp.runtime?.operatingSystem?.toString()
             isDeployToSlot = false
             slotName = null
-            newSlotName = null
-            newSlotConfigurationSource = null
+            slotConfigurationSource = null
             storageAccountName = null
             storageAccountResourceGroup = null
             appSettings = functionApp.appSettings ?: mutableMapOf()

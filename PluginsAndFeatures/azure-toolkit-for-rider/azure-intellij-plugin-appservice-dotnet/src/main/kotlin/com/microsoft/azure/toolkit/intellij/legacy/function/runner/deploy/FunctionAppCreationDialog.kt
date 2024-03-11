@@ -8,12 +8,13 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.panel
-import com.microsoft.azure.toolkit.ide.appservice.function.FunctionAppConfig
 import com.microsoft.azure.toolkit.intellij.common.ConfigDialog
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdvancedPanel
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoBasicPanel
+import com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppConfigProducer
 import com.microsoft.azure.toolkit.intellij.legacy.utils.removeInvalidCharacters
 import com.microsoft.azure.toolkit.lib.Azure
+import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.auth.IAccountActions
@@ -36,8 +37,8 @@ class FunctionAppCreationDialog(project: Project) : ConfigDialog<FunctionAppConf
         }
 
         val projectName = removeInvalidCharacters(project.name)
-        basicPanel = AppServiceInfoBasicPanel(selectedSubscriptions[0]) {
-            FunctionAppConfig.getFunctionAppDefaultConfig(projectName)
+        basicPanel = AppServiceInfoBasicPanel {
+            FunctionAppConfigProducer.getInstance().generateDefaultConfig()
         }
         Disposer.register(this, basicPanel)
 

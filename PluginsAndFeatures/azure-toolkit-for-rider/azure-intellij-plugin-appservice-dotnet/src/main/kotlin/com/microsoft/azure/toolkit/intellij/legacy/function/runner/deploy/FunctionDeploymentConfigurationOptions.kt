@@ -7,7 +7,6 @@ package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy
 import com.intellij.execution.configurations.LocatableRunConfigurationOptions
 
 class FunctionDeploymentConfigurationOptions : LocatableRunConfigurationOptions() {
-    var resourceId by string()
     var functionAppName by string()
     var subscriptionId by string()
     var resourceGroupName by string()
@@ -19,8 +18,7 @@ class FunctionDeploymentConfigurationOptions : LocatableRunConfigurationOptions(
     var operatingSystem by string()
     var isDeployToSlot by property(false)
     var slotName by string()
-    var newSlotName by string()
-    var newSlotConfigurationSource by string()
+    var slotConfigurationSource by string()
     var storageAccountName by string()
     var storageAccountResourceGroup by string()
     var appSettings by map<String, String>()

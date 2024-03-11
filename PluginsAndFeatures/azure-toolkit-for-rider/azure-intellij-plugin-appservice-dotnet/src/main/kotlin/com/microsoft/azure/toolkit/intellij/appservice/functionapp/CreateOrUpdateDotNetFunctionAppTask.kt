@@ -9,6 +9,7 @@ import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntime
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.*
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
@@ -99,7 +100,7 @@ class CreateOrUpdateDotNetFunctionAppTask(private val config: DotNetFunctionAppC
         }
 
         return AzureTask<AppServicePlan>(Callable {
-            val planConfig = config.servicePlanConfig
+            val planConfig = AppServiceConfig.getServicePlanConfig(config)
             val draft = Azure.az(AzureAppService::class.java)
                 .plans(planConfig.subscriptionId)
                 .updateOrCreate<AppServicePlanDraft>(planConfig.name, planConfig.resourceGroupName)

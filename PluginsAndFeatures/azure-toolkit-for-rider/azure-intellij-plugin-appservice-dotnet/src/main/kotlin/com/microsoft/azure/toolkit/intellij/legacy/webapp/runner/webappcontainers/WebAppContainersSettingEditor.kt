@@ -10,17 +10,14 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBIntSpinner
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.*
-import com.microsoft.azure.toolkit.ide.appservice.webapp.model.WebAppConfig
 import com.microsoft.azure.toolkit.intellij.common.AzureContainerRegistryComboBox
 import com.microsoft.azure.toolkit.intellij.common.ContainerRegistryModel
 import com.microsoft.azure.toolkit.intellij.common.dockerContainerRegistryComboBox
-import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig
-import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppDockerRuntime
 import com.microsoft.azure.toolkit.lib.common.model.Region
-import com.microsoft.azure.toolkit.lib.common.model.Subscription
-import com.microsoft.azure.toolkit.lib.resource.ResourceGroupConfig
 import javax.swing.JLabel
 import javax.swing.JPanel
 
@@ -70,39 +67,20 @@ class WebAppContainersSettingEditor(private val project: Project) : SettingsEdit
     override fun resetEditorFrom(configuration: WebAppContainersConfiguration) {
         val state = configuration.state ?: return
 
-        if (state.resourceId.isNullOrEmpty() && state.webAppName.isNullOrEmpty()) return
-
-        val subscription = Subscription(requireNotNull(state.subscriptionId))
         val region = if (state.region.isNullOrEmpty()) null else Region.fromName(requireNotNull(state.region))
-        val resourceGroupName = state.resourceGroupName
-        val resourceGroup = ResourceGroupConfig
-            .builder()
-            .subscriptionId(subscription.id)
-            .name(resourceGroupName)
-            .region(region)
-            .build()
         val pricingTier = PricingTier(state.pricingTier, state.pricingSize)
-        val plan = AppServicePlanConfig
-            .builder()
-            .subscriptionId(subscription.id)
-            .name(state.appServicePlanName)
-            .resourceGroupName(resourceGroupName)
-            .region(region)
-            .os(OperatingSystem.LINUX)
-            .pricingTier(pricingTier)
-            .build()
-        val configBuilder = WebAppConfig
-            .builder()
-            .name(state.webAppName)
-            .resourceId(state.resourceId)
-            .subscription(subscription)
-            .resourceGroup(resourceGroup)
-            .servicePlan(plan)
-            .runtime(WebAppDockerRuntime.INSTANCE)
-        val webAppConfig =
-            if (state.resourceId.isNullOrEmpty()) configBuilder.region(region).pricingTier(pricingTier).build()
-            else configBuilder.build()
 
+        val webAppConfig = AppServiceConfig
+            .builder()
+            .appName(state.webAppName)
+            .subscriptionId(state.subscriptionId)
+            .resourceGroup(state.resourceGroupName)
+            .region(region)
+            .servicePlanName(state.appServicePlanName)
+            .servicePlanResourceGroup(state.appServicePlanResourceGroupName)
+            .pricingTier(pricingTier)
+            .runtime(RuntimeConfig.fromRuntime(WebAppDockerRuntime.INSTANCE))
+            .build()
         webAppContainersComboBox.component.value = webAppConfig
 
         val imageNameParts = state.imageRepository?.let {
@@ -128,15 +106,14 @@ class WebAppContainersSettingEditor(private val project: Project) : SettingsEdit
         val portValue = portSpinner.component.number
 
         state.apply {
-            resourceId = webappConfig?.resourceId
-            webAppName = webappConfig?.name
+            webAppName = webappConfig?.appName
             subscriptionId = webappConfig?.subscriptionId
-            resourceGroupName = webappConfig?.resourceGroup?.name
+            resourceGroupName = webappConfig?.resourceGroup
             region = webappConfig?.region?.toString()
-            appServicePlanName = webappConfig?.servicePlan?.name
-            appServicePlanResourceGroupName = webappConfig?.servicePlan?.resourceGroupName
-            pricingTier = webappConfig?.servicePlan?.pricingTier?.tier
-            pricingSize = webappConfig?.servicePlan?.pricingTier?.size
+            appServicePlanName = webappConfig?.servicePlanName
+            appServicePlanResourceGroupName = webappConfig?.servicePlanResourceGroup
+            pricingTier = webappConfig?.pricingTier?.tier
+            pricingSize = webappConfig?.pricingTier?.size
             imageRepository = "${registry?.address}/$repository"
             imageTag = tag
             port = portValue

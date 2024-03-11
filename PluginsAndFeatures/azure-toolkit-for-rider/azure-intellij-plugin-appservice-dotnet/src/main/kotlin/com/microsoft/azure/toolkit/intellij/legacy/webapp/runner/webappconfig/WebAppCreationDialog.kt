@@ -13,16 +13,18 @@ import com.microsoft.azure.toolkit.intellij.common.ConfigDialog
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdvancedPanel
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoBasicPanel
 import com.microsoft.azure.toolkit.intellij.legacy.utils.removeInvalidCharacters
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppConfigProducer
 import com.microsoft.azure.toolkit.lib.Azure
+import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.auth.IAccountActions
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
 import javax.swing.JPanel
 
-class WebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(project), Disposable {
-    private val basicPanel: AppServiceInfoBasicPanel<WebAppConfig>
-    private val advancedPanel: AppServiceInfoAdvancedPanel<WebAppConfig>
+class WebAppCreationDialog(project: Project) : ConfigDialog<AppServiceConfig>(project), Disposable {
+    private val basicPanel: AppServiceInfoBasicPanel<AppServiceConfig>
+    private val advancedPanel: AppServiceInfoAdvancedPanel<AppServiceConfig>
     private val panel: JPanel
 
     init {
@@ -36,13 +38,13 @@ class WebAppCreationDialog(project: Project) : ConfigDialog<WebAppConfig>(projec
         }
 
         val projectName = removeInvalidCharacters(project.name)
-        basicPanel = AppServiceInfoBasicPanel(selectedSubscriptions[0]) {
-            WebAppConfig.getWebAppDefaultConfig(projectName)
+        basicPanel = AppServiceInfoBasicPanel {
+            WebAppConfigProducer.getInstance().generateDefaultConfig()
         }
         Disposer.register(this, basicPanel)
 
         advancedPanel = AppServiceInfoAdvancedPanel(projectName) {
-            WebAppConfig.getWebAppDefaultConfig(projectName)
+            AppServiceConfig.builder().build()
         }
         Disposer.register(this, advancedPanel)
 

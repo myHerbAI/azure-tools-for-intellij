@@ -35,7 +35,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: microsoft/azure-maven-plugins
-          ref: endgame-202312
+          ref: endgame-202401
           path: azure-maven-plugins
 
       # Check out current repository
@@ -333,13 +333,6 @@ jobs:
       # Check out current repository
       - name: Fetch Sources
         uses: actions/checkout@v4
-
-      # Set up Java environment for the next steps
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: zulu
-          java-version: 17
 
       # Remove old release drafts by using the curl request for the available releases with a draft flag
       - name: Remove Old Release Drafts
