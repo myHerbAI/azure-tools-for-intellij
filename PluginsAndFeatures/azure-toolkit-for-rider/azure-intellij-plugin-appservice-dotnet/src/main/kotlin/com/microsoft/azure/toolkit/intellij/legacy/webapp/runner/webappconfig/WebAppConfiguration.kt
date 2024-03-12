@@ -11,7 +11,7 @@ import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.legacy.utils.*
-import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase
 
 class WebAppConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
     LocatableConfigurationBase<WebAppConfigurationOptions>(project, factory, name) {
@@ -59,7 +59,7 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
         }
     }
 
-    fun setWebApp(webApp: WebApp) {
+    fun setWebApp(webApp: WebAppBase<*,*,*>) {
         getState()?.apply {
             webAppName = webApp.name
             subscriptionId = webApp.subscriptionId

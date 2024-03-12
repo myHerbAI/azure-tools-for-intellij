@@ -18,6 +18,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.tree.TreeVisitor;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import com.intellij.util.ui.tree.TreeUtil;
+import com.microsoft.azure.toolkit.ide.common.component.ActionNode;
 import com.microsoft.azure.toolkit.ide.common.component.Node;
 import com.microsoft.azure.toolkit.ide.common.favorite.Favorite;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
@@ -192,7 +193,7 @@ public class TreeUtils {
         return null;
     }
 
-    private static int getHoverInlineActionIndex(@Nonnull JTree tree, MouseEvent e, int actionCount) {
+    public static int getHoverInlineActionIndex(@Nonnull JTree tree, MouseEvent e, int actionCount) {
         final JBScrollPane scrollPane = (JBScrollPane) tree.getClientProperty(KEY_SCROLL_PANE);
         if (Objects.isNull(scrollPane)) {
             return -1;
@@ -210,7 +211,7 @@ public class TreeUtils {
         return index < actionCount ? index : -1;
     }
 
-    private static IntellijAzureActionManager.ActionGroupWrapper toIntellijActionGroup(IActionGroup actions) {
+    public static IntellijAzureActionManager.ActionGroupWrapper toIntellijActionGroup(IActionGroup actions) {
         final ActionManager am = ActionManager.getInstance();
         if (actions instanceof IntellijAzureActionManager.ActionGroupWrapper) {
             return (IntellijAzureActionManager.ActionGroupWrapper) actions;
@@ -224,8 +225,15 @@ public class TreeUtils {
         renderer.setToolTipText("double click to load more.");
     }
 
+    public static void renderActionNode(JTree tree, @Nonnull Tree.TreeNode<?> node, boolean selected, @Nonnull SimpleColoredComponent renderer) {
+        final ActionNode<?> inner = (ActionNode<?>) node.getInner();
+        final SimpleTextAttributes attributes = SimpleTextAttributes.LINK_ATTRIBUTES;
+        renderer.append(inner.getLabel(), attributes);
+        renderer.setToolTipText(inner.buildDescription());
+    }
+
     public static void renderMyTreeNode(JTree tree, @Nonnull Tree.TreeNode<?> node, boolean selected, @Nonnull SimpleColoredComponent renderer) {
-        final Node.View view = node.inner.getView();
+        final Node.View view = node.getInner().getView();
         renderer.setIcon(Optional.ofNullable(view.getIcon()).map(IntelliJAzureIcons::getIcon).orElseGet(() -> IntelliJAzureIcons.getIcon(AzureIcons.Resources.GENERIC_RESOURCE)));
         final Object highlighted = tree.getClientProperty(HIGHLIGHTED_RESOURCE_KEY);
         final boolean toHighlightThisNode = Optional.ofNullable(highlighted).filter(h -> Objects.equals(node.getUserObject(), h)).isPresent();
@@ -270,6 +278,8 @@ public class TreeUtils {
         if (resource instanceof Favorite) {
             resource = ((Favorite) resource).getResource();
             root = r.getChildCount() > 0 ? (DefaultMutableTreeNode) r.getFirstChild() : null; // favorite root
+        } else if (resource instanceof AzService) {
+            root = r.getChildCount() > 1 ? ((DefaultMutableTreeNode) r.getChildAt(2)) : null; // types root
         }
         if (Objects.nonNull(resource)) {
             selectResourceNode(tree, resource, root);
@@ -286,6 +296,9 @@ public class TreeUtils {
 
             @Override
             public boolean contains(final TreePath path) {
+                if (resource instanceof AzService) {
+                    return false;
+                }
                 final Object current = ((DefaultMutableTreeNode) path.getLastPathComponent()).getUserObject();
                 final ResourceId resourceId = ResourceId.fromString(resource.getId() + "DUMMY");
                 if (current instanceof AzService s && s.getName().equalsIgnoreCase(resourceId.providerNamespace())) {

@@ -1,0 +1,16 @@
+<idea-plugin>
+    <actions>
+        <action id="AzureToolkit.AddKubernetesContext"
+                class="com.microsoft.azure.toolkit.intellij.containerservice.actions.KubernetesAddContextFromAzureAction"
+                description="Deploy and manage production-grade applications using a managed version of Kubernetes, the leading orchestrator for containerized workloads. Azure handles the orchestrator and infrastructure, leaving you to focus on the important part — your applications."
+                icon="/icons/Microsoft.ContainerService/default.svg"
+                text="Azure Kubernetes Service (AKS)...">
+            <add-to-group relative-to-action="Kubernetes.AddContext" anchor="after" group-id="Kubernetes.NewContexts"/>
+            <add-to-group group-id="AzureToolkit.ServiceView.AddAzureService"/>
+        </action>
+    </actions>
+
+    <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
+        <actions implementation="com.microsoft.azure.toolkit.intellij.containerservice.IntelliJContainerServiceActionsContributorForKubernetesPlugin"/>
+    </extensions>
+</idea-plugin>

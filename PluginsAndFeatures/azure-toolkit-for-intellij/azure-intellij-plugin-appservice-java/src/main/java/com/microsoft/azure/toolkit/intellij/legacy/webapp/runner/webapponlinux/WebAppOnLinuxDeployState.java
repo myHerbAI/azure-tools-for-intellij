@@ -29,6 +29,7 @@ import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
 import com.microsoft.azuretools.telemetrywrapper.TelemetryManager;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
@@ -98,10 +99,12 @@ public class WebAppOnLinuxDeployState extends AzureRunProfileState<AppServiceApp
 
     protected Map<String, String> getTelemetryMap() {
         final Map<String, String> telemetryMap = new HashMap<>();
-        telemetryMap.put("SubscriptionId", deployModel.getSubscriptionId());
+        final AppServiceConfig appServiceConfig = configuration.getAppServiceConfig();
+        telemetryMap.put("SubscriptionId", StringUtils.firstNonBlank(appServiceConfig.subscriptionId(), deployModel.getSubscriptionId()));
         telemetryMap.put("CreateNewApp", String.valueOf(deployModel.isCreatingNewWebAppOnLinux()));
         telemetryMap.put("CreateNewSP", String.valueOf(deployModel.isCreatingNewAppServicePlan()));
         telemetryMap.put("CreateNewRGP", String.valueOf(deployModel.isCreatingNewResourceGroup()));
+        telemetryMap.putAll(OperationContext.current().getTelemetryProperties());
         return telemetryMap;
     }
 

@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployWebAppTask
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot
+import com.microsoft.azure.toolkit.lib.common.model.AzResource
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
 import java.awt.Desktop
@@ -53,6 +54,13 @@ class WebAppRunState(
         val config = createDotNetAppServiceConfig(publishableProject, options)
         val createTask = CreateOrUpdateDotNetWebAppTask(config)
         val deployTarget = createTask.execute()
+
+        if (deployTarget is AzResource.Draft<*, *>) {
+            deployTarget.reset()
+        }
+        webAppConfiguration.state?.apply {
+            appSettings = deployTarget.appSettings ?: mutableMapOf()
+        }
 
         val zipFile = ArtifactService.getInstance(project)
             .prepareArtifact(

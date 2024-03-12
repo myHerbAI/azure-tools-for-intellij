@@ -59,6 +59,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
     public static final Action.Id<Object> CREATE = AzResource.CREATE_RESOURCE;
     public static final Action.Id<AzService> CREATE_IN_PORTAL = Action.Id.of("user/$resource.create_resource_in_portal.type");
     public static final Action.Id<AbstractAzResource<?, ?, ?>> PIN = Action.Id.of("user/$resource.pin");
+    public static final Action.Id<AbstractAzResource<?, ?, ?>> OPEN_IN_SERVICES_VIEW = Action.Id.of("user/$resource.open_in_services_view.resource");
     public static final Action.Id<String> OPEN_URL = Action.Id.of("user/common.open_url.url");
     public static final Action.Id<String> COPY_STRING = Action.Id.of("user/common.copy_string");
     public static final Action.Id<Object> OPEN_AZURE_SETTINGS = Action.OPEN_AZURE_SETTINGS;
@@ -73,6 +74,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
     public static final Action.Id<ServiceLinker> FOCUS_ON_CONNECTED_SERVICE = Action.Id.of("user/common.focus_on_connected_service");
     public static final Action.Id<ServiceLinkerModule> CREATE_SERVICE_LINKER_IN_PORTAL = Action.Id.of("user/$resource.create_service_linker_in_portal");
     public static final Action.Id<AbstractAzService<?, ?>> GETTING_STARTED = Action.Id.of("user/$resource.open_getting_start.service");
+    public static final Action.Id<String> INVOKE_COMMAND_IN_TERMINAL = Action.Id.of("user/common.invoke_command_in_terminal");
     public static final Action.Id<Object> BROWSE_AZURE_SAMPLES = Action.Id.of("user/samples.browse_samples");
     public static final Action.Id<String> SEARCH_INSTALLED_PLUGIN = Action.Id.of("user/common.search_installed_plugin.keyword");
     public static final Action.Id<String> SEARCH_MARKETPLACE_PLUGIN = Action.Id.of("user/common.search_marketplace_plugin.keyword");
@@ -157,7 +159,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withIdParam(AzResource::getName)
             .withShortcut("control alt O")
             .visibleWhen(s -> s instanceof AzResource)
-            .withHandler(s -> am.getAction(OPEN_URL).handle(s.getPortalUrl()))
+            .withHandler((s, e) -> am.getAction(OPEN_URL).handle(s.getPortalUrl(), e))
             .register(am);
 
         new Action<>(OPEN_URL)
@@ -241,10 +243,10 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withLabel("Create In Azure Portal")
             .withIcon(AzureIcons.Action.CREATE.getIconPath())
             .visibleWhen(s -> s instanceof AzService)
-            .withHandler(s -> {
+            .withHandler((s, e) -> {
                 final IAccount account = Azure.az(IAzureAccount.class).account();
                 final String url = String.format("%s/#create/%s", account.getPortalUrl(), s.getName());
-                am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(url);
+                am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(url, e);
             })
             .withShortcut(shortcuts.add())
             .register(am);
@@ -275,6 +277,11 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withAuthRequired(false)
             .register(am);
 
+        new Action<>(INVOKE_COMMAND_IN_TERMINAL)
+            .withLabel("Invoke command in terminal")
+            .withAuthRequired(false)
+            .register(am);
+
         new Action<>(FOCUS_ON_CONNECTED_SERVICE)
             .withLabel(s -> "Focus on Connected Resource")
             .withIcon(s -> AzureIcons.Connector.FOCUS_ON_CONNECTED_SERVICE.getIconPath())
@@ -295,7 +302,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withLabel(s -> "Create In Azure Portal")
             .withIcon(AzureIcons.Action.CREATE.getIconPath())
             .visibleWhen(s -> s instanceof ServiceLinkerModule)
-            .withHandler((r) -> {
+            .withHandler((r, e) -> {
                 if (r.getParent() instanceof SpringCloudDeployment) {
                     final SpringCloudApp app = ((SpringCloudDeployment) r.getParent()).getParent();
                     final String appUrl = app.getParent().getPortalUrl();
@@ -304,7 +311,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
                     return;
                 }
                 final String parentUrl = r.getParent().getPortalUrl();
-                am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(String.format("%s/serviceConnector", parentUrl));
+                am.getAction(ResourceCommonActionsContributor.OPEN_URL).handle(String.format("%s/serviceConnector", parentUrl), e);
             })
             .register(am);
 
@@ -374,6 +381,13 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
         new Action<>(ENABLE_PLUGIN_AND_RESTART)
             .withLabel("Enable plugin and Restart")
             .withIdParam(s -> s)
+            .withAuthRequired(false)
+            .register(am);
+
+        new Action<>(OPEN_IN_SERVICES_VIEW)
+            .withIcon(AzureIcons.Common.SERVICES.getIconPath())
+            .withLabel("Open in \"Services\" View")
+            .withIdParam(AbstractAzResource::getName)
             .withAuthRequired(false)
             .register(am);
     }

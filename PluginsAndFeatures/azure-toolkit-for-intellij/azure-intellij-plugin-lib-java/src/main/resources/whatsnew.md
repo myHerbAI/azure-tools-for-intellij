@@ -1,5 +1,23 @@
 <!-- Version: 3.83.0 -->
 # What's new in Azure Toolkit for IntelliJ
+
+## 3.86.1
+### Fixed
+- [#8206](https://github.com/microsoft/azure-tools-for-java/issues/8206): After saving the web app run configuration, the app settings will be cleared.
+
+## 3.86.0
+### Added
+- Support for managing Azure resources in integrated `Services` view.     
+- Feature recommendation based on user project dependencies.
+
+### Updated
+- Startup notifications are quequed to prevent distraction.
+
+### Fixed
+- The link in warning for java 21 goes to a wrong page.
+- Function fails running using cli downloaded with the plugin.
+- [#8139](https://github.com/microsoft/azure-tools-for-java/issues/8139): NPE at web app configuration validation.
+
 ## 3.85.0
 ### Added
 - Support for containerized FunctionApps (based on Azure Container Apps) 

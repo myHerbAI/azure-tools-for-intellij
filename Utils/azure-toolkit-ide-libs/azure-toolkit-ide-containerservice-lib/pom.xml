@@ -5,7 +5,7 @@
     <parent>
         <artifactId>azure-toolkit-ide-libs</artifactId>
         <groupId>com.microsoft.azure</groupId>
-        <version>0.41.0</version>
+        <version>0.42.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -25,6 +25,13 @@
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-toolkit-ide-common-lib</artifactId>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.fabric8/kubernetes-client -->
+        <!-- https://mvnrepository.com/artifact/io.kubernetes/client-java -->
+        <dependency>
+            <groupId>io.kubernetes</groupId>
+            <artifactId>client-java</artifactId>
+            <version>19.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
