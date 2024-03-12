@@ -26,6 +26,7 @@ import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployFunctionAppTask
+import com.microsoft.azure.toolkit.lib.common.model.AzResource
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
 
@@ -52,6 +53,13 @@ class FunctionDeploymentState(
         val config = creatDotNetFunctionAppConfig(publishableProject, options)
         val createTask = CreateOrUpdateDotNetFunctionAppTask(config)
         val deployTarget = createTask.execute()
+
+        if (deployTarget is AzResource.Draft<*, *>) {
+            deployTarget.reset()
+        }
+        functionDeploymentConfiguration.state?.apply {
+            appSettings = deployTarget.appSettings ?: mutableMapOf()
+        }
 
         val artifactDirectory = ArtifactService.getInstance(project)
             .prepareArtifact(

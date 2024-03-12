@@ -11,7 +11,7 @@ import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.legacy.utils.*
-import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
 
 class FunctionDeploymentConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
     LocatableConfigurationBase<FunctionDeploymentConfigurationOptions>(project, factory, name) {
@@ -59,7 +59,7 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
         }
     }
 
-    fun setFunctionApp(functionApp: FunctionApp) {
+    fun setFunctionApp(functionApp: FunctionAppBase<*, *, *>) {
         getState()?.apply {
             functionAppName = functionApp.name
             subscriptionId = functionApp.subscriptionId
