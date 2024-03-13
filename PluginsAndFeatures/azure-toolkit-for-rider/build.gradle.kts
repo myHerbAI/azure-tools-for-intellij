@@ -9,8 +9,8 @@ fun properties(key: String) = providers.gradleProperty(key)
 fun environment(key: String) = providers.environmentVariable(key)
 
 plugins {
-    kotlin("jvm") version "1.9.22"
-    kotlin("plugin.serialization") version "1.9.22"
+    kotlin("jvm") version "1.9.23"
+    kotlin("plugin.serialization") version "1.9.23"
     // https://search.maven.org/artifact/com.jetbrains.rd/rd-gen
     id("com.jetbrains.rdgen") version "2024.1.1"
     id("org.jetbrains.intellij") version "1.17.2"
