@@ -9,15 +9,16 @@ fun properties(key: String) = providers.gradleProperty(key)
 fun environment(key: String) = providers.environmentVariable(key)
 
 plugins {
-    kotlin("jvm") version "1.9.20"
-    kotlin("plugin.serialization") version "1.9.20"
+    kotlin("jvm") version "1.9.22"
+    kotlin("plugin.serialization") version "1.9.22"
     // https://search.maven.org/artifact/com.jetbrains.rd/rd-gen
-    id("com.jetbrains.rdgen") version "2023.3.0"
-    id("org.jetbrains.intellij") version "1.15.0"
+    id("com.jetbrains.rdgen") version "2024.1.1"
+    id("org.jetbrains.intellij") version "1.17.2"
     id("me.filippov.gradle.jvm.wrapper") version "0.11.0"
     id("io.freefair.aspectj.post-compile-weaving") version "6.5.1"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
-    id("org.jetbrains.changelog") version "2.1.2"
+    id("org.jetbrains.changelog") version "2.2.0"
+    id("org.jetbrains.qodana") version "2023.3.1"
 }
 
 group = properties("pluginGroup").get()
@@ -292,6 +293,6 @@ tasks {
         // The pluginVersion is based on the SemVer (https://semver.org) and supports pre-release labels, like 2.1.7-alpha.3
         // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
         // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
-        channels = properties("pluginVersion").map { listOf(it.split('-').getOrElse(1) { "default" }.split('.').first()) }
+        channels = properties("pluginVersion").map { listOf(it.substringAfter('-', "").substringBefore('.').ifEmpty { "default" }) }
     }
 }
