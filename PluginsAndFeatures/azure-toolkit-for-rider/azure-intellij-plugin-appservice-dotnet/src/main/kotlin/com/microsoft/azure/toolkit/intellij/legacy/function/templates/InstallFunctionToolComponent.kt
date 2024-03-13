@@ -11,16 +11,16 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.rd.util.withBackgroundContext
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
+import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.dsl.builder.panel
-import com.jetbrains.rd.util.reactive.IProperty
+import com.intellij.util.ui.JBInsets
 import com.jetbrains.rider.ui.components.base.Viewable
 import com.microsoft.azure.toolkit.intellij.legacy.function.FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsInfoProvider
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class InstallFunctionToolComponent(private val validationError: IProperty<String?>, reloadTemplates: Runnable) :
-    Viewable<JComponent> {
+class InstallFunctionToolComponent(reloadTemplates: Runnable) : Viewable<JComponent> {
 
     private val panel: JPanel
     private val isCoreToolsFeedEnabled = Registry.`is`("azure.function_app.core_tools.feed.enabled")
@@ -45,7 +45,6 @@ class InstallFunctionToolComponent(private val validationError: IProperty<String
                                 )
                         }
                     }
-                    validationError.set(null)
                     reloadTemplates.run()
                 }
             }.visible(isCoreToolsFeedEnabled)
@@ -57,11 +56,10 @@ class InstallFunctionToolComponent(private val validationError: IProperty<String
                         "com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionConfigurable",
                         ""
                     )
-                    validationError.set(null)
                     reloadTemplates.run()
                 }
             }
-        }
+        }.apply { border = IdeBorderFactory.createEmptyBorder(JBInsets(10, 20, 10, 20)) }
     }
 
     override fun getView() = panel

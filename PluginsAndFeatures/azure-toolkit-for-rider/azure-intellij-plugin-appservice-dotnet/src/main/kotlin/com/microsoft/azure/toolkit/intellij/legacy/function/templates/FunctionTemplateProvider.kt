@@ -9,25 +9,19 @@ package com.microsoft.azure.toolkit.intellij.legacy.function.templates
 import com.intellij.openapi.command.impl.DummyProject
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.jetbrains.rd.util.lifetime.Lifetime
-import com.jetbrains.rd.util.reactive.IOptProperty
-import com.jetbrains.rd.util.reactive.OptProperty
+import com.jetbrains.rd.util.reactive.IProperty
 import com.jetbrains.rd.util.reactive.Property
-import com.jetbrains.rider.projectView.actions.projectTemplating.RiderProjectTemplateProvider
-import com.jetbrains.rider.projectView.actions.projectTemplating.RiderProjectTemplateState
-import com.jetbrains.rider.projectView.actions.projectTemplating.impl.ProjectTemplateDialogContext
+import com.jetbrains.rider.projectView.projectTemplates.NewProjectDialogContext
+import com.jetbrains.rider.projectView.projectTemplates.providers.ProjectTemplateProvider
+import com.jetbrains.rider.projectView.projectTemplates.templateTypes.ProjectTemplateType
 
-class FunctionTemplateProvider : RiderProjectTemplateProvider {
+class FunctionTemplateProvider : ProjectTemplateProvider {
 
     override val isReady = Property(false)
 
-    override fun load(
-        lifetime: Lifetime,
-        context: ProjectTemplateDialogContext
-    ): IOptProperty<RiderProjectTemplateState> {
-        val result = OptProperty<RiderProjectTemplateState>()
-
-        val state = RiderProjectTemplateState(arrayListOf(), arrayListOf())
-        result.set(state)
+    override fun load(lifetime: Lifetime, context: NewProjectDialogContext): IProperty<Set<ProjectTemplateType>?> {
+        isReady.set(false)
+        val result = Property<Set<ProjectTemplateType>?>(setOf())
 
         val templateManager = FunctionTemplateManager.getInstance()
 
@@ -35,15 +29,13 @@ class FunctionTemplateProvider : RiderProjectTemplateProvider {
             runWithModalProgressBlocking(DummyProject.getInstance(), "Reloading Azure templates...") {
                 templateManager.tryReload()
             }
-            isReady.set(true)
-        } else {
-            isReady.set(true)
         }
 
         if (!templateManager.areRegistered()) {
-            state.new.add(InstallFunctionProjectTemplate())
+            result.set(setOf(InstallFunctionProjectTemplate()))
         }
 
+        isReady.set(true)
         return result
     }
 }
