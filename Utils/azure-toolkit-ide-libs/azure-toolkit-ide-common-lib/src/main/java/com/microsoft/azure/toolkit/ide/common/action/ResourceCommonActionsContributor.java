@@ -86,6 +86,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
 
     public static final String SERVICE_LINKER_ACTIONS = "actions.resource.service_linker";
     public static final String SERVICE_LINKER_MODULE_ACTIONS = "actions.resource.service_linker_module";
+    public static final String CONNECTION_STRING_RESOURCE_ACTIONS = "actions.connection_string_resource";
     public static final String RESOURCE_GROUP_CREATE_ACTIONS = "actions.resource.create.group";
 
     @Override
@@ -411,6 +412,13 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             ResourceCommonActionsContributor.REFRESH,
             ResourceCommonActionsContributor.CREATE_SERVICE_LINKER_IN_PORTAL
         ));
+
+        final ActionGroup connectionStringActionGroup = new ActionGroup(
+            ResourceCommonActionsContributor.REFRESH,
+            ResourceCommonActionsContributor.OPEN_AZURE_REFERENCE_BOOK,
+            ResourceCommonActionsContributor.BROWSE_SERVICE_AZURE_SAMPLES
+        );
+        am.registerGroup(CONNECTION_STRING_RESOURCE_ACTIONS, connectionStringActionGroup);
     }
 
     public int getOrder() {
