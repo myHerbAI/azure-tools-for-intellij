@@ -16,12 +16,11 @@ import java.awt.*;
 public class ConnectionStringTypeComboBox extends ComboBox<String> {
 
     public static final String STORAGE = "Microsoft.Storage";
-    public static final String KEYVAULT = "Microsoft.KeyVault";
-    public static final String COSMOS_MONGO = "Microsoft.DocumentDB/mongodbDatabases";
+//    public static final String COSMOS_MONGO = "Microsoft.DocumentDB/mongodbDatabases";
 
     public ConnectionStringTypeComboBox() {
         super();
-        this.setModel(new DefaultComboBoxModel<>(new String[]{STORAGE, KEYVAULT, COSMOS_MONGO}));
+        this.setModel(new DefaultComboBoxModel<>(new String[]{STORAGE}));
         this.setRenderer(new MyRenderer());
     }
 
@@ -30,19 +29,9 @@ public class ConnectionStringTypeComboBox extends ComboBox<String> {
         public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             final String type = String.valueOf(value);
-            final String text = switch (type) {
-                case STORAGE -> "Azure Storage accounts";
-                case KEYVAULT -> "Azure Key vaults";
-                case COSMOS_MONGO -> "Azure Cosmos DB for MongoDB";
-                default -> type;
-            };
+            final String text = "Azure Storage account";
             this.setText(text);
-            final Icon icon = switch (type) {
-                case STORAGE -> IntelliJAzureIcons.getIcon(AzureIcons.StorageAccount.MODULE);
-                case KEYVAULT -> IntelliJAzureIcons.getIcon(AzureIcons.KeyVault.MODULE);
-                case COSMOS_MONGO -> IconLoader.getIcon("/icons/Microsoft.DocumentDB/databaseAccounts/mongodbDatabases/default.svg", ConnectionStringTypeComboBox.class);
-                default -> IntelliJAzureIcons.getIcon(AzureIcons.Common.AZURE);
-            };
+            final Icon icon = IntelliJAzureIcons.getIcon(AzureIcons.StorageAccount.MODULE);
             this.setIcon(icon);
             return this;
         }
