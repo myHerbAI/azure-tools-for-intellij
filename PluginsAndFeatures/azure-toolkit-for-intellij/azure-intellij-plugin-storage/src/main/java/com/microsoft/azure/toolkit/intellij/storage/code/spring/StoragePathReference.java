@@ -16,6 +16,7 @@ import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.storage.IStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
 
@@ -97,7 +98,7 @@ public class StoragePathReference extends PsiReferenceBase<PsiElement> {
 
         @Override
         public @Nullable String getLocationString() {
-            final StorageAccount account = StoragePathCompletionProvider.getStorageAccount(this.file);
+            final IStorageAccount account = StoragePathCompletionProvider.getStorageAccount(this.file);
             if (Objects.nonNull(account)) {
                 return this.file.getResourceGroupName() + "/" + account.getName();
             } else {

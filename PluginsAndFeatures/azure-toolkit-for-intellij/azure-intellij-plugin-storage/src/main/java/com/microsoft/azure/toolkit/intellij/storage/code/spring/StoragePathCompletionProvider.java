@@ -32,11 +32,11 @@ import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountRes
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
+import com.microsoft.azure.toolkit.lib.storage.IStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.blob.BlobContainer;
 import com.microsoft.azure.toolkit.lib.storage.blob.BlobContainerModule;
@@ -96,7 +96,7 @@ public class StoragePathCompletionProvider extends CompletionProvider<Completion
                     .withBoldness(true)
                     .withCaseSensitivity(false)
                     .withTypeText(file.getResourceTypeName())
-                    .withTailText(" " + Optional.ofNullable(getStorageAccount(file)).map(AbstractAzResource::getName).orElse(""))
+                    .withTailText(" " + Optional.ofNullable(getStorageAccount(file)).map(IStorageAccount::getName).orElse(""))
                     .withIcon(IntelliJAzureIcons.getIcon(getFileIcon(file)));
                 for (final StorageFile file : files) {
                     result.addElement(builder.apply(file, file.getName()));
@@ -176,7 +176,7 @@ public class StoragePathCompletionProvider extends CompletionProvider<Completion
     }
 
     @Nullable
-    public static StorageAccount getStorageAccount(final StorageFile file) {
+    public static IStorageAccount getStorageAccount(final StorageFile file) {
         if (file instanceof IBlobFile) {
             return ((IBlobFile) file).getContainer().getParent();
         } else if (file instanceof IShareFile) {
