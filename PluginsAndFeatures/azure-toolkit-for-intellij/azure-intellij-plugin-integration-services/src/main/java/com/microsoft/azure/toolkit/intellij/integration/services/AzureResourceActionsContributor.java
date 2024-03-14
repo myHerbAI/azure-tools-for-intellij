@@ -19,8 +19,8 @@ import java.util.Objects;
 
 public class AzureResourceActionsContributor implements IActionsContributor {
     public static final int INITIALIZE_ORDER = ResourceCommonActionsContributor.INITIALIZE_ORDER + 1;
-    public static final Action.Id<Azure> ADD_RESOURCE = Action.Id.of("user/servicesview.add_resource");
-    public static final Action.Id<Azure> CONNECT_RESOURCE = Action.Id.of("user/servicesview.connect_resource");
+    public static final Action.Id<Object> ADD_RESOURCE = Action.Id.of("user/servicesview.add_resource");
+    public static final Action.Id<Object> CONNECT_RESOURCE = Action.Id.of("user/servicesview.connect_resource");
     public static final Action.Id<Azure> REFRESH = Action.Id.of("user/servicesview.refresh_all");
     public static final Action.Id<AbstractAzResource<?, ?, ?>> REMOVE_RESOURCE = Action.Id.of("user/servicesview.remove_resource");
     public static final String CONNECTION_STRING_RESOURCES = "Connection String Resources";

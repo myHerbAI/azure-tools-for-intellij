@@ -83,13 +83,13 @@ public class AzureServiceViewContributor implements ServiceViewContributor<NodeV
         final List<? extends AbstractAzResource<?, ?, ?>> connectionStringResources = loadConnectionStringResources();
 
         final List<AbstractAzResource<?, ?, ?>> resources = new ArrayList<>(connectionStringResources);
-        final ActionNode<Azure> connectResource = new ActionNode<>(AzureResourceActionsContributor.CONNECT_RESOURCE);
+        final ActionNode<Object> connectResource = new ActionNode<>(AzureResourceActionsContributor.CONNECT_RESOURCE);
         final boolean notSignedIn = !Azure.az(AzureAccount.class).isLoggedIn();
         if (resources.isEmpty()) {
             if (Azure.az(AzureAccount.class).isLoggedIn()) {
                 resources.addAll(loadNonConnectionStringResources());
                 if (CollectionUtils.isEmpty(resources)) {
-                    final ActionNode<Azure> addResource = new ActionNode<>(AzureResourceActionsContributor.ADD_RESOURCE);
+                    final ActionNode<Object> addResource = new ActionNode<>(AzureResourceActionsContributor.ADD_RESOURCE);
                     return Arrays.asList(addResource, connectResource);
                 }
             } else {
