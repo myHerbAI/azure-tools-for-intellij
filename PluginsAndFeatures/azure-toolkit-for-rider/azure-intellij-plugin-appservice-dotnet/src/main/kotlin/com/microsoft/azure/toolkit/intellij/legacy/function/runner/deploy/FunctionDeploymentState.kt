@@ -19,7 +19,6 @@ import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileState
 import com.microsoft.azure.toolkit.intellij.legacy.getFunctionStack
-import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot
 import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType
@@ -99,16 +98,11 @@ class FunctionDeploymentState(
         storageAccountName(options.storageAccountName)
         storageAccountResourceGroup(options.storageAccountResourceGroup)
         val os = OperatingSystem.fromString(options.operatingSystem)
-        runtime(createRuntimeConfig(os))
         dotnetRuntime = createDotNetRuntimeConfig(publishableProject, os)
         if (pricingTier == PricingTier.CONSUMPTION && os == OperatingSystem.LINUX) {
             options.appSettings[SCM_DO_BUILD_DURING_DEPLOYMENT] = "false"
         }
         appSettings(options.appSettings)
-    }
-
-    private fun createRuntimeConfig(os: OperatingSystem) = RuntimeConfig().apply {
-        os(os)
     }
 
     private fun createDotNetRuntimeConfig(publishableProject: PublishableProjectModel, os: OperatingSystem) =

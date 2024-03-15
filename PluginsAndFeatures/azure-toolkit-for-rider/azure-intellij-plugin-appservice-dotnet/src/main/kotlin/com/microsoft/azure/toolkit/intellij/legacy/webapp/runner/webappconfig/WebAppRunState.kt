@@ -18,7 +18,6 @@ import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileState
 import com.microsoft.azure.toolkit.intellij.legacy.getStackAndVersion
-import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
@@ -104,13 +103,8 @@ class WebAppRunState(
         }
         deploymentSlotConfigurationSource(configurationSource)
         val os = OperatingSystem.fromString(options.operatingSystem)
-        runtime(createRuntimeConfig(os))
         dotnetRuntime = createDotNetRuntimeConfig(publishableProject, os)
         appSettings(options.appSettings)
-    }
-
-    private fun createRuntimeConfig(os: OperatingSystem) = RuntimeConfig().apply {
-        os(os)
     }
 
     private fun createDotNetRuntimeConfig(publishableProject: PublishableProjectModel, os: OperatingSystem) =

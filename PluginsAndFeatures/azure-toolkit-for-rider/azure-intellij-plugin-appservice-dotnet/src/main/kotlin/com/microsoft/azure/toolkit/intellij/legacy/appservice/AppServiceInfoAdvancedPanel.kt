@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.legacy.appservice
@@ -33,8 +33,8 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 
 class AppServiceInfoAdvancedPanel<T>(
-        private val projectName: String,
-        private val defaultConfigSupplier: Supplier<T>
+    private val projectName: String,
+    private val defaultConfigSupplier: Supplier<T>
 ) : JPanel(), Disposable, AzureFormPanel<T> where T : AppServiceConfig {
     companion object {
         private const val NOT_APPLICABLE = "N/A"
@@ -85,11 +85,11 @@ class AppServiceInfoAdvancedPanel<T>(
             group("Project Details") {
                 row("Subscription:") {
                     cell(selectorSubscription)
-                            .align(Align.FILL)
+                        .align(Align.FILL)
                 }
                 row("Resource Group:") {
                     cell(selectorGroup)
-                            .align(Align.FILL)
+                        .align(Align.FILL)
                 }
             }
             group("Instance Details") {
@@ -108,13 +108,13 @@ class AppServiceInfoAdvancedPanel<T>(
                 }.bind(::operatingSystem)
                 row("Region:") {
                     cell(selectorRegion)
-                            .align(Align.FILL)
+                        .align(Align.FILL)
                 }
             }
             group("App Service Plan") {
                 row("Plan:") {
                     cell(selectorServicePlan)
-                            .align(Align.FILL)
+                        .align(Align.FILL)
                 }
                 row("SKU and size:") {
                     cell(textSku)
@@ -167,7 +167,7 @@ class AppServiceInfoAdvancedPanel<T>(
         subscription?.let { selectorSubscription.value = it }
         textName.value = config.appName
         textName.setSubscription(subscription)
-        when (config.runtime.os) {
+        when (config.runtime?.os) {
             OperatingSystem.WINDOWS -> windowsRadioButton.component.isSelected = true
             OperatingSystem.LINUX -> linuxRadioButton.component.isSelected = true
             OperatingSystem.DOCKER -> dockerRadioButton.component.isSelected = true
@@ -177,16 +177,20 @@ class AppServiceInfoAdvancedPanel<T>(
         AzureTaskManager.getInstance().runOnPooledThread {
             selectorRegion.value = config.region
             AppServiceConfig.getResourceGroup(config)?.let { selectorGroup.value = it }
-            AppServiceConfig.getServicePlanConfig(config)?.let { selectorServicePlan.value = it.toResource() }
+            AppServiceConfig.getServicePlanConfig(config)?.let {
+                selectorServicePlan.value =
+                    if (it.subscriptionId != null && it.name != null) it.toResource()
+                    else null
+            }
         }
     }
 
     override fun getInputs(): List<AzureFormInput<*>> = listOf(
-            textName,
-            selectorSubscription,
-            selectorGroup,
-            selectorRegion,
-            selectorServicePlan
+        textName,
+        selectorSubscription,
+        selectorGroup,
+        selectorRegion,
+        selectorServicePlan
     )
 
     override fun setVisible(visible: Boolean) {
@@ -198,7 +202,8 @@ class AppServiceInfoAdvancedPanel<T>(
         if (e.stateChange == ItemEvent.SELECTED) {
             val plan = e.item as? AppServicePlan ?: return
             if (plan.pricingTier == null) return
-            val pricing = if (plan.pricingTier == PricingTier.CONSUMPTION) "Consumption" else "${plan.pricingTier.tier}_${plan.pricingTier.size}"
+            val pricing =
+                if (plan.pricingTier == PricingTier.CONSUMPTION) "Consumption" else "${plan.pricingTier.tier}_${plan.pricingTier.size}"
             textSku.text = pricing
         } else if (e.stateChange == ItemEvent.DESELECTED) {
             textSku.text = NOT_APPLICABLE

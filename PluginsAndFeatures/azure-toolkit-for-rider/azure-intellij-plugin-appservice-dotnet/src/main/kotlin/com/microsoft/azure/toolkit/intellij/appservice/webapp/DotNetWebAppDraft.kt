@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.appservice.webapp
@@ -91,7 +91,7 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
 
         val webApp = withCreate.create()
 
-        val open = AzureActionManager.getInstance().getAction(AppServiceAppBase.OPEN_IN_BROWSER)?.bind(this)
+        val open = AzureActionManager.getInstance().getAction(OPEN_IN_BROWSER)?.bind(this)
         messager.success(AzureString.format("Web App ({0}) is successfully created", name), open)
 
         return webApp
