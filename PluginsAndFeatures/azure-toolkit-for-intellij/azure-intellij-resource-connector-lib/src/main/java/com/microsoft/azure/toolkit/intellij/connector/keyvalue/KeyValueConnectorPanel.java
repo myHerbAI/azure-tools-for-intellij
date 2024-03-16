@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
-package com.microsoft.azure.toolkit.intellij.function.connection;
+package com.microsoft.azure.toolkit.intellij.connector.keyvalue;
 
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public class CommonConnectionCreationPanel implements AzureFormJPanel<Resource<ConnectionTarget>> {
+public class KeyValueConnectorPanel implements AzureFormJPanel<Resource<KeyValueData>> {
     private JLabel lblConnectionName;
     private AzureTextInput txtConnectionName;
     private JLabel lblConnectionString;
@@ -30,21 +30,21 @@ public class CommonConnectionCreationPanel implements AzureFormJPanel<Resource<C
     }
 
     @Override
-    public void setValue(Resource<ConnectionTarget> target) {
+    public void setValue(Resource<KeyValueData> target) {
         this.id = target.getDataId();
         Optional.ofNullable(target.getData()).ifPresent(data -> {
-            this.txtConnectionName.setValue(data.getName());
-            this.txtConnectionString.setValue(data.getConnectionString());
+            this.txtConnectionName.setValue(data.getKey());
+            this.txtConnectionString.setValue(data.getValue());
         });
     }
 
     @Override
-    public Resource<ConnectionTarget> getValue() {
+    public Resource<KeyValueData> getValue() {
         final String id = StringUtils.isEmpty(this.id) ? UUID.randomUUID().toString() : this.id;
         final String connectionName = txtConnectionName.getValue();
         final String connectionString = txtConnectionString.getValue();
-        final ConnectionTarget target = ConnectionTarget.builder().id(id).connectionString(connectionString).name(connectionName).build();
-        return CommonConnectionResource.Definition.INSTANCE.define(target);
+        final KeyValueData target = KeyValueData.builder().id(id).value(connectionString).key(connectionName).build();
+        return KeyValueResource.Definition.INSTANCE.define(target);
     }
 
     @Override
