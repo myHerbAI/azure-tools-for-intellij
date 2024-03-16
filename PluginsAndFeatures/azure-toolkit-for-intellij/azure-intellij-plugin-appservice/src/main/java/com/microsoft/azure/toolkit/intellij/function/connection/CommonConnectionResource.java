@@ -26,31 +26,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+@Getter
+@RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class CommonConnectionResource implements Resource<ConnectionTarget> {
-
-    @Getter
+    @Nonnull
+    private final ConnectionTarget data;
     @Nonnull
     private final CommonConnectionResource.Definition definition;
-    @Getter
-    @Nonnull
-    private ConnectionTarget data;
-
-    public CommonConnectionResource(@Nonnull ConnectionTarget data, @Nonnull CommonConnectionResource.Definition definition) {
-        this.data = data;
-        this.definition = definition;
-    }
-
-    @Nonnull
-    @Override
-    public ResourceDefinition<ConnectionTarget> getDefinition() {
-        return this.definition;
-    }
-
-    @Override
-    public ConnectionTarget getData() {
-        return this.data;
-    }
 
     @Override
     @EqualsAndHashCode.Include
@@ -119,7 +102,6 @@ public class CommonConnectionResource implements Resource<ConnectionTarget> {
         public Resource<ConnectionTarget> read(@Nonnull Element element) {
             final String id = Optional.ofNullable(element.getChildTextTrim("resourceId")).orElseGet(() -> element.getChildTextTrim("dataId"));
             final String name = element.getChildTextTrim("name");
-            final String triggerType = element.getChildTextTrim("triggerType");
             final String connectionString = IntelliJSecureStore.getInstance().loadPassword(Definition.class.getName(), id, null);
             final ConnectionTarget target = Objects.isNull(id) ? null :
                 ConnectionTarget.builder().id(id).name(name).connectionString(connectionString).build();
