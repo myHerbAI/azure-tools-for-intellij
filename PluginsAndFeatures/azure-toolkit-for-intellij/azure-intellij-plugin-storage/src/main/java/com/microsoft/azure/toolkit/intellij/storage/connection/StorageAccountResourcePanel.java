@@ -32,6 +32,8 @@ import java.awt.event.ItemEvent;
 import java.util.*;
 import java.util.function.Supplier;
 
+import static com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition.*;
+
 public class StorageAccountResourcePanel implements AzureFormJPanel<Resource<IStorageAccount>> {
     public static final String NOT_SIGNIN_TIPS = "<html><a href=\"\">Sign in</a> to select an existing Azure Storage account.</html>";
     protected SubscriptionComboBox subscriptionComboBox;
@@ -109,6 +111,22 @@ public class StorageAccountResourcePanel implements AzureFormJPanel<Resource<ISt
                 this.accountComboBox.setValue(a);
             }
         }));
+    }
+
+    public void setMethod(int method) {
+        switch (method) {
+            case METHOD_AZURE:
+                btnAzure.setSelected(true);
+                break;
+            case METHOD_AZURITE:
+                btnLocal.setSelected(true);
+                break;
+            case METHOD_STRING:
+                btnConnectionString.setSelected(true);
+                break;
+            default:
+                break;
+        }
     }
 
     @Nullable

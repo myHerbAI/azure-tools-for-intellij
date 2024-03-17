@@ -19,8 +19,12 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.AzuriteStorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.ConnectionStringStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.IStorageAccount;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -34,11 +38,18 @@ import static com.microsoft.azure.toolkit.lib.common.model.AbstractConnectionStr
 @Getter
 public class StorageAccountResourceDefinition extends AzureServiceResource.Definition<IStorageAccount>
     implements SpringSupported<IStorageAccount>, FunctionSupported<IStorageAccount> {
+    public static final int METHOD_AZURE = 0;
+    public static final int METHOD_AZURITE = 1;
+    public static final int METHOD_STRING = 2;
+
     public static final StorageAccountResourceDefinition INSTANCE = new StorageAccountResourceDefinition();
     public static final String LOCAL_STORAGE_CONNECTION_STRING = "UseDevelopmentStorage=true";
     public static final String CONNECTION_STRING_KEY = String.format("%s_CONNECTION_STRING", Connection.ENV_PREFIX);
     public static final String ACCOUNT_NAME_KEY = String.format("%s_ACCOUNT_NAME", Connection.ENV_PREFIX);
     public static final String ACCOUNT_KEY = String.format("%s_ACCOUNT_KEY", Connection.ENV_PREFIX);
+
+    @Setter
+    private TempData tempData;
 
     public StorageAccountResourceDefinition() {
         super("Azure.Storage", "Azure Storage Account", AzureIcons.StorageAccount.MODULE.getIconPath());
@@ -116,7 +127,18 @@ public class StorageAccountResourceDefinition extends AzureServiceResource.Defin
 
     @Override
     public AzureFormJPanel<Resource<IStorageAccount>> getResourcePanel(Project project) {
-        return new StorageAccountResourcePanel();
+        final StorageAccountResourcePanel panel = new StorageAccountResourcePanel();
+        if (Objects.nonNull(this.tempData)) {
+            panel.setMethod(this.tempData.getType());
+            if (StringUtils.isNotBlank(this.tempData.getConnectionString())) {
+                final ConnectionStringStorageAccount account = Azure.az(AzureStorageAccount.class).getOrInitByConnectionString(this.tempData.getConnectionString());
+                if (Objects.nonNull(account)) {
+                    panel.setValue(StorageAccountResourceDefinition.INSTANCE.define(account));
+                }
+            }
+            this.tempData = null;
+        }
+        return panel;
     }
 
     @Nonnull
@@ -134,5 +156,12 @@ public class StorageAccountResourceDefinition extends AzureServiceResource.Defin
     @Override
     public String getResourceConnectionString(@Nonnull IStorageAccount resource) {
         return resource instanceof AzuriteStorageAccount ? LOCAL_STORAGE_CONNECTION_STRING : resource.getConnectionString();
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class TempData {
+        private int type; // 0: Azure, 1: Azurite, 2: ConnectionString
+        private String connectionString;
     }
 }
