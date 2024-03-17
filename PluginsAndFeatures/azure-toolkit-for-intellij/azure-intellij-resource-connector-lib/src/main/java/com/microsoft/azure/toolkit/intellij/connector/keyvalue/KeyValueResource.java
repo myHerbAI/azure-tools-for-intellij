@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.intellij.connector.function.FunctionSupported
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.jdom.Attribute;
 import org.jdom.Element;
 
@@ -34,6 +35,11 @@ public class KeyValueResource implements Resource<KeyValueData> {
     private final KeyValueData data;
     @Nonnull
     private final KeyValueResource.Definition definition;
+
+    @Override
+    public String getId() {
+        return DigestUtils.md5Hex(this.getDataId());
+    }
 
     @Override
     @EqualsAndHashCode.Include
@@ -74,7 +80,7 @@ public class KeyValueResource implements Resource<KeyValueData> {
         }
 
         @Override
-        public Resource<KeyValueData> define(KeyValueData resource) {
+        public Resource<KeyValueData> define(KeyValueData resource, String id) {
             return new KeyValueResource(resource, this);
         }
 

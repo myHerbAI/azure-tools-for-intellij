@@ -5,9 +5,11 @@
 
 package com.microsoft.azure.toolkit.intellij.storage.connection;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
+import com.microsoft.azure.toolkit.intellij.common.auth.IntelliJSecureStore;
 import com.microsoft.azure.toolkit.intellij.connector.AzureServiceResource;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.Resource;
@@ -17,15 +19,19 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.AzuriteStorageAccount;
-import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.ConnectionStringStorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.IStorageAccount;
 import lombok.Getter;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jdom.Element;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+
+import static com.microsoft.azure.toolkit.lib.common.model.AbstractConnectionStringAzResourceModule.CONNECTION_STRING_SUBSCRIPTION_ID;
 
 @Getter
 public class StorageAccountResourceDefinition extends AzureServiceResource.Definition<StorageAccount>
@@ -41,13 +47,15 @@ public class StorageAccountResourceDefinition extends AzureServiceResource.Defin
     }
 
     @Override
-    public Map<String, String> initEnv(AzureServiceResource<StorageAccount> accountDef, Project project) {
-        final StorageAccount account = accountDef.getData();
-        final String conString = account.getConnectionString();
+    public Map<String, String> initEnv(AzureServiceResource<IStorageAccount> accountDef, Project project) {
         final HashMap<String, String> env = new HashMap<>();
-        env.put(CONNECTION_STRING_KEY, conString);
-        env.put(ACCOUNT_NAME_KEY, account.getName());
-        env.put(ACCOUNT_KEY, account.getKey());
+        final IStorageAccount account = accountDef.getData();
+        if (Objects.nonNull(account)) {
+            final String conString = account.getConnectionString();
+            env.put(CONNECTION_STRING_KEY, conString);
+            env.put(ACCOUNT_NAME_KEY, account.getName());
+            env.put(ACCOUNT_KEY, account.getKey());
+        }
         return env;
     }
 
@@ -87,7 +95,7 @@ public class StorageAccountResourceDefinition extends AzureServiceResource.Defin
     }
 
     @Override
-    public StorageAccount getResource(String dataId) {
+    public IStorageAccount getResource(String dataId, final String id) {
         if (StringUtils.equalsIgnoreCase(dataId, AzuriteStorageAccount.AZURITE_RESOURCE_ID)) {
             return AzuriteStorageAccount.AZURITE_STORAGE_ACCOUNT;
         }
