@@ -19,13 +19,11 @@ import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.AzuriteStorageAccount;
-import com.microsoft.azure.toolkit.lib.storage.ConnectionStringStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.IStorageAccount;
 import lombok.Getter;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jdom.Element;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -34,8 +32,8 @@ import java.util.*;
 import static com.microsoft.azure.toolkit.lib.common.model.AbstractConnectionStringAzResourceModule.CONNECTION_STRING_SUBSCRIPTION_ID;
 
 @Getter
-public class StorageAccountResourceDefinition extends AzureServiceResource.Definition<StorageAccount>
-    implements SpringSupported<StorageAccount>, FunctionSupported<StorageAccount> {
+public class StorageAccountResourceDefinition extends AzureServiceResource.Definition<IStorageAccount>
+    implements SpringSupported<IStorageAccount>, FunctionSupported<IStorageAccount> {
     public static final StorageAccountResourceDefinition INSTANCE = new StorageAccountResourceDefinition();
     public static final String LOCAL_STORAGE_CONNECTION_STRING = "UseDevelopmentStorage=true";
     public static final String CONNECTION_STRING_KEY = String.format("%s_CONNECTION_STRING", Connection.ENV_PREFIX);
@@ -98,19 +96,26 @@ public class StorageAccountResourceDefinition extends AzureServiceResource.Defin
     public IStorageAccount getResource(String dataId, final String id) {
         if (StringUtils.equalsIgnoreCase(dataId, AzuriteStorageAccount.AZURITE_RESOURCE_ID)) {
             return AzuriteStorageAccount.AZURITE_STORAGE_ACCOUNT;
+        } else if (CONNECTION_STRING_SUBSCRIPTION_ID.equalsIgnoreCase(ResourceId.fromString(dataId).subscriptionId())) {
+            final String connectionString = IntelliJSecureStore.getInstance().loadPassword(StorageAccountResourceDefinition.class.getName(), id.toLowerCase(), null);
+            if (StringUtils.isNotBlank(connectionString)) {
+                return Azure.az(AzureStorageAccount.class).getOrInitByConnectionString(connectionString);
+            }
+            return null;
+        } else {
+            return Azure.az(AzureStorageAccount.class).getById(dataId);
         }
-        return Azure.az(AzureStorageAccount.class).getById(dataId);
     }
 
     @Override
-    public List<Resource<StorageAccount>> getResources(Project project) {
+    public List<Resource<IStorageAccount>> getResources(Project project) {
         return Azure.az(AzureStorageAccount.class).list().stream()
             .flatMap(m -> m.storageAccounts().list().stream())
             .map(this::define).toList();
     }
 
     @Override
-    public AzureFormJPanel<Resource<StorageAccount>> getResourcePanel(Project project) {
+    public AzureFormJPanel<Resource<IStorageAccount>> getResourcePanel(Project project) {
         return new StorageAccountResourcePanel();
     }
 
@@ -127,7 +132,7 @@ public class StorageAccountResourceDefinition extends AzureServiceResource.Defin
 
     @Nullable
     @Override
-    public String getResourceConnectionString(@Nonnull StorageAccount resource) {
+    public String getResourceConnectionString(@Nonnull IStorageAccount resource) {
         return resource instanceof AzuriteStorageAccount ? LOCAL_STORAGE_CONNECTION_STRING : resource.getConnectionString();
     }
 }

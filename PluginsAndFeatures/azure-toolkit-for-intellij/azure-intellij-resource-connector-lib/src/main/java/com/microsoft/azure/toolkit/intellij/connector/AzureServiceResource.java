@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractConnectionStringAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import lombok.EqualsAndHashCode;
@@ -80,8 +81,10 @@ public class AzureServiceResource<T extends AzResource> implements Resource<T> {
             throw new AzureToolkitRuntimeException(String.format("%s '%s' does not exist.", this.getResourceType(), this.getName()));
         }
         final Map<String, String> result = new HashMap<>(this.definition.initEnv(this, project));
-        result.put(SUBSCRIPTION_ID_KEY, resource.getSubscriptionId());
-        result.put(RESOURCE_GROUP_KEY, resource.getResourceGroupName());
+        if (!(resource instanceof AbstractConnectionStringAzResource<?>)) {
+            result.put(SUBSCRIPTION_ID_KEY, resource.getSubscriptionId());
+            result.put(RESOURCE_GROUP_KEY, resource.getResourceGroupName());
+        }
         return result;
     }
 
