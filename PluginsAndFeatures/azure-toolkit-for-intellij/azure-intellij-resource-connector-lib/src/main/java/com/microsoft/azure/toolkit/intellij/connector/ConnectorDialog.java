@@ -83,6 +83,8 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     @Override
     protected void init() {
         super.init();
+        this.contentPane.setPreferredSize(new Dimension(600, -1));
+        this.contentPane.setMaximumSize(new Dimension(600, -1));
         final Action.Id<Connection<?, ?>> actionId = Action.Id.of("user/connector.create_or_update_connection.consumer|resource");
         this.setOkAction(new Action<>(actionId)
             .withLabel("Save")

@@ -102,6 +102,7 @@ public class StorageAccountResourcePanel implements AzureFormJPanel<Resource<ISt
                 btnLocal.setSelected(true);
             } else if (a instanceof ConnectionStringStorageAccount) {
                 btnConnectionString.setSelected(true);
+                this.txtConnectionString.setValue(a.getConnectionString());
             } else {
                 btnAzure.setSelected(true);
                 this.subscriptionComboBox.setValue(a.getSubscription());
