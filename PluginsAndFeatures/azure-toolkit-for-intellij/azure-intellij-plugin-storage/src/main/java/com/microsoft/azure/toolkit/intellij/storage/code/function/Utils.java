@@ -10,7 +10,6 @@ import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.Profile;
 import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition;
 import com.microsoft.azure.toolkit.lib.storage.IStorageAccount;
-import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -31,7 +30,7 @@ class Utils {
             .toList();
     }
 
-    public static StorageAccount getBindingStorageAccount(@Nonnull final PsiAnnotation annotation) {
+    public static IStorageAccount getBindingStorageAccount(@Nonnull final PsiAnnotation annotation) {
         final PsiMethod method = PsiTreeUtil.getParentOfType(annotation, PsiMethod.class);
         final PsiAnnotation accountAnnotation = Objects.isNull(method) ? null : Arrays.stream(method.getAnnotations())
             .filter(ann -> StringUtils.equalsIgnoreCase(ann.getQualifiedName(), "com.microsoft.azure.functions.annotation.StorageAccount"))
@@ -39,8 +38,8 @@ class Utils {
         return Stream.of(accountAnnotation, annotation).filter(Objects::nonNull)
             .map(FunctionUtils::getConnectionFromAnnotation)
             .filter(Objects::nonNull)
-            .filter(c -> c.getResource().getData() instanceof StorageAccount)
-            .map(c -> (StorageAccount) c.getResource().getData())
+            .filter(c -> c.getResource().getData() instanceof IStorageAccount)
+            .map(c -> (IStorageAccount) c.getResource().getData())
             .findFirst().orElse(null);
     }
 }
