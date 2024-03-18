@@ -46,16 +46,20 @@ public class AzureServiceResource<T extends AzResource> implements Resource<T> {
     @Nonnull
     @Getter
     private final String id;
+    private final T data;
     @Getter
     @Setter
     private String connectionId;
 
     public AzureServiceResource(@Nonnull T data, @Nonnull AzureServiceResource.Definition<T> definition) {
-        this(data.getId(), definition);
+        this(data, null, definition);
     }
 
     public AzureServiceResource(@Nonnull T data, @Nullable final String id, @Nonnull AzureServiceResource.Definition<T> definition) {
-        this(data.getId(), id, definition);
+        this.azId = ResourceId.fromString(data.getId());
+        this.id = StringUtils.isBlank(id) ? DigestUtils.md5Hex(this.azId.id()) : id;
+        this.definition = definition;
+        this.data = data;
     }
 
     @Deprecated
@@ -67,11 +71,12 @@ public class AzureServiceResource<T extends AzResource> implements Resource<T> {
         this.azId = ResourceId.fromString(dataId);
         this.id = StringUtils.isBlank(id) ? DigestUtils.md5Hex(this.azId.id()) : id;
         this.definition = definition;
+        this.data = null;
     }
 
     @Nullable
     public T getData() {
-        return this.definition.getResource(this.azId.id(), this.getId());
+        return Optional.ofNullable(this.data).orElseGet(() -> this.definition.getResource(this.azId.id(), this.getId()));
     }
 
     @Override
