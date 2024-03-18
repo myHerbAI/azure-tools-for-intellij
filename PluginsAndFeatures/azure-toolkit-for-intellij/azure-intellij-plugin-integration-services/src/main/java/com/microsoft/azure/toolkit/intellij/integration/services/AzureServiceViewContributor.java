@@ -28,17 +28,11 @@ import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractConnectionStringAzResourceModule;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.microsoft.azure.toolkit.intellij.integration.services.AzureResourceActionsContributor.CONNECTION_STRING_RESOURCES;
@@ -85,16 +79,16 @@ public class AzureServiceViewContributor implements ServiceViewContributor<NodeV
         final List<AbstractAzResource<?, ?, ?>> resources = new ArrayList<>(connectionStringResources);
         final ActionNode<Object> connectResource = new ActionNode<>(AzureResourceActionsContributor.CONNECT_RESOURCE);
         final boolean notSignedIn = !Azure.az(AzureAccount.class).isLoggedIn();
+        if (Azure.az(AzureAccount.class).isLoggedIn()) {
+            resources.addAll(loadNonConnectionStringResources());
+        }
         if (resources.isEmpty()) {
             if (Azure.az(AzureAccount.class).isLoggedIn()) {
-                resources.addAll(loadNonConnectionStringResources());
-                if (CollectionUtils.isEmpty(resources)) {
-                    final ActionNode<Object> addResource = new ActionNode<>(AzureResourceActionsContributor.ADD_RESOURCE);
-                    return Arrays.asList(addResource, connectResource);
-                }
+                final ActionNode<Object> addResource = new ActionNode<>(AzureResourceActionsContributor.ADD_RESOURCE);
+                return Arrays.asList(addResource, connectResource);
             } else {
-                final Action<Object> action = AzureActionManager.getInstance().getAction(Action.SIGN_IN).bind(new Object()).withLabel("Sign in to manage resources in your account...");
-                return Arrays.asList(new ActionNode<>(action), connectResource);
+                final Action<Object> signIn = AzureActionManager.getInstance().getAction(Action.SIGN_IN).bind(new Object()).withLabel("Sign in to manage resources in your account...");
+                return Arrays.asList(new ActionNode<>(signIn), connectResource);
             }
         }
         return buildResourceNodes(resources);

@@ -29,7 +29,7 @@ public class AzureResourceActionsContributor implements IActionsContributor {
     public void registerActions(AzureActionManager am) {
         new Action<>(ADD_RESOURCE)
             .withIcon(AzureIcons.Action.ADD.getIconPath())
-            .withLabel("Select Resource...")
+            .withLabel("Select resources under signed in account...")
             .withHandler((s, e) -> AzureTaskManager.getInstance().runLater(() -> {
                 final AnActionEvent event = (AnActionEvent) e;
                 final AzureResourceSelectDialog dialog = new AzureResourceSelectDialog(event.getProject());
@@ -46,7 +46,7 @@ public class AzureResourceActionsContributor implements IActionsContributor {
             .register(am);
         new Action<>(CONNECT_RESOURCE)
             .withIcon(AzureIcons.Action.ADD.getIconPath())
-            .withLabel("Connect resource with connection string...")
+            .withLabel("Connect resource using connection string...")
             .withHandler((s, e) -> AzureTaskManager.getInstance().runLater(() -> {
                 final AnActionEvent event = (AnActionEvent) e;
                 final AzureResourceConnectDialog dialog = new AzureResourceConnectDialog(event.getProject());
