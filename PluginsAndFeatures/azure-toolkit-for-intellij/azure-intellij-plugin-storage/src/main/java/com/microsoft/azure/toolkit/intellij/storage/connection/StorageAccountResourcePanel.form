@@ -130,7 +130,7 @@
           </grid>
         </constraints>
         <properties>
-          <text value="Connect local Azureite emulator."/>
+          <text value="Connect local Azurite emulator."/>
         </properties>
       </component>
       <component id="6dc2" class="javax.swing.JRadioButton" binding="btnConnectionString">

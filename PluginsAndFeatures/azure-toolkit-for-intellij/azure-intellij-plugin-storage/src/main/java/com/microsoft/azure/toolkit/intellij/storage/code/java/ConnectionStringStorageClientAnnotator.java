@@ -9,23 +9,27 @@ import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.patterns.ElementPattern;
 import com.intellij.patterns.PlatformPatterns;
+import com.intellij.patterns.PsiJavaElementPattern;
 import com.intellij.patterns.PsiMethodPattern;
-import com.intellij.psi.JavaTokenType;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiLiteralExpression;
-import com.intellij.psi.PsiMethod;
+import com.intellij.psi.*;
+import com.microsoft.azure.toolkit.intellij.connector.ConnectorDialog;
+import com.microsoft.azure.toolkit.intellij.connector.ModuleResource;
 import com.microsoft.azure.toolkit.intellij.connector.code.AnnotationFixes;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition;
 import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition.TempData;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.ConnectionStringStorageAccount;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 import static com.intellij.patterns.PsiJavaPatterns.*;
 import static com.microsoft.azure.toolkit.intellij.connector.code.AbstractResourceConnectionAnnotator.isAzureFacetEnabled;
@@ -33,14 +37,18 @@ import static com.microsoft.azure.toolkit.intellij.connector.code.AbstractResour
 public class ConnectionStringStorageClientAnnotator implements Annotator {
     private static final PsiMethodPattern blobServiceClientConnectionString = psiMethod().withName("connectionString").definedInClass("com.azure.storage.blob.BlobServiceClientBuilder");
     private static final PsiMethodPattern shareServiceClientConnectionString = psiMethod().withName("connectionString").definedInClass("com.azure.storage.file.share.ShareServiceClientBuilder.ShareServiceClientBuilder");
+    private static final PsiMethodPattern queueServiceClientConnectionString = psiMethod().withName("connectionString").definedInClass("com.azure.storage.queue.QueueServiceClientBuilder");
     public static final ElementPattern<PsiMethod> connectionStringMethods = PlatformPatterns.or(
         blobServiceClientConnectionString,
-        shareServiceClientConnectionString
+        shareServiceClientConnectionString,
+        queueServiceClientConnectionString
     );
 
     @Override
     public void annotate(@Nonnull PsiElement element, @Nonnull AnnotationHolder holder) {
-        if (psiElement(JavaTokenType.STRING_LITERAL).withParent(psiLiteral().methodCallParameter(0, connectionStringMethods)).accepts(element)) {
+        final PsiJavaElementPattern.Capture<PsiElement> stringLiteralParam = psiElement(JavaTokenType.STRING_LITERAL).withParent(psiLiteral().methodCallParameter(0, connectionStringMethods));
+        final PsiJavaElementPattern.Capture<PsiElement> identifierParam = psiElement(JavaTokenType.IDENTIFIER).withParent(psiReferenceExpression().methodCallParameter(0, connectionStringMethods));
+        if (stringLiteralParam.accepts(element) || identifierParam.accepts(element)) {
             if (!isAzureFacetEnabled(element)) {
                 return;
             }
@@ -52,21 +60,30 @@ public class ConnectionStringStorageClientAnnotator implements Annotator {
                 .anyMatch(s -> s instanceof ConnectionStringStorageAccount);
             if (!hasConnectionStringConnection) {
                 final PsiElement parent = element.getParent();
-                if (!(parent instanceof PsiLiteralExpression)) {
-                    return;
-                }
-                final PsiLiteralExpression literal = ((PsiLiteralExpression) parent);
-                final String value = literal.getValue() instanceof String ? (String) literal.getValue() : element.getText();
                 final TempData tempData = new TempData(StorageAccountResourceDefinition.METHOD_STRING, null);
-                if (psiElement(JavaTokenType.STRING_LITERAL).accepts(element)) {
-                    tempData.setConnectionString(value);
+                if (parent instanceof PsiLiteralExpression) {
+                    final PsiLiteralExpression literal = ((PsiLiteralExpression) parent);
+                    final String connectionString = literal.getValue() instanceof String ? (String) literal.getValue() : element.getText();
+                    tempData.setConnectionString(connectionString);
                 }
-                definition.setTempData(tempData);
                 final String message = "Connect Azure storage using connection string and explore files.";
                 holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message)
                     .range(element.getTextRange())
                     .highlightType(ProblemHighlightType.WEAK_WARNING)
-                    .withFix(AnnotationFixes.createNewConnection(definition, AnnotationFixes.DO_NOTHING_CONSUMER))
+                    .withFix(AnnotationFixes.simple("Connect an " + definition.getTitle(), new BiConsumer<>() {
+                        @Override
+                        @AzureOperation("user/connector.create_connection_quick_fix")
+                        public void accept(final Editor editor, final PsiFile file) {
+                            final Module module = ModuleUtil.findModuleForFile(file);
+                            if (Objects.nonNull(module)) {
+                                final var dialog = new ConnectorDialog(editor.getProject());
+                                dialog.setConsumer(new ModuleResource(module.getName()));
+                                definition.setTempData(tempData);
+                                dialog.setResourceDefinition(definition);
+                                dialog.showAndGet();
+                            }
+                        }
+                    }))
                     .create();
             }
         }

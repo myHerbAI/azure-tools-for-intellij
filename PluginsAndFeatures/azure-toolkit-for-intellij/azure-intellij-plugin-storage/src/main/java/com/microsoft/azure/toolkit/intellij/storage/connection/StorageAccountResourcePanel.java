@@ -35,7 +35,6 @@ import java.util.function.Supplier;
 import static com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition.*;
 
 public class StorageAccountResourcePanel implements AzureFormJPanel<Resource<IStorageAccount>> {
-    public static final String NOT_SIGNIN_TIPS = "<html><a href=\"\">Sign in</a> to select an existing Azure Storage account.</html>";
     protected SubscriptionComboBox subscriptionComboBox;
     protected AzureComboBox<IStorageAccount> accountComboBox;
     @Getter
@@ -78,6 +77,7 @@ public class StorageAccountResourcePanel implements AzureFormJPanel<Resource<ISt
         lblEnvironment.setLabelFor(btnAzure);
         lblAccount.setLabelFor(accountComboBox);
         lblConnectionString.setLabelFor(txtConnectionString);
+        txtConnectionString.setLabel("Connection string");
     }
 
     private void onSelectEnvironment() {
