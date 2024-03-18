@@ -284,9 +284,7 @@ public class StorageActionsContributor implements IActionsContributor {
             ResourceCommonActionsContributor.OPEN_PORTAL_URL,
             "---",
             StorageActionsContributor.COPY_CONNECTION_STRING,
-            StorageActionsContributor.COPY_PRIMARY_KEY,
-            "---",
-            ResourceCommonActionsContributor.CONNECT
+            StorageActionsContributor.COPY_PRIMARY_KEY
         );
         am.registerGroup(CONNECTION_STRING_ACCOUNT_ACTIONS, connectionStringAccountActionGroup);
 
