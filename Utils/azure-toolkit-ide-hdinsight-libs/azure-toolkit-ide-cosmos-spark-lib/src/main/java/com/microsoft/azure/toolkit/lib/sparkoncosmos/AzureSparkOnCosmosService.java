@@ -23,7 +23,7 @@ public class AzureSparkOnCosmosService extends AbstractAzService<SparkOnCosmosSe
     @NotNull
     @Override
     protected SparkOnCosmosServiceSubscription newResource(@NotNull CosmosManager cosmosManager) {
-        return null;
+        return new SparkOnCosmosServiceSubscription(cosmosManager, this);
     }
 
     @Nullable
