@@ -81,7 +81,7 @@ public class StorageNodeProvider implements IExplorerNodeProvider {
                     .addChildren(AbstractAzResourceModule::list, (d, mn) -> this.createNode(d, mn, manager)));
         } else if (data instanceof ConnectionStringStorageAccount account) {
             return new AzResourceNode<>(account)
-                .withActions(ResourceCommonActionsContributor.CONNECTION_STRING_RESOURCE_ACTIONS)
+                .withActions(StorageActionsContributor.CONNECTION_STRING_ACCOUNT_ACTIONS)
                 .addChildren(a -> account.getSubModules(), (module, p) -> new AzModuleNode<>(module)
                     .withActions(StorageActionsContributor.STORAGE_MODULE_ACTIONS)
                     .addChildren(AbstractAzResourceModule::list, (d, mn) -> this.createNode(d, mn, manager)));
