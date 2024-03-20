@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp
@@ -31,24 +31,31 @@ class WebAppContextPublishProvider : RiderContextPublishProvider {
         entity: ProjectModelEntity
     ): Pair<RunConfiguration, ConfigurationFactory> {
         val projectData = RiderContextPublishProvider.getProjectDataRecursive(project, entity)
-            ?: error("Unexpected project node type. Cannot get project data for entity ${entity.url}")
 
-        val factory =
-            ConfigurationTypeUtil.findConfigurationType(WebAppConfigurationType::class.java).configurationFactories.single()
-        val configuration =
-            WebAppConfiguration(project, factory, "Publish ${projectData.value.projectName} to Azure")
+        val factory = ConfigurationTypeUtil.findConfigurationType(WebAppConfigurationType::class.java)
+            .configurationFactories
+            .single()
+        val configurationName = projectData?.value?.projectName ?: entity.name
+        val configuration = WebAppConfiguration(project, factory, "Publish $configurationName to Azure")
 
-        configuration.publishableProjectPath = projectData.value.projectFilePath
+        if (projectData != null) {
+            configuration.publishableProjectPath = projectData.value.projectFilePath
+        } else {
+            val publishableProject = project.solution.publishableProjectsModel.publishableProjects.entries.first {
+                isProjectPublishable(it.value)
+            }.value
+            configuration.publishableProjectPath = publishableProject.projectFilePath
+        }
 
         return Pair(configuration, factory)
     }
 
-    private fun isProjectPublishable(projectData: PublishableProjectModel?) =
-        projectData != null && (projectData.isWeb && (projectData.isDotNetCore || SystemInfo.isWindows))
+    private fun isProjectPublishable(projectData: PublishableProjectModel) =
+        projectData.isWeb && (projectData.isDotNetCore || SystemInfo.isWindows)
 
     override fun isAvailable(project: Project, entity: ProjectModelEntity): Boolean {
         val projectData = RiderContextPublishProvider.getProjectData(project, entity)
-        return isProjectPublishable(projectData?.value)
+        return projectData != null && isProjectPublishable(projectData.value)
     }
 
     override fun solutionHasAnyPublishableProjects(project: Project) =
