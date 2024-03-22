@@ -52,7 +52,7 @@ class WebAppContainersRunState(
         val pricingTier = PricingTier(options.pricingTier, options.pricingSize)
         pricingTier(pricingTier)
         appName(options.webAppName)
-        runtime(createRuntimeConfig(options))
+        runtime = createRuntimeConfig(options)
         dotnetRuntime = createDotNetRuntimeConfig(options)
         appSettings(mapOf(WEBSITES_PORT to options.port.toString()))
     }

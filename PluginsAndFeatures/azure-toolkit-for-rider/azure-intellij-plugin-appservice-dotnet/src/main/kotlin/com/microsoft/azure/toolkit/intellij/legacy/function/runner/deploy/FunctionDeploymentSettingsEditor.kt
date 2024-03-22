@@ -18,6 +18,7 @@ import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
 import com.microsoft.azure.toolkit.intellij.common.*
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.ui.components.DeploymentSlotComboBox
@@ -120,6 +121,7 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             val resource = getResource(functionAppConfig, slotConfig.name)
             loadAppSettings(functionAppConfig, resource)
         } else if (!deployToSlotCheckBox.component.isSelected && functionAppConfig != null) {
+            deploymentSlotComboBox.component.clear()
             val resource = getResource(functionAppConfig, null)
             loadAppSettings(functionAppConfig, resource)
         }
@@ -152,7 +154,8 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             .runtime(RuntimeConfig().apply { os = operatingSystem })
             .appSettings(state.appSettings)
             .build()
-        functionAppComboBox.component.value = functionAppConfig
+        functionAppComboBox.component.setConfigModel(functionAppConfig)
+        functionAppComboBox.component.setValue { AppServiceComboBox.isSameApp(it, functionAppConfig) }
 
         if (state.isDeployToSlot) {
             deployToSlotCheckBox.selected(true)

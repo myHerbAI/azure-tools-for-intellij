@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.appservice.webapp
@@ -158,11 +158,11 @@ class DotNetWebAppDeploymentSlotDraft : WebAppDeploymentSlot, AzResource.Draft<W
             settingsToRemove.let { if (settingsToRemove.isNotEmpty()) it.forEach { key -> update.withoutAppSetting(key) } }
 
             val messager = AzureMessager.getMessager()
-            messager.info(AzureString.format("Start updating Web App deployment slot ({0})...", remote.name()))
+            messager.info(AzureString.format("Start updating Web App deployment slot (${remote.name()})...", remote.name()))
 
             result = update.apply()
 
-            messager.success(AzureString.format("Web App deployment slot ({0}) is successfully updated", result.name()))
+            messager.success(AzureString.format("Web App deployment slot (${remote.name()}) is successfully updated", result.name()))
         }
 
         return result
@@ -206,27 +206,29 @@ class DotNetWebAppDeploymentSlotDraft : WebAppDeploymentSlot, AzResource.Draft<W
         set(value) {
             ensureConfig().runtime = value
         }
+
     var configurationSource: String?
         get() = config?.configurationSource
         set(value) {
             ensureConfig().configurationSource = value
         }
+
     var dockerConfiguration: DockerConfiguration?
         get() = config?.dockerConfiguration
         set(value) {
             ensureConfig().dockerConfiguration = value
         }
 
-    override fun getAppSettings() = config?.appSettings ?: super.getAppSettings()
-    fun setAppSettings(value: Map<String, String>?) {
-        ensureConfig().appSettings = value
-    }
-
     var appSettingsToRemove: Set<String>?
         get() = config?.appSettingsToRemove
         set(value) {
             ensureConfig().appSettingsToRemove = value
         }
+
+    override fun getAppSettings() = config?.appSettings ?: super.getAppSettings()
+    fun setAppSettings(value: Map<String, String>?) {
+        ensureConfig().appSettings = value
+    }
 
     override fun getDiagnosticConfig() = config?.diagnosticConfig ?: super.getDiagnosticConfig()
     fun setDiagnosticConfig(value: DiagnosticConfig?) {

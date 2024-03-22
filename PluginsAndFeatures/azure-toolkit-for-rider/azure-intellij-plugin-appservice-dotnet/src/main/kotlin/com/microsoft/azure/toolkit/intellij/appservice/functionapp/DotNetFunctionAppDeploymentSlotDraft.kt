@@ -122,7 +122,7 @@ class DotNetFunctionAppDeploymentSlotDraft : FunctionAppDeploymentSlot,
         ensureConfig().diagnosticConfig = null
         slot = updateRuntime(slot)
 
-        messager.success("Function App deployment slot ({0}) is successfully created")
+        messager.success("Function App deployment slot ($name) is successfully created")
 
         return slot
     }

@@ -160,7 +160,6 @@ class CreateOrUpdateDotNetFunctionAppTask(private val config: DotNetFunctionAppC
                 draft.storageAccount = storageAccount
 
                 val result = draft.createIfNotExist()
-                Thread.sleep((10 * 1000).toLong())
                 result
             })
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.LabeledComponent
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.Cell
@@ -18,6 +19,7 @@ import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
 import com.microsoft.azure.toolkit.intellij.common.*
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.ui.components.DeploymentSlotComboBox
@@ -58,7 +60,7 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
                     .align(Align.FILL)
             }
             row("Project:") {
-                dotnetProjectComboBox = dotnetProjectComboBox(project) { it.isAzureFunction }
+                dotnetProjectComboBox = dotnetProjectComboBox(project) { it.isWeb && (it.isDotNetCore || SystemInfo.isWindows) }
                     .align(Align.FILL)
             }
             row("Configuration:") {
@@ -123,6 +125,7 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
             val resource = getResource(webAppConfig, slotConfig.name)
             loadAppSettings(webAppConfig, resource)
         } else if (!deployToSlotCheckBox.component.isSelected && webAppConfig != null) {
+            deploymentSlotComboBox.component.clear()
             val resource = getResource(webAppConfig, null)
             loadAppSettings(webAppConfig, resource)
         }
@@ -155,7 +158,8 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
             .runtime(RuntimeConfig().apply { os = operatingSystem })
             .appSettings(state.appSettings)
             .build()
-        webAppComboBox.component.value = webAppConfig
+        webAppComboBox.component.setConfigModel(webAppConfig)
+        webAppComboBox.component.setValue { AppServiceComboBox.isSameApp(it, webAppConfig) }
 
         if (state.isDeployToSlot) {
             deployToSlotCheckBox.selected(true)

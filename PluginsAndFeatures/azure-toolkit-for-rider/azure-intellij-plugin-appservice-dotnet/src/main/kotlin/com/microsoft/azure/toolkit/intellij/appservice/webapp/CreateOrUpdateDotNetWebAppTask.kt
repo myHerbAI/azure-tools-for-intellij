@@ -47,8 +47,8 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
         } else {
             val slotDraft = getWebAppDeploymentSlot(appDraft)
             val slotTask =
-                if (slotDraft.exists()) getCreateWebAppSlotTask(slotDraft)
-                else getUpdateWebAppSlotTask(slotDraft)
+                if (slotDraft.exists()) getUpdateWebAppSlotTask(slotDraft)
+                else getCreateWebAppSlotTask(slotDraft)
             registerSubTask(slotTask) { webApp = it }
         }
     }
@@ -102,7 +102,6 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
                 draft.diagnosticConfig = config.diagnosticConfig()
 
                 val result = draft.createIfNotExist()
-                Thread.sleep((10 * 1000).toLong())
                 result
             }
         )
