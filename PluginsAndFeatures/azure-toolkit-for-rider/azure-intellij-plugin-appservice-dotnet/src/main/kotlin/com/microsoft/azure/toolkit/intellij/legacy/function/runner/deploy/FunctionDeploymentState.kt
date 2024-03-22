@@ -13,6 +13,7 @@ import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.CreateOrUpdateDotNetFunctionAppTask
+import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DeployDotNetFunctionAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctionAppConfig
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctionAppDeploymentSlotDraft
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
@@ -22,10 +23,8 @@ import com.microsoft.azure.toolkit.intellij.legacy.getFunctionStack
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot
-import com.microsoft.azure.toolkit.lib.appservice.model.FunctionDeployType
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
-import com.microsoft.azure.toolkit.lib.appservice.task.DeployFunctionAppTask
 import com.microsoft.azure.toolkit.lib.common.model.AzResource
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
@@ -70,7 +69,7 @@ class FunctionDeploymentState(
                 false
             )
 
-        val deployTask = DeployFunctionAppTask(deployTarget, artifactDirectory, FunctionDeployType.ZIP)
+        val deployTask = DeployDotNetFunctionAppTask(deployTarget, artifactDirectory)
         deployTask.execute()
 
         return deployTarget
@@ -99,7 +98,7 @@ class FunctionDeploymentState(
         storageAccountName(options.storageAccountName)
         storageAccountResourceGroup(options.storageAccountResourceGroup)
         val os = OperatingSystem.fromString(options.operatingSystem)
-        runtime(createRuntimeConfig(os))
+        runtime = createRuntimeConfig(os)
         dotnetRuntime = createDotNetRuntimeConfig(publishableProject, os)
         if (pricingTier == PricingTier.CONSUMPTION && os == OperatingSystem.LINUX) {
             options.appSettings[SCM_DO_BUILD_DURING_DEPLOYMENT] = "false"
@@ -107,9 +106,10 @@ class FunctionDeploymentState(
         appSettings(options.appSettings)
     }
 
-    private fun createRuntimeConfig(os: OperatingSystem) = RuntimeConfig().apply {
-        os(os)
-    }
+    private fun createRuntimeConfig(os: OperatingSystem) =
+        RuntimeConfig().apply {
+            this.os = os
+        }
 
     private fun createDotNetRuntimeConfig(publishableProject: PublishableProjectModel, os: OperatingSystem) =
         DotNetRuntimeConfig().apply {

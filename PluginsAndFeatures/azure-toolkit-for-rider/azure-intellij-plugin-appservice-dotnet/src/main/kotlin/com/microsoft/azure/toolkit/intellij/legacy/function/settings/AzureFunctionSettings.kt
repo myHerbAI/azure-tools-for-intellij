@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.settings
@@ -19,8 +19,6 @@ class AzureFunctionSettings : SimplePersistentStateComponent<AzureFunctionSettin
 ) {
     companion object {
         fun getInstance() = service<AzureFunctionSettings>()
-
-        const val DISMISS_NOTIFICATION_AZURE_FUNCTIONS_MISSING_NUPKG = "DismissAzureFunctionsMissingNupkg"
 
         private const val AZURE_TOOLS_FOLDER = ".AzureToolsForIntelliJ"
         private const val AZURE_FUNCTIONS_TOOLS_FOLDER = "AzureFunctionsCoreTools"
@@ -49,6 +47,12 @@ class AzureFunctionSettings : SimplePersistentStateComponent<AzureFunctionSettin
         get() = state.functionDownloadPath ?: ""
         set(value) {
             state.functionDownloadPath = value
+        }
+
+    var checkForFunctionMissingPackages
+        get() = state.checkForFunctionMissingPackages
+        set(value) {
+            state.checkForFunctionMissingPackages = value
         }
 }
 

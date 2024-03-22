@@ -283,7 +283,7 @@ class FunctionRunConfigurationViewModel(
                         fakeProjectName, fakeProjectName, projectFilePath, RunnableProjectKinds.Unloaded,
                         listOf(
                             ProjectOutput(
-                                RdTargetFrameworkId("", projectTfm, false, false), exePath,
+                                RdTargetFrameworkId(RdVersionInfo(0, 0, 0), "", projectTfm, false, false), exePath,
                                 ParametersListUtil.parse(programParameters), workingDirectory, "", null, emptyList()
                             )
                         ),

@@ -13,6 +13,7 @@ import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctionAppDeploymentSlotDraft
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.CreateOrUpdateDotNetWebAppTask
+import com.microsoft.azure.toolkit.intellij.appservice.webapp.DeployDotNetWebAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetAppServiceConfig
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
@@ -23,7 +24,6 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DeployType
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact
-import com.microsoft.azure.toolkit.lib.appservice.task.DeployWebAppTask
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot
 import com.microsoft.azure.toolkit.lib.common.model.AzResource
@@ -75,7 +75,7 @@ class WebAppRunState(
             .deployType(DeployType.ZIP)
             .build()
 
-        val deployTask = DeployWebAppTask(deployTarget, listOf(artifact), true, false, false)
+        val deployTask = DeployDotNetWebAppTask(deployTarget, artifact)
         deployTask.execute()
 
         FileUtil.delete(zipFile)
@@ -104,14 +104,15 @@ class WebAppRunState(
         }
         deploymentSlotConfigurationSource(configurationSource)
         val os = OperatingSystem.fromString(options.operatingSystem)
-        runtime(createRuntimeConfig(os))
+        runtime = createRuntimeConfig(os)
         dotnetRuntime = createDotNetRuntimeConfig(publishableProject, os)
         appSettings(options.appSettings)
     }
 
-    private fun createRuntimeConfig(os: OperatingSystem) = RuntimeConfig().apply {
-        os(os)
-    }
+    private fun createRuntimeConfig(os: OperatingSystem) =
+        RuntimeConfig().apply {
+            this.os = os
+        }
 
     private fun createDotNetRuntimeConfig(publishableProject: PublishableProjectModel, os: OperatingSystem) =
         DotNetRuntimeConfig().apply {

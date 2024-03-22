@@ -8,7 +8,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.util.concurrency.ThreadingAssertions
-import com.jetbrains.rider.projectView.actions.projectTemplating.backend.ReSharperProjectTemplateProvider
+import com.jetbrains.rider.projectView.projectTemplates.providers.RiderProjectTemplateProvider
 import com.microsoft.azure.toolkit.intellij.legacy.function.FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsInfoProvider
 import java.io.File
@@ -22,12 +22,13 @@ class FunctionTemplateManager {
 
         private val LOG = logger<FunctionTemplateManager>()
 
+        //todo btw this is very strange way to check. `projectTemplates.{version}.nupkg` might be very common
         private fun isFunctionsProjectTemplate(file: File?) =
             file != null && file.name.startsWith("projectTemplates.", true) && file.name.endsWith(".nupkg", true)
     }
 
     fun areRegistered() =
-        ReSharperProjectTemplateProvider.getUserTemplateSources().any { isFunctionsProjectTemplate(it) && it.exists() }
+        RiderProjectTemplateProvider.getUserTemplateSources().any { isFunctionsProjectTemplate(it) && it.exists() }
 
     suspend fun tryReload() {
         ThreadingAssertions.assertBackgroundThread()
@@ -40,9 +41,10 @@ class FunctionTemplateManager {
         ) ?: return
 
         // Remove previous templates
-        ReSharperProjectTemplateProvider.getUserTemplateSources().forEach {
+        RiderProjectTemplateProvider.getUserTemplateSources().forEach {
+            //todo because of this some other templates might be deleted
             if (isFunctionsProjectTemplate(it)) {
-                ReSharperProjectTemplateProvider.removeUserTemplateSource(it)
+                RiderProjectTemplateProvider.removeUserTemplateSource(it)
             }
         }
 
@@ -65,7 +67,7 @@ class FunctionTemplateManager {
                 LOG.info("Found ${templateFiles.size} function template(s) in $templateFolder")
 
                 templateFiles.forEach { file ->
-                    ReSharperProjectTemplateProvider.addUserTemplateSource(file)
+                    RiderProjectTemplateProvider.addUserTemplateSource(file)
                 }
             } catch (e: Exception) {
                 LOG.error("Could not register project templates from $templateFolder", e)

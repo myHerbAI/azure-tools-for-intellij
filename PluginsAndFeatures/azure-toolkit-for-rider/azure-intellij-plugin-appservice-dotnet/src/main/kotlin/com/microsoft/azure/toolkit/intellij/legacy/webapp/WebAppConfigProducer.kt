@@ -8,6 +8,8 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
+import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.common.utils.Utils
@@ -27,6 +29,7 @@ class WebAppConfigProducer {
         val result = AppServiceConfig.buildDefaultWebAppConfig(rgName, appName, "zip")
         result.appSettings = mutableMapOf()
         result.pricingTier = PricingTier.FREE_F1
+        result.runtime = RuntimeConfig().apply { os = OperatingSystem.LINUX }
         subscription?.let { result.subscriptionId = it.id }
         group?.let { result.region = it.region }
 

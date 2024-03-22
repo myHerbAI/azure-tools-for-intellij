@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Application;
+using JetBrains.Application.Parts;
 using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Feature.Services.LiveTemplates.Scope;
 
@@ -17,7 +18,7 @@ public class InAzureFunctionsFSharpProject : InAzureFunctionsProject
     public override string PresentableShortName => "Azure Functions (F#) projects";
 }
 
-[ShellComponent]
+[ShellComponent(Instantiation.DemandAnyThreadSafe)]
 public class AzureFSharpScopeProvider : AzureCSharpProjectScopeProvider
 {
     public AzureFSharpScopeProvider()

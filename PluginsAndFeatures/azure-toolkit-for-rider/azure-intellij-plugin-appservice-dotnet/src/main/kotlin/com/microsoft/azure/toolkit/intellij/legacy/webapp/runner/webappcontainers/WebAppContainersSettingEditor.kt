@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers
@@ -13,6 +13,7 @@ import com.intellij.ui.dsl.builder.*
 import com.microsoft.azure.toolkit.intellij.common.AzureContainerRegistryComboBox
 import com.microsoft.azure.toolkit.intellij.common.ContainerRegistryModel
 import com.microsoft.azure.toolkit.intellij.common.dockerContainerRegistryComboBox
+import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceComboBox
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
@@ -81,7 +82,8 @@ class WebAppContainersSettingEditor(private val project: Project) : SettingsEdit
             .pricingTier(pricingTier)
             .runtime(RuntimeConfig.fromRuntime(WebAppDockerRuntime.INSTANCE))
             .build()
-        webAppContainersComboBox.component.value = webAppConfig
+        webAppContainersComboBox.component.setConfigModel(webAppConfig)
+        webAppContainersComboBox.component.setValue { AppServiceComboBox.isSameApp(it, webAppConfig) }
 
         val imageNameParts = state.imageRepository?.let {
             val parts = it.split('/', limit = 2)

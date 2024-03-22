@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.settings
@@ -14,6 +14,7 @@ import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.TableSpeedSearch
 import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.table.TableView
@@ -191,6 +192,10 @@ class AzureFunctionConfigurable : BoundConfigurable("Functions") {
                 .bindText(settings::functionDownloadPath)
 
         }.visible(isCoreToolsFeedEnabled)
+        row {
+            checkBox("Check for Azure Functions missing nuget packages")
+                .bindSelected( settings::checkForFunctionMissingPackages)
+        }
     }
 }
 

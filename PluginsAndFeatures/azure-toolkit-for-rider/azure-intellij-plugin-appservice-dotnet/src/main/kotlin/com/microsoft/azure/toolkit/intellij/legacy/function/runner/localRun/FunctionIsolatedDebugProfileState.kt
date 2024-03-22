@@ -29,7 +29,6 @@ import com.intellij.util.execution.ParametersListUtil
 import com.intellij.util.system.CpuArch
 import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rider.debugger.DebuggerHelperHost
-import com.jetbrains.rider.debugger.DebuggerWorkerPlatform
 import com.jetbrains.rider.debugger.DebuggerWorkerProcessHandler
 import com.jetbrains.rider.debugger.RiderDebuggerBundle
 import com.jetbrains.rider.model.DesktopClrRuntime
@@ -39,7 +38,7 @@ import com.jetbrains.rider.model.debuggerWorker.DotNetClrAttachStartInfo
 import com.jetbrains.rider.model.debuggerWorker.DotNetCoreAttachStartInfo
 import com.jetbrains.rider.run.*
 import com.jetbrains.rider.run.dotNetCore.DotNetCoreAttachProfileState
-import com.jetbrains.rider.run.dotNetCore.getWorkerPlatform
+import com.jetbrains.rider.run.dotNetCore.toCPUKind
 import com.jetbrains.rider.run.msNet.MsNetAttachProfileState
 import com.jetbrains.rider.runtime.DotNetExecutable
 import com.jetbrains.rider.runtime.DotNetRuntime
@@ -87,7 +86,7 @@ class FunctionIsolatedDebugProfileState(
             )
                 .notify(executionEnvironment.project)
 
-            return createWorkerRunInfoFor(port, DebuggerWorkerPlatform.AnyCpu)
+            return super.createWorkerRunInfo(lifetime, helper, port)
         }
 
         if (processId == 0) {
@@ -101,7 +100,7 @@ class FunctionIsolatedDebugProfileState(
             )
                 .notify(executionEnvironment.project)
 
-            return createWorkerRunInfoFor(port, DebuggerWorkerPlatform.AnyCpu)
+            return super.createWorkerRunInfo(lifetime, helper, port)
         }
 
         val targetProcess = withBackgroundContext {
@@ -110,7 +109,7 @@ class FunctionIsolatedDebugProfileState(
 
         if (targetProcess == null) {
             LOG.warn("Unable to find target process with pid $processId")
-            return createWorkerRunInfoFor(port, DebuggerWorkerPlatform.AnyCpu)
+            return super.createWorkerRunInfo(lifetime, helper, port)
         }
 
         val processExecutablePath = ParametersListUtil.parse(targetProcess.commandLine).firstOrNull()
@@ -130,7 +129,7 @@ class FunctionIsolatedDebugProfileState(
             val clrRuntime = DesktopClrRuntime("")
             MsNetAttachProfileState(
                 targetProcess,
-                processArchitecture.getWorkerPlatform(),
+                processArchitecture.toCPUKind(),
                 clrRuntime,
                 executionEnvironment,
                 RiderDebuggerBundle.message("MsNetAttachProvider.display.name", clrRuntime.version)
@@ -250,7 +249,7 @@ class FunctionIsolatedDebugProfileState(
         val workerProcessId: Int
     )
 
-    override fun execute(
+    override suspend fun execute(
         executor: Executor,
         runner: ProgramRunner<*>,
         workerProcessHandler: DebuggerWorkerProcessHandler
@@ -258,7 +257,7 @@ class FunctionIsolatedDebugProfileState(
         throw UnsupportedOperationException("Use overload with lifetime")
     }
 
-    override fun execute(
+    override suspend fun execute(
         executor: Executor,
         runner: ProgramRunner<*>,
         workerProcessHandler: DebuggerWorkerProcessHandler,

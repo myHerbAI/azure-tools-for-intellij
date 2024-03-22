@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.legacy.common
@@ -50,12 +50,6 @@ abstract class RiderAzureRunProfileState<T>(protected val project: Project) : Ru
         })
 
         return DefaultExecutionResult(consoleView, processHandler)
-    }
-
-    protected fun setText(runProcessHandler: RunProcessHandler, text: String?) {
-        if (runProcessHandler.isProcessRunning) {
-            runProcessHandler.setText(text)
-        }
     }
 
     protected abstract fun executeSteps(processHandler: RunProcessHandler): T

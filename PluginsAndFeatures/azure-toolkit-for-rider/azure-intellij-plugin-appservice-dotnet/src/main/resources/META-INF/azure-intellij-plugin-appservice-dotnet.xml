@@ -33,10 +33,10 @@
         <rider.publishConfigurationProvider
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppContextPublishProvider"/>
 
-        <projectTemplateProvider
+        <projectTemplateProviderNew
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.FunctionTemplateProvider"
                 order="first"/>
-        <rider.projectView.actions.projectTemplating.backend.reSharperProjectTemplateCustomizer
+        <projectTemplateCustomizer
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.FunctionTemplateCustomizer"/>
         <postStartupActivity
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.ReloadFunctionTemplateActivity"/>
