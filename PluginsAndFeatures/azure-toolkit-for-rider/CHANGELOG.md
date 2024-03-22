@@ -4,6 +4,9 @@
 
 ## [Unreleased]
 
+### Changed
+- Support for Rider 2024.1
+
 ## [4.0.0-preview.2] - 2024-02-05
 
 ### Changed
