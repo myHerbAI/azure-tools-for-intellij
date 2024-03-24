@@ -37,8 +37,12 @@ public class SqlserverBigDataService extends AbstractAzService<SqlserverBigDataS
         return list;
     }
 
-    protected boolean isAuthRequiredForListing() {
+    public boolean isAuthRequiredForListing() {
         return false;
     }
 
+    @Override
+    public boolean isAuthRequiredForCreating() {
+        return false;
+    }
 }
