@@ -169,9 +169,9 @@ public class IntellijAzureMessager implements IAzureMessager {
 
         static void start() {
             if (started.compareAndSet(false, true)) {
-                Flux.interval(Duration.ofMinutes(1))
-                    .delayElements(Duration.ofSeconds(5)) // delay 5 seconds so that startup messages can be pushed into queue
-                    .subscribe(m -> {
+                Mono.delay(Duration.ofSeconds(5))
+                    .thenMany(Flux.interval(Duration.ofMinutes(2)).onBackpressureBuffer())
+                    .doOnNext(m -> {
                         final IntellijAzureMessage message = queue.peek();
                         if (message != null) {
                             final int delay = lastTime < 0 || Registry.is("ide.debugMode") ? 5 * 1000 : INTERVALS[message.getPriority()]; // show message immediately(5s delayed) if it's the first message
@@ -181,7 +181,7 @@ public class IntellijAzureMessager implements IAzureMessager {
                                 showNotification(message);
                             }
                         }
-                    });
+                    }).subscribe();
             }
         }
 
