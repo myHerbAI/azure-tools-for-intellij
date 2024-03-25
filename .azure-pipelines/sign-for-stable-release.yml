@@ -68,6 +68,7 @@ extends:
                     rm  ./artifacts/intellij/azure-toolkit-for-intellij.zip
               - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@3
                 displayName: Sign IntelliJ
+                condition: and(succeeded(), ne(variables['DisableCodeSign'], 'true'))
                 inputs:
                   ConnectedServiceName: vscjavaci_esrp_codesign
                   FolderPath: artifacts/intellij/folder
