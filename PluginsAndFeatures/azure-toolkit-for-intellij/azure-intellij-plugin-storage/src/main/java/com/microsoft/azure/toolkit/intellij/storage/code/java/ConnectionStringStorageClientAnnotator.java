@@ -52,7 +52,6 @@ public class ConnectionStringStorageClientAnnotator implements Annotator {
             if (!isAzureFacetEnabled(element)) {
                 return;
             }
-            final Module module = ModuleUtil.findModuleForPsiElement(element);
             final StorageAccountResourceDefinition definition = StorageAccountResourceDefinition.INSTANCE;
             final boolean hasConnectionStringConnection = Optional.ofNullable(ModuleUtil.findModuleForPsiElement(element))
                 .map(AzureModule::from)
@@ -70,7 +69,7 @@ public class ConnectionStringStorageClientAnnotator implements Annotator {
                 holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message)
                     .range(element.getTextRange())
                     .highlightType(ProblemHighlightType.WEAK_WARNING)
-                    .withFix(AnnotationFixes.simple("Connect an " + definition.getTitle(), new BiConsumer<>() {
+                    .withFix(AnnotationFixes.simple("Connect using connection string", new BiConsumer<>() {
                         @Override
                         @AzureOperation("user/connector.create_connection_quick_fix")
                         public void accept(final Editor editor, final PsiFile file) {
