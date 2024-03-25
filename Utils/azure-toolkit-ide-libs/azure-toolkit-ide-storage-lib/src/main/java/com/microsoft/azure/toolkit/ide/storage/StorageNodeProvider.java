@@ -17,6 +17,7 @@ import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResourceModule;
 import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.AzuriteStorageAccount;
+import com.microsoft.azure.toolkit.lib.storage.ConnectionStringStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.blob.BlobContainer;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
@@ -50,7 +51,7 @@ public class StorageNodeProvider implements IExplorerNodeProvider {
 
     @Override
     public boolean accept(@Nonnull Object data, @Nullable Node<?> parent, ViewType type) {
-        return data instanceof AzureStorageAccount || data instanceof StorageAccount;
+        return data instanceof AzureStorageAccount || data instanceof StorageAccount || data instanceof ConnectionStringStorageAccount;
     }
 
     @Nullable
@@ -76,6 +77,12 @@ public class StorageNodeProvider implements IExplorerNodeProvider {
                 .addInlineAction(ResourceCommonActionsContributor.PIN)
                 .withActions(StorageActionsContributor.ACCOUNT_ACTIONS)
                 .addChildren(StorageAccount::getSubModules, (module, p) -> new AzModuleNode<>(module)
+                    .withActions(StorageActionsContributor.STORAGE_MODULE_ACTIONS)
+                    .addChildren(AbstractAzResourceModule::list, (d, mn) -> this.createNode(d, mn, manager)));
+        } else if (data instanceof ConnectionStringStorageAccount account) {
+            return new AzResourceNode<>(account)
+                .withActions(StorageActionsContributor.CONNECTION_STRING_ACCOUNT_ACTIONS)
+                .addChildren(a -> account.getSubModules(), (module, p) -> new AzModuleNode<>(module)
                     .withActions(StorageActionsContributor.STORAGE_MODULE_ACTIONS)
                     .addChildren(AbstractAzResourceModule::list, (d, mn) -> this.createNode(d, mn, manager)));
         } else if (data instanceof BlobContainer) {
