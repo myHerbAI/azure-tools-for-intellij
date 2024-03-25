@@ -14,12 +14,14 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
+import com.microsoft.azure.toolkit.lib.common.model.AbstractConnectionStringAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom.Attribute;
 import org.jdom.Element;
@@ -37,27 +39,44 @@ public class AzureServiceResource<T extends AzResource> implements Resource<T> {
     public static final String SUBSCRIPTION_ID_KEY = String.format("%s_SUBSCRIPTION_ID", Connection.ENV_PREFIX);
     public static final String RESOURCE_GROUP_KEY = String.format("%s_RESOURCE_GROUP", Connection.ENV_PREFIX);
     @Nonnull
-    private final ResourceId id;
+    private final ResourceId azId;
     @Getter
     @Nonnull
     private final AzureServiceResource.Definition<T> definition;
+    @Nonnull
+    @Getter
+    private final String id;
+    private final T data;
     @Getter
     @Setter
     private String connectionId;
 
     public AzureServiceResource(@Nonnull T data, @Nonnull AzureServiceResource.Definition<T> definition) {
-        this(data.getId(), definition);
+        this(data, null, definition);
+    }
+
+    public AzureServiceResource(@Nonnull T data, @Nullable final String id, @Nonnull AzureServiceResource.Definition<T> definition) {
+        this.azId = ResourceId.fromString(data.getId());
+        this.id = StringUtils.isBlank(id) ? DigestUtils.md5Hex(this.azId.id()) : id;
+        this.definition = definition;
+        this.data = data;
     }
 
     @Deprecated
-    public AzureServiceResource(@Nonnull String id, @Nonnull AzureServiceResource.Definition<T> definition) {
-        this.id = ResourceId.fromString(id);
+    public AzureServiceResource(@Nonnull String dataId, @Nonnull AzureServiceResource.Definition<T> definition) {
+        this(dataId, null, definition);
+    }
+
+    public AzureServiceResource(@Nonnull final String dataId, @Nullable final String id, @Nonnull AzureServiceResource.Definition<T> definition) {
+        this.azId = ResourceId.fromString(dataId);
+        this.id = StringUtils.isBlank(id) ? DigestUtils.md5Hex(this.azId.id()) : id;
         this.definition = definition;
+        this.data = null;
     }
 
     @Nullable
     public T getData() {
-        return this.definition.getResource(this.id.id());
+        return Optional.ofNullable(this.data).orElseGet(() -> this.definition.getResource(this.azId.id(), this.getId()));
     }
 
     @Override
@@ -66,33 +85,34 @@ public class AzureServiceResource<T extends AzResource> implements Resource<T> {
         if (resource == null || !resource.exists()) {
             throw new AzureToolkitRuntimeException(String.format("%s '%s' does not exist.", this.getResourceType(), this.getName()));
         }
-        final Map<String, String> result = new HashMap<>();
-        result.putAll(this.definition.initEnv(this, project));
-        result.put(SUBSCRIPTION_ID_KEY, resource.getSubscriptionId());
-        result.put(RESOURCE_GROUP_KEY, resource.getResourceGroupName());
+        final Map<String, String> result = new HashMap<>(this.definition.initEnv(this, project));
+        if (!(resource instanceof AbstractConnectionStringAzResource<?>)) {
+            result.put(SUBSCRIPTION_ID_KEY, resource.getSubscriptionId());
+            result.put(RESOURCE_GROUP_KEY, resource.getResourceGroupName());
+        }
         return result;
     }
 
     @Override
     @EqualsAndHashCode.Include
     public String getDataId() {
-        return this.id.id();
+        return this.azId.id();
     }
 
     @Override
     public String getName() {
-        return this.id.name();
+        return this.azId.name();
     }
 
     public String getResourceType() {
-        final AbstractAzResource<?, ?, ?> parent = Optional.ofNullable(this.id.parent())
-                .map(parentId -> Azure.az().getById(parentId.id())).orElse(null);
-        return Objects.isNull(parent) ? id.resourceType() :
-                parent.getSubModules().stream()
-                        .filter(module -> StringUtils.equals(module.getName(), this.id.resourceType()))
-                        .findFirst()
-                        .map(AzResourceModule::getResourceTypeName)
-                        .orElseGet(id::resourceType);
+        final AbstractAzResource<?, ?, ?> parent = Optional.ofNullable(this.azId.parent())
+            .map(parentId -> Azure.az().getById(parentId.id())).orElse(null);
+        return Objects.isNull(parent) ? azId.resourceType() :
+            parent.getSubModules().stream()
+                .filter(module -> StringUtils.equals(module.getName(), this.azId.resourceType()))
+                .findFirst()
+                .map(AzResourceModule::getResourceTypeName)
+                .orElseGet(azId::resourceType);
     }
 
     @Override
@@ -127,17 +147,21 @@ public class AzureServiceResource<T extends AzResource> implements Resource<T> {
         private final String icon;
 
         @Override
-        public Resource<T> define(T resource) {
-            return new AzureServiceResource<>(resource, this);
+        public Resource<T> define(T resource, String id) {
+            return new AzureServiceResource<>(resource, id, this);
         }
 
-        @Deprecated
-        public Resource<T> define(String dataId) {
-            return new AzureServiceResource<>(dataId, this);
+        public Resource<T> define(@Nonnull String dataId, @Nullable String id) {
+            return new AzureServiceResource<>(dataId, id, this);
         }
 
         @Nullable
-        public abstract T getResource(String dataId);
+        public T getResource(@Nonnull String dataId) {
+            return this.getResource(dataId, null);
+        }
+
+        @Nullable
+        public abstract T getResource(@Nonnull String dataId, @Nullable final String id);
 
         @Override
         public boolean write(@Nonnull Element ele, @Nonnull Resource<T> resource) {
@@ -147,9 +171,11 @@ public class AzureServiceResource<T extends AzResource> implements Resource<T> {
         }
 
         @Override
+        @Nullable
         public Resource<T> read(@Nonnull Element ele) {
-            final String id = Optional.ofNullable(ele.getChildTextTrim("resourceId")).orElseGet(() -> ele.getChildTextTrim("dataId"));
-            return Optional.ofNullable(id).map(this::define).orElse(null);
+            final String id = ele.getAttributeValue("id");
+            final String dataId = Optional.ofNullable(ele.getChildTextTrim("resourceId")).orElseGet(() -> ele.getChildTextTrim("dataId"));
+            return StringUtils.isNoneBlank(dataId, id) ? this.define(dataId, id) : null;
         }
 
         @Override

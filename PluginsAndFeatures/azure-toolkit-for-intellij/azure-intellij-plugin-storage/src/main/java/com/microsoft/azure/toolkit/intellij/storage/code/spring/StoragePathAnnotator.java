@@ -19,8 +19,8 @@ import com.microsoft.azure.toolkit.intellij.connector.code.Utils;
 import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.storage.StorageAccount;
+import com.microsoft.azure.toolkit.lib.common.model.AzComponent;
+import com.microsoft.azure.toolkit.lib.storage.IStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
 import org.apache.commons.lang3.StringUtils;
 
@@ -50,7 +50,7 @@ public class StoragePathAnnotator implements Annotator {
                 if (!Azure.az(AzureAccount.class).isLoggedIn()) {
                     AnnotationFixes.createSignInAnnotation(element, holder);
                 } else {
-                    final List<StorageAccount> accounts = Optional.of(element)
+                    final List<IStorageAccount> accounts = Optional.of(element)
                         .map(ModuleUtil::findModuleForPsiElement)
                         .map(module -> Utils.getConnectedResources(module, StorageAccountResourceDefinition.INSTANCE))
                         .orElse(Collections.emptyList());
@@ -66,7 +66,7 @@ public class StoragePathAnnotator implements Annotator {
                         }
                         final StorageFile file = StoragePathCompletionProvider.getFile(valueWithPrefix, accounts);
                         if (Objects.isNull(file)) {
-                            final String message = String.format("Could not find '%s' in connected Azure Storage account(s) [%s]", path, accounts.stream().map(AbstractAzResource::getName).collect(Collectors.joining(",")));
+                            final String message = String.format("Could not find '%s' in connected Azure Storage account(s) [%s]", path, accounts.stream().map(AzComponent::getName).collect(Collectors.joining(",")));
                             holder.newAnnotation(HighlightSeverity.WARNING, message)
                                 .range(range)
                                 .highlightType(ProblemHighlightType.WEAK_WARNING)
