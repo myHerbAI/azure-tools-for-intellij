@@ -3,6 +3,7 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.87.0](#3870)
   - [3.86.0](#3860)
   - [3.85.0](#3850)
   - [3.84.0](#3840)
@@ -107,6 +108,14 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.8](#308)
   - [3.0.7](#307)
   - [3.0.6](#306)
+
+## 3.87.0
+### Added
+- Support for connecting Azure Storage account with connection string and managing them in both `Services` view and `Project Explorer`. 
+
+### Fixed
+- [#8205](https://github.com/microsoft/azure-tools-for-java/issues/8205): Could not emit tick xxx due to lack of requests (interval doesn't support small downstream requests that replenish slower than the ticks)
+- [azure-sdk-for-java#39214] (https://github.com/Azure/azure-sdk-for-java/issues/39214) msal-* libs are falsely treated as `deprecated`.
 
 ## 3.86.1
 ### Fixed
