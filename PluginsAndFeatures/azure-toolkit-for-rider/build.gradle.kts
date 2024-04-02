@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 import org.jetbrains.changelog.Changelog
@@ -185,15 +185,6 @@ tasks {
         )
     }
 
-    val copyIcons by registering(Copy::class) {
-        description = "Copies the icons directory of the base plugin."
-        from(
-            projectDir.resolve("..").resolve("azure-toolkit-for-intellij").resolve("src").resolve("main")
-                .resolve("resources").resolve("icons")
-        )
-        into(projectDir.resolve("src").resolve("main").resolve("resources").resolve("icons"))
-    }
-
     val dotnetBuildConfiguration = properties("dotnetBuildConfiguration").get()
     val compileDotNet by registering {
         doLast {
@@ -205,12 +196,7 @@ tasks {
     }
 
     buildPlugin {
-        dependsOn(copyIcons)
         dependsOn(compileDotNet)
-    }
-
-    processResources {
-        dependsOn(copyIcons)
     }
 
     configure<com.jetbrains.rd.generator.gradle.RdGenExtension> {
