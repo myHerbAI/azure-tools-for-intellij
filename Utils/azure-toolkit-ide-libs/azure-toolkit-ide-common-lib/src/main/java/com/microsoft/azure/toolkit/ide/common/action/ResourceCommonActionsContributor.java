@@ -221,6 +221,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
         new Action<>(OPEN_AZURE_REFERENCE_BOOK)
             .withLabel("View Azure SDK")
             .withAuthRequired(false)
+            .visibleWhen(s -> false)
             .register(am);
 
         new Action<>(CREATE)
@@ -336,6 +337,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withIdParam(s -> s.getClass().getSimpleName())
             .withIcon(AzureIcons.Common.GET_START.getIconPath())
             .withAuthRequired(false)
+            .visibleWhen(s -> false)
             .register(am);
 
         new Action<>(SHOW_COURSES)
@@ -347,12 +349,14 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
                 return isActionTriggered ? GET_START.getIconPath() : GET_START_NEW.getIconPath();
             })
             .withAuthRequired(false)
+            .visibleWhen(s -> false)
             .register(am);
 
         new Action<>(OPEN_MONITOR)
             .withLabel("Open Azure Monitor")
             .withIcon(AzureIcons.Common.AZURE_MONITOR.getIconPath())
             .withAuthRequired(false)
+            .visibleWhen(s -> false)
             .register(am);
 
         new Action<>(SUPPRESS_ACTION)
