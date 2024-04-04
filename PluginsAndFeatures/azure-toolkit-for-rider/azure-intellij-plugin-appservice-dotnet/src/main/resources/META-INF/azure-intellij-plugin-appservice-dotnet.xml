@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+  ~ Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
   -->
 
 <idea-plugin>
@@ -89,6 +89,11 @@
 
         <rd.solutionExtListener endpoint="IDE Frontend"
                                 listener="com.microsoft.azure.toolkit.intellij.legacy.function.daemon.FunctionAppSolutionExtListener"/>
+
+        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppPropertyViewProvider"/>
+        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppDeploymentSlotPropertyViewProvider"/>
+        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppPropertyViewProvider"/>
+        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppDeploymentSlotPropertyViewProvider"/>
 
         <notificationGroup id="Azure AppServices" displayType="BALLOON" isLogByDefault="true"/>
     </extensions>
