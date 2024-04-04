@@ -216,22 +216,20 @@ public class FunctionAppActionsContributor implements IActionsContributor {
         new Action<>(ENABLE_REMOTE_DEBUGGING)
             .withLabel("Enable Remote Debugging")
             .withIdParam(AzResource::getName)
-            .visibleWhen(s -> s instanceof FunctionAppBase<?, ?, ?> && ((FunctionAppBase<?, ?, ?>) s).getFormalStatus().isRunning() &&
-                !((FunctionAppBase<?, ?, ?>) s).isRemoteDebugEnabled() && !(s instanceof FunctionApp functionApp && (StringUtils.isNotBlank(functionApp.getEnvironmentId()))))
+            .visibleWhen(s -> false)
             .register(am);
 
         new Action<>(DISABLE_REMOTE_DEBUGGING)
             .withLabel("Disable Remote Debugging")
             .withIdParam(AzResource::getName)
-            .visibleWhen(s -> s instanceof FunctionAppBase<?, ?, ?> && ((FunctionAppBase<?, ?, ?>) s).getFormalStatus().isRunning()
-                && ((FunctionAppBase<?, ?, ?>) s).isRemoteDebugEnabled() && !(s instanceof FunctionApp functionApp && (StringUtils.isNotBlank(functionApp.getEnvironmentId()))))
+            .visibleWhen(s -> false)
             .register(am);
 
         new Action<>(REMOTE_DEBUGGING)
             .withLabel("Attach Debugger")
             .withIcon(AzureIcons.Action.ATTACH_DEBUGGER.getIconPath())
             .withIdParam(AzResource::getName)
-            .visibleWhen(s -> s instanceof FunctionAppBase<?, ?, ?> && !(s instanceof FunctionApp functionApp && (StringUtils.isNotBlank(functionApp.getEnvironmentId()))))
+            .visibleWhen(s -> false)
             .enableWhen(s -> s.getFormalStatus().isRunning())
             .register(am);
     }
