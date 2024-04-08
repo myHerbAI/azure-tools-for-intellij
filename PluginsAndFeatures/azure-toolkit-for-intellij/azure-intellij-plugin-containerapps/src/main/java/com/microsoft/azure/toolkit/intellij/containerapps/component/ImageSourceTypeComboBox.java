@@ -14,15 +14,17 @@ import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
 import javax.swing.*;
 import java.awt.*;
 
-public class ContainerRegistryTypeComboBox extends ComboBox<String> {
+public class ImageSourceTypeComboBox extends ComboBox<String> {
 
-    public static final String ACR = "Azure Container Registries";
+    public static final String ACR = "Azure Container Registry";
+    public static final String CODE = "Code";
+    public static final String ARTIFACT = "Artifact";
     public static final String DOCKER_HUB = "Docker Hub Registry";
     public static final String OTHER = "Other public registry";
 
-    public ContainerRegistryTypeComboBox() {
+    public ImageSourceTypeComboBox() {
         super();
-        this.setModel(new DefaultComboBoxModel<>(new String[]{ACR, DOCKER_HUB, OTHER}));
+        this.setModel(new DefaultComboBoxModel<>(new String[]{ACR, CODE, ARTIFACT, DOCKER_HUB, OTHER}));
         this.setRenderer(new MyRenderer());
     }
 
@@ -33,8 +35,10 @@ public class ContainerRegistryTypeComboBox extends ComboBox<String> {
             this.setText(String.valueOf(value));
             final Icon icon = switch (String.valueOf(value)) {
                 case ACR -> IntelliJAzureIcons.getIcon(AzureIcons.ContainerRegistry.MODULE);
-                case DOCKER_HUB -> IconLoader.getIcon("/icons/Docker.svg", ContainerRegistryTypeComboBox.class);
-                default -> IconLoader.getIcon("/icons/Registry.svg", ContainerRegistryTypeComboBox.class);
+                case CODE -> AllIcons.Nodes.Folder;
+                case ARTIFACT -> AllIcons.Nodes.Artifact;
+                case DOCKER_HUB -> IconLoader.getIcon("/icons/Docker.svg", ImageSourceTypeComboBox.class);
+                default -> IconLoader.getIcon("/icons/Registry.svg", ImageSourceTypeComboBox.class);
             };
             this.setIcon(icon);
             return this;

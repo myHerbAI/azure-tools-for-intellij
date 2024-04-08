@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class ACRImageForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig> {
+public class ACRImageSourceForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig> {
     @Getter
     private JPanel contentPanel;
 
@@ -33,7 +33,7 @@ public class ACRImageForm implements AzureFormJPanel<ContainerAppDraft.ImageConf
     private ACRRepositoryTagComboBox selectorTag;
     private ActionLink linkEnableAdminUser;
 
-    public ACRImageForm() {
+    public ACRImageSourceForm() {
         super();
         $$$setupUI$$$(); // tell IntelliJ to call createUIComponents() here.
         this.init();
