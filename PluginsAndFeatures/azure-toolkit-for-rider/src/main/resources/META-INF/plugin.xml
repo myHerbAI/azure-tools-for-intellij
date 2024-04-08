@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+  ~ Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
   -->
 
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude" url="https://github.com/JetBrains/azure-tools-for-intellij">
@@ -24,6 +24,10 @@
                              displayName="Azure"
                              id="com.microsoft.intellij.AzureConfigurable"
                              instance="com.microsoft.azure.toolkit.intellij.settings.AzureConfigurable"/>
+    <projectConfigurable parentId="com.microsoft.intellij.AzureConfigurable"
+                             displayName="Azure Identity"
+                             id="com.microsoft.azure.toolkit.intellij.identity.IdentityConfigurable"
+                             instance="com.microsoft.azure.toolkit.intellij.identity.IdentityConfigurable"/>
 
     <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.icons.RiderIconPatcherRegistrar"/>
 
