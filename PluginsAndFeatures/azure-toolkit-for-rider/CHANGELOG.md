@@ -7,6 +7,8 @@
 ### Added
 
 - WebApp and Function property views ([#767](https://github.com/JetBrains/azure-tools-for-intellij/issues/767))
+- Azure Environment and Azure CLI path settings
+- Azure Identity settings ([#787](https://github.com/JetBrains/azure-tools-for-intellij/issues/787))
 
 ## [4.0.0-preview.3] - 2024-03-22
 
