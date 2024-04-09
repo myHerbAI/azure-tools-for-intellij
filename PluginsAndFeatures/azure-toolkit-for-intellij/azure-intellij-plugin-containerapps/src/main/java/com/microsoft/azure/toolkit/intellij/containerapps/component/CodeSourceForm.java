@@ -6,6 +6,7 @@
 package com.microsoft.azure.toolkit.intellij.containerapps.component;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
@@ -23,6 +24,7 @@ import lombok.Getter;
 import org.apache.commons.io.FileUtils;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.io.File;
 import java.util.Collections;
@@ -54,8 +56,11 @@ public class CodeSourceForm implements AzureFormJPanel<ContainerAppDraft.ImageCo
         this.lblCode.setLabelFor(fileCode);
         this.lblCode.setIcon(AllIcons.General.ContextHelp);
         buildEnvLink.setHtmlText(String.format("<html><a href=\"%s\">Supported Java build environment variables</a></html>", LINK_SUPPORTED_JAVA_BUILD_ENV));
-        buildEnvLink.setIcon(AllIcons.General.Information);
-        buildEnvLink.addHyperlinkListener(new BrowserHyperlinkListener());
+        buildEnvLink.addHyperlinkListener((e) -> {
+            if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                BrowserUtil.browse(LINK_SUPPORTED_JAVA_BUILD_ENV);
+            }
+        });
         buildEnvLink.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
 

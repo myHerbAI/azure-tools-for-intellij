@@ -17,7 +17,7 @@
           </grid>
         </constraints>
         <properties>
-          <text value="Registry Type:"/>
+          <text value="Image Source:"/>
         </properties>
       </component>
       <component id="1a553" class="com.microsoft.azure.toolkit.intellij.containerapps.component.ImageSourceTypeComboBox" binding="selectorRegistryType">
