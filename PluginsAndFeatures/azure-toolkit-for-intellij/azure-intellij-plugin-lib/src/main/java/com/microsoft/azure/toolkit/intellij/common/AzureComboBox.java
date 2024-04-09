@@ -105,6 +105,7 @@ public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputCompo
                                   final boolean b1) {
                 setText(getItemText(t));
                 setIcon(getItemIcon(t));
+                getAccessibleContext().setAccessibleDescription(getItemText(t));
             }
         });
         if (isFilterable()) {
