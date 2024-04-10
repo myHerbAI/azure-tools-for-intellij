@@ -197,6 +197,7 @@ public class SubscriptionsDialog extends AzureDialogWrapper implements TableMode
         searchBox = new SearchTextField(false);
         searchBox.addDocumentListener((TextDocumentListenerAdapter) this.filter::debounce);
         searchBox.setToolTipText("Subscription ID/name");
+        searchBox.getTextEditor().getAccessibleContext().setAccessibleDescription("Search subscription by ID or name");
         final DefaultTableModel model = new SubscriptionTableModel();
         model.addColumn("Subscription selected status"); // Set the text read by JAWS
         model.addColumn("Subscription name");
