@@ -153,6 +153,8 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             .pricingTier(pricingTier)
             .runtime(RuntimeConfig().apply { os = operatingSystem })
             .appSettings(state.appSettings)
+            .storageAccountName(state.storageAccountName)
+            .storageAccountResourceGroup(state.storageAccountResourceGroup)
             .build()
         functionAppComboBox.component.setConfigModel(functionAppConfig)
         functionAppComboBox.component.setValue { AppServiceComboBox.isSameApp(it, functionAppConfig) }
@@ -208,8 +210,8 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
                 slotName = slotConfig.name
                 slotConfigurationSource = slotConfig.configurationSource
             }
-            storageAccountName = null
-            storageAccountResourceGroup = null
+            storageAccountName = functionConfig?.storageAccountName
+            storageAccountResourceGroup = functionConfig?.storageAccountResourceGroup
             appSettings = appSettingsTable.appSettings
             publishableProjectPath = dotnetProjectComboBox.component.value?.projectFilePath
             val (config, platform) = configurationAndPlatformComboBox.component.component.getPublishConfiguration()

@@ -32,7 +32,7 @@ import java.util.function.Supplier
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-class AppServiceInfoAdvancedPanel<T>(
+open class AppServiceInfoAdvancedPanel<T>(
     private val projectName: String,
     private val defaultConfigSupplier: Supplier<T>
 ) : JPanel(), Disposable, AzureFormPanel<T> where T : AppServiceConfig {
@@ -120,12 +120,15 @@ class AppServiceInfoAdvancedPanel<T>(
                     cell(textSku)
                 }
             }
+            getAdditionalPanel()?.let { panel(it) }
         }
 
         add(panel)
 
         config = defaultConfigSupplier.get().also { setValue(it) }
     }
+
+    protected open fun getAdditionalPanel(): (Panel.() -> Unit)? = null
 
     override fun getValue(): T {
         val name = textName.value
@@ -153,10 +156,14 @@ class AppServiceInfoAdvancedPanel<T>(
             resourceGroupName?.let { rgn -> result.servicePlanResourceGroup = rgn }
         }
 
+        getAdditionalValue(result)
+
         config = result
 
         return result
     }
+
+    protected open fun getAdditionalValue(result: T) {}
 
     override fun setValue(config: T) {
         this.config = config
@@ -182,8 +189,11 @@ class AppServiceInfoAdvancedPanel<T>(
                     if (it.subscriptionId != null && it.name != null) it.toResource()
                     else null
             }
+            setAdditionalValue(config)
         }
     }
+
+    protected open fun setAdditionalValue(config: T) {}
 
     override fun getInputs(): List<AzureFormInput<*>> = listOf(
         textName,
@@ -210,7 +220,7 @@ class AppServiceInfoAdvancedPanel<T>(
         }
     }
 
-    private fun onSubscriptionChanged(e: ItemEvent) {
+    protected open fun onSubscriptionChanged(e: ItemEvent) {
         if (e.stateChange == ItemEvent.SELECTED || e.stateChange == ItemEvent.DESELECTED) {
             val subscription = e.item as? Subscription ?: return
             selectorGroup.setSubscription(subscription)
@@ -235,7 +245,7 @@ class AppServiceInfoAdvancedPanel<T>(
         }
     }
 
-    private fun onGroupChanged(e: ItemEvent) {
+    protected open fun onGroupChanged(e: ItemEvent) {
         if (e.stateChange == ItemEvent.SELECTED || e.stateChange == ItemEvent.DESELECTED) {
             val resourceGroup = e.item as? ResourceGroup ?: return
             selectorServicePlan.setResourceGroup(resourceGroup)
