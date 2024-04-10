@@ -10,13 +10,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor;
 import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AbstractConnectionStringAzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResource;
-import com.microsoft.azure.toolkit.lib.common.model.AzResourceModule;
+import com.microsoft.azure.toolkit.lib.common.model.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -76,7 +74,10 @@ public class AzureServiceResource<T extends AzResource> implements Resource<T> {
 
     @Nullable
     public T getData() {
-        return Optional.ofNullable(this.data).orElseGet(() -> this.definition.getResource(this.azId.id(), this.getId()));
+        if (AbstractAzResourceModule.isMocked(this.azId.id()) || Azure.az(IAzureAccount.class).isLoggedIn()) {
+            return Optional.ofNullable(this.data).orElseGet(() -> this.definition.getResource(this.azId.id(), this.getId()));
+        }
+        return null;
     }
 
     @Override
