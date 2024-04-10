@@ -10,8 +10,10 @@ import com.intellij.openapi.actionSystem.ActionToolbarPosition;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.ui.AnActionButton;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.ToolbarDecorator;
+import com.intellij.util.ui.JBUI;
 import com.microsoft.azure.toolkit.intellij.common.TextDocumentListenerAdapter;
 import com.microsoft.azure.toolkit.intellij.common.component.HighLightedCellRenderer;
 import com.nimbusds.jose.util.ArrayUtils;
@@ -19,7 +21,10 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
@@ -65,6 +70,19 @@ public class AppSettingsTableUtils {
             appSettingsTable.filter(stringToFilter);
         });
         appSettingsTable.setDefaultRenderer(Object.class, new HighLightedCellRenderer(searchTextField.getTextEditor()));
+        appSettingsTable.addFocusListener(new FocusListener() {
+            private Border border = appSettingsTable.getBorder();
+
+            @Override
+            public void focusGained(FocusEvent e) {
+                appSettingsTable.setBorder(JBUI.Borders.customLine(JBColor.namedColor("Component.focusedBorderColor")));
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                appSettingsTable.setBorder(border);
+            }
+        });
         final JPanel panel = tableToolbarDecorator.createPanel();
         tableToolbarDecorator.getActionsPanel().add(searchTextField, BorderLayout.WEST);
         return panel;
