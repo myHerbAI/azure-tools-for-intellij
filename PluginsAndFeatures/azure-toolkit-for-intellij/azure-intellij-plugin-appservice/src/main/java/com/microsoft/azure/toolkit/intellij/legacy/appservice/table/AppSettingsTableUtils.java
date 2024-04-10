@@ -9,11 +9,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionToolbarPosition;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.ui.AnActionButton;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.SearchTextField;
-import com.intellij.ui.ToolbarDecorator;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.*;
 import com.microsoft.azure.toolkit.intellij.common.TextDocumentListenerAdapter;
 import com.microsoft.azure.toolkit.intellij.common.component.HighLightedCellRenderer;
 import com.nimbusds.jose.util.ArrayUtils;
@@ -71,11 +67,12 @@ public class AppSettingsTableUtils {
         });
         appSettingsTable.setDefaultRenderer(Object.class, new HighLightedCellRenderer(searchTextField.getTextEditor()));
         appSettingsTable.addFocusListener(new FocusListener() {
-            private Border border = appSettingsTable.getBorder();
+            private final Border border = appSettingsTable.getBorder();
+            private final Border focusedBorder = new RoundedLineBorder(JBColor.namedColor("Component.focusedBorderColor"), 2);
 
             @Override
             public void focusGained(FocusEvent e) {
-                appSettingsTable.setBorder(JBUI.Borders.customLine(JBColor.namedColor("Component.focusedBorderColor")));
+                appSettingsTable.setBorder(focusedBorder);
             }
 
             @Override
