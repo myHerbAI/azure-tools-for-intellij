@@ -35,6 +35,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.accessibility.AccessibleContext;
+import javax.accessibility.AccessibleRole;
+import javax.accessibility.AccessibleText;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
@@ -103,9 +105,10 @@ public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputCompo
             @Override
             public void customize(@Nonnull final JList<? extends T> l, final T t, final int i, final boolean b,
                                   final boolean b1) {
-                setText(getItemText(t));
+                final String itemText = getItemText(t);
+                setText(itemText);
                 setIcon(getItemIcon(t));
-                getAccessibleContext().setAccessibleDescription(getItemText(t));
+                getAccessibleContext().setAccessibleDescription(itemText);
             }
         });
         if (isFilterable()) {
@@ -366,26 +369,6 @@ public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputCompo
         return true;
     }
 
-    @Override
-    public synchronized AccessibleContext getAccessibleContext() {
-        final AccessibleContext context = super.getAccessibleContext();
-        return new AccessibleContextDelegate(context) {
-            @Override
-            public String getAccessibleDescription() {
-                final String requiredDescription = AzureComboBox.this.isRequired() ? "Required" : StringUtils.EMPTY;
-                final String visibleDescription = AzureComboBox.this.isPopupVisible() ? "Expanded" : "Collapsed";
-                return Stream.of(super.getAccessibleDescription(), requiredDescription, visibleDescription)
-                    .filter(StringUtils::isNoneBlank)
-                    .collect(Collectors.joining(StringUtils.SPACE));
-            }
-
-            @Override
-            protected Container getDelegateParent() {
-                return AzureComboBox.this.getParent();
-            }
-        };
-    }
-
     class AzureComboBoxEditor extends BasicComboBoxEditor {
 
         private Object item;
@@ -405,7 +388,29 @@ public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputCompo
 
         @Override
         protected JTextField createEditorComponent() {
-            final ExtendableTextField textField = new ExtendableTextField();
+            final ExtendableTextField textField = new ExtendableTextField() {
+                @Override
+                public synchronized AccessibleContext getAccessibleContext() {
+                    final AccessibleContext context = super.getAccessibleContext();
+                    final ExtendableTextField extendableTextField = this;
+                    return new AccessibleContextDelegate(context) {
+                        @Override
+                        public String getAccessibleDescription() {
+                            final String requiredDescription = AzureComboBox.this.isRequired() ? "Required" : StringUtils.EMPTY;
+                            final String visibleDescription = AzureComboBox.this.isPopupVisible() ? "Expanded" : "Collapsed";
+                            return Stream.of(super.getAccessibleDescription(), requiredDescription, visibleDescription)
+                                    .filter(StringUtils::isNoneBlank)
+                                    .collect(Collectors.joining(StringUtils.SPACE));
+
+                        }
+
+                        @Override
+                        protected Container getDelegateParent() {
+                            return AzureComboBox.this;
+                        }
+                    };
+                }
+            };
             final List<Extension> extensions = ObjectUtils.firstNonNull(this.getExtensions(), Collections.emptyList());
             extensions.stream().filter(Objects::nonNull).forEach(textField::addExtension);
             textField.setBorder(null);
