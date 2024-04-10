@@ -6,6 +6,5 @@ package com.microsoft.azure.toolkit.intellij.legacy.storage
 
 data class StorageAccountConfig(
     val subscriptionId: String,
-    val resourceGroupName: String?,
     val name: String
 )

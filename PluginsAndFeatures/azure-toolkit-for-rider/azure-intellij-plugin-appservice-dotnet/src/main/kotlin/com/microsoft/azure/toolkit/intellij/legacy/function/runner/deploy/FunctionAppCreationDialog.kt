@@ -9,7 +9,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.panel
 import com.microsoft.azure.toolkit.intellij.common.ConfigDialog
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdvancedPanel
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoBasicPanel
 import com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppConfigProducer
 import com.microsoft.azure.toolkit.intellij.legacy.utils.removeInvalidCharacters
@@ -23,7 +22,7 @@ import javax.swing.JPanel
 
 class FunctionAppCreationDialog(project: Project) : ConfigDialog<FunctionAppConfig>(project), Disposable {
     private val basicPanel: AppServiceInfoBasicPanel<FunctionAppConfig>
-    private val advancedPanel: AppServiceInfoAdvancedPanel<FunctionAppConfig>
+    private val advancedPanel: FunctionAppInfoAdvancedPanel
     private val panel: JPanel
 
     init {
@@ -42,7 +41,7 @@ class FunctionAppCreationDialog(project: Project) : ConfigDialog<FunctionAppConf
         }
         Disposer.register(this, basicPanel)
 
-        advancedPanel = AppServiceInfoAdvancedPanel(projectName) {
+        advancedPanel = FunctionAppInfoAdvancedPanel(projectName) {
             FunctionAppConfig()
         }
         Disposer.register(this, advancedPanel)

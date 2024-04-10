@@ -10,11 +10,14 @@ import com.microsoft.azure.toolkit.intellij.common.AzureDialog
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm
 
 class StorageAccountCreationDialog(
-    private var subscriptionId: String,
-    private var resourceGroupName: String?
+    storageAccountName: String?,
+    private var subscriptionId: String
 ) : AzureDialog<StorageAccountConfig>(), AzureForm<StorageAccountConfig> {
 
-    private val accountNameTextField = AccountNameTextField(subscriptionId)
+    private val accountNameTextField = AccountNameTextField(subscriptionId).apply {
+        text = storageAccountName
+    }
+
     private val mainPanel = panel {
         row("Name:") {
             cell(accountNameTextField)
@@ -35,12 +38,11 @@ class StorageAccountCreationDialog(
 
     override fun getValue(): StorageAccountConfig? {
         val name = accountNameTextField.value
-        return StorageAccountConfig(subscriptionId, resourceGroupName, name)
+        return StorageAccountConfig(subscriptionId, name)
     }
 
     override fun setValue(data: StorageAccountConfig) {
         subscriptionId = data.subscriptionId
-        resourceGroupName = data.resourceGroupName
         accountNameTextField.value = data.name
     }
 

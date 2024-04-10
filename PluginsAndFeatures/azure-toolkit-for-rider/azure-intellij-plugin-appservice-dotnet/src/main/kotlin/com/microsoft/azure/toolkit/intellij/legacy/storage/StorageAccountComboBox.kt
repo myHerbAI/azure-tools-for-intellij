@@ -26,16 +26,14 @@ class StorageAccountComboBox : AzureComboBox<StorageAccountConfig>() {
         if (newSubscription == subscriptionId) return
 
         subscriptionId = newSubscription
-        if (subscriptionId == null) {
-            clear()
-        } else {
-            reloadItems()
-        }
+        reloadItems()
     }
 
     fun setResourceGroup(newResourceGroup: String?) {
         if (newResourceGroup == resourceGroupName) return
+
         resourceGroupName = newResourceGroup
+        reloadItems()
     }
 
     override fun setValue(value: StorageAccountConfig?, fixed: Boolean?) {
@@ -63,7 +61,7 @@ class StorageAccountComboBox : AzureComboBox<StorageAccountConfig>() {
         if (!drafts.isEmpty()) {
             drafts
                 .asSequence()
-                .filter { it.subscriptionId == sid && it.resourceGroupName == resourceGroupName }
+                .filter { it.subscriptionId == sid }
                 .sortedBy { it.name }
                 .forEach { result.add(it) }
         }
@@ -73,16 +71,11 @@ class StorageAccountComboBox : AzureComboBox<StorageAccountConfig>() {
             .list()
             .asSequence()
             .sortedBy { it.name }
+            .filter { it.resourceGroupName.equals(resourceGroupName, true) }
+            .map { StorageAccountConfig(it.subscriptionId, it.name) }
+            .toList()
 
-        resourceGroupName?.let { rgName ->
-            remoteAccounts = remoteAccounts.filter { it.resourceGroupName.equals(rgName, true) }
-        }
-
-        result.addAll(
-            remoteAccounts
-                .map { StorageAccountConfig(it.subscriptionId, it.resourceGroupName, it.name) }
-                .toList()
-        )
+        result.addAll(remoteAccounts)
 
         return result
     }
@@ -108,7 +101,8 @@ class StorageAccountComboBox : AzureComboBox<StorageAccountConfig>() {
 
     private fun showStorageAccountCreationPopup() {
         val sid = subscriptionId ?: return
-        val dialog = StorageAccountCreationDialog(sid, resourceGroupName)
+        val storageAccountName = (selectedItem as? StorageAccountConfig)?.name
+        val dialog = StorageAccountCreationDialog(storageAccountName, sid)
         val actionId = Action.Id.of<StorageAccountConfig>("user/storage.create_account.group")
         dialog.setOkAction(
             Action(actionId)
@@ -124,6 +118,6 @@ class StorageAccountComboBox : AzureComboBox<StorageAccountConfig>() {
     private fun isDraftResource(value: StorageAccountConfig) =
         Azure.az(AzureStorageAccount::class.java)
             .accounts(value.subscriptionId)
-            .exists(value.name, value.resourceGroupName)
+            .exists(value.name, resourceGroupName)
             .not()
 }
