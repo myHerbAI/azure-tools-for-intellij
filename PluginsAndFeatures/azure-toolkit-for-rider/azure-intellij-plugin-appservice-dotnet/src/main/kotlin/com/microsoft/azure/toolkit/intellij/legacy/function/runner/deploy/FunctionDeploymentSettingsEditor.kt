@@ -22,6 +22,8 @@ import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.ui.components.DeploymentSlotComboBox
+import com.microsoft.azure.toolkit.intellij.legacy.storage.StorageAccountComboBox
+import com.microsoft.azure.toolkit.intellij.legacy.storage.StorageAccountConfig
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.config.DeploymentSlotConfig
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig
@@ -40,6 +42,7 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
     private lateinit var functionAppComboBox: Cell<FunctionAppComboBox>
     private lateinit var deployToSlotCheckBox: Cell<JBCheckBox>
     private lateinit var deploymentSlotComboBox: Cell<DeploymentSlotComboBox>
+    private lateinit var storageAccountComboBox: Cell<StorageAccountComboBox>
     private lateinit var dotnetProjectComboBox: Cell<AzureDotnetProjectComboBox>
     private lateinit var configurationAndPlatformComboBox: Cell<LabeledComponent<ComboBox<PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform?>>>
     private lateinit var appSettingsTable: AppSettingsTable
@@ -56,6 +59,10 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
                 deployToSlotCheckBox = checkBox("Deploy to Slot:")
                 deploymentSlotComboBox = cell(DeploymentSlotComboBox(project))
                     .enabledIf(deployToSlotCheckBox.selected)
+                    .align(Align.FILL)
+            }
+            row("Storage account:") {
+                storageAccountComboBox = cell(StorageAccountComboBox())
                     .align(Align.FILL)
             }
             row("Project:") {
@@ -97,6 +104,9 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
         }
 
         deploymentSlotComboBox.component.setAppService(resource?.id)
+
+        storageAccountComboBox.component.setSubscription(value.subscriptionId)
+        storageAccountComboBox.component.setResourceGroup(value.resourceGroup)
 
         if (!deployToSlotCheckBox.component.isSelected) {
             loadAppSettings(value, resource)
@@ -170,6 +180,16 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             deploymentSlotComboBox.component.clear()
         }
 
+        val storageConfig =
+            if (state.subscriptionId != null && state.storageAccountName != null)
+                StorageAccountConfig(
+                    state.subscriptionId ?: "",
+                    state.storageAccountResourceGroup,
+                    state.storageAccountName ?: ""
+                )
+            else null
+        storageAccountComboBox.component.value = storageConfig
+
         appSettingsTable.setAppSettings(state.appSettings)
 
         val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
@@ -189,6 +209,7 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
         val functionConfig = functionAppComboBox.component.value
         val deployToSlot = deployToSlotCheckBox.component.isSelected
         val slotConfig = deploymentSlotComboBox.component.value
+        val storageAccount = storageAccountComboBox.component.value
 
         state.apply {
             functionAppName = functionConfig?.appName
@@ -208,8 +229,8 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
                 slotName = slotConfig.name
                 slotConfigurationSource = slotConfig.configurationSource
             }
-            storageAccountName = null
-            storageAccountResourceGroup = null
+            storageAccountName = storageAccount?.name
+            storageAccountResourceGroup = storageAccount?.resourceGroupName
             appSettings = appSettingsTable.appSettings
             publishableProjectPath = dotnetProjectComboBox.component.value?.projectFilePath
             val (config, platform) = configurationAndPlatformComboBox.component.component.getPublishConfiguration()
