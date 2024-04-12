@@ -11,11 +11,13 @@ import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
+import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerAppDraft;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
 import com.microsoft.azure.toolkit.lib.containerregistry.Repository;
 import com.microsoft.azure.toolkit.lib.containerregistry.Tag;
 import lombok.Getter;
+import lombok.Setter;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -24,7 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class ACRImageSourceForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig> {
+public class ACRImageSourceForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, IImageForm {
     @Getter
     private JPanel contentPanel;
 
@@ -33,6 +35,9 @@ public class ACRImageSourceForm implements AzureFormJPanel<ContainerAppDraft.Ima
     private ACRRepositoryTagComboBox selectorTag;
     private ActionLink linkEnableAdminUser;
 
+    @Setter
+    @Getter
+    private ContainerApp containerApp;
     public ACRImageSourceForm() {
         super();
         $$$setupUI$$$(); // tell IntelliJ to call createUIComponents() here.

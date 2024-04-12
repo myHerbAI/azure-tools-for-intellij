@@ -52,6 +52,7 @@ public class UpdateImageForm extends JPanel implements AzureFormJPanel<UpdateIma
     @Override
     public synchronized UpdateImageConfig getValue() {
         final UpdateImageConfig config = new UpdateImageConfig();
+        this.imageForm.setContainerApp(this.selectorApp.getValue());
         config.setApp(this.selectorApp.getValue());
         config.setImage(this.imageForm.getValue());
         final Map<String, String> envVarsMap = this.inputEnv.getEnvironmentVariables();
@@ -87,6 +88,7 @@ public class UpdateImageForm extends JPanel implements AzureFormJPanel<UpdateIma
         this.commentApp.setVisible(false);
         if (e.getStateChange() == ItemEvent.SELECTED) {
             final ContainerApp app = (ContainerApp) e.getItem();
+            this.imageForm.setContainerApp(app);
             if (app.hasUnsupportedFeatures()) {
                 final RevisionMode revisionsMode = app.revisionModel();
                 final String message = revisionsMode == RevisionMode.SINGLE ?

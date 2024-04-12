@@ -14,21 +14,24 @@ import com.microsoft.azure.toolkit.intellij.common.AzureArtifactComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.intellij.common.EnvironmentVariablesTextFieldWithBrowseButton;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerAppDraft;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class ArtifactSourceForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig> {
+public class ArtifactSourceForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, IImageForm {
     private static final String LINK_SUPPORTED_JAVA_BUILD_ENV = "https://learn.microsoft.com/en-us/azure/container-apps/java-build-environment-variables?source=recommendations#supported-java-build-environment-variables";
     private final Project project;
     @Getter
@@ -37,6 +40,10 @@ public class ArtifactSourceForm implements AzureFormJPanel<ContainerAppDraft.Ima
     private AzureArtifactComboBox selectorArtifact;
     private EnvironmentVariablesTextFieldWithBrowseButton inputEnv;
     private HyperlinkLabel buildEnvLink;
+
+    @Setter
+    @Getter
+    private ContainerApp containerApp;
 
     public ArtifactSourceForm(final Project project) {
         super();
@@ -65,28 +72,27 @@ public class ArtifactSourceForm implements AzureFormJPanel<ContainerAppDraft.Ima
 
     @Override
     public ContainerAppDraft.ImageConfig getValue() {
-        //TODO: generate full image name
-        final String fullImageName = "";
+        final String fullImageName = this.getDefaultFullImageName();
         final ContainerAppDraft.ImageConfig config = new ContainerAppDraft.ImageConfig(fullImageName);
+        final ContainerAppDraft.BuildImageConfig buildConfig = new ContainerAppDraft.BuildImageConfig();
         Optional.ofNullable(selectorArtifact.getValue()).map(AzureArtifact::getFileForDeployment)
-            .map(File::new)
-            .filter(File::exists)
-            .ifPresent(config::setSource);
-
+            .map(Path::of)
+            .filter(Files::exists)
+            .ifPresent(buildConfig::setSource);
         final Map<String, String> envVarsMap = this.inputEnv.getEnvironmentVariables();
-        config.setSourceBuildEnv(envVarsMap);
-
+        buildConfig.setSourceBuildEnv(envVarsMap);
+        config.setBuildImageConfig(buildConfig);
         return config;
     }
 
     @Override
     public void setValue(final ContainerAppDraft.ImageConfig config) {
-        Optional.ofNullable(config.getSource())
-            .filter(File::exists)
-            .map(f -> AzureArtifact.createFromFile(f.getPath(), project))
-            .ifPresent(selectorArtifact::setValue);
-        Optional.ofNullable(config.getSourceBuildEnv())
-            .ifPresent(this.inputEnv::setEnvironmentVariables);
+        Optional.ofNullable(config.getBuildImageConfig()).ifPresent(buildConfig -> {
+            Optional.of(buildConfig.getSource())
+                .map(f -> AzureArtifact.createFromFile(f.toAbsolutePath().toString(), project))
+                .ifPresent(selectorArtifact::setValue);
+            Optional.ofNullable(buildConfig.getSourceBuildEnv()).ifPresent(this.inputEnv::setEnvironmentVariables);
+        });
     }
 
     @Override
