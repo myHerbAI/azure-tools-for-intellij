@@ -65,11 +65,7 @@ public class UpdateImageForm extends JPanel implements AzureFormJPanel<UpdateIma
     @Override
     public void setValue(final UpdateImageConfig config) {
         Optional.ofNullable(config).map(UpdateImageConfig::getImage).ifPresent(i -> this.imageForm.setValue(i));
-        Optional.ofNullable(config).map(UpdateImageConfig::getApp).ifPresent(this::setApp);
-    }
-
-    public void setApp(ContainerApp app) {
-        this.selectorApp.setValue(app);
+        Optional.ofNullable(config).map(UpdateImageConfig::getApp).ifPresent(a -> this.selectorApp.setValue(a));
     }
 
     @Override
