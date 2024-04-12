@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class ArtifactSourceForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, IImageForm {
+public class ArtifactForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, IImageForm {
     private static final String LINK_SUPPORTED_JAVA_BUILD_ENV = "https://learn.microsoft.com/en-us/azure/container-apps/java-build-environment-variables?source=recommendations#supported-java-build-environment-variables";
     private final Project project;
     @Getter
@@ -45,7 +45,7 @@ public class ArtifactSourceForm implements AzureFormJPanel<ContainerAppDraft.Ima
     @Getter
     private ContainerApp containerApp;
 
-    public ArtifactSourceForm(final Project project) {
+    public ArtifactForm(final Project project) {
         super();
         this.project = project;
         $$$setupUI$$$(); // tell IntelliJ to call createUIComponents() here.

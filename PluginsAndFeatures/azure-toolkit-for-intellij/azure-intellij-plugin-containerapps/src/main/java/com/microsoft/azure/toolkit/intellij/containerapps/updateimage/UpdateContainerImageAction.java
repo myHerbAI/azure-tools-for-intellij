@@ -19,6 +19,7 @@ import com.microsoft.azure.toolkit.lib.containerregistry.AzureContainerRegistry;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
 import com.microsoft.azure.toolkit.lib.containerregistry.Tag;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -34,7 +35,7 @@ public class UpdateContainerImageAction {
                         .filter(r -> r.getName().equalsIgnoreCase(name)).findFirst())
                     .orElse(null);
                 imageConfig.setContainerRegistry(registry);
-                imageConfig.setEnvironmentVariables(container.env());
+                imageConfig.setEnvironmentVariables(Optional.ofNullable(container.env()).orElse(Collections.emptyList()));
                 config.setImage(imageConfig);
             }
             config.setApp(app);

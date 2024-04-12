@@ -3,7 +3,7 @@
   <grid id="57ab1" binding="pnlRoot" layout-manager="GridLayoutManager" row-count="11" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="543" height="623"/>
+      <xy x="20" y="20" width="707" height="837"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -65,7 +65,7 @@
           </nested-form>
         </children>
       </grid>
-      <grid id="4678c" binding="pnlAppSettings" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="4678c" binding="pnlAppSettings" layout-manager="GridLayoutManager" row-count="4" column-count="5" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -73,7 +73,12 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="d582" class="javax.swing.JLabel">
+          <nested-form id="c8b19" form-file="com/microsoft/azure/toolkit/intellij/containerapps/component/ImageForm.form" binding="pnlImage">
+            <constraints>
+              <grid row="3" column="0" row-span="1" col-span="5" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="1" use-parent-layout="false"/>
+            </constraints>
+          </nested-form>
+          <component id="9948f" class="javax.swing.JLabel">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
                 <minimum-size width="130" height="24"/>
@@ -82,22 +87,50 @@
               </grid>
             </constraints>
             <properties>
-              <text value="Quickstart:"/>
+              <text value="Source:"/>
             </properties>
           </component>
-          <component id="2cac4" class="javax.swing.JCheckBox" binding="chkUseQuickStart">
+          <component id="ef7dc" class="javax.swing.JRadioButton" binding="btnDeployCode">
             <constraints>
               <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="Use Quick Start Image"/>
+              <selected value="true"/>
+              <text value="Source code"/>
+              <visible value="true"/>
             </properties>
           </component>
-          <nested-form id="c8b19" form-file="com/microsoft/azure/toolkit/intellij/containerapps/component/ImageForm.form" binding="pnlContainer">
+          <component id="ccdde" class="javax.swing.JRadioButton" binding="btnDeployArtifact">
             <constraints>
-              <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="1" use-parent-layout="false"/>
+              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="1" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Artifact"/>
+            </properties>
+          </component>
+          <component id="24101" class="javax.swing.JRadioButton" binding="btnDeployImage">
+            <constraints>
+              <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="1" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Container image"/>
+            </properties>
+          </component>
+          <nested-form id="45371" form-file="com/microsoft/azure/toolkit/intellij/containerapps/component/CodeForm.form" binding="pnlCode" custom-create="true">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="5" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="1" use-parent-layout="false"/>
             </constraints>
           </nested-form>
+          <nested-form id="6d03" form-file="com/microsoft/azure/toolkit/intellij/containerapps/component/ArtifactForm.form" binding="pnlArtifact" custom-create="true">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="5" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="1" use-parent-layout="false"/>
+            </constraints>
+          </nested-form>
+          <hspacer id="334dd">
+            <constraints>
+              <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </hspacer>
         </children>
       </grid>
       <grid id="47402" binding="pnlContainerAppsEnvironment" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
@@ -253,4 +286,11 @@
       </grid>
     </children>
   </grid>
+  <buttonGroups>
+    <group name="deploymentSource">
+      <member id="ef7dc"/>
+      <member id="ccdde"/>
+      <member id="24101"/>
+    </group>
+  </buttonGroups>
 </form>

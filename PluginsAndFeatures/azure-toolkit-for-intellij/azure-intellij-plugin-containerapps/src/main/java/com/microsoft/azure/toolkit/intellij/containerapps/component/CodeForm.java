@@ -34,8 +34,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
-public class CodeSourceForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, IImageForm {
+public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, IImageForm {
     private static final String LINK_SUPPORTED_JAVA_BUILD_ENV = "https://learn.microsoft.com/en-us/azure/container-apps/java-build-environment-variables?source=recommendations#supported-java-build-environment-variables";
     private final Project project;
     @Getter
@@ -44,12 +45,15 @@ public class CodeSourceForm implements AzureFormJPanel<ContainerAppDraft.ImageCo
     private AzureFileInput fileCode;
     private EnvironmentVariablesTextFieldWithBrowseButton inputEnv;
     private HyperlinkLabel buildEnvLink;
+    @Setter
+    private Consumer<Path> onFolderChanged = type -> {
+    };
 
     @Setter
     @Getter
     private ContainerApp containerApp;
 
-    public CodeSourceForm(final Project project) {
+    public CodeForm(final Project project) {
         super();
         this.project = project;
         $$$setupUI$$$(); // tell IntelliJ to call createUIComponents() here.
@@ -69,6 +73,13 @@ public class CodeSourceForm implements AzureFormJPanel<ContainerAppDraft.ImageCo
             }
         });
         buildEnvLink.setAlignmentX(Component.LEFT_ALIGNMENT);
+    }
+
+    public Path getSourceFolder() {
+        return Optional.ofNullable(fileCode.getValue())
+            .map(Path::of)
+            .filter(Files::exists)
+            .orElse(null);
     }
 
     @Override
@@ -108,6 +119,7 @@ public class CodeSourceForm implements AzureFormJPanel<ContainerAppDraft.ImageCo
         this.fileCode = new AzureFileInput();
         this.fileCode.addActionListener(new ComponentWithBrowseButton.BrowseFolderActionListener<>("Select Path of Source Code", null, fileCode,
             this.project, FileChooserDescriptorFactory.createSingleFolderDescriptor(), TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT));
+        this.fileCode.addValueChangedListener(s -> onFolderChanged.accept(Path.of(s)));
     }
 
     private AzureValidationInfo validateCodePath() {
