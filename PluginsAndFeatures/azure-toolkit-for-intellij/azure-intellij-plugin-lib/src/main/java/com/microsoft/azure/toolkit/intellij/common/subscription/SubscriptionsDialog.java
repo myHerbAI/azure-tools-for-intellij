@@ -159,7 +159,6 @@ public class SubscriptionsDialog extends AzureDialogWrapper implements TableMode
 
     protected JPanel createSouthAdditionalPanel() {
         this.selectionInfo = new JLabel();
-        this.selectionInfo.setForeground(UIUtil.getLabelInfoForeground());
         final JPanel panel = new NonOpaquePanel(new BorderLayout());
         panel.setBorder(JBUI.Borders.emptyLeft(10));
         panel.add(this.selectionInfo);
