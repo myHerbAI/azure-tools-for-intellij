@@ -11,6 +11,10 @@
 - Azure Identity settings ([#787](https://github.com/JetBrains/azure-tools-for-intellij/issues/787))
 - Option to choose Storage Account during the Function publishing ([#764](https://github.com/JetBrains/azure-tools-for-intellij/issues/764))
 
+### Fixed
+
+- Unknown JSON token error in local.settings.json file preventing running/debugging ([#811](https://github.com/JetBrains/azure-tools-for-intellij/issues/811))
+
 ## [4.0.0-preview.3] - 2024-03-22
 
 ### Changed
