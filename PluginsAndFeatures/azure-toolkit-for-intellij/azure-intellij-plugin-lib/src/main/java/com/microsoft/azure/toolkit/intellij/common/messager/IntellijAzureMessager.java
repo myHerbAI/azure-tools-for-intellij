@@ -9,6 +9,8 @@ import com.intellij.notification.*;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.util.registry.Registry;
@@ -106,6 +108,15 @@ public class IntellijAzureMessager implements IAzureMessager {
             case DEBUG -> {
                 return true;
             }
+            case PROGRESS -> {
+                final ProgressManager manager = ProgressManager.getInstance();
+                final ProgressIndicator indicator = manager.getProgressIndicator();
+                if (Objects.nonNull(indicator)) {
+                    indicator.setText2(raw.getContent());
+                    return false;
+                }
+                return true;
+            }
             default -> {
             }
         }
@@ -122,9 +133,11 @@ public class IntellijAzureMessager implements IAzureMessager {
     }
 
     @Override
-    public IntellijAzureMessage buildMessage(@Nonnull IAzureMessage.Type type, @Nonnull AzureString content, @Nullable String title, @Nullable Object[] actions, @Nullable Object payload) {
+    public AzureMessage buildMessage(@Nonnull IAzureMessage.Type type, @Nonnull AzureString content, @Nullable String title, @Nullable Object[] actions, @Nullable Object payload) {
         final AzureMessage message = IAzureMessager.super.buildMessage(type, content, title, actions, payload);
-        if (type == IAzureMessage.Type.ALERT || type == IAzureMessage.Type.CONFIRM) {
+        if (type == IAzureMessage.Type.PROGRESS) {
+            return message;
+        } else if (type == IAzureMessage.Type.ALERT || type == IAzureMessage.Type.CONFIRM) {
             return new DialogMessage(message);
         }
         return new NotificationMessage(message);
