@@ -10,6 +10,7 @@
 - Azure Environment and Azure CLI path settings
 - Azure Identity settings ([#787](https://github.com/JetBrains/azure-tools-for-intellij/issues/787))
 - Option to choose Storage Account during the Function publishing ([#764](https://github.com/JetBrains/azure-tools-for-intellij/issues/764))
+- Swap with Production action ([#806](https://github.com/JetBrains/azure-tools-for-intellij/issues/806))
 
 ## [4.0.0-preview.3] - 2024-03-22
 
