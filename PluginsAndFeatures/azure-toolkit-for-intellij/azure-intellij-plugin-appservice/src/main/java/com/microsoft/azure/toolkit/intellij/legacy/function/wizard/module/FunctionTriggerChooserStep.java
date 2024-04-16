@@ -57,7 +57,7 @@ public class FunctionTriggerChooserStep extends ModuleWizardStep {
         triggerList.setBorder(JBUI.Borders.empty(2));
         triggerList.addFocusListener(new FocusListener() {
             private final Border border = triggerList.getBorder();
-            private final Border focusedBorder = new RoundedLineBorder(JBColor.namedColor("Component.focusedBorderColor"), 2);
+            private final Border focusedBorder = new RoundedLineBorder(JBColor.namedColor("Component.focusColor"), 5, 2);
 
             @Override
             public void focusGained(FocusEvent e) {

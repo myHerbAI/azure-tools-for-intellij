@@ -68,7 +68,7 @@ public class AppSettingsTableUtils {
         appSettingsTable.setDefaultRenderer(Object.class, new HighLightedCellRenderer(searchTextField.getTextEditor()));
         appSettingsTable.addFocusListener(new FocusListener() {
             private final Border border = appSettingsTable.getBorder();
-            private final Border focusedBorder = new RoundedLineBorder(JBColor.namedColor("Component.focusedBorderColor"), 2);
+            private final Border focusedBorder = new RoundedLineBorder(JBColor.namedColor("Component.focusColor"), 5, 2);
 
             @Override
             public void focusGained(FocusEvent e) {
