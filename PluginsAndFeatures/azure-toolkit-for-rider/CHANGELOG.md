@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.0.0-preview.4] - 2024-04-15
+
 ### Added
 
 - WebApp and Function property views ([#767](https://github.com/JetBrains/azure-tools-for-intellij/issues/767))
@@ -45,7 +47,9 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.3...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.4...HEAD
+
+[4.0.0-preview.4]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.3...v4.0.0-preview.4
 
 [4.0.0-preview.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.2...v4.0.0-preview.3
 
