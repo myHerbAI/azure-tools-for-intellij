@@ -88,6 +88,12 @@ class AzuriteSettings : SimplePersistentStateComponent<AzuriteSettingsState>(Azu
             state.tablePort = value
         }
 
+    var basicOAuth
+        get() = state.basicOAuth
+        set(value) {
+            state.basicOAuth = value
+        }
+
     var certificatePath
         get() = state.certificatePath ?: ""
         set(value) {

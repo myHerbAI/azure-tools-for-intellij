@@ -98,6 +98,18 @@ class AzuriteService(private val scope: CoroutineScope) : LifetimedService() {
             return
         }
 
+        if (settings.basicOAuth && settings.certificatePath.isEmpty()) {
+            Notification(
+                "Azure AppServices",
+                "The certificate path cannot be empty if OAuth is enabled",
+                "",
+                NotificationType.WARNING
+            )
+                .addAction(ShowAzuriteSettingsNotificationAction())
+                .notify(project)
+            return
+        }
+
         LOG.debug("Azurite executable: ${azuritePath.absolutePathString()}, Azurite workspace: ${workspacePath.absolutePathString()}")
 
         scope.launch {
@@ -171,6 +183,10 @@ class AzuriteService(private val scope: CoroutineScope) : LifetimedService() {
 
         if (settings.looseMode) {
             commandLine.addParameter("--loose")
+        }
+
+        if (settings.basicOAuth) {
+            commandLine.addParameters("--oauth", "basic")
         }
 
         val certificatePath = settings.certificatePath
