@@ -17,6 +17,7 @@ class AzuriteSettingsState : BaseState() {
     var queuePort by property(10001)
     var tableHost by string("127.0.0.1")
     var tablePort by property(10002)
+    var basicOAuth by property(false)
     var certificatePath by string("")
     var certificateKeyPath by string("")
     var certificatePassword by string("")

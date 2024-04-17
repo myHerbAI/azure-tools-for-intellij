@@ -10,6 +10,7 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.SimpleListCellRenderer
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.*
 import com.intellij.ui.layout.selectedValueIs
@@ -25,6 +26,7 @@ class AzuriteConfigurable : BoundConfigurable("Azurite") {
     private val settings get() = AzuriteSettings.getInstance()
 
     private lateinit var workspaceComboBox: Cell<ComboBox<AzuriteLocationMode>>
+    private lateinit var basicOAuthCheckBox: Cell<JBCheckBox>
 
     override fun createPanel() = panel {
         group("Azurite Executable") {
@@ -59,6 +61,11 @@ class AzuriteConfigurable : BoundConfigurable("Azurite") {
             row {
                 checkBox("Enable loose mode (ignores unsupported headers and parameters)")
                     .bindSelected(settings::looseMode)
+            }
+            row {
+                basicOAuthCheckBox = checkBox("Enable basic OAuth authentication for Azurite")
+                    .comment("OAuth requires an HTTPS endpoint.")
+                    .bindSelected(settings::basicOAuth)
             }
         }
         group("Host/Port Settings") {
@@ -101,6 +108,7 @@ class AzuriteConfigurable : BoundConfigurable("Azurite") {
                     .comment("Path to a locally-trusted pem or pfx certificate file path to enable HTTPS mode.")
                     .bindText(settings::certificatePath)
                     .validationOnInput { validationForPath(it) }
+                    .validationOnInput { validationForOAuth(it) }
             }
             row("Certificate key path:") {
                 textFieldWithBrowseButton(
@@ -125,6 +133,13 @@ class AzuriteConfigurable : BoundConfigurable("Azurite") {
     private fun validationForPath(textField: TextFieldWithBrowseButton) =
         if (textField.text.isNotEmpty() && !File(textField.text).exists()) {
             ValidationInfo("Not a valid path.", textField)
+        } else {
+            null
+        }
+
+    private fun validationForOAuth(textField: TextFieldWithBrowseButton) =
+        if (basicOAuthCheckBox.component.isSelected && textField.text.isEmpty()) {
+            ValidationInfo("The path cannot be empty if OAuth is enabled.", textField)
         } else {
             null
         }
