@@ -21,13 +21,11 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 
-class OpenAppServicePropertyViewAction {
-    companion object {
-        val SUBSCRIPTION_ID = Key<String>("subscriptionId")
-        val RESOURCE_ID = Key<String>("resourceId")
-        val WEBAPP_ID = Key<String>("webAppId")
-        val SLOT_NAME = Key<String>("slotName")
-    }
+object OpenAppServicePropertyViewAction {
+    val SUBSCRIPTION_ID = Key<String>("subscriptionId")
+    val RESOURCE_ID = Key<String>("resourceId")
+    val WEBAPP_ID = Key<String>("webAppId")
+    val SLOT_NAME = Key<String>("slotName")
 
     fun openWebAppPropertyView(webApp: WebApp, project: Project) {
         val sid = webApp.subscriptionId

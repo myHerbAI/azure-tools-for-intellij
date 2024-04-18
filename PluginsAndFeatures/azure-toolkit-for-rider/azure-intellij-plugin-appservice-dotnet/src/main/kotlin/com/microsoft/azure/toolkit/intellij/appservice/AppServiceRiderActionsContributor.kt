@@ -87,25 +87,25 @@ class AppServiceRiderActionsContributor : IActionsContributor {
             ResourceCommonActionsContributor.SHOW_PROPERTIES,
             { r, _ -> r is WebApp },
             { c, e: AnActionEvent ->
-                e.project?.let { OpenAppServicePropertyViewAction().openWebAppPropertyView(c as WebApp, it) }
+                e.project?.let { OpenAppServicePropertyViewAction.openWebAppPropertyView(c as WebApp, it) }
             })
         am.registerHandler(
             ResourceCommonActionsContributor.SHOW_PROPERTIES,
             { r, _ -> r is WebAppDeploymentSlot },
             { c, e: AnActionEvent ->
-                e.project?.let { OpenAppServicePropertyViewAction().openDeploymentSlotPropertyView(c as WebAppDeploymentSlot, it) }
+                e.project?.let { OpenAppServicePropertyViewAction.openDeploymentSlotPropertyView(c as WebAppDeploymentSlot, it) }
             })
         am.registerHandler(
             ResourceCommonActionsContributor.SHOW_PROPERTIES,
             { r, _ -> r is FunctionApp },
             { c, e: AnActionEvent ->
-                e.project?.let { OpenAppServicePropertyViewAction().openFunctionAppPropertyView(c as FunctionApp, it) }
+                e.project?.let { OpenAppServicePropertyViewAction.openFunctionAppPropertyView(c as FunctionApp, it) }
             })
         am.registerHandler(
             ResourceCommonActionsContributor.SHOW_PROPERTIES,
             { r, _ -> r is FunctionAppDeploymentSlot },
             { c, e: AnActionEvent ->
-                e.project?.let { OpenAppServicePropertyViewAction().openFunctionAppDeploymentSlotPropertyView(c as FunctionAppDeploymentSlot, it) }
+                e.project?.let { OpenAppServicePropertyViewAction.openFunctionAppDeploymentSlotPropertyView(c as FunctionAppDeploymentSlot, it) }
             })
         am.registerHandler(
             WebAppActionsContributor.SWAP_DEPLOYMENT_SLOT,
