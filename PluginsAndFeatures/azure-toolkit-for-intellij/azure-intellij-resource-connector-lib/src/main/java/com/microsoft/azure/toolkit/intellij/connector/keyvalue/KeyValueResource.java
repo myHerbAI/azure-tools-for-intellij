@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
-package com.microsoft.azure.toolkit.intellij.function.connection;
+package com.microsoft.azure.toolkit.intellij.connector.keyvalue;
 
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.intellij.connector.function.FunctionSupported
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.jdom.Attribute;
 import org.jdom.Element;
 
@@ -26,30 +27,18 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+@Getter
+@RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class CommonConnectionResource implements Resource<ConnectionTarget> {
-
-    @Getter
+public class KeyValueResource implements Resource<KeyValueData> {
     @Nonnull
-    private final CommonConnectionResource.Definition definition;
-    @Getter
+    private final KeyValueData data;
     @Nonnull
-    private ConnectionTarget data;
-
-    public CommonConnectionResource(@Nonnull ConnectionTarget data, @Nonnull CommonConnectionResource.Definition definition) {
-        this.data = data;
-        this.definition = definition;
-    }
-
-    @Nonnull
-    @Override
-    public ResourceDefinition<ConnectionTarget> getDefinition() {
-        return this.definition;
-    }
+    private final KeyValueResource.Definition definition;
 
     @Override
-    public ConnectionTarget getData() {
-        return this.data;
+    public String getId() {
+        return DigestUtils.md5Hex(this.getDataId());
     }
 
     @Override
@@ -60,69 +49,68 @@ public class CommonConnectionResource implements Resource<ConnectionTarget> {
 
     @Override
     public String getName() {
-        return getData().getName();
+        return getData().getKey();
     }
 
     @Override
     public Map<String, String> initEnv(Project project) {
-        final ConnectionTarget connection = getData();
-        return Collections.singletonMap(connection.getName(), connection.getConnectionString());
+        final KeyValueData connection = getData();
+        return Collections.singletonMap(connection.getKey(), connection.getValue());
     }
 
     @Override
     public String toString() {
-        return this.data.getName();
+        return this.data.getKey();
     }
 
     public String getEnvPrefix() {
-        return this.data.getName();
+        return this.data.getKey();
     }
 
     @Getter
     @EqualsAndHashCode(onlyExplicitlyIncluded = true)
     @RequiredArgsConstructor
-    public static class Definition implements ResourceDefinition<ConnectionTarget>, FunctionSupported<ConnectionTarget> {
+    public static class Definition implements ResourceDefinition<KeyValueData>, FunctionSupported<KeyValueData> {
         public static final Definition INSTANCE = new Definition();
 
         @Override
         @EqualsAndHashCode.Include
         public String getName() {
-            return "Common Connection (Connection String)";
+            return "Common Connection (Key/Value)";
         }
 
         @Override
-        public Resource<ConnectionTarget> define(ConnectionTarget resource) {
-            return new CommonConnectionResource(resource, this);
+        public Resource<KeyValueData> define(KeyValueData resource, String id) {
+            return new KeyValueResource(resource, this);
         }
 
         @Override
-        public AzureFormJPanel<Resource<ConnectionTarget>> getResourcePanel(Project project) {
-            return new CommonConnectionCreationPanel();
+        public AzureFormJPanel<Resource<KeyValueData>> getResourcePanel(Project project) {
+            return new KeyValueConnectorPanel();
         }
 
         @Override
-        public List<Resource<ConnectionTarget>> getResources(Project project) {
+        public List<Resource<KeyValueData>> getResources(Project project) {
             return Collections.emptyList();
         }
 
         @Override
-        public boolean write(@Nonnull Element element, @Nonnull Resource<ConnectionTarget> resource) {
-            final ConnectionTarget target = resource.getData();
+        public boolean write(@Nonnull Element element, @Nonnull Resource<KeyValueData> resource) {
+            final KeyValueData target = resource.getData();
             element.setAttribute(new Attribute("id", resource.getId()));
             element.addContent(new Element("resourceId").addContent(resource.getDataId()));
-            element.addContent(new Element("name").addContent(target.getName()));
-            IntelliJSecureStore.getInstance().savePassword(Definition.class.getName(), resource.getDataId(), null, target.getConnectionString());
+            element.addContent(new Element("name").addContent(target.getKey()));
+            IntelliJSecureStore.getInstance().savePassword(Definition.class.getName(), resource.getDataId(), null, target.getValue());
             return true;
         }
 
         @Override
-        public Resource<ConnectionTarget> read(@Nonnull Element element) {
+        public Resource<KeyValueData> read(@Nonnull Element element) {
             final String id = Optional.ofNullable(element.getChildTextTrim("resourceId")).orElseGet(() -> element.getChildTextTrim("dataId"));
             final String name = element.getChildTextTrim("name");
-            final String triggerType = element.getChildTextTrim("triggerType");
             final String connectionString = IntelliJSecureStore.getInstance().loadPassword(Definition.class.getName(), id, null);
-            final ConnectionTarget target = Objects.isNull(id) ? null :
-                ConnectionTarget.builder().id(id).name(name).connectionString(connectionString).build();
+            final KeyValueData target = Objects.isNull(id) ? null :
+                KeyValueData.builder().id(id).key(name).value(connectionString).build();
             return Optional.ofNullable(target).map(this::define).orElse(null);
         }
 
@@ -144,14 +132,14 @@ public class CommonConnectionResource implements Resource<ConnectionTarget> {
         }
 
         @Override
-        public Map<String, String> getPropertiesForFunction(@Nonnull ConnectionTarget resource, @Nonnull Connection connection) {
-            return Collections.singletonMap(resource.getName(), getResourceConnectionString(resource));
+        public Map<String, String> getPropertiesForFunction(@Nonnull KeyValueData resource, @Nonnull Connection connection) {
+            return Collections.singletonMap(resource.getKey(), getResourceConnectionString(resource));
         }
 
         @Nullable
         @Override
-        public String getResourceConnectionString(@Nonnull ConnectionTarget resource) {
-            return resource.getConnectionString();
+        public String getResourceConnectionString(@Nonnull KeyValueData resource) {
+            return resource.getValue();
         }
 
         @Override
