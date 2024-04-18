@@ -96,7 +96,6 @@ public class DockerImageConfigurationPanel implements AzureForm<DockerPushConfig
     }
 
     @Nonnull
-
     private AzureValidationInfo validateRepositoryName() {
         final String repositoryName = txtRepositoryName.getValue();
         if (StringUtils.isBlank(repositoryName) || repositoryName.length() < 1 || repositoryName.length() > REPO_LENGTH) {

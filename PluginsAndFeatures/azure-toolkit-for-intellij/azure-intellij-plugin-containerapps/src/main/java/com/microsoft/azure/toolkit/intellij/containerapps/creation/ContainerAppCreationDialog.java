@@ -101,6 +101,7 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
         this.txtContainerAppName.setRequired(true);
 
         this.txtContainerAppName.addValidator(this::validateContainerAppName);
+        this.txtContainerAppName.addValueChangedListener(this::onAppNameChanged);
         this.cbSubscription.addItemListener(this::onSubscriptionChanged);
         this.cbRegion.addItemListener(this::onRegionChanged); // trigger validation after resource group changed
         this.cbResourceGroup.addItemListener(this::onResourceGroupChanged);
@@ -163,6 +164,10 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
             }
         }
     }
+    
+    private void onAppNameChanged(String s) {
+        Optional.ofNullable(getContainerAppDraft()).ifPresent(this.formImage::setContainerApp);
+    }
 
     private void mergeContainerConfiguration(final ImageForm target, final ContainerAppDraft.ImageConfig value) {
         try {
@@ -183,6 +188,7 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
         if (itemEvent.getStateChange() == ItemEvent.SELECTED && itemEvent.getItem() instanceof ResourceGroup) {
             final ResourceGroup resourceGroup = (ResourceGroup) itemEvent.getItem();
             this.cbEnvironment.setResourceGroup(resourceGroup);
+            Optional.ofNullable(getContainerAppDraft()).ifPresent(this.formImage::setContainerApp);
         }
     }
 
@@ -191,6 +197,7 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
             final Region region = (Region) itemEvent.getItem();
             this.txtContainerAppName.validateValueAsync();
             this.cbEnvironment.setRegion(region);
+            Optional.ofNullable(getContainerAppDraft()).ifPresent(this.formImage::setContainerApp);
         }
     }
 
@@ -200,7 +207,25 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
             this.cbResourceGroup.setSubscription(subscription);
             this.cbRegion.setSubscription(subscription);
             this.cbEnvironment.setSubscription(subscription);
+            Optional.ofNullable(getContainerAppDraft()).ifPresent(this.formImage::setContainerApp);
         }
+    }
+
+    @Nullable
+    private ContainerAppDraft getContainerAppDraft() {
+        final Subscription subscription = cbSubscription.getValue();
+        final ResourceGroup resourceGroup = cbResourceGroup.getValue();
+        final String appName = txtContainerAppName.getValue();
+        if (ObjectUtils.anyNull(subscription, resourceGroup) || StringUtils.isBlank(appName)) {
+            return null;
+        }
+        final ContainerAppModule module = az(AzureContainerApps.class).containerApps(subscription.getId());
+        final ContainerAppDraft draft = module.create(appName, resourceGroup.getName());
+        final ContainerAppDraft.Config config = new ContainerAppDraft.Config();
+        config.setRegion(cbRegion.getValue());
+        config.setEnvironment(cbEnvironment.getValue());
+        draft.setConfig(config);
+        return draft;
     }
 
     private AzureValidationInfo validateContainerAppName() {

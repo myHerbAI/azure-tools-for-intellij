@@ -112,6 +112,7 @@
       <reference ref="Actions.DeployFunction"/>
       <reference ref="Actions.DeploySpringCloud"/>
       <reference ref="Actions.WebDeployAction"/>
+      <reference ref="Actions.ContainerDeployAction"/>
       <separator/>
       <reference ref="Actions.AddDockerSupport"/>
       <reference ref="Actions.RunOnDockerHost"/>

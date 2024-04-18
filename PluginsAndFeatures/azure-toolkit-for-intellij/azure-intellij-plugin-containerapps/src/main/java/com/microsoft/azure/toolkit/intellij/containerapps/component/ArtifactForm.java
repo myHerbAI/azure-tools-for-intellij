@@ -105,6 +105,12 @@ public class ArtifactForm implements AzureFormJPanel<ContainerAppDraft.ImageConf
         this.contentPanel.setVisible(visible);
     }
 
+    public void setFixedArtifact(final AzureArtifact artifact){
+        this.lblArtifact.setVisible(false);
+        this.selectorArtifact.setVisible(false);
+        this.selectorArtifact.setArtifact(artifact);
+    }
+
     private void createUIComponents() {
         this.selectorArtifact = new AzureArtifactComboBox(project, true);
         this.selectorArtifact.reloadItems();

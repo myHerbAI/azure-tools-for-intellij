@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.containerregistry.AzureContainerRegistry;
 import com.microsoft.azure.toolkit.lib.containerregistry.AzureContainerRegistryServiceSubscription;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
+import lombok.Getter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,6 +29,7 @@ import java.util.stream.Stream;
 public class ACRRegistryComboBox extends AzureComboBox<ContainerRegistry> {
     @Nullable
     private Subscription subscription;
+    @Getter
     private final List<ContainerRegistry> draftItems = new LinkedList<>();
 
     @Override

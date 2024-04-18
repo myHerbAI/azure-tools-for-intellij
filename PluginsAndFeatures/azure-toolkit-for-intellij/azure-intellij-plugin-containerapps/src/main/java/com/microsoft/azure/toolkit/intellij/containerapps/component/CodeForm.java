@@ -18,23 +18,32 @@ import com.microsoft.azure.toolkit.intellij.common.EnvironmentVariablesTextField
 import com.microsoft.azure.toolkit.intellij.common.component.AzureFileInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
+import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerAppDraft;
+import com.microsoft.azure.toolkit.lib.containerregistry.AzureContainerRegistry;
+import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
+import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistryDraft;
+import com.microsoft.azure.toolkit.lib.containerregistry.model.Sku;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.*;
+
+import static com.microsoft.azure.toolkit.lib.Azure.az;
 
 public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, DeploymentSourceForm {
     private static final String LINK_SUPPORTED_JAVA_BUILD_ENV = "https://learn.microsoft.com/en-us/azure/container-apps/java-build-environment-variables?source=recommendations#supported-java-build-environment-variables";
@@ -48,8 +57,9 @@ public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>,
     @Setter
     private Consumer<Path> onFolderChanged = type -> {
     };
+    private ACRRegistryComboBox selectorRepository;
+    private JLabel lblRepository;
 
-    @Setter
     @Getter
     private ContainerApp containerApp;
 
@@ -58,6 +68,42 @@ public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>,
         this.project = project;
         $$$setupUI$$$(); // tell IntelliJ to call createUIComponents() here.
         this.init();
+    }
+
+    public void setContainerApp(final ContainerApp containerApp) {
+        this.containerApp = containerApp;
+        if (Objects.nonNull(containerApp)) {
+            // update the draft value
+            this.selectorRepository.setSubscription(containerApp.getSubscription());
+            final Object rawValue = this.selectorRepository.getRawValue();
+            final ContainerRegistryDraft draft = getDraftRegistry();
+            final List<ContainerRegistry> draftItems = selectorRepository.getDraftItems();
+            draftItems.clear();
+            draftItems.add(draft);
+            if (Objects.isNull(rawValue)) {
+                selectorRepository.setValue(val -> val.isAdminUserEnabled() &&
+                        StringUtils.equalsIgnoreCase(val.getResourceGroupName(), containerApp.getResourceGroupName()));
+            } else if (rawValue instanceof ContainerRegistryDraft) {
+                selectorRepository.setValue(draft);
+            }
+            selectorRepository.reloadItems();
+        }
+    }
+
+    @Nullable
+    private ContainerRegistryDraft getDraftRegistry() {
+        if (Objects.isNull(this.containerApp)) {
+            return null;
+        }
+        final String fullImageName = this.getDefaultFullImageName();
+        final ContainerAppDraft.ImageConfig config = new ContainerAppDraft.ImageConfig(fullImageName);
+        final String acrRegistryName = Objects.requireNonNull(config.getAcrRegistryName());
+        final ContainerRegistryDraft draft = az(AzureContainerRegistry.class)
+                .registry(containerApp.getSubscriptionId()).create(acrRegistryName, containerApp.getResourceGroupName());
+        draft.setSku(Sku.Standard);
+        draft.setAdminUserEnabled(true);
+        draft.setRegion(Optional.ofNullable(containerApp.getRegion()).orElse(Region.US_EAST));
+        return draft;
     }
 
     private void init() {
@@ -86,15 +132,22 @@ public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>,
     public ContainerAppDraft.ImageConfig getValue() {
         final String fullImageName = this.getDefaultFullImageName();
         final ContainerAppDraft.ImageConfig config = new ContainerAppDraft.ImageConfig(fullImageName);
+        config.setBuildImageConfig(getImageConfig());
+        Optional.ofNullable(this.selectorRepository.getValue())
+                .filter(ignore -> this.selectorRepository.isVisible())
+                .ifPresent(config::setContainerRegistry);
+        return config;
+    }
+
+    private ContainerAppDraft.BuildImageConfig getImageConfig() {
         final ContainerAppDraft.BuildImageConfig buildConfig = new ContainerAppDraft.BuildImageConfig();
         Optional.ofNullable(fileCode.getValue())
-            .map(Path::of)
-            .filter(Files::exists)
-            .ifPresent(buildConfig::setSource);
+                .map(Path::of)
+                .filter(Files::exists)
+                .ifPresent(buildConfig::setSource);
         final Map<String, String> envVarsMap = this.inputEnv.getEnvironmentVariables();
         buildConfig.setSourceBuildEnv(envVarsMap);
-        config.setBuildImageConfig(buildConfig);
-        return config;
+        return buildConfig;
     }
 
     @Override
@@ -120,6 +173,19 @@ public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>,
         this.fileCode.addActionListener(new ComponentWithBrowseButton.BrowseFolderActionListener<>("Select Path of Source Code", null, fileCode,
             this.project, FileChooserDescriptorFactory.createSingleFolderDescriptor(), TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT));
         this.fileCode.addValueChangedListener(s -> onFolderChanged.accept(Path.of(s)));
+        this.fileCode.addValueChangedListener(this::onSelectFilePath);
+    }
+
+    private void onSelectFilePath(String s) {
+        final ContainerAppDraft.BuildImageConfig imageConfig = getImageConfig();
+        this.lblRepository.setVisible(imageConfig.sourceHasDockerFile());
+        this.selectorRepository.setVisible(imageConfig.sourceHasDockerFile());
+    }
+
+    public void setFixedCodeSource(final String path) {
+        this.lblCode.setVisible(false);
+        this.fileCode.setVisible(false);
+        this.fileCode.setValue(path);
     }
 
     private AzureValidationInfo validateCodePath() {
