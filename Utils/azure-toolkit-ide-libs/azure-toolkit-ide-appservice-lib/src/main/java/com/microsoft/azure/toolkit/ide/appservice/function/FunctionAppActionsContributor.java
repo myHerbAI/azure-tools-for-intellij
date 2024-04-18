@@ -13,12 +13,10 @@ import com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContri
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.ide.containerapps.ContainerAppsActionsContributor;
 import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.entity.FunctionEntity;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
-import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.ActionGroup;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
@@ -33,7 +31,6 @@ import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
-import java.util.Optional;
 
 import static com.microsoft.azure.toolkit.ide.common.action.ResourceCommonActionsContributor.OPEN_AZURE_SETTINGS;
 
@@ -133,7 +130,9 @@ public class FunctionAppActionsContributor implements IActionsContributor {
         group.addAction(GROUP_CREATE_FUNCTION);
 
         final IActionGroup environment = am.getGroup(ContainerAppsActionsContributor.CONTAINER_APPS_ENVIRONMENT_CREATE_ACTIONS);
-        environment.addAction(ENVIRONMENT_CREATE_FUNCTION);
+        if (environment != null) {
+            environment.addAction(ENVIRONMENT_CREATE_FUNCTION);
+        }
     }
 
     @Override
@@ -217,22 +216,20 @@ public class FunctionAppActionsContributor implements IActionsContributor {
         new Action<>(ENABLE_REMOTE_DEBUGGING)
             .withLabel("Enable Remote Debugging")
             .withIdParam(AzResource::getName)
-            .visibleWhen(s -> s instanceof FunctionAppBase<?, ?, ?> && ((FunctionAppBase<?, ?, ?>) s).getFormalStatus().isRunning() &&
-                !((FunctionAppBase<?, ?, ?>) s).isRemoteDebugEnabled() && !(s instanceof FunctionApp functionApp && (StringUtils.isNotBlank(functionApp.getEnvironmentId()))))
+            .visibleWhen(s -> false)
             .register(am);
 
         new Action<>(DISABLE_REMOTE_DEBUGGING)
             .withLabel("Disable Remote Debugging")
             .withIdParam(AzResource::getName)
-            .visibleWhen(s -> s instanceof FunctionAppBase<?, ?, ?> && ((FunctionAppBase<?, ?, ?>) s).getFormalStatus().isRunning()
-                && ((FunctionAppBase<?, ?, ?>) s).isRemoteDebugEnabled() && !(s instanceof FunctionApp functionApp && (StringUtils.isNotBlank(functionApp.getEnvironmentId()))))
+            .visibleWhen(s -> false)
             .register(am);
 
         new Action<>(REMOTE_DEBUGGING)
             .withLabel("Attach Debugger")
             .withIcon(AzureIcons.Action.ATTACH_DEBUGGER.getIconPath())
             .withIdParam(AzResource::getName)
-            .visibleWhen(s -> s instanceof FunctionAppBase<?, ?, ?> && !(s instanceof FunctionApp functionApp && (StringUtils.isNotBlank(functionApp.getEnvironmentId()))))
+            .visibleWhen(s -> false)
             .enableWhen(s -> s.getFormalStatus().isRunning())
             .register(am);
     }
