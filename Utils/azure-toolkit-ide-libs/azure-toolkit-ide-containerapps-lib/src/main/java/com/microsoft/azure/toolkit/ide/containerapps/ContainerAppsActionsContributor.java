@@ -138,7 +138,7 @@ public class ContainerAppsActionsContributor implements IActionsContributor {
             .register(am);
 
         new Action<>(UPDATE_IMAGE)
-            .withLabel("Update Image")
+            .withLabel("Update App")
             .withIcon(AzureIcons.Action.UPLOAD.getIconPath())
             .withIdParam(AbstractAzResource::getName)
             .visibleWhen(s -> s instanceof ContainerApp)

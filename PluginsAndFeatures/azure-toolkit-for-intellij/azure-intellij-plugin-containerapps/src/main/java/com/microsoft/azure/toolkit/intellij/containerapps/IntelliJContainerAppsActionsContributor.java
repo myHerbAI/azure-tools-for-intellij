@@ -5,7 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.containerapps;
 
-import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -18,7 +17,7 @@ import com.microsoft.azure.toolkit.intellij.containerapps.creation.CreateContain
 import com.microsoft.azure.toolkit.intellij.containerapps.creation.CreateContainerAppsEnvironmentAction;
 import com.microsoft.azure.toolkit.intellij.containerapps.streaminglog.ContainerSelectionDialog;
 import com.microsoft.azure.toolkit.intellij.containerapps.streaminglog.StreamingToolwindowSelectionDialog;
-import com.microsoft.azure.toolkit.intellij.containerapps.updateimage.UpdateContainerImageAction;
+import com.microsoft.azure.toolkit.intellij.containerapps.update.UpdateAppAction;
 import com.microsoft.azure.toolkit.intellij.monitor.AzureMonitorManager;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.account.IAzureAccount;
@@ -62,8 +61,8 @@ public class IntelliJContainerAppsActionsContributor implements IActionsContribu
     @Override
     public void registerHandlers(AzureActionManager am) {
         final BiPredicate<ContainerApp, AnActionEvent> serviceCondition = (r, e) -> r != null;
-        am.<ContainerApp, AnActionEvent>registerHandler(ContainerAppsActionsContributor.UPDATE_IMAGE, UpdateContainerImageAction::openUpdateDialog);
-        am.<Tag, AnActionEvent>registerHandler(ContainerRegistryActionsContributor.DEPLOY_IMAGE_ACA, UpdateContainerImageAction::openUpdateDialog);
+        am.<ContainerApp, AnActionEvent>registerHandler(ContainerAppsActionsContributor.UPDATE_IMAGE, UpdateAppAction::openUpdateDialog);
+        am.<Tag, AnActionEvent>registerHandler(ContainerRegistryActionsContributor.DEPLOY_IMAGE_ACA, UpdateAppAction::openUpdateDialog);
 
         am.registerHandler(ContainerAppsActionsContributor.CREATE_CONTAINER_APP,
                 (ContainerAppsEnvironment r, AnActionEvent e) -> r.getFormalStatus().isConnected(),

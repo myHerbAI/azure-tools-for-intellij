@@ -22,7 +22,7 @@
           <titleFont style="1"/>
         </properties>
       </component>
-      <component id="225e1" class="com.microsoft.azure.toolkit.intellij.common.AzureHideableTitledSeparator" binding="titleAppSettings">
+      <component id="225e1" class="com.microsoft.azure.toolkit.intellij.common.AzureHideableTitledSeparator" binding="titleDeployment">
         <constraints>
           <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -31,7 +31,7 @@
           <titleFont style="1"/>
         </properties>
       </component>
-      <component id="e2a30" class="com.microsoft.azure.toolkit.intellij.common.AzureHideableTitledSeparator" binding="titleContainerAppsEnvironment">
+      <component id="e2a30" class="com.microsoft.azure.toolkit.intellij.common.AzureHideableTitledSeparator" binding="titleAppEnv">
         <constraints>
           <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -41,7 +41,7 @@
           <toolTipText value="The environment is a secure boundary around one or more container apps that can communicate with each other and share a virtual network, logging, and Dapr."/>
         </properties>
       </component>
-      <component id="590bf" class="com.microsoft.azure.toolkit.intellij.common.AzureHideableTitledSeparator" binding="titleProjectDetails">
+      <component id="590bf" class="com.microsoft.azure.toolkit.intellij.common.AzureHideableTitledSeparator" binding="titleApp">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -58,14 +58,14 @@
         <properties/>
         <border type="none"/>
         <children>
-          <nested-form id="fbcec" form-file="com/microsoft/azure/toolkit/intellij/containerapps/component/IngressConfigurationPanel.form" binding="pnlIngressConfiguration">
+          <nested-form id="fbcec" form-file="com/microsoft/azure/toolkit/intellij/containerapps/component/IngressConfigurationPanel.form" binding="pnlIngress">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
           </nested-form>
         </children>
       </grid>
-      <grid id="4678c" binding="pnlAppSettings" layout-manager="GridLayoutManager" row-count="4" column-count="5" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="4678c" binding="pnlDeployment" layout-manager="GridLayoutManager" row-count="4" column-count="5" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -73,7 +73,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <nested-form id="c8b19" form-file="com/microsoft/azure/toolkit/intellij/containerapps/component/ImageForm.form" binding="pnlImage">
+          <nested-form id="c8b19" form-file="com/microsoft/azure/toolkit/intellij/containerapps/component/ImageForm.form" binding="formImage">
             <constraints>
               <grid row="3" column="0" row-span="1" col-span="5" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="1" use-parent-layout="false"/>
             </constraints>
@@ -116,12 +116,12 @@
               <text value="Container image"/>
             </properties>
           </component>
-          <nested-form id="45371" form-file="com/microsoft/azure/toolkit/intellij/containerapps/component/CodeForm.form" binding="pnlCode" custom-create="true">
+          <nested-form id="45371" form-file="com/microsoft/azure/toolkit/intellij/containerapps/component/CodeForm.form" binding="formCode" custom-create="true">
             <constraints>
               <grid row="1" column="0" row-span="1" col-span="5" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="1" use-parent-layout="false"/>
             </constraints>
           </nested-form>
-          <nested-form id="6d03" form-file="com/microsoft/azure/toolkit/intellij/containerapps/component/ArtifactForm.form" binding="pnlArtifact" custom-create="true">
+          <nested-form id="6d03" form-file="com/microsoft/azure/toolkit/intellij/containerapps/component/ArtifactForm.form" binding="formArtifact" custom-create="true">
             <constraints>
               <grid row="2" column="0" row-span="1" col-span="5" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="1" use-parent-layout="false"/>
             </constraints>
@@ -133,7 +133,7 @@
           </hspacer>
         </children>
       </grid>
-      <grid id="47402" binding="pnlContainerAppsEnvironment" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="47402" binding="pnlAppEnv" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -179,7 +179,7 @@
           </component>
         </children>
       </grid>
-      <grid id="65037" binding="pnlProjectDetails" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="65037" binding="pnlApp" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>

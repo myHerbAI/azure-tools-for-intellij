@@ -3,11 +3,12 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.intellij.containerapps.updateimage;
+package com.microsoft.azure.toolkit.intellij.containerapps.update;
 
 import com.azure.resourcemanager.appcontainers.models.Container;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.microsoft.azure.toolkit.ide.containerregistry.ContainerRegistryActionsContributor;
+import com.microsoft.azure.toolkit.intellij.containerapps.update.UpdateAppDialog.UpdateAppConfig;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
@@ -23,9 +24,9 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
-public class UpdateContainerImageAction {
+public class UpdateAppAction {
     public static void openUpdateDialog(ContainerApp app, AnActionEvent e) {
-        final UpdateImageForm.UpdateImageConfig config = new UpdateImageForm.UpdateImageConfig();
+        final UpdateAppConfig config = new UpdateAppConfig();
         if (Objects.nonNull(app)) {
             final Container container = app.getContainer();
             if (Objects.nonNull(container)) {
@@ -36,14 +37,15 @@ public class UpdateContainerImageAction {
                     .orElse(null);
                 imageConfig.setContainerRegistry(registry);
                 imageConfig.setEnvironmentVariables(Optional.ofNullable(container.env()).orElse(Collections.emptyList()));
-                config.setImage(imageConfig);
+                config.setImageConfig(imageConfig);
             }
+            config.setIngressConfig(app.getIngressConfig());
             config.setApp(app);
         }
         AzureTaskManager.getInstance().runLater(() -> {
-            final UpdateImageDialog dialog = new UpdateImageDialog(e.getProject());
+            final UpdateAppDialog dialog = new UpdateAppDialog(e.getProject());
             dialog.getForm().setValue(config);
-            final Action<UpdateImageForm.UpdateImageConfig> okAction = getUpdateImageAction();
+            final Action<UpdateAppConfig> okAction = getUpdateImageAction();
             dialog.setOkAction(okAction);
             dialog.show();
         });
@@ -56,28 +58,29 @@ public class UpdateContainerImageAction {
             throw new AzureToolkitRuntimeException(String.format("Admin user is not enabled for Azure Container Registry (%s).", registry.getName()), enableAdminUser);
         }
         AzureTaskManager.getInstance().runLater(() -> {
-            final UpdateImageDialog dialog = new UpdateImageDialog(e.getProject());
-            final UpdateImageForm.UpdateImageConfig config = new UpdateImageForm.UpdateImageConfig();
+            final UpdateAppDialog dialog = new UpdateAppDialog(e.getProject());
+            final UpdateAppConfig config = new UpdateAppConfig();
             final ContainerAppDraft.ImageConfig imageConfig = new ContainerAppDraft.ImageConfig(tag.getFullName());
             imageConfig.setContainerRegistry(registry);
-            config.setImage(imageConfig);
+            config.setImageConfig(imageConfig);
             dialog.getForm().setValue(config);
-            final Action<UpdateImageForm.UpdateImageConfig> okAction = getUpdateImageAction();
+            final Action<UpdateAppConfig> okAction = getUpdateImageAction();
             dialog.setOkAction(okAction);
             dialog.show();
         });
     }
 
-    private static Action<UpdateImageForm.UpdateImageConfig> getUpdateImageAction() {
-        return new Action<UpdateImageForm.UpdateImageConfig>(Action.Id.of("user/containerapps.update_image.app"))
+    private static Action<UpdateAppConfig> getUpdateImageAction() {
+        return new Action<UpdateAppConfig>(Action.Id.of("user/containerapps.update_image.app"))
             .withLabel("Update")
             .withIdParam(c -> c.getApp().getName())
             .withAuthRequired(true)
-            .withSource(UpdateImageForm.UpdateImageConfig::getApp)
+            .withSource(UpdateAppConfig::getApp)
             .withHandler(c -> {
                 final ContainerAppDraft draft = (ContainerAppDraft) c.getApp().update();
                 final ContainerAppDraft.Config config = new ContainerAppDraft.Config();
-                config.setImageConfig(c.getImage());
+                config.setImageConfig(c.getImageConfig());
+                config.setIngressConfig(c.getIngressConfig());
                 draft.setConfig(config);
                 draft.updateIfExist();
             });

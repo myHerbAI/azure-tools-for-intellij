@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class ACRImageSourceForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, IImageForm {
+public class ACRImageSourceForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, DeploymentSourceForm {
     @Getter
     private JPanel contentPanel;
 

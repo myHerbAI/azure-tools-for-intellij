@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-public interface IImageForm extends AzureFormJPanel<ContainerAppDraft.ImageConfig> {
+public interface DeploymentSourceForm extends AzureFormJPanel<ContainerAppDraft.ImageConfig> {
     void setContainerApp(ContainerApp containerApp);
 
     ContainerApp getContainerApp();

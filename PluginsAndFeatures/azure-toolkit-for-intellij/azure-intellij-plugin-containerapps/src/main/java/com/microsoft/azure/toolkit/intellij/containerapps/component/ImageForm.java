@@ -27,12 +27,12 @@ import java.util.Queue;
 import java.util.*;
 import java.util.function.Consumer;
 
-public class ImageForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, IImageForm {
+public class ImageForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, DeploymentSourceForm {
     private JPanel pnlRoot;
     private ImageSourceTypeComboBox selectorRegistryType;
     private JPanel formImageContainer;
     private JLabel lblRegistryType;
-    private IImageForm formContent;
+    private DeploymentSourceForm formContent;
     private final List<AzureValueChangeListener<ContainerAppDraft.ImageConfig>> listeners = new ArrayList<>();
     @Setter
     private Consumer<String> onImageFormChanged = type -> {
@@ -86,13 +86,13 @@ public class ImageForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>
         return (String) this.selectorRegistryType.getSelectedItem();
     }
 
-    private synchronized IImageForm updateContentForm(String type) {
+    private synchronized DeploymentSourceForm updateContentForm(String type) {
         final GridConstraints constraints = new GridConstraints();
         constraints.setFill(GridConstraints.FILL_BOTH);
         constraints.setHSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
         constraints.setUseParentLayout(true);
         final Project project = ProjectUtils.getProject(this.getContentPanel());
-        final IImageForm newFormImage = switch (type) {
+        final DeploymentSourceForm newFormImage = switch (type) {
             case ImageSourceTypeComboBox.QUICK_START -> new QuickStartImageForm();
             case ImageSourceTypeComboBox.ACR -> new ACRImageSourceForm();
             case ImageSourceTypeComboBox.DOCKER_HUB -> new DockerHubImageForm();

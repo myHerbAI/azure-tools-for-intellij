@@ -19,7 +19,7 @@ import javax.swing.*;
 import java.util.Collections;
 import java.util.List;
 
-public class QuickStartImageForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, IImageForm {
+public class QuickStartImageForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, DeploymentSourceForm {
     public static final String QUICK_START_IMAGE = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest";
     @Getter
     private JPanel contentPanel;

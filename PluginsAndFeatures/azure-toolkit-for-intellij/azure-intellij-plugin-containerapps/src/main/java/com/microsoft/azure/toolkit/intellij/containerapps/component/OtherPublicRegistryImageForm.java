@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class OtherPublicRegistryImageForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, IImageForm {
+public class OtherPublicRegistryImageForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, DeploymentSourceForm {
     @Getter
     private JPanel contentPanel;
     private AzureTextInput txtImage;

@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class ArtifactForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, IImageForm {
+public class ArtifactForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, DeploymentSourceForm {
     private static final String LINK_SUPPORTED_JAVA_BUILD_ENV = "https://learn.microsoft.com/en-us/azure/container-apps/java-build-environment-variables?source=recommendations#supported-java-build-environment-variables";
     private final Project project;
     @Getter

@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, IImageForm {
+public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, DeploymentSourceForm {
     private static final String LINK_SUPPORTED_JAVA_BUILD_ENV = "https://learn.microsoft.com/en-us/azure/container-apps/java-build-environment-variables?source=recommendations#supported-java-build-environment-variables";
     private final Project project;
     @Getter
