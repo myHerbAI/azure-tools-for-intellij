@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: microsoft/azure-maven-plugins
-          ref: endgame-202402
+          ref: endgame-202403
           path: azure-maven-plugins
 
       # Check out current repository
