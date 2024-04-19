@@ -20,13 +20,11 @@ import java.util.List;
 import java.util.Objects;
 
 public class DeployImageRunSettingsEditor extends SettingsEditor<DeployImageRunConfiguration> implements CheckableRunConfigurationEditor<DeployImageRunConfiguration> {
-//    private final DeployImageSettingPanel panel;
     private final DockerDeploymentSettingPanel panel;
     private final DeployImageRunConfiguration configuration;
 
     public DeployImageRunSettingsEditor(Project project, DeployImageRunConfiguration configuration) {
         super();
-//        this.panel = new DeployImageSettingPanel(project, configuration);
         this.panel = new DockerDeploymentSettingPanel(project, configuration);
         this.configuration = configuration;
     }

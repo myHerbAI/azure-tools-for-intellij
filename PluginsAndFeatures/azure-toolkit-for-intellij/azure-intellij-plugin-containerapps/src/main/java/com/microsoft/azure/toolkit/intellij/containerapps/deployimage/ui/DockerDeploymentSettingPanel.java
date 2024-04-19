@@ -261,7 +261,7 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
                 model.setContainerRegistryId(conf.getContainerRegistryId());
             });
         } else {
-            final IImageForm imageForm = rdoSourceCode.isSelected() ? codeSourceForm : artifactSourceForm;
+            final DeploymentSourceForm imageForm = rdoSourceCode.isSelected() ? codeSourceForm : artifactSourceForm;
             model.setImageConfig(Objects.requireNonNull(imageForm.getValue()));
         }
         Optional.ofNullable(pnlIngressConfiguration.getValue()).ifPresent(model::setIngressConfig);
