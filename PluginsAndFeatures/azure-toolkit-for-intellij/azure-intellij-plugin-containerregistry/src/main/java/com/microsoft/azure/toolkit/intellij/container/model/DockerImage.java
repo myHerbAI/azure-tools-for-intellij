@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.intellij.container.model;
 import com.github.dockerjava.api.model.Image;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifact;
+import com.microsoft.azure.toolkit.lib.common.utils.Utils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -55,7 +56,7 @@ public class DockerImage {
         this.dockerFile = new File(virtualFile.getPath());
         this.baseDirectory = this.dockerFile.getParentFile();
         this.repositoryName = "image";
-        this.tagName = "latest";
+        this.tagName = Utils.getTimestamp();
     }
 
     public DockerImage(@Nonnull final  DockerImage value) {
