@@ -135,10 +135,6 @@ public class IntelliJContainerAppsActionsContributor implements IActionsContribu
         final ResourceGroup rg = Optional.ofNullable(resourceGroup).orElseGet(() ->
                 Optional.ofNullable(cae).map(ContainerAppsEnvironment::getResourceGroup).orElse(historyRg));
         result.setResourceGroup(rg);
-        final List<Region> regions = az(AzureAccount.class).listRegions(sub.getId());
-        final Region historyRegion = CacheManager.getUsageHistory(Region.class).peek(regions::contains);
-        final Region region = Optional.ofNullable(cae).map(ContainerAppsEnvironment::getRegion).orElse(historyRegion);
-        result.setRegion(region);
         return result;
     }
 

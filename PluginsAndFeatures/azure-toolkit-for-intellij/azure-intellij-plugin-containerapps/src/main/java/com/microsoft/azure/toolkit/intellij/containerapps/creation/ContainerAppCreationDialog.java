@@ -12,7 +12,6 @@ import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.AzureHideableTitledSeparator;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.intellij.common.EnvironmentVariablesTextFieldWithBrowseButton;
-import com.microsoft.azure.toolkit.intellij.common.component.RegionComboBox;
 import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBox;
 import com.microsoft.azure.toolkit.intellij.common.component.resourcegroup.ResourceGroupComboBox;
 import com.microsoft.azure.toolkit.intellij.container.AzureDockerClient;
@@ -61,14 +60,9 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
     private SubscriptionComboBox cbSubscription;
     private JLabel lblResourceGroup;
     private ResourceGroupComboBox cbResourceGroup;
+    private AzureContainerAppsEnvironmentComboBox cbEnvironment;
     private JLabel lblContainerAppName;
     private AzureTextInput txtContainerAppName;
-
-    private AzureHideableTitledSeparator titleAppEnv;
-    private JPanel pnlAppEnv;
-    private JLabel lblRegion;
-    private RegionComboBox cbRegion;
-    private AzureContainerAppsEnvironmentComboBox cbEnvironment;
 
     private AzureHideableTitledSeparator titleIngress;
     private IngressConfigurationPanel pnlIngress;
@@ -103,13 +97,12 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
         super.init();
         this.cbSubscription.setRequired(true);
         this.cbResourceGroup.setRequired(true);
-        this.cbRegion.setRequired(true);
         this.txtContainerAppName.setRequired(true);
+        this.cbEnvironment.setRequired(true);
 
         this.txtContainerAppName.addValidator(this::validateContainerAppName);
         this.txtContainerAppName.addValueChangedListener(this::onAppNameChanged);
         this.cbSubscription.addItemListener(this::onSubscriptionChanged);
-        this.cbRegion.addItemListener(this::onRegionChanged); // trigger validation after resource group changed
         this.cbResourceGroup.addItemListener(this::onResourceGroupChanged);
 
         this.btnDeployCode.addItemListener(this::onDeploymentSourceChanged);
@@ -126,16 +119,13 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
         this.lblSubscription.setLabelFor(cbSubscription);
         this.lblResourceGroup.setLabelFor(cbResourceGroup);
         this.lblContainerAppName.setLabelFor(txtContainerAppName);
-        this.lblRegion.setLabelFor(cbRegion);
 
         this.titleApp.addContentComponent(pnlApp);
-        this.titleAppEnv.addContentComponent(pnlAppEnv);
         this.titleDeployment.addContentComponent(pnlDeployment);
         this.titleIngress.addContentComponent(pnlIngress.getPnlRoot());
         this.titleOther.addContentComponent(pnlOther);
 
         this.titleApp.expand();
-        this.titleAppEnv.expand();
         this.titleDeployment.expand();
         this.titleIngress.expand();
         this.titleOther.expand();
@@ -199,20 +189,10 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
         }
     }
 
-    private void onRegionChanged(ItemEvent itemEvent) {
-        if (itemEvent.getStateChange() == ItemEvent.SELECTED && itemEvent.getItem() instanceof Region) {
-            final Region region = (Region) itemEvent.getItem();
-            this.txtContainerAppName.validateValueAsync();
-            this.cbEnvironment.setRegion(region);
-            Optional.ofNullable(getContainerAppDraft()).ifPresent(this.formImage::setContainerApp);
-        }
-    }
-
     private void onSubscriptionChanged(ItemEvent itemEvent) {
         if (itemEvent.getStateChange() == ItemEvent.SELECTED && itemEvent.getItem() instanceof Subscription) {
             final Subscription subscription = (Subscription) itemEvent.getItem();
             this.cbResourceGroup.setSubscription(subscription);
-            this.cbRegion.setSubscription(subscription);
             this.cbEnvironment.setSubscription(subscription);
             Optional.ofNullable(getContainerAppDraft()).ifPresent(this.formImage::setContainerApp);
         }
@@ -229,7 +209,6 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
         final ContainerAppModule module = az(AzureContainerApps.class).containerApps(subscription.getId());
         final ContainerAppDraft draft = module.create(appName, resourceGroup.getName());
         final ContainerAppDraft.Config config = new ContainerAppDraft.Config();
-        config.setRegion(cbRegion.getValue());
         config.setEnvironment(cbEnvironment.getValue());
         draft.setConfig(config);
         return draft;
@@ -292,7 +271,6 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
         result.setSubscription(cbSubscription.getValue());
         result.setResourceGroup(cbResourceGroup.getValue());
         result.setName(txtContainerAppName.getValue());
-        result.setRegion(cbRegion.getValue());
         result.setEnvironment(cbEnvironment.getValue());
         result.setIngressConfig(pnlIngress.getValue());
 
@@ -322,7 +300,6 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
         Optional.ofNullable(data.getSubscription()).ifPresent(cbSubscription::setValue);
         Optional.ofNullable(data.getResourceGroup()).ifPresent(cbResourceGroup::setValue);
         Optional.ofNullable(data.getName()).ifPresent(txtContainerAppName::setValue);
-        Optional.ofNullable(data.getRegion()).ifPresent(cbRegion::setValue);
         Optional.ofNullable(data.getEnvironment()).ifPresent(cbEnvironment::setValue);
         Optional.ofNullable(data.getScaleConfig()).ifPresent(c -> {
             // https://learn.microsoft.com/en-us/azure/container-apps/scale-app?pivots=azure-cli
@@ -350,7 +327,7 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
 
     @Override
     public List<AzureFormInput<?>> getInputs() {
-        return Arrays.asList(cbSubscription, cbResourceGroup, txtContainerAppName, cbRegion, this.formDeploymentSource);
+        return Arrays.asList(cbSubscription, cbResourceGroup, txtContainerAppName, this.formDeploymentSource);
     }
 
     // CHECKSTYLE IGNORE check FOR NEXT 1 LINES
