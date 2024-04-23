@@ -9,36 +9,24 @@ import com.azure.resourcemanager.appcontainers.models.Container;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.microsoft.azure.toolkit.ide.containerregistry.ContainerRegistryActionsContributor;
 import com.microsoft.azure.toolkit.intellij.containerapps.update.UpdateAppDialog.UpdateAppConfig;
-import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerAppDraft;
-import com.microsoft.azure.toolkit.lib.containerregistry.AzureContainerRegistry;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
 import com.microsoft.azure.toolkit.lib.containerregistry.Tag;
 
-import java.util.Collections;
 import java.util.Objects;
-import java.util.Optional;
 
 public class UpdateAppAction {
     public static void openUpdateDialog(ContainerApp app, AnActionEvent e) {
         final UpdateAppConfig config = new UpdateAppConfig();
         if (Objects.nonNull(app)) {
             final Container container = app.getContainer();
-            if (Objects.nonNull(container)) {
-                final ContainerAppDraft.ImageConfig imageConfig = new ContainerAppDraft.ImageConfig(container.image());
-                final ContainerRegistry registry = Optional.ofNullable(imageConfig.getAcrRegistryName())
-                    .flatMap(name -> Azure.az(AzureContainerRegistry.class).list().stream().flatMap(s -> s.registry().list().stream())
-                        .filter(r -> r.getName().equalsIgnoreCase(name)).findFirst())
-                    .orElse(null);
-                imageConfig.setContainerRegistry(registry);
-                imageConfig.setEnvironmentVariables(Optional.ofNullable(container.env()).orElse(Collections.emptyList()));
-                config.setImageConfig(imageConfig);
-            }
+            config.setImageConfig(app.getImageConfig());
+            config.setScaleConfig(app.getScaleConfig());
             config.setIngressConfig(app.getIngressConfig());
             config.setApp(app);
         }
@@ -81,6 +69,7 @@ public class UpdateAppAction {
                 final ContainerAppDraft.Config config = new ContainerAppDraft.Config();
                 config.setImageConfig(c.getImageConfig());
                 config.setIngressConfig(c.getIngressConfig());
+                config.setScaleConfig(c.getScaleConfig());
                 draft.setConfig(config);
                 draft.updateIfExist();
             });

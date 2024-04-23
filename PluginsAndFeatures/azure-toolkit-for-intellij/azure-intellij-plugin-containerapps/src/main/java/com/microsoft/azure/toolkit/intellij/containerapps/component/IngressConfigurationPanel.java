@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.intellij.containerapps.component;
 import com.intellij.ui.JBIntSpinner;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.lib.containerapps.model.IngressConfig;
+import lombok.Getter;
 
 import javax.swing.*;
 import java.awt.event.ItemEvent;
@@ -15,6 +16,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 public class IngressConfigurationPanel implements AzureFormPanel<IngressConfig> {
+    @Getter
     private JPanel pnlRoot;
     private JLabel lblIngress;
     private JCheckBox chkIngress;

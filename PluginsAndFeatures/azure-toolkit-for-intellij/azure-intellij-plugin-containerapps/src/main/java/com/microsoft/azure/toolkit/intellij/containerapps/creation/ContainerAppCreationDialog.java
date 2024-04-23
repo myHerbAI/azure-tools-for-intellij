@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.containerapps.creation;
 
 import com.azure.resourcemanager.appcontainers.models.EnvironmentVar;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.JBIntSpinner;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.AzureHideableTitledSeparator;
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
@@ -52,35 +53,40 @@ import static com.microsoft.azure.toolkit.lib.Azure.az;
 public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Config> implements AzureForm<ContainerAppDraft.Config> {
     private static final Pattern CONTAINER_APP_NAME_PATTERN = Pattern.compile("^[a-z][a-z0-9\\-]{0,30}[a-z0-9]$");
     private static final String CONTAINER_APP_NAME_VALIDATION_MESSAGE = "A name must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character and cannot have '--'. The length must not be more than 32 characters.";
+    private JPanel pnlRoot;
+
+    private AzureHideableTitledSeparator titleApp;
+    private JPanel pnlApp;
     private JLabel lblSubscription;
     private SubscriptionComboBox cbSubscription;
     private JLabel lblResourceGroup;
     private ResourceGroupComboBox cbResourceGroup;
     private JLabel lblContainerAppName;
     private AzureTextInput txtContainerAppName;
+
+    private AzureHideableTitledSeparator titleAppEnv;
+    private JPanel pnlAppEnv;
     private JLabel lblRegion;
     private RegionComboBox cbRegion;
-    private JPanel pnlRoot;
     private AzureContainerAppsEnvironmentComboBox cbEnvironment;
+
     private AzureHideableTitledSeparator titleIngress;
-    private EnvironmentVariablesTextFieldWithBrowseButton inputEnv;
-    private AzureHideableTitledSeparator titleDeployment;
-    private AzureHideableTitledSeparator titleApp;
-    private AzureHideableTitledSeparator titleAppEnv;
-    private AzureHideableTitledSeparator titleEnv;
-    private JLabel lblEnv;
-    private JPanel pnlEnv;
-    private JPanel pnlIngressSettingsHolder;
-    private JPanel pnlDeployment;
-    private JPanel pnlApp;
-    private JPanel pnlAppEnv;
     private IngressConfigurationPanel pnlIngress;
+
+    private AzureHideableTitledSeparator titleDeployment;
+    private JPanel pnlDeployment;
     private JRadioButton btnDeployCode;
     private JRadioButton btnDeployArtifact;
     private JRadioButton btnDeployImage;
-    private ImageForm formImage;
     private CodeForm formCode;
     private ArtifactForm formArtifact;
+    private ImageForm formImage;
+
+    private AzureHideableTitledSeparator titleOther;
+    private JPanel pnlOther;
+    private EnvironmentVariablesTextFieldWithBrowseButton inputEnv;
+    private JBIntSpinner intMinReplicas;
+    private JBIntSpinner intMaxReplicas;
 
     private DeploymentSourceForm formDeploymentSource;
 
@@ -125,14 +131,14 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
         this.titleApp.addContentComponent(pnlApp);
         this.titleAppEnv.addContentComponent(pnlAppEnv);
         this.titleDeployment.addContentComponent(pnlDeployment);
-        this.titleIngress.addContentComponent(pnlIngressSettingsHolder);
-        this.titleEnv.addContentComponent(pnlEnv);
+        this.titleIngress.addContentComponent(pnlIngress.getPnlRoot());
+        this.titleOther.addContentComponent(pnlOther);
 
         this.titleApp.expand();
         this.titleAppEnv.expand();
         this.titleDeployment.expand();
-        this.titleIngress.collapse();
-        this.titleEnv.expand();
+        this.titleIngress.expand();
+        this.titleOther.expand();
     }
 
     private void onImageFormChanged(final String type) {
@@ -143,8 +149,9 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
         this.titleIngress.toggle(!useQuickStartImage);
         this.titleIngress.setEnabled(!useQuickStartImage);
         this.pnlIngress.setEnabled(!useQuickStartImage);
-        this.lblEnv.setEnabled(!useQuickStartImage);
         this.inputEnv.setEnabled(!useQuickStartImage);
+        this.intMaxReplicas.setEnabled(!useQuickStartImage);
+        this.intMinReplicas.setEnabled(!useQuickStartImage);
     }
 
     private void onSelectedFolderChanged(final Path folder) {
@@ -164,7 +171,7 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
             }
         }
     }
-    
+
     private void onAppNameChanged(String s) {
         Optional.ofNullable(getContainerAppDraft()).ifPresent(this.formImage::setContainerApp);
     }
@@ -248,6 +255,8 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
         this.cbEnvironment.setRequired(true);
         this.formCode = new CodeForm(this.project);
         this.formArtifact = new ArtifactForm(this.project);
+        this.intMaxReplicas = new JBIntSpinner(10, 1, 300);
+        this.intMinReplicas = new JBIntSpinner(0, 0, 300);
     }
 
     private void onDeploymentSourceChanged(ItemEvent event) {
@@ -299,6 +308,12 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
             .collect(Collectors.toList());
         Optional.ofNullable(imageConfig).ifPresent(config -> config.setEnvironmentVariables(vars));
         result.setImageConfig(imageConfig);
+
+        final ContainerAppDraft.ScaleConfig scaleConfig = ContainerAppDraft.ScaleConfig.builder()
+            .maxReplicas(this.intMaxReplicas.getNumber())
+            .minReplicas(this.intMinReplicas.getNumber())
+            .build();
+        result.setScaleConfig(scaleConfig);
         return result;
     }
 
@@ -309,6 +324,11 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
         Optional.ofNullable(data.getName()).ifPresent(txtContainerAppName::setValue);
         Optional.ofNullable(data.getRegion()).ifPresent(cbRegion::setValue);
         Optional.ofNullable(data.getEnvironment()).ifPresent(cbEnvironment::setValue);
+        Optional.ofNullable(data.getScaleConfig()).ifPresent(c -> {
+            // https://learn.microsoft.com/en-us/azure/container-apps/scale-app?pivots=azure-cli
+            this.intMaxReplicas.setNumber(Optional.ofNullable(c.getMaxReplicas()).orElse(10));
+            this.intMinReplicas.setNumber(Optional.ofNullable(c.getMinReplicas()).orElse(0));
+        });
         final ContainerAppDraft.ImageConfig imageConfig = data.getImageConfig();
         if (Objects.nonNull(imageConfig)) {
             final Optional<Path> source = Optional.ofNullable(imageConfig.getBuildImageConfig()).map(ContainerAppDraft.BuildImageConfig::getSource);

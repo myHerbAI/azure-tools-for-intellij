@@ -5,25 +5,22 @@
 
 package com.microsoft.azure.toolkit.intellij.containerapps.update;
 
-import com.azure.resourcemanager.appcontainers.models.Container;
 import com.azure.resourcemanager.appcontainers.models.EnvironmentVar;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.JBIntSpinner;
 import com.microsoft.azure.toolkit.intellij.common.AzureCommentLabel;
 import com.microsoft.azure.toolkit.intellij.common.AzureDialog;
 import com.microsoft.azure.toolkit.intellij.common.AzureHideableTitledSeparator;
 import com.microsoft.azure.toolkit.intellij.common.EnvironmentVariablesTextFieldWithBrowseButton;
 import com.microsoft.azure.toolkit.intellij.container.AzureDockerClient;
 import com.microsoft.azure.toolkit.intellij.containerapps.component.*;
-import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerAppDraft;
 import com.microsoft.azure.toolkit.lib.containerapps.model.IngressConfig;
 import com.microsoft.azure.toolkit.lib.containerapps.model.RevisionMode;
-import com.microsoft.azure.toolkit.lib.containerregistry.AzureContainerRegistry;
-import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -34,7 +31,10 @@ import java.awt.event.ItemEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -58,14 +58,14 @@ public class UpdateAppDialog extends AzureDialog<UpdateAppDialog.UpdateAppConfig
     private CodeForm formCode;
     private ArtifactForm formArtifact;
 
-    private AzureHideableTitledSeparator titleEnv;
+    private AzureHideableTitledSeparator titleOther;
     private EnvironmentVariablesTextFieldWithBrowseButton inputEnv;
-    private JLabel lblEnv;
-    private JPanel pnlEnv;
+    private JPanel pnlOther;
 
     private AzureHideableTitledSeparator titleIngress;
-    private JPanel pnlIngressSettingsHolder;
     private IngressConfigurationPanel pnlIngress;
+    private JBIntSpinner intMinReplicas;
+    private JBIntSpinner intMaxReplicas;
 
     private DeploymentSourceForm formDeploymentSource;
 
@@ -98,13 +98,13 @@ public class UpdateAppDialog extends AzureDialog<UpdateAppDialog.UpdateAppConfig
 
         this.titleApp.addContentComponent(pnlApp);
         this.titleDeployment.addContentComponent(pnlDeployment);
-        this.titleIngress.addContentComponent(pnlIngressSettingsHolder);
-        this.titleEnv.addContentComponent(pnlEnv);
+        this.titleIngress.addContentComponent(pnlIngress.getPnlRoot());
+        this.titleOther.addContentComponent(pnlOther);
 
         this.titleApp.expand();
         this.titleDeployment.expand();
         this.titleIngress.collapse();
-        this.titleEnv.expand();
+        this.titleOther.expand();
     }
 
     private void onAppChanged(final ItemEvent e) {
@@ -137,11 +137,12 @@ public class UpdateAppDialog extends AzureDialog<UpdateAppDialog.UpdateAppConfig
         this.titleIngress.setEnabled(!useQuickStartImage);
         this.pnlIngress.setEnabled(!useQuickStartImage);
 
-        this.titleEnv.toggle(!useQuickStartImage);
-        this.lblEnv.setEnabled(!useQuickStartImage);
+        this.titleOther.toggle(!useQuickStartImage);
         this.inputEnv.setEnabled(!useQuickStartImage);
+        this.intMaxReplicas.setEnabled(!useQuickStartImage);
+        this.intMinReplicas.setEnabled(!useQuickStartImage);
 
-        this.titleEnv.setVisible(!useQuickStartImage);
+        this.titleOther.setVisible(!useQuickStartImage);
         this.titleIngress.setVisible(!useQuickStartImage);
     }
 
@@ -181,6 +182,8 @@ public class UpdateAppDialog extends AzureDialog<UpdateAppDialog.UpdateAppConfig
     private void createUIComponents() {
         this.formCode = new CodeForm(this.project);
         this.formArtifact = new ArtifactForm(this.project);
+        this.intMaxReplicas = new JBIntSpinner(10, 1, 300);
+        this.intMinReplicas = new JBIntSpinner(0, 0, 300);
     }
 
     private void onDeploymentSourceChanged(ItemEvent event) {
@@ -220,10 +223,16 @@ public class UpdateAppDialog extends AzureDialog<UpdateAppDialog.UpdateAppConfig
             .collect(Collectors.toList());
         Optional.ofNullable(imageConfig).ifPresent(config -> config.setEnvironmentVariables(vars));
 
+        final ContainerAppDraft.ScaleConfig scaleConfig = ContainerAppDraft.ScaleConfig.builder()
+            .maxReplicas(this.intMaxReplicas.getNumber())
+            .minReplicas(this.intMinReplicas.getNumber())
+            .build();
+
         final UpdateAppConfig config = new UpdateAppConfig();
         config.setApp(this.selectorApp.getValue());
         config.setImageConfig(imageConfig);
         config.setIngressConfig(pnlIngress.getValue());
+        config.setScaleConfig(scaleConfig);
         return config;
     }
 
@@ -232,6 +241,11 @@ public class UpdateAppDialog extends AzureDialog<UpdateAppDialog.UpdateAppConfig
         final ContainerAppDraft.ImageConfig imageConfig = config.getImageConfig();
         Optional.ofNullable(config.getApp()).ifPresent(a -> this.selectorApp.setValue(a));
         Optional.ofNullable(config.getIngressConfig()).ifPresent(pnlIngress::setValue);
+        Optional.ofNullable(config.getScaleConfig()).ifPresent(c -> {
+            // https://learn.microsoft.com/en-us/azure/container-apps/scale-app?pivots=azure-cli
+            this.intMaxReplicas.setNumber(Optional.ofNullable(c.getMaxReplicas()).orElse(10));
+            this.intMinReplicas.setNumber(Optional.ofNullable(c.getMinReplicas()).orElse(0));
+        });
         this.setImageConfig(imageConfig);
     }
 
@@ -267,6 +281,7 @@ public class UpdateAppDialog extends AzureDialog<UpdateAppDialog.UpdateAppConfig
         private ContainerApp app;
         private ContainerAppDraft.ImageConfig imageConfig;
         private IngressConfig ingressConfig;
+        private ContainerAppDraft.ScaleConfig scaleConfig;
     }
 
 }
