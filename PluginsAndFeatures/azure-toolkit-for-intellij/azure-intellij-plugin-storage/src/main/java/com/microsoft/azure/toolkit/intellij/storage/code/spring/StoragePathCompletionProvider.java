@@ -69,7 +69,7 @@ public class StoragePathCompletionProvider extends CompletionProvider<Completion
         final boolean isBlobContainer = fullPrefix.startsWith("azure-blob://");
         final boolean isFileShare = fullPrefix.startsWith("azure-file://");
 
-        if ((isBlobContainer || isFileShare) && Azure.az(AzureAccount.class).isLoggedIn()) {
+        if ((isBlobContainer || isFileShare)) {
             final Module module = ModuleUtil.findModuleForFile(parameters.getOriginalFile());
             if (Objects.isNull(module)) {
                 return;

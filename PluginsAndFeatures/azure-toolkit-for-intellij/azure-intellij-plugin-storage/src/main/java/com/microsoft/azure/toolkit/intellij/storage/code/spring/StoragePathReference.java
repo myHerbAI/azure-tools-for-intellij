@@ -13,8 +13,6 @@ import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.SyntheticElement;
 import com.intellij.psi.impl.FakePsiElement;
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons;
-import com.microsoft.azure.toolkit.lib.Azure;
-import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.storage.IStorageAccount;
 import com.microsoft.azure.toolkit.lib.storage.model.StorageFile;
@@ -55,9 +53,6 @@ public class StoragePathReference extends PsiReferenceBase<PsiElement> {
 
     @Override
     public @Nullable PsiElement resolve() {
-        if (!Azure.az(AzureAccount.class).isLoggedIn()) {
-            return null;
-        }
         return Optional.of(this.getElement()).map(ModuleUtil::findModuleForPsiElement)
                 .map(m -> Objects.isNull(account) ? StoragePathCompletionProvider.getFile(fullNameWithPrefix, m) :
                         StoragePathCompletionProvider.getFile(fullNameWithPrefix, List.of(account)))

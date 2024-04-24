@@ -41,7 +41,7 @@ public class DeployImageToAzureContainerAppAction {
         if (configuration instanceof DockerHostRunConfiguration) {
             Optional.ofNullable(dockerFile).map(DockerImage::new).ifPresent(image -> ((DockerHostRunConfiguration) configuration).setDockerImage(image));
         }
-        if (RunDialog.editConfiguration(project, settings, "Deploy Image to Azure Container Apps", DefaultRunExecutor.getRunExecutorInstance())) {
+        if (RunDialog.editConfiguration(project, settings, "Deploy to Azure Container Apps", DefaultRunExecutor.getRunExecutorInstance())) {
             manager.addConfiguration(settings, false);
             manager.setSelectedConfiguration(settings);
             ProgramRunnerUtil.executeConfiguration(project, settings, DefaultRunExecutor.getRunExecutorInstance());

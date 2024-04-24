@@ -17,6 +17,7 @@ import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
 import com.microsoft.azure.toolkit.intellij.containerregistry.IDockerPushConfiguration;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -69,7 +70,8 @@ public class DeployImageRunConfiguration extends LocatableConfigurationBase<Elem
     public void writeExternal(org.jdom.@NotNull Element element) {
         super.writeExternal(element);
         Optional.ofNullable(this.dataModel)
-                .map(config -> XmlSerializer.serialize(config, (accessor, o) -> !"containerRegistry".equalsIgnoreCase(accessor.getName())))
+                .map(config -> XmlSerializer.serialize(config, (accessor, o) ->
+                        !StringUtils.equalsAnyIgnoreCase(accessor.getName(), "containerRegistry","ImageConfig","ContainerAppConfig")))
                 .ifPresent(element::addContent);
     }
 
@@ -94,5 +96,21 @@ public class DeployImageRunConfiguration extends LocatableConfigurationBase<Elem
 
     public void setFinalTagName(final String value) {
         getDataModel().setFinalTagName(value);
+    }
+
+    public void setModuleName(final String moduleName){
+        getDataModel().setModuleName(moduleName);
+    }
+
+    public String getModuleName() {
+        return getDataModel().getModuleName();
+    }
+
+    public void setDeploymentType(final DeploymentType type){
+        getDataModel().setDeploymentType(type);
+    }
+
+    public DeploymentType getDeploymentType() {
+        return getDataModel().getDeploymentType();
     }
 }
