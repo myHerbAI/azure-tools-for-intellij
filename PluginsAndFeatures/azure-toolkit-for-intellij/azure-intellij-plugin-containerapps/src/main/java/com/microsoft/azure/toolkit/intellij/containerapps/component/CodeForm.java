@@ -153,7 +153,7 @@ public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>,
     @Override
     public void setValue(final ContainerAppDraft.ImageConfig config) {
         Optional.ofNullable(config.getBuildImageConfig()).ifPresent(buildConfig -> {
-            Optional.of(buildConfig.getSource()).map(Path::toString).ifPresent(fileCode::setValue);
+            Optional.ofNullable(buildConfig.getSource()).map(Path::toString).ifPresent(fileCode::setValue);
             Optional.ofNullable(buildConfig.getSourceBuildEnv()).ifPresent(this.inputEnv::setEnvironmentVariables);
         });
     }
