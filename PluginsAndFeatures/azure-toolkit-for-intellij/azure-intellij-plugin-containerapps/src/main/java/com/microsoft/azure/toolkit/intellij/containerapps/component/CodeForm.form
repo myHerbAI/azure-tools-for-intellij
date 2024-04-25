@@ -61,7 +61,7 @@
           <text value=""/>
         </properties>
       </component>
-      <component id="21a79" class="javax.swing.JLabel" binding="lblRepository">
+      <component id="21a79" class="javax.swing.JLabel" binding="lblRegistry">
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
             <minimum-size width="130" height="24"/>
@@ -71,12 +71,12 @@
         </constraints>
         <properties>
           <horizontalTextPosition value="10"/>
-          <text value="Repository:"/>
-          <toolTipText value="A module/project or root directory of a module/project"/>
+          <text value="Registry:"/>
+          <toolTipText value="the ACR registry to build and hold the image"/>
           <visible value="false"/>
         </properties>
       </component>
-      <component id="ef692" class="com.microsoft.azure.toolkit.intellij.containerapps.component.ACRRegistryComboBox" binding="selectorRepository">
+      <component id="ef692" class="com.microsoft.azure.toolkit.intellij.containerapps.component.ACRRegistryComboBox" binding="selectorRegistry">
         <constraints>
           <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
