@@ -26,7 +26,8 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode
 public class DeployImageModel extends DockerPushConfiguration {
     private String moduleName;
-    private DeploymentType deploymentType;
+    @Builder.Default
+    private DeploymentType deploymentType = DeploymentType.Image;
     private Map<String, String> environmentVariables;
     private IngressConfig ingressConfig;
     private String containerAppId;
