@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.containerapps.component;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.microsoft.azure.toolkit.intellij.common.AzureArtifact;
@@ -21,9 +22,11 @@ import lombok.Setter;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
+import java.awt.event.ItemListener;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -114,5 +117,19 @@ public class ArtifactForm implements AzureFormJPanel<ContainerAppDraft.ImageConf
     private void createUIComponents() {
         this.selectorArtifact = new AzureArtifactComboBox(project, true);
         this.selectorArtifact.reloadItems();
+    }
+
+    public void setModule(Module module) {
+        selectorArtifact.setModule(module);
+        selectorArtifact.setFileArtifactOnly(false);
+        selectorArtifact.reloadItems();
+    }
+
+    public void addArtifactListener(@Nonnull final ItemListener listener) {
+        this.selectorArtifact.addItemListener(listener);
+    }
+
+    public AzureArtifact getArtifact() {
+        return this.selectorArtifact.getValue();
     }
 }
