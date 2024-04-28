@@ -52,7 +52,10 @@ public class DeployImageRunState extends AzureRunProfileState<ContainerApp> {
         // update Image
         final String containerAppId = dataModel.getContainerAppId();
         final ContainerApp containerApp = Objects.requireNonNull(Azure.az(AzureContainerApps.class).getById(containerAppId), String.format("Container app %s was not found", dataModel.getContainerAppId()));
-        final ContainerRegistry registry = Azure.az(AzureContainerRegistry.class).getById(dataModel.getContainerRegistryId());
+        final ContainerRegistry registry = Optional.ofNullable(dataModel.getContainerRegistryId())
+                .filter(StringUtils::isNotBlank)
+                .map(id -> (ContainerRegistry) Azure.az(AzureContainerRegistry.class).getById(id))
+                .orElse(null);
         final Module module = Arrays.stream(ModuleManager.getInstance(project).getModules())
                 .filter(m -> StringUtils.equalsAnyIgnoreCase(m.getName(), dataModel.getModuleName()))
                 .findFirst().orElse(null);
