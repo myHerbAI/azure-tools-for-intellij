@@ -153,7 +153,8 @@ public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>,
     @Override
     public void setValue(final ContainerAppDraft.ImageConfig config) {
         Optional.ofNullable(config.getBuildImageConfig()).ifPresent(buildConfig -> {
-            Optional.ofNullable(buildConfig.getSource()).map(Path::toString).ifPresent(fileCode::setValue);
+            Optional.of(buildConfig.getSource()).map(Path::toString).ifPresent(fileCode::setValue);
+            Optional.ofNullable(config.getContainerRegistry()).ifPresent(selectorRegistry::setValue);
             Optional.ofNullable(buildConfig.getSourceBuildEnv()).ifPresent(this.inputEnv::setEnvironmentVariables);
         });
     }
@@ -182,9 +183,7 @@ public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>,
         this.selectorRegistry.setVisible(imageConfig.sourceHasDockerFile());
     }
 
-    public void setFixedCodeSource(final String path) {
-        this.lblCode.setVisible(false);
-        this.fileCode.setVisible(false);
+    public void setCodeSource(final String path) {
         this.fileCode.setValue(path);
     }
 
