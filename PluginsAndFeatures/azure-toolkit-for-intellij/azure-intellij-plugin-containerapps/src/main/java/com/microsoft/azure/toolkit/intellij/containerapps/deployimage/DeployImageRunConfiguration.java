@@ -5,13 +5,15 @@
 
 package com.microsoft.azure.toolkit.intellij.containerapps.deployimage;
 
-import com.intellij.configurationStore.XmlSerializer;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
+import com.intellij.util.xmlb.Accessor;
+import com.intellij.util.xmlb.SerializationFilterBase;
+import com.intellij.util.xmlb.XmlSerializer;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerHost;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
 import com.microsoft.azure.toolkit.intellij.containerregistry.IDockerPushConfiguration;
@@ -23,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
+import java.util.Objects;
 import java.util.Optional;
 
 public class DeployImageRunConfiguration extends LocatableConfigurationBase<Element> implements LocatableConfiguration, IDockerPushConfiguration {
@@ -61,18 +64,23 @@ public class DeployImageRunConfiguration extends LocatableConfigurationBase<Elem
     @Override
     public void readExternal(org.jdom.@NotNull Element element) throws InvalidDataException {
         super.readExternal(element);
-        this.dataModel = Optional.ofNullable(element.getChild("SpringCloudAppConfig"))
-                .map(e -> XmlSerializer.deserialize(e, DeployImageModel.class))
-                .orElse(DeployImageModel.builder().build());
+        XmlSerializer.deserializeInto(dataModel, element);
+//        this.dataModel = Optional.ofNullable(element.getChild("SpringCloudAppConfig"))
+//                .map(e -> XmlSerializer.deserialize(e, DeployImageModel.class))
+//                .orElse(DeployImageModel.builder().build());
     }
 
     @Override
     public void writeExternal(org.jdom.@NotNull Element element) {
         super.writeExternal(element);
-        Optional.ofNullable(this.dataModel)
-                .map(config -> XmlSerializer.serialize(config, (accessor, o) ->
-                        !StringUtils.equalsAnyIgnoreCase(accessor.getName(), "containerRegistry","ImageConfig","ContainerAppConfig")))
-                .ifPresent(element::addContent);
+        if (Objects.nonNull(this.dataModel)) {
+            XmlSerializer.serializeInto(this.dataModel, element, new SerializationFilterBase() {
+                @Override
+                protected boolean accepts(@Nonnull Accessor accessor, @Nonnull Object bean, @Nullable Object beanValue) {
+                    return !StringUtils.equalsAnyIgnoreCase(accessor.getName(), "containerRegistry", "ImageConfig", "ContainerAppConfig");
+                }
+            });
+        }
     }
 
     @Override
