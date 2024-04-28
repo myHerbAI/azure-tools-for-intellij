@@ -306,9 +306,4 @@ public class FunctionDeploymentPanel extends AzureSettingPanel<FunctionDeployCon
     private String getResourceId(@Nonnull FunctionAppConfig config, String slot) {
         return Optional.ofNullable(getResource(config, slot)).map(AbstractAzResource::getId).orElse(null);
     }
-
-    @Override
-    protected boolean shouldInitializeBeforeRunTasks() {
-        return false;
-    }
 }

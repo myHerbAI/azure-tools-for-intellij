@@ -137,8 +137,8 @@ public class ContainerAppCreationDialog extends AzureDialog<ContainerAppDraft.Co
             pnlIngress.setValue(QUICK_START_INGRESS);
         }
         this.titleIngress.toggle(!useQuickStartImage);
-        this.titleIngress.setEnabled(!useQuickStartImage);
-        this.pnlIngress.setEnabled(!useQuickStartImage);
+        this.titleIngress.setVisible(!useQuickStartImage);
+        this.pnlIngress.setVisible(!useQuickStartImage);
         this.inputEnv.setEnabled(!useQuickStartImage);
         this.intMaxReplicas.setEnabled(!useQuickStartImage);
         this.intMinReplicas.setEnabled(!useQuickStartImage);
