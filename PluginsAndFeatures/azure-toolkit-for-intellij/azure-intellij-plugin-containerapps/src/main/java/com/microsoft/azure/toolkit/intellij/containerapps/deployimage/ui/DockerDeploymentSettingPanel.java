@@ -148,9 +148,11 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
 
     private void onSelectContainerApp(ItemEvent itemEvent) {
         if (itemEvent.getStateChange() == ItemEvent.SELECTED && itemEvent.getItem() instanceof ContainerApp containerApp) {
-            codeSourceForm.setContainerApp(containerApp);
-            artifactSourceForm.setContainerApp(containerApp);
-            pnlDockerConfiguration.setContainerApp(containerApp);
+            AzureTaskManager.getInstance().runInBackground("Loading container app", () -> {
+                codeSourceForm.setContainerApp(containerApp);
+                artifactSourceForm.setContainerApp(containerApp);
+                pnlDockerConfiguration.setContainerApp(containerApp);
+            });
             Optional.ofNullable(containerApp.getIngressConfig()).ifPresent(this.pnlIngressConfiguration::setValue);
         }
     }
