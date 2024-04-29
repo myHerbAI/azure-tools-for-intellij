@@ -3,6 +3,7 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.88.0](#3880)
   - [3.87.0](#3870)
   - [3.86.0](#3860)
   - [3.85.0](#3850)
@@ -108,6 +109,13 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.8](#308)
   - [3.0.7](#307)
   - [3.0.6](#306)
+
+## 3.88.0
+### Added
+- Support for deploying source code/artifacts to Azure Container Apps directly.
+
+### Fixed
+- Error throws when starting streaming log for container apps env.
 
 ## 3.87.0
 ### Added
