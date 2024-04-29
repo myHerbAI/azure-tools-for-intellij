@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.containerapps.ContainerAppsActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.streaminglog.StreamingLogsManager;
 import com.microsoft.azure.toolkit.ide.containerregistry.ContainerRegistryActionsContributor;
+import com.microsoft.azure.toolkit.intellij.containerapps.action.DeployImageAction;
 import com.microsoft.azure.toolkit.intellij.containerapps.action.DeployImageToAzureContainerAppAction;
 import com.microsoft.azure.toolkit.intellij.containerapps.creation.CreateContainerAppAction;
 import com.microsoft.azure.toolkit.intellij.containerapps.creation.CreateContainerAppsEnvironmentAction;
@@ -124,7 +125,8 @@ public class IntelliJContainerAppsActionsContributor implements IActionsContribu
                 .withLabel("Deploy Image to Container App")
                 .withIcon("/icons/ContainerAppDeploy.svg")
                 .visibleWhen(s -> s instanceof VirtualFile)
-                .withHandler(DeployImageToAzureContainerAppAction::deployImageToAzureContainerApps)
+                .withHandler((final VirtualFile file, final AnActionEvent event) ->
+                        DeployImageAction.deployImageToAzureContainerApps(file, null, event))
                 .register(am);
     }
 

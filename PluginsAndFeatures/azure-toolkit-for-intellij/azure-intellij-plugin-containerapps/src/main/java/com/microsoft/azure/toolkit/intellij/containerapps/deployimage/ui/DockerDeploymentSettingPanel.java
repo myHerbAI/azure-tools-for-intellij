@@ -142,10 +142,8 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
 
     private void onSelectContainerApp(ItemEvent itemEvent) {
         if (itemEvent.getStateChange() == ItemEvent.SELECTED && itemEvent.getItem() instanceof ContainerApp containerApp) {
-            if (rdoSourceCode.isSelected() || rdoArtifact.isSelected()) {
-                codeSourceForm.setContainerApp(containerApp);
-                artifactSourceForm.setContainerApp(containerApp);
-            }
+            codeSourceForm.setContainerApp(containerApp);
+            artifactSourceForm.setContainerApp(containerApp);
             Optional.ofNullable(containerApp.getIngressConfig()).ifPresent(this.pnlIngressConfiguration::setValue);
         }
     }
