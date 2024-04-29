@@ -10,10 +10,7 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
-import com.microsoft.azure.toolkit.intellij.common.AzureArtifact;
-import com.microsoft.azure.toolkit.intellij.common.AzureArtifactComboBox;
-import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
-import com.microsoft.azure.toolkit.intellij.common.EnvironmentVariablesTextFieldWithBrowseButton;
+import com.microsoft.azure.toolkit.intellij.common.*;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
@@ -90,9 +87,11 @@ public class ArtifactForm implements AzureFormJPanel<ContainerAppDraft.ImageConf
     @Override
     public void setValue(final ContainerAppDraft.ImageConfig config) {
         Optional.ofNullable(config.getBuildImageConfig()).ifPresent(buildConfig -> {
-            Optional.of(buildConfig.getSource())
-                .map(f -> AzureArtifact.createFromFile(f.toAbsolutePath().toString(), project))
-                .ifPresent(selectorArtifact::setValue);
+            final AzureArtifact artifact = AzureArtifactManager.getInstance(project).getAllSupportedAzureArtifacts().stream()
+                    .filter(a -> StringUtils.equals(a.getFileForDeployment(), buildConfig.getSource().toAbsolutePath().toString()))
+                    .findFirst()
+                    .orElseGet(() -> AzureArtifact.createFromFile(buildConfig.getSource().toAbsolutePath().toString(), project));
+            Optional.ofNullable(artifact).ifPresent(this.selectorArtifact::setArtifact);
             Optional.ofNullable(buildConfig.getSourceBuildEnv()).ifPresent(this.inputEnv::setEnvironmentVariables);
         });
     }
