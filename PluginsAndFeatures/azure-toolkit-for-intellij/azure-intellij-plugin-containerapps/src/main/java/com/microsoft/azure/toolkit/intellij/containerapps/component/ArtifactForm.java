@@ -15,6 +15,7 @@ import com.microsoft.azure.toolkit.intellij.common.AzureArtifactComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.intellij.common.EnvironmentVariablesTextFieldWithBrowseButton;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerAppDraft;
 import lombok.Getter;
@@ -29,10 +30,8 @@ import java.awt.*;
 import java.awt.event.ItemListener;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 public class ArtifactForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, DeploymentSourceForm {
     private static final String LINK_SUPPORTED_JAVA_BUILD_ENV = "https://learn.microsoft.com/en-us/azure/container-apps/java-build-environment-variables?source=recommendations#supported-java-build-environment-variables";
@@ -120,9 +119,17 @@ public class ArtifactForm implements AzureFormJPanel<ContainerAppDraft.ImageConf
     }
 
     public void setModule(Module module) {
-        selectorArtifact.setModule(module);
-        selectorArtifact.setFileArtifactOnly(false);
+        selectorArtifact.setArtifactFilter(artifact -> artifact.getModule() == module &&
+                StringUtils.equalsAnyIgnoreCase(artifact.getPackaging(), "jar", "war"));
         selectorArtifact.reloadItems();
+        selectorArtifact.setFileArtifactOnly(false);
+        selectorArtifact.addValidator(() -> {
+            final AzureArtifact artifact = this.selectorArtifact.getValue();
+            if (Objects.nonNull(artifact) && !StringUtils.equalsAnyIgnoreCase(artifact.getPackaging(), "jar", "war")) {
+                return AzureValidationInfo.error("Invalid artifact, Azure Container app only supports 'jar' and 'war' artifact.", this.selectorArtifact);
+            }
+            return AzureValidationInfo.success(this.selectorArtifact);
+        });
     }
 
     public void addArtifactListener(@Nonnull final ItemListener listener) {
