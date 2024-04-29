@@ -19,12 +19,14 @@ import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
 import com.microsoft.azure.toolkit.intellij.containerregistry.IDockerPushConfiguration;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -64,10 +66,9 @@ public class DeployImageRunConfiguration extends LocatableConfigurationBase<Elem
     @Override
     public void readExternal(org.jdom.@NotNull Element element) throws InvalidDataException {
         super.readExternal(element);
-        XmlSerializer.deserializeInto(dataModel, element);
-//        this.dataModel = Optional.ofNullable(element.getChild("SpringCloudAppConfig"))
-//                .map(e -> XmlSerializer.deserialize(e, DeployImageModel.class))
-//                .orElse(DeployImageModel.builder().build());
+        final List<org.jdom.Element> models = element.getChildren("DeployImageModel");
+        final org.jdom.Element source = CollectionUtils.isNotEmpty(models) ? models.get(0) : element;
+        XmlSerializer.deserializeInto(dataModel, source);
     }
 
     @Override
