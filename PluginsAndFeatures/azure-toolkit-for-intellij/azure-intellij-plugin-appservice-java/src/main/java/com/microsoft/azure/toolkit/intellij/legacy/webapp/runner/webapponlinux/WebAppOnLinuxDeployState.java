@@ -32,6 +32,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -71,7 +72,7 @@ public class WebAppOnLinuxDeployState extends AzureRunProfileState<AppServiceApp
         final AzureTaskManager tm = AzureTaskManager.getInstance();
         tm.runOnPooledThread(() -> Optional.ofNullable(image)
                                            .map(DockerImage::getDockerFile)
-                                           .map(f -> VfsUtil.findFileByIoFile(f, true))
+                                           .map(f -> VfsUtil.findFileByIoFile(new File(f), true))
                                            .map(f -> AzureModule.from(f, this.project))
                                            .ifPresent(module -> tm.runLater(() -> tm.write(() -> {
                                                final Profile p = module.initializeWithDefaultProfileIfNot();
