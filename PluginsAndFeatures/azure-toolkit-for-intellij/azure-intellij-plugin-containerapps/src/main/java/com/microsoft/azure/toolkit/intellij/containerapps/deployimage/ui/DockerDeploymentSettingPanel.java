@@ -12,6 +12,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.microsoft.azure.toolkit.intellij.common.*;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
@@ -68,6 +70,7 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
     private final DockerImageConfigurationPanel pnlDockerConfiguration;
     private final CodeForm codeSourceForm;
     private final ArtifactForm artifactSourceForm;
+    private ContainerApp containerApp;
 
     public DockerDeploymentSettingPanel(@Nonnull Project project, DeployImageRunConfiguration configuration) {
         this.project = project;
@@ -136,14 +139,20 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
         if (rdoArtifact.isSelected()) {
             artifactSourceForm.setModule(module);
         } else if (rdoSourceCode.isSelected()) {
-            codeSourceForm.setCodeSource(ModuleUtil.getModuleDirPath(module));
+            final String source = Optional.ofNullable(ProjectUtil.guessModuleDir(module))
+                    .map(VirtualFile::getPath)
+                    .orElseGet(() -> ModuleUtil.getModuleDirPath(module));
+            codeSourceForm.setCodeSource(source);
         }
     }
 
     private void onSelectContainerApp(ItemEvent itemEvent) {
         if (itemEvent.getStateChange() == ItemEvent.SELECTED && itemEvent.getItem() instanceof ContainerApp containerApp) {
-            codeSourceForm.setContainerApp(containerApp);
-            artifactSourceForm.setContainerApp(containerApp);
+            AzureTaskManager.getInstance().runInBackground("Loading container app", () -> {
+                codeSourceForm.setContainerApp(containerApp);
+                artifactSourceForm.setContainerApp(containerApp);
+                pnlDockerConfiguration.setContainerApp(containerApp);
+            });
             Optional.ofNullable(containerApp.getIngressConfig()).ifPresent(this.pnlIngressConfiguration::setValue);
         }
     }

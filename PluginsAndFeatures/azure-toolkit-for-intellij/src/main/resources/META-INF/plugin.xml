@@ -27,15 +27,14 @@
   <change-notes>
     <![CDATA[
     <html>
-      <h2 id="3-87-0">3.87.0</h2>
+      <h2 id="3-88-0">3.88.0</h2>
       <h3 id="added">Added</h3>
       <ul>
-        <li>Support for connecting Azure Storage account with connection string and managing them in both <code>Services</code> view and <code>Project Explorer</code>. </li>
+      <li>Support for deploying source code/artifacts to Azure Container Apps directly.</li>
       </ul>
       <h3 id="fixed">Fixed</h3>
       <ul>
-        <li><a href="https://github.com/microsoft/azure-tools-for-java/issues/8205">#8205</a>: Could not emit tick xxx due to lack of requests (interval doesn&#39;t support small downstream requests that replenish slower than the ticks)</li>
-        <li>[azure-sdk-for-java#39214] (<a href="https://github.com/Azure/azure-sdk-for-java/issues/39214">https://github.com/Azure/azure-sdk-for-java/issues/39214</a>) msal-* libs are falsely treated as <code>deprecated</code>.</li>
+      <li>Error throws when starting streaming log for container apps env.</li>
       </ul>
       <p>You may get the full change log <a href="https://github.com/Microsoft/azure-tools-for-java/blob/develop/CHANGELOG.md">here</a></p>
     </html>

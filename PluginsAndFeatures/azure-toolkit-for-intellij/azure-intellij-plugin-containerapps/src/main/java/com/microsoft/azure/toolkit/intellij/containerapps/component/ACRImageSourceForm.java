@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.containerapps.component;
 
 import com.intellij.ui.components.ActionLink;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
+import com.microsoft.azure.toolkit.intellij.containerregistry.component.ACRRegistryComboBox;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
