@@ -43,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -106,7 +107,7 @@ public class DockerBuildTaskProvider extends BeforeRunTaskProvider<DockerBuildTa
             final ConsoleView consoleView = AzureTaskManager.getInstance().runAndWait(() ->
                 createConsoleView(configuration.getProject(), image.getImageName())).join();
             final BuildImageResultCallback callback = createBuildImageResultCallback(consoleView);
-            dockerClient.buildImage(image.getImageName(), image.getDockerFile(), image.getBaseDirectory(), callback);
+            dockerClient.buildImage(image.getImageName(), new File(image.getDockerFile()), new File(image.getBaseDirectory()), callback);
             return true;
         }
 

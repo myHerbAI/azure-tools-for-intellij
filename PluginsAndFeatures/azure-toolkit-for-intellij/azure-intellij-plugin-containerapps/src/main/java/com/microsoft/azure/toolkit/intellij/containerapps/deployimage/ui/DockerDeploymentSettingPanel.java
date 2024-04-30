@@ -12,6 +12,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.microsoft.azure.toolkit.intellij.common.*;
 import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
@@ -68,6 +70,7 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
     private final DockerImageConfigurationPanel pnlDockerConfiguration;
     private final CodeForm codeSourceForm;
     private final ArtifactForm artifactSourceForm;
+    private ContainerApp containerApp;
 
     public DockerDeploymentSettingPanel(@Nonnull Project project, DeployImageRunConfiguration configuration) {
         this.project = project;
@@ -98,8 +101,26 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
         this.cbContainerApp.setRequired(true);
         this.cbContainerApp.addItemListener(this::onSelectContainerApp);
         this.pnlDockerConfiguration.addImageListener(this::onSelectImage);
+        this.artifactSourceForm.addArtifactListener(this::onArtifactChanged);
 
         this.onSelectDeploymentType();
+    }
+
+    private void onArtifactChanged(final ItemEvent e) {
+        if (!rdoArtifact.isSelected()) {
+            return;
+        }
+        final DataContext context = DataManager.getInstance().getDataContext(this.pnlRoot);
+        final ConfigurationSettingsEditorWrapper editor = ConfigurationSettingsEditorWrapper.CONFIGURATION_EDITOR_KEY.getData(context);
+        final AzureArtifact artifact = (AzureArtifact) e.getItem();
+        if (Objects.nonNull(editor) && Objects.nonNull(artifact)) {
+            if (e.getStateChange() == ItemEvent.DESELECTED) {
+                BuildArtifactBeforeRunTaskUtils.removeBeforeRunTask(editor, artifact, this.configuration);
+            }
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                BuildArtifactBeforeRunTaskUtils.addBeforeRunTask(editor, artifact, this.configuration);
+            }
+        }
     }
 
     private void onSelectImage(final DockerImage image) {
@@ -110,30 +131,28 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
 
     private void onSelectModule(ItemEvent itemEvent) {
         if (itemEvent.getStateChange() == ItemEvent.SELECTED) {
-            if (rdoArtifact.isSelected()) {
-                updateBuildArtifactBeforeRunTasks();
-            }
             Optional.ofNullable(cbModule.getValue()).ifPresent(this::applyModuleValue);
         }
     }
 
     private void applyModuleValue(@Nonnull final Module module) {
         if (rdoArtifact.isSelected()) {
-            AzureArtifactManager.getInstance(this.project).getAllSupportedAzureArtifacts()
-                    .stream().filter(artifact -> Objects.equals(artifact.getModule(), module))
-                    .findFirst()
-                    .ifPresent(artifactSourceForm::setFixedArtifact);
+            artifactSourceForm.setModule(module);
         } else if (rdoSourceCode.isSelected()) {
-            codeSourceForm.setFixedCodeSource(ModuleUtil.getModuleDirPath(module));
+            final String source = Optional.ofNullable(ProjectUtil.guessModuleDir(module))
+                    .map(VirtualFile::getPath)
+                    .orElseGet(() -> ModuleUtil.getModuleDirPath(module));
+            codeSourceForm.setCodeSource(source);
         }
     }
 
     private void onSelectContainerApp(ItemEvent itemEvent) {
         if (itemEvent.getStateChange() == ItemEvent.SELECTED && itemEvent.getItem() instanceof ContainerApp containerApp) {
-            if (rdoSourceCode.isSelected() || rdoArtifact.isSelected()) {
+            AzureTaskManager.getInstance().runInBackground("Loading container app", () -> {
                 codeSourceForm.setContainerApp(containerApp);
                 artifactSourceForm.setContainerApp(containerApp);
-            }
+                pnlDockerConfiguration.setContainerApp(containerApp);
+            });
             Optional.ofNullable(containerApp.getIngressConfig()).ifPresent(this.pnlIngressConfiguration::setValue);
         }
     }
@@ -172,9 +191,7 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
     private void cleanupBuildArtifactBeforeRunTasks() {
         final DataContext context = DataManager.getInstance().getDataContext(pnlRoot);
         final Module module = cbModule.getValue();
-        final AzureArtifact azureArtifact = AzureArtifactManager.getInstance(this.project).getAllSupportedAzureArtifacts()
-                .stream().filter(artifact -> Objects.equals(artifact.getModule(), module))
-                .findFirst().orElse(null);
+        final AzureArtifact azureArtifact = artifactSourceForm.getArtifact();
         if (Objects.nonNull(azureArtifact)) {
             Optional.ofNullable(ConfigurationSettingsEditorWrapper.CONFIGURATION_EDITOR_KEY.getData(context))
                     .ifPresent(editor -> BuildArtifactBeforeRunTaskUtils.removeBeforeRunTask(editor, azureArtifact, this.configuration));
@@ -184,9 +201,7 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
     private void updateBuildArtifactBeforeRunTasks() {
         final DataContext context = DataManager.getInstance().getDataContext(pnlRoot);
         final Module module = cbModule.getValue();
-        final AzureArtifact azureArtifact = AzureArtifactManager.getInstance(this.project).getAllSupportedAzureArtifacts()
-                .stream().filter(artifact -> Objects.equals(artifact.getModule(), module))
-                .findFirst().orElse(null);
+        final AzureArtifact azureArtifact = artifactSourceForm.getArtifact();
         if (Objects.nonNull(azureArtifact)) {
             Optional.ofNullable(ConfigurationSettingsEditorWrapper.CONFIGURATION_EDITOR_KEY.getData(context))
                     .ifPresent(editor -> BuildArtifactBeforeRunTaskUtils.addBeforeRunTask(editor, azureArtifact, this.configuration));

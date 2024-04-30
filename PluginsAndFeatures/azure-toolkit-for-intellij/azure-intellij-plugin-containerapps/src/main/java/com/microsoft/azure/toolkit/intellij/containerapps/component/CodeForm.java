@@ -16,6 +16,7 @@ import com.intellij.ui.HyperlinkLabel;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.intellij.common.EnvironmentVariablesTextFieldWithBrowseButton;
 import com.microsoft.azure.toolkit.intellij.common.component.AzureFileInput;
+import com.microsoft.azure.toolkit.intellij.containerregistry.component.ACRRegistryComboBox;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
@@ -57,8 +58,8 @@ public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>,
     @Setter
     private Consumer<Path> onFolderChanged = type -> {
     };
-    private ACRRegistryComboBox selectorRepository;
-    private JLabel lblRepository;
+    private ACRRegistryComboBox selectorRegistry;
+    private JLabel lblRegistry;
 
     @Getter
     private ContainerApp containerApp;
@@ -74,19 +75,19 @@ public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>,
         this.containerApp = containerApp;
         if (Objects.nonNull(containerApp)) {
             // update the draft value
-            this.selectorRepository.setSubscription(containerApp.getSubscription());
-            final Object rawValue = this.selectorRepository.getRawValue();
+            this.selectorRegistry.setSubscription(containerApp.getSubscription());
+            final Object rawValue = this.selectorRegistry.getRawValue();
             final ContainerRegistryDraft draft = getDraftRegistry();
-            final List<ContainerRegistry> draftItems = selectorRepository.getDraftItems();
+            final List<ContainerRegistry> draftItems = selectorRegistry.getDraftItems();
             draftItems.clear();
             draftItems.add(draft);
             if (Objects.isNull(rawValue)) {
-                selectorRepository.setValue(val -> val.isAdminUserEnabled() &&
+                selectorRegistry.setValue(val -> val.isAdminUserEnabled() &&
                         StringUtils.equalsIgnoreCase(val.getResourceGroupName(), containerApp.getResourceGroupName()));
             } else if (rawValue instanceof ContainerRegistryDraft) {
-                selectorRepository.setValue(draft);
+                selectorRegistry.setValue(draft);
             }
-            selectorRepository.reloadItems();
+            selectorRegistry.reloadItems();
         }
     }
 
@@ -133,8 +134,8 @@ public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>,
         final String fullImageName = this.getDefaultFullImageName();
         final ContainerAppDraft.ImageConfig config = new ContainerAppDraft.ImageConfig(fullImageName);
         config.setBuildImageConfig(getImageConfig());
-        Optional.ofNullable(this.selectorRepository.getValue())
-                .filter(ignore -> this.selectorRepository.isVisible())
+        Optional.ofNullable(this.selectorRegistry.getValue())
+                .filter(ignore -> this.selectorRegistry.isVisible())
                 .ifPresent(config::setContainerRegistry);
         return config;
     }
@@ -153,7 +154,8 @@ public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>,
     @Override
     public void setValue(final ContainerAppDraft.ImageConfig config) {
         Optional.ofNullable(config.getBuildImageConfig()).ifPresent(buildConfig -> {
-            Optional.of(buildConfig.getSource()).map(Path::toString).ifPresent(fileCode::setValue);
+            Optional.ofNullable(buildConfig.getSource()).map(Path::toString).ifPresent(fileCode::setValue);
+            Optional.ofNullable(config.getContainerRegistry()).ifPresent(selectorRegistry::setValue);
             Optional.ofNullable(buildConfig.getSourceBuildEnv()).ifPresent(this.inputEnv::setEnvironmentVariables);
         });
     }
@@ -178,13 +180,11 @@ public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>,
 
     private void onSelectFilePath(String s) {
         final ContainerAppDraft.BuildImageConfig imageConfig = getImageConfig();
-        this.lblRepository.setVisible(imageConfig.sourceHasDockerFile());
-        this.selectorRepository.setVisible(imageConfig.sourceHasDockerFile());
+        this.lblRegistry.setVisible(imageConfig.sourceHasDockerFile());
+        this.selectorRegistry.setVisible(imageConfig.sourceHasDockerFile());
     }
 
-    public void setFixedCodeSource(final String path) {
-        this.lblCode.setVisible(false);
-        this.fileCode.setVisible(false);
+    public void setCodeSource(final String path) {
         this.fileCode.setValue(path);
     }
 

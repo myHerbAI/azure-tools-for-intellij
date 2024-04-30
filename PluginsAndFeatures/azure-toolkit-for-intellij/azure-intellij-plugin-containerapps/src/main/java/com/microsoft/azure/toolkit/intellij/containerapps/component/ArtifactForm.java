@@ -7,13 +7,12 @@ package com.microsoft.azure.toolkit.intellij.containerapps.component;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
-import com.microsoft.azure.toolkit.intellij.common.AzureArtifact;
-import com.microsoft.azure.toolkit.intellij.common.AzureArtifactComboBox;
-import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
-import com.microsoft.azure.toolkit.intellij.common.EnvironmentVariablesTextFieldWithBrowseButton;
+import com.microsoft.azure.toolkit.intellij.common.*;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerAppDraft;
 import lombok.Getter;
@@ -21,15 +20,15 @@ import lombok.Setter;
 import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
+import java.awt.event.ItemListener;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 public class ArtifactForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>, DeploymentSourceForm {
     private static final String LINK_SUPPORTED_JAVA_BUILD_ENV = "https://learn.microsoft.com/en-us/azure/container-apps/java-build-environment-variables?source=recommendations#supported-java-build-environment-variables";
@@ -88,9 +87,11 @@ public class ArtifactForm implements AzureFormJPanel<ContainerAppDraft.ImageConf
     @Override
     public void setValue(final ContainerAppDraft.ImageConfig config) {
         Optional.ofNullable(config.getBuildImageConfig()).ifPresent(buildConfig -> {
-            Optional.of(buildConfig.getSource())
-                .map(f -> AzureArtifact.createFromFile(f.toAbsolutePath().toString(), project))
-                .ifPresent(selectorArtifact::setValue);
+            final AzureArtifact artifact = AzureArtifactManager.getInstance(project).getAllSupportedAzureArtifacts().stream()
+                    .filter(a -> StringUtils.equals(a.getFileForDeployment(), buildConfig.getSource().toAbsolutePath().toString()))
+                    .findFirst()
+                    .orElseGet(() -> AzureArtifact.createFromFile(buildConfig.getSource().toAbsolutePath().toString(), project));
+            Optional.ofNullable(artifact).ifPresent(this.selectorArtifact::setArtifact);
             Optional.ofNullable(buildConfig.getSourceBuildEnv()).ifPresent(this.inputEnv::setEnvironmentVariables);
         });
     }
@@ -114,5 +115,27 @@ public class ArtifactForm implements AzureFormJPanel<ContainerAppDraft.ImageConf
     private void createUIComponents() {
         this.selectorArtifact = new AzureArtifactComboBox(project, true);
         this.selectorArtifact.reloadItems();
+    }
+
+    public void setModule(Module module) {
+        selectorArtifact.setArtifactFilter(artifact -> artifact.getModule() == module &&
+                StringUtils.equalsAnyIgnoreCase(artifact.getPackaging(), "jar", "war"));
+        selectorArtifact.reloadItems();
+        selectorArtifact.setFileArtifactOnly(false);
+        selectorArtifact.addValidator(() -> {
+            final AzureArtifact artifact = this.selectorArtifact.getValue();
+            if (Objects.nonNull(artifact) && !StringUtils.equalsAnyIgnoreCase(artifact.getPackaging(), "jar", "war")) {
+                return AzureValidationInfo.error("Invalid artifact, Azure Container app only supports 'jar' and 'war' artifact.", this.selectorArtifact);
+            }
+            return AzureValidationInfo.success(this.selectorArtifact);
+        });
+    }
+
+    public void addArtifactListener(@Nonnull final ItemListener listener) {
+        this.selectorArtifact.addItemListener(listener);
+    }
+
+    public AzureArtifact getArtifact() {
+        return this.selectorArtifact.getValue();
     }
 }

@@ -1,5 +1,12 @@
-<!-- Version: 3.83.0 -->
+<!-- Version: 3.88.0 -->
 # What's new in Azure Toolkit for IntelliJ
+## 3.88.0
+### Added
+- Support for deploying source code/artifacts to Azure Container Apps directly.      
+  <img alt="deploy source code to Azure" src="https://raw.githubusercontent.com/microsoft/azure-tools-for-java/endgame-202404/PluginsAndFeatures/azure-toolkit-for-intellij/azure-intellij-plugin-lib-java/src/main/resources/whatsnew.assets/202404.aca.newdeploymenttypes.png" width="600"/>
+
+### Fixed
+- error throws when starting streaming log for container apps env.
 
 ## 3.87.0
 ### Added
