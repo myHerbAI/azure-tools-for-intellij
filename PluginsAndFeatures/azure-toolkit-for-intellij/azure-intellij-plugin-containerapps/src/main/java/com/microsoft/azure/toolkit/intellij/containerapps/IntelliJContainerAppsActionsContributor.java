@@ -12,6 +12,7 @@ import com.microsoft.azure.toolkit.ide.common.IActionsContributor;
 import com.microsoft.azure.toolkit.ide.containerapps.ContainerAppsActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.streaminglog.StreamingLogsManager;
 import com.microsoft.azure.toolkit.ide.containerregistry.ContainerRegistryActionsContributor;
+import com.microsoft.azure.toolkit.intellij.containerapps.action.DeployImageAction;
 import com.microsoft.azure.toolkit.intellij.containerapps.action.DeployImageToAzureContainerAppAction;
 import com.microsoft.azure.toolkit.intellij.containerapps.creation.CreateContainerAppAction;
 import com.microsoft.azure.toolkit.intellij.containerapps.creation.CreateContainerAppsEnvironmentAction;
@@ -46,6 +47,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -69,6 +71,16 @@ public class IntelliJContainerAppsActionsContributor implements IActionsContribu
                 (ContainerAppsEnvironment r, AnActionEvent e) -> CreateContainerAppAction.create(e.getProject(), getContainerAppDefaultConfig(r, null)));
         am.registerHandler(ContainerAppsActionsContributor.GROUP_CREATE_CONTAINER_APP,
                 (ResourceGroup r, AnActionEvent e) -> CreateContainerAppAction.create(e.getProject(), getContainerAppDefaultConfig(null, r)));
+        am.registerHandler(ContainerAppsActionsContributor.SERVICE_CREATE_CONTAINER_APP,
+                (Object r, AnActionEvent e) -> {
+                    if (r instanceof ContainerAppsEnvironment env && env.getFormalStatus().isConnected()) {
+                        CreateContainerAppAction.create(e.getProject(), getContainerAppDefaultConfig(env, null));
+                    } else if (r instanceof ResourceGroup rg) {
+                        CreateContainerAppAction.create(e.getProject(), getContainerAppDefaultConfig(null, rg));
+                    } else {
+                        CreateContainerAppAction.create(e.getProject(), getContainerAppDefaultConfig(null, null));
+                    }
+                });
         am.registerHandler(ContainerAppsActionsContributor.CREATE_CONTAINER_APPS_ENVIRONMENT,
                 (AzureContainerApps r, AnActionEvent e) -> CreateContainerAppsEnvironmentAction.create(e.getProject(), getContainerAppsEnvironmentDefaultConfig(null)));
         am.registerHandler(ContainerAppsActionsContributor.GROUP_CREATE_CONTAINER_APPS_ENVIRONMENT,
@@ -113,11 +125,12 @@ public class IntelliJContainerAppsActionsContributor implements IActionsContribu
                 .withLabel("Deploy Image to Container App")
                 .withIcon("/icons/ContainerAppDeploy.svg")
                 .visibleWhen(s -> s instanceof VirtualFile)
-                .withHandler(DeployImageToAzureContainerAppAction::deployImageToAzureContainerApps)
+                .withHandler((final VirtualFile file, final AnActionEvent event) ->
+                        DeployImageAction.deployImageToAzureContainerApps(file, null, event))
                 .register(am);
     }
 
-    private ContainerAppDraft.Config getContainerAppDefaultConfig(final ContainerAppsEnvironment o, final ResourceGroup resourceGroup) {
+    private ContainerAppDraft.Config getContainerAppDefaultConfig(@Nullable final ContainerAppsEnvironment o, @Nullable final ResourceGroup resourceGroup) {
         final ContainerAppDraft.Config result = new ContainerAppDraft.Config();
         result.setName(Utils.generateRandomResourceName("aca", 32));
         final List<Subscription> subs = Azure.az(IAzureAccount.class).account().getSelectedSubscriptions();

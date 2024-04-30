@@ -13,10 +13,14 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.microsoft.azure.toolkit.intellij.common.auth.AzureLoginHelper;
+import com.microsoft.azure.toolkit.intellij.container.model.DockerImage;
 import com.microsoft.azure.toolkit.intellij.containerapps.AzureContainerAppConfigurationType;
+import com.microsoft.azure.toolkit.intellij.containerapps.deployimage.DeployImageModel;
 import com.microsoft.azure.toolkit.intellij.containerapps.deployimage.DeployImageRunConfiguration;
 import com.microsoft.azure.toolkit.intellij.containerapps.deployimage.DeploymentType;
+import com.microsoft.azure.toolkit.intellij.containerregistry.dockerhost.DockerHostRunConfiguration;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -43,18 +47,23 @@ public class DeployImageAction extends AnAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
+        deployImageToAzureContainerApps(null, null, event);
+    }
+
+    public static void deployImageToAzureContainerApps(@Nullable final VirtualFile file, @Nullable final ContainerApp app,
+                                                       @Nonnull final AnActionEvent event) {
         AzureTaskManager.getInstance().runLater(() -> {
             OperationContext.current().setTelemetryProperty(PLACE, StringUtils.firstNonBlank(event.getPlace(), EMPTY_PLACE));
             final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
             final Project project = Objects.requireNonNull(event.getProject());
             AzureLoginHelper.requireSignedIn(project, (a) -> {
-                final RunnerAndConfigurationSettings settings = getOrCreateRunConfigurationSettings(event.getProject(), null, module);
+                final RunnerAndConfigurationSettings settings = getOrCreateRunConfigurationSettings(event.getProject(), app, module, file);
                 runConfiguration(event.getProject(), settings);
             });
         });
     }
 
-    @AzureOperation(name = "boundary/webapp.run_deploy_configuration")
+    @AzureOperation(name = "boundary/containerapps.run_deploy_configuration")
     private static void runConfiguration(@Nonnull Project project, RunnerAndConfigurationSettings settings) {
         final RunManagerEx manager = RunManagerEx.getInstanceEx(project);
         AzureTaskManager.getInstance().runLater(() -> {
@@ -67,7 +76,8 @@ public class DeployImageAction extends AnAction {
         });
     }
 
-    private static RunnerAndConfigurationSettings getOrCreateRunConfigurationSettings(@Nonnull Project project, @Nullable ContainerApp app, @Nullable Module module) {
+    private static RunnerAndConfigurationSettings getOrCreateRunConfigurationSettings(
+            @Nonnull Project project, @Nullable ContainerApp app, @Nullable Module module, @Nullable final VirtualFile dockerFile) {
         final RunManagerEx manager = RunManagerEx.getInstanceEx(project);
         final ConfigurationFactory factory = configType.getDeployImageRunConfigurationFactory();
         final String name = Optional.ofNullable(module).map(Module::getName)
@@ -84,6 +94,13 @@ public class DeployImageAction extends AnAction {
             Optional.ofNullable(app).map(ContainerApp::getId).ifPresent(id -> configuration.getDataModel().setContainerAppId(id));
             Optional.ofNullable(module).map(Module::getName).ifPresent(configuration.getDataModel()::setModuleName);
             configuration.setDeploymentType(DeploymentType.Code);
+            Optional.ofNullable(dockerFile).map(DockerImage::new).ifPresent(image -> {
+                configuration.setDeploymentType(DeploymentType.Image);
+                final DeployImageModel dataModel = Optional.ofNullable(configuration.getDataModel())
+                        .orElseGet(DeployImageModel::new);
+                dataModel.setDockerImage(image);
+                configuration.setDataModel(dataModel);
+            });
         }
         return settings;
     }

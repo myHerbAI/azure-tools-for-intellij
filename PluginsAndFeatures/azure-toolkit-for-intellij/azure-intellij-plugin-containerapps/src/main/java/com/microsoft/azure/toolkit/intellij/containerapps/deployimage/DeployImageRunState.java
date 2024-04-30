@@ -5,6 +5,7 @@
 
 package com.microsoft.azure.toolkit.intellij.containerapps.deployimage;
 
+import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -23,12 +24,15 @@ import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerAppDraft;
 import com.microsoft.azure.toolkit.lib.containerregistry.AzureContainerRegistry;
 import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistry;
+import com.microsoft.azure.toolkit.lib.containerregistry.ContainerRegistryDraft;
+import com.microsoft.azure.toolkit.lib.containerregistry.model.Sku;
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
 import com.microsoft.azuretools.telemetrywrapper.TelemetryManager;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 public class DeployImageRunState extends AzureRunProfileState<ContainerApp> {
@@ -45,14 +49,25 @@ public class DeployImageRunState extends AzureRunProfileState<ContainerApp> {
     @AzureOperation(name = "platform/containerapps.deploy_image.app", params = {"nameFromResourceId(this.dataModel.getContainerAppId())"})
     public ContainerApp executeSteps(@Nonnull RunProcessHandler processHandler, @Nonnull Operation operation) throws Exception {
         OperationContext.current().setMessager(getProcessHandlerMessenger());
+        final String containerAppId = dataModel.getContainerAppId();
+        final ContainerApp containerApp = Objects.requireNonNull(Azure.az(AzureContainerApps.class)
+                .getById(containerAppId), String.format("Container app %s was not found", dataModel.getContainerAppId()));
+        final ContainerRegistry registry = Optional.ofNullable(dataModel.getContainerRegistryId())
+                .filter(StringUtils::isNotBlank)
+                .map(id -> (ContainerRegistry) Azure.az(AzureContainerRegistry.class).getById(id))
+                .orElseGet(() -> initContainerRegistry(containerApp));
+        if (registry instanceof ContainerRegistryDraft draft) {
+            draft.commit();
+        }
         if (!dataModel.isRemoteBuild()) {
             final DockerImage image = configuration.getDockerImageConfiguration();
+            if(Objects.isNull(registry)){
+                initContainerRegistry(containerApp);
+            }
             ContainerService.getInstance().pushDockerImage(configuration);
         }
         // update Image
-        final String containerAppId = dataModel.getContainerAppId();
-        final ContainerApp containerApp = Objects.requireNonNull(Azure.az(AzureContainerApps.class).getById(containerAppId), String.format("Container app %s was not found", dataModel.getContainerAppId()));
-        final ContainerRegistry registry = Azure.az(AzureContainerRegistry.class).getById(dataModel.getContainerRegistryId());
+
         final Module module = Arrays.stream(ModuleManager.getInstance(project).getModules())
                 .filter(m -> StringUtils.equalsAnyIgnoreCase(m.getName(), dataModel.getModuleName()))
                 .findFirst().orElse(null);
@@ -70,6 +85,22 @@ public class DeployImageRunState extends AzureRunProfileState<ContainerApp> {
         draft.setConfig(dataModel.getContainerAppConfig());
         draft.updateIfExist();
         return containerApp;
+    }
+
+    @Nullable
+    private ContainerRegistryDraft initContainerRegistry(@Nonnull final ContainerApp containerApp) {
+        final String id = dataModel.getContainerRegistryId();
+        if (StringUtils.isBlank(id)) {
+            return null;
+        }
+        final AzureContainerRegistry acr = Azure.az(AzureContainerRegistry.class);
+        final ResourceId resourceId = ResourceId.fromString(id);
+        final ContainerRegistryDraft draft = acr.registry(resourceId.subscriptionId())
+                .create(resourceId.name(), resourceId.resourceGroupName());
+        draft.setAdminUserEnabled(true);
+        draft.setRegion(containerApp.getRegion());
+        draft.setSku(Sku.Standard);
+        return draft;
     }
 
     @Nonnull
