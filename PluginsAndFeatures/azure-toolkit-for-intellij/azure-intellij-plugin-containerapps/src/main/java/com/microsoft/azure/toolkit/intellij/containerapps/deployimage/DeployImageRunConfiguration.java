@@ -68,7 +68,11 @@ public class DeployImageRunConfiguration extends LocatableConfigurationBase<Elem
         super.readExternal(element);
         final List<Element> models = element.getChildren("DeployImageModel");
         final Element source = CollectionUtils.isNotEmpty(models) ? models.get(0) : element;
-        XmlSerializer.deserializeInto(dataModel, source);
+        try {
+            XmlSerializer.deserializeInto(dataModel, source);
+        } catch (final Error e) {
+            // swallow exception during deserialization
+        }
     }
 
     @Override
