@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 @file:Suppress("DialogTitleCapitalization")
@@ -14,6 +14,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.legacy.utils.APPLICATION_VALIDATION_MESSAGE
 import com.microsoft.azure.toolkit.intellij.legacy.utils.RESOURCE_GROUP_VALIDATION_MESSAGE
+import com.microsoft.azure.toolkit.intellij.legacy.utils.isAccountSignedIn
 import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidApplicationName
 import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidResourceGroupName
 
@@ -40,6 +41,7 @@ class WebAppContainersConfiguration(private val project: Project, factory: Confi
     override fun checkConfiguration() {
         val options = getState() ?: return
         with(options) {
+            isAccountSignedIn()
             if (webAppName.isNullOrEmpty()) throw RuntimeConfigurationError("Web App name is not provided")
             if (!isValidApplicationName(webAppName)) throw RuntimeConfigurationError(APPLICATION_VALIDATION_MESSAGE)
             if (subscriptionId.isNullOrEmpty()) throw RuntimeConfigurationError("Subscription is not provided")
