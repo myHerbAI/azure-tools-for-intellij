@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+ * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
@@ -34,6 +34,7 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
     override fun checkConfiguration() {
         val options = getState() ?: return
         with(options) {
+            isAccountSignedIn()
             if (webAppName.isNullOrEmpty()) throw RuntimeConfigurationError("Web App name is not provided")
             if (!isValidApplicationName(webAppName)) throw RuntimeConfigurationError(APPLICATION_VALIDATION_MESSAGE)
             if (subscriptionId.isNullOrEmpty()) throw RuntimeConfigurationError("Subscription is not provided")

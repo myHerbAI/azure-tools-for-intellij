@@ -34,6 +34,7 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
     override fun checkConfiguration() {
         val options = getState() ?: return
         with(options) {
+            isAccountSignedIn()
             if (functionAppName.isNullOrEmpty()) throw RuntimeConfigurationError("Function App name is not provided")
             if (!isValidApplicationName(functionAppName)) throw RuntimeConfigurationError(APPLICATION_VALIDATION_MESSAGE)
             if (subscriptionId.isNullOrEmpty()) throw RuntimeConfigurationError("Subscription is not provided")
