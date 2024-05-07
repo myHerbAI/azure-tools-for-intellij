@@ -1,0 +1,4 @@
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+    <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
+    </extensions>
+</idea-plugin>

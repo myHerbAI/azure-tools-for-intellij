@@ -14,6 +14,8 @@
   <xi:include href="/META-INF/azure-intellij-plugin-appservice.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-appservice-dotnet.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/azure-intellij-plugin-arm.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/azure-intellij-plugin-database.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/azure-intellij-plugin-database-dotnet.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
   <resource-bundle>messages.RiderAzureMessages</resource-bundle>
 
