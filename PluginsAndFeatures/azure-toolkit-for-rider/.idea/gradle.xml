@@ -12,6 +12,7 @@
           <set>
             <option value="$PROJECT_DIR$/../azure-toolkit-for-intellij/azure-intellij-plugin-appservice" />
             <option value="$PROJECT_DIR$/../azure-toolkit-for-intellij/azure-intellij-plugin-arm" />
+            <option value="$PROJECT_DIR$/../azure-toolkit-for-intellij/azure-intellij-plugin-database" />
             <option value="$PROJECT_DIR$/../azure-toolkit-for-intellij/azure-intellij-plugin-guidance" />
             <option value="$PROJECT_DIR$/../azure-toolkit-for-intellij/azure-intellij-plugin-lib" />
             <option value="$PROJECT_DIR$/../azure-toolkit-for-intellij/azure-intellij-plugin-monitor" />
@@ -19,6 +20,7 @@
             <option value="$PROJECT_DIR$/../azure-toolkit-for-intellij/azure-intellij-resource-connector-lib" />
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-appservice-dotnet" />
+            <option value="$PROJECT_DIR$/azure-intellij-plugin-database-dotnet" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-lib-dotnet" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-resharper-host" />
             <option value="$PROJECT_DIR$/protocol" />

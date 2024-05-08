@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### Added
+
+- Support for MySQL databases
+- Support for PostgreSQL databases
+- Support for SQL Server databases
+
 ## [4.0.0-preview.4] - 2024-04-15
 
 ### Added

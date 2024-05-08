@@ -41,3 +41,6 @@ project(":azure-intellij-plugin-appservice").projectDir = file("../azure-toolkit
 include(":azure-intellij-plugin-appservice-dotnet")
 include(":azure-intellij-plugin-monitor")
 project(":azure-intellij-plugin-monitor").projectDir = file("../azure-toolkit-for-intellij/azure-intellij-plugin-monitor")
+include(":azure-intellij-plugin-database-dotnet")
+include(":azure-intellij-plugin-database")
+project(":azure-intellij-plugin-database").projectDir = file("../azure-toolkit-for-intellij/azure-intellij-plugin-database")

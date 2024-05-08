@@ -124,6 +124,7 @@ dependencies {
     implementation(project(path = ":azure-intellij-plugin-appservice-dotnet", configuration = "instrumentedJar"))
     implementation(project(path = ":azure-intellij-plugin-arm", configuration = "instrumentedJar"))
     implementation(project(path = ":azure-intellij-plugin-monitor", configuration = "instrumentedJar"))
+    implementation(project(path = ":azure-intellij-plugin-database-dotnet", configuration = "instrumentedJar"))
 }
 
 subprojects {
