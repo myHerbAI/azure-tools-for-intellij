@@ -1,4 +1,11 @@
-<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+<!--
+  ~ Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+  -->
+
+<idea-plugin>
     <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
+        <connectorResourceType implementation="com.microsoft.azure.toolkit.intellij.database.mysql.connection.DotnetMySqlDatabaseResourceDefinition"/>
+        <connectorResourceType implementation="com.microsoft.azure.toolkit.intellij.database.postgre.connection.DotnetPostgreSqlDatabaseResourceDefinition"/>
+        <connectorResourceType implementation="com.microsoft.azure.toolkit.intellij.database.sqlserver.connection.DotnetSqlServerDatabaseResourceDefinition"/>
     </extensions>
 </idea-plugin>
