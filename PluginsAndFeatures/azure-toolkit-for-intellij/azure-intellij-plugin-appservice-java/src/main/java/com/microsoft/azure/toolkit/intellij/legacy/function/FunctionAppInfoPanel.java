@@ -21,6 +21,8 @@ import com.microsoft.azure.toolkit.intellij.containerapps.component.ImageForm;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppNameInput;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.platform.RuntimeComboBox;
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.ServicePlanComboBox;
+import com.microsoft.azure.toolkit.lib.Azure;
+import com.microsoft.azure.toolkit.lib.appservice.AzureAppService;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServicePlanConfig;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
@@ -28,7 +30,10 @@ import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig;
 import com.microsoft.azure.toolkit.lib.appservice.model.Runtime;
 import com.microsoft.azure.toolkit.lib.appservice.model.*;
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan;
+import com.microsoft.azure.toolkit.lib.auth.AzureAccount;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import com.microsoft.azure.toolkit.lib.common.model.Region;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -42,6 +47,7 @@ import javax.swing.*;
 import java.awt.event.ItemEvent;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<FunctionAppConfig> {
@@ -105,7 +111,17 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
             Optional.ofNullable(this.selectorServicePlan.getValue()).ifPresent(plan -> {
                 config.servicePlanName(plan.getName());
                 config.servicePlanResourceGroup(plan.isDraftForCreating() ? config.getResourceGroup() : plan.getResourceGroupName());
-                config.pricingTier(plan.getPricingTier());
+                final PricingTier pricingTier = plan.getPricingTier();
+                config.pricingTier(pricingTier);
+                if (Objects.nonNull(pricingTier) && pricingTier.isFlexConsumption()) {
+                    final FlexConsumptionConfiguration flexConfiguration =  FlexConsumptionConfiguration.builder()
+                            .authenticationMethod(StorageAuthenticationMethod.StorageAccountConnectionString)
+                            .storageAccountConnectionString(com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppConfig.Storage.Authentication.DEPLOYMENT_STORAGE_CONNECTION_STRING)
+                            .instanceSize(FlexConsumptionConfiguration.DEFAULT_INSTANCE_SIZE)
+                            .maximumInstances(com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppConfig.FunctionScaleAndConcurrency.DEFAULT_MAXIMUM_INSTANCE_COUNT)
+                            .build();
+                    config.setFlexConsumptionConfiguration(flexConfiguration);
+                }
             });
         } else if (rdoContainerAppsEnvironment.isSelected()) {
             config.diagnosticConfig(null);
@@ -191,7 +207,9 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
         this.selectorGroup.addItemListener(this::onGroupChanged);
         this.selectorGroup.setUsePreferredSizeAsMinimum(false);
 
-        this.selectorRuntime.setPlatformList(FunctionAppRuntime.getMajorRuntimes());
+        this.selectorRegion.setItemsLoader(this::getValidRegions);
+        this.selectorRuntime.setItemsLoader(this::getValidRuntimes);
+        // this.selectorRuntime.setPlatformList(FunctionAppRuntime.getMajorRuntimes());
         this.selectorServicePlan.setValidPricingTierList(new ArrayList<>(PricingTier.FUNCTION_PRICING), PricingTier.CONSUMPTION);
 
         this.textName.setRequired(true);
@@ -211,6 +229,28 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
         this.lblSubscription.setIcon(AllIcons.General.ContextHelp);
         this.lblResourceGroup.setIcon(AllIcons.General.ContextHelp);
         this.lblAppServicePlan.setIcon(AllIcons.General.ContextHelp);
+    }
+
+    private List<? extends Region> getValidRegions() {
+        final Subscription subscription = selectorSubscription.getValue();
+        final PricingTier pricingTier = Optional.ofNullable(selectorServicePlan.getValue()).map(AppServicePlan::getPricingTier).orElse(null);
+        if (Objects.isNull(subscription)) {
+            return Collections.emptyList();
+        } else if (Objects.isNull(pricingTier)) {
+            return Azure.az(AzureAccount.class).listRegions(subscription.getId());
+        } else {
+            return Azure.az(AzureAppService.class).forSubscription(subscription.getId()).functionApps().listRegions(pricingTier);
+        }
+    }
+
+    private List<? extends Runtime> getValidRuntimes() {
+        final Subscription subscription = selectorSubscription.getValue();
+        final Region region = selectorRegion.getValue();
+        if (Objects.isNull(subscription) || Objects.isNull(region) || !isFlexConsumptionApp()) {
+            return FunctionAppRuntime.getMajorRuntimes();
+        } else {
+            return Azure.az(AzureAppService.class).forSubscription(subscription.getId()).functionApps().listFlexConsumptionRuntimes(region);
+        }
     }
 
     private void toggleImageType(final boolean useQuickStart){
@@ -282,6 +322,8 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
             }
             final String pricing = plan.getPricingTier().toString();
             this.textSku.setText(pricing);
+            this.selectorRegion.reloadItems();
+            this.selectorRuntime.reloadItems();
         } else if (e.getStateChange() == ItemEvent.DESELECTED) {
             this.textSku.setText(NOT_APPLICABLE);
         }
@@ -293,5 +335,33 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
         this.pnlContainer = new ImageForm();
         this.pnlImageContainer.add(this.pnlContainer.getContentPanel(), new GridConstraints(0, 0, 1, 1, 0,
                 GridConstraints.FILL_BOTH, 7, 7, null, null, null, 0));
+    }
+
+    private boolean isFlexConsumptionApp() {
+        final AppServicePlan value = selectorServicePlan.getValue();
+        return Optional.ofNullable(value).map(AppServicePlan::getPricingTier).map(PricingTier::isFlexConsumption).orElse(false);
+    }
+
+    @Override
+    public List<AzureValidationInfo> validateAdditionalInfo() {
+        final String subsId = Optional.ofNullable(selectorSubscription.getValue()).map(Subscription::getId).orElse(StringUtils.EMPTY);
+        if (StringUtils.isNotBlank(subsId) && isFlexConsumptionApp()) {
+            final List<Region> validRegions = Azure.az(AzureAppService.class).forSubscription(subsId)
+                    .functionApps().listRegions(PricingTier.FLEX_CONSUMPTION);
+            final Region region = selectorRegion.getValue();
+            final String supportedRegionsValue = validRegions.stream().map(Region::getName).collect(Collectors.joining(","));
+            if (Objects.nonNull(region) && !validRegions.contains(region)) {
+                throw new AzureToolkitRuntimeException("`%s` is not a valid region for flex consumption app, supported values are %s", region.getName(), supportedRegionsValue);
+            }
+            // runtime
+            final List<? extends FunctionAppRuntime> validFlexRuntimes = Objects.isNull(region) ? Collections.emptyList() :
+                    Azure.az(AzureAppService.class).forSubscription(subsId).functionApps().listFlexConsumptionRuntimes(region);
+            final Runtime appRuntime = selectorRuntime.getValue();
+            if (Objects.nonNull(region) && !validFlexRuntimes.contains(appRuntime)) {
+                final String validValues = validFlexRuntimes.stream().map(FunctionAppRuntime::getDisplayName).collect(Collectors.joining(","));
+                throw new AzureToolkitRuntimeException(String.format("Invalid runtime configuration, valid flex consumption runtimes are %s in region %s", validValues, region.getLabel()));
+            }
+        }
+        return AzureFormPanel.super.validateAdditionalInfo();
     }
 }
