@@ -174,6 +174,9 @@ public abstract class AppServiceComboBox<T extends AppServiceConfig> extends Azu
                 } else {
                     setText(app.appName());
                 }
+
+                getAccessibleContext().setAccessibleDescription(app.appName());
+
                 this.repaint();
             }
         }
