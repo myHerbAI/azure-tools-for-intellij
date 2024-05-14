@@ -190,6 +190,8 @@ public class ContainerAppPropertiesEditor extends AzResourcePropertiesEditor<Con
         this.cbIngress.setEditable(enabled);
         this.cbExternalAccess.setEnabled(enabled);
         this.cbExternalAccess.setEditable(enabled);
+        this.intMaxReplicas.setEnabled(enabled);
+        this.intMinReplicas.setEnabled(enabled);
     }
 
     private void refreshToolbar() {

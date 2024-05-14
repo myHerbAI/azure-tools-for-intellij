@@ -27,6 +27,7 @@ import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyInfo;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureRxTaskManager;
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import com.microsoft.azure.toolkit.lib.common.utils.InstallationIdUtils;
@@ -57,10 +58,12 @@ public class PluginLifecycleListener implements AppLifecycleListener, PluginStat
                 IntellijStore.getInstance(), IntelliJSecureStore.getInstance());
             initProxy();
             initializeConfig();
-            initializeTelemetry();
             // workaround fixes for web app on linux run configuration
             AzureDockerSupportConfigurationType.registerConfigurationFactory("Web App for Containers", DeprecatedWebAppOnLinuxDeployConfigurationFactory::new);
-            IdeAzureAccount.getInstance().restoreSignin(); // restore sign in
+            AzureTaskManager.getInstance().runOnPooledThread(() -> {
+                initializeTelemetry();
+                IdeAzureAccount.getInstance().restoreSignin(); // restore sign in
+            });
         } catch (final Throwable t) {
             log.error(t.getMessage(), t);
         }
