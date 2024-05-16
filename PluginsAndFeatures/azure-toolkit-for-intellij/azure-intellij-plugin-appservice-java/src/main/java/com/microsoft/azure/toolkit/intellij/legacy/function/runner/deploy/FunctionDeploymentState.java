@@ -23,7 +23,6 @@ import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot;
 import com.microsoft.azure.toolkit.lib.appservice.task.CreateOrUpdateFunctionAppTask;
 import com.microsoft.azure.toolkit.lib.appservice.task.DeployFunctionAppTask;
-import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceConfigUtils;
 import com.microsoft.azure.toolkit.lib.common.action.AzureActionManager;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
@@ -169,11 +168,8 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
     @AzureOperation(name = "boundary/function.complete_deployment.app", params = {"this.deployModel.getFunctionAppConfig().getName()"})
     protected void onSuccess(FunctionAppBase<?, ?, ?> result, @NotNull RunProcessHandler processHandler) {
         processHandler.notifyComplete();
-        FunctionUtils.cleanUpStagingFolder(stagingFolder);
-        // update configuration
-        final FunctionAppConfig config = AppServiceConfigUtils.fromFunctionApp(result);
-        functionDeployConfiguration.getModel().setConfig(config);
         functionDeployConfiguration.setAppSettings(result.getAppSettings());
+        FunctionUtils.cleanUpStagingFolder(stagingFolder);
     }
 
     @Override
