@@ -88,6 +88,9 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
     private JPanel pnlAppServicePlan;
     private JPanel pnlImageContainer;
     private JPanel pnlImage;
+    private TitledSeparator titleConsumption;
+    private FlexConsumptionConfigurationPanel flexConfigurationPanel;
+    private JPanel pnlFlexConsumption;
 
     private FunctionAppConfig config;
 
@@ -114,13 +117,7 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
                 final PricingTier pricingTier = plan.getPricingTier();
                 config.pricingTier(pricingTier);
                 if (Objects.nonNull(pricingTier) && pricingTier.isFlexConsumption()) {
-                    final FlexConsumptionConfiguration flexConfiguration =  FlexConsumptionConfiguration.builder()
-                            .authenticationMethod(StorageAuthenticationMethod.StorageAccountConnectionString)
-                            .storageAccountConnectionString(com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppConfig.Storage.Authentication.DEPLOYMENT_STORAGE_CONNECTION_STRING)
-                            .instanceSize(FlexConsumptionConfiguration.DEFAULT_INSTANCE_SIZE)
-                            .maximumInstances(com.microsoft.azure.toolkit.lib.appservice.model.FunctionAppConfig.FunctionScaleAndConcurrency.DEFAULT_MAXIMUM_INSTANCE_COUNT)
-                            .build();
-                    config.setFlexConsumptionConfiguration(flexConfiguration);
+                    config.setFlexConsumptionConfiguration(flexConfigurationPanel.getValue());
                 }
             });
         } else if (rdoContainerAppsEnvironment.isSelected()) {
@@ -157,6 +154,7 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
                     .ifPresent(selectorServicePlan::setValue);
             Optional.ofNullable(config.environment()).filter(ignore -> useEnvironment)
                     .ifPresent(env -> cbEnvironment.setValue(r -> StringUtils.equalsIgnoreCase(r.getName(), env)));
+            Optional.ofNullable(config.getFlexConsumptionConfiguration()).ifPresent(flexConfigurationPanel::setValue);
             final ContainerAppDraft.ImageConfig imageConfig = DockerUtils.convertRuntimeConfigToImageConfig(config.getRuntime());
             final boolean useDefaultImage = Objects.isNull(imageConfig) || StringUtils.equalsIgnoreCase(QUICK_START_IMAGE.getFullImageName(), imageConfig.getFullImageName());
             chkUseQuickStart.setSelected(useDefaultImage);
@@ -209,7 +207,6 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
 
         this.selectorRegion.setItemsLoader(this::getValidRegions);
         this.selectorRuntime.setItemsLoader(this::getValidRuntimes);
-        // this.selectorRuntime.setPlatformList(FunctionAppRuntime.getMajorRuntimes());
         this.selectorServicePlan.setValidPricingTierList(new ArrayList<>(PricingTier.FUNCTION_PRICING), PricingTier.CONSUMPTION);
 
         this.textName.setRequired(true);
@@ -246,10 +243,11 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
     private List<? extends Runtime> getValidRuntimes() {
         final Subscription subscription = selectorSubscription.getValue();
         final Region region = selectorRegion.getValue();
-        if (Objects.isNull(subscription) || Objects.isNull(region) || !isFlexConsumptionApp()) {
+        if (Objects.isNull(subscription) || rdoContainerAppsEnvironment.isSelected() || !isFlexConsumptionApp()) {
             return FunctionAppRuntime.getMajorRuntimes();
         } else {
-            return Azure.az(AzureAppService.class).forSubscription(subscription.getId()).functionApps().listFlexConsumptionRuntimes(region);
+            return Objects.isNull(region) ? Arrays.asList(FunctionAppLinuxRuntime.FUNCTION_JAVA17, FunctionAppLinuxRuntime.FUNCTION_JAVA11) :
+                    Azure.az(AzureAppService.class).forSubscription(subscription.getId()).functionApps().listFlexConsumptionRuntimes(region);
         }
     }
 
@@ -270,6 +268,7 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
         if (!useServicePlan) {
             this.selectorRuntime.setValue(FunctionAppDockerRuntime.INSTANCE);
         }
+        this.selectorRuntime.reloadItems();
     }
 
     private void onGroupChanged(ItemEvent e) {
@@ -292,8 +291,8 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
         if (e.getStateChange() == ItemEvent.SELECTED || e.getStateChange() == ItemEvent.DESELECTED) {
             final Runtime runtime = (Runtime) e.getItem();
             final OperatingSystem operatingSystem = Objects.isNull(runtime) ? null :
-                                                    // Docker runtime use Linux service plan too
-                                                    runtime.isWindows() ? OperatingSystem.WINDOWS : OperatingSystem.LINUX;
+                    // Docker runtime use Linux service plan too
+                    runtime.isWindows() ? OperatingSystem.WINDOWS : OperatingSystem.LINUX;
             this.selectorServicePlan.setOperatingSystem(operatingSystem);
 
             final boolean isDocker = Optional.ofNullable(runtime).map(Runtime::isDocker).orElse(false);
@@ -320,10 +319,15 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
             if (plan == null || plan.getPricingTier() == null) {
                 return;
             }
-            final String pricing = plan.getPricingTier().toString();
-            this.textSku.setText(pricing);
-            this.selectorRegion.reloadItems();
+            final PricingTier pricingTier = plan.getPricingTier();
+            this.textSku.setText(pricingTier.toString());
+            this.pnlFlexConsumption.setVisible(pricingTier.isFlexConsumption());
+            if (pricingTier.isFlexConsumption()) {
+                this.selectorRuntime.clear();
+                this.selectorRegion.clear();
+            }
             this.selectorRuntime.reloadItems();
+            this.selectorRegion.reloadItems();
         } else if (e.getStateChange() == ItemEvent.DESELECTED) {
             this.textSku.setText(NOT_APPLICABLE);
         }
