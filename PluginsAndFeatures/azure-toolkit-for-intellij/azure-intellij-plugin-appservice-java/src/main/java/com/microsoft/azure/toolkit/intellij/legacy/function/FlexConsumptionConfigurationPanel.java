@@ -8,6 +8,7 @@ import com.microsoft.azure.toolkit.intellij.common.AzureTextInput;
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration;
 import com.microsoft.azure.toolkit.lib.appservice.model.StorageAuthenticationMethod;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
+import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
@@ -17,6 +18,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class FlexConsumptionConfigurationPanel implements AzureFormPanel<FlexConsumptionConfiguration> {
+    public static final String IDENTITY_ID_VALIDATION_MESSAGE = "Identity Id is required for user assigned identity authentication";
+    public static final String CONNECTION_KEY_VALIDATION_MESSAGE = "Connection Key is required for storage account connection string authentication";
     private JLabel lblInstanceMemory;
     private JRadioButton rdo512;
     private JRadioButton rdo2048;
@@ -106,6 +109,17 @@ public class FlexConsumptionConfigurationPanel implements AzureFormPanel<FlexCon
     @Override
     public List<AzureFormInput<?>> getInputs() {
         return Arrays.asList(this.txtMaxInstances, this.txtHttpConcurrency, this.cbAuthMethod, this.txtConnectionKey, this.txtIdentityId);
+    }
+
+    @Override
+    public List<AzureValidationInfo> validateAdditionalInfo() {
+        final StorageAuthenticationMethod value = cbAuthMethod.getValue();
+        if (value == StorageAuthenticationMethod.UserAssignedIdentity && StringUtils.isBlank(txtIdentityId.getText())) {
+            return List.of(AzureValidationInfo.builder().input(txtIdentityId).message(IDENTITY_ID_VALIDATION_MESSAGE).build());
+        } else if (value == StorageAuthenticationMethod.StorageAccountConnectionString && StringUtils.isBlank(txtConnectionKey.getText())) {
+            return List.of(AzureValidationInfo.builder().input(txtConnectionKey).message(CONNECTION_KEY_VALIDATION_MESSAGE).build());
+        }
+        return AzureFormPanel.super.validateAdditionalInfo();
     }
 
     private void createUIComponents() {
