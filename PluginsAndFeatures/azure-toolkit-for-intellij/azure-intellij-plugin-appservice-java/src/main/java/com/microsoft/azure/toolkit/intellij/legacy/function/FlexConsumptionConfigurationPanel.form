@@ -30,7 +30,7 @@
         <properties>
           <horizontalTextPosition value="10"/>
           <text value="Identity Id:"/>
-          <toolTipText value="The maximum number of instances for the function app.  Value must be in range [40, 1000]"/>
+          <toolTipText value="The resource ID of the identity"/>
           <visible value="false"/>
         </properties>
       </component>
@@ -53,7 +53,7 @@
         <properties>
           <horizontalTextPosition value="10"/>
           <text value="Http Concurrency:"/>
-          <toolTipText value="The maximum number of instances for the function app.  Value must be in range [40, 1000]"/>
+          <toolTipText value=""/>
           <visible value="false"/>
         </properties>
       </component>
