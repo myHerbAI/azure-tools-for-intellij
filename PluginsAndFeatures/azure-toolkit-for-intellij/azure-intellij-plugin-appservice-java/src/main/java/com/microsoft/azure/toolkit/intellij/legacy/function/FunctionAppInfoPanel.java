@@ -260,6 +260,7 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
         this.pnlContainerAppsEnvironment.setVisible(!useServicePlan);
         this.titleServicePlan.setVisible(useServicePlan);
         this.pnlAppServicePlan.setVisible(useServicePlan);
+        this.pnlFlexConsumption.setVisible(useServicePlan && isFlexConsumptionApp());
 
         this.selectorServicePlan.setRequired(useServicePlan);
         this.selectorServicePlan.revalidate();
@@ -288,8 +289,8 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
     }
 
     private void onRuntimeChanged(final ItemEvent e) {
-        if (e.getStateChange() == ItemEvent.SELECTED || e.getStateChange() == ItemEvent.DESELECTED) {
-            final Runtime runtime = (Runtime) e.getItem();
+        final Runtime runtime = (Runtime) e.getItem();
+        if (e.getStateChange() == ItemEvent.SELECTED) {
             final OperatingSystem operatingSystem = Objects.isNull(runtime) ? null :
                     // Docker runtime use Linux service plan too
                     runtime.isWindows() ? OperatingSystem.WINDOWS : OperatingSystem.LINUX;
@@ -298,6 +299,11 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
             final boolean isDocker = Optional.ofNullable(runtime).map(Runtime::isDocker).orElse(false);
             this.imageTitle.setVisible(isDocker);
             this.pnlImage.setVisible(isDocker);
+        } else if (e.getStateChange() == ItemEvent.DESELECTED && runtime.isDocker()) {
+            // hide image panel when docker runtime is deselected
+            // as sometime runtime may select null, this case could not be handled by logic in ItemEvent.SELECTED
+            this.imageTitle.setVisible(false);
+            this.imageTitle.setVisible(false);
         }
     }
 
