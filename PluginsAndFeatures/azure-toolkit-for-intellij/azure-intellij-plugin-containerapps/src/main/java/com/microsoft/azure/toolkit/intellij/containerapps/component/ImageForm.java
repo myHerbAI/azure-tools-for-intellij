@@ -5,11 +5,9 @@
 
 package com.microsoft.azure.toolkit.intellij.containerapps.component;
 
-import com.intellij.openapi.project.Project;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
-import com.microsoft.azure.toolkit.intellij.common.ProjectUtils;
 import com.microsoft.azure.toolkit.lib.common.form.AzureForm;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.containerapps.containerapp.ContainerApp;
@@ -91,7 +89,6 @@ public class ImageForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>
         constraints.setFill(GridConstraints.FILL_BOTH);
         constraints.setHSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
         constraints.setUseParentLayout(true);
-        final Project project = ProjectUtils.getProject(this.getContentPanel());
         final DeploymentSourceForm newFormImage = switch (type) {
             case ImageSourceTypeComboBox.QUICK_START -> new QuickStartImageForm();
             case ImageSourceTypeComboBox.ACR -> new ACRImageSourceForm();
