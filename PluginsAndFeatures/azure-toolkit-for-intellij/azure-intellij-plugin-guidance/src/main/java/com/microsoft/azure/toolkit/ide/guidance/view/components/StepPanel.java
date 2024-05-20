@@ -1,5 +1,6 @@
 package com.microsoft.azure.toolkit.ide.guidance.view.components;
 
+import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.IconUtil;
@@ -21,7 +22,7 @@ import java.util.Optional;
 public class StepPanel extends JPanel {
     private JPanel contentPanel;
     private JLabel statusIcon;
-    private JLabel titleLabel;
+    private JBLabel titleLabel;
     private JTextPane descPanel;
     private JTextArea outputPanel;
     private com.intellij.ui.components.ActionLink actionButton;
@@ -59,6 +60,7 @@ public class StepPanel extends JPanel {
     }
 
     private void renderDescription() {
+        titleLabel.setCopyable(true);
         titleLabel.setText(step.getRenderedTitle());
         descPanel.setText(step.getRenderedDescription());
     }

@@ -141,7 +141,7 @@ public class Step implements Disposable {
 
     public void prepare() {
         task.prepare();
-        this.setStatus(task.isDone() ? Status.SUCCEED : Status.READY);
+        this.setStatus(task.isDone()|| task.isToSkip() ? Status.SUCCEED : Status.READY);
     }
 
     public boolean isReady() {

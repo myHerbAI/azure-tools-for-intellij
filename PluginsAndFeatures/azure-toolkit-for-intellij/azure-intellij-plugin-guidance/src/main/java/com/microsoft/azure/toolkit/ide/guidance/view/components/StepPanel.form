@@ -21,7 +21,7 @@
           <text value=""/>
         </properties>
       </component>
-      <component id="ce4c" class="javax.swing.JLabel" binding="titleLabel">
+      <component id="1fc7b" class="com.intellij.ui.components.JBLabel" binding="titleLabel">
         <constraints>
           <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="-1" height="20"/>
