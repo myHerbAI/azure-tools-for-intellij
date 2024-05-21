@@ -112,6 +112,6 @@ public class DeploymentSlotComboBox extends AzureComboBox<DeploymentSlotConfig> 
     }
 
     private boolean isDraftResource(DeploymentSlotConfig val) {
-        return StringUtils.isNotEmpty(val.getConfigurationSource());
+        return Objects.nonNull(val) && StringUtils.isNotEmpty(val.getConfigurationSource());
     }
 }
