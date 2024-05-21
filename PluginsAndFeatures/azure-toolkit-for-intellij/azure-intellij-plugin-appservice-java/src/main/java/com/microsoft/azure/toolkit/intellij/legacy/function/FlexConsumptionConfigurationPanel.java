@@ -60,6 +60,10 @@ public class FlexConsumptionConfigurationPanel implements AzureFormPanel<FlexCon
         this.lblHttpConcurrency.setIcon(AllIcons.General.ContextHelp);
         this.lblMaxInstances.setIcon(AllIcons.General.ContextHelp);
         this.lblInstanceMemory.setIcon(AllIcons.General.ContextHelp);
+
+        this.lblMaxInstances.setLabelFor(txtMaxInstances);
+        this.txtMaxInstances.setRequired(true);
+        this.cbAuthMethod.setRequired(true);
     }
 
     private void onSelectAuthMethod(ItemEvent itemEvent) {
@@ -115,9 +119,9 @@ public class FlexConsumptionConfigurationPanel implements AzureFormPanel<FlexCon
     public List<AzureValidationInfo> validateAdditionalInfo() {
         final StorageAuthenticationMethod value = cbAuthMethod.getValue();
         if (value == StorageAuthenticationMethod.UserAssignedIdentity && StringUtils.isBlank(txtIdentityId.getText())) {
-            return List.of(AzureValidationInfo.builder().input(txtIdentityId).message(IDENTITY_ID_VALIDATION_MESSAGE).build());
+            return List.of(AzureValidationInfo.error(IDENTITY_ID_VALIDATION_MESSAGE, txtIdentityId));
         } else if (value == StorageAuthenticationMethod.StorageAccountConnectionString && StringUtils.isBlank(txtConnectionKey.getText())) {
-            return List.of(AzureValidationInfo.builder().input(txtConnectionKey).message(CONNECTION_KEY_VALIDATION_MESSAGE).build());
+            return List.of(AzureValidationInfo.error(CONNECTION_KEY_VALIDATION_MESSAGE, txtConnectionKey));
         }
         return AzureFormPanel.super.validateAdditionalInfo();
     }

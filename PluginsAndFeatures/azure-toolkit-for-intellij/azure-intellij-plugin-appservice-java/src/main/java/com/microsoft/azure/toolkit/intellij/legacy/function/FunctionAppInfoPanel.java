@@ -361,7 +361,7 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
             final Region region = selectorRegion.getValue();
             final String supportedRegionsValue = validRegions.stream().map(Region::getName).collect(Collectors.joining(","));
             if (Objects.nonNull(region) && !validRegions.contains(region)) {
-                throw new AzureToolkitRuntimeException("`%s` is not a valid region for flex consumption app, supported values are %s", region.getName(), supportedRegionsValue);
+                return Collections.singletonList(AzureValidationInfo.error(String.format("`%s` is not a valid region for flex consumption app, supported values are %s", region.getName(), supportedRegionsValue), selectorRegion));
             }
             // runtime
             final List<? extends FunctionAppRuntime> validFlexRuntimes = Objects.isNull(region) ? Collections.emptyList() :
@@ -369,7 +369,7 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
             final Runtime appRuntime = selectorRuntime.getValue();
             if (Objects.nonNull(region) && !validFlexRuntimes.contains(appRuntime)) {
                 final String validValues = validFlexRuntimes.stream().map(FunctionAppRuntime::getDisplayName).collect(Collectors.joining(","));
-                throw new AzureToolkitRuntimeException(String.format("Invalid runtime configuration, valid flex consumption runtimes are %s in region %s", validValues, region.getLabel()));
+                return Collections.singletonList(AzureValidationInfo.error(String.format("`%s` is not a valid runtime for flex consumption app, supported values are %s", appRuntime.getDisplayName(), validValues), selectorRuntime));
             }
         }
         return AzureFormPanel.super.validateAdditionalInfo();
