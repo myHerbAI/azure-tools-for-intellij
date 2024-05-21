@@ -172,7 +172,8 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
             this.selectorRuntime,
             this.selectorRegion,
             this.selectorServicePlan,
-            this.cbEnvironment
+            this.cbEnvironment,
+            this.flexConfigurationPanel
         };
         return Arrays.asList(inputs);
     }
@@ -269,6 +270,10 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
         if (!useServicePlan) {
             this.selectorRuntime.setValue(FunctionAppDockerRuntime.INSTANCE);
         }
+        if (useServicePlan && isFlexConsumptionApp()) {
+            // as flex did not support docker runtime, clear it when switch back from environment host
+            this.selectorRuntime.clear();
+        }
         this.selectorRuntime.reloadItems();
     }
 
@@ -303,7 +308,7 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
             // hide image panel when docker runtime is deselected
             // as sometime runtime may select null, this case could not be handled by logic in ItemEvent.SELECTED
             this.imageTitle.setVisible(false);
-            this.imageTitle.setVisible(false);
+            this.pnlImage.setVisible(false);
         }
     }
 
