@@ -142,10 +142,7 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
         if (rdoArtifact.isSelected()) {
             artifactSourceForm.setModule(module);
         } else if (rdoSourceCode.isSelected()) {
-            final String source = Optional.ofNullable(ProjectUtil.guessModuleDir(module))
-                    .map(VirtualFile::getPath)
-                    .orElseGet(() -> ModuleUtil.getModuleDirPath(module));
-            codeSourceForm.setCodeSource(source);
+            codeSourceForm.setCodeSourceByModule(module);
         }
     }
 
@@ -251,7 +248,10 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
         Arrays.stream(ModuleManager.getInstance(project).getModules())
                 .filter(m -> StringUtils.equalsIgnoreCase(m.getName(), data.getModuleName()))
                 .findFirst()
-                .ifPresent(cbModule::setValue);
+                .ifPresent(module -> {
+                    cbModule.setValue(module);
+                    codeSourceForm.setModule(module);
+                });
         Optional.ofNullable(data.getIngressConfig()).ifPresent(pnlIngressConfiguration::setValue);
         Optional.ofNullable(data.getEnvironmentVariables()).ifPresent(inputEnv::setEnvironmentVariables);
         Optional.ofNullable(data.getContainerAppId())
