@@ -1,5 +1,13 @@
 <!-- Version: 3.88.0 -->
 # What's new in Azure Toolkit for IntelliJ
+
+## 3.88.1
+### Added
+- Support creation/deployment for flex consumption function app.
+
+### Fixed
+- Fixes duplicate before run tasks for Azure Container Apps deployment run configuration
+
 ## 3.88.0
 ### Added
 - Support for deploying source code/artifacts to Azure Container Apps directly.      
