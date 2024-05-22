@@ -139,11 +139,8 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
     }
 
     private void applyModuleValue(@Nonnull final Module module) {
-        if (rdoArtifact.isSelected()) {
-            artifactSourceForm.setModule(module);
-        } else if (rdoSourceCode.isSelected()) {
-            codeSourceForm.setCodeSourceByModule(module);
-        }
+        artifactSourceForm.setModule(module);
+        codeSourceForm.setCodeSourceByModule(module);
     }
 
     private void onSelectContainerApp(ItemEvent itemEvent) {
@@ -229,11 +226,16 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
     @Override
     public void setValue(final DeployImageModel data) {
         final String path = data.getPath();
+        final Module module = Arrays.stream(ModuleManager.getInstance(project).getModules())
+                .filter(m -> StringUtils.equalsIgnoreCase(m.getName(), data.getModuleName()))
+                .findFirst().orElse(null);
+        Optional.ofNullable(module).ifPresent(cbModule::setValue);
         final DeploymentType deploymentType = Optional.ofNullable(data.getDeploymentType()).orElse(DeploymentType.Image);
         switch (deploymentType) {
             case Code -> {
                 rdoSourceCode.setSelected(true);
                 codeSourceForm.setValue(data.getImageConfig());
+                Optional.ofNullable(module).ifPresent(codeSourceForm::setModule);
             }
             case Artifact -> {
                 rdoArtifact.setSelected(true);
@@ -245,13 +247,7 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
             }
             default -> throw new AzureToolkitRuntimeException("Unsupported deployment type");
         }
-        Arrays.stream(ModuleManager.getInstance(project).getModules())
-                .filter(m -> StringUtils.equalsIgnoreCase(m.getName(), data.getModuleName()))
-                .findFirst()
-                .ifPresent(module -> {
-                    cbModule.setValue(module);
-                    codeSourceForm.setModule(module);
-                });
+
         Optional.ofNullable(data.getIngressConfig()).ifPresent(pnlIngressConfiguration::setValue);
         Optional.ofNullable(data.getEnvironmentVariables()).ifPresent(inputEnv::setEnvironmentVariables);
         Optional.ofNullable(data.getContainerAppId())
