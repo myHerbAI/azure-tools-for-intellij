@@ -66,10 +66,12 @@ public class FunctionAppNodeProvider implements IExplorerNodeProvider {
                 .addInlineAction(ResourceCommonActionsContributor.DEPLOY)
                 .withActions(FunctionAppActionsContributor.FUNCTION_APP_ACTIONS)
                 .addChildren(Arrays::asList, (app, webAppNode) -> new FunctionsNode(app));
-            if (StringUtils.isBlank(function.getEnvironmentId())) {
-                appNode.addChild(FunctionApp::getDeploymentModule, (module, functionAppNode) -> createNode(module, functionAppNode, manager))
-                       .addChild(AppServiceFileNode::getRootFileNodeForAppService, (d, p) -> this.createNode(d, p, manager)) // Files
-                       .addChild(AppServiceFileNode::getRootLogNodeForAppService, (d, p) -> this.createNode(d, p, manager));
+            if (!function.isContainerHostingFunctionApp()) {
+                appNode.addChild(AppServiceFileNode::getRootFileNodeForAppService, (d, p) -> this.createNode(d, p, manager));
+                if(!function.isFlexConsumptionApp()){
+                    appNode.addChild(AppServiceFileNode::getRootLogNodeForAppService, (d, p) -> this.createNode(d, p, manager))
+                            .addChild(FunctionApp::getDeploymentModule, (module, functionAppNode) -> createNode(module, functionAppNode, manager));
+                }
             }
             return appNode.addChild(app -> new AppSettingsNode(app.getValue()));
         } else if (data instanceof FunctionAppDeploymentSlotModule) {

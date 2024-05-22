@@ -106,7 +106,7 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
         this.onSelectDeploymentType();
     }
 
-    private void onArtifactChanged(final ItemEvent e) {
+    private synchronized void onArtifactChanged(final ItemEvent e) {
         if (!rdoArtifact.isSelected()) {
             return;
         }
@@ -115,9 +115,11 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
         final AzureArtifact artifact = (AzureArtifact) e.getItem();
         if (Objects.nonNull(editor) && Objects.nonNull(artifact)) {
             if (e.getStateChange() == ItemEvent.DESELECTED) {
+                System.out.println("remove before run task - artifact changed");
                 BuildArtifactBeforeRunTaskUtils.removeBeforeRunTask(editor, artifact, this.configuration);
             }
             if (e.getStateChange() == ItemEvent.SELECTED) {
+                System.out.println("add before run task - artifact changed");
                 BuildArtifactBeforeRunTaskUtils.addBeforeRunTask(editor, artifact, this.configuration);
             }
         }
@@ -125,6 +127,7 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
 
     private void onSelectImage(final DockerImage image) {
         if (rdoContainerImage.isSelected()) {
+            System.out.println("update docker - on select image");
             updateDockerBuildBeforeRunTasks();
         }
     }
@@ -136,14 +139,8 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
     }
 
     private void applyModuleValue(@Nonnull final Module module) {
-        if (rdoArtifact.isSelected()) {
-            artifactSourceForm.setModule(module);
-        } else if (rdoSourceCode.isSelected()) {
-            final String source = Optional.ofNullable(ProjectUtil.guessModuleDir(module))
-                    .map(VirtualFile::getPath)
-                    .orElseGet(() -> ModuleUtil.getModuleDirPath(module));
-            codeSourceForm.setCodeSource(source);
-        }
+        artifactSourceForm.setModule(module);
+        codeSourceForm.setCodeSourceByModule(module);
     }
 
     private void onSelectContainerApp(ItemEvent itemEvent) {
@@ -153,7 +150,7 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
                 artifactSourceForm.setContainerApp(containerApp);
                 pnlDockerConfiguration.setContainerApp(containerApp);
             });
-            Optional.ofNullable(containerApp.getIngressConfig()).ifPresent(this.pnlIngressConfiguration::setValue);
+            this.pnlIngressConfiguration.setValueFromContainerApp(containerApp);
         }
     }
 
@@ -164,7 +161,7 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
         }
     }
 
-    private void onSelectDeploymentType() {
+    private synchronized void onSelectDeploymentType() {
         final JPanel panel = rdoContainerImage.isSelected() ? pnlDockerConfiguration.getPnlRoot() :
                 rdoSourceCode.isSelected() ? codeSourceForm.getContentPanel() : artifactSourceForm.getContentPanel();
         pnlDeployment.removeAll();
@@ -176,19 +173,22 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
         }, AzureTask.Modality.ANY);
         // clean up before run task if needed
         if (rdoArtifact.isSelected()) {
+            System.out.println("on select deployment type: clean up docker + add artifact");
             updateBuildArtifactBeforeRunTasks();
             cleanupDockerBuildBeforeRunTasks();
         } else if (rdoContainerImage.isSelected()) {
+            System.out.println("on select deployment type: add docker + clean up artifact");
             updateDockerBuildBeforeRunTasks();
             cleanupBuildArtifactBeforeRunTasks();
         } else if (rdoSourceCode.isSelected()) {
+            System.out.println("on select deployment type: clean up docker + clean up artifact");
             cleanupDockerBuildBeforeRunTasks();
             cleanupBuildArtifactBeforeRunTasks();
         }
         Optional.ofNullable(cbModule.getValue()).ifPresent(this::applyModuleValue);
     }
 
-    private void cleanupBuildArtifactBeforeRunTasks() {
+    private synchronized void cleanupBuildArtifactBeforeRunTasks() {
         final DataContext context = DataManager.getInstance().getDataContext(pnlRoot);
         final Module module = cbModule.getValue();
         final AzureArtifact azureArtifact = artifactSourceForm.getArtifact();
@@ -198,7 +198,7 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
         }
     }
 
-    private void updateBuildArtifactBeforeRunTasks() {
+    private synchronized void updateBuildArtifactBeforeRunTasks() {
         final DataContext context = DataManager.getInstance().getDataContext(pnlRoot);
         final Module module = cbModule.getValue();
         final AzureArtifact azureArtifact = artifactSourceForm.getArtifact();
@@ -208,7 +208,7 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
         }
     }
 
-    private void updateDockerBuildBeforeRunTasks() {
+    private synchronized void updateDockerBuildBeforeRunTasks() {
         Optional.ofNullable(pnlDockerConfiguration.getValue())
                 .map(DockerPushConfiguration::getDockerImage)
                 .ifPresent(image -> AzureTaskManager.getInstance().runLater(() -> {
@@ -217,7 +217,7 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
                 }, AzureTask.Modality.ANY));
     }
 
-    private void cleanupDockerBuildBeforeRunTasks() {
+    private synchronized void cleanupDockerBuildBeforeRunTasks() {
         final DataContext context = DataManager.getInstance().getDataContext(pnlRoot);
         Optional.ofNullable(ConfigurationSettingsEditorWrapper.CONFIGURATION_EDITOR_KEY.getData(context))
                 .ifPresent(editor -> DockerBuildTaskUtils.removeBeforeRunTask(editor, this.configuration));
@@ -226,11 +226,16 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
     @Override
     public void setValue(final DeployImageModel data) {
         final String path = data.getPath();
+        final Module module = Arrays.stream(ModuleManager.getInstance(project).getModules())
+                .filter(m -> StringUtils.equalsIgnoreCase(m.getName(), data.getModuleName()))
+                .findFirst().orElse(null);
+        Optional.ofNullable(module).ifPresent(cbModule::setValue);
         final DeploymentType deploymentType = Optional.ofNullable(data.getDeploymentType()).orElse(DeploymentType.Image);
         switch (deploymentType) {
             case Code -> {
                 rdoSourceCode.setSelected(true);
                 codeSourceForm.setValue(data.getImageConfig());
+                Optional.ofNullable(module).ifPresent(codeSourceForm::setModule);
             }
             case Artifact -> {
                 rdoArtifact.setSelected(true);
@@ -242,20 +247,19 @@ public class DockerDeploymentSettingPanel implements AzureFormPanel<DeployImageM
             }
             default -> throw new AzureToolkitRuntimeException("Unsupported deployment type");
         }
-        Arrays.stream(ModuleManager.getInstance(project).getModules())
-                .filter(m -> StringUtils.equalsIgnoreCase(m.getName(), data.getModuleName()))
-                .findFirst()
-                .ifPresent(cbModule::setValue);
+
         Optional.ofNullable(data.getIngressConfig()).ifPresent(pnlIngressConfiguration::setValue);
         Optional.ofNullable(data.getEnvironmentVariables()).ifPresent(inputEnv::setEnvironmentVariables);
         Optional.ofNullable(data.getContainerAppId())
                 .map(id -> (ContainerApp) Azure.az(AzureContainerApps.class).getById(id))
-                .ifPresent(app -> cbContainerApp.setValue(app));
+                .ifPresent(app -> {
+                    cbContainerApp.setValue(app);
+                    pnlIngressConfiguration.setContainerApp(app);
+                });
     }
 
     @Override
     public DeployImageModel getValue() {
-        Optional.ofNullable(cbModule.getValue()).ifPresent(this::applyModuleValue);
         Optional.ofNullable(cbContainerApp.getValue()).ifPresent(app -> {
             codeSourceForm.setContainerApp(app);
             artifactSourceForm.setContainerApp(app);

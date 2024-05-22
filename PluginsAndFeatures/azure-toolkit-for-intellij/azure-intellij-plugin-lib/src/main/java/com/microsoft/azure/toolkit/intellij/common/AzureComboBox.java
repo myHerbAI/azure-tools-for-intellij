@@ -184,7 +184,7 @@ public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputCompo
             final List<T> items = this.getItems();
             if (this.value instanceof AzureComboBox.ItemReference) {
                 items.stream().filter(i -> ((ItemReference<?>) this.value).is(i)).findFirst().ifPresent(this::setValue);
-            } else if (items.contains(this.value)) {
+            } else if (Objects.nonNull(this.value) && items.contains(this.value)) {
                 super.setSelectedItem(items.get(items.indexOf(this.value))); // set the equivalent item in the list as selected.
             } else {
                 super.setSelectedItem(null);
@@ -254,7 +254,7 @@ public class AzureComboBox<T> extends ComboBox<T> implements AzureFormInputCompo
             final T item = (T) model.getSelectedItem();
             toRemove.forEach(model::removeElement);
             model.addAll(toAdd);
-            if (!newItems.contains(item)) {
+            if (Objects.nonNull(item) && !newItems.contains(item)) {
                 model.setSelectedItem(null);
             }
             this.refreshValue();
