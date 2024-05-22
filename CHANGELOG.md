@@ -110,6 +110,13 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.7](#307)
   - [3.0.6](#306)
 
+## 3.88.1
+### Added
+- Support creation/deployment for flex consumption function app.
+
+### Fixed
+- Fixes duplicate before run tasks for Azure Container Apps deployment run configuration
+
 ## 3.88.0
 ### Added
 - Support for deploying source code/artifacts to Azure Container Apps directly.
