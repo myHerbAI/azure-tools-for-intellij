@@ -38,6 +38,7 @@ import reactor.core.scheduler.Schedulers;
 import javax.annotation.Nonnull;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -67,6 +68,11 @@ public class PhasePanel extends JPanel {
     private JTextPane outputPanel;
     private boolean isOutputBlank = true;
     private AzureEventBus.EventListener listener;
+    public static final HyperlinkListener OPEN_IN_BROWSER = e -> {
+        if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+            BrowserUtil.open(e.getURL().toString());
+        }
+    };
 
     public PhasePanel(@Nonnull Phase phase) {
         super();
@@ -97,6 +103,9 @@ public class PhasePanel extends JPanel {
         this.toggleIcon.setIcon(AllIcons.Actions.FindAndShowNextMatches);
         this.toggleIcon.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         this.descPanel.setBorder(null);
+        this.descPanel.setContentType("text/html");
+        this.descPanel.setEditorKit(new UIUtil.JBWordWrapHtmlEditorKit());
+        this.descPanel.addHyperlinkListener(OPEN_IN_BROWSER);
         this.descPanel.setVisible(StringUtils.isNotBlank(this.phase.getDescription()));
         this.initOutputPanel();
         this.detailsPanel.setVisible(false);
@@ -175,11 +184,7 @@ public class PhasePanel extends JPanel {
         final IAzureMessager messager = new ConsoleTextMessager();
         this.phase.setOutput(messager);
         this.outputPanel.setBorder(null);
-        this.outputPanel.addHyperlinkListener(e -> {
-            if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-                BrowserUtil.open(e.getURL().toString());
-            }
-        });
+        this.outputPanel.addHyperlinkListener(OPEN_IN_BROWSER);
         this.outputPanel.setEditorKit(new UIUtil.JBWordWrapHtmlEditorKit());
         this.outputContainer.setVisible(false);
     }
@@ -231,8 +236,6 @@ public class PhasePanel extends JPanel {
 
     private void renderDescription() {
         titleLabel.setText(phase.getRenderedTitle());
-        descPanel.setContentType("text/html");
-        descPanel.setEditorKit(new UIUtil.JBWordWrapHtmlEditorKit());
         descPanel.setText(phase.getRenderedDescription());
     }
 
