@@ -71,7 +71,7 @@ public class DeployImageModel extends DockerPushConfiguration {
                 .ifPresent(this::setContainerRegistryId);
         Optional.ofNullable(imageConfig.getBuildImageConfig()).ifPresent(buildImageConfig -> {
             this.setSourceBuildEnv(buildImageConfig.getSourceBuildEnv());
-            this.setPath(buildImageConfig.getSource().toString());
+            Optional.ofNullable(buildImageConfig.getSource()).map(Path::toString).ifPresent(this::setPath);
         });
     }
 }

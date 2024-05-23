@@ -20,7 +20,6 @@ import com.microsoft.azure.toolkit.intellij.containerapps.AzureContainerAppConfi
 import com.microsoft.azure.toolkit.intellij.containerapps.deployimage.DeployImageModel;
 import com.microsoft.azure.toolkit.intellij.containerapps.deployimage.DeployImageRunConfiguration;
 import com.microsoft.azure.toolkit.intellij.containerapps.deployimage.DeploymentType;
-import com.microsoft.azure.toolkit.intellij.containerregistry.dockerhost.DockerHostRunConfiguration;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -50,6 +49,7 @@ public class DeployImageAction extends AnAction {
         deployImageToAzureContainerApps(null, null, event);
     }
 
+    @AzureOperation(name = "boundary/containerapps.run_deploy_configuration")
     public static void deployImageToAzureContainerApps(@Nullable final VirtualFile file, @Nullable final ContainerApp app,
                                                        @Nonnull final AnActionEvent event) {
         AzureTaskManager.getInstance().runLater(() -> {
@@ -58,21 +58,16 @@ public class DeployImageAction extends AnAction {
             final Project project = Objects.requireNonNull(event.getProject());
             AzureLoginHelper.requireSignedIn(project, (a) -> {
                 final RunnerAndConfigurationSettings settings = getOrCreateRunConfigurationSettings(event.getProject(), app, module, file);
-                runConfiguration(event.getProject(), settings);
+                final RunManagerEx manager = RunManagerEx.getInstanceEx(project);
+                AzureTaskManager.getInstance().runLater(() -> {
+                    if (RunDialog.editConfiguration(project, settings, message("containerapps.deploy.configuration.title"), DefaultRunExecutor.getRunExecutorInstance())) {
+                        settings.storeInLocalWorkspace();
+                        manager.addConfiguration(settings);
+                        manager.setSelectedConfiguration(settings);
+                        ProgramRunnerUtil.executeConfiguration(settings, DefaultRunExecutor.getRunExecutorInstance());
+                    }
+                });
             });
-        });
-    }
-
-    @AzureOperation(name = "boundary/containerapps.run_deploy_configuration")
-    private static void runConfiguration(@Nonnull Project project, RunnerAndConfigurationSettings settings) {
-        final RunManagerEx manager = RunManagerEx.getInstanceEx(project);
-        AzureTaskManager.getInstance().runLater(() -> {
-            if (RunDialog.editConfiguration(project, settings, message("containerapps.deploy.configuration.title"), DefaultRunExecutor.getRunExecutorInstance())) {
-                settings.storeInLocalWorkspace();
-                manager.addConfiguration(settings);
-                manager.setSelectedConfiguration(settings);
-                ProgramRunnerUtil.executeConfiguration(settings, DefaultRunExecutor.getRunExecutorInstance());
-            }
         });
     }
 
@@ -85,23 +80,29 @@ public class DeployImageAction extends AnAction {
                 .map(n -> ":" + n)
                 .orElse("");
         final String runConfigurationName = String.format("%s: %s%s", factory.getName(), project.getName(), name);
-        RunnerAndConfigurationSettings settings = manager.findConfigurationByName(runConfigurationName);
-        if (settings == null) {
-            settings = manager.createConfiguration(runConfigurationName, factory);
-        }
+        final RunnerAndConfigurationSettings settings = Optional.ofNullable(manager.findConfigurationByName(runConfigurationName))
+                .orElseGet(()-> createDefaultRunConfiguration(manager, factory, runConfigurationName, dockerFile));
         final RunConfiguration runConfiguration = settings.getConfiguration();
         if (runConfiguration instanceof DeployImageRunConfiguration configuration) {
             Optional.ofNullable(app).map(ContainerApp::getId).ifPresent(id -> configuration.getDataModel().setContainerAppId(id));
             Optional.ofNullable(module).map(Module::getName).ifPresent(configuration.getDataModel()::setModuleName);
+        }
+        return settings;
+    }
+
+    private static RunnerAndConfigurationSettings createDefaultRunConfiguration(RunManagerEx manager, ConfigurationFactory factory, String runConfigurationName, VirtualFile dockerFile) {
+        final RunnerAndConfigurationSettings result = manager.createConfiguration(runConfigurationName, factory);
+        final RunConfiguration runConfiguration = result.getConfiguration();
+        if (runConfiguration instanceof DeployImageRunConfiguration configuration) {
+            // by default, use code deployment, however, if user has specified dockerfile, use image deployment
             configuration.setDeploymentType(DeploymentType.Code);
             Optional.ofNullable(dockerFile).map(DockerImage::new).ifPresent(image -> {
                 configuration.setDeploymentType(DeploymentType.Image);
-                final DeployImageModel dataModel = Optional.ofNullable(configuration.getDataModel())
-                        .orElseGet(DeployImageModel::new);
+                final DeployImageModel dataModel = Optional.ofNullable(configuration.getDataModel()).orElseGet(DeployImageModel::new);
                 dataModel.setDockerImage(image);
                 configuration.setDataModel(dataModel);
             });
         }
-        return settings;
+        return result;
     }
 }
