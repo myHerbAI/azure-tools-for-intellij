@@ -66,11 +66,16 @@ extends:
                     cp ./PluginsAndFeatures/azure-toolkit-for-intellij/build/distributions/*.zip ./artifacts/intellij/azure-toolkit-for-intellij.zip
                     unzip ./artifacts/intellij/azure-toolkit-for-intellij.zip -d ./artifacts/intellij/folder
                     rm  ./artifacts/intellij/azure-toolkit-for-intellij.zip
-              - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@3
+              - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@5
                 displayName: Sign IntelliJ
                 condition: and(succeeded(), ne(variables['DisableCodeSign'], 'true'))
                 inputs:
-                  ConnectedServiceName: vscjavaci_esrp_codesign
+                  ConnectedServiceName: 'ESRP-Release-Test'
+                  AppRegistrationClientId: '1992ee18-e9d2-42d6-ab20-94dd947a44b6'
+                  AppRegistrationTenantId: '72f988bf-86f1-41af-91ab-2d7cd011db47'
+                  AuthAKVName: 'vscjavaci'
+                  AuthCertName: 'vscjava-esrprelease-auth'
+                  AuthSignCertName: 'VSCJava-CodeSign'
                   FolderPath: artifacts/intellij/folder
                   Pattern: azure-toolkit-for-intellij.jar, azure-intellij-plugin-*.jar, azure-intellij-resource-connector-*.jar, azure-toolkit-ide-*.jar, azuretools-core-*.jar,azure-explorer-common-*.jar,hdinsight-node-common-*.jar, azure-sdk-reference-book.jar
                   signConfigType: inlineSignParams
