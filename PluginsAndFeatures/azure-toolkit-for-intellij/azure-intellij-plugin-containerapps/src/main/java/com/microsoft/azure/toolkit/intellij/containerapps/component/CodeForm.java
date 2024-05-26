@@ -8,10 +8,14 @@ package com.microsoft.azure.toolkit.intellij.containerapps.component;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.HyperlinkLabel;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.intellij.common.EnvironmentVariablesTextFieldWithBrowseButton;
@@ -63,6 +67,8 @@ public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>,
 
     @Getter
     private ContainerApp containerApp;
+    @Setter
+    private Module module;
 
     public CodeForm(final Project project) {
         super();
@@ -186,6 +192,16 @@ public class CodeForm implements AzureFormJPanel<ContainerAppDraft.ImageConfig>,
 
     public void setCodeSource(final String path) {
         this.fileCode.setValue(path);
+    }
+
+    public void setCodeSourceByModule(final Module module) {
+        if (Objects.equals(module, this.module)) {
+            return;
+        }
+        final String source = Optional.ofNullable(ProjectUtil.guessModuleDir(module))
+                .map(VirtualFile::getPath)
+                .orElseGet(() -> ModuleUtil.getModuleDirPath(module));
+        this.fileCode.setValue(source);
     }
 
     private AzureValidationInfo validateCodePath() {
