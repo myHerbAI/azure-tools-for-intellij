@@ -129,13 +129,13 @@ class FunctionMissingNugetPackageService(private val project: Project, private v
     data class InstallableDependency(val dependency: PackageDependency, val installableProjectPath: Path)
 
     fun getMissingPackages(file: VirtualFile): List<InstallableDependency>? {
-        val fileName = file.name
-        val (modificationStamp, dependencies) = cache[fileName] ?: return null
+        val filePath = file.path
+        val (modificationStamp, dependencies) = cache[filePath] ?: return null
         if (modificationStamp == file.modificationStamp) {
             return dependencies
         }
 
-        cache.remove(fileName)
+        cache.remove(filePath)
         return null
     }
 
@@ -143,7 +143,7 @@ class FunctionMissingNugetPackageService(private val project: Project, private v
         scope.launch {
             val modificationStamp = file.modificationStamp
             val dependencies = getInstallableDependencies(file).toMutableList()
-            cache[file.name] = modificationStamp to dependencies
+            cache[file.path] = modificationStamp to dependencies
 
             withContext(Dispatchers.EDT) {
                 EditorNotifications.getInstance(project).updateNotifications(file)
