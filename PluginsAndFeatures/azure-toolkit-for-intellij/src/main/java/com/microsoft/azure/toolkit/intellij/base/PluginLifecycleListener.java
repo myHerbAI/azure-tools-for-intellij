@@ -69,7 +69,7 @@ public class PluginLifecycleListener implements AppLifecycleListener, PluginStat
                 .timeout(Duration.ofSeconds(10))
                 .doOnError(throwable -> {
                     if (throwable instanceof java.util.concurrent.TimeoutException) {
-                        System.out.println("The task took longer than 5 seconds to complete.");
+                        log.error("it took longer than 10 seconds to initialize telemetry and restore signing in.");
                     } else {
                         throwable.printStackTrace();
                     }
