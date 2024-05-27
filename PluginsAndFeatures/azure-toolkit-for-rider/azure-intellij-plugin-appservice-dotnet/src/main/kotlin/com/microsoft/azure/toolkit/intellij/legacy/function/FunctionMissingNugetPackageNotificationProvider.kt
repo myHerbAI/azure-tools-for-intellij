@@ -52,6 +52,11 @@ class FunctionMissingNugetPackageNotificationProvider : EditorNotificationProvid
             service.installPackage(file, dependency)
         }, true)
 
+        panel.createActionLabel("Reload", {
+            FunctionMissingNugetPackageService.getInstance(project).clearCache()
+            EditorNotifications.getInstance(project).updateNotifications(file)
+        }, true)
+
         panel.createActionLabel("Don't show again", {
             AzureFunctionSettings.getInstance().checkForFunctionMissingPackages = false
             EditorNotifications.getInstance(project).updateNotifications(file)

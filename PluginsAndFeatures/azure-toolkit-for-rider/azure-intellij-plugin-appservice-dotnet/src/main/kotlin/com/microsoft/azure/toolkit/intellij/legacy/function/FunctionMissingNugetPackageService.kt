@@ -151,6 +151,10 @@ class FunctionMissingNugetPackageService(private val project: Project, private v
         }
     }
 
+    fun clearCache() {
+        cache.clear()
+    }
+
     private suspend fun getInstallableDependencies(file: VirtualFile): List<InstallableDependency> {
         val fileContent = withContext(Dispatchers.IO) {
             file.readText()
