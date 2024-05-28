@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.legacy.function
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.readText
@@ -22,7 +23,10 @@ import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 
 @Service(Service.Level.PROJECT)
-class FunctionMissingNugetPackageService(private val project: Project, private val scope: CoroutineScope) : LifetimedService() {
+class FunctionMissingNugetPackageService(
+    private val project: Project,
+    private val scope: CoroutineScope
+) : LifetimedService() {
     companion object {
         fun getInstance(project: Project) = project.service<FunctionMissingNugetPackageService>()
 
@@ -101,6 +105,8 @@ class FunctionMissingNugetPackageService(private val project: Project, private v
                 ),
             )
         )
+
+        private val LOG = logger<FunctionMissingNugetPackageService>()
     }
 
     init {
@@ -109,6 +115,7 @@ class FunctionMissingNugetPackageService(private val project: Project, private v
             if (it.entity.isDependencyPackage()) {
                 val packageName = it.entity.name.substringBefore("/")
                 if (packageNames.contains(packageName)) {
+                    LOG.trace("Package $packageName was installed")
                     cache.clear()
                 }
             }
@@ -117,6 +124,7 @@ class FunctionMissingNugetPackageService(private val project: Project, private v
             if (it.entity.isDependencyPackage()) {
                 val packageName = it.entity.name.substringBefore("/")
                 if (packageNames.contains(packageName)) {
+                    LOG.trace("Package $packageName was removed")
                     cache.clear()
                 }
             }
@@ -130,11 +138,15 @@ class FunctionMissingNugetPackageService(private val project: Project, private v
 
     fun getMissingPackages(file: VirtualFile): List<InstallableDependency>? {
         val filePath = file.path
+        LOG.trace("Getting packages for $filePath")
+
         val (modificationStamp, dependencies) = cache[filePath] ?: return null
         if (modificationStamp == file.modificationStamp) {
+            LOG.trace("Found dependencies in cache for $filePath: ${dependencies.joinToString()}")
             return dependencies
         }
 
+        LOG.trace("Removing $filePath from cache")
         cache.remove(filePath)
         return null
     }
@@ -144,6 +156,7 @@ class FunctionMissingNugetPackageService(private val project: Project, private v
             val modificationStamp = file.modificationStamp
             val dependencies = getInstallableDependencies(file).toMutableList()
             cache[file.path] = modificationStamp to dependencies
+            LOG.trace("Saving dependencies to cache for ${file.path}: ${dependencies.joinToString()}")
 
             withContext(Dispatchers.EDT) {
                 EditorNotifications.getInstance(project).updateNotifications(file)
@@ -152,6 +165,7 @@ class FunctionMissingNugetPackageService(private val project: Project, private v
     }
 
     fun clearCache() {
+        LOG.trace("Clearing the cache")
         cache.clear()
     }
 
@@ -197,14 +211,20 @@ class FunctionMissingNugetPackageService(private val project: Project, private v
 
     fun installPackage(file: VirtualFile, dependency: InstallableDependency) {
         scope.launch {
+            LOG.trace("Installing dependency $dependency for ${file.path}")
             val installableProject = WorkspaceModel.getInstance(project)
                 .getProjectModelEntities(dependency.installableProjectPath, project)
                 .firstOrNull()
 
             if (installableProject != null) {
+                LOG.trace("Installing dependency $dependency in project ${installableProject.name}")
                 val riderNuGetFacade = RiderNuGetHost.getInstance(project).facade
                 withContext(Dispatchers.EDT) {
-                    riderNuGetFacade.installForProject(installableProject.name, dependency.dependency.id, dependency.dependency.version)
+                    riderNuGetFacade.installForProject(
+                        installableProject.name,
+                        dependency.dependency.id,
+                        dependency.dependency.version
+                    )
                 }
 
                 for (i in 0..<30) {
