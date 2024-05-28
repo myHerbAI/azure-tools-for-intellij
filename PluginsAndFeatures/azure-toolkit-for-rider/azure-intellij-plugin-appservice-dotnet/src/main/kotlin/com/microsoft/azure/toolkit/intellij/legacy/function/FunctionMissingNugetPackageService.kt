@@ -56,51 +56,51 @@ class FunctionMissingNugetPackageService(
         private val markerToTriggerMap = mapOf(
             // Default worker
             "Microsoft.Azure.WebJobs" to mapOf(
-                "BlobTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.2.1")),
-                "QueueTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.2.0")),
-                "CosmosDBTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.CosmosDB", "4.4.0")),
-                "OrchestrationTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.DurableTask", "2.13.0")),
-                "EventGridTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.EventGrid", "3.3.1")),
-                "EventHubTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.EventHubs", "6.0.2")),
-                "IoTHubTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.EventHubs", "6.0.2")),
-                "ServiceBusTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.13.4")),
-                "SqlTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Sql", "3.0.461")),
-                "DaprPublish" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Dapr", "0.17.0-preview01")),
-                "DaprInvoke" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Dapr", "0.17.0-preview01")),
-                "DaprState" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Dapr", "0.17.0-preview01")),
-                "DaprServiceInvocationTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Dapr", "0.17.0-preview01")),
-                "DaprTopicTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Dapr", "0.17.0-preview01")),
+                "BlobTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.3.0")),
+                "QueueTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.3.0")),
+                "CosmosDBTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.CosmosDB", "4.6.1")),
+                "OrchestrationTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.DurableTask", "2.13.3")),
+                "EventGridTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.EventGrid", "3.4.1")),
+                "EventHubTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.EventHubs", "6.3.2")),
+                "IoTHubTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.EventHubs", "6.3.2")),
+                "ServiceBusTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.15.1")),
+                "SqlTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Sql", "3.0.534")),
+                "DaprPublish" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Dapr", "1.0.0")),
+                "DaprInvoke" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Dapr", "1.0.0")),
+                "DaprState" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Dapr", "1.0.0")),
+                "DaprServiceInvocationTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Dapr", "1.0.0")),
+                "DaprTopicTrigger" to listOf(PackageDependency("Microsoft.Azure.WebJobs.Extensions.Dapr", "1.0.0")),
             ),
 
             // Isolated worker
             "Microsoft.Azure.Functions.Worker" to mapOf(
-                "BlobTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.2.0")),
-                "QueueTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues", "5.2.0")),
-                "CosmosDBTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.CosmosDB", "4.4.2")),
-                "EventGridTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.EventGrid", "3.4.0")),
-                "EventHubTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.EventHubs", "6.0.1")),
-                "HttpTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Http", "3.1.0")),
-                "ServiceBusTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.ServiceBus", "5.14.1")),
+                "BlobTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.4.0")),
+                "QueueTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues", "5.4.0")),
+                "CosmosDBTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.CosmosDB", "4.8.1")),
+                "EventGridTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.EventGrid", "3.4.1")),
+                "EventHubTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.EventHubs", "6.3.1")),
+                "HttpTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Http", "3.2.0")),
+                "ServiceBusTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.ServiceBus", "5.18.0")),
                 "TimerTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Timer", "4.3.0")),
-                "SqlTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Sql", "3.0.461")),
+                "SqlTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Sql", "3.0.534")),
                 "DaprPublish" to listOf(
-                    PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Dapr", "0.17.0-preview01"),
+                    PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Dapr", "1.0.0"),
                     PackageDependency("CloudNative.CloudEvents", "2.7.1")
                 ),
                 "DaprInvoke" to listOf(
-                    PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Dapr", "0.17.0-preview01"),
+                    PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Dapr", "1.0.0"),
                     PackageDependency("CloudNative.CloudEvents", "2.7.1")
                 ),
                 "DaprState" to listOf(
-                    PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Dapr", "0.17.0-preview01"),
+                    PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Dapr", "1.0.0"),
                     PackageDependency("CloudNative.CloudEvents", "2.7.1")
                 ),
                 "DaprServiceInvocationTrigger" to listOf(
-                    PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Dapr", "0.17.0-preview01"),
+                    PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Dapr", "1.0.0"),
                     PackageDependency("CloudNative.CloudEvents", "2.7.1")
                 ),
                 "DaprTopicTrigger" to listOf(
-                    PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Dapr", "0.17.0-preview01"),
+                    PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Dapr", "1.0.0"),
                     PackageDependency("CloudNative.CloudEvents", "2.7.1")
                 ),
             )
