@@ -9,7 +9,7 @@
   "icon": "/icons/Microsoft.App/default.svg",
   "context": {
     "repository": "https://github.com/Azure-Samples/containerapps-albumapi-java.git",
-    "branch": "main",
+    "branch": "azure-tooling-getting-started",
     "targetPort": 8080,
     "prefix": "albumapi-java",
     "deployModule": "containerapps-albumapi-java"
@@ -17,7 +17,7 @@
   "phases": [
     {
       "title": "Clone",
-      "description": "Clone <a href='https://github.com/Azure-Samples/containerapps-albumapi-java'>demo project</a> to your local machine",
+      "description": "Clone <a href='https://github.com/Azure-Samples/containerapps-albumapi-java/tree/azure-tooling-getting-started'>demo project</a> to your local machine",
       "steps": [
         {
           "title": "Clone",
