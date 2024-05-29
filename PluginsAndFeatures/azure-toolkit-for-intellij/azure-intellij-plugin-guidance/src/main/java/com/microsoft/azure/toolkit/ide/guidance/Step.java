@@ -81,7 +81,7 @@ public class Step implements Disposable {
             .orElse(Collections.emptyList());
     }
 
-    public void setStatus(final Status status) {
+    private void setStatus(final Status status) {
         this.status = status;
         this.listenerList.forEach(listener -> AzureTaskManager.getInstance().runOnPooledThread(() -> listener.accept(status)));
     }
@@ -112,9 +112,11 @@ public class Step implements Disposable {
         }));
     }
 
-    @Nullable
     @AzureOperation(name = "internal/guidance.execute_task.step", params = "this.title")
     private boolean executeTask() throws Exception {
+        if (this.task.isDone() || this.task.isToSkip()) {
+            return true;
+        }
         OperationContext.current().setMessager(output);
         this.task.execute();
         return true;
@@ -142,7 +144,7 @@ public class Step implements Disposable {
 
     public void prepare() {
         task.prepare();
-        this.setStatus(task.isDone()|| task.isToSkip() ? Status.SUCCEED : Status.READY);
+        this.status = task.isDone() || this.task.isToSkip() ? Status.SUCCEED : Status.READY;
     }
 
     public boolean isReady() {
