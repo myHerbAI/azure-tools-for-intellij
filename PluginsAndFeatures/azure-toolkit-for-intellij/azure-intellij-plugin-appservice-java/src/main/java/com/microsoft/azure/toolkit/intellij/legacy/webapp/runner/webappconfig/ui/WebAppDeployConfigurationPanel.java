@@ -102,8 +102,12 @@ public class WebAppDeployConfigurationPanel extends AzureSettingPanel<WebAppConf
 
         $$$setupUI$$$();
         comboBoxWebApp.addValueChangedListener((AzureValueChangeBiListener<AppServiceConfig>) this::onWebAppChanged);
-        comboBoxArtifact.addItemListener(e -> chkToRoot.setVisible(isAbleToDeployToRoot(comboBoxArtifact.getValue())));
-        comboBoxArtifact.addItemListener(e -> syncBeforeRunTasks(comboBoxArtifact.getValue(), webAppConfiguration));
+        comboBoxArtifact.addItemListener(e -> {
+            final AzureArtifact artifact = comboBoxArtifact.getValue();
+            this.chkToRoot.setVisible(isAbleToDeployToRoot(artifact));
+            webAppConfiguration.setArtifact(artifact);
+            syncBeforeRunTasks(artifact, webAppConfiguration);
+        });
 
         final ButtonGroup slotButtonGroup = new ButtonGroup();
         slotButtonGroup.add(rbtNewSlot);
