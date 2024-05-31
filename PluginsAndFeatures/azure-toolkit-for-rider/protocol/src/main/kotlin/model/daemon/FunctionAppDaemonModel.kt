@@ -12,6 +12,26 @@ import com.jetbrains.rider.model.nova.ide.SolutionModel
 
 @Suppress("unused")
 object FunctionAppDaemonModel : Ext(SolutionModel.Solution) {
+    private val FunctionAppTriggerType = enum {
+        +"HttpTrigger"
+        +"Other"
+    }
+
+    private val FunctionAppHttpTriggerAttribute = structdef {
+        field("authLevel", string.nullable)
+        field("methods", immutableList(string.nullable))
+        field("route", string.nullable)
+        field("routeForHttpClient", string.nullable)
+    }
+
+    private val FunctionAppTriggerRequest = structdef {
+        field("methodName", string)
+        field("functionName", string)
+        field("triggerType", FunctionAppTriggerType)
+        field("httpTriggerAttribute", FunctionAppHttpTriggerAttribute.nullable)
+        field("projectFilePath", string)
+    }
+
     private val FunctionAppRequest = structdef {
         field("methodName", string.nullable)
         field("functionName", string.nullable)
@@ -32,7 +52,7 @@ object FunctionAppDaemonModel : Ext(SolutionModel.Solution) {
         sink("debugFunctionApp", FunctionAppRequest)
                 .doc("Signal from backend to debug a Function App locally.")
 
-        sink("triggerFunctionApp", FunctionAppRequest)
+        sink("triggerFunctionApp", FunctionAppTriggerRequest)
                 .doc("Signal from backend to trigger a Function App.")
 
         call("getAzureFunctionsVersion", AzureFunctionsVersionRequest, string.nullable)

@@ -14,9 +14,15 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import com.jetbrains.rider.azure.model.FunctionAppHttpTriggerAttribute
+import com.jetbrains.rider.azure.model.FunctionAppTriggerType
 import java.io.IOException
 
-class TriggerAzureFunctionAction(private val functionName: String) : AnAction(
+class TriggerAzureFunctionAction(
+    private val functionName: String,
+    private val triggerType: FunctionAppTriggerType,
+    private val httpTriggerAttribute: FunctionAppHttpTriggerAttribute?
+) : AnAction(
     "Trigger '$functionName'",
     "Create trigger function HTTP request...",
     RestClientIcons.Http_requests_filetype
@@ -24,7 +30,8 @@ class TriggerAzureFunctionAction(private val functionName: String) : AnAction(
     companion object {
         private val LOG = logger<TriggerAzureFunctionAction>()
 
-        private const val TEMPLATE_NAME = "Trigger Azure Function"
+        private const val HTTP_TEMPLATE_NAME = "Trigger Azure HTTP Function"
+        private const val OTHER_TEMPLATE_NAME = "Trigger Azure Function"
     }
 
     override fun actionPerformed(e: AnActionEvent) {
@@ -34,13 +41,27 @@ class TriggerAzureFunctionAction(private val functionName: String) : AnAction(
         val scratchFileService = ScratchFileService.getInstance()
         val scratchRootType = ScratchRootType.getInstance()
 
+        val scratchFileText = when (triggerType) {
+            FunctionAppTriggerType.HttpTrigger -> generateHttpClientRequestForHttpTrigger(
+                project = project,
+                templateName = HTTP_TEMPLATE_NAME,
+                functionName = functionName,
+                httpTriggerAttribute = httpTriggerAttribute
+            )
+
+            FunctionAppTriggerType.Other -> generateHttpClientRequestForOtherTrigger(
+                project = project,
+                templateName = OTHER_TEMPLATE_NAME,
+                functionName = functionName
+            )
+        } ?: ""
         val scratchFile =
             scratchFileService.findFile(scratchRootType, scratchFileName, ScratchFileService.Option.existing_only)
                 ?: scratchRootType.createScratchFile(
                     project,
                     scratchFileName,
                     HttpRequestLanguage.INSTANCE,
-                    createContentFromTemplate(project, functionName) ?: "",
+                    scratchFileText,
                     ScratchFileService.Option.create_if_missing
                 )
 
@@ -49,12 +70,49 @@ class TriggerAzureFunctionAction(private val functionName: String) : AnAction(
         }
     }
 
-    private fun createContentFromTemplate(project: Project, functionName: String): String? {
-        val template = FileTemplateManager.getInstance(project).findInternalTemplate(TEMPLATE_NAME)
+    private fun generateHttpClientRequestForHttpTrigger(
+        project: Project,
+        templateName: String,
+        functionName: String,
+        httpTriggerAttribute: FunctionAppHttpTriggerAttribute?
+    ): String? {
+
+        val requestMethod = if (httpTriggerAttribute == null || httpTriggerAttribute.methods.isEmpty()) {
+            "GET"
+        } else {
+            httpTriggerAttribute.methods.first()
+        } ?: "GET"
+
+        val urlPath = httpTriggerAttribute?.let {
+            if (!it.routeForHttpClient.isNullOrEmpty()) {
+                it.routeForHttpClient
+            } else if (!it.route.isNullOrEmpty()) {
+                it.route
+            } else {
+                functionName
+            }
+        } ?: functionName
+
+        return createContentFromTemplate(project, templateName, requestMethod, functionName, urlPath)
+    }
+
+    private fun generateHttpClientRequestForOtherTrigger(project: Project, templateName: String, functionName: String) =
+        createContentFromTemplate(project, templateName, "POST", functionName, functionName)
+
+    private fun createContentFromTemplate(
+        project: Project,
+        templateName: String,
+        requestMethod: String,
+        functionName: String,
+        urlPath: String
+    ): String? {
+        val template = FileTemplateManager.getInstance(project).findInternalTemplate(templateName)
         if (template != null) {
             try {
                 val properties = FileTemplateManager.getInstance(project).defaultProperties
+                properties.setProperty("requestMethod", requestMethod.uppercase())
                 properties.setProperty("functionName", functionName)
+                properties.setProperty("urlPath", urlPath)
                 return template.getText(properties)
             } catch (e: IOException) {
                 LOG.warn(e)

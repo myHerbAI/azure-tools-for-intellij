@@ -1,4 +1,4 @@
-// Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+// Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
 
 using System.Collections.Generic;
 using JetBrains.Application.UI.Controls.BulbMenu.Anchors;
@@ -6,7 +6,9 @@ using JetBrains.Application.UI.Controls.BulbMenu.Items;
 using JetBrains.ProjectModel;
 using JetBrains.ReSharper.Azure.Daemon.FunctionApp;
 using JetBrains.ReSharper.Azure.Psi.FunctionApp;
+using JetBrains.ReSharper.Azure.Psi.FunctionApp.Routing;
 using JetBrains.ReSharper.Resources.Shell;
+using JetBrains.Rider.Azure.Model;
 using JetBrains.Rider.Backend.Features.RunMarkers;
 using JetBrains.TextControl.DocumentMarkup;
 using JetBrains.UI.Icons;
@@ -22,7 +24,7 @@ public abstract class FunctionAppRunMarkerGutterMark(IconId iconId) : RunMarkerG
 
     public override IEnumerable<BulbMenuItem> GetBulbMenuItems(IHighlighter highlighter)
     {
-        if (!(highlighter.UserData is RunMarkerHighlighting runMarker)) yield break;
+        if (highlighter.UserData is not RunMarkerHighlighting runMarker) yield break;
 
         var solution = Shell.Instance.GetComponent<SolutionsManager>().Solution;
         if (solution == null) yield break;
@@ -43,6 +45,8 @@ public abstract class FunctionAppRunMarkerGutterMark(IconId iconId) : RunMarkerG
         var methodName = runMarker.Method.ShortName;
         var functionName = FunctionAppFinder.GetFunctionNameFromMethod(runMarker.Method) ??
                            runMarker.Method.ShortName;
+
+        var httpTriggerAttributeInfo = FunctionAppFinder.GetHttpTriggerAttributeFromMethod(runMarker.Method);
 
         var projectFilePath =
             runMarker.Project.ProjectFileLocation.NormalizeSeparators(FileSystemPathEx.SeparatorStyle.Unix);
@@ -82,7 +86,17 @@ public abstract class FunctionAppRunMarkerGutterMark(IconId iconId) : RunMarkerG
         yield return new BulbMenuItem(
             new ExecutableItem(() =>
             {
-                functionAppDaemonHost.TriggerFunctionApp(projectFilePath, methodName, functionName);
+                var type = httpTriggerAttributeInfo == null
+                    ? FunctionAppTriggerType.Other
+                    : FunctionAppTriggerType.HttpTrigger;
+                var attributeInfo = httpTriggerAttributeInfo == null
+                    ? null
+                    : new FunctionAppHttpTriggerAttribute(
+                        authLevel: httpTriggerAttributeInfo.AuthLevel,
+                        methods: httpTriggerAttributeInfo.Methods?.ToList(it => it) ?? [],
+                        route: httpTriggerAttributeInfo.Route,
+                        routeForHttpClient: httpTriggerAttributeInfo.GetRouteForHttpClient());
+                functionAppDaemonHost.TriggerFunctionApp(projectFilePath, methodName, functionName, type, attributeInfo);
             }),
             new RichText($"Trigger '{functionName}'..."),
             FunctionAppRunMarkersThemedIcons.Trigger.Id,

@@ -71,6 +71,7 @@
                      defaultValue="https://functionscdn.azureedge.net/public/cli-feed-v4.json"
                      description="Azure Functions Core Tools releases feed URL."/>
 
+        <internalFileTemplate name="Trigger Azure HTTP Function"/>
         <internalFileTemplate name="Trigger Azure Function"/>
 
         <editorNotificationProvider
