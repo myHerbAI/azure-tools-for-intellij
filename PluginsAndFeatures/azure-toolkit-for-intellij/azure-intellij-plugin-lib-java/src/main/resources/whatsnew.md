@@ -1,5 +1,7 @@
 <!-- Version: 3.88.0 -->
 # What's new in Azure Toolkit for IntelliJ
+
+## 3.89.0
 ### Added
 - Added a "get started with Azure Container Apps" course.
 
