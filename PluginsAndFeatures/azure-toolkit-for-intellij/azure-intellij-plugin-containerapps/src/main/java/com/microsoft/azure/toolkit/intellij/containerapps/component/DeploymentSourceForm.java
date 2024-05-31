@@ -22,6 +22,10 @@ public interface DeploymentSourceForm extends AzureFormJPanel<ContainerAppDraft.
 
     default String getDefaultFullImageName() {
         final ContainerApp app = this.getContainerApp();
+        return generateDefaultFullImageNameFromApp(app);
+    }
+
+    static String generateDefaultFullImageNameFromApp(ContainerApp app) {
         final String originalString = app.getSubscriptionId() + "/" + app.getResourceGroupName() + "/" + Optional.ofNullable(app.getManagedEnvironment()).map(AbstractAzResource::getName).orElse(app.getName());
         final String registryName = "ca" + Hashing.sha256().hashString(originalString, StandardCharsets.UTF_8).toString().substring(0, 10) + "acr";  // ACR names must start + end in a letter
         final String tagNowSuffix = LocalDateTime.now().toString().replace(" ", "").replace("T", "").replace("-", "").replace(".", "").replace(":", "").toLowerCase();

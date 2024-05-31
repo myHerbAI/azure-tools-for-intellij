@@ -4,7 +4,7 @@ plugins {
 }
 
 intellij {
-    plugins = ['java', 'maven']
+    plugins = ['java', 'maven', scala_plugin]
 }
 
 dependencies {
