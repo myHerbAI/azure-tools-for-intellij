@@ -1,4 +1,4 @@
-﻿// Copyright 2018-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
+﻿// Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
 
 using JetBrains.Lifetimes;
 using JetBrains.ProjectModel;
@@ -38,11 +38,12 @@ public class FunctionAppDaemonHost
             methodName: null,
             functionName: null));
 
-    public void RunFunctionApp(string projectFilePath, string methodName, string functionName) => _model.RunFunctionApp(
-        new FunctionAppRequest(
-            projectFilePath: projectFilePath,
-            methodName: methodName,
-            functionName: functionName));
+    public void RunFunctionApp(string projectFilePath, string methodName, string functionName) =>
+        _model.RunFunctionApp(
+            new FunctionAppRequest(
+                projectFilePath: projectFilePath,
+                methodName: methodName,
+                functionName: functionName));
 
     public void DebugFunctionApp(string projectFilePath, string methodName, string functionName) =>
         _model.DebugFunctionApp(
@@ -51,12 +52,20 @@ public class FunctionAppDaemonHost
                 methodName: methodName,
                 functionName: functionName));
 
-    public void TriggerFunctionApp(string projectFilePath, string methodName, string functionName) =>
+    public void TriggerFunctionApp(
+        string projectFilePath,
+        string methodName,
+        string functionName,
+        FunctionAppTriggerType triggerType,
+        FunctionAppHttpTriggerAttribute? httpTriggerAttribute
+    ) =>
         _model.TriggerFunctionApp(
-            new FunctionAppRequest(
+            new FunctionAppTriggerRequest(
                 projectFilePath: projectFilePath,
                 methodName: methodName,
-                functionName: functionName));
+                functionName: functionName,
+                triggerType: triggerType,
+                httpTriggerAttribute: httpTriggerAttribute));
 
 
     private string? GetAzureFunctionsVersionHandler(Lifetime lifetime, AzureFunctionsVersionRequest request)

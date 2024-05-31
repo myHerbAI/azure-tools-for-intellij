@@ -50,7 +50,11 @@ class FunctionAppSolutionExtListener : SolutionExtListener<FunctionAppDaemonMode
             )
         }
         model.triggerFunctionApp.advise(lifetime) {
-            val triggerAction = TriggerAzureFunctionAction(functionName = it.functionName ?: "")
+            val triggerAction = TriggerAzureFunctionAction(
+                functionName = it.functionName,
+                triggerType = it.triggerType,
+                httpTriggerAttribute = it.httpTriggerAttribute
+            )
             ActionUtil.invokeAction(
                 triggerAction,
                 SimpleDataContext.getProjectContext(session.project),
