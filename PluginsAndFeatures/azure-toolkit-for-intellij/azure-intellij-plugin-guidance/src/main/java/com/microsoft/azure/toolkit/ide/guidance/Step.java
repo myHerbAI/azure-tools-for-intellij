@@ -81,7 +81,7 @@ public class Step implements Disposable {
             .orElse(Collections.emptyList());
     }
 
-    private void setStatus(final Status status) {
+    public void setStatus(final Status status) {
         this.status = status;
         this.listenerList.forEach(listener -> AzureTaskManager.getInstance().runOnPooledThread(() -> listener.accept(status)));
     }
@@ -144,7 +144,7 @@ public class Step implements Disposable {
 
     public void prepare() {
         task.prepare();
-        this.status = task.isDone() || this.task.isToSkip() ? Status.SUCCEED : Status.READY;
+        this.setStatus(task.isDone()|| task.isToSkip() ? Status.SUCCEED : Status.READY);
     }
 
     public boolean isReady() {
