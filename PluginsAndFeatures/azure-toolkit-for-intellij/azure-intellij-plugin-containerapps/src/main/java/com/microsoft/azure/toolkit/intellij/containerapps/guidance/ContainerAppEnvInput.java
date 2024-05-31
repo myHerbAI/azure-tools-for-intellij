@@ -3,43 +3,43 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  */
 
-package com.microsoft.azure.toolkit.intellij.springcloud.input;
+package com.microsoft.azure.toolkit.intellij.containerapps.guidance;
 
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
-import com.microsoft.azure.toolkit.intellij.springcloud.component.SpringCloudClusterComboBox;
+import com.microsoft.azure.toolkit.intellij.containerapps.component.AzureContainerAppsEnvironmentComboBox;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.common.model.Subscription;
-import com.microsoft.azure.toolkit.lib.springcloud.SpringCloudCluster;
+import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
 
 import javax.swing.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class SpringAppClusterPanel implements AzureFormJPanel<SpringCloudCluster> {
-    private SpringCloudClusterComboBox cbCluster;
+public class ContainerAppEnvInput implements AzureFormJPanel<ContainerAppsEnvironment> {
+    private AzureContainerAppsEnvironmentComboBox cbEnv;
     private JPanel pnlRoot;
 
     private Subscription subscription;
 
-    public SpringAppClusterPanel() {
+    public ContainerAppEnvInput() {
         $$$setupUI$$$();
-        this.cbCluster.setRequired(true);
-        this.cbCluster.setLabel("Cluster");
+        this.cbEnv.setRequired(true);
+        this.cbEnv.setLabel("Environment");
     }
 
     @Override
-    public SpringCloudCluster getValue() {
-        return cbCluster.getValue();
+    public ContainerAppsEnvironment getValue() {
+        return cbEnv.getValue();
     }
 
-    public void setValue(final SpringCloudCluster value) {
-        this.cbCluster.setValue(value);
+    public void setValue(final ContainerAppsEnvironment value) {
+        this.cbEnv.setValue(value);
     }
 
     @Override
     public List<AzureFormInput<?>> getInputs() {
-        return Collections.singletonList(cbCluster);
+        return Collections.singletonList(cbEnv);
     }
 
     @Override
@@ -52,6 +52,6 @@ public class SpringAppClusterPanel implements AzureFormJPanel<SpringCloudCluster
             return;
         }
         this.subscription = subscription;
-        this.cbCluster.setSubscription(subscription);
+        this.cbEnv.setSubscription(subscription);
     }
 }

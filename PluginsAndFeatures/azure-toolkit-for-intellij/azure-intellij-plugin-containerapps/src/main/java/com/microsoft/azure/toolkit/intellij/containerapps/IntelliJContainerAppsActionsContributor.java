@@ -183,7 +183,7 @@ public class IntelliJContainerAppsActionsContributor implements IActionsContribu
         return result;
     }
 
-    private void showConsoleStreamingLog(Project project, ContainerApp app) {
+    public static void showConsoleStreamingLog(Project project, ContainerApp app) {
         AzureTaskManager.getInstance().runLater(() -> {
             final ContainerSelectionDialog dialog = new ContainerSelectionDialog(project, app);
             dialog.show();
