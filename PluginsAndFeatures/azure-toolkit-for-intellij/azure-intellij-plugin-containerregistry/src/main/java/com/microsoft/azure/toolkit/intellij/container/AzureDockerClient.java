@@ -243,6 +243,9 @@ public class AzureDockerClient {
 
     @Nonnull
     public static List<Integer> getExposedPortsOfDockerfile(@Nonnull DockerImage image) throws IOException {
+        if (!FileUtil.exists(image.getDockerFile())) {
+            return Collections.emptyList();
+        }
         return getExposedPortsOfDockerfile(new File(image.getDockerFile()));
     }
 
