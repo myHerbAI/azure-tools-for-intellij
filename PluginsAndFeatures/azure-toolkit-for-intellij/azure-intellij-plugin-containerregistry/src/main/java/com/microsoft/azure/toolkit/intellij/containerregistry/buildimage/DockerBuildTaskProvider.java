@@ -46,6 +46,7 @@ import javax.swing.*;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -107,7 +108,8 @@ public class DockerBuildTaskProvider extends BeforeRunTaskProvider<DockerBuildTa
             final ConsoleView consoleView = AzureTaskManager.getInstance().runAndWait(() ->
                 createConsoleView(configuration.getProject(), image.getImageName())).join();
             final BuildImageResultCallback callback = createBuildImageResultCallback(consoleView);
-            dockerClient.buildImage(image.getImageName(), new File(image.getDockerFile()), new File(image.getBaseDirectory()), callback);
+            final File baseDir = Optional.ofNullable(image.getBaseDirectory()).map(File::new).orElse(null);
+            dockerClient.buildImage(image.getImageName(), new File(image.getDockerFile()), baseDir, callback);
             return true;
         }
 
