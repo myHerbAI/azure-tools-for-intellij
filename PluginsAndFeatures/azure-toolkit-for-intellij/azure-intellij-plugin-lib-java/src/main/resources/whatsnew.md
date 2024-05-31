@@ -1,5 +1,13 @@
 <!-- Version: 3.88.0 -->
 # What's new in Azure Toolkit for IntelliJ
+### Added
+- Added a "get started with Azure Container Apps" course.
+
+### Fixed
+- Error occurs when pushing image to container registry with docker file.
+- WebApp of deploy WebApp run configuration shows incorrectly after deploying to a slot.
+- "Load .env" before run task doesn't show in cases when deploying Azure WebApp.
+- Some other know issues.
 
 ## 3.88.1
 ### Added

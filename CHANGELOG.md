@@ -3,6 +3,7 @@
 All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in this file.
 
 - [Change Log](#change-log)
+  - [3.89.0](#3890)
   - [3.88.0](#3880)
   - [3.87.0](#3870)
   - [3.86.0](#3860)
@@ -109,6 +110,16 @@ All notable changes to "Azure Toolkit for IntelliJ IDEA" will be documented in t
   - [3.0.8](#308)
   - [3.0.7](#307)
   - [3.0.6](#306)
+
+## 3.89.0
+### Added
+- Added a "get started with Azure Container Apps" course.
+
+### Fixed
+- Error occurs when pushing image to container registry with docker file.
+- WebApp of deploy WebApp run configuration shows incorrectly after deploying to a slot.
+- "Load .env" before run task doesn't show in cases when deploying Azure WebApp.
+- Some other know issues.
 
 ## 3.88.1
 ### Added
