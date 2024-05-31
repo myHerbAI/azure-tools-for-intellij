@@ -15,13 +15,10 @@ import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.EmptyAction;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
@@ -101,7 +98,7 @@ public class DockerBuildTaskProvider extends BeforeRunTaskProvider<DockerBuildTa
 
         public boolean buildImage(@Nonnull final IDockerConfiguration configuration) {
             final DockerImage image = configuration.getDockerImageConfiguration();
-            if (Objects.isNull(image) || Objects.isNull(configuration.getDockerHostConfiguration())) {
+            if (Objects.isNull(image) || Objects.isNull(configuration.getDockerHostConfiguration()) || !FileUtil.exists(image.getDockerFile())) {
                 return false;
             }
             final AzureDockerClient dockerClient = AzureDockerClient.from(configuration.getDockerHostConfiguration());

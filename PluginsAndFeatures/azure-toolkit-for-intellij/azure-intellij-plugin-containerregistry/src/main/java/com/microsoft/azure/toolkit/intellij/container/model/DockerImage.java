@@ -35,6 +35,7 @@ public class DockerImage {
     @Nonnull
     @EqualsAndHashCode.Include
     private String tagName;
+    @Nullable
     @EqualsAndHashCode.Include
     private String dockerFile;
     private String imageId;
