@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.0.0-preview.5] - 2024-05-13
+
 ### Added
 
 - Support for MySQL databases
@@ -53,7 +55,9 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.4...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.5...HEAD
+
+[4.0.0-preview.5]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.4...v4.0.0-preview.5
 
 [4.0.0-preview.4]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.3...v4.0.0-preview.4
 

@@ -9,16 +9,14 @@ fun properties(key: String) = providers.gradleProperty(key)
 fun environment(key: String) = providers.environmentVariable(key)
 
 plugins {
-    kotlin("jvm") version "1.9.23"
-    kotlin("plugin.serialization") version "1.9.23"
-    // https://search.maven.org/artifact/com.jetbrains.rd/rd-gen
-    id("com.jetbrains.rdgen") version "2024.1.1"
-    id("org.jetbrains.intellij") version "1.17.3"
-    id("me.filippov.gradle.jvm.wrapper") version "0.11.0"
-    id("io.freefair.aspectj.post-compile-weaving") version "6.5.1"
-    id("io.spring.dependency-management") version "1.0.11.RELEASE"
-    id("org.jetbrains.changelog") version "2.2.0"
-    id("org.jetbrains.qodana") version "2023.3.2"
+    alias(libs.plugins.kotlin)
+    alias(libs.plugins.serialization)
+    alias(libs.plugins.rdgen)
+    alias(libs.plugins.gradleIntelliJPlugin)
+    alias(libs.plugins.changelog)
+    alias(libs.plugins.qodana)
+    alias(libs.plugins.aspectj)
+    alias(libs.plugins.springDependencyManagement)
 }
 
 group = properties("pluginGroup").get()

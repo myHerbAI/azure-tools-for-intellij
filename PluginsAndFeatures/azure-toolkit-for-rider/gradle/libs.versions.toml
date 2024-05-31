@@ -1,0 +1,25 @@
+[versions]
+# libraries
+
+# plugins
+kotlin = "2.0.0"
+serialization = "1.9.24"
+changelog = "2.2.0"
+gradleIntelliJPlugin = "1.17.3"
+qodana = "2024.1.5"
+rdgen = "2024.1.1" # https://search.maven.org/artifact/com.jetbrains.rd/rd-gen
+aspectj = "6.5.1"
+springDependencyManagement = "1.0.11.RELEASE"
+
+
+[libraries]
+
+[plugins]
+changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
+gradleIntelliJPlugin = { id = "org.jetbrains.intellij", version.ref = "gradleIntelliJPlugin" }
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "serialization" }
+qodana = { id = "org.jetbrains.qodana", version.ref = "qodana" }
+rdgen = { id = "com.jetbrains.rdgen", version.ref = "rdgen" }
+aspectj = { id = "io.freefair.aspectj.post-compile-weaving", version.ref = "aspectj" }
+springDependencyManagement = { id = "io.spring.dependency-management", version.ref = "springDependencyManagement" }
