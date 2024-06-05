@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Improve Azure Function nuget suggestion
+- Improve "Trigger HTTP function" action
+
 ## [4.0.0-preview.5] - 2024-05-13
 
 ### Added
