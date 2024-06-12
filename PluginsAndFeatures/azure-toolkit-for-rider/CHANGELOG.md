@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.0.0-preview.6] - 2024-06-05
+
 ### Changed
 
 - Improve Azure Function nuget suggestion
@@ -60,7 +62,9 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.5...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.6...HEAD
+
+[4.0.0-preview.6]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.5...v4.0.0-preview.6
 
 [4.0.0-preview.5]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.4...v4.0.0-preview.5
 
