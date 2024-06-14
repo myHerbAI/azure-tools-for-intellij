@@ -26,6 +26,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  # Branches from the https://github.com/microsoft/azure-maven-plugins and https://github.com/microsoft/azure-tools-for-java repositories
+  ENDGAME_VERSION: endgame-202404
+
 jobs:
 
   # Prepare environment and build the plugin
@@ -39,7 +43,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: microsoft/azure-maven-plugins
-          ref: endgame-202404
+          ref: ${{ env.ENDGAME_VERSION }}
           path: azure-maven-plugins
 
       # Check out current repository
@@ -57,8 +61,18 @@ jobs:
             8
             17
 
+      - name: Cache Azure libraries
+        id: cache-azure-libraries
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-azure-libraries
+        with:
+          path: /home/runner/.m2/repository/com/microsoft
+          key: ${{ env.ENDGAME_VERSION }}
+
       # Build Maven Plugins for Azure Services library
       - name: Build Maven Plugins for Azure Services
+        if: steps.cache-azure-libraries.outputs.cache-hit != 'true'
         working-directory: ${{ github.workspace }}/azure-maven-plugins
         shell: bash
         run: |
@@ -67,6 +81,7 @@ jobs:
 
       # Build Utils library
       - name: Build Utils
+        if: steps.cache-azure-libraries.outputs.cache-hit != 'true'
         working-directory: ${{ github.workspace }}/azure-tools-for-intellij
         shell: bash
         run: |
