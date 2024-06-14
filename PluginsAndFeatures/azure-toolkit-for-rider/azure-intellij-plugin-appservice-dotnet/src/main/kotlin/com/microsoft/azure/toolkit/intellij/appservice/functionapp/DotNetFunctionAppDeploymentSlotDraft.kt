@@ -234,11 +234,9 @@ class DotNetFunctionAppDeploymentSlotDraft : FunctionAppDeploymentSlot,
         if (flexConfiguration.maximumInstances != null || flexConfiguration.alwaysReadyInstances != null) {
             val configuration = webApps.getConfiguration(slot.resourceGroupName(), name)
             if (flexConfiguration.maximumInstances != configuration.functionAppScaleLimit() ||
-                flexConfiguration.alwaysReadyInstances != configuration.minimumElasticInstanceCount()
+                flexConfiguration.alwaysReadyInstances.size != configuration.minimumElasticInstanceCount()
             ) {
-                configuration
-                    .withFunctionAppScaleLimit(flexConfiguration.maximumInstances)
-                    .withMinimumElasticInstanceCount(flexConfiguration.alwaysReadyInstances)
+                configuration.withFunctionAppScaleLimit(flexConfiguration.maximumInstances)
                 webApps.updateConfiguration(slot.resourceGroupName(), name, configuration)
             }
         }
@@ -282,7 +280,9 @@ class DotNetFunctionAppDeploymentSlotDraft : FunctionAppDeploymentSlot,
         ensureConfig().diagnosticConfig = value
     }
 
-    override fun getFlexConsumptionConfiguration() = config?.flexConsumptionConfiguration ?: super.getFlexConsumptionConfiguration()
+    override fun getFlexConsumptionConfiguration() =
+        config?.flexConsumptionConfiguration ?: super.getFlexConsumptionConfiguration()
+
     fun setFlexConsumptionConfiguration(value: FlexConsumptionConfiguration?) {
         ensureConfig().flexConsumptionConfiguration = value
     }

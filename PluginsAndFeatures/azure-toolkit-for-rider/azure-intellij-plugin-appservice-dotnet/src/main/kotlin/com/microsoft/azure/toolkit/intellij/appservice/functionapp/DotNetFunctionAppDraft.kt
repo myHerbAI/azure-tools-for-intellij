@@ -258,11 +258,9 @@ class DotNetFunctionAppDraft : FunctionApp,
         if (flexConfiguration.maximumInstances != null || flexConfiguration.alwaysReadyInstances != null) {
             val configuration = webApps.getConfiguration(app.resourceGroupName(), app.name())
             if (flexConfiguration.maximumInstances != configuration.functionAppScaleLimit() ||
-                flexConfiguration.alwaysReadyInstances != configuration.minimumElasticInstanceCount()
+                flexConfiguration.alwaysReadyInstances.size != configuration.minimumElasticInstanceCount()
             ) {
-                configuration
-                    .withFunctionAppScaleLimit(flexConfiguration.maximumInstances)
-                    .withMinimumElasticInstanceCount(flexConfiguration.alwaysReadyInstances)
+                configuration.withFunctionAppScaleLimit(flexConfiguration.maximumInstances)
                 webApps.updateConfiguration(app.resourceGroupName(), app.name(), configuration)
             }
         }
