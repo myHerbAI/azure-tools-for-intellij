@@ -24,6 +24,7 @@ import com.microsoft.azure.toolkit.lib.common.event.AzureEventBus;
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.*;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
+import com.microsoft.azure.toolkit.lib.common.utils.StreamingLogSupport;
 import com.microsoft.azure.toolkit.lib.common.view.IView;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinker;
 import com.microsoft.azure.toolkit.lib.servicelinker.ServiceLinkerModule;
@@ -346,7 +347,7 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withIdParam(s -> s.getClass().getSimpleName())
             .withIcon(o -> {
                 final String isActionTriggerVal = AzureStoreManager.getInstance().getIdeStore().getProperty("guidance", "is_action_triggered");
-                boolean isActionTriggered = Optional.ofNullable(isActionTriggerVal).map(Boolean::parseBoolean).orElse(false);
+                final boolean isActionTriggered = Optional.ofNullable(isActionTriggerVal).map(Boolean::parseBoolean).orElse(false);
                 return isActionTriggered ? GET_START.getIconPath() : GET_START_NEW.getIconPath();
             })
             .withAuthRequired(false)
@@ -393,6 +394,12 @@ public class ResourceCommonActionsContributor implements IActionsContributor {
             .withIcon(AzureIcons.Common.SERVICES.getIconPath())
             .withLabel("Open in \"Services\" View")
             .withIdParam(AbstractAzResource::getName)
+            .withAuthRequired(false)
+            .register(am);
+
+        new Action<>(StreamingLogSupport.OPEN_STREAMING_LOG)
+            .withLabel("Open Log Streaming")
+            .withIdParam(StreamingLogSupport::getDisplayName)
             .withAuthRequired(false)
             .register(am);
     }

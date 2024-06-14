@@ -15,9 +15,12 @@ import com.microsoft.azure.toolkit.intellij.common.component.SubscriptionComboBo
 import com.microsoft.azure.toolkit.intellij.common.component.resourcegroup.ResourceGroupComboBox
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.serviceplan.ServicePlanComboBox
 import com.microsoft.azure.toolkit.lib.Azure
+import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
-import com.microsoft.azure.toolkit.lib.appservice.model.*
+import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
+import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
+import com.microsoft.azure.toolkit.lib.appservice.model.Runtime
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput
@@ -60,6 +63,7 @@ open class AppServiceInfoAdvancedPanel<T>(
     private val selectorRegion = RegionComboBox().apply {
         isRequired = true
         addItemListener { onRegionChanged(it) }
+        itemsLoader = RegionSupplier()
     }
     private val selectorServicePlan = ServicePlanComboBox().apply {
         isRequired = true
@@ -212,9 +216,12 @@ open class AppServiceInfoAdvancedPanel<T>(
         if (e.stateChange == ItemEvent.SELECTED) {
             val plan = e.item as? AppServicePlan ?: return
             if (plan.pricingTier == null) return
-            val pricing =
-                if (plan.pricingTier == PricingTier.CONSUMPTION) "Consumption" else "${plan.pricingTier.tier}_${plan.pricingTier.size}"
-            textSku.text = pricing
+            val pricingTier = plan.pricingTier
+            textSku.text = pricingTier.toString()
+            if (pricingTier.isFlexConsumption) {
+                selectorRegion.clear()
+                selectorRegion.reloadItems()
+            }
         } else if (e.stateChange == ItemEvent.DESELECTED) {
             textSku.text = NOT_APPLICABLE
         }
@@ -278,5 +285,24 @@ open class AppServiceInfoAdvancedPanel<T>(
     }
 
     override fun dispose() {
+    }
+
+    inner class RegionSupplier : Supplier<List<Region>> {
+        override fun get(): List<Region> {
+            val subscription = selectorSubscription.value
+            val pricingTier = selectorServicePlan.value?.pricingTier
+            if (subscription == null) {
+                return emptyList()
+            }
+
+            if (pricingTier == null) {
+                return Azure.az(AzureAccount::class.java).listRegions(subscription.id)
+            }
+
+            return Azure.az(AzureAppService::class.java)
+                .forSubscription(subscription.id)
+                .functionApps()
+                .listRegions(pricingTier)
+        }
     }
 }

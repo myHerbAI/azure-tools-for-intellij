@@ -21,6 +21,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureCloud
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyInfo
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager
 import com.microsoft.azure.toolkit.lib.common.task.AzureRxTaskManager
+import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 import java.io.File
 import javax.net.ssl.HttpsURLConnection
 
@@ -33,10 +34,16 @@ class PluginLifecycleListener : AppLifecycleListener {
         try {
             AzureRxTaskManager.register()
             val azureJson = String.format("%s%s%s", CommonConst.PLUGIN_PATH, File.separator, "azure.json")
-            AzureStoreManager.register(DefaultMachineStore(azureJson), IntellijStore.getInstance(), IntelliJSecureStore.getInstance())
+            AzureStoreManager.register(
+                DefaultMachineStore(azureJson),
+                IntellijStore.getInstance(),
+                IntelliJSecureStore.getInstance()
+            )
             initProxy()
             initializeConfig()
-            IdeAzureAccount.getInstance().restoreSignin()
+            AzureTaskManager.getInstance().runLater {
+                IdeAzureAccount.getInstance().restoreSignin()
+            }
         } catch (t: Throwable) {
             LOG.error(t)
         }
@@ -56,12 +63,12 @@ class PluginLifecycleListener : AppLifecycleListener {
         val instance = HttpConfigurable.getInstance()
         if (instance != null && instance.USE_HTTP_PROXY) {
             val proxy = ProxyInfo.builder()
-                    .source("intellij")
-                    .host(instance.PROXY_HOST)
-                    .port(instance.PROXY_PORT)
-                    .username(instance.proxyLogin)
-                    .password(instance.plainProxyPassword)
-                    .build()
+                .source("intellij")
+                .host(instance.PROXY_HOST)
+                .port(instance.PROXY_PORT)
+                .username(instance.proxyLogin)
+                .password(instance.plainProxyPassword)
+                .build()
             Azure.az().config().setProxyInfo(proxy)
             ProxyManager.getInstance().applyProxy()
         }

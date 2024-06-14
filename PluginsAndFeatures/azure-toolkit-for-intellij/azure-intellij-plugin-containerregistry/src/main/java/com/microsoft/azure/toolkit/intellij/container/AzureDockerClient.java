@@ -243,7 +243,12 @@ public class AzureDockerClient {
 
     @Nonnull
     public static List<Integer> getExposedPortsOfDockerfile(@Nonnull DockerImage image) throws IOException {
-        final String dockerFileContent = FileUtil.loadFile(image.getDockerFile());
+        return getExposedPortsOfDockerfile(new File(image.getDockerFile()));
+    }
+
+    @Nonnull
+    public static List<Integer> getExposedPortsOfDockerfile(@Nonnull File dockerfile) throws IOException {
+        final String dockerFileContent = FileUtil.loadFile(dockerfile);
         return Arrays.stream(dockerFileContent.split("\\R+"))
                 .map(PORT_PATTERN::matcher)
                 .filter(Matcher::matches)
