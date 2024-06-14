@@ -24,7 +24,7 @@ class FunctionAppInfoAdvancedPanel(
 
     private lateinit var storageAccountComboBox: Cell<StorageAccountComboBox>
 
-    override fun getAdditionalPanel(): (Panel.() -> Unit)? = {
+    override fun getAdditionalPanel(): (Panel.() -> Unit) = {
         group("Storage") {
             row("Storage account:") {
                 storageAccountComboBox = cell(StorageAccountComboBox())
