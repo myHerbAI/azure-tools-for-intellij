@@ -26,15 +26,17 @@ import com.microsoft.azure.toolkit.lib.common.operation.OperationBundle;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyInfo;
 import com.microsoft.azure.toolkit.lib.common.proxy.ProxyManager;
 import com.microsoft.azure.toolkit.lib.common.task.AzureRxTaskManager;
-import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemeter;
 import com.microsoft.azure.toolkit.lib.common.telemetry.AzureTelemetry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import javax.annotation.Nonnull;
 import javax.net.ssl.HttpsURLConnection;
 import java.io.File;
+import java.time.Duration;
 import java.util.List;
 import java.util.logging.FileHandler;
 
@@ -59,10 +61,20 @@ public class PluginLifecycleListener implements AppLifecycleListener, PluginStat
             initializeConfig();
             // workaround fixes for web app on linux run configuration
             AzureDockerSupportConfigurationType.registerConfigurationFactory("Web App for Containers", DeprecatedWebAppOnLinuxDeployConfigurationFactory::new);
-            AzureTaskManager.getInstance().runLater(()->{
-                initializeTelemetry();
-                IdeAzureAccount.getInstance().restoreSignin(); // restore sign in
-            });
+            Mono.fromRunnable(() -> {
+                    PluginLifecycleListener.initializeTelemetry();
+                    IdeAzureAccount.getInstance().restoreSignin(); // restore sign in
+                })
+                .subscribeOn(Schedulers.boundedElastic())
+                .timeout(Duration.ofSeconds(10))
+                .doOnError(throwable -> {
+                    if (throwable instanceof java.util.concurrent.TimeoutException) {
+                        log.error("it took longer than 10 seconds to initialize telemetry and restore signing in.");
+                    } else {
+                        throwable.printStackTrace();
+                    }
+                })
+                .subscribe();
         } catch (final Throwable t) {
             log.error(t.getMessage(), t);
         }

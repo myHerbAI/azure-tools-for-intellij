@@ -14,6 +14,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -28,13 +29,17 @@ public class DockerImage {
     @Builder.Default
     @EqualsAndHashCode.Include
     private boolean isDraft = true;
+    @Nonnull
     @EqualsAndHashCode.Include
     private String repositoryName;
+    @Nonnull
     @EqualsAndHashCode.Include
     private String tagName;
+    @Nullable
     @EqualsAndHashCode.Include
     private String dockerFile;
     private String imageId;
+    @Nullable
     private String baseDirectory;
     // todo: check whether we need to add artifact as a field of image
     private AzureArtifact azureArtifact;
