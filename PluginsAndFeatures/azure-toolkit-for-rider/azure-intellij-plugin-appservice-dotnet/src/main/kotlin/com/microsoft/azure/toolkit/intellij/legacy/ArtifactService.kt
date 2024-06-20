@@ -4,6 +4,7 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy
 
+import com.intellij.execution.ExecutionException
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
@@ -92,7 +93,7 @@ class ArtifactService(private val project: Project) {
         if (buildResult != BuildResultKind.Successful && buildResult != BuildResultKind.HasWarnings) {
             val errorMessage = "Failed collecting project artifacts. Please see Build output"
             LOG.error(errorMessage)
-            throw RuntimeException(errorMessage)
+            throw ExecutionException(errorMessage)
         } else {
             requestRunWindowFocus()
         }
@@ -173,7 +174,7 @@ class ArtifactService(private val project: Project) {
             val errorMessage = "Unable to create a ZIP file: $t"
             LOG.error(errorMessage)
             processHandler.setText(errorMessage)
-            throw RuntimeException("Unable to create a ZIP file", t)
+            throw ExecutionException("Unable to create a ZIP file", t)
         }
     }
 

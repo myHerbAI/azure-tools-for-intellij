@@ -6,6 +6,7 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy
 
+import com.intellij.execution.ExecutionException
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.jetbrains.rider.model.PublishableProjectModel
@@ -44,10 +45,10 @@ class FunctionDeploymentState(
 
         val options = requireNotNull(functionDeploymentConfiguration.state)
         val publishableProjectPath = options.publishableProjectPath
-            ?: throw RuntimeException("Project is not defined")
+            ?: throw ExecutionException("Project is not defined")
         val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
             .firstOrNull { it.projectFilePath == publishableProjectPath }
-            ?: throw RuntimeException("Project is not defined")
+            ?: throw ExecutionException("Project is not defined")
 
         val config = creatDotNetFunctionAppConfig(publishableProject, options)
         val createTask = CreateOrUpdateDotNetFunctionAppTask(config)

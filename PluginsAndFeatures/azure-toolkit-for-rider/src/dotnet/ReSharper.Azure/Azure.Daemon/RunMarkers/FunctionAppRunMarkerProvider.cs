@@ -15,6 +15,7 @@ using IMethodDeclaration = JetBrains.ReSharper.Psi.CSharp.Tree.IMethodDeclaratio
 namespace JetBrains.ReSharper.Azure.Daemon.RunMarkers;
 
 [Language(typeof(CSharpLanguage))]
+[HighlightingSource(HighlightingTypes = [typeof(RunMarkerHighlighting)])]
 public class FunctionAppRunMarkerProvider : IRunMarkerProvider
 {
     public double Priority => RunMarkerProviderPriority.DEFAULT;

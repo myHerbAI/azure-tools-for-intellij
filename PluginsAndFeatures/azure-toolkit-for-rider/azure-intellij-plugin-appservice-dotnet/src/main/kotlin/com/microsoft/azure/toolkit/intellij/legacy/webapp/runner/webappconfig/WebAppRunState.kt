@@ -4,6 +4,7 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
+import com.intellij.execution.ExecutionException
 import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
@@ -46,10 +47,10 @@ class WebAppRunState(
 
         val options = requireNotNull(webAppConfiguration.state)
         val publishableProjectPath = options.publishableProjectPath
-            ?: throw RuntimeException("Project is not defined")
+            ?: throw ExecutionException("Project is not defined")
         val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
             .firstOrNull { it.projectFilePath == publishableProjectPath }
-            ?: throw RuntimeException("Project is not defined")
+            ?: throw ExecutionException("Project is not defined")
 
         val config = createDotNetAppServiceConfig(publishableProject, options)
         val createTask = CreateOrUpdateDotNetWebAppTask(config)
