@@ -16,10 +16,16 @@ import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandlerMessenger
 import com.microsoft.azure.toolkit.intellij.common.runconfig.RunConfigurationUtils
-import reactor.core.publisher.Mono
-import reactor.core.scheduler.Schedulers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 
-abstract class RiderAzureRunProfileState<T>(protected val project: Project) : RunProfileState {
+abstract class RiderAzureRunProfileState<T>(
+    protected val project: Project,
+    private val scope: CoroutineScope
+) : RunProfileState {
     protected var processHandlerMessenger: RunProcessHandlerMessenger? = null
 
     override fun execute(executor: Executor?, runner: ProgramRunner<*>): ExecutionResult? {
@@ -30,29 +36,34 @@ abstract class RiderAzureRunProfileState<T>(protected val project: Project) : Ru
         processHandler.startNotify()
         consoleView.attachToProcess(processHandler)
 
-        val subscribe = Mono.fromCallable { executeSteps(processHandler) }
-                .subscribeOn(Schedulers.boundedElastic())
-                .subscribe(
-                        { res: T ->
-                            processHandler.putUserData(RunConfigurationUtils.AZURE_RUN_STATE_RESULT, true)
-                            this.onSuccess(res, processHandler)
-                        },
-                        { err: Throwable? ->
-                            err?.let { processHandlerMessenger?.error(it)}
-                            onFail(err, processHandler)
-                        }
-                )
+        scope.launch(Dispatchers.Default) {
+            try {
+                val result = executeSteps(processHandler)
+                processHandler.putUserData(RunConfigurationUtils.AZURE_RUN_STATE_RESULT, true)
+                onSuccess(result, processHandler)
+            }
+            catch (ce: CancellationException) {
+                processHandlerMessenger?.info("Process was cancelled")
+                onFail(ce, processHandler)
+                throw ce
+            }
+            catch (t: Throwable) {
+                processHandlerMessenger?.error(t)
+                onFail(t, processHandler)
+                throw t
+            }
+        }
 
         processHandler.addProcessListener(object : ProcessAdapter() {
             override fun processTerminated(event: ProcessEvent) {
-                subscribe.dispose()
+                scope.cancel()
             }
         })
 
         return DefaultExecutionResult(consoleView, processHandler)
     }
 
-    protected abstract fun executeSteps(processHandler: RunProcessHandler): T
+    protected abstract suspend fun executeSteps(processHandler: RunProcessHandler): T
 
     protected abstract fun onSuccess(result: T, processHandler: RunProcessHandler)
 

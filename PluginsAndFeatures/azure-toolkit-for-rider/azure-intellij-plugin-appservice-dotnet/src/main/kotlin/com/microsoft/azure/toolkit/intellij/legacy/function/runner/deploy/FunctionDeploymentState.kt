@@ -7,7 +7,7 @@
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy
 
 import com.intellij.execution.ExecutionException
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.project.Project
 import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.publishableProjectsModel
@@ -29,16 +29,18 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.common.model.AzResource
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
+import kotlinx.coroutines.CoroutineScope
 
 class FunctionDeploymentState(
     project: Project,
+    scope: CoroutineScope,
     private val functionDeploymentConfiguration: FunctionDeploymentConfiguration
-) : RiderAzureRunProfileState<FunctionAppBase<*, *, *>>(project) {
+) : RiderAzureRunProfileState<FunctionAppBase<*, *, *>>(project, scope) {
     companion object {
         private const val SCM_DO_BUILD_DURING_DEPLOYMENT = "SCM_DO_BUILD_DURING_DEPLOYMENT"
     }
 
-    override fun executeSteps(processHandler: RunProcessHandler): FunctionAppBase<*, *, *> {
+    override suspend fun executeSteps(processHandler: RunProcessHandler): FunctionAppBase<*, *, *> {
         OperationContext.current().setMessager(processHandlerMessenger)
 
         processHandler.setText("Start Function App deployment...")
@@ -49,6 +51,8 @@ class FunctionDeploymentState(
         val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
             .firstOrNull { it.projectFilePath == publishableProjectPath }
             ?: throw ExecutionException("Project is not defined")
+
+        checkCanceled()
 
         val config = creatDotNetFunctionAppConfig(publishableProject, options)
         val createTask = CreateOrUpdateDotNetFunctionAppTask(config)
@@ -61,6 +65,8 @@ class FunctionDeploymentState(
             appSettings = deployTarget.appSettings ?: mutableMapOf()
         }
 
+        checkCanceled()
+
         val artifactDirectory = ArtifactService.getInstance(project)
             .prepareArtifact(
                 publishableProject,
@@ -70,13 +76,15 @@ class FunctionDeploymentState(
                 false
             )
 
+        checkCanceled()
+
         val deployTask = DeployDotNetFunctionAppTask(deployTarget, artifactDirectory)
         deployTask.execute()
 
         return deployTarget
     }
 
-    private fun creatDotNetFunctionAppConfig(
+    private suspend fun creatDotNetFunctionAppConfig(
         publishableProject: PublishableProjectModel,
         options: FunctionDeploymentConfigurationOptions
     ) = DotNetFunctionAppConfig().apply {
@@ -112,13 +120,11 @@ class FunctionDeploymentState(
             this.os = os
         }
 
-    private fun createDotNetRuntimeConfig(publishableProject: PublishableProjectModel, os: OperatingSystem) =
+    private suspend fun createDotNetRuntimeConfig(publishableProject: PublishableProjectModel, os: OperatingSystem) =
         DotNetRuntimeConfig().apply {
             os(os)
             isDocker = false
-            functionStack = runBlockingCancellable {
-                publishableProject.getFunctionStack(project, os)
-            }
+            functionStack = publishableProject.getFunctionStack(project, os)
         }
 
     override fun onSuccess(result: FunctionAppBase<*, *, *>, processHandler: RunProcessHandler) {

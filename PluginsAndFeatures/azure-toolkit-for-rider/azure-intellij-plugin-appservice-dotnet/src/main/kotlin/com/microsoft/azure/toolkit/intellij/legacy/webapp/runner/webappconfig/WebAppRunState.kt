@@ -2,10 +2,13 @@
  * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
+@file:Suppress("UnstableApiUsage")
+
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.process.ProcessOutputTypes
+import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.jetbrains.rider.model.PublishableProjectModel
@@ -30,6 +33,7 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot
 import com.microsoft.azure.toolkit.lib.common.model.AzResource
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
+import kotlinx.coroutines.CoroutineScope
 import java.awt.Desktop
 import java.io.IOException
 import java.net.URISyntaxException
@@ -37,10 +41,11 @@ import java.net.URL
 
 class WebAppRunState(
     project: Project,
+    scope: CoroutineScope,
     private val webAppConfiguration: WebAppConfiguration
-) : RiderAzureRunProfileState<WebAppBase<*, *, *>>(project) {
+) : RiderAzureRunProfileState<WebAppBase<*, *, *>>(project, scope) {
 
-    override fun executeSteps(processHandler: RunProcessHandler): WebAppBase<*, *, *> {
+    override suspend fun executeSteps(processHandler: RunProcessHandler): WebAppBase<*, *, *> {
         OperationContext.current().setMessager(processHandlerMessenger)
 
         processHandler.setText("Start Web App deployment...")
@@ -52,6 +57,8 @@ class WebAppRunState(
             .firstOrNull { it.projectFilePath == publishableProjectPath }
             ?: throw ExecutionException("Project is not defined")
 
+        checkCanceled()
+
         val config = createDotNetAppServiceConfig(publishableProject, options)
         val createTask = CreateOrUpdateDotNetWebAppTask(config)
         val deployTarget = createTask.execute()
@@ -62,6 +69,8 @@ class WebAppRunState(
         webAppConfiguration.state?.apply {
             appSettings = deployTarget.appSettings ?: mutableMapOf()
         }
+
+        checkCanceled()
 
         val zipFile = ArtifactService.getInstance(project)
             .prepareArtifact(
@@ -75,6 +84,8 @@ class WebAppRunState(
             .file(zipFile)
             .deployType(DeployType.ZIP)
             .build()
+
+        checkCanceled()
 
         val deployTask = DeployDotNetWebAppTask(deployTarget, artifact)
         deployTask.execute()

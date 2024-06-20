@@ -2,6 +2,8 @@
  * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
+@file:Suppress("UnstableApiUsage")
+
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy
 
 import com.intellij.execution.Executor
@@ -10,6 +12,8 @@ import com.intellij.execution.configurations.LocatableConfigurationBase
 import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
+import com.intellij.platform.util.coroutines.childScope
+import com.microsoft.azure.toolkit.intellij.AppServiceProjectService
 import com.microsoft.azure.toolkit.intellij.legacy.utils.*
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
 
@@ -27,7 +31,11 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
     override fun getState() = options as? FunctionDeploymentConfigurationOptions
 
     override fun getState(executor: Executor, environment: ExecutionEnvironment) =
-        FunctionDeploymentState(project, this)
+        FunctionDeploymentState(
+            project,
+            AppServiceProjectService.getInstance(project).scope.childScope("FunctionDeploymentState"),
+            this
+        )
 
     override fun getConfigurationEditor() = FunctionDeploymentSettingsEditor(project)
 

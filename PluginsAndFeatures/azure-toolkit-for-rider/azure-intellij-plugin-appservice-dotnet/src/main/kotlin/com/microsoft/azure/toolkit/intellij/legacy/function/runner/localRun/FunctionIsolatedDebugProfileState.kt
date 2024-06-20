@@ -20,7 +20,6 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.rd.util.withBackgroundContext
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.platform.ide.progress.withBackgroundProgress
@@ -72,7 +71,7 @@ class FunctionIsolatedDebugProfileState(
         processId = withBackgroundProgress(
             executionEnvironment.project, "Waiting for Azure Functions host to start..."
         ) {
-            withBackgroundContext {
+            withContext(Dispatchers.Default) {
                 launchAzureFunctionsHost()
             }
         } ?: 0
@@ -105,7 +104,7 @@ class FunctionIsolatedDebugProfileState(
             return super.createWorkerRunInfo(lifetime, helper, port)
         }
 
-        val targetProcess = withBackgroundContext {
+        val targetProcess = withContext(Dispatchers.IO) {
             ProcessListUtil.getProcessList().firstOrNull { it.pid == processId }
         }
 

@@ -2,6 +2,8 @@
  * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
+@file:Suppress("UnstableApiUsage")
+
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
 import com.intellij.execution.Executor
@@ -10,6 +12,8 @@ import com.intellij.execution.configurations.LocatableConfigurationBase
 import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
+import com.intellij.platform.util.coroutines.childScope
+import com.microsoft.azure.toolkit.intellij.AppServiceProjectService
 import com.microsoft.azure.toolkit.intellij.legacy.utils.*
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase
 
@@ -27,7 +31,11 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
     override fun getState() = options as? WebAppConfigurationOptions
 
     override fun getState(executor: Executor, executionEnvironment: ExecutionEnvironment) =
-        WebAppRunState(project, this)
+        WebAppRunState(
+            project,
+            AppServiceProjectService.getInstance(project).scope.childScope("WebAppRunState"),
+            this
+        )
 
     override fun getConfigurationEditor() = WebAppSettingEditor(project)
 
