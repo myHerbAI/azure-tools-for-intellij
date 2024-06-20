@@ -84,7 +84,7 @@ dependencies {
 }
 
 intellijPlatform {
-    projectName = properties("pluginName").get()
+    projectName = "azure-toolkit-for-intellij"
 
     pluginConfiguration {
         id = properties("pluginId").get()
@@ -244,18 +244,6 @@ tasks {
         version = getPatchedVersion
     }
 
-    register<Copy>("prepareBicepBinariesForSandbox") {
-        val bicepBinariesDir = file("$projectDir/build/idea-sandbox/plugins/azure-toolkit-for-intellij/bicep")
-        bicepBinariesDir.delete()
-        from("$projectDir/azure-intellij-plugin-bicep/binaries")
-        into("$projectDir/build/idea-sandbox/plugins/azure-toolkit-for-intellij/")
-    }
-
-    register<Copy>("prepareJobViewResourceForSandbox") {
-        from("$projectDir/azure-intellij-plugin-hdinsight/hdinsight_jobview_html")
-        into("$projectDir/build/idea-sandbox/plugins/azure-toolkit-for-intellij/")
-    }
-
     register<Copy>("downloadBicepLanguageServer") {
         val langServerDir = file("azure-intellij-plugin-bicep/binaries/bicep/bicep-langserver")
         if (!langServerDir.exists()) {
@@ -273,12 +261,15 @@ tasks {
     buildPlugin {
         archiveVersion = getPatchedVersion
         from("$projectDir/NOTICE")
+        from("$projectDir/azure-intellij-plugin-hdinsight/hdinsight_jobview_html")
+        from("$projectDir/azure-intellij-plugin-bicep/binaries")
     }
 
     prepareSandbox {
         dependsOn("downloadBicepLanguageServer")
-        finalizedBy("prepareJobViewResourceForSandbox")
-        finalizedBy("prepareBicepBinariesForSandbox")
+        from("$projectDir/NOTICE")
+        from("$projectDir/azure-intellij-plugin-hdinsight/hdinsight_jobview_html")
+        from("$projectDir/azure-intellij-plugin-bicep/binaries")
     }
 
     runIde {
