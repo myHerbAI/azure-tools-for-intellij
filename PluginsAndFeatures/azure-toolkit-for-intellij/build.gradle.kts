@@ -67,6 +67,7 @@ dependencies {
     implementation(project(":azure-intellij-plugin-eventhubs"))
     implementation(project(":azure-intellij-plugin-servicebus"))
     implementation(project(":azure-intellij-plugin-keyvault"))
+    implementation(project(":azure-intellij-plugin-keyvault-java"))
     implementation(project(":azure-intellij-resource-connector-aad"))
     implementation(project(":azure-intellij-plugin-hdinsight-lib"))
     implementation(project(":azure-intellij-plugin-sqlserverbigdata"))
