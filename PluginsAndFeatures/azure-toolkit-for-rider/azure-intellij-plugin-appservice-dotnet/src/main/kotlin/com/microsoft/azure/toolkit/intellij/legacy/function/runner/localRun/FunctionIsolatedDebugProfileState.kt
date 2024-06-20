@@ -18,9 +18,9 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.rd.util.withBackgroundContext
-import com.intellij.openapi.rd.util.withUiContext
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.platform.ide.progress.withBackgroundProgress
@@ -43,7 +43,9 @@ import com.jetbrains.rider.run.msNet.MsNetAttachProfileState
 import com.jetbrains.rider.runtime.DotNetExecutable
 import com.jetbrains.rider.runtime.DotNetRuntime
 import com.jetbrains.rider.runtime.apply
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
@@ -190,7 +192,7 @@ class FunctionIsolatedDebugProfileState(
             .createRunCommandLine(dotNetRuntime)
             .apply(dotNetRuntime, ParametersListUtil.parse(dotNetExecutable.runtimeArguments))
 
-        val processListeners = withUiContext {
+        val processListeners = withContext(Dispatchers.EDT) {
             PatchCommandLineExtension.EP_NAME.getExtensions(executionEnvironment.project)
                 .map { it.patchRunCommandLine(commandLine, dotNetRuntime, executionEnvironment.project) }
         }
@@ -219,7 +221,9 @@ class FunctionIsolatedDebugProfileState(
 
         console.attachToProcess(targetProcessHandler)
 
-        targetProcessHandler.startNotify()
+        withContext(Dispatchers.EDT) {
+            targetProcessHandler.startNotify()
+        }
 
         var timeout = 0.milliseconds
         while (timeout <= waitDuration) {
