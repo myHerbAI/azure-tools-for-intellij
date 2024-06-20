@@ -16,16 +16,18 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
+import kotlinx.coroutines.CoroutineScope
 
 class WebAppContainersRunState(
     project: Project,
+    scope: CoroutineScope,
     private val webAppContainersConfiguration: WebAppContainersConfiguration
-) : RiderAzureRunProfileState<AppServiceAppBase<*, *, *>>(project) {
+) : RiderAzureRunProfileState<AppServiceAppBase<*, *, *>>(project, scope) {
     companion object {
         private const val WEBSITES_PORT = "WEBSITES_PORT"
     }
 
-    override fun executeSteps(processHandler: RunProcessHandler): AppServiceAppBase<*, *, *> {
+    override suspend fun executeSteps(processHandler: RunProcessHandler): AppServiceAppBase<*, *, *> {
         OperationContext.current().setMessager(processHandlerMessenger)
 
         processHandler.setText("Start Web App for Containers deployment...")

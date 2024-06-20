@@ -2,7 +2,7 @@
  * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-@file:Suppress("DialogTitleCapitalization")
+@file:Suppress("DialogTitleCapitalization", "UnstableApiUsage")
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers
 
@@ -12,6 +12,8 @@ import com.intellij.execution.configurations.LocatableConfigurationBase
 import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
+import com.intellij.platform.util.coroutines.childScope
+import com.microsoft.azure.toolkit.intellij.AppServiceProjectService
 import com.microsoft.azure.toolkit.intellij.legacy.utils.APPLICATION_VALIDATION_MESSAGE
 import com.microsoft.azure.toolkit.intellij.legacy.utils.RESOURCE_GROUP_VALIDATION_MESSAGE
 import com.microsoft.azure.toolkit.intellij.legacy.utils.isAccountSignedIn
@@ -34,7 +36,11 @@ class WebAppContainersConfiguration(private val project: Project, factory: Confi
     override fun getState() = options as? WebAppContainersConfigurationOptions
 
     override fun getState(executor: Executor, environment: ExecutionEnvironment) =
-        WebAppContainersRunState(project, this)
+        WebAppContainersRunState(
+            project,
+            AppServiceProjectService.getInstance(project).scope.childScope("WebAppContainersRunState"),
+            this
+        )
 
     override fun getConfigurationEditor() = WebAppContainersSettingEditor(project)
 

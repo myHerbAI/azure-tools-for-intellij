@@ -34,7 +34,7 @@ namespace JetBrains.ReSharper.Azure.Daemon.Errors.FunctionAppErrors
   #region TimerTriggerCronExpressionError
 
   [ConfigurableSeverityHighlighting(HIGHLIGHTING_ID, "CSHARP", Languages = "CSHARP", OverlapResolve = OverlapResolveKind.NONE, ToolTipFormatString = MESSAGE)]
-  public partial class TimerTriggerCronExpressionError : IHighlighting
+  public sealed partial class TimerTriggerCronExpressionError : IHighlighting
   {
     protected const string MESSAGE = "{0}";
     public const string HIGHLIGHTING_ID = "Azure.FunctionApp.TimerTriggerCronExpression";
