@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      # Check out Maven Plugins for Azure Services repository
+      # Check out the Maven Plugins for Azure Services repository
       - name: Fetch Maven Plugins for Azure Services
         uses: actions/checkout@v4
         with:
@@ -46,7 +46,7 @@ jobs:
           ref: ${{ env.ENDGAME_VERSION }}
           path: azure-maven-plugins
 
-      # Check out current repository
+      # Check out the current repository
       - name: Fetch Sources
         uses: actions/checkout@v4
         with:
@@ -151,7 +151,7 @@ jobs:
           name: azuretools-artifacts
           path: /home/runner/.m2/repository/com/microsoft/azuretools/
 
-      # Check out current repository
+      # Check out the current repository
       - name: Fetch Sources
         uses: actions/checkout@v4
 
@@ -191,8 +191,6 @@ jobs:
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGELOG" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-
-          ./gradlew listProductsReleases # prepare list of IDEs for Plugin Verifier
 
       # Build plugin
       - name: Build plugin
@@ -246,7 +244,7 @@ jobs:
 #          name: azuretools-artifacts
 #          path: /home/runner/.m2/repository/com/microsoft/azuretools/
 #
-#      # Check out current repository
+#      # Check out the current repository
 #      - name: Fetch Sources
 #        uses: actions/checkout@v4
 #
@@ -322,7 +320,7 @@ jobs:
           name: azuretools-artifacts
           path: /home/runner/.m2/repository/com/microsoft/azuretools/
 
-      # Check out current repository
+      # Check out the current repository
       - name: Fetch Sources
         uses: actions/checkout@v4
         with:
@@ -361,7 +359,7 @@ jobs:
       contents: write
     steps:
 
-      # Check out current repository
+      # Check out the current repository
       - name: Fetch Sources
         uses: actions/checkout@v4
 

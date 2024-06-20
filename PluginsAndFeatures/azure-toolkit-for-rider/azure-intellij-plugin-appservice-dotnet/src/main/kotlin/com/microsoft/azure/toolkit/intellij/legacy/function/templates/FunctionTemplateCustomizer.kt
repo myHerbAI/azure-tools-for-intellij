@@ -5,7 +5,7 @@
 package com.microsoft.azure.toolkit.intellij.legacy.function.templates
 
 import com.jetbrains.rd.util.lifetime.Lifetime
-import com.jetbrains.rider.model.RdProjectTemplate2
+import com.jetbrains.rider.model.RdProjectTemplate
 import com.jetbrains.rider.projectView.projectTemplates.NewProjectDialogContext
 import com.jetbrains.rider.projectView.projectTemplates.ProjectTemplatesSharedModel
 import com.jetbrains.rider.projectView.projectTemplates.generators.TypeBasedProjectTemplateGenerator
@@ -26,7 +26,7 @@ class AzureProjectTemplateType : PredefinedProjectTemplateType() {
     override val shouldHide: Boolean
         get() = !FunctionTemplateManager.getInstance().areRegistered()
 
-    override fun acceptableForTemplate(projectTemplate: RdProjectTemplate2): Boolean {
+    override fun acceptableForTemplate(projectTemplate: RdProjectTemplate): Boolean {
         return projectTemplate.hasClassification("Azure Functions")
     }
 
@@ -41,7 +41,7 @@ class AzureProjectTemplateType : PredefinedProjectTemplateType() {
             private val isolatedWorker = "Isolated worker"
             private val defaultWorker = "Default worker"
 
-            override fun getType(template: RdProjectTemplate2): String {
+            override fun getType(template: RdProjectTemplate): String {
                 // Isolated worker known template identities:
                 if (template.id == "Microsoft.AzureFunctions.ProjectTemplate.CSharp.Isolated.3.x" ||
                     template.id == "Microsoft.AzureFunctions.ProjectTemplate.FSharp.Isolated.3.x" ||

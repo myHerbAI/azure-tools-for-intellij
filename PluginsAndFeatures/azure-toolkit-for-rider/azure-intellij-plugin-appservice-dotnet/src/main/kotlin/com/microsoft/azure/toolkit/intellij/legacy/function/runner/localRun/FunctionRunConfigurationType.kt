@@ -39,7 +39,7 @@ class FunctionRunConfigurationType : ConfigurationTypeBase(
 
     override fun isApplicable(kind: RunnableProjectKind) = isTypeApplicable(kind)
 
-    override fun tryCreateDefault(
+    override suspend fun tryCreateDefault(
         project: Project,
         lifetime: Lifetime,
         projects: List<RunnableProject>,

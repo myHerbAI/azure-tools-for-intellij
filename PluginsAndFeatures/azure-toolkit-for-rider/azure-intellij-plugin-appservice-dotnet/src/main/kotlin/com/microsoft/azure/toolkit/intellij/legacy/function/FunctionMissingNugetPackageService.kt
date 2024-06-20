@@ -16,7 +16,6 @@ import com.intellij.ui.EditorNotifications
 import com.jetbrains.rd.platform.util.idea.LifetimedService
 import com.jetbrains.rd.util.firstOrNull
 import com.jetbrains.rider.nuget.RiderNuGetFacade
-import com.jetbrains.rider.nuget.RiderNuGetHost
 import com.jetbrains.rider.projectView.workspace.*
 import kotlinx.coroutines.*
 import java.nio.file.Path
@@ -190,7 +189,7 @@ class FunctionMissingNugetPackageService(
         if (installableProjects.isEmpty()) return emptyList()
 
         // For every known trigger name, verify required dependencies are installed
-        val riderNuGetFacade = RiderNuGetHost.getInstance(project).facade
+        val riderNuGetFacade = RiderNuGetFacade.getInstance(project)
 
         val installableDependencies = mutableListOf<InstallableDependency>()
         for (installableProject in installableProjects) {
@@ -218,7 +217,7 @@ class FunctionMissingNugetPackageService(
 
             if (installableProject != null) {
                 LOG.trace("Installing dependency $dependency in project ${installableProject.name}")
-                val riderNuGetFacade = RiderNuGetHost.getInstance(project).facade
+                val riderNuGetFacade = RiderNuGetFacade.getInstance(project)
                 withContext(Dispatchers.EDT) {
                     riderNuGetFacade.installForProject(
                         installableProject.name,

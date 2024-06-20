@@ -1,20 +1,45 @@
-/*
- * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
- */
-
-intellij {
-    plugins = listOf("com.intellij.database")
+plugins {
+    alias(libs.plugins.kotlin)
+    alias(libs.plugins.intelliJPlatform)
 }
 
+repositories {
+    mavenCentral()
+    mavenLocal()
+
+    intellijPlatform {
+        defaultRepositories()
+        jetbrainsRuntime()
+    }
+}
+
+val platformVersion: String by extra
+val azureToolkitVersion: String by extra
+
 dependencies {
-    compileOnly(project(path = ":azure-intellij-plugin-lib"))
-    runtimeOnly(project(path = ":azure-intellij-plugin-lib", configuration = "instrumentedJar"))
-    compileOnly(project(path = ":azure-intellij-plugin-database"))
-    runtimeOnly(project(path = ":azure-intellij-plugin-database", configuration = "instrumentedJar"))
-    compileOnly(project(path = ":azure-intellij-resource-connector-lib"))
-    runtimeOnly(project(path = ":azure-intellij-resource-connector-lib", configuration = "instrumentedJar"))
-    implementation("com.microsoft.azure:azure-toolkit-database-lib")
-    implementation("com.microsoft.azure:azure-toolkit-mysql-lib")
-    implementation("com.microsoft.azure:azure-toolkit-sqlserver-lib")
-    implementation("com.microsoft.azure:azure-toolkit-postgre-lib")
+    intellijPlatform {
+        rider(platformVersion)
+        jetbrainsRuntime()
+        bundledPlugins(listOf("com.intellij.database"))
+        instrumentationTools()
+    }
+
+    implementation(project(path = ":azure-intellij-plugin-lib"))
+    implementation(project(path = ":azure-intellij-plugin-database"))
+    implementation(project(path = ":azure-intellij-resource-connector-lib"))
+    implementation("com.microsoft.azure:azure-toolkit-database-lib:$azureToolkitVersion")
+    implementation("com.microsoft.azure:azure-toolkit-mysql-lib:$azureToolkitVersion")
+    implementation("com.microsoft.azure:azure-toolkit-sqlserver-lib:$azureToolkitVersion")
+    implementation("com.microsoft.azure:azure-toolkit-postgre-lib:$azureToolkitVersion")
+}
+
+tasks {
+    buildPlugin { enabled = false }
+    patchPluginXml { enabled = false }
+    prepareSandbox { enabled = false }
+    publishPlugin { enabled = false }
+    runIde { enabled = false }
+    signPlugin { enabled = false }
+    buildSearchableOptions { enabled = false }
+    verifyPlugin { enabled = false }
 }
