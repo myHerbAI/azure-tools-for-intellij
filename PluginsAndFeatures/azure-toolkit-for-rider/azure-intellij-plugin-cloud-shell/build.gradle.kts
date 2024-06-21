@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin)
     alias(libs.plugins.intelliJPlatform)
+    alias(libs.plugins.serialization)
 }
 
 repositories {
@@ -20,9 +21,12 @@ dependencies {
     intellijPlatform {
         rider(platformVersion)
         jetbrainsRuntime()
-        bundledPlugins(listOf("Docker"))
+        bundledPlugins(listOf("org.jetbrains.plugins.terminal"))
         instrumentationTools()
     }
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.0")
+    implementation("org.java-websocket:Java-WebSocket:1.5.1")
 }
 
 tasks {
