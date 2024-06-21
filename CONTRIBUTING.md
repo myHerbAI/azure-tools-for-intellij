@@ -38,7 +38,7 @@ the [base repository](https://github.com/microsoft/azure-tools-for-java).
 
 * **Using JDK 17**, run `Build Plugin` run configuration or use Gradle to build the plugin
     ```
-    $ ./gradlew -b PluginsAndFeatures/azure-toolkit-for-rider/build.gradle buildPlugin
+    $ ./PluginsAndFeatures/azure-toolkit-for-rider/gradlew -b ./PluginsAndFeatures/azure-toolkit-for-rider/build.gradle.kts buildPlugin
     ```
   You can find the outputs under ```PluginsAndFeatures/azure-toolkit-for-rider/build/distributions```
 
