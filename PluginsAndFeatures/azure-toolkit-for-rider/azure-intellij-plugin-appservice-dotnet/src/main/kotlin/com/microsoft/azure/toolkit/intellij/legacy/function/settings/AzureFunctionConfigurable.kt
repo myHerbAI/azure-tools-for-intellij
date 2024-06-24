@@ -22,7 +22,7 @@ import com.intellij.util.PathUtil
 import com.intellij.util.asSafely
 import com.intellij.util.ui.*
 import com.microsoft.azure.toolkit.intellij.common.getSelectedValue
-import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.isFunctionTool
+import com.microsoft.azure.toolkit.intellij.legacy.function.isFunctionCoreToolsExecutable
 import java.io.File
 import javax.swing.JTable
 import javax.swing.ListSelectionModel
@@ -65,19 +65,17 @@ class AzureFunctionConfigurable : BoundConfigurable("Functions") {
 
                     if (isCoreToolsFeedEnabled && item.coreToolsPath.isEmpty()) {
                         append("Managed by Rider", SimpleTextAttributes.GRAY_ATTRIBUTES)
+                    } else if (isFunctionCoreToolsExecutable(item.coreToolsPath)) {
+                        append("From environment PATH", SimpleTextAttributes.REGULAR_ATTRIBUTES)
                     } else {
                         val coreToolsFile = File(item.coreToolsPath)
 
-                        if (coreToolsFile.isFunctionTool()) {
-                            append("From environment PATH", SimpleTextAttributes.REGULAR_ATTRIBUTES)
-                        } else {
-                            val attributes = if (coreToolsFile.exists())
-                                SimpleTextAttributes.REGULAR_ATTRIBUTES
-                            else
-                                SimpleTextAttributes.ERROR_ATTRIBUTES
+                        val attributes = if (coreToolsFile.exists())
+                            SimpleTextAttributes.REGULAR_ATTRIBUTES
+                        else
+                            SimpleTextAttributes.ERROR_ATTRIBUTES
 
-                            append(valueOf(item), attributes)
-                        }
+                        append(valueOf(item), attributes)
                     }
                 }
             }
@@ -86,8 +84,6 @@ class AzureFunctionConfigurable : BoundConfigurable("Functions") {
                 private val comboBox = AzureFunctionComponentBrowseButton()
 
                 init {
-                    val coreToolsPath = File(item.coreToolsPath)
-
                     if (isCoreToolsFeedEnabled) {
                         comboBox.setPath(
                             CoreToolsComboBoxItem("Managed by Rider", "", true),
@@ -97,10 +93,10 @@ class AzureFunctionConfigurable : BoundConfigurable("Functions") {
 
                     comboBox.setPath(
                         CoreToolsComboBoxItem("From environment PATH", "func", true),
-                        coreToolsPath.isFunctionTool()
+                        isFunctionCoreToolsExecutable(item.coreToolsPath)
                     )
 
-                    if (item.coreToolsPath.isNotEmpty() && !coreToolsPath.isFunctionTool()) {
+                    if (item.coreToolsPath.isNotEmpty() && !isFunctionCoreToolsExecutable(item.coreToolsPath)) {
                         comboBox.setPath(
                             CoreToolsComboBoxItem(item.coreToolsPath, item.coreToolsPath, false),
                             true
@@ -110,12 +106,7 @@ class AzureFunctionConfigurable : BoundConfigurable("Functions") {
 
                 override fun getCellEditorValue(): String? {
                     comboBox.childComponent.editor.item.asSafely<String>()?.let { textEntry ->
-                        if (textEntry.isEmpty()) {
-                            return ""
-                        }
-
-                        val coreToolsPath = File(textEntry)
-                        if (coreToolsPath.exists() || coreToolsPath.isFunctionTool()) {
+                        if (textEntry.isEmpty() || isFunctionCoreToolsExecutable(textEntry) || File(textEntry).exists()) {
                             return textEntry
                         }
                     }
@@ -226,7 +217,7 @@ private class AzureFunctionComponentBrowseButton :
             null,
             null,
             null,
-            FileChooserDescriptorFactory.createSingleFolderDescriptor(),
+            FileChooserDescriptorFactory.createSingleFileDescriptor(),
             fileBrowserAccessor
         )
     }
