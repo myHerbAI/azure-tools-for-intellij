@@ -251,7 +251,7 @@ class FunctionCoreToolsManager {
         val downloadFolderForTagRelease = downloadFolderForTag.listFiles(File::isDirectory)
             ?.asSequence()
             ?.sortedWith { first, second -> VersionComparatorUtil.compare(first?.name, second?.name) }
-            ?.lastOrNull { it.exists() && it.listFiles { file -> file.isFunctionTool() }?.any() == true }
+            ?.lastOrNull { it.exists() && it.listFiles { file -> file.isFunctionCoreTools() }?.any() == true }
 
         if (downloadFolderForTagRelease != null) {
             LOG.debug(

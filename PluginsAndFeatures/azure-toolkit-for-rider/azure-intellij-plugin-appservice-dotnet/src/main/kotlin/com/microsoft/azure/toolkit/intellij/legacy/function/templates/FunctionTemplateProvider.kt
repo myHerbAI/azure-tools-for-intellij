@@ -28,11 +28,11 @@ class FunctionTemplateProvider : ProjectTemplateProvider {
         if (!templateManager.areRegistered()) {
             runWithModalProgressBlocking(DummyProject.getInstance(), "Reloading Azure templates...") {
                 templateManager.tryReload()
-            }
-        }
 
-        if (!templateManager.areRegistered()) {
-            result.set(setOf(InstallFunctionProjectTemplate()))
+                if (!templateManager.areRegistered()) {
+                    result.set(setOf(InstallFunctionProjectTemplate()))
+                }
+            }
         }
 
         isReady.set(true)
