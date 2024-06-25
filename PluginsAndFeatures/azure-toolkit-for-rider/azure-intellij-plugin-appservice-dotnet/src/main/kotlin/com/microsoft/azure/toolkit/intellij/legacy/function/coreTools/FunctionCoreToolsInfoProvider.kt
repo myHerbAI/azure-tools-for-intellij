@@ -99,7 +99,7 @@ class FunctionCoreToolsInfoProvider {
                 allowDownload
             ) ?: return null
 
-        return resolveFromPath(File(coreToolsPathFromFeed))
+        return resolveFromPath(coreToolsPathFromFeed)
     }
 
     private fun resolveFromPath(funcCoreToolsPath: File): FunctionCoreToolsInfo? {
