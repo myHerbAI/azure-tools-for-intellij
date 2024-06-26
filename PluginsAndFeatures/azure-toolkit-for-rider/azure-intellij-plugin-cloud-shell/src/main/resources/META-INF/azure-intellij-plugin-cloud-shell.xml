@@ -1,3 +1,12 @@
 <idea-plugin>
     <depends>org.jetbrains.plugins.terminal</depends>
+
+    <actions>
+        <action id="AzureToolkit.CloudShell.Start"
+                class="com.microsoft.azure.toolkit.intellij.cloudshell.actions.StartAzureCloudShellAction"
+                text="Start Azure Cloud Shell"
+                description="Start Azure Cloud Shell"
+                icon="AllIcons.Actions.Execute">
+        </action>
+    </actions>
 </idea-plugin>

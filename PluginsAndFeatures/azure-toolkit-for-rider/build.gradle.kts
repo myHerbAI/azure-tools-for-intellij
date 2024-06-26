@@ -120,6 +120,8 @@ intellijPlatform {
         }
     }
 
+    buildSearchableOptions  = false
+
     signing {
         certificateChain = environment("CERTIFICATE_CHAIN")
         privateKey = environment("PRIVATE_KEY")

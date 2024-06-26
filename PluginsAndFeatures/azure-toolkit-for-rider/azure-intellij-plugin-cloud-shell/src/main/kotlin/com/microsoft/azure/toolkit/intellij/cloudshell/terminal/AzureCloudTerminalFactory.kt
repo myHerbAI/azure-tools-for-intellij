@@ -16,11 +16,11 @@ class AzureCloudTerminalFactory(private val project: Project) {
         fun getInstance(project: Project) = project.service<AzureCloudTerminalFactory>()
     }
 
-    fun createTerminalRunner(
-        cloudConsoleService: CloudConsoleService,
-        cloudConsoleBaseUrl: String,
-        socketUri: URI
-    ): AzureCloudTerminalRunner {
-
-    }
+//    fun createTerminalRunner(
+//        cloudConsoleService: CloudConsoleService,
+//        cloudConsoleBaseUrl: String,
+//        socketUri: URI
+//    ): AzureCloudTerminalRunner {
+//
+//    }
 }
