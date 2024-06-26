@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin)
-    alias(libs.plugins.intelliJPlatform)
+    id("org.jetbrains.intellij.platform.module")
 }
 
 repositories {
@@ -27,15 +27,4 @@ dependencies {
     implementation("com.microsoft.azure:azure-toolkit-auth-lib:$azureToolkitVersion")
     implementation("com.microsoft.azure:azure-toolkit-ide-common-lib:$azureToolkitVersion")
     implementation(project(path = ":azure-intellij-plugin-lib"))
-}
-
-tasks {
-    buildPlugin { enabled = false }
-    patchPluginXml { enabled = false }
-    prepareSandbox { enabled = false }
-    publishPlugin { enabled = false }
-    runIde { enabled = false }
-    signPlugin { enabled = false }
-    buildSearchableOptions { enabled = false }
-    verifyPlugin { enabled = false }
 }

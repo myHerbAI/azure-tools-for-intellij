@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin)
-    alias(libs.plugins.intelliJPlatform)
     alias(libs.plugins.serialization)
+    id("org.jetbrains.intellij.platform.module")
 }
 
 repositories {
@@ -36,15 +36,4 @@ dependencies {
     implementation("com.microsoft.azure:azure-toolkit-ide-appservice-lib:$azureToolkitVersion")
     implementation("com.microsoft.azure:azure-toolkit-ide-containerregistry-lib:$azureToolkitVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.0")
-}
-
-tasks {
-    buildPlugin { enabled = false }
-    patchPluginXml { enabled = false }
-    prepareSandbox { enabled = false }
-    publishPlugin { enabled = false }
-    runIde { enabled = false }
-    signPlugin { enabled = false }
-    buildSearchableOptions { enabled = false }
-    verifyPlugin { enabled = false }
 }
