@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Properly remove Azure Function project templates ([#844](https://github.com/JetBrains/azure-tools-for-intellij/issues/844))
+
 ## [4.0.0-preview.6] - 2024-06-05
 
 ### Changed

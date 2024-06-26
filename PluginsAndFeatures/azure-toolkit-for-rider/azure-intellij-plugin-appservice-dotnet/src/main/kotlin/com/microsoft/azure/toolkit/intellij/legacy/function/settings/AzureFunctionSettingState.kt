@@ -5,14 +5,20 @@
 package com.microsoft.azure.toolkit.intellij.legacy.function.settings
 
 import com.intellij.openapi.components.BaseState
-import com.intellij.util.PathUtil
+import com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionSettings.Companion.AZURE_FUNCTIONS_TOOLS_FOLDER
+import com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionSettings.Companion.AZURE_TOOLS_FOLDER
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 
-class AzureFunctionSettingState(azureToolsHomeFolder: Path) : BaseState() {
+class AzureFunctionSettingState : BaseState() {
     var functionV2Path by string(null)
     var functionV3Path by string(null)
     var functionV4Path by string(null)
-    var functionDownloadPath by string(PathUtil.toSystemIndependentName(azureToolsHomeFolder.absolutePathString()))
+    var functionDownloadPath by string(
+        Path.of(System.getProperty("user.home"))
+            .resolve(AZURE_TOOLS_FOLDER)
+            .resolve(AZURE_FUNCTIONS_TOOLS_FOLDER)
+            .absolutePathString()
+    )
     var checkForFunctionMissingPackages by property(true)
 }

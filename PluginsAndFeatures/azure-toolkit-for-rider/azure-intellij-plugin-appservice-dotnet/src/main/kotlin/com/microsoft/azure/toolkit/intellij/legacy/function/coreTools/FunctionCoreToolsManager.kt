@@ -36,7 +36,7 @@ class FunctionCoreToolsManager {
         azureFunctionsVersion: String,
         releaseFeedUrl: String,
         allowDownload: Boolean
-    ): String? {
+    ): File? {
         val downloadRoot = resolveDownloadRoot()
 
         if (allowDownload && Registry.`is`("azure.function_app.core_tools.feed.enabled")) {
@@ -194,14 +194,14 @@ class FunctionCoreToolsManager {
         )
     }
 
-    private fun ensureReleaseDownloaded(downloadInfo: FunctionCoreToolsDownloadInfo): String? {
+    private fun ensureReleaseDownloaded(downloadInfo: FunctionCoreToolsDownloadInfo): File? {
         if (downloadInfo.downloadFolderForTagAndRelease.exists()) {
-            return downloadInfo.downloadFolderForTagAndRelease.path
+            return downloadInfo.downloadFolderForTagAndRelease
         }
         downloadRelease(downloadInfo)
 
         if (downloadInfo.downloadFolderForTagAndRelease.exists()) {
-            return downloadInfo.downloadFolderForTagAndRelease.path
+            return downloadInfo.downloadFolderForTagAndRelease
         }
 
         return null
@@ -244,14 +244,14 @@ class FunctionCoreToolsManager {
         }
     }
 
-    private fun tryResolveExistingCoreToolsPath(azureFunctionsVersion: String, downloadRoot: File): String? {
+    private fun tryResolveExistingCoreToolsPath(azureFunctionsVersion: String, downloadRoot: File): File? {
         val downloadFolderForTag = downloadRoot.resolve(azureFunctionsVersion.lowercase())
         if (!downloadFolderForTag.exists()) return null
 
         val downloadFolderForTagRelease = downloadFolderForTag.listFiles(File::isDirectory)
             ?.asSequence()
             ?.sortedWith { first, second -> VersionComparatorUtil.compare(first?.name, second?.name) }
-            ?.lastOrNull { it.exists() && it.listFiles { file -> file.isFunctionTool() }?.any() == true }
+            ?.lastOrNull { it.exists() && it.listFiles { file -> file.isFunctionCoreTools() }?.any() == true }
 
         if (downloadFolderForTagRelease != null) {
             LOG.debug(
@@ -260,7 +260,7 @@ class FunctionCoreToolsManager {
                         "Download path: ${downloadFolderForTagRelease.path}"
             )
 
-            return downloadFolderForTagRelease.absolutePath
+            return downloadFolderForTagRelease
         }
 
         LOG.warn(

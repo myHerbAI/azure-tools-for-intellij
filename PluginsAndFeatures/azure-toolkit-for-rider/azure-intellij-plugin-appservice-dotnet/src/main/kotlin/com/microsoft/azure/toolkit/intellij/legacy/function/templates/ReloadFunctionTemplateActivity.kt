@@ -5,12 +5,13 @@
 package com.microsoft.azure.toolkit.intellij.legacy.function.templates
 
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.rd.util.withBackgroundContext
 import com.intellij.openapi.startup.ProjectActivity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class ReloadFunctionTemplateActivity: ProjectActivity {
     override suspend fun execute(project: Project) {
-        withBackgroundContext {
+        withContext(Dispatchers.Default) {
             FunctionTemplateManager.getInstance().tryReload()
         }
     }

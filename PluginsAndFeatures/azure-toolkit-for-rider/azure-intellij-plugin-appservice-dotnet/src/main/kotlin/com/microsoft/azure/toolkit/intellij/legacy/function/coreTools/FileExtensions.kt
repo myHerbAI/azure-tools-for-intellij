@@ -6,4 +6,4 @@ package com.microsoft.azure.toolkit.intellij.legacy.function.coreTools
 
 import java.io.File
 
-fun File.isFunctionTool() = nameWithoutExtension.equals("func", ignoreCase = true)
+fun File.isFunctionCoreTools() = nameWithoutExtension.equals("func", ignoreCase = true)

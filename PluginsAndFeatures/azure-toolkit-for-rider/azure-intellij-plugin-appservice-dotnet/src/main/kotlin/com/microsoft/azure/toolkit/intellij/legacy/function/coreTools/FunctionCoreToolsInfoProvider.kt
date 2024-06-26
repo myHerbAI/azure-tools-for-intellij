@@ -12,6 +12,7 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.util.concurrency.ThreadingAssertions
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsMsBuildService.Companion.PROPERTY_AZURE_FUNCTIONS_VERSION
+import com.microsoft.azure.toolkit.intellij.legacy.function.isFunctionCoreToolsExecutable
 import com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionSettings
 import com.microsoft.azure.toolkit.lib.appservice.utils.FunctionCliResolver
 import java.io.File
@@ -71,11 +72,10 @@ class FunctionCoreToolsInfoProvider {
             ?.coreToolsPath
             ?: return null
 
+        if (toolsPathFromConfiguration.isEmpty()) return null
+
         // If the configuration is func/func.cmd/func.exe, try and determine the full path from the environment
-        if (toolsPathFromConfiguration.equals("func", ignoreCase = true) ||
-            toolsPathFromConfiguration.equals("func.cmd", ignoreCase = true) ||
-            toolsPathFromConfiguration.equals("func.exe", ignoreCase = true)
-        ) {
+        if (isFunctionCoreToolsExecutable(toolsPathFromConfiguration)) {
             val toolsPathFromEnvironment = FunctionCliResolver.resolveFunc()?.let { resolveFromPath(File(it)) }
             if (toolsPathFromEnvironment == null) {
                 LOG.warn("Azure Functions Core Tools path is set to '$toolsPathFromConfiguration' in configuration, but could not be resolved.")
@@ -84,7 +84,6 @@ class FunctionCoreToolsInfoProvider {
             return toolsPathFromEnvironment
         }
 
-
         return resolveFromPath(File(toolsPathFromConfiguration))
     }
 
@@ -92,13 +91,15 @@ class FunctionCoreToolsInfoProvider {
         azureFunctionsVersion: String,
         allowDownload: Boolean
     ): FunctionCoreToolsInfo? {
-        val coreToolsPathFromFeed = FunctionCoreToolsManager.getInstance().demandCoreToolsPathForVersion(
-            azureFunctionsVersion,
-            Registry.get("azure.function_app.core_tools.feed.url").asString(),
-            allowDownload
-        ) ?: return null
+        val coreToolsPathFromFeed = FunctionCoreToolsManager
+            .getInstance()
+            .demandCoreToolsPathForVersion(
+                azureFunctionsVersion,
+                Registry.get("azure.function_app.core_tools.feed.url").asString(),
+                allowDownload
+            ) ?: return null
 
-        return resolveFromPath(File(coreToolsPathFromFeed))
+        return resolveFromPath(coreToolsPathFromFeed)
     }
 
     private fun resolveFromPath(funcCoreToolsPath: File): FunctionCoreToolsInfo? {
@@ -135,17 +136,13 @@ class FunctionCoreToolsInfoProvider {
         // where the func executable is located.
         //
         // Logic is similar to com.microsoft.azure.toolkit.intellij.function.runner.core.FunctionCliResolver.resolveFunc()
-        val chocolateyPath =
-            normalizedPath.resolve("..").resolve("lib").resolve("azure-functions-core-tools").resolve("tools")
-                .normalize()
+        val chocolateyPath = normalizedPath.resolve("../lib/azure-functions-core-tools/tools").normalize()
         if (chocolateyPath.exists()) {
             LOG.info("Functions core tools path ${normalizedPath.path} is Chocolatey-installed. Rewriting path to ${chocolateyPath.path}")
             return chocolateyPath
         }
 
-        val npmPath =
-            normalizedPath.resolve("..").resolve("node_modules").resolve("azure-functions-core-tools").resolve("bin")
-                .normalize()
+        val npmPath = normalizedPath.resolve("../node_modules/azure-functions-core-tools/bin").normalize()
         if (npmPath.exists()) {
             LOG.info("Functions core tools path ${normalizedPath.path} is NPM-installed. Rewriting path to ${npmPath.path}")
             return npmPath
@@ -155,7 +152,7 @@ class FunctionCoreToolsInfoProvider {
     }
 
     private fun normalizeCoreToolsPath(path: File) =
-        if (path.isFile && path.isFunctionTool()) {
+        if (path.isFile && path.isFunctionCoreTools()) {
             path.parentFile
         } else {
             path
