@@ -10,7 +10,6 @@ import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.rd.util.withBackgroundContext
 import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rider.run.configurations.AsyncExecutorFactory
 import com.jetbrains.rider.runtime.msNet.MsNetRuntime
@@ -18,6 +17,8 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCo
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsMsBuildService
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionLocalSettingsUtil
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionWorkerRuntime
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class FunctionRunExecutorFactory(
@@ -40,7 +41,7 @@ class FunctionRunExecutorFactory(
             ?: throw CantRunException("Can't run Azure Functions host. No Azure Functions Core Tools information could be determined.")
         LOG.debug("Azure Functions version: $azureFunctionsVersion")
 
-        val coreToolsInfo = withBackgroundContext {
+        val coreToolsInfo = withContext(Dispatchers.Default) {
             FunctionCoreToolsInfoProvider.getInstance()
                 .retrieveForVersion(azureFunctionsVersion, true)
         }
@@ -52,7 +53,7 @@ class FunctionRunExecutorFactory(
             .tryPatchHostJsonFile(parameters.workingDirectory, parameters.functionNames)
 
         LOG.debug("Determine worker runtime from local.settings.json")
-        val functionLocalSettings = withBackgroundContext {
+        val functionLocalSettings = withContext(Dispatchers.Default) {
             FunctionLocalSettingsUtil.readFunctionLocalSettings(File(parameters.projectFilePath).parent)
         }
         val workerRuntime = functionLocalSettings?.values?.workerRuntime ?: FunctionWorkerRuntime.DOTNET

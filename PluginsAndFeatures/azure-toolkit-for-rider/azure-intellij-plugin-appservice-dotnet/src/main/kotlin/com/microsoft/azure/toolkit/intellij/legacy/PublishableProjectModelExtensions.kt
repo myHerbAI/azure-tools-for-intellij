@@ -7,8 +7,8 @@ package com.microsoft.azure.toolkit.intellij.legacy
 import com.azure.resourcemanager.appservice.models.FunctionRuntimeStack
 import com.azure.resourcemanager.appservice.models.NetFrameworkVersion
 import com.azure.resourcemanager.appservice.models.RuntimeStack
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.rd.util.withUiContext
 import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.projectModelTasks
 import com.jetbrains.rider.projectView.solution
@@ -16,6 +16,8 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCo
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionLocalSettingsUtil
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionWorkerRuntime
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 private val netCoreAppVersionRegex = Regex("\\.NETCoreApp,Version=v([0-9](?:\\.[0-9])*)", RegexOption.IGNORE_CASE)
 private val netAppVersionRegex = Regex("net([0-9](?:\\.[0-9])*)", RegexOption.IGNORE_CASE)
@@ -62,7 +64,7 @@ suspend fun PublishableProjectModel.getFunctionStack(
 ): FunctionRuntimeStack {
     val functionLocalSettings = FunctionLocalSettingsUtil.readFunctionLocalSettings(this)
     val workerRuntime = functionLocalSettings?.values?.workerRuntime ?: FunctionWorkerRuntime.DOTNET_ISOLATED
-    val coreToolsVersion = withUiContext {
+    val coreToolsVersion = withContext(Dispatchers.EDT) {
         FunctionCoreToolsMsBuildService
             .getInstance()
             .requestAzureFunctionsVersion(project, this@getFunctionStack.projectFilePath)
