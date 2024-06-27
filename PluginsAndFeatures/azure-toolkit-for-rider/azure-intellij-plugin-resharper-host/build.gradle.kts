@@ -2,7 +2,7 @@ import org.jetbrains.intellij.platform.gradle.extensions.intellijPlatform
 
 plugins {
     alias(libs.plugins.kotlin)
-    alias(libs.plugins.intelliJPlatform)
+    id("org.jetbrains.intellij.platform.module")
 }
 
 repositories {
@@ -22,15 +22,4 @@ dependencies {
         jetbrainsRuntime()
         instrumentationTools()
     }
-}
-
-tasks {
-    buildPlugin { enabled = false }
-    patchPluginXml { enabled = false }
-    prepareSandbox { enabled = false }
-    publishPlugin { enabled = false }
-    runIde { enabled = false }
-    signPlugin { enabled = false }
-    buildSearchableOptions { enabled = false }
-    verifyPlugin { enabled = false }
 }

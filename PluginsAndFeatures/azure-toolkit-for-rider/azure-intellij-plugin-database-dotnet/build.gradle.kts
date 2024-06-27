@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin)
-    alias(libs.plugins.intelliJPlatform)
+    id("org.jetbrains.intellij.platform.module")
 }
 
 repositories {
@@ -31,15 +31,4 @@ dependencies {
     implementation("com.microsoft.azure:azure-toolkit-mysql-lib:$azureToolkitVersion")
     implementation("com.microsoft.azure:azure-toolkit-sqlserver-lib:$azureToolkitVersion")
     implementation("com.microsoft.azure:azure-toolkit-postgre-lib:$azureToolkitVersion")
-}
-
-tasks {
-    buildPlugin { enabled = false }
-    patchPluginXml { enabled = false }
-    prepareSandbox { enabled = false }
-    publishPlugin { enabled = false }
-    runIde { enabled = false }
-    signPlugin { enabled = false }
-    buildSearchableOptions { enabled = false }
-    verifyPlugin { enabled = false }
 }

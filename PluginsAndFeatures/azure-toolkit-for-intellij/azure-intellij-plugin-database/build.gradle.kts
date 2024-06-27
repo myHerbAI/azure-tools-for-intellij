@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    alias(libs.plugins.intelliJPlatform)
+    id("org.jetbrains.intellij.platform.module")
     alias(libs.plugins.aspectj)
 }
 
@@ -69,12 +69,4 @@ tasks {
     processResources {
         duplicatesStrategy = DuplicatesStrategy.WARN
     }
-
-    buildPlugin { enabled = false }
-    runIde { enabled = false }
-    prepareSandbox { enabled = false }
-    buildSearchableOptions { enabled = false }
-    patchPluginXml { enabled = false }
-    publishPlugin { enabled = false }
-    verifyPlugin { enabled = false }
 }
