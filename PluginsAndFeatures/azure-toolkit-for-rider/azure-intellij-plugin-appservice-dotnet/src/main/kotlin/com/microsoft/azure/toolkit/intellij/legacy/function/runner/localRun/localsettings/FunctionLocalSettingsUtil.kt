@@ -18,7 +18,7 @@ import kotlin.io.path.exists
 
 object FunctionLocalSettingsUtil {
     @OptIn(ExperimentalSerializationApi::class)
-    private val jsonFormat = Json {
+    private val json = Json {
         decodeEnumsCaseInsensitive = true
         explicitNulls = false
         ignoreUnknownKeys = true
@@ -33,7 +33,7 @@ object FunctionLocalSettingsUtil {
     fun readFunctionLocalSettings(basePath: String): FunctionLocalSettings? {
         val localSettingsFile = getLocalSettingsVirtualFile(basePath) ?: return null
         val content = localSettingsFile.readText()
-        return jsonFormat.decodeFromString<FunctionLocalSettings>(content)
+        return json.decodeFromString<FunctionLocalSettings>(content)
     }
 
     private fun getLocalSettingsVirtualFile(basePath: String): VirtualFile? {

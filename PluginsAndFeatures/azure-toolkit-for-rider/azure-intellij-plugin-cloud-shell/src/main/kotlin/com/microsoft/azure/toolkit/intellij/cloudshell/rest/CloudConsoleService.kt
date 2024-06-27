@@ -4,7 +4,6 @@
 
 package com.microsoft.azure.toolkit.intellij.cloudshell.rest
 
-import com.google.gson.Gson
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -13,11 +12,19 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
 
 @Service(Service.Level.APP)
 class CloudConsoleService : Disposable {
     companion object {
         fun getInstance() = service<CloudConsoleService>()
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    private val json = Json {
+        explicitNulls = false
+        ignoreUnknownKeys = true
     }
 
     private val client = HttpClient(CIO)
@@ -31,7 +38,7 @@ class CloudConsoleService : Disposable {
                 }
             }.body()
 
-        return Gson().fromJson(body, CloudConsoleUserSettings::class.java)
+        return json.decodeFromString<CloudConsoleUserSettings>(body)
     }
 
     override fun dispose() = client.close()
