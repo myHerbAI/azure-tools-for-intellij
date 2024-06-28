@@ -10,10 +10,13 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import com.microsoft.azure.toolkit.intellij.cloudshell.rest.CloudConsoleProvisionParameterProperties
+import com.microsoft.azure.toolkit.intellij.cloudshell.rest.CloudConsoleProvisionParameters
 import com.microsoft.azure.toolkit.intellij.cloudshell.rest.CloudConsoleService
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.common.model.Subscription
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 
 @Service(Service.Level.PROJECT)
 class CloudShellProvisioningService {
@@ -35,7 +38,7 @@ class CloudShellProvisioningService {
         val accessToken = account
             .getTenantTokenCredential(subscription.tenantId)
             .getToken(request)
-            .block()
+            .awaitSingleOrNull()
             ?.token
 
         if (accessToken == null) {
@@ -43,12 +46,31 @@ class CloudShellProvisioningService {
             return
         }
 
-
         val cloudConsoleService = CloudConsoleService.getInstance()
         val settings = cloudConsoleService.getUserSettings(resourceManagerEndpoint, accessToken)
-        if (settings != null) {
-
+        if (settings == null) {
+            LOG.warn("Azure Cloud Shell is not configured in any Azure subscription")
+            return
         }
+
+        val preferredOsType = settings.properties?.preferredOsType ?: "Linux"
+        val provisionParameters = CloudConsoleProvisionParameters(
+            CloudConsoleProvisionParameterProperties(preferredOsType)
+        )
+        val provisionResult = cloudConsoleService.provision(resourceManagerEndpoint, accessToken, provisionParameters)
+        if (provisionResult == null) {
+            LOG.warn("Could not provision cloud shell")
+            return
+        }
+
+        val provisionUrl = provisionResult.properties.uri
+        if (provisionUrl.isNullOrEmpty())
+        {
+            LOG.error("Cloud shell URL was empty")
+            return
+        }
+
+        val shellUrl = "$provisionUrl/terminals"
 
     }
 }

@@ -10,8 +10,10 @@ import com.intellij.openapi.components.service
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
@@ -22,23 +24,45 @@ class CloudConsoleService : Disposable {
     }
 
     @OptIn(ExperimentalSerializationApi::class)
-    private val json = Json {
-        explicitNulls = false
-        ignoreUnknownKeys = true
+    private val client = HttpClient(CIO) {
+        install(ContentNegotiation) {
+            json(Json {
+                explicitNulls = false
+                ignoreUnknownKeys = true
+            })
+        }
     }
 
-    private val client = HttpClient(CIO)
+    suspend fun getUserSettings(
+        resourceManagerEndpoint: String,
+        accessToken: String
+    ): CloudConsoleUserSettings? {
+        val response = client.get("${resourceManagerEndpoint}providers/Microsoft.Portal/userSettings/cloudconsole?api-version=2023-02-01-preview") {
+            headers {
+                append(HttpHeaders.Authorization, "Bearer $accessToken")
+            }
+        }
+        if (!response.status.isSuccess()) return null
 
-    suspend fun getUserSettings(resourceManagerEndpoint: String, accessToken: String): CloudConsoleUserSettings {
-        val body: String =
-            client.get("${resourceManagerEndpoint}providers/Microsoft.Portal/userSettings/cloudconsole?api-version=2023-02-01-preview") {
+        return response.body<CloudConsoleUserSettings>()
+    }
+
+    suspend fun provision(
+        resourceManagerEndpoint: String,
+        accessToken: String,
+        parameters: CloudConsoleProvisionParameters
+    ): CloudConsoleProvisionResult? {
+        val response =
+            client.put("${resourceManagerEndpoint}providers/Microsoft.Portal/consoles/default?api-version=2023-02-01-preview") {
                 headers {
-                    append(HttpHeaders.Accept,ContentType.Application.Json.toString())
                     append(HttpHeaders.Authorization, "Bearer $accessToken")
                 }
-            }.body()
+                contentType(ContentType.Application.Json)
+                setBody(parameters)
+            }
+        if (!response.status.isSuccess()) return null
 
-        return json.decodeFromString<CloudConsoleUserSettings>(body)
+        return response.body<CloudConsoleProvisionResult>()
     }
 
     override fun dispose() = client.close()
