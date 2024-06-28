@@ -6,30 +6,45 @@ package com.microsoft.azure.toolkit.intellij.cloudshell
 
 import com.azure.core.credential.TokenRequestContext
 import com.azure.identity.implementation.util.ScopeUtil
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.microsoft.azure.toolkit.intellij.cloudshell.rest.CloudConsoleProvisionParameterProperties
 import com.microsoft.azure.toolkit.intellij.cloudshell.rest.CloudConsoleProvisionParameters
+import com.microsoft.azure.toolkit.intellij.cloudshell.rest.CloudConsoleProvisionTerminalParameters
 import com.microsoft.azure.toolkit.intellij.cloudshell.rest.CloudConsoleService
+import com.microsoft.azure.toolkit.intellij.cloudshell.terminal.AzureCloudTerminalFactory
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.common.model.Subscription
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactor.awaitSingleOrNull
+import kotlinx.coroutines.withContext
+import org.jetbrains.plugins.terminal.TerminalToolWindowFactory
+import org.jetbrains.plugins.terminal.TerminalToolWindowManager
+import java.net.URI
+import kotlin.time.Duration.Companion.milliseconds
 
 @Service(Service.Level.PROJECT)
-class CloudShellProvisioningService {
+class CloudShellProvisioningService(private val project: Project) {
     companion object {
         fun getInstance(project: Project) = project.service<CloudShellProvisioningService>()
         private val LOG = logger<CloudShellProvisioningService>()
     }
 
-    suspend fun provision(subscription: Subscription) {
+    private val defaultTerminalColumns = 100
+    private val defaultTerminalRows = 30
+
+    suspend fun provision(subscription: Subscription) = withBackgroundProgress(project, "Provisioning cloud shell...") {
         val account = Azure.az(AzureAccount::class.java).account()
         if (!account.isLoggedIn) {
             LOG.warn("Account is not logged in")
-            return
+            return@withBackgroundProgress
         }
 
         val resourceManagerEndpoint = account.environment.resourceManagerEndpoint
@@ -43,14 +58,14 @@ class CloudShellProvisioningService {
 
         if (accessToken == null) {
             LOG.warn("Unable to get access token")
-            return
+            return@withBackgroundProgress
         }
 
-        val cloudConsoleService = CloudConsoleService.getInstance()
+        val cloudConsoleService = CloudConsoleService.getInstance(project)
         val settings = cloudConsoleService.getUserSettings(resourceManagerEndpoint, accessToken)
         if (settings == null) {
             LOG.warn("Azure Cloud Shell is not configured in any Azure subscription")
-            return
+            return@withBackgroundProgress
         }
 
         val preferredOsType = settings.properties?.preferredOsType ?: "Linux"
@@ -59,18 +74,55 @@ class CloudShellProvisioningService {
         )
         val provisionResult = cloudConsoleService.provision(resourceManagerEndpoint, accessToken, provisionParameters)
         if (provisionResult == null) {
-            LOG.warn("Could not provision cloud shell")
-            return
+            LOG.warn("Unable to provision cloud shell")
+            return@withBackgroundProgress
         }
 
         val provisionUrl = provisionResult.properties.uri
-        if (provisionUrl.isNullOrEmpty())
-        {
+        if (provisionUrl.isNullOrEmpty()) {
             LOG.error("Cloud shell URL was empty")
-            return
+            return@withBackgroundProgress
         }
 
         val shellUrl = "$provisionUrl/terminals"
+        //todo: add tokens
+        val provisionTerminalParameters = CloudConsoleProvisionTerminalParameters(
+            listOf()
+        )
+        val provisionTerminalResult = cloudConsoleService.provisionTerminal(
+            shellUrl,
+            defaultTerminalColumns,
+            defaultTerminalRows,
+            provisionTerminalParameters,
+            accessToken
+        )
+        if (provisionTerminalResult == null) {
+            LOG.warn("Unable to provision cloud shell")
+            return@withBackgroundProgress
+        }
 
+        val socketUri = provisionTerminalResult.socketUri
+        if (socketUri.isNullOrEmpty()) {
+            LOG.error("Socket URI was empty")
+            return@withBackgroundProgress
+        }
+
+        val runner = AzureCloudTerminalFactory
+            .getInstance(project)
+            .createTerminalRunner(provisionUrl, URI(socketUri))
+
+        val terminalWindow = ToolWindowManager.getInstance(project)
+            .getToolWindow(TerminalToolWindowFactory.TOOL_WINDOW_ID)
+            ?: return@withBackgroundProgress
+
+        withContext(Dispatchers.EDT) {
+            terminalWindow.show()
+
+            delay(500.milliseconds)
+
+            TerminalToolWindowManager
+                .getInstance(project).
+                createNewSession(runner)
+        }
     }
 }
