@@ -141,7 +141,7 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
         } else if (rdoContainerAppsEnvironment.isSelected()) {
             config.diagnosticConfig(null);
             Optional.ofNullable(cbEnvironment.getValue()).ifPresent(e -> {
-                if (e instanceof ContainerAppsEnvironmentDraft draft) {
+                if (e instanceof ContainerAppsEnvironmentDraft draft && draft.isDraftForCreating()) {
                     config.environmentConfig(draft.getConfig());
                 } else {
                     config.environment(e.getName());
