@@ -439,8 +439,12 @@ public class FunctionAppInfoPanel extends JPanel implements AzureFormPanel<Funct
     }
 
     private boolean isFlexConsumptionApp() {
-        final AppServicePlan value = selectorServicePlan.getValue();
-        return Optional.ofNullable(value).map(AppServicePlan::getPricingTier).map(PricingTier::isFlexConsumption).orElse(false);
+        if (rdoServicePlan.isSelected()) {
+            final AppServicePlan value = selectorServicePlan.getValue();
+            return Optional.ofNullable(value).map(AppServicePlan::getPricingTier).map(PricingTier::isFlexConsumption).orElse(false);
+        } else {
+            return false;
+        }
     }
 
     @Nullable
