@@ -26,6 +26,8 @@ class CloudConsoleService : Disposable {
         fun getInstance(project: Project) = project.service<CloudConsoleService>()
     }
 
+    private val bearerTokenStorage = mutableListOf<BearerTokens>()
+
     @OptIn(ExperimentalSerializationApi::class)
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
@@ -34,18 +36,24 @@ class CloudConsoleService : Disposable {
                 ignoreUnknownKeys = true
             })
         }
+        install(Auth) {
+            bearer {
+                loadTokens {
+                    bearerTokenStorage.lastOrNull()
+                }
+            }
+        }
+    }
+
+    fun setAccessToken(accessToken: String) {
+        bearerTokenStorage.add(BearerTokens(accessToken, accessToken))
     }
 
     suspend fun getUserSettings(
         resourceManagerEndpoint: String,
-        accessToken: String
     ): CloudConsoleUserSettings? {
         val response =
-            client.get("${resourceManagerEndpoint}providers/Microsoft.Portal/userSettings/cloudconsole?api-version=2023-02-01-preview") {
-                headers {
-                    append(HttpHeaders.Authorization, "Bearer $accessToken")
-                }
-            }
+            client.get("${resourceManagerEndpoint}providers/Microsoft.Portal/userSettings/cloudconsole?api-version=2023-02-01-preview")
         if (!response.status.isSuccess()) return null
 
         return response.body<CloudConsoleUserSettings>()
@@ -53,13 +61,13 @@ class CloudConsoleService : Disposable {
 
     suspend fun provision(
         resourceManagerEndpoint: String,
-        accessToken: String,
+        preferredLocation: String?,
         parameters: CloudConsoleProvisionParameters
     ): CloudConsoleProvisionResult? {
         val response =
             client.put("${resourceManagerEndpoint}providers/Microsoft.Portal/consoles/default?api-version=2023-02-01-preview") {
                 headers {
-                    append(HttpHeaders.Authorization, "Bearer $accessToken")
+                    preferredLocation?.let { append("x-ms-console-preferred-location", it) }
                 }
                 contentType(ContentType.Application.Json)
                 setBody(parameters)
@@ -74,15 +82,15 @@ class CloudConsoleService : Disposable {
         columns: Int,
         rows: Int,
         provisionParameters: CloudConsoleProvisionTerminalParameters,
-        accessToken: String
     ): CloudConsoleProvisionTerminalResult? {
         val response = client.post(url) {
             url {
                 parameters.append("cols", columns.toString())
                 parameters.append("rows", rows.toString())
+                parameters.append("shell", "bash")
             }
             headers {
-                append(HttpHeaders.Authorization, "Bearer $accessToken")
+                append(HttpHeaders.Referrer, url)
             }
             contentType(ContentType.Application.Json)
             setBody(provisionParameters)

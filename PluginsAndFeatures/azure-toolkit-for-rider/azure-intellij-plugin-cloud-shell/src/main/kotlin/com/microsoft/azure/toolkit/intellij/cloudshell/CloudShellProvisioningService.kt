@@ -47,8 +47,8 @@ class CloudShellProvisioningService(private val project: Project) {
             return@withBackgroundProgress
         }
 
-        val resourceManagerEndpoint = account.environment.resourceManagerEndpoint
-        val scopes = ScopeUtil.resourceToScopes(resourceManagerEndpoint)
+        val managementEndpoint = account.environment.managementEndpoint
+        val scopes = ScopeUtil.resourceToScopes(managementEndpoint)
         val request = TokenRequestContext().apply { addScopes(*scopes) }
         val accessToken = account
             .getTenantTokenCredential(subscription.tenantId)
@@ -62,7 +62,11 @@ class CloudShellProvisioningService(private val project: Project) {
         }
 
         val cloudConsoleService = CloudConsoleService.getInstance(project)
-        val settings = cloudConsoleService.getUserSettings(resourceManagerEndpoint, accessToken)
+        cloudConsoleService.setAccessToken(accessToken)
+
+        val resourceManagerEndpoint = account.environment.resourceManagerEndpoint
+
+        val settings = cloudConsoleService.getUserSettings(resourceManagerEndpoint)
         if (settings == null) {
             LOG.warn("Azure Cloud Shell is not configured in any Azure subscription")
             return@withBackgroundProgress
@@ -72,8 +76,12 @@ class CloudShellProvisioningService(private val project: Project) {
         val provisionParameters = CloudConsoleProvisionParameters(
             CloudConsoleProvisionParameterProperties(preferredOsType)
         )
-        val provisionResult = cloudConsoleService.provision(resourceManagerEndpoint, accessToken, provisionParameters)
-        if (provisionResult == null) {
+        val provisionResult = cloudConsoleService.provision(
+            resourceManagerEndpoint,
+            settings.properties?.preferredLocation,
+            provisionParameters
+        )
+        if (provisionResult == null || provisionResult.properties.provisioningState != "Succeeded") {
             LOG.warn("Unable to provision cloud shell")
             return@withBackgroundProgress
         }
@@ -85,16 +93,28 @@ class CloudShellProvisioningService(private val project: Project) {
         }
 
         val shellUrl = "$provisionUrl/terminals"
-        //todo: add tokens
+
+        val keyVaultDnsSuffix = "https://" + account.environment.keyVaultDnsSuffix.trimStart('.') + "/"
+        val vaultScopes = ScopeUtil.resourceToScopes(keyVaultDnsSuffix)
+        val vaultToken = account
+            .getTenantTokenCredential(subscription.tenantId)
+            .getToken(TokenRequestContext().apply { addScopes(*vaultScopes) })
+            .awaitSingleOrNull()
+            ?.token
+
+        if (vaultToken == null) {
+            LOG.error("Unable to obtain graph or vault token")
+            return@withBackgroundProgress
+        }
+
         val provisionTerminalParameters = CloudConsoleProvisionTerminalParameters(
-            listOf()
+            listOf(vaultToken)
         )
         val provisionTerminalResult = cloudConsoleService.provisionTerminal(
             shellUrl,
             defaultTerminalColumns,
             defaultTerminalRows,
             provisionTerminalParameters,
-            accessToken
         )
         if (provisionTerminalResult == null) {
             LOG.warn("Unable to provision cloud shell")
@@ -121,8 +141,7 @@ class CloudShellProvisioningService(private val project: Project) {
             delay(500.milliseconds)
 
             TerminalToolWindowManager
-                .getInstance(project).
-                createNewSession(runner)
+                .getInstance(project).createNewSession(runner)
         }
     }
 }
