@@ -4,8 +4,8 @@
 
 package com.microsoft.azure.toolkit.intellij.cloudshell.controlchannel
 
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
-import fleet.util.logging.logger
 import kotlinx.serialization.json.Json
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
@@ -40,7 +40,7 @@ class CloudConsoleControlChannelWebSocket(
                     }
                 }
             } catch (e: Exception) {
-                LOG.error(e, "Error on receiving message from cloud shell terminal")
+                LOG.error("Error on receiving message from cloud shell terminal", e)
             }
         }
     }

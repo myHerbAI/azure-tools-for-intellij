@@ -10,18 +10,18 @@ import com.intellij.ide.ui.IdeUiService
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.microsoft.azure.toolkit.intellij.cloudshell.rest.CloudConsoleService
 import com.microsoft.azure.toolkit.intellij.cloudshell.rest.CloudConsoleTerminalWebSocket
+import kotlinx.coroutines.CoroutineScope
 import java.net.URI
 
 @Service(Service.Level.PROJECT)
-class AzureCloudTerminalFactory(private val project: Project) {
+class AzureCloudTerminalFactory(private val project: Project, private val scope: CoroutineScope) {
     companion object {
         fun getInstance(project: Project) = project.service<AzureCloudTerminalFactory>()
     }
 
-    fun createTerminalRunner(cloudConsoleBaseUrl: String, socketUri: URI): AzureCloudTerminalRunner {
-        val terminalSocketClient = CloudConsoleTerminalWebSocket(socketUri)
+    fun createTerminalRunner(cloudConsoleBaseUrl: String, socketUri: String): AzureCloudTerminalRunner {
+        val terminalSocketClient = CloudConsoleTerminalWebSocket(URI(socketUri))
         IdeUiService.getInstance().sslSocketFactory?.let {
             // Inject IDEA SSL socket factory
             terminalSocketClient.setSocketFactory(it)
@@ -31,6 +31,7 @@ class AzureCloudTerminalFactory(private val project: Project) {
 
         return AzureCloudTerminalRunner(
             project,
+            scope,
             cloudConsoleBaseUrl,
             socketUri,
             AzureCloudTerminalProcess(terminalSocketClient)

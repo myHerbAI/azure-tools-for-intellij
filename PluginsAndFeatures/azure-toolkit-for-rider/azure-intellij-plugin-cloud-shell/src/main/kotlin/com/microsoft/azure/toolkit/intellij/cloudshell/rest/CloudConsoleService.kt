@@ -81,6 +81,7 @@ class CloudConsoleService : Disposable {
         url: String,
         columns: Int,
         rows: Int,
+        referrer: String,
         provisionParameters: CloudConsoleProvisionTerminalParameters,
     ): CloudConsoleProvisionTerminalResult? {
         val response = client.post(url) {
@@ -90,7 +91,7 @@ class CloudConsoleService : Disposable {
                 parameters.append("shell", "bash")
             }
             headers {
-                append(HttpHeaders.Referrer, url)
+                append(HttpHeaders.Referrer, referrer)
             }
             contentType(ContentType.Application.Json)
             setBody(provisionParameters)
@@ -98,6 +99,45 @@ class CloudConsoleService : Disposable {
         if (!response.status.isSuccess()) return null
 
         return response.body<CloudConsoleProvisionTerminalResult>()
+    }
+
+    suspend fun resizeTerminal(url: String, columns: Int, rows: Int): Boolean {
+        val response = client.post(url) {
+            url {
+                parameters.append("cols", columns.toString())
+                parameters.append("rows", rows.toString())
+            }
+            contentType(ContentType.Application.Json)
+            setBody("{}")
+        }
+
+        return response.status.isSuccess()
+    }
+
+    suspend fun openPreviewPort(url: String): PreviewPortResult? {
+        val response = client.post(url) {
+            contentType(ContentType.Application.Json)
+        }
+        if (!response.status.isSuccess()) return null
+
+        return response.body<PreviewPortResult>()
+    }
+
+    suspend fun closePreviewPort(url: String): PreviewPortResult? {
+        val response = client.post(url) {
+            contentType(ContentType.Application.Json)
+        }
+        if (!response.status.isSuccess()) return null
+
+        return response.body<PreviewPortResult>()
+    }
+
+    suspend fun uploadFileToTerminal() {
+
+    }
+
+    suspend fun downloadFileFromTerminal() {
+
     }
 
     override fun dispose() = client.close()

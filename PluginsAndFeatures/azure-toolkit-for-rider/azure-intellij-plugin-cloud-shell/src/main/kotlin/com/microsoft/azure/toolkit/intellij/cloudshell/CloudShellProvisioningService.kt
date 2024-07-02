@@ -107,6 +107,8 @@ class CloudShellProvisioningService(private val project: Project) {
             return@withBackgroundProgress
         }
 
+        val shellUri = URI(shellUrl)
+        val referrer = "${shellUri.scheme}://${shellUri.host}/\$hc${shellUri.path}"
         val provisionTerminalParameters = CloudConsoleProvisionTerminalParameters(
             listOf(vaultToken)
         )
@@ -114,6 +116,7 @@ class CloudShellProvisioningService(private val project: Project) {
             shellUrl,
             defaultTerminalColumns,
             defaultTerminalRows,
+            referrer,
             provisionTerminalParameters,
         )
         if (provisionTerminalResult == null) {
@@ -121,7 +124,7 @@ class CloudShellProvisioningService(private val project: Project) {
             return@withBackgroundProgress
         }
 
-        val socketUri = provisionTerminalResult.socketUri
+        val socketUri = provisionTerminalResult.socketUri?.trimEnd('/')
         if (socketUri.isNullOrEmpty()) {
             LOG.error("Socket URI was empty")
             return@withBackgroundProgress
@@ -129,7 +132,7 @@ class CloudShellProvisioningService(private val project: Project) {
 
         val runner = AzureCloudTerminalFactory
             .getInstance(project)
-            .createTerminalRunner(provisionUrl, URI(socketUri))
+            .createTerminalRunner(provisionUrl, socketUri)
 
         val terminalWindow = ToolWindowManager.getInstance(project)
             .getToolWindow(TerminalToolWindowFactory.TOOL_WINDOW_ID)

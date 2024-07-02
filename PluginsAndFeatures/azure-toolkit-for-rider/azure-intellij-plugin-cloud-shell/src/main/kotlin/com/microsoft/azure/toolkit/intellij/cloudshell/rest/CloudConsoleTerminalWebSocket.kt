@@ -5,11 +5,14 @@
 package com.microsoft.azure.toolkit.intellij.cloudshell.rest
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.util.io.toByteArray
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
 import java.net.URI
+import java.nio.ByteBuffer
 
 class CloudConsoleTerminalWebSocket(serverURI: URI): WebSocketClient(serverURI) {
 
@@ -32,7 +35,14 @@ class CloudConsoleTerminalWebSocket(serverURI: URI): WebSocketClient(serverURI) 
     }
 
     override fun onError(ex: Exception?) {
-        // TODO
+        thisLogger().error("Exception in the cloud console WebSocket", ex)
+    }
+
+    override fun onMessage(bytes: ByteBuffer?) {
+        if (bytes != null) {
+            socketReceiver.write(bytes.toByteArray())
+            socketReceiver.flush()
+        }
     }
 
     override fun onClose(code: Int, reason: String?, remote: Boolean) {
