@@ -176,6 +176,7 @@ dependencies {
     implementation(project(":azure-sdk-reference-book"))
     implementation(project(":azure-intellij-plugin-springcloud"))
     implementation(project(":azure-intellij-plugin-storage"))
+    implementation(project(":azure-intellij-plugin-storage-java"))
     implementation(project(":azure-intellij-plugin-appservice"))
     implementation(project(":azure-intellij-plugin-appservice-java"))
     implementation(project(":azure-intellij-plugin-arm"))
