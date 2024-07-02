@@ -34,6 +34,7 @@
             <option value="$PROJECT_DIR$/azure-intellij-plugin-lib-java" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-monitor" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-redis" />
+            <option value="$PROJECT_DIR$/azure-intellij-plugin-redis-java" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-samples" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-service-explorer" />
             <option value="$PROJECT_DIR$/azure-intellij-plugin-servicebus" />
