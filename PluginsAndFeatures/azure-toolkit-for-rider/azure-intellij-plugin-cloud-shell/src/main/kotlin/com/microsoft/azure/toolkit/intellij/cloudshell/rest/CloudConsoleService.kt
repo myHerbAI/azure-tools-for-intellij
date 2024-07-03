@@ -8,6 +8,8 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.io.move
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -15,16 +17,24 @@ import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import java.nio.file.Path
+import kotlin.io.path.appendBytes
+import kotlin.io.path.createTempFile
 
 @Service(Service.Level.PROJECT)
 class CloudConsoleService : Disposable {
     companion object {
         fun getInstance(project: Project) = project.service<CloudConsoleService>()
     }
+
+    private val contentDispositionHeaderRegex = "(?<=filename=\").*?(?=\")".toRegex()
 
     private val bearerTokenStorage = mutableListOf<BearerTokens>()
 
@@ -132,12 +142,51 @@ class CloudConsoleService : Disposable {
         return response.body<PreviewPortResult>()
     }
 
-    suspend fun uploadFileToTerminal() {
+    suspend fun uploadFileToTerminal(url: String, fileName: String, file: VirtualFile): Boolean {
+        val response = client.post(url) {
+            setBody(MultiPartFormDataContent(
+                formData {
+                    append("uploading-file", file.contentsToByteArray(), Headers.build {
+                        append(HttpHeaders.ContentType, ContentType.Application.OctetStream)
+                        append(HttpHeaders.ContentDisposition, "filename=\"$fileName\"")
+                    })
+                }
+            ))
+        }
 
+        return response.status.isSuccess()
     }
 
-    suspend fun downloadFileFromTerminal() {
+    suspend fun downloadFileFromTerminal(url: String): Path {
+        val file = createTempFile("cloudshell-")
+        var fileNameFromHeaders: String? = null
 
+        client.prepareGet(url).execute { httpResponse ->
+            val contentDisposition = httpResponse.headers["Content-Disposition"]
+            if (contentDisposition != null) {
+                val match = contentDispositionHeaderRegex.find(contentDisposition)
+                if (match != null) {
+                    fileNameFromHeaders = match.value
+                        .replace('/', '-')
+                        .replace('\\', '-')
+                }
+            }
+
+            val channel: ByteReadChannel = httpResponse.body()
+            while (!channel.isClosedForRead) {
+                val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
+                while (!packet.isEmpty) {
+                    val bytes = packet.readBytes()
+                    file.appendBytes(bytes)
+                }
+            }
+        }
+
+        return fileNameFromHeaders?.let {
+            val newPath = file.parent.resolve(it)
+            file.move(newPath)
+            newPath
+        } ?: file
     }
 
     override fun dispose() = client.close()

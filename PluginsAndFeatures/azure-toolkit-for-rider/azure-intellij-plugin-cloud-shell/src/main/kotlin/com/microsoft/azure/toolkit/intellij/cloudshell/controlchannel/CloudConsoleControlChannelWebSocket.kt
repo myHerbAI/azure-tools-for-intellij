@@ -10,7 +10,6 @@ import kotlinx.serialization.json.Json
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
-import kotlin.Exception
 
 class CloudConsoleControlChannelWebSocket(
     serverURI: URI,
@@ -33,19 +32,22 @@ class CloudConsoleControlChannelWebSocket(
                 val controlMessage = json.decodeFromString<ControlMessage>(message)
                 when (controlMessage.audience) {
                     "download" -> {
-                        DownloadControlMessageHandler(cloudConsoleBaseUrl, project).handle(message)
+                        DownloadControlMessageHandler.getInstance(project).handle(cloudConsoleBaseUrl, message)
                     }
+
                     "url" -> {
-                        UrlControlMessageHandler(project).handle(message)
+                        UrlControlMessageHandler.getInstance(project).handle(message)
                     }
                 }
             } catch (e: Exception) {
-                LOG.error("Error on receiving message from cloud shell terminal", e)
+                LOG.warn("Error on receiving message from cloud shell terminal", e)
             }
         }
     }
 
     override fun onClose(code: Int, reason: String?, remote: Boolean) {}
 
-    override fun onError(ex: Exception?) {}
+    override fun onError(ex: Exception?) {
+        LOG.warn("Exception in the cloud console control WebSocket", ex)
+    }
 }

@@ -1,6 +1,10 @@
 <idea-plugin>
     <depends>org.jetbrains.plugins.terminal</depends>
 
+    <extensions defaultExtensionNs="com.intellij">
+        <notificationGroup id="Azure CloudShell" displayType="BALLOON" isLogByDefault="true"/>
+    </extensions>
+
     <actions>
         <action id="AzureToolkit.CloudShell.Start"
                 class="com.microsoft.azure.toolkit.intellij.cloudshell.actions.StartAzureCloudShellAction"
@@ -8,5 +12,24 @@
                 description="Start Azure Cloud Shell"
                 icon="AllIcons.Actions.Execute">
         </action>
+
+        <group id="AzureToolkit.CloudShell.WebPreview"
+               class="com.intellij.openapi.actionSystem.DefaultActionGroup"
+               text="Web Preview"
+               description="Web preview"
+               popup="true">
+
+            <action id="AzureToolkit.CloudShell.WebPreview.OpenPort"
+                    class="com.microsoft.azure.toolkit.intellij.cloudshell.actions.OpenCloudShellPortAction"
+                    text="Open Port"
+                    description="Open web preview port"
+                    icon="AllIcons.Actions.Preview" />
+
+            <group id="AzureToolkit.CloudShell.WebPreview.ClosePortGroup"
+                   class="com.microsoft.azure.toolkit.intellij.cloudshell.actions.CloseCloudShellPortActionGroup"
+                   text="Close Port"
+                   description="Close web preview port"
+                   popup="true" />
+        </group>
     </actions>
 </idea-plugin>

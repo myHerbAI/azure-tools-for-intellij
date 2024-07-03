@@ -80,6 +80,12 @@ class AzureCloudTerminalRunner(
 
             override fun uploadFile(fileName: String, file: VirtualFile) {
                 val cloudConsoleService = CloudConsoleService.getInstance(project)
+                scope.launch {
+                    val result = cloudConsoleService.uploadFileToTerminal(uploadFileToTerminalUrl, fileName, file)
+                    if (!result) {
+                        LOG.warn("Could not upload file to the cloud terminal")
+                    }
+                }
             }
 
             override fun openPreviewPort(port: Int, openInBrowser: Boolean) {
