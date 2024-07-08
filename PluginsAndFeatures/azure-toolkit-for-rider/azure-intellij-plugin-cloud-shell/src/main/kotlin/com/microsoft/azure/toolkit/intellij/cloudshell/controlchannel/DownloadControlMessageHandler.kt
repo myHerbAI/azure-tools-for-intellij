@@ -57,7 +57,7 @@ class DownloadControlMessageHandler(
             val dialog = FileChooserFactory
                 .getInstance()
                 .createSaveFileDialog(
-                    FileSaverDescriptor("Save file from Azure Cloud Shell", "", file.extension),
+                    FileSaverDescriptor("Save File From Azure Cloud Shell", "", file.extension),
                     project
                 )
             dialog.save(

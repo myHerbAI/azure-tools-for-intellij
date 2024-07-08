@@ -9,14 +9,16 @@ package com.microsoft.azure.toolkit.intellij.cloudshell.actions
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.fileChooser.FileChooser
+import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.progress.currentThreadCoroutineScope
-import com.intellij.openapi.ui.Messages
-import com.intellij.platform.ide.progress.withBackgroundProgress
+import com.intellij.openapi.vfs.VirtualFile
 import com.microsoft.azure.toolkit.intellij.cloudshell.CloudShellService
-import com.microsoft.azure.toolkit.intellij.cloudshell.utils.PreviewPortInputValidator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class OpenCloudShellPortAction : AnAction() {
+class UploadToCloudShellAction : AnAction() {
     override fun update(e: AnActionEvent) {
         val project = e.project
         if (project == null) {
@@ -32,18 +34,18 @@ class OpenCloudShellPortAction : AnAction() {
         val project = e.project ?: return
         val activeConnector = CloudShellService.getInstance(project).activeConnector() ?: return
 
-        val port = Messages.showInputDialog(
-            "Configure port to preview (in ranges [1025-8079] and [8091-49151]):",
-            "Configure Port To Preview",
-            null,
-            null,
-            PreviewPortInputValidator()
-        )?.toIntOrNull() ?: return
-
-        currentThreadCoroutineScope().launch {
-            withBackgroundProgress(project, "Opening preview port $port in Azure Cloud Shell...") {
-                activeConnector.openPreviewPort(port, true)
+        currentThreadCoroutineScope().launch(Dispatchers.EDT) {
+            val descriptor = FileChooserDescriptor(true, false, false, true, false, true).apply {
+                title = "Select File(s) To Upload To Azure Cloud Shell"
             }
+            FileChooser.chooseFiles(descriptor, project, null, null, object : FileChooser.FileChooserConsumer {
+                override fun consume(files: MutableList<VirtualFile>) = files.forEach {
+                    activeConnector.uploadFile(it.name, it)
+                }
+
+                override fun cancelled() {
+                }
+            })
         }
     }
 

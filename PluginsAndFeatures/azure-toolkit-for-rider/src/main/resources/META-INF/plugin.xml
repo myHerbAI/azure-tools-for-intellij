@@ -3,83 +3,86 @@
   -->
 
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude" url="https://github.com/JetBrains/azure-tools-for-intellij">
-  <id>com.intellij.resharper.azure</id>
-  <name>Azure Toolkit for Rider</name>
-  <vendor url="https://www.jetbrains.com">JetBrains</vendor>
+    <id>com.intellij.resharper.azure</id>
+    <name>Azure Toolkit for Rider</name>
+    <vendor url="https://www.jetbrains.com">JetBrains</vendor>
 
-  <xi:include href="/META-INF/azure-intellij-plugin-lib.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/azure-intellij-plugin-lib-dotnet.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/azure-intellij-resource-connector-lib.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/azure-intellij-plugin-service-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/azure-intellij-plugin-appservice.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/azure-intellij-plugin-appservice-dotnet.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/azure-intellij-plugin-arm.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/azure-intellij-plugin-database.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/azure-intellij-plugin-database-dotnet.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/azure-intellij-plugin-cloud-shell.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/azure-intellij-plugin-lib.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/azure-intellij-plugin-lib-dotnet.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/azure-intellij-resource-connector-lib.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/azure-intellij-plugin-service-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/azure-intellij-plugin-appservice.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/azure-intellij-plugin-appservice-dotnet.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/azure-intellij-plugin-arm.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/azure-intellij-plugin-database.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/azure-intellij-plugin-database-dotnet.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/azure-intellij-plugin-cloud-shell.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
-  <resource-bundle>messages.RiderAzureMessages</resource-bundle>
+    <resource-bundle>messages.RiderAzureMessages</resource-bundle>
 
-  <depends>com.intellij.modules.rider</depends>
+    <depends>com.intellij.modules.rider</depends>
 
-  <extensions defaultExtensionNs="com.intellij">
-    <applicationConfigurable parentId="tools"
-                             displayName="Azure"
-                             id="com.microsoft.intellij.AzureConfigurable"
-                             instance="com.microsoft.azure.toolkit.intellij.settings.AzureConfigurable"/>
-    <projectConfigurable parentId="com.microsoft.intellij.AzureConfigurable"
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationConfigurable parentId="tools"
+                                 displayName="Azure"
+                                 id="com.microsoft.intellij.AzureConfigurable"
+                                 instance="com.microsoft.azure.toolkit.intellij.settings.AzureConfigurable"/>
+        <projectConfigurable parentId="com.microsoft.intellij.AzureConfigurable"
                              displayName="Azure Identity"
                              id="com.microsoft.azure.toolkit.intellij.identity.IdentityConfigurable"
                              instance="com.microsoft.azure.toolkit.intellij.identity.IdentityConfigurable"/>
 
-    <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.icons.RiderIconPatcherRegistrar"/>
+        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.icons.RiderIconPatcherRegistrar"/>
 
-    <dependencySupport kind="dotnet" coordinate="Microsoft.NET.Sdk.Functions" displayName="Azure Toolkit"/>
-    <dependencySupport kind="dotnet" coordinate="Microsoft.Azure.Common" displayName="Azure Toolkit"/>
-    <dependencySupport kind="dotnet" coordinate="Microsoft.Azure.Functions.Worker" displayName="Azure Toolkit"/>
-    <dependencySupport kind="dotnet" coordinate="Microsoft.Azure.Storage.Common" displayName="Azure Toolkit"/>
-    <dependencySupport kind="dotnet" coordinate="Microsoft.Azure.Storage.Blob" displayName="Azure Toolkit"/>
-    <dependencySupport kind="dotnet" coordinate="Microsoft.Azure.WebJobs" displayName="Azure Toolkit"/>
-    <dependencySupport kind="dotnet" coordinate="Microsoft.Identity.Client" displayName="Azure Toolkit"/>
-    <dependencySupport kind="dotnet" coordinate="Microsoft.Identity.Web" displayName="Azure Toolkit"/>
-    <dependencySupport kind="executable" coordinate="az"/>
+        <dependencySupport kind="dotnet" coordinate="Microsoft.NET.Sdk.Functions" displayName="Azure Toolkit"/>
+        <dependencySupport kind="dotnet" coordinate="Microsoft.Azure.Common" displayName="Azure Toolkit"/>
+        <dependencySupport kind="dotnet" coordinate="Microsoft.Azure.Functions.Worker" displayName="Azure Toolkit"/>
+        <dependencySupport kind="dotnet" coordinate="Microsoft.Azure.Storage.Common" displayName="Azure Toolkit"/>
+        <dependencySupport kind="dotnet" coordinate="Microsoft.Azure.Storage.Blob" displayName="Azure Toolkit"/>
+        <dependencySupport kind="dotnet" coordinate="Microsoft.Azure.WebJobs" displayName="Azure Toolkit"/>
+        <dependencySupport kind="dotnet" coordinate="Microsoft.Identity.Client" displayName="Azure Toolkit"/>
+        <dependencySupport kind="dotnet" coordinate="Microsoft.Identity.Web" displayName="Azure Toolkit"/>
+        <dependencySupport kind="executable" coordinate="az"/>
 
-    <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
+        <errorHandler implementation="com.intellij.diagnostic.JetBrainsMarketplaceErrorReportSubmitter"/>
 
-    <iconMapper mappingFile="AzureIconMappings.json"/>
-  </extensions>
+        <iconMapper mappingFile="AzureIconMappings.json"/>
+    </extensions>
 
-  <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
-    <actions implementation="com.microsoft.azure.toolkit.intellij.settings.IntellijCommonActionsContributor"/>
-  </extensions>
+    <extensions defaultExtensionNs="com.microsoft.tooling.msservices.intellij.azure">
+        <actions implementation="com.microsoft.azure.toolkit.intellij.settings.IntellijCommonActionsContributor"/>
+    </extensions>
 
-  <applicationListeners>
-    <listener class="com.microsoft.azure.toolkit.intellij.base.PluginLifecycleListener" topic="com.intellij.ide.AppLifecycleListener"/>
-  </applicationListeners>
+    <applicationListeners>
+        <listener class="com.microsoft.azure.toolkit.intellij.base.PluginLifecycleListener"
+                  topic="com.intellij.ide.AppLifecycleListener"/>
+    </applicationListeners>
 
-  <actions>
-    <group id="AzurePopupGroup" text="Azure" description="Azure" icon="/icons/Rider/Azure.svg" popup="true">
-      <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
-      <reference ref="Actions.WebAppDeployAction"/>
-      <reference ref="Actions.WebAppContainersDeployAction"/>
-      <reference ref="Actions.FunctionAppDeployAction"/>
-    </group>
+    <actions>
+        <group id="AzurePopupGroup" text="Azure" description="Azure" icon="/icons/Rider/Azure.svg" popup="true">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+            <reference ref="Actions.WebAppDeployAction"/>
+            <reference ref="Actions.WebAppContainersDeployAction"/>
+            <reference ref="Actions.FunctionAppDeployAction"/>
+        </group>
 
-    <group id="AzureToolkit.AzureActionGroup"
-           class="com.intellij.openapi.actionSystem.DefaultActionGroup"
-           text="Azure"
-           description="Contains Azure tools plugin actions"
-           icon="/icons/Rider/Azure.svg"
-           popup="true">
-        <add-to-group group-id="ToolsMenu" anchor="first"/>
-        <reference ref="AzureToolkit.SelectSubscriptions"/>
-        <separator/>
-        <reference ref="Actions.WebAppDeployAction"/>
-        <reference ref="Actions.WebAppContainersDeployAction"/>
-        <reference ref="Actions.FunctionAppDeployAction"/>
-        <separator/>
-        <reference ref="AzureToolkit.AzureSignIn"/>
-    </group>
-  </actions>
+        <group id="AzureToolkit.AzureActionGroup"
+               class="com.intellij.openapi.actionSystem.DefaultActionGroup"
+               text="Azure"
+               description="Contains Azure tools plugin actions"
+               icon="/icons/Rider/Azure.svg"
+               popup="true">
+            <add-to-group group-id="ToolsMenu" anchor="first"/>
+            <reference ref="AzureToolkit.SelectSubscriptions"/>
+            <separator/>
+            <reference ref="Actions.WebAppDeployAction"/>
+            <reference ref="Actions.WebAppContainersDeployAction"/>
+            <reference ref="Actions.FunctionAppDeployAction"/>
+            <separator/>
+            <reference ref="AzureToolkit.CloudShell.Group"/>
+            <separator/>
+            <reference ref="AzureToolkit.AzureSignIn"/>
+        </group>
+    </actions>
 
 </idea-plugin>

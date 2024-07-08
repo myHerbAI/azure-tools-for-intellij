@@ -21,6 +21,10 @@ abstract class AzureCloudProcessTtyConnector(process: CloudTerminalProcess) :
 
     abstract fun closePreviewPort(port: Int)
 
+    fun closePreviewPorts() = openPreviewPorts.toIntArray().forEach {
+        closePreviewPort(it)
+    }
+
     override fun read(buf: CharArray?, offset: Int, length: Int): Int {
         try {
             return super.read(buf, offset, length)
