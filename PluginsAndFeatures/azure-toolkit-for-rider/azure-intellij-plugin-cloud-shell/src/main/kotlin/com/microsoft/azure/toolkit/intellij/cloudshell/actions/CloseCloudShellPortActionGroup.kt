@@ -18,16 +18,16 @@ class CloseCloudShellPortActionGroup : ActionGroup() {
         val activeConnector = CloudShellService.getInstance(project).activeConnector()
 
         e.presentation.isHideGroupIfEmpty = true
-        e.presentation.isEnabled = activeConnector != null && activeConnector.openPreviewPorts.isNotEmpty()
+        e.presentation.isEnabled = activeConnector != null && activeConnector.hasPreviewPorts()
     }
 
     override fun getChildren(e: AnActionEvent?): Array<AnAction> {
         val project = e?.project ?: return emptyArray()
         val activeConnector = CloudShellService.getInstance(project).activeConnector() ?: return emptyArray()
 
-        if (activeConnector.openPreviewPorts.isEmpty()) return emptyArray()
+        if (!activeConnector.hasPreviewPorts()) return emptyArray()
 
-        val actions = activeConnector.openPreviewPorts.sorted()
+        val actions = activeConnector.getPreviewPorts()
             .map { CloseCloudShellPortAction(it) }
             .toMutableList<AnAction>()
 

@@ -10,6 +10,7 @@ import kotlinx.serialization.json.Json
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
+import java.nio.ByteBuffer
 
 class CloudConsoleControlChannelWebSocket(
     serverURI: URI,
@@ -45,7 +46,13 @@ class CloudConsoleControlChannelWebSocket(
         }
     }
 
-    override fun onClose(code: Int, reason: String?, remote: Boolean) {}
+    override fun onMessage(bytes: ByteBuffer?) {
+        super.onMessage(bytes)
+    }
+
+    override fun onClose(code: Int, reason: String?, remote: Boolean) {
+        LOG.trace("Closing control channel websocket")
+    }
 
     override fun onError(ex: Exception?) {
         LOG.warn("Exception in the cloud console control WebSocket", ex)

@@ -4,26 +4,94 @@
 
 package com.microsoft.azure.toolkit.intellij.cloudshell.terminal
 
+import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.jediterm.core.util.TermSize
 import com.jediterm.terminal.ProcessTtyConnector
+import com.microsoft.azure.toolkit.intellij.cloudshell.CloudShellService
+import com.microsoft.azure.toolkit.intellij.cloudshell.rest.CloudConsoleService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.plugins.terminal.cloud.CloudTerminalProcess
 import java.io.IOException
 import java.nio.charset.Charset
 
-abstract class AzureCloudProcessTtyConnector(process: CloudTerminalProcess) :
-    ProcessTtyConnector(process, Charset.defaultCharset()) {
+class AzureCloudProcessTtyConnector(
+    process: CloudTerminalProcess,
+    private val project: Project,
+    private val scope: CoroutineScope,
+    private val uploadFileToTerminalUrl: String,
+    private val previewPortBaseUrl: String,
+    private val resizeTerminalUrl: String
+) : ProcessTtyConnector(process, Charset.defaultCharset()) {
+    companion object {
+        private val LOG = logger<AzureCloudProcessTtyConnector>()
+    }
 
-    abstract fun uploadFile(fileName: String, file: VirtualFile)
+    private val openPreviewPorts = mutableListOf<Int>()
 
-    val openPreviewPorts = mutableListOf<Int>()
+    fun hasPreviewPorts() = openPreviewPorts.isNotEmpty()
 
-    abstract fun openPreviewPort(port: Int, openInBrowser: Boolean)
+    fun getPreviewPorts() = openPreviewPorts.sorted()
 
-    abstract fun closePreviewPort(port: Int)
+    fun uploadFile(fileName: String, file: VirtualFile) {
+        val cloudConsoleService = CloudConsoleService.getInstance(project)
+        scope.launch {
+            val result = cloudConsoleService.uploadFileToTerminal(uploadFileToTerminalUrl, fileName, file)
+            if (!result) {
+                LOG.warn("Could not upload file to the cloud terminal")
+            }
+        }
+    }
+
+    fun openPreviewPort(port: Int, openInBrowser: Boolean) {
+        val cloudConsoleService = CloudConsoleService.getInstance(project)
+        scope.launch {
+            val result = cloudConsoleService.openPreviewPort("$previewPortBaseUrl/$port/open")
+            if (result == null) {
+                LOG.warn("Could not open preview port")
+                return@launch
+            }
+
+            openPreviewPorts.add(port)
+
+            val url = result.url
+            if (openInBrowser && url != null) {
+                BrowserUtil.open(url)
+            }
+        }
+    }
+
+    fun closePreviewPort(port: Int) {
+        val cloudConsoleService = CloudConsoleService.getInstance(project)
+        scope.launch {
+            val result = cloudConsoleService.closePreviewPort("$previewPortBaseUrl/$port/close")
+            if (result == null) {
+                LOG.warn("Could not close preview port")
+                return@launch
+            }
+
+            openPreviewPorts.remove(port)
+        }
+    }
 
     fun closePreviewPorts() = openPreviewPorts.toIntArray().forEach {
         closePreviewPort(it)
     }
+
+    override fun resize(termSize: TermSize) {
+        val cloudConsoleService = CloudConsoleService.getInstance(project)
+        scope.launch {
+            val result = cloudConsoleService.resizeTerminal(resizeTerminalUrl, termSize.columns, termSize.rows)
+            if (!result) {
+                LOG.warn("Could not resize cloud terminal")
+            }
+        }
+    }
+
+    override fun getName() = "Connector: Azure Cloud Shell"
 
     override fun read(buf: CharArray?, offset: Int, length: Int): Int {
         try {
@@ -61,4 +129,10 @@ abstract class AzureCloudProcessTtyConnector(process: CloudTerminalProcess) :
         exception.message == null || !exception.message!!.contains("pipe closed", true)
 
     override fun isConnected() = true
+
+    override fun close() {
+        val cloudShellService = CloudShellService.getInstance(project)
+        cloudShellService.unregisterConnector(this)
+        super.close()
+    }
 }

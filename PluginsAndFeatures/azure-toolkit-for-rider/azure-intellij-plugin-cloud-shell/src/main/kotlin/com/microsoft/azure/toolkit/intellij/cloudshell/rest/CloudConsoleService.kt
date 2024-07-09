@@ -127,6 +127,7 @@ class CloudConsoleService : Disposable {
     suspend fun openPreviewPort(url: String): PreviewPortResult? {
         val response = client.post(url) {
             contentType(ContentType.Application.Json)
+            setBody("{}")
         }
         if (!response.status.isSuccess()) return null
 
@@ -136,6 +137,7 @@ class CloudConsoleService : Disposable {
     suspend fun closePreviewPort(url: String): PreviewPortResult? {
         val response = client.post(url) {
             contentType(ContentType.Application.Json)
+            setBody("{}")
         }
         if (!response.status.isSuccess()) return null
 
