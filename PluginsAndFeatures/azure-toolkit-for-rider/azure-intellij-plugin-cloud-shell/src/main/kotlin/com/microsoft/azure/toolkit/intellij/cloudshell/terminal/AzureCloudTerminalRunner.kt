@@ -8,15 +8,15 @@ package com.microsoft.azure.toolkit.intellij.cloudshell.terminal
 
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.platform.util.coroutines.childScope
 import com.jediterm.terminal.TtyConnector
 import com.microsoft.azure.toolkit.intellij.cloudshell.CloudShellService
-import com.microsoft.azure.toolkit.intellij.cloudshell.controlchannel.CloudConsoleControlChannelWebSocket
+import com.microsoft.azure.toolkit.intellij.cloudshell.controlchannel.CloudConsoleControlChannelClient
 import kotlinx.coroutines.CoroutineScope
 import org.apache.http.client.utils.URIBuilder
 import org.jetbrains.plugins.terminal.cloud.CloudTerminalProcess
 import org.jetbrains.plugins.terminal.cloud.CloudTerminalRunner
-import java.net.URI
 
 class AzureCloudTerminalRunner(
     project: Project,
@@ -51,22 +51,23 @@ class AzureCloudTerminalRunner(
 
         LOG.trace("Creating a new tty connector")
 
-        // Connect control socket
-        // TODO: for now, this does not yet need any other wiring, it's just a convenience for e.g. downloading files
-        val controlSocketClient = CloudConsoleControlChannelWebSocket(
-            URI(controlChannelSocketUrl),
+        val controlClient = CloudConsoleControlChannelClient(
+            controlChannelSocketUrl,
             cloudConsoleBaseUrl,
             project
         )
-        controlSocketClient.connectBlocking()
+        controlClient.connect(scope.childScope("CloudConsoleControlChannelClient"))
 
-        val connector = getConnector(process)
+        val connector = createConnector(process)
+        Disposer.register(connector, controlClient)
+
         cloudShellService.registerConnector(connector)
+        Disposer.register(cloudShellService, connector)
 
         return connector
     }
 
-    private fun getConnector(process: CloudTerminalProcess) = AzureCloudProcessTtyConnector(
+    private fun createConnector(process: CloudTerminalProcess) = AzureCloudProcessTtyConnector(
         process,
         project,
         scope.childScope("AzureCloudProcessTtyConnector"),

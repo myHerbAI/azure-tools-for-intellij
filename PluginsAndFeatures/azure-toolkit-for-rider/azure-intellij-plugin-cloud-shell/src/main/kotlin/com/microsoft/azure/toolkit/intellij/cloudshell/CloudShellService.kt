@@ -4,13 +4,14 @@
 
 package com.microsoft.azure.toolkit.intellij.cloudshell
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.cloudshell.terminal.AzureCloudProcessTtyConnector
 
 @Service(Service.Level.PROJECT)
-class CloudShellService {
+class CloudShellService: Disposable {
     companion object {
         fun getInstance(project: Project) = project.service<CloudShellService>()
     }
@@ -26,4 +27,7 @@ class CloudShellService {
     }
 
     fun activeConnector() = connectors.firstOrNull { it.isConnected }
+
+    override fun dispose() {
+    }
 }

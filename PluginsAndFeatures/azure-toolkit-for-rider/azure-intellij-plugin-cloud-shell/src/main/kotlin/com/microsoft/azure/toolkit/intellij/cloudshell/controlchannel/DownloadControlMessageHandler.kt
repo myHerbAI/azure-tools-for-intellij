@@ -22,7 +22,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 import kotlin.io.path.moveTo
 
 @Service(Service.Level.PROJECT)
@@ -35,13 +34,8 @@ class DownloadControlMessageHandler(
         private val LOG = logger<DownloadControlMessageHandler>()
     }
 
-    private val json = Json {
-        ignoreUnknownKeys = true
-    }
-
-    fun handle(cloudConsoleBaseUrl: String, jsonControlMessage: String) = scope.launch(Dispatchers.Default) {
-        val message = json.decodeFromString<DownloadControlMessage>(jsonControlMessage)
-        if (message.fileUri.isEmpty()) {
+    fun handle(cloudConsoleBaseUrl: String, message: ControlMessage) = scope.launch(Dispatchers.Default) {
+        if (message.fileUri.isNullOrEmpty()) {
             LOG.warn("File URI is empty in the control message")
             return@launch
         }

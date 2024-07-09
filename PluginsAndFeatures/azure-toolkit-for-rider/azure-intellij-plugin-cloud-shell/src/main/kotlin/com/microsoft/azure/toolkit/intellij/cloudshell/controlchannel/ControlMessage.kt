@@ -8,17 +8,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ControlMessage(
-    val audience: String
-)
-
-@Serializable
-data class UrlControlMessage(
     val audience: String,
-    val url: String
-)
-
-@Serializable
-data class DownloadControlMessage(
-    val audience : String,
-    val fileUri : String
+    val url: String?,
+    val fileUri : String?
 )

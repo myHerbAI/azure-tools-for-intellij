@@ -5,6 +5,7 @@
 package com.microsoft.azure.toolkit.intellij.cloudshell.terminal
 
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -25,7 +26,7 @@ class AzureCloudProcessTtyConnector(
     private val uploadFileToTerminalUrl: String,
     private val previewPortBaseUrl: String,
     private val resizeTerminalUrl: String
-) : ProcessTtyConnector(process, Charset.defaultCharset()) {
+) : ProcessTtyConnector(process, Charset.defaultCharset()), Disposable {
     companion object {
         private val LOG = logger<AzureCloudProcessTtyConnector>()
     }
@@ -134,5 +135,8 @@ class AzureCloudProcessTtyConnector(
         val cloudShellService = CloudShellService.getInstance(project)
         cloudShellService.unregisterConnector(this)
         super.close()
+    }
+
+    override fun dispose() {
     }
 }

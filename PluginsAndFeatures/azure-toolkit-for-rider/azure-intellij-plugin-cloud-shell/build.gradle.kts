@@ -53,6 +53,10 @@ dependencies {
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-jdk8")
     }
+    implementation("io.ktor:ktor-client-websockets:2.3.12") {
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-jdk8")
+    }
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.0") {
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")

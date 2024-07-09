@@ -31,13 +31,8 @@ class UrlControlMessageHandler(
 
     private val client = HttpClient(CIO)
 
-    private val json = Json {
-        ignoreUnknownKeys = true
-    }
-
-    fun handle(jsonControlMessage: String) = scope.launch(Dispatchers.Default) {
-        val message = json.decodeFromString<UrlControlMessage>(jsonControlMessage)
-        if (message.url.isEmpty()) {
+    fun handle(message: ControlMessage) = scope.launch(Dispatchers.Default) {
+        if (message.url.isNullOrEmpty()) {
             LOG.warn("URL is empty in the control message")
             return@launch
         }
