@@ -10,7 +10,6 @@ import com.intellij.ide.ui.IdeUiService
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.microsoft.azure.toolkit.intellij.cloudshell.rest.CloudConsoleTerminalWebSocket
 import kotlinx.coroutines.CoroutineScope
 import java.net.URI
 

@@ -4,7 +4,6 @@
 
 package com.microsoft.azure.toolkit.intellij.cloudshell.terminal
 
-import com.microsoft.azure.toolkit.intellij.cloudshell.rest.CloudConsoleTerminalWebSocket
 import org.jetbrains.plugins.terminal.cloud.CloudTerminalProcess
 
 class AzureCloudTerminalProcess(private val socketClient: CloudConsoleTerminalWebSocket) :
