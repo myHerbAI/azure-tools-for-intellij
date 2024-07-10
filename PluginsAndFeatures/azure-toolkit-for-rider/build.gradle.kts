@@ -79,6 +79,7 @@ dependencies {
 
         instrumentationTools()
         pluginVerifier()
+        zipSigner()
         testFramework(TestFrameworkType.Bundled)
     }
 }
