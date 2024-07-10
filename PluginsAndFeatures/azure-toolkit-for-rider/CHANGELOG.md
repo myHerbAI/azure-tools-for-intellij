@@ -7,6 +7,7 @@
 ### Changed
 
 - Support for Rider 2024.2
+- Reimplement Azure Cloud Shell support
 
 ### Fixed
 
