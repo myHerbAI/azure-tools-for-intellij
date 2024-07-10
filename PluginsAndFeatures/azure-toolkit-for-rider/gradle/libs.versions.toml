@@ -1,0 +1,24 @@
+[versions]
+# libraries
+# https://search.maven.org/artifact/com.jetbrains.rd/rd-gen
+rdGen = "2024.1.1"
+
+# plugins
+kotlin = "2.0.0"
+serialization = "2.0.0"
+changelog = "2.2.0"
+intelliJPlatform = "2.0.0-beta8"
+qodana = "2024.1.5"
+aspectj = "6.5.1"
+
+[libraries]
+rdGen = { group = "com.jetbrains.rd", name = "rd-gen", version.ref = "rdGen" }
+kotlinStdLib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
+
+[plugins]
+changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
+intelliJPlatform = { id = "org.jetbrains.intellij.platform", version.ref = "intelliJPlatform" }
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "serialization" }
+qodana = { id = "org.jetbrains.qodana", version.ref = "qodana" }
+aspectj = { id = "io.freefair.aspectj.post-compile-weaving", version.ref = "aspectj" }
