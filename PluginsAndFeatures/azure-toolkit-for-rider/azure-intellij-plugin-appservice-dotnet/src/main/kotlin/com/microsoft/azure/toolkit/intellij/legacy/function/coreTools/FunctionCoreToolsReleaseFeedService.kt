@@ -14,13 +14,13 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 
-@Service
+@Service(Service.Level.APP)
 class FunctionCoreToolsReleaseFeedService : Disposable {
     companion object {
         fun getInstance(): FunctionCoreToolsReleaseFeedService = service()
     }
 
-    private val client: HttpClient = HttpClient(CIO)
+    private val client = HttpClient(CIO)
 
     suspend fun getReleaseFeed(feedUrl: String): ReleaseFeed {
         val body: String = client.get(feedUrl).body()

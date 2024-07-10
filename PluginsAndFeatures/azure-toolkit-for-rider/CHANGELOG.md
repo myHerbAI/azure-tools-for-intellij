@@ -4,6 +4,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Support for Rider 2024.2
+- Reimplement Azure Cloud Shell support
+
 ### Fixed
 
 - Properly remove Azure Function project templates ([#844](https://github.com/JetBrains/azure-tools-for-intellij/issues/844))

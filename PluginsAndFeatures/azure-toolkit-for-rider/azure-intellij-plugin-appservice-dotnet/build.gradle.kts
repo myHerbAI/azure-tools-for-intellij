@@ -35,5 +35,5 @@ dependencies {
     implementation("com.microsoft.azure:azure-toolkit-appservice-lib:$azureToolkitVersion")
     implementation("com.microsoft.azure:azure-toolkit-ide-appservice-lib:$azureToolkitVersion")
     implementation("com.microsoft.azure:azure-toolkit-ide-containerregistry-lib:$azureToolkitVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
 }
