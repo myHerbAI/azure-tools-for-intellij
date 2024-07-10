@@ -7,6 +7,10 @@ on:
   release:
     types: [prereleased, released]
 
+env:
+  # Branches from the https://github.com/microsoft/azure-maven-plugins and https://github.com/microsoft/azure-tools-for-java repositories
+  ENDGAME_VERSION: endgame-202405
+
 jobs:
 
   # Prepare environment and build the plugin
@@ -21,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: microsoft/azure-maven-plugins
-          ref: endgame-202403
+          ref: ${{ env.ENDGAME_VERSION }}
           path: azure-maven-plugins
 
       # Check out current repository
@@ -58,7 +62,7 @@ jobs:
 
       # Upload azure artifacts
       - name: Upload azure artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: azure-artifacts
           path: /home/runner/.m2/repository/com/microsoft/azure/
