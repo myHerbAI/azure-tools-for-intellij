@@ -10,6 +10,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.io.move
+import com.microsoft.azure.toolkit.intellij.cloudshell.CloudShellAccessTokenService
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -36,6 +37,7 @@ class CloudConsoleService : Disposable {
 
     private val contentDispositionHeaderRegex = "(?<=filename=\").*?(?=\")".toRegex()
 
+    private var tenantId: String? = null
     private val bearerTokenStorage = mutableListOf<BearerTokens>()
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -51,12 +53,20 @@ class CloudConsoleService : Disposable {
                 loadTokens {
                     bearerTokenStorage.lastOrNull()
                 }
+                refreshTokens {
+                    val accessToken = tenantId?.let { CloudShellAccessTokenService.getInstance().getAccessToken(it) }
+                    if (accessToken == null) return@refreshTokens null
+
+                    bearerTokenStorage.add(BearerTokens(accessToken, accessToken))
+                    bearerTokenStorage.last()
+                }
             }
         }
     }
 
-    fun setAccessToken(accessToken: String) {
+    fun setAccessToken(accessToken: String, tenantId: String) {
         bearerTokenStorage.add(BearerTokens(accessToken, accessToken))
+        this.tenantId = tenantId
     }
 
     suspend fun getUserSettings(

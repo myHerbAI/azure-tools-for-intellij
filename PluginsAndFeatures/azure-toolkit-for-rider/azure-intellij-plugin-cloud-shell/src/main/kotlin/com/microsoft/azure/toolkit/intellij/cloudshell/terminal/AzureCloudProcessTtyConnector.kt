@@ -5,6 +5,8 @@
 package com.microsoft.azure.toolkit.intellij.cloudshell.terminal
 
 import com.intellij.ide.BrowserUtil
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
@@ -50,17 +52,28 @@ class AzureCloudProcessTtyConnector(
     fun openPreviewPort(port: Int, openInBrowser: Boolean) {
         val cloudConsoleService = CloudConsoleService.getInstance(project)
         scope.launch {
-            val result = cloudConsoleService.openPreviewPort("$previewPortBaseUrl/$port/open")
-            if (result == null) {
-                LOG.warn("Could not open preview port")
-                return@launch
-            }
+            try {
+                val result = cloudConsoleService.openPreviewPort("$previewPortBaseUrl/$port/open")
+                if (result == null) {
+                    LOG.warn("Could not open preview port")
+                    return@launch
+                }
 
-            openPreviewPorts.add(port)
+                openPreviewPorts.add(port)
 
-            val url = result.url
-            if (openInBrowser && url != null) {
-                BrowserUtil.open(url)
+                val url = result.url
+                if (openInBrowser && url != null) {
+                    BrowserUtil.open(url)
+                }
+            } catch (t: Throwable) {
+                LOG.error("Could not open preview port", t)
+                Notification(
+                    "Azure CloudShell",
+                    "Unable to open preview port",
+                    "Unable to open preview port $port",
+                    NotificationType.WARNING
+                )
+                    .notify(project)
             }
         }
     }
@@ -68,13 +81,39 @@ class AzureCloudProcessTtyConnector(
     fun closePreviewPort(port: Int) {
         val cloudConsoleService = CloudConsoleService.getInstance(project)
         scope.launch {
-            val result = cloudConsoleService.closePreviewPort("$previewPortBaseUrl/$port/close")
-            if (result == null) {
-                LOG.warn("Could not close preview port")
-                return@launch
-            }
+            try {
+                val result = cloudConsoleService.closePreviewPort("$previewPortBaseUrl/$port/close")
+                if (result == null) {
+                    LOG.warn("Could not close preview port")
+                    Notification(
+                        "Azure CloudShell",
+                        "Unable to close preview port",
+                        "Unable to close preview port $port",
+                        NotificationType.WARNING
+                    )
+                        .notify(project)
+                    return@launch
+                } else {
+                    Notification(
+                        "Azure CloudShell",
+                        "Preview port was closed",
+                        "Preview port $port was closed",
+                        NotificationType.INFORMATION
+                    )
+                        .notify(project)
+                }
 
-            openPreviewPorts.remove(port)
+                openPreviewPorts.remove(port)
+            } catch (t: Throwable) {
+                LOG.error("Could not open preview port", t)
+                Notification(
+                    "Azure CloudShell",
+                    "Unable to close preview port",
+                    "Unable to close preview port $port",
+                    NotificationType.WARNING
+                )
+                    .notify(project)
+            }
         }
     }
 
