@@ -44,6 +44,7 @@ import static com.microsoft.azure.toolkit.intellij.connector.ResourceConnectionA
 
 @Slf4j
 public class AzureFacetRootNode extends AbstractProjectNode<AzureModule> implements IAzureFacetNode {
+
     private final AzureEventBus.EventListener eventListener;
 
     public AzureFacetRootNode(final AzureModule module, ViewSettings settings) {

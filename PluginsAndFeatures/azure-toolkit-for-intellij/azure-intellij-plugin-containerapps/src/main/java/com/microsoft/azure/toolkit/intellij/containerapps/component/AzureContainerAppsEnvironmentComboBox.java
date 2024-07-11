@@ -4,6 +4,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
+import com.microsoft.azure.toolkit.intellij.containerapps.IntelliJContainerAppsActionsContributor;
 import com.microsoft.azure.toolkit.intellij.containerapps.creation.ContainerAppsEnvironmentCreationDialog;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.common.action.Action;
@@ -14,6 +15,7 @@ import com.microsoft.azure.toolkit.lib.containerapps.AzureContainerApps;
 import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironment;
 import com.microsoft.azure.toolkit.lib.containerapps.environment.ContainerAppsEnvironmentDraft;
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup;
+import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 
 import javax.annotation.Nonnull;
@@ -31,6 +33,7 @@ public class AzureContainerAppsEnvironmentComboBox extends AzureComboBox<Contain
     private ResourceGroup resourceGroup;
     @Nullable
     private Region region;
+    @Getter
     private final List<ContainerAppsEnvironment> draftItems = new LinkedList<>();
 
     @Override
@@ -42,7 +45,9 @@ public class AzureContainerAppsEnvironmentComboBox extends AzureComboBox<Contain
     protected String getItemText(Object item) {
         if (item instanceof ContainerAppsEnvironment) {
             final ContainerAppsEnvironment environment = (ContainerAppsEnvironment) item;
-            return (environment.isDraftForCreating() ? "(New) " + environment.getName() : environment.getName()) + "(" + environment.getRegion().getLabel() + ")";
+            final String text = (environment.isDraftForCreating() ? "(New) " + environment.getName() : environment.getName());
+            final Region region = environment.getRegion();
+            return (region == null ? text : text + "(" + region.getLabel() + ")");
         }
         return super.getItemText(item);
     }
@@ -71,7 +76,14 @@ public class AzureContainerAppsEnvironmentComboBox extends AzureComboBox<Contain
         this.reloadItems();
     }
 
-    public void setResourceGroup(ResourceGroup resourceGroup) {
+    public void setRegionWithDraftItem(Region region) {
+        if (Objects.nonNull(region) && Objects.nonNull(resourceGroup)) {
+            initDraftItem(resourceGroup, region);
+        }
+        setRegion(region);
+    }
+
+    public void setResourceGroup(@Nullable ResourceGroup resourceGroup) {
         if (Objects.equals(resourceGroup, this.resourceGroup)) {
             return;
         }
@@ -81,6 +93,25 @@ public class AzureContainerAppsEnvironmentComboBox extends AzureComboBox<Contain
             return;
         }
         this.reloadItems();
+    }
+
+    public void setResourceGroupWithDraftItems(@Nullable ResourceGroup resourceGroup) {
+        if (Objects.nonNull(region) && Objects.nonNull(resourceGroup)) {
+            initDraftItem(resourceGroup, region);
+        }
+        setResourceGroup(resourceGroup);
+    }
+
+    private void initDraftItem(@Nonnull final ResourceGroup resourceGroup, @Nonnull final Region region) {
+        final boolean existDraft = draftItems.stream().anyMatch(draft -> draft.isDraftForCreating() &&
+                Objects.equals(resourceGroup, draft.getResourceGroup()) && Objects.equals(region, draft.getRegion()));
+        if (!existDraft) {
+            final ContainerAppsEnvironmentDraft.Config config = IntelliJContainerAppsActionsContributor.getContainerAppsEnvironmentDefaultConfig(resourceGroup);
+            final ContainerAppsEnvironmentDraft draft = Azure.az(AzureContainerApps.class).environments(config.getSubscription().getId()).create(config.getName(), config.getResourceGroup().getName());
+            config.setRegion(region);
+            draft.setConfig(config);
+            this.draftItems.add(draft);
+        }
     }
 
     @Override
@@ -116,7 +147,7 @@ public class AzureContainerAppsEnvironmentComboBox extends AzureComboBox<Contain
         }
         if (Objects.nonNull(this.region)) {
             stream = stream.filter(env -> Objects.equals(env.getRegion(), this.region));
-            draftStream = draftStream.filter(env -> Objects.equals(env.getRegion(), this.region));
+            draftStream = draftStream.filter(env -> Objects.equals(env.getRegion(), this.region) || Objects.isNull(env.getRegion()));
         }
         final List<ContainerAppsEnvironment> remoteEnvironments = stream
             .sorted(Comparator.comparing(ContainerAppsEnvironment::getName)).toList();

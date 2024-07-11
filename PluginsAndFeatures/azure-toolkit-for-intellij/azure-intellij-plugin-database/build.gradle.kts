@@ -25,9 +25,9 @@ dependencies {
         instrumentationTools()
     }
 
-    implementation(platform("com.microsoft.azure:azure-toolkit-libs:$azureToolkitVersion"))
-    implementation(platform("com.microsoft.azure:azure-toolkit-ide-libs:$azureToolkitVersion"))
-    implementation(platform("com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-libs:0.1.1"))
+    implementation("com.microsoft.azure:azure-toolkit-libs:$azureToolkitVersion")
+    implementation("com.microsoft.azure:azure-toolkit-ide-libs:$azureToolkitVersion")
+    implementation("com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-libs:0.1.1")
 
     implementation(project(path = ":azure-intellij-plugin-lib"))
     implementation(project(path = ":azure-intellij-resource-connector-lib"))

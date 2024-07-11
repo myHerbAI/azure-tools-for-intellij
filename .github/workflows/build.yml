@@ -28,7 +28,7 @@ concurrency:
 
 env:
   # Branches from the https://github.com/microsoft/azure-maven-plugins and https://github.com/microsoft/azure-tools-for-java repositories
-  ENDGAME_VERSION: endgame-202405
+  ENDGAME_VERSION: endgame-202406
 
 jobs:
 
@@ -38,14 +38,6 @@ jobs:
     name: Build Dependencies
     runs-on: ubuntu-latest
     steps:
-
-      # Check out the Maven Plugins for Azure Services repository
-      - name: Fetch Maven Plugins for Azure Services
-        uses: actions/checkout@v4
-        with:
-          repository: microsoft/azure-maven-plugins
-          ref: ${{ env.ENDGAME_VERSION }}
-          path: azure-maven-plugins
 
       # Check out the current repository
       - name: Fetch Sources
@@ -58,9 +50,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: zulu
-          java-version: |
-            8
-            17
+          java-version: 17
 
       - name: Cache Azure libraries
         id: cache-azure-libraries
@@ -71,23 +61,12 @@ jobs:
           path: /home/runner/.m2/repository/com/microsoft
           key: ${{ env.ENDGAME_VERSION }}
 
-      # Build Maven Plugins for Azure Services library
-      - name: Build Maven Plugins for Azure Services
-        if: steps.cache-azure-libraries.outputs.cache-hit != 'true'
-        working-directory: ${{ github.workspace }}/azure-maven-plugins
-        shell: bash
-        run: |
-          export JAVA_HOME=$JAVA_HOME_8_X64
-          ./mvnw install -f azure-toolkit-libs/pom.xml
-
       # Build Utils library
       - name: Build Utils
         if: steps.cache-azure-libraries.outputs.cache-hit != 'true'
         working-directory: ${{ github.workspace }}/azure-tools-for-intellij
         shell: bash
-        run: |
-          export JAVA_HOME=$JAVA_HOME_17_X64
-          ./mvnw install -DskipTests -f Utils/pom.xml
+        run: ./mvnw install -DskipTests -f Utils/pom.xml
 
       # Upload azure artifacts
       - name: Upload azure artifacts

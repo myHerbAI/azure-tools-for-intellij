@@ -288,7 +288,7 @@ public class IntellijAzureActionManager extends AzureActionManager {
                     if (action instanceof com.intellij.openapi.actionSystem.ActionGroup) {
                         this.add(action);
                     } else if (Objects.nonNull(action)) {
-                        this.add(EmptyAction.wrap(action));
+                        this.add(new com.intellij.openapi.actionSystem.AnActionWrapper(action));
                     }
                 }
             } else if (raw instanceof Action<?>) {

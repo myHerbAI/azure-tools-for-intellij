@@ -45,11 +45,11 @@ repositories {
 
 // Dependencies are managed with Gradle version catalog - read more: https://docs.gradle.org/current/userguide/platforms.html#sub:version-catalog
 dependencies {
-    implementation(platform("com.microsoft.azure:azure-toolkit-libs:${azureToolkitVersion}"))
-    implementation(platform("com.microsoft.azure:azure-toolkit-ide-libs:${azureToolkitVersion}"))
-    implementation(platform("com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-libs:0.1.1"))
+    implementation("com.microsoft.azure:azure-toolkit-libs:$azureToolkitVersion")
+    implementation("com.microsoft.azure:azure-toolkit-ide-libs:$azureToolkitVersion")
+    implementation("com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-libs:0.1.1")
 
-    implementation("com.microsoft.azure:azure-toolkit-common-lib:${azureToolkitVersion}")
+    implementation("com.microsoft.azure:azure-toolkit-common-lib:$azureToolkitVersion")
     implementation("com.microsoft.azure:azure-toolkit-ide-common-lib:$azureToolkitVersion")
 
     implementation(project(path = ":azure-intellij-plugin-lib"))
