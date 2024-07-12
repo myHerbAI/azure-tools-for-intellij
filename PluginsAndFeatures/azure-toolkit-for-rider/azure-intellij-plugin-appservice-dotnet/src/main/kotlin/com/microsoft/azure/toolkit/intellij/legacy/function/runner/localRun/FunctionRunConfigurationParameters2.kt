@@ -23,15 +23,16 @@ import java.io.File
 class FunctionRunConfigurationParameters2(
     private val project: Project,
     var projectFilePath: String,
-    var profileName: String,
     var projectTfm: String,
+    var profileName: String,
     var functionNames: String,
     var trackArguments: Boolean,
-    var projectArguments: String,
+    var arguments: String,
     var trackWorkingDirectory: Boolean,
     var workingDirectory: String,
     var trackEnvs: Boolean,
     var envs: Map<String, String>,
+    var useExternalConsole: Boolean,
     var trackUrl: Boolean,
     var startBrowserParameters: DotNetStartBrowserParameters
 ) {
@@ -44,6 +45,7 @@ class FunctionRunConfigurationParameters2(
         private const val WORKING_DIRECTORY_TRACKING = "PROJECT_WORKING_DIRECTORY_TRACKING"
         private const val TRACK_ENVS = "TRACK_ENVS"
         private const val TRACK_URL = "TRACK_URL"
+        private const val USE_EXTERNAL_CONSOLE = "USE_EXTERNAL_CONSOLE"
 
         fun createDefault(project: Project) = FunctionRunConfigurationParameters2(
             project,
@@ -57,6 +59,7 @@ class FunctionRunConfigurationParameters2(
             "",
             true,
             hashMapOf(),
+            false,
             true,
             DotNetStartBrowserParameters()
         )
@@ -117,6 +120,8 @@ class FunctionRunConfigurationParameters2(
         val trackEnvsString = JDOMExternalizerUtil.readField(element, TRACK_ENVS) ?: ""
         trackEnvs = trackEnvsString != "0"
         EnvironmentVariablesComponent.readExternal(element, envs)
+        val useExternalConsoleString = JDOMExternalizerUtil.readField(element, USE_EXTERNAL_CONSOLE) ?: ""
+        useExternalConsole = useExternalConsoleString == "1"
         val trackUrlString = JDOMExternalizerUtil.readField(element, TRACK_URL) ?: ""
         trackUrl = trackUrlString != "0"
         startBrowserParameters = DotNetStartBrowserParameters.readExternal(element)
@@ -131,6 +136,7 @@ class FunctionRunConfigurationParameters2(
         JDOMExternalizerUtil.writeField(element, WORKING_DIRECTORY_TRACKING, if (trackWorkingDirectory) "1" else "0")
         JDOMExternalizerUtil.writeField(element, TRACK_ENVS, if (trackEnvs) "1" else "0")
         EnvironmentVariablesComponent.writeExternal(element, envs)
+        JDOMExternalizerUtil.writeField(element, USE_EXTERNAL_CONSOLE, if (useExternalConsole) "1" else "0")
         JDOMExternalizerUtil.writeField(element, TRACK_URL, if (trackUrl) "1" else "0")
         startBrowserParameters.writeExternal(element)
     }
@@ -138,15 +144,16 @@ class FunctionRunConfigurationParameters2(
     fun copy() = FunctionRunConfigurationParameters2(
         project,
         projectFilePath,
-        profileName,
         projectTfm,
+        profileName,
         functionNames,
         trackArguments,
-        projectArguments,
+        arguments,
         trackWorkingDirectory,
         workingDirectory,
         trackEnvs,
         envs,
+        useExternalConsole,
         trackUrl,
         startBrowserParameters.copy()
     )
