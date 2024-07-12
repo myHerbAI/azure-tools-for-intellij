@@ -22,7 +22,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 class FunctionRunExecutorFactory(
-    private val parameters: FunctionRunConfigurationParameters
+    private val parameters: FunctionRunConfigurationParameters2
 ) : AsyncExecutorFactory {
     companion object {
         private val LOG = logger<FunctionRunExecutorFactory>()

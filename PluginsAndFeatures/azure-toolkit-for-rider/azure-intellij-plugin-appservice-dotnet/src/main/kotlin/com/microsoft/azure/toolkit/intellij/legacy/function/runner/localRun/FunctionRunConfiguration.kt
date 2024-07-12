@@ -9,14 +9,13 @@ import com.intellij.openapi.project.Project
 import com.jetbrains.rider.debugger.IRiderDebuggable
 import com.jetbrains.rider.run.configurations.IAutoSelectableRunConfiguration
 import com.jetbrains.rider.run.configurations.RiderAsyncRunConfiguration
-import com.jetbrains.rider.runtime.RiderDotNetActiveRuntimeHost
 import org.jdom.Element
 
 class FunctionRunConfiguration(
     project: Project,
     factory: ConfigurationFactory,
     name: String?,
-    val parameters: FunctionRunConfigurationParameters
+    val parameters: FunctionRunConfigurationParameters2
 ) : RiderAsyncRunConfiguration(
     name ?: "Azure Functions",
     project,
@@ -25,11 +24,9 @@ class FunctionRunConfiguration(
     FunctionRunExecutorFactory(parameters)
 ), IRiderDebuggable, IAutoSelectableRunConfiguration {
 
-    private val riderDotNetActiveRuntimeHost = RiderDotNetActiveRuntimeHost.getInstance(project)
-
     override fun checkConfiguration() {
         super.checkConfiguration()
-        parameters.validate(riderDotNetActiveRuntimeHost)
+        parameters.validate()
     }
 
     override fun readExternal(element: Element) {
@@ -40,6 +37,17 @@ class FunctionRunConfiguration(
     override fun writeExternal(element: Element) {
         super.writeExternal(element)
         parameters.writeExternal(element)
+    }
+
+    override fun clone(): FunctionRunConfiguration {
+        val newConfiguration = FunctionRunConfiguration(
+            project,
+            requireNotNull(factory),
+            name,
+            parameters.copy()
+        )
+        newConfiguration.doCopyOptionsFrom(this)
+        return newConfiguration
     }
 
     override fun getAutoSelectPriority() = 10
