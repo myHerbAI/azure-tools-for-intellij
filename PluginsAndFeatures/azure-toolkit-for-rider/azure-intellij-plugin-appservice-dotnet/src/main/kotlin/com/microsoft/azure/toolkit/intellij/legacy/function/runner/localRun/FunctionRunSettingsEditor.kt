@@ -17,10 +17,10 @@ import javax.swing.JComponent
 class FunctionRunSettingsEditor(private val project: Project) :
     ProtocolLifetimedSettingsEditor<FunctionRunConfiguration>() {
 
-    private lateinit var viewModel: FunctionRunConfigurationViewModel2
+    private lateinit var viewModel: FunctionRunConfigurationViewModel
 
     override fun createEditor(lifetime: Lifetime): JComponent {
-        viewModel = FunctionRunConfigurationViewModel2(
+        viewModel = FunctionRunConfigurationViewModel(
             lifetime,
             project.runnableProjectsModelIfAvailable,
             ProjectSelector("Project:", "Project"),
