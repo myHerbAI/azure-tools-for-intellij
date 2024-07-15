@@ -18,17 +18,18 @@ import com.jetbrains.rider.projectView.workspace.getFile
 import com.jetbrains.rider.run.configurations.getSelectedProject
 import com.microsoft.azure.toolkit.intellij.legacy.function.daemon.AzureRunnableProjectKinds
 
-class FunctionRunConfigurationProducer: LazyRunConfigurationProducer<FunctionRunConfiguration>() {
+class FunctionRunConfigurationProducer : LazyRunConfigurationProducer<FunctionRunConfiguration>() {
     override fun getConfigurationFactory() =
-        ConfigurationTypeUtil.findConfigurationType(FunctionRunConfigurationType::class.java)
-            .configurationFactories
-            .single()
+        ConfigurationTypeUtil
+            .findConfigurationType(FunctionRunConfigurationType::class.java)
+            .factory
 
     override fun isConfigurationFromContext(
         configuration: FunctionRunConfiguration,
         context: ConfigurationContext
-    ) : Boolean {
-        val selectedProjectFilePathInvariant = context.getSelectedProject()?.getFile()?.systemIndependentPath ?: return false
+    ): Boolean {
+        val selectedProjectFilePathInvariant =
+            context.getSelectedProject()?.getFile()?.systemIndependentPath ?: return false
 
         val projects = context.project.solution.runnableProjectsModel.projects.valueOrNull ?: return false
         val runnableProject = projects.firstOrNull {
@@ -45,7 +46,8 @@ class FunctionRunConfigurationProducer: LazyRunConfigurationProducer<FunctionRun
         context: ConfigurationContext,
         ref: Ref<PsiElement>
     ): Boolean {
-        val selectedProjectFilePathInvariant = context.getSelectedProject()?.getFile()?.systemIndependentPath ?: return false
+        val selectedProjectFilePathInvariant = context.getSelectedProject()?.getFile()?.systemIndependentPath
+            ?: return false
 
         val projects = context.project.solution.runnableProjectsModel.projects.valueOrNull ?: return false
         val runnableProject = projects.firstOrNull {
@@ -56,9 +58,27 @@ class FunctionRunConfigurationProducer: LazyRunConfigurationProducer<FunctionRun
         if (configuration.name.isEmpty()) {
             configuration.name = runnableProject.name
         }
+
+        val projectOutput = runnableProject.projectOutputs.firstOrNull()
+        val launchProfile = getLaunchProfiles(runnableProject).firstOrNull()
+
         configuration.parameters.apply {
             projectFilePath = selectedProjectFilePathInvariant
-            projectTfm = runnableProject.projectOutputs.firstOrNull()?.tfm?.presentableName ?: projectTfm
+            projectTfm = projectOutput?.tfm?.presentableName ?: ""
+            profileName = launchProfile?.name ?: ""
+            functionNames = ""
+            trackArguments = true
+            arguments = getArguments(launchProfile?.content, projectOutput)
+            trackWorkingDirectory = true
+            workingDirectory = getWorkingDirectory(launchProfile?.content, projectOutput)
+            trackEnvs = true
+            envs = getEnvironmentVariables(launchProfile?.content)
+            useExternalConsole = false
+            trackUrl = true
+            startBrowserParameters.apply {
+                url = getApplicationUrl(launchProfile?.content, projectOutput, null)
+                startAfterLaunch = launchProfile?.content?.launchBrowser ?: false
+            }
         }
 
         return true
