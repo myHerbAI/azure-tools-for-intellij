@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Application;
+using JetBrains.Application.Parts;
 using JetBrains.Application.Settings;
 using JetBrains.Application.Settings.Implementation;
 using JetBrains.ReSharper.Azure.Intellisense.FunctionApp.LiveTemplates.Scope;
@@ -15,7 +16,7 @@ namespace JetBrains.ReSharper.Azure.Intellisense.FunctionApp.LiveTemplates.Setti
 // Defines settings for the Azure QuickList, or we don't get a QuickList at all
 // Note that the QuickList can be empty, but it's still required
 // Inspired by: https://github.com/JetBrains/resharper-unity/blob/net212/resharper/resharper-unity/src/CSharp/Feature/Services/LiveTemplates/UnityQuickListDefaultSettings.cs
-[ShellComponent]
+[ShellComponent(Instantiation.DemandAnyThreadSafe)]
 public class AzureQuickListDefaultSettings(
     ISettingsSchema settingsSchema,
     ILogger logger,
