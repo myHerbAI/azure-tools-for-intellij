@@ -10,6 +10,8 @@
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
+        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.MigrateBuildProjectTaskActivity"/>
+
         <configurationType
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfigurationType"/>
         <configurationType

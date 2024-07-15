@@ -4,13 +4,9 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun
 
-import com.intellij.execution.BeforeRunTask
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
-import com.jetbrains.rider.build.tasks.BuildProjectBeforeRunTask
 import com.jetbrains.rider.run.configurations.DotNetConfigurationFactoryBase
-import com.microsoft.azure.toolkit.intellij.legacy.function.buildTasks.BuildFunctionsProjectBeforeRunTaskProvider
 
 class FunctionRunConfigurationFactory(type: ConfigurationType) :
     DotNetConfigurationFactoryBase<FunctionRunConfiguration>(type) {
@@ -27,14 +23,4 @@ class FunctionRunConfigurationFactory(type: ConfigurationType) :
             project.name,
             FunctionRunConfigurationParameters.createDefault(project)
         )
-
-    override fun configureBeforeRunTaskDefaults(
-        providerID: Key<out BeforeRunTask<BeforeRunTask<*>>>?,
-        task: BeforeRunTask<out BeforeRunTask<*>>?
-    ) {
-        // TODO: Switch to use BuildProjectBeforeRunTaskProvider that supports building custom project
-        if (providerID == BuildFunctionsProjectBeforeRunTaskProvider.ID && task is BuildProjectBeforeRunTask) {
-            task.isEnabled = true
-        }
-    }
 }

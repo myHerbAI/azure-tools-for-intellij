@@ -28,7 +28,7 @@ class BuildFunctionsProjectBeforeRunTaskProvider : BeforeRunTaskProvider<BuildFu
 
     override fun getId() = ID
 
-    override fun getName() = "Build Functions Project"
+    override fun getName() = "Build Functions Project (Deprecated)"
 
     override fun getDescription(task: BuildFunctionsProjectBeforeRunTask) = "Build Functions project"
 
