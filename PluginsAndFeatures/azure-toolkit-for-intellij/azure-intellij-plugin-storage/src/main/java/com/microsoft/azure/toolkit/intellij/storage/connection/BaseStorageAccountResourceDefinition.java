@@ -5,12 +5,14 @@
 
 package com.microsoft.azure.toolkit.intellij.storage.connection;
 
+import com.azure.resourcemanager.authorization.models.BuiltInRole;
 import com.azure.resourcemanager.resources.fluentcore.arm.ResourceId;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons;
 import com.microsoft.azure.toolkit.intellij.common.auth.IntelliJSecureStore;
 import com.microsoft.azure.toolkit.intellij.connector.AzureServiceResource;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
+import com.microsoft.azure.toolkit.intellij.connector.IManagedIdentitySupported;
 import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.intellij.connector.function.FunctionSupported;
 import com.microsoft.azure.toolkit.lib.Azure;
@@ -29,7 +31,7 @@ import static com.microsoft.azure.toolkit.lib.common.model.AbstractConnectionStr
 
 @Getter
 public abstract class BaseStorageAccountResourceDefinition extends AzureServiceResource.Definition<IStorageAccount>
-    implements FunctionSupported<IStorageAccount> {
+    implements FunctionSupported<IStorageAccount>, IManagedIdentitySupported<IStorageAccount> {
     public static final int METHOD_AZURE = 0;
     public static final int METHOD_AZURITE = 1;
     public static final int METHOD_STRING = 2;
@@ -93,5 +95,23 @@ public abstract class BaseStorageAccountResourceDefinition extends AzureServiceR
     @Override
     public String getResourceConnectionString(@Nonnull IStorageAccount resource) {
         return resource instanceof AzuriteStorageAccount ? LOCAL_STORAGE_CONNECTION_STRING : resource.getConnectionString();
+    }
+
+    @Override
+    public Map<String, String> initIdentityEnv(AzureServiceResource<IStorageAccount> accountDef, Project project) {
+        final HashMap<String, String> env = new HashMap<>();
+        final IStorageAccount account = accountDef.getData();
+        if (Objects.nonNull(account)) {
+            env.put(ACCOUNT_NAME_KEY, account.getName());
+        }
+        return env;
+    }
+
+    @Nullable
+    @Override
+    public Map<String, BuiltInRole> getBuiltInRoles() {
+        return Map.of("ba92f5b4-2d11-453d-a403-e96b0029c9fe", BuiltInRole.STORAGE_BLOB_DATA_CONTRIBUTOR,
+            "974c5e8b-45b9-4653-ba55-5f855dd0fb88", BuiltInRole.STORAGE_QUEUE_DATA_CONTRIBUTOR,
+            "0c867c2a-1d8c-454a-a3db-ab2ea1bdc8bb", BuiltInRole.STORAGE_FILE_DATA_SMB_SHARE_CONTRIBUTOR);
     }
 }

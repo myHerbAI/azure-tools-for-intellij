@@ -9,7 +9,7 @@ import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormJPanel;
 import com.microsoft.azure.toolkit.intellij.connector.Connection;
 import com.microsoft.azure.toolkit.intellij.connector.Resource;
-import com.microsoft.azure.toolkit.intellij.connector.spring.SpringSupported;
+import com.microsoft.azure.toolkit.intellij.connector.spring.SpringManagedIdentitySupported;
 import com.microsoft.azure.toolkit.lib.Azure;
 import com.microsoft.azure.toolkit.lib.auth.AzureCloud;
 import com.microsoft.azure.toolkit.lib.storage.AzureStorageAccount;
@@ -28,7 +28,7 @@ import java.util.*;
 
 @Getter
 public class StorageAccountResourceDefinition extends BaseStorageAccountResourceDefinition
-    implements SpringSupported<IStorageAccount> {
+    implements SpringManagedIdentitySupported<IStorageAccount> {
 
     public static final StorageAccountResourceDefinition INSTANCE = new StorageAccountResourceDefinition();
 
@@ -84,6 +84,25 @@ public class StorageAccountResourceDefinition extends BaseStorageAccountResource
         fields.put("spring.cloud.azure.storage.fileshare.account-key", "Access Key");
         fields.put("spring.cloud.azure.storage.fileshare.endpoint", "Endpoint Url");
         return fields;
+    }
+
+    @Override
+    public List<Pair<String, String>> getSpringPropertiesForManagedIdentity(String key) {
+        final List<Pair<String, String>> properties = new ArrayList<>();
+        final String suffix = Azure.az(AzureCloud.class).get().getStorageEndpointSuffix();
+        if (StringUtils.containsIgnoreCase(key, "blob")) {
+            properties.add(Pair.of("spring.cloud.azure.storage.blob.account-name", String.format("${%s_ACCOUNT_NAME}", Connection.ENV_PREFIX)));
+            properties.add(Pair.of("spring.cloud.azure.storage.blob.endpoint", String.format("https://${%s_ACCOUNT_NAME}.blob%s", Connection.ENV_PREFIX, suffix)));
+        } else if (StringUtils.containsIgnoreCase(key, "share")) {
+            properties.add(Pair.of("spring.cloud.azure.storage.fileshare.account-name", String.format("${%s_ACCOUNT_NAME}", Connection.ENV_PREFIX)));
+            properties.add(Pair.of("spring.cloud.azure.storage.fileshare.endpoint", String.format("https://${%s_ACCOUNT_NAME}.file%s", Connection.ENV_PREFIX, suffix)));
+        } else {
+            properties.add(Pair.of("spring.cloud.azure.storage.fileshare.account-name", String.format("${%s_ACCOUNT_NAME}", Connection.ENV_PREFIX)));
+            properties.add(Pair.of("spring.cloud.azure.storage.fileshare.endpoint", String.format("https://${%s_ACCOUNT_NAME}.file%s", Connection.ENV_PREFIX, suffix)));
+            properties.add(Pair.of("spring.cloud.azure.storage.blob.account-name", String.format("${%s_ACCOUNT_NAME}", Connection.ENV_PREFIX)));
+            properties.add(Pair.of("spring.cloud.azure.storage.blob.endpoint", String.format("https://${%s_ACCOUNT_NAME}.blob%s", Connection.ENV_PREFIX, suffix)));
+        }
+        return properties;
     }
 
     @Data
