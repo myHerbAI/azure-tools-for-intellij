@@ -100,6 +100,7 @@ public class Profile {
         AzureFacet.addTo(this.module.getModule());
         this.resourceManager.addResource(connection.getResource());
         this.connectionManager.addConnection(connection);
+        Optional.ofNullable(connection.getUserAssignedManagedIdentity()).ifPresent(this.resourceManager::addResource);
         return this.addConnectionToDotEnv(connection);
     }
 
