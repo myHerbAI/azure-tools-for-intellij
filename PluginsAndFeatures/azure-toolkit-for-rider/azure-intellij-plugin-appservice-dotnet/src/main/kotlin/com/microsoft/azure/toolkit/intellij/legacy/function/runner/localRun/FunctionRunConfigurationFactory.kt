@@ -16,21 +16,16 @@ class FunctionRunConfigurationFactory(type: ConfigurationType) :
     DotNetConfigurationFactoryBase<FunctionRunConfiguration>(type) {
     companion object {
         private const val FACTORY_ID = "Azure - Run Function"
-//        private const val FACTORY_NAME = "Run Function"
     }
 
     override fun getId() = FACTORY_ID
-
-//    override fun getIcon(): Icon = IntelliJAzureIcons.getIcon(AzureIcons.FunctionApp.RUN)
-
-//    override fun getName() = FACTORY_NAME
 
     override fun createTemplateConfiguration(project: Project) =
         FunctionRunConfiguration(
             project,
             this,
             project.name,
-            FunctionRunConfigurationParameters2.createDefault(project)
+            FunctionRunConfigurationParameters.createDefault(project)
         )
 
     override fun configureBeforeRunTaskDefaults(

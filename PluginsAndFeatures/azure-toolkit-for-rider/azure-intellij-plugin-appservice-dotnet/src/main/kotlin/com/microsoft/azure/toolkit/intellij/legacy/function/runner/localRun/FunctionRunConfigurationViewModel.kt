@@ -14,7 +14,6 @@ import com.jetbrains.rider.run.configurations.controls.*
 import com.jetbrains.rider.run.configurations.controls.startBrowser.BrowserSettings
 import com.jetbrains.rider.run.configurations.controls.startBrowser.BrowserSettingsEditor
 import com.jetbrains.rider.run.configurations.launchSettings.LaunchSettingsJson
-import com.jetbrains.rider.run.configurations.launchSettings.LaunchSettingsJsonService
 import com.jetbrains.rider.run.configurations.project.DotNetStartBrowserParameters
 import com.microsoft.azure.toolkit.intellij.legacy.function.daemon.AzureRunnableProjectKinds
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionLocalSettings
@@ -334,7 +333,7 @@ class FunctionRunConfigurationViewModel(
         readLocalSettingsForProject(runnableProject)
 
         // Disable "Use external console" for Isolated worker
-        val workerRuntime = functionLocalSettings?.values?.workerRuntime ?: FunctionWorkerRuntime.DOTNET
+        val workerRuntime = functionLocalSettings?.values?.workerRuntime ?: FunctionWorkerRuntime.DOTNET_ISOLATED
         val workerRuntimeSupportsExternalConsole = workerRuntime != FunctionWorkerRuntime.DOTNET_ISOLATED
         useExternalConsoleEditor.isVisible.set(workerRuntimeSupportsExternalConsole)
         useExternalConsoleEditor.isSelected.set(workerRuntimeSupportsExternalConsole && useExternalConsole)
@@ -388,16 +387,5 @@ class FunctionRunConfigurationViewModel(
         return selectedProject
             .projectOutputs
             .singleOrNull { it.tfm?.presentableName == tfmSelector.string.valueOrNull }
-    }
-
-    private fun getLaunchProfiles(runnableProject: RunnableProject): List<LaunchProfile> {
-        val launchSettings = LaunchSettingsJsonService.loadLaunchSettings(runnableProject)
-        return launchSettings?.profiles
-            .orEmpty()
-            .asSequence()
-            .filter { it.value.commandName.equals("Project", true) }
-            .map { (name, content) -> LaunchProfile(name, content) }
-            .sortedBy { it.name }
-            .toList()
     }
 }

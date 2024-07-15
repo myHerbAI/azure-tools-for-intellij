@@ -15,13 +15,13 @@ class FunctionRunConfiguration(
     project: Project,
     factory: ConfigurationFactory,
     name: String?,
-    val parameters: FunctionRunConfigurationParameters2
+    val parameters: FunctionRunConfigurationParameters
 ) : RiderAsyncRunConfiguration(
     name ?: "Azure Functions",
     project,
     factory,
     { FunctionRunSettingsEditor(it) },
-    FunctionRunExecutorFactory(parameters)
+    FunctionRunExecutorFactory(project, parameters)
 ), IRiderDebuggable, IAutoSelectableRunConfiguration {
 
     override fun checkConfiguration() {

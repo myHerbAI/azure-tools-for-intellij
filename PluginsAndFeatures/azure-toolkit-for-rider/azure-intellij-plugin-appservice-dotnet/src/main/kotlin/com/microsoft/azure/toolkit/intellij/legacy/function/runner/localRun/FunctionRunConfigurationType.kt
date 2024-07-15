@@ -130,17 +130,17 @@ class FunctionRunConfigurationType : ConfigurationTypeBase(
             functionNames = ""
             val launchProfile = getLaunchProfileByName(runnableProject, profile)
             if (launchProfile != null) {
-                arguments = getArguments(launchProfile.second, projectOutput)
+                arguments = getArguments(launchProfile.content, projectOutput)
                 trackArguments = true
-                workingDirectory = getWorkingDirectory(launchProfile.second, projectOutput)
+                workingDirectory = getWorkingDirectory(launchProfile.content, projectOutput)
                 trackWorkingDirectory = true
-                envs = getEnvironmentVariables(launchProfile.second)
+                envs = getEnvironmentVariables(launchProfile.content)
                 trackEnvs = true
                 useExternalConsole = false
-                val applicationUrl = getApplicationUrl(launchProfile.second, projectOutput, localFunctionSettings)
+                val applicationUrl = getApplicationUrl(launchProfile.content, projectOutput, localFunctionSettings)
                 startBrowserParameters.apply {
                     url = applicationUrl
-                    startAfterLaunch = launchProfile.second.launchBrowser
+                    startAfterLaunch = launchProfile.content.launchBrowser
                 }
                 trackUrl = true
             }
