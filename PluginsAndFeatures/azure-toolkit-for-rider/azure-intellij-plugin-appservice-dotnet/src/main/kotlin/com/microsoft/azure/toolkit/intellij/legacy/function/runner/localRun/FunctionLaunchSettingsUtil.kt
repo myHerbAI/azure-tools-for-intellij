@@ -56,11 +56,12 @@ internal fun getWorkingDirectory(profile: LaunchSettingsJson.Profile?, projectOu
     return profile?.workingDirectory ?: projectOutput?.workingDirectory ?: ""
 }
 
-internal fun getEnvironmentVariables(profile: LaunchSettingsJson.Profile): Map<String, String> {
-    val environmentVariables = profile.environmentVariables
+internal fun getEnvironmentVariables(profile: LaunchSettingsJson.Profile?): Map<String, String> {
+    val environmentVariables = profile
+        ?.environmentVariables
         ?.mapNotNull { it.value?.let { value -> it.key to value } }
         ?.toMap()
-        ?: mapOf()
+        ?: emptyMap()
 
     return environmentVariables
 }
@@ -68,11 +69,11 @@ internal fun getEnvironmentVariables(profile: LaunchSettingsJson.Profile): Map<S
 private val portRegex = Regex("(--port|-p) (\\d+)", RegexOption.IGNORE_CASE)
 
 internal fun getApplicationUrl(
-    profile: LaunchSettingsJson.Profile,
+    profile: LaunchSettingsJson.Profile?,
     projectOutput: ProjectOutput?,
     functionLocalSettings: FunctionLocalSettings?
 ): String {
-    val applicationUrl = profile.applicationUrl
+    val applicationUrl = profile?.applicationUrl
     if (!applicationUrl.isNullOrEmpty()) {
         return applicationUrl.substringBefore(';')
     }
