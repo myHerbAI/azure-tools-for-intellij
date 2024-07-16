@@ -17,6 +17,12 @@
     <xi:include href="/META-INF/azure-intellij-plugin-database.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/azure-intellij-plugin-database-dotnet.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/azure-intellij-plugin-cloud-shell.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/azure-intellij-plugin-keyvault.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/azure-intellij-plugin-keyvault-dotnet.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/azure-intellij-plugin-redis.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/azure-intellij-plugin-redis-dotnet.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/azure-intellij-plugin-storage.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/azure-intellij-plugin-storage-dotnet.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <resource-bundle>messages.RiderAzureMessages</resource-bundle>
 
