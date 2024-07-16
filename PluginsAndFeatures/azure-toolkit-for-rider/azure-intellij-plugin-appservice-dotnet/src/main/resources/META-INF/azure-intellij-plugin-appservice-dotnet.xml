@@ -10,7 +10,10 @@
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
-        <postStartupActivity implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.MigrateBuildProjectTaskActivity"/>
+        <postStartupActivity
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.MigrateBuildProjectTaskActivity"/>
+        <backgroundPostStartupActivity
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionWarmupStartupActivity"/>
 
         <configurationType
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfigurationType"/>
@@ -62,9 +65,11 @@
                              instance="com.microsoft.azure.toolkit.intellij.legacy.function.settings.templates.RiderAzureFSharpFileTemplatesOptionPage"
                              groupWeight="-150"/>
 
-        <serviceViewContributor implementation="com.microsoft.azure.toolkit.intellij.azurite.services.AzuriteServiceViewContributor" />
+        <serviceViewContributor
+                implementation="com.microsoft.azure.toolkit.intellij.azurite.services.AzuriteServiceViewContributor"/>
 
-        <stepsBeforeRunProvider implementation="com.microsoft.azure.toolkit.intellij.azurite.AzuriteBeforeRunTaskProvider"/>
+        <stepsBeforeRunProvider
+                implementation="com.microsoft.azure.toolkit.intellij.azurite.AzuriteBeforeRunTaskProvider"/>
 
         <registryKey key="azure.function_app.core_tools.feed.enabled"
                      defaultValue="true"
@@ -93,10 +98,14 @@
         <rd.solutionExtListener endpoint="IDE Frontend"
                                 listener="com.microsoft.azure.toolkit.intellij.legacy.function.daemon.FunctionAppSolutionExtListener"/>
 
-        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppPropertyViewProvider"/>
-        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppDeploymentSlotPropertyViewProvider"/>
-        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppPropertyViewProvider"/>
-        <fileEditorProvider implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppDeploymentSlotPropertyViewProvider"/>
+        <fileEditorProvider
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppPropertyViewProvider"/>
+        <fileEditorProvider
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.WebAppDeploymentSlotPropertyViewProvider"/>
+        <fileEditorProvider
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppPropertyViewProvider"/>
+        <fileEditorProvider
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionAppDeploymentSlotPropertyViewProvider"/>
 
         <notificationGroup id="Azure AppServices" displayType="BALLOON" isLogByDefault="true"/>
     </extensions>

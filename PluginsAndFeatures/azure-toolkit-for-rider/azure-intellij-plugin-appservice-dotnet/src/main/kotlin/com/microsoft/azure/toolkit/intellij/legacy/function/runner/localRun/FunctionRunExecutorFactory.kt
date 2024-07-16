@@ -29,12 +29,18 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCo
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsInfoProvider
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsMsBuildService
 import com.microsoft.azure.toolkit.intellij.legacy.function.daemon.AzureRunnableProjectKinds
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionLocalSettings
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionLocalSettingsUtil
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionWorkerRuntime
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.*
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getApplicationUrl
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getArguments
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getEnvironmentVariables
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getWorkingDirectory
+import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionLocalSettings
+import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionLocalSettingsService
+import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionWorkerRuntime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 
 class FunctionRunExecutorFactory(
@@ -65,7 +71,9 @@ class FunctionRunExecutorFactory(
         LOG.debug("Core tools executable: ${coreToolsInfo.coreToolsExecutable}")
 
         val functionLocalSettings = withContext(Dispatchers.Default) {
-            FunctionLocalSettingsUtil.readFunctionLocalSettings(File(parameters.projectFilePath).parent)
+            FunctionLocalSettingsService
+                .getInstance(project)
+                .getFunctionLocalSettings(Path(parameters.projectFilePath).parent)
         }
 
         val dotNetExecutable = getDotNetExecutable(coreToolsInfo, functionLocalSettings)
@@ -116,7 +124,9 @@ class FunctionRunExecutorFactory(
             return null
         }
 
-        val launchProfile = getLaunchProfileByName(runnableProject, parameters.profileName)
+        val launchProfile = FunctionLaunchProfilesService
+            .getInstance(project)
+            .getLaunchProfileByName(runnableProject, parameters.profileName)
         if (launchProfile == null) {
             LOG.warn("Unable to get the launch profile with name ${parameters.profileName}")
             return null

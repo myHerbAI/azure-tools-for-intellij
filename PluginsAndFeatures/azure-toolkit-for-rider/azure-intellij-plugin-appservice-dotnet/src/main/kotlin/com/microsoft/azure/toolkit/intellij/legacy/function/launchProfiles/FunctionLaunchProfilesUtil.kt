@@ -2,41 +2,13 @@
  * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun
+package com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles
 
 import com.intellij.util.execution.ParametersListUtil
 import com.jetbrains.rider.model.ProjectOutput
-import com.jetbrains.rider.model.RunnableProject
-import com.jetbrains.rider.run.configurations.controls.LaunchProfile
 import com.jetbrains.rider.run.configurations.launchSettings.LaunchSettingsJson
-import com.jetbrains.rider.run.configurations.launchSettings.LaunchSettingsJsonService
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionLocalSettings
+import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionLocalSettings
 import org.apache.http.client.utils.URIBuilder
-
-internal fun getLaunchProfiles(runnableProject: RunnableProject): List<LaunchProfile> {
-    val launchSettings = LaunchSettingsJsonService.loadLaunchSettings(runnableProject)
-    return launchSettings?.profiles
-        .orEmpty()
-        .asSequence()
-        .filter { it.value.commandName.equals("Project", true) }
-        .map { (name, content) -> LaunchProfile(name, content) }
-        .sortedBy { it.name }
-        .toList()
-}
-
-internal fun getLaunchProfileByName(
-    runnableProject: RunnableProject,
-    launchProfileName: String?
-): LaunchProfile? {
-    if (launchProfileName == null) return null
-    val launchProfiles = LaunchSettingsJsonService.loadLaunchSettings(runnableProject)
-        ?.profiles
-        ?.filter { it.value.commandName.equals("Project", true) }
-        ?: return null
-    val profileByName = launchProfiles[launchProfileName] ?: return null
-
-    return LaunchProfile(launchProfileName, profileByName)
-}
 
 internal fun getArguments(profile: LaunchSettingsJson.Profile?, projectOutput: ProjectOutput?): String {
     val defaultArguments = projectOutput?.defaultArguments

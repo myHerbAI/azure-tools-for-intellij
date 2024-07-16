@@ -26,6 +26,11 @@ import com.jetbrains.rider.model.RunnableProject
 import com.jetbrains.rider.model.runnableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.intellij.legacy.function.actions.TriggerAzureFunctionAction
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.*
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getApplicationUrl
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getArguments
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getEnvironmentVariables
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getWorkingDirectory
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.*
 
 class FunctionAppSolutionExtListener : SolutionExtListener<FunctionAppDaemonModel> {
@@ -133,18 +138,22 @@ class FunctionAppSolutionExtListener : SolutionExtListener<FunctionAppDaemonMode
         }
 
         val configuration = settings.configuration as FunctionRunConfiguration
-        patchConfigurationParameters(configuration, runnableProject, functionName)
+        patchConfigurationParameters(project, configuration, runnableProject, functionName)
 
         return configuration
     }
 
     private fun patchConfigurationParameters(
+        project: Project,
         configuration: FunctionRunConfiguration,
         runnableProject: RunnableProject,
         functionName: String?
     ) {
         val projectOutput = runnableProject.projectOutputs.firstOrNull()
-        val launchProfile = getLaunchProfiles(runnableProject).firstOrNull()
+        val launchProfile = FunctionLaunchProfilesService
+            .getInstance(project)
+            .getLaunchProfiles(runnableProject)
+            .firstOrNull()
 
         configuration.parameters.apply {
             projectFilePath = runnableProject.projectFilePath

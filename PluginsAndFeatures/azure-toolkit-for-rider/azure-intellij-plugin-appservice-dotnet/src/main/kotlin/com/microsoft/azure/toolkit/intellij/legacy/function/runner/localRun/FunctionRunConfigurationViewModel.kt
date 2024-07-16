@@ -4,6 +4,7 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun
 
+import com.intellij.openapi.project.Project
 import com.jetbrains.rd.util.lifetime.Lifetime
 import com.jetbrains.rd.util.reactive.adviseOnce
 import com.jetbrains.rider.model.ProjectOutput
@@ -16,12 +17,18 @@ import com.jetbrains.rider.run.configurations.controls.startBrowser.BrowserSetti
 import com.jetbrains.rider.run.configurations.launchSettings.LaunchSettingsJson
 import com.jetbrains.rider.run.configurations.project.DotNetStartBrowserParameters
 import com.microsoft.azure.toolkit.intellij.legacy.function.daemon.AzureRunnableProjectKinds
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionLocalSettings
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionLocalSettingsUtil
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionWorkerRuntime
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.*
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getApplicationUrl
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getArguments
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getEnvironmentVariables
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getWorkingDirectory
+import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionLocalSettings
+import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionLocalSettingsService
+import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionWorkerRuntime
 import java.io.File
 
 class FunctionRunConfigurationViewModel(
+    private val project: Project,
     private val lifetime: Lifetime,
     private val runnableProjectsModel: RunnableProjectsModel?,
     val projectSelector: ProjectSelector,
@@ -106,7 +113,7 @@ class FunctionRunConfigurationViewModel(
     }
 
     private fun reloadLaunchProfileSelector(runnableProject: RunnableProject) {
-        val launchProfiles = getLaunchProfiles(runnableProject)
+        val launchProfiles = FunctionLaunchProfilesService.getInstance(project).getLaunchProfiles(runnableProject)
         launchProfileSelector.profileList.apply {
             clear()
             addAll(launchProfiles)
@@ -117,7 +124,9 @@ class FunctionRunConfigurationViewModel(
     }
 
     private fun readLocalSettingsForProject(runnableProject: RunnableProject) {
-        functionLocalSettings = FunctionLocalSettingsUtil.readFunctionLocalSettings(runnableProject)
+        functionLocalSettings = FunctionLocalSettingsService
+            .getInstance(project)
+            .getFunctionLocalSettings(runnableProject)
     }
 
     private fun handleChangeTfmSelection() {

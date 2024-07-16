@@ -19,7 +19,12 @@ import com.jetbrains.rider.run.configurations.launchSettings.LaunchSettingsJsonS
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 import com.microsoft.azure.toolkit.intellij.legacy.function.daemon.AzureRunnableProjectKinds
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionLocalSettingsUtil
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.*
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getApplicationUrl
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getArguments
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getEnvironmentVariables
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getWorkingDirectory
+import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionLocalSettingsService
 
 class FunctionRunConfigurationType : ConfigurationTypeBase(
     ID,
@@ -74,7 +79,8 @@ class FunctionRunConfigurationType : ConfigurationTypeBase(
                     configurationName,
                     runnableProject,
                     profile.key,
-                    runManager
+                    runManager,
+                    project
                 )
 
                 runManager.addConfiguration(configuration)
@@ -118,17 +124,22 @@ class FunctionRunConfigurationType : ConfigurationTypeBase(
         name: String,
         runnableProject: RunnableProject,
         profile: String,
-        runManager: RunManager
+        runManager: RunManager,
+        project: Project
     ): RunnerAndConfigurationSettings {
         val settings = runManager.createConfiguration(name, factory)
-        val localFunctionSettings = FunctionLocalSettingsUtil.readFunctionLocalSettings(runnableProject)
+        val localFunctionSettings = FunctionLocalSettingsService
+            .getInstance(project)
+            .getFunctionLocalSettings(runnableProject)
         (settings.configuration as? FunctionRunConfiguration)?.parameters?.apply {
             projectFilePath = runnableProject.projectFilePath
             profileName = profile
             val projectOutput = runnableProject.projectOutputs.firstOrNull()
             projectTfm = projectOutput?.tfm?.presentableName ?: ""
             functionNames = ""
-            val launchProfile = getLaunchProfileByName(runnableProject, profile)
+            val launchProfile = FunctionLaunchProfilesService
+                .getInstance(project)
+                .getLaunchProfileByName(runnableProject, profile)
             if (launchProfile != null) {
                 arguments = getArguments(launchProfile.content, projectOutput)
                 trackArguments = true

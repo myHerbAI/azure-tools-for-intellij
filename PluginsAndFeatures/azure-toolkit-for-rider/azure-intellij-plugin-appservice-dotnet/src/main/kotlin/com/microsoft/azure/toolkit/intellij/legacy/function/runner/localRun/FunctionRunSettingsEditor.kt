@@ -21,6 +21,7 @@ class FunctionRunSettingsEditor(private val project: Project) :
 
     override fun createEditor(lifetime: Lifetime): JComponent {
         viewModel = FunctionRunConfigurationViewModel(
+            project,
             lifetime,
             project.runnableProjectsModelIfAvailable,
             ProjectSelector("Project:", "Project"),

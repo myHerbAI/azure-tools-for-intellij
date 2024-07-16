@@ -17,6 +17,11 @@ import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.projectView.workspace.getFile
 import com.jetbrains.rider.run.configurations.getSelectedProject
 import com.microsoft.azure.toolkit.intellij.legacy.function.daemon.AzureRunnableProjectKinds
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.*
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getApplicationUrl
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getArguments
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getEnvironmentVariables
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getWorkingDirectory
 
 class FunctionRunConfigurationProducer : LazyRunConfigurationProducer<FunctionRunConfiguration>() {
     override fun getConfigurationFactory() =
@@ -60,7 +65,10 @@ class FunctionRunConfigurationProducer : LazyRunConfigurationProducer<FunctionRu
         }
 
         val projectOutput = runnableProject.projectOutputs.firstOrNull()
-        val launchProfile = getLaunchProfiles(runnableProject).firstOrNull()
+        val launchProfile = FunctionLaunchProfilesService
+            .getInstance(context.project)
+            .getLaunchProfiles(runnableProject)
+            .firstOrNull()
 
         configuration.parameters.apply {
             projectFilePath = selectedProjectFilePathInvariant
