@@ -18,7 +18,7 @@ val azureToolkitVersion: String by extra
 
 dependencies {
     intellijPlatform {
-        rider(platformVersion)
+        rider(platformVersion, false)
         jetbrainsRuntime()
         bundledPlugins(listOf("com.intellij.database"))
         instrumentationTools()

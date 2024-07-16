@@ -6,8 +6,8 @@ rdGen = "2024.1.1"
 # plugins
 kotlin = "2.0.0"
 serialization = "2.0.0"
-changelog = "2.2.0"
-intelliJPlatform = "2.0.0-beta8"
+changelog = "2.2.1"
+intelliJPlatform = "2.0.0-beta9"
 qodana = "2024.1.5"
 aspectj = "6.5.1"
 

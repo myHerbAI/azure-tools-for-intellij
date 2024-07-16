@@ -18,7 +18,7 @@ val platformVersion: String by extra
 
 dependencies {
     intellijPlatform {
-        rider(platformVersion)
+        rider(platformVersion, false)
         jetbrainsRuntime()
         instrumentationTools()
     }
