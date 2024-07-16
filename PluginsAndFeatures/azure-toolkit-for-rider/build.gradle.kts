@@ -64,6 +64,9 @@ dependencies {
     implementation(project(path = ":azure-intellij-plugin-database"))
     implementation(project(path = ":azure-intellij-plugin-database-dotnet"))
     implementation(project(path = ":azure-intellij-plugin-cloud-shell"))
+    implementation(project(path = ":azure-intellij-plugin-redis"))
+    implementation(project(path = ":azure-intellij-plugin-storage"))
+    implementation(project(path = ":azure-intellij-plugin-keyvault"))
 
     // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
