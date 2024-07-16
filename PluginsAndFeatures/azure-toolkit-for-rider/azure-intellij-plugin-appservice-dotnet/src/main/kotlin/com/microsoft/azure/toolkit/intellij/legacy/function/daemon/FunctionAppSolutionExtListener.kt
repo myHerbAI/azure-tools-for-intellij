@@ -18,7 +18,6 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.client.ClientProjectSession
 import com.intellij.openapi.project.Project
-import com.intellij.util.execution.ParametersListUtil
 import com.jetbrains.rd.protocol.SolutionExtListener
 import com.jetbrains.rd.ui.bedsl.extensions.valueOrEmpty
 import com.jetbrains.rd.util.lifetime.Lifetime
@@ -27,9 +26,12 @@ import com.jetbrains.rider.model.RunnableProject
 import com.jetbrains.rider.model.runnableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.intellij.legacy.function.actions.TriggerAzureFunctionAction
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.FunctionRunConfiguration
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.FunctionRunConfigurationFactory
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.FunctionRunConfigurationType
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.*
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getApplicationUrl
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getArguments
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getEnvironmentVariables
+import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getWorkingDirectory
+import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.*
 
 class FunctionAppSolutionExtListener : SolutionExtListener<FunctionAppDaemonModel> {
     override fun extensionCreated(lifetime: Lifetime, session: ClientProjectSession, model: FunctionAppDaemonModel) {
@@ -128,38 +130,48 @@ class FunctionAppSolutionExtListener : SolutionExtListener<FunctionAppDaemonMode
         val configurationType = ConfigurationTypeUtil.findConfigurationType(FunctionRunConfigurationType::class.java)
 
         val factory = configurationType.factory
-        val template = runManager.getConfigurationTemplate(factory)
+        val configurationName =
+            if (functionName.isNullOrEmpty()) runnableProject.name
+            else "$functionName (${runnableProject.fullName})"
+        val settings = runManager.createConfiguration(configurationName, factory).apply {
+            isTemporary = true
+        }
 
-        val configuration = template.configuration as FunctionRunConfiguration
-        patchConfigurationParameters(configuration, runnableProject, functionName)
+        val configuration = settings.configuration as FunctionRunConfiguration
+        patchConfigurationParameters(project, configuration, runnableProject, functionName)
 
         return configuration
     }
 
     private fun patchConfigurationParameters(
+        project: Project,
         configuration: FunctionRunConfiguration,
         runnableProject: RunnableProject,
         functionName: String?
     ) {
-        val projectOutput = runnableProject.projectOutputs.singleOrNull()
+        val projectOutput = runnableProject.projectOutputs.firstOrNull()
+        val launchProfile = FunctionLaunchProfilesService
+            .getInstance(project)
+            .getLaunchProfiles(runnableProject)
+            .firstOrNull()
 
-        if (functionName.isNullOrEmpty()) {
-            // All functions
-            configuration.name = runnableProject.name
-            configuration.parameters.functionNames = ""
-        } else {
-            // Specific function
-            configuration.name = "$functionName (${runnableProject.fullName})"
-            configuration.parameters.functionNames = functionName
+        configuration.parameters.apply {
+            projectFilePath = runnableProject.projectFilePath
+            projectTfm = projectOutput?.tfm?.presentableName ?: ""
+            profileName = launchProfile?.name ?: ""
+            functionNames =  if (functionName.isNullOrEmpty()) "" else functionName
+            trackArguments = true
+            arguments = getArguments(launchProfile?.content, projectOutput)
+            trackWorkingDirectory = true
+            workingDirectory = getWorkingDirectory(launchProfile?.content, projectOutput)
+            trackEnvs = true
+            envs = getEnvironmentVariables(launchProfile?.content)
+            useExternalConsole = false
+            trackUrl = true
+            startBrowserParameters.apply {
+                url = getApplicationUrl(launchProfile?.content, projectOutput, null)
+                startAfterLaunch = launchProfile?.content?.launchBrowser ?: false
+            }
         }
-
-        configuration.parameters.projectFilePath = runnableProject.projectFilePath
-        configuration.parameters.projectKind = runnableProject.kind
-        configuration.parameters.projectTfm = projectOutput?.tfm?.presentableName ?: ""
-        configuration.parameters.exePath = projectOutput?.exePath ?: ""
-        configuration.parameters.programParameters = ParametersListUtil.join(
-            projectOutput?.defaultArguments ?: listOf()
-        )
-        configuration.parameters.workingDirectory = projectOutput?.workingDirectory ?: ""
     }
 }

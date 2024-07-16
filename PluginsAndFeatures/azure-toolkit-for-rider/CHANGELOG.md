@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Read run configurations from `launchSettings.json` file ([RIDER-92674](https://youtrack.jetbrains.com/issue/RIDER-92674))
+
+## [4.0.0-preview.7] - 2024-07-10
+
 ### Changed
 
 - Support for Rider 2024.2
@@ -71,7 +77,9 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.6...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.7...HEAD
+
+[4.0.0-preview.7]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.6...v4.0.0-preview.7
 
 [4.0.0-preview.6]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.5...v4.0.0-preview.6
 

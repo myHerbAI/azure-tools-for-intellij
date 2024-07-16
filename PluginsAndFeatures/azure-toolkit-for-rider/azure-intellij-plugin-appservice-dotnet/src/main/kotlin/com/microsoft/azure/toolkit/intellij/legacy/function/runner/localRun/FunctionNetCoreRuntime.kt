@@ -18,7 +18,7 @@ import com.jetbrains.rider.runtime.SuspendedAttachableDotNetRuntime
 import com.jetbrains.rider.runtime.dotNetCore.DotNetCoreRuntime
 import com.jetbrains.rider.runtime.dotNetCore.DotNetCoreRuntimeType
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsInfo
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.localsettings.FunctionWorkerRuntime
+import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionWorkerRuntime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlin.io.path.absolutePathString
 

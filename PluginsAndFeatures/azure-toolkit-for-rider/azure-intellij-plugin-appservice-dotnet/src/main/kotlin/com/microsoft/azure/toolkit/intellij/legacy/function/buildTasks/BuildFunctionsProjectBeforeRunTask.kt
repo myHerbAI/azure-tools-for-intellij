@@ -28,7 +28,7 @@ class BuildFunctionsProjectBeforeRunTaskProvider : BeforeRunTaskProvider<BuildFu
 
     override fun getId() = ID
 
-    override fun getName() = "Build Functions Project"
+    override fun getName() = "Build Functions Project (Deprecated)"
 
     override fun getDescription(task: BuildFunctionsProjectBeforeRunTask) = "Build Functions project"
 
@@ -39,7 +39,7 @@ class BuildFunctionsProjectBeforeRunTaskProvider : BeforeRunTaskProvider<BuildFu
     override fun createTask(runConfiguration: RunConfiguration): BuildFunctionsProjectBeforeRunTask? {
         if (runConfiguration !is FunctionRunConfiguration) return null
 
-        return BuildFunctionsProjectBeforeRunTask().apply { isEnabled = true }
+        return BuildFunctionsProjectBeforeRunTask().apply { isEnabled = false }
     }
 
     override fun canExecuteTask(configuration: RunConfiguration, task: BuildFunctionsProjectBeforeRunTask): Boolean {

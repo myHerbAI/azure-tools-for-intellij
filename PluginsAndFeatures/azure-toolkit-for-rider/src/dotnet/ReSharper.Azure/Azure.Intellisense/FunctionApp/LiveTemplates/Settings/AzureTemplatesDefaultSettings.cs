@@ -3,25 +3,25 @@
 using System.IO;
 using System.Reflection;
 using JetBrains.Application;
+using JetBrains.Application.Parts;
 using JetBrains.Application.Settings;
 using JetBrains.Diagnostics;
 using JetBrains.Lifetimes;
 
-namespace JetBrains.ReSharper.Azure.Intellisense.FunctionApp.LiveTemplates.Settings
-{
-    [ShellComponent]
-    public class AzureTemplatesDefaultSettings : IHaveDefaultSettingsStream
-    {
-        public Stream GetDefaultSettingsStream(Lifetime lifetime)
-        {
-            var stream = Assembly
-                .GetExecutingAssembly()
-                .GetManifestResourceStream("JetBrains.ReSharper.Azure.Templates.templates.dotSettings");
-            Assertion.AssertNotNull(stream, "stream should not be null");
-            lifetime.AddDispose(stream);
-            return stream;
-        }
+namespace JetBrains.ReSharper.Azure.Intellisense.FunctionApp.LiveTemplates.Settings;
 
-        public string Name => "Azure default templates";
+[ShellComponent(Instantiation.DemandAnyThreadSafe)]
+public class AzureTemplatesDefaultSettings : IHaveDefaultSettingsStream
+{
+    public Stream GetDefaultSettingsStream(Lifetime lifetime)
+    {
+        var stream = Assembly
+            .GetExecutingAssembly()
+            .GetManifestResourceStream("JetBrains.ReSharper.Azure.Templates.templates.dotSettings");
+        Assertion.AssertNotNull(stream, "stream should not be null");
+        lifetime.AddDispose(stream);
+        return stream;
     }
+
+    public string Name => "Azure default templates";
 }

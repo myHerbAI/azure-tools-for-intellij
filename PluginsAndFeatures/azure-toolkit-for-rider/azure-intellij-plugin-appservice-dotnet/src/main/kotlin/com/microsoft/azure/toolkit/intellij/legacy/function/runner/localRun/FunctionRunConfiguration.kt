@@ -8,8 +8,8 @@ import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.project.Project
 import com.jetbrains.rider.debugger.IRiderDebuggable
 import com.jetbrains.rider.run.configurations.IAutoSelectableRunConfiguration
+import com.jetbrains.rider.run.configurations.IProjectBasedRunConfiguration
 import com.jetbrains.rider.run.configurations.RiderAsyncRunConfiguration
-import com.jetbrains.rider.runtime.RiderDotNetActiveRuntimeHost
 import org.jdom.Element
 
 class FunctionRunConfiguration(
@@ -22,14 +22,12 @@ class FunctionRunConfiguration(
     project,
     factory,
     { FunctionRunSettingsEditor(it) },
-    FunctionRunExecutorFactory(parameters)
-), IRiderDebuggable, IAutoSelectableRunConfiguration {
-
-    private val riderDotNetActiveRuntimeHost = RiderDotNetActiveRuntimeHost.getInstance(project)
+    FunctionRunExecutorFactory(project, parameters)
+), IProjectBasedRunConfiguration, IRiderDebuggable, IAutoSelectableRunConfiguration {
 
     override fun checkConfiguration() {
         super.checkConfiguration()
-        parameters.validate(riderDotNetActiveRuntimeHost)
+        parameters.validate()
     }
 
     override fun readExternal(element: Element) {
@@ -42,5 +40,22 @@ class FunctionRunConfiguration(
         parameters.writeExternal(element)
     }
 
+    override fun clone(): FunctionRunConfiguration {
+        val newConfiguration = FunctionRunConfiguration(
+            project,
+            requireNotNull(factory),
+            name,
+            parameters.copy()
+        )
+        newConfiguration.doCopyOptionsFrom(this)
+        return newConfiguration
+    }
+
     override fun getAutoSelectPriority() = 10
+
+    override fun getProjectFilePath() = parameters.projectFilePath
+
+    override fun setProjectFilePath(path: String) {
+        parameters.projectFilePath = path
+    }
 }
