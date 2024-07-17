@@ -6,7 +6,7 @@ package com.microsoft.azure.toolkit.intellij.redis.connection
 
 import com.intellij.openapi.project.Project
 
-class RedisResourceDefinition: BaseRedisResourceDefinition() {
+class RedisResourceDefinition : BaseRedisResourceDefinition() {
     companion object {
         val INSTANCE = RedisResourceDefinition()
     }
