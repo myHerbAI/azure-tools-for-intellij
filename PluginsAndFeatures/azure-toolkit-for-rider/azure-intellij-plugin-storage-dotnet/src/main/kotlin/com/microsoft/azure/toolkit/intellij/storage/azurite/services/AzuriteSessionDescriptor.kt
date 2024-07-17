@@ -2,7 +2,7 @@
  * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-package com.microsoft.azure.toolkit.intellij.azurite.services
+package com.microsoft.azure.toolkit.intellij.storage.azurite.services
 
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.process.ColoredProcessHandler
@@ -20,8 +20,8 @@ import com.intellij.util.application
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
-import com.microsoft.azure.toolkit.intellij.AppServiceDisposable
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
+import com.microsoft.azure.toolkit.intellij.storage.StorageDisposable
 
 class AzuriteSessionDescriptor(project: Project) : SimpleServiceViewDescriptor(
     "Azurite Emulator", IntelliJAzureIcons.getIcon(AzureIcons.StorageAccount.AZURITE)
@@ -56,7 +56,7 @@ class AzuriteSessionDescriptor(project: Project) : SimpleServiceViewDescriptor(
             .connect(this)
             .subscribe(AzuriteSessionListener.TOPIC, this)
 
-        Disposer.register(AppServiceDisposable.getInstance(), this)
+        Disposer.register(StorageDisposable.getInstance(), this)
         Disposer.register(this, consoleView)
     }
 

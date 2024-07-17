@@ -2,7 +2,9 @@
  * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-package com.microsoft.azure.toolkit.intellij.azurite
+@file:Suppress("DialogTitleCapitalization")
+
+package com.microsoft.azure.toolkit.intellij.storage.azurite
 
 import com.intellij.execution.BeforeRunTask
 import com.intellij.execution.BeforeRunTaskProvider
@@ -11,10 +13,9 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Key
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
-import com.microsoft.azure.toolkit.intellij.azurite.services.AzuriteService
-import com.microsoft.azure.toolkit.intellij.azurite.settings.AzuriteSettings
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
-import com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.FunctionRunConfiguration
+import com.microsoft.azure.toolkit.intellij.storage.azurite.services.AzuriteService
+import com.microsoft.azure.toolkit.intellij.storage.azurite.settings.AzuriteSettings
 import javax.swing.Icon
 import kotlin.io.path.exists
 
@@ -49,7 +50,7 @@ class AzuriteBeforeRunTaskProvider : BeforeRunTaskProvider<AzuriteBeforeRunTask>
             return task
         }
 
-        task.isEnabled = runConfiguration is FunctionRunConfiguration
+        task.isEnabled = runConfiguration.type.id == "AzureFunctionAppRun"
         return task
     }
 

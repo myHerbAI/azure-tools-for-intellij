@@ -2,7 +2,7 @@
  * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-package com.microsoft.azure.toolkit.intellij.legacy.storage
+package com.microsoft.azure.toolkit.intellij.storage.storage
 
 import com.azure.core.management.exception.ManagementException
 import com.microsoft.azure.toolkit.intellij.common.AzureTextInput
@@ -14,10 +14,10 @@ import kotlin.text.equals
 
 class AccountNameTextField(private val subscriptionId: String) : AzureTextInput() {
     companion object {
-        private const val pattern = "[a-z0-9]{3,24}"
-        private val regex = Regex(pattern)
-        private const val minLength = 3
-        private const val maxLength = 24
+        private const val PATTERN = "[a-z0-9]{3,24}"
+        private val REGEX = Regex(PATTERN)
+        private const val MIN_LENGTH = 3
+        private const val MAX_LENGTH = 24
     }
 
     init {
@@ -28,16 +28,16 @@ class AccountNameTextField(private val subscriptionId: String) : AzureTextInput(
     private fun doValidateValue(): AzureValidationInfo {
         val currentValue = value
 
-        if (currentValue.length < minLength || currentValue.length > maxLength) {
+        if (currentValue.length < MIN_LENGTH || currentValue.length > MAX_LENGTH) {
             return AzureValidationInfo
                 .builder()
                 .input(this)
-                .message("Server name must be at least $minLength characters and at most $maxLength characters.")
+                .message("Server name must be at least $MIN_LENGTH characters and at most $MAX_LENGTH characters.")
                 .type(AzureValidationInfo.Type.ERROR)
                 .build()
         }
 
-        if (!regex.matches(currentValue)) {
+        if (!REGEX.matches(currentValue)) {
             return AzureValidationInfo
                 .builder()
                 .input(this)

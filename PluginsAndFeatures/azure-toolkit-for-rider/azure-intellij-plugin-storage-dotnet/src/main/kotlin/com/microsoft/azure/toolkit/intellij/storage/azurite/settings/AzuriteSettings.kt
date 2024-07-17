@@ -2,7 +2,7 @@
  * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-package com.microsoft.azure.toolkit.intellij.azurite.settings
+package com.microsoft.azure.toolkit.intellij.storage.azurite.settings
 
 import com.intellij.execution.configurations.PathEnvironmentVariableUtil
 import com.intellij.openapi.application.PathManager
@@ -16,7 +16,7 @@ import java.nio.file.Path
 import kotlin.io.path.Path
 
 @State(
-    name = "com.microsoft.azure.toolkit.intellij.azurite.settings.AzuriteSettings",
+    name = "com.microsoft.azure.toolkit.intellij.storage.azurite.settings.AzuriteSettings",
     storages = [(Storage("AzureSettings.xml"))]
 )
 @Service

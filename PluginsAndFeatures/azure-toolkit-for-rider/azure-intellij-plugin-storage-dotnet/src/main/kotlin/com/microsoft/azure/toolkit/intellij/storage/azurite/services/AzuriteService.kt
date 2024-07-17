@@ -4,7 +4,7 @@
 
 @file:Suppress("UnstableApiUsage")
 
-package com.microsoft.azure.toolkit.intellij.azurite.services
+package com.microsoft.azure.toolkit.intellij.storage.azurite.services
 
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
@@ -25,8 +25,8 @@ import com.intellij.util.application
 import com.intellij.util.io.BaseOutputReader
 import com.jetbrains.rd.platform.util.idea.LifetimedService
 import com.jetbrains.rd.util.lifetime.SequentialLifetimes
-import com.microsoft.azure.toolkit.intellij.azurite.actions.ShowAzuriteSettingsNotificationAction
-import com.microsoft.azure.toolkit.intellij.azurite.settings.AzuriteSettings
+import com.microsoft.azure.toolkit.intellij.storage.azurite.actions.ShowAzuriteSettingsNotificationAction
+import com.microsoft.azure.toolkit.intellij.storage.azurite.settings.AzuriteSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
