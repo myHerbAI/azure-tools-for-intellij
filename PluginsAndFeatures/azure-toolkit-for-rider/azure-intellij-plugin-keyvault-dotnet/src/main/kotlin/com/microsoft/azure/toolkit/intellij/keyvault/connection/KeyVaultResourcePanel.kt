@@ -73,10 +73,10 @@ class KeyVaultResourcePanel : AzureFormJPanel<Resource<KeyVault>> {
     }
 
     override fun getValue(): Resource<KeyVault>? {
-        val cache = vaultComboBox.value
         val info = getValidationInfo(true)
         if (!info.isValid) return null
 
+        val cache = vaultComboBox.value
         return KeyVaultResourceDefinition.INSTANCE.define(cache)
     }
 

@@ -74,10 +74,10 @@ class RedisResourcePanel : AzureFormJPanel<Resource<RedisCache>> {
     }
 
     override fun getValue(): Resource<RedisCache>? {
-        val cache = redisComboBox.value
         val info = getValidationInfo(true)
         if (!info.isValid) return null
 
+        val cache = redisComboBox.value
         return RedisResourceDefinition.INSTANCE.define(cache)
     }
 
