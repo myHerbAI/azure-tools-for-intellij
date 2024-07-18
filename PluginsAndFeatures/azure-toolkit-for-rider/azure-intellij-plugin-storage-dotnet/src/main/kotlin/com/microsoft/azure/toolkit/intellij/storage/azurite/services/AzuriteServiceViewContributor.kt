@@ -9,9 +9,15 @@ import com.intellij.execution.services.SimpleServiceViewDescriptor
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
+import com.microsoft.azure.toolkit.intellij.storage.azurite.settings.AzuriteSettings
 
 class AzuriteServiceViewContributor : ServiceViewContributor<AzuriteSession> {
-    override fun getServices(project: Project) = mutableListOf(AzuriteService.getInstance().session)
+    override fun getServices(project: Project): MutableList<AzuriteSession> {
+        val settings = AzuriteSettings.getInstance()
+        if (!settings.showAzuriteService) return mutableListOf()
+
+        return mutableListOf(AzuriteService.getInstance().session)
+    }
 
     override fun getViewDescriptor(project: Project) =
         SimpleServiceViewDescriptor("Azurite Emulator", IntelliJAzureIcons.getIcon(AzureIcons.StorageAccount.AZURITE))

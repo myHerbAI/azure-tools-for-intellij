@@ -52,6 +52,12 @@ class AzuriteSettings : SimplePersistentStateComponent<AzuriteSettingsState>(Azu
             state.looseMode = value
         }
 
+    var showAzuriteService
+        get() = state.showAzuriteService
+        set(value) {
+            state.showAzuriteService = value
+        }
+
     var blobHost
         get() = state.blobHost ?: ""
         set(value) {

@@ -5,13 +5,13 @@
 package com.microsoft.azure.toolkit.intellij.storage.azurite.settings
 
 import com.intellij.openapi.components.BaseState
-import com.microsoft.azure.toolkit.intellij.storage.azurite.settings.AzuriteLocationMode
 
 class AzuriteSettingsState : BaseState() {
     var executablePath by string("")
     var locationMode by enum<AzuriteLocationMode>(AzuriteLocationMode.Managed)
     var workspacePath by string("")
     var looseMode by property(false)
+    var showAzuriteService by property(true)
     var blobHost by string("127.0.0.1")
     var blobPort by property(10000)
     var queueHost by string("127.0.0.1")

@@ -1,6 +1,6 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
-        <applicationConfigurable parentId="com.microsoft.intellij.AzureConfigurable"
+        <projectConfigurable parentId="com.microsoft.intellij.AzureConfigurable"
                                  displayName="Azurite"
                                  id="com.microsoft.azure.toolkit.intellij.storage.azurite.settings.AzuriteConfigurable"
                                  instance="com.microsoft.azure.toolkit.intellij.storage.azurite.settings.AzuriteConfigurable"/>

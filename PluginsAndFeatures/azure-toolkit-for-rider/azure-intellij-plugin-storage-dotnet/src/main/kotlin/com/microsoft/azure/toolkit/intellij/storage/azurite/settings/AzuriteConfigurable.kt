@@ -4,8 +4,10 @@
 
 package com.microsoft.azure.toolkit.intellij.storage.azurite.settings
 
+import com.intellij.execution.services.ServiceEventListener
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.options.BoundConfigurable
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.ui.ValidationInfo
@@ -14,9 +16,14 @@ import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.*
 import com.intellij.ui.layout.selectedValueIs
+import com.intellij.util.application
+import com.microsoft.azure.toolkit.ide.common.store.AzureConfigInitializer
+import com.microsoft.azure.toolkit.intellij.storage.azurite.services.AzuriteServiceViewContributor
+import com.microsoft.azure.toolkit.lib.Azure
 import java.io.File
+import kotlin.io.path.absolutePathString
 
-class AzuriteConfigurable : BoundConfigurable("Azurite") {
+class AzuriteConfigurable(private val project: Project) : BoundConfigurable("Azurite") {
     companion object {
         private const val IP_ADDRESS_PATTERN = "^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\$"
     }
@@ -27,6 +34,7 @@ class AzuriteConfigurable : BoundConfigurable("Azurite") {
 
     private lateinit var workspaceComboBox: Cell<ComboBox<AzuriteLocationMode>>
     private lateinit var basicOAuthCheckBox: Cell<JBCheckBox>
+    private lateinit var showAzuriteServiceCheckBox: Cell<JBCheckBox>
 
     override fun createPanel() = panel {
         group("Azurite Executable") {
@@ -66,6 +74,19 @@ class AzuriteConfigurable : BoundConfigurable("Azurite") {
                 basicOAuthCheckBox = checkBox("Enable basic OAuth authentication for Azurite")
                     .comment("OAuth requires an HTTPS endpoint.")
                     .bindSelected(settings::basicOAuth)
+            }
+            row {
+                showAzuriteServiceCheckBox = checkBox("Show Azurite in the Services tool window")
+                    .bindSelected(settings::showAzuriteService)
+                    .onApply {
+                        application.messageBus
+                            .syncPublisher(ServiceEventListener.TOPIC)
+                            .handle(
+                                ServiceEventListener.ServiceEvent.createResetEvent(
+                                    AzuriteServiceViewContributor::class.java
+                                )
+                            )
+                    }
             }
         }
         group("Host/Port Settings") {
@@ -150,4 +171,22 @@ class AzuriteConfigurable : BoundConfigurable("Azurite") {
         } else {
             null
         }
+
+    override fun apply() {
+        super.apply()
+
+        val config = Azure.az().config()
+
+        val settingsAzuriteExecutable = settings.getAzuriteExecutablePath()?.absolutePathString() ?: ""
+        if (settingsAzuriteExecutable != config.azuritePath) {
+            config.azuritePath = settingsAzuriteExecutable
+        }
+
+        val settingsAzuriteWorkspace = settings.getAzuriteWorkspacePath(project).absolutePathString()
+        if (settingsAzuriteWorkspace != config.azuriteWorkspace) {
+            config.azuriteWorkspace = settingsAzuriteWorkspace
+        }
+
+        AzureConfigInitializer.saveAzConfig()
+    }
 }
