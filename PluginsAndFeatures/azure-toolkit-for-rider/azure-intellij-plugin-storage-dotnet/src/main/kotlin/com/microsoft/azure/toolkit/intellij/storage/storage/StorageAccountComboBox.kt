@@ -58,7 +58,7 @@ class StorageAccountComboBox : AzureComboBox<StorageAccountConfig>() {
 
         val result = mutableListOf<StorageAccountConfig>()
 
-        if (!drafts.isEmpty()) {
+        if (drafts.isNotEmpty()) {
             drafts
                 .asSequence()
                 .filter { it.subscriptionId == sid }
@@ -66,7 +66,7 @@ class StorageAccountComboBox : AzureComboBox<StorageAccountConfig>() {
                 .forEach { result.add(it) }
         }
 
-        var remoteAccounts = Azure.az(AzureStorageAccount::class.java)
+        val remoteAccounts = Azure.az(AzureStorageAccount::class.java)
             .accounts(sid)
             .list()
             .asSequence()

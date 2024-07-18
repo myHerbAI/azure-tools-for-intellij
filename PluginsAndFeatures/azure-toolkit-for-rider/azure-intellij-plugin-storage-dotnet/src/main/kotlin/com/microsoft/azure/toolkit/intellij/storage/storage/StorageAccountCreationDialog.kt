@@ -36,7 +36,7 @@ class StorageAccountCreationDialog(
 
     override fun createCenterPanel() = mainPanel
 
-    override fun getValue(): StorageAccountConfig? {
+    override fun getValue(): StorageAccountConfig {
         val name = accountNameTextField.value
         return StorageAccountConfig(subscriptionId, name)
     }
