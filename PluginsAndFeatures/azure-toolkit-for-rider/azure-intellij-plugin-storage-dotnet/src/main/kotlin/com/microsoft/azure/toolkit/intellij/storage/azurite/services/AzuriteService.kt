@@ -27,6 +27,7 @@ import com.jetbrains.rd.platform.util.idea.LifetimedService
 import com.jetbrains.rd.util.lifetime.SequentialLifetimes
 import com.microsoft.azure.toolkit.intellij.storage.azurite.actions.ShowAzuriteSettingsNotificationAction
 import com.microsoft.azure.toolkit.intellij.storage.azurite.settings.AzuriteSettings
+import com.microsoft.azure.toolkit.lib.storage.AzuriteStorageAccount
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
@@ -239,11 +240,13 @@ class AzuriteService(private val scope: CoroutineScope) : LifetimedService() {
             synchronized(handlerLock) {
                 processHandler = newProcessHandler
                 workspace = workspaceLocation.absolutePathString()
+                AzuriteStorageAccount.AZURITE_STORAGE_ACCOUNT.refresh()
             }
         }, {
             synchronized(handlerLock) {
                 processHandler = null
                 workspace = null
+                AzuriteStorageAccount.AZURITE_STORAGE_ACCOUNT.refresh()
             }
         })
 
