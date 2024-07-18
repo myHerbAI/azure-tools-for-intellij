@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### Added
+
+- Support for Azure Redis
+- Support for Azure KeyVault
+- Support for Azure Storage accounts
+
 ### Fixed
 
 - Read run configurations from `launchSettings.json` file ([RIDER-92674](https://youtrack.jetbrains.com/issue/RIDER-92674))
