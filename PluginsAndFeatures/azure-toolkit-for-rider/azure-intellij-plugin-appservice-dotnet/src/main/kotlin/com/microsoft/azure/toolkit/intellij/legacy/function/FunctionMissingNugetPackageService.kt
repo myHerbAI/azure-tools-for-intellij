@@ -20,6 +20,7 @@ import com.jetbrains.rider.projectView.workspace.*
 import kotlinx.coroutines.*
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration.Companion.milliseconds
 
 @Service(Service.Level.PROJECT)
 class FunctionMissingNugetPackageService(
@@ -191,6 +192,9 @@ class FunctionMissingNugetPackageService(
         // For every known trigger name, verify required dependencies are installed
         val riderNuGetFacade = RiderNuGetFacade.getInstance(project)
 
+        val loadingResult = riderNuGetFacade.waitForLoading()
+        if (!loadingResult) return emptyList()
+
         val installableDependencies = mutableListOf<InstallableDependency>()
         for (installableProject in installableProjects) {
             val path = installableProject.getFile()?.toPath() ?: continue
@@ -236,6 +240,20 @@ class FunctionMissingNugetPackageService(
                 EditorNotifications.getInstance(project).updateNotifications(file)
             }
         }
+    }
+
+    private suspend fun RiderNuGetFacade.waitForLoading(): Boolean {
+        var isLoaded = host.isLoaded.valueOrNull
+        if (isLoaded == true) return true
+
+        for (i in 0..<10) {
+            delay(300.milliseconds)
+
+            isLoaded = host.isLoaded.valueOrNull
+            if (isLoaded == true) return true
+        }
+
+        return false
     }
 
     private fun RiderNuGetFacade.isInstalled(installableProject: ProjectModelEntity, dependencyId: String) =
