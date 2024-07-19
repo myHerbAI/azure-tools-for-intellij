@@ -63,8 +63,7 @@ class StartCloudShellAction : AnAction() {
             return
         }
 
-        val account = Azure.az(AzureAccount::class.java).account()
-        e.presentation.isEnabled = account.isLoggedIn
+        e.presentation.isEnabled = Azure.az(AzureAccount::class.java).isLoggedIn
     }
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
