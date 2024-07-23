@@ -35,7 +35,9 @@ class FunctionRunConfigurationParameters(
         private const val LAUNCH_PROFILE_NAME = "LAUNCH_PROFILE_NAME"
         private const val PROJECT_TFM = "PROJECT_TFM"
         private const val FUNCTION_NAMES = "FUNCTION_NAMES"
+        private const val PROGRAM_PARAMETERS = "PROGRAM_PARAMETERS"
         private const val ARGUMENTS_TRACKING = "PROJECT_ARGUMENTS_TRACKING"
+        private const val WORKING_DIRECTORY = "WORKING_DIRECTORY"
         private const val WORKING_DIRECTORY_TRACKING = "PROJECT_WORKING_DIRECTORY_TRACKING"
         private const val TRACK_ENVS = "TRACK_ENVS"
         private const val TRACK_URL = "TRACK_URL"
@@ -96,8 +98,10 @@ class FunctionRunConfigurationParameters(
         functionNames = JDOMExternalizerUtil.readField(element, FUNCTION_NAMES) ?: ""
         val trackArgumentsString = JDOMExternalizerUtil.readField(element, ARGUMENTS_TRACKING) ?: ""
         trackArguments = trackArgumentsString != "0"
+        arguments = JDOMExternalizerUtil.readField(element, PROGRAM_PARAMETERS) ?: ""
         val trackWorkingDirectoryString = JDOMExternalizerUtil.readField(element, WORKING_DIRECTORY_TRACKING) ?: ""
         trackWorkingDirectory = trackWorkingDirectoryString != "0"
+        workingDirectory = JDOMExternalizerUtil.readField(element, WORKING_DIRECTORY) ?: ""
         val trackEnvsString = JDOMExternalizerUtil.readField(element, TRACK_ENVS) ?: ""
         trackEnvs = trackEnvsString != "0"
         EnvironmentVariablesComponent.readExternal(element, envs)
@@ -114,7 +118,9 @@ class FunctionRunConfigurationParameters(
         JDOMExternalizerUtil.writeField(element, PROJECT_TFM, projectTfm)
         JDOMExternalizerUtil.writeField(element, FUNCTION_NAMES, functionNames)
         JDOMExternalizerUtil.writeField(element, ARGUMENTS_TRACKING, if (trackArguments) "1" else "0")
+        JDOMExternalizerUtil.writeField(element, PROGRAM_PARAMETERS, arguments)
         JDOMExternalizerUtil.writeField(element, WORKING_DIRECTORY_TRACKING, if (trackWorkingDirectory) "1" else "0")
+        JDOMExternalizerUtil.writeField(element, WORKING_DIRECTORY, workingDirectory)
         JDOMExternalizerUtil.writeField(element, TRACK_ENVS, if (trackEnvs) "1" else "0")
         EnvironmentVariablesComponent.writeExternal(element, envs)
         JDOMExternalizerUtil.writeField(element, USE_EXTERNAL_CONSOLE, if (useExternalConsole) "1" else "0")

@@ -347,14 +347,18 @@ class FunctionRunConfigurationViewModel(
         useExternalConsoleEditor.isVisible.set(workerRuntimeSupportsExternalConsole)
         useExternalConsoleEditor.isSelected.set(workerRuntimeSupportsExternalConsole && useExternalConsole)
 
-        val selectedTfm = tfmSelector.stringList.firstOrNull { it == tfm }
+        val selectedTfm =
+            if (tfm.isNotEmpty()) tfmSelector.stringList.firstOrNull { it == tfm }
+            else tfmSelector.stringList.firstOrNull()
         if (selectedTfm != null) {
             tfmSelector.string.set(selectedTfm)
         } else {
             tfmSelector.string.set("")
         }
 
-        val selectedProfile = launchProfileSelector.profileList.firstOrNull { it.name == launchProfile }
+        val selectedProfile =
+            if (launchProfile.isNotEmpty()) launchProfileSelector.profileList.firstOrNull { it.name == launchProfile }
+            else launchProfileSelector.profileList.firstOrNull()
         if (selectedProfile != null) {
             launchProfileSelector.profile.set(selectedProfile)
         } else {
