@@ -87,7 +87,7 @@ public class AzureServiceResource<T extends AzResource> implements Resource<T> {
             throw new AzureToolkitRuntimeException(String.format("%s '%s' does not exist.", this.getResourceType(), this.getName()));
         }
         final Map<String, String> properties = connection.isManagedIdentityConnection() && definition instanceof IManagedIdentitySupported identitySupported ?
-                identitySupported.initIdentityEnv(this, project) : this.definition.initEnv(this, project);
+                identitySupported.initIdentityEnv(connection, project) : this.definition.initEnv(this, project);
         final Map<String, String> result = new HashMap<>(properties);
         if (!(resource instanceof AbstractConnectionStringAzResource<?>)) {
             result.put(SUBSCRIPTION_ID_KEY, resource.getSubscriptionId());

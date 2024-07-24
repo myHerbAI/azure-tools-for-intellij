@@ -20,7 +20,7 @@ public interface SpringSupported<T> extends ResourceDefinition<T> {
         if (rd instanceof SpringSupported<?> springSupported) {
             final List<Pair<String, String>> springProperties =
                     c.isManagedIdentityConnection() && rd instanceof SpringManagedIdentitySupported<?> si ?
-                    si.getSpringPropertiesForManagedIdentity(propKey) : springSupported.getSpringProperties(propKey);
+                    si.getSpringPropertiesForManagedIdentity(propKey, c) : springSupported.getSpringProperties(propKey);
             return springProperties.stream()
                 .map(p -> Pair.of(p.getKey(), p.getValue().replaceAll(Connection.ENV_PREFIX, c.getEnvPrefix())))
                 .collect(Collectors.toList());

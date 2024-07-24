@@ -48,6 +48,7 @@ public class KeyVaultResourcePanel implements AzureFormJPanel<Resource<KeyVault>
                 this.vaultComboBox.clear();
             }
         });
+        this.vaultComboBox.addItemListener(ignore -> Optional.ofNullable(getValue()).ifPresent(this::fireValueChangedEvent));
     }
 
     @Override
