@@ -11,10 +11,7 @@ import com.intellij.openapi.ui.LabeledComponent
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.dsl.builder.Align
-import com.intellij.ui.dsl.builder.Cell
-import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.dsl.builder.selected
+import com.intellij.ui.dsl.builder.*
 import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
@@ -47,6 +44,14 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
 
     init {
         panel = panel {
+            row("Project:") {
+                dotnetProjectComboBox = dotnetProjectComboBox(project) { it.isWeb && (it.isDotNetCore || SystemInfo.isWindows) }
+                    .align(Align.FILL)
+            }
+            row("Configuration:") {
+                configurationAndPlatformComboBox = configurationAndPlatformComboBox(project)
+                    .align(Align.FILL)
+            }
             row("Web App:") {
                 webAppComboBox = webAppComboBox(project)
                     .align(Align.FILL)
@@ -58,22 +63,16 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
                 deploymentSlotComboBox = cell(DeploymentSlotComboBox(project))
                     .enabledIf(deployToSlotCheckBox.selected)
                     .align(Align.FILL)
-            }
-            row("Project:") {
-                dotnetProjectComboBox = dotnetProjectComboBox(project) { it.isWeb && (it.isDotNetCore || SystemInfo.isWindows) }
-                    .align(Align.FILL)
-            }
-            row("Configuration:") {
-                configurationAndPlatformComboBox = configurationAndPlatformComboBox(project)
-                    .align(Align.FILL)
-            }
-            row("App Settings:") {
-                appSettingsTable = AppSettingsTable()
-                cell(AppSettingsTableUtils.createAppSettingPanel(appSettingsTable))
-                    .align(Align.FILL)
-            }
+            }.bottomGap(BottomGap.MEDIUM)
             row {
                 openBrowserCheckBox = checkBox("Open browser after deployment")
+            }
+            collapsibleGroup("App Settings:") {
+                row {
+                    appSettingsTable = AppSettingsTable()
+                    cell(AppSettingsTableUtils.createAppSettingPanel(appSettingsTable))
+                        .align(Align.FILL)
+                }
             }
         }
 
@@ -133,7 +132,7 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
 
     private fun loadAppSettings(webAppConfig: AppServiceConfig, resource: WebAppBase<*, *, *>?) {
         if (resource != null) {
-            appSettingsTable.loadAppSettings { resource.appSettings }
+            appSettingsTable.loadAppSettings { resource.appSettings ?: emptyMap() }
         } else {
             appSettingsTable.loadAppSettings { webAppConfig.appSettings }
         }

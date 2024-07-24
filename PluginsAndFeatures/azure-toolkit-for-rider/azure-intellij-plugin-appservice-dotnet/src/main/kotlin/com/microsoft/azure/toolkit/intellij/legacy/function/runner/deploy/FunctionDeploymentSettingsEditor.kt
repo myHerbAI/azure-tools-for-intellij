@@ -46,6 +46,14 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
 
     init {
         panel = panel {
+            row("Project:") {
+                dotnetProjectComboBox = dotnetProjectComboBox(project) { it.isAzureFunction }
+                    .align(Align.FILL)
+            }
+            row("Configuration:") {
+                configurationAndPlatformComboBox = configurationAndPlatformComboBox(project)
+                    .align(Align.FILL)
+            }
             row("Function:") {
                 functionAppComboBox = functionAppComboBox(project)
                     .align(Align.FILL)
@@ -58,18 +66,12 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
                     .enabledIf(deployToSlotCheckBox.selected)
                     .align(Align.FILL)
             }
-            row("Project:") {
-                dotnetProjectComboBox = dotnetProjectComboBox(project) { it.isAzureFunction }
-                    .align(Align.FILL)
-            }
-            row("Configuration:") {
-                configurationAndPlatformComboBox = configurationAndPlatformComboBox(project)
-                    .align(Align.FILL)
-            }
-            row("App Settings:") {
-                appSettingsTable = AppSettingsTable()
-                cell(AppSettingsTableUtils.createAppSettingPanel(appSettingsTable))
-                    .align(Align.FILL)
+            collapsibleGroup("App Settings:") {
+                row {
+                    appSettingsTable = AppSettingsTable()
+                    cell(AppSettingsTableUtils.createAppSettingPanel(appSettingsTable))
+                        .align(Align.FILL)
+                }
             }
         }
 
@@ -129,7 +131,7 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
 
     private fun loadAppSettings(functionAppConfig: FunctionAppConfig, resource: FunctionAppBase<*, *, *>?) {
         if (resource != null) {
-            appSettingsTable.loadAppSettings { resource.appSettings }
+            appSettingsTable.loadAppSettings { resource.appSettings ?: emptyMap() }
         } else {
             appSettingsTable.loadAppSettings { functionAppConfig.appSettings }
         }
