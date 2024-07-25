@@ -7,7 +7,7 @@
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
 
 import com.intellij.execution.ExecutionException
-import com.intellij.execution.process.ProcessOutputTypes
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
@@ -34,10 +34,6 @@ import com.microsoft.azure.toolkit.lib.common.model.AzResource
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
 import kotlinx.coroutines.CoroutineScope
-import java.awt.Desktop
-import java.io.IOException
-import java.net.URISyntaxException
-import java.net.URL
 
 class WebAppRunState(
     project: Project,
@@ -143,7 +139,7 @@ class WebAppRunState(
         val url = "https://${result.hostName}"
         processHandler.setText("URL: $url")
         if (options.openBrowser) {
-            openWebAppInBrowser(url, processHandler)
+            BrowserUtil.open(url)
         }
         processHandler.notifyComplete()
     }
@@ -156,19 +152,6 @@ class WebAppRunState(
             }
 
             appSettings = app.appSettings ?: mutableMapOf()
-        }
-    }
-
-    private fun openWebAppInBrowser(url: String, processHandler: RunProcessHandler) {
-        try {
-            Desktop.getDesktop().browse(URL(url).toURI())
-        } catch (ex: Exception) {
-            when (ex) {
-                is IOException,
-                is URISyntaxException -> processHandler.println(ex.message, ProcessOutputTypes.STDERR)
-
-                else -> throw ex
-            }
         }
     }
 }

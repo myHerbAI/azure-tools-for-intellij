@@ -7,6 +7,7 @@
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy
 
 import com.intellij.execution.ExecutionException
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.project.Project
 import com.jetbrains.rider.model.PublishableProjectModel
@@ -128,7 +129,13 @@ class FunctionDeploymentState(
         }
 
     override fun onSuccess(result: FunctionAppBase<*, *, *>, processHandler: RunProcessHandler) {
+        val options = requireNotNull(functionDeploymentConfiguration.state)
+
         updateConfigurationDataModel(result)
+        val url = "https://${result.hostName}"
+        if (options.openBrowser) {
+            BrowserUtil.open(url)
+        }
         processHandler.notifyComplete()
     }
 
