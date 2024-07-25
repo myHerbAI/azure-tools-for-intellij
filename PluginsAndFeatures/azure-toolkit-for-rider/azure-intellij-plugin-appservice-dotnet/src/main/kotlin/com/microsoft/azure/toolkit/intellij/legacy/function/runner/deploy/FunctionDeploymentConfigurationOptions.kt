@@ -25,4 +25,6 @@ class FunctionDeploymentConfigurationOptions : LocatableRunConfigurationOptions(
     var projectConfiguration by string()
     var projectPlatform by string()
     var publishableProjectPath by string()
+    var openBrowser by property(false)
+    var isSettingRowExpanded by property(true)
 }
