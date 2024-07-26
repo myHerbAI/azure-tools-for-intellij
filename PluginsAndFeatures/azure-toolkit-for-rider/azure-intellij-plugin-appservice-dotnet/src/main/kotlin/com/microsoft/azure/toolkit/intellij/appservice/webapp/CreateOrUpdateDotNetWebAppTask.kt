@@ -40,10 +40,10 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
             .toDotNetWebAppDraft()
 
         if (config.deploymentSlotName().isNullOrEmpty()) {
-            val functionTask =
+            val webAppTask =
                 if (appDraft.exists()) getUpdateWebAppTask(appDraft)
                 else getCreateWebAppTask(appDraft)
-            registerSubTask(functionTask) { webApp = it }
+            registerSubTask(webAppTask) { webApp = it }
         } else {
             val slotDraft = getWebAppDeploymentSlot(appDraft)
             val slotTask =
@@ -85,39 +85,41 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
             val draft = Azure.az(AzureAppService::class.java)
                 .plans(planConfig.subscriptionId)
                 .updateOrCreate<AppServicePlanDraft>(planConfig.name, planConfig.resourceGroupName)
-            draft.operatingSystem = planConfig.os
-            draft.region = planConfig.region
-            draft.pricingTier = planConfig.pricingTier
+                .apply {
+                    operatingSystem = planConfig.os
+                    region = planConfig.region
+                    pricingTier = planConfig.pricingTier
+                }
+
             return@Callable draft.commit()
         })
     }
 
     private fun getCreateWebAppTask(draft: DotNetWebAppDraft) =
-        AzureTask<WebApp>("Create new app(${config.appName()}) on subscription(${config.subscriptionId()})",
+        AzureTask("Create new app(${config.appName()}) on subscription(${config.subscriptionId()})",
             Callable {
-                draft.appServicePlan = appServicePlan
-                draft.dotNetRuntime = getRuntime(config.dotnetRuntime)
-                draft.dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
-                draft.appSettings = config.appSettings()
-                draft.diagnosticConfig = config.diagnosticConfig()
+                with(draft) {
+                    appServicePlan = this@CreateOrUpdateDotNetWebAppTask.appServicePlan
+                    dotNetRuntime = getRuntime(config.dotnetRuntime)
+                    dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
+                    diagnosticConfig = config.diagnosticConfig()
 
-                val result = draft.createIfNotExist()
-                result
+                    createIfNotExist()
+                }
             }
         )
 
     private fun getUpdateWebAppTask(draft: DotNetWebAppDraft) =
         AzureTask<WebApp>("Update function app(${config.appName()})",
             Callable {
-                draft.appServicePlan = appServicePlan
-                draft.dotNetRuntime = getRuntime(config.dotnetRuntime)
-                draft.dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
-                val appSettingsToRemove = getAppSettingsToRemove(draft.appSettings ?: emptyMap(), config.appSettings())
-                draft.appSettings = config.appSettings()
-                draft.appSettingsToRemove = appSettingsToRemove
-                draft.diagnosticConfig = config.diagnosticConfig()
+                with(draft) {
+                    appServicePlan = this@CreateOrUpdateDotNetWebAppTask.appServicePlan
+                    dotNetRuntime = getRuntime(config.dotnetRuntime)
+                    dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
+                    diagnosticConfig = config.diagnosticConfig()
 
-                draft.updateIfExist()
+                    updateIfExist()
+                }
             }
         )
 
@@ -133,29 +135,29 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
     }
 
     private fun getCreateWebAppSlotTask(draft: DotNetWebAppDeploymentSlotDraft) =
-        AzureTask<WebAppDeploymentSlot>("Create new slot(${config.deploymentSlotName()}) on web app (${config.appName()})",
+        AzureTask("Create new slot(${config.deploymentSlotName()}) on web app (${config.appName()})",
             Callable {
-                draft.dotNetRuntime = getRuntime(config.dotnetRuntime)
-                draft.dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
-                draft.diagnosticConfig = config.diagnosticConfig()
-                draft.configurationSource = config.deploymentSlotConfigurationSource()
-                draft.appSettings = config.appSettings()
+                with(draft) {
+                    dotNetRuntime = getRuntime(config.dotnetRuntime)
+                    dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
+                    diagnosticConfig = config.diagnosticConfig()
+                    configurationSource = config.deploymentSlotConfigurationSource()
 
-                draft.commit()
+                    commit()
+                }
             }
         )
 
     private fun getUpdateWebAppSlotTask(draft: DotNetWebAppDeploymentSlotDraft) =
-        AzureTask<WebAppDeploymentSlot>("Update function deployment slot(${config.deploymentSlotName()})",
+        AzureTask("Update function deployment slot(${config.deploymentSlotName()})",
             Callable {
-                draft.dotNetRuntime = getRuntime(config.dotnetRuntime)
-                draft.dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
-                draft.diagnosticConfig = config.diagnosticConfig()
-                val appSettingsToRemove = getAppSettingsToRemove(draft.appSettings ?: emptyMap(), config.appSettings())
-                draft.appSettings = config.appSettings()
-                draft.appSettingsToRemove = appSettingsToRemove
+                with(draft) {
+                    dotNetRuntime = getRuntime(config.dotnetRuntime)
+                    dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
+                    diagnosticConfig = config.diagnosticConfig()
 
-                draft.commit()
+                    commit()
+                }
             }
         )
 
@@ -192,9 +194,6 @@ class CreateOrUpdateDotNetWebAppTask(private val config: DotNetAppServiceConfig)
             .startUpCommand(runtimeConfig.startUpCommand())
             .build()
     }
-
-    private fun getAppSettingsToRemove(targetSettings: Map<String, String>, newSettings: Map<String, String>) =
-        targetSettings.keys.filter { !newSettings.containsKey(it) }.toSet()
 
     private fun <T> registerSubTask(task: AzureTask<T>?, consumer: (result: T) -> Unit) {
         if (task != null) {

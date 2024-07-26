@@ -19,10 +19,8 @@ class WebAppConfigurationOptions : LocatableRunConfigurationOptions() {
     var isDeployToSlot by property(false)
     var slotName by string()
     var slotConfigurationSource by string()
-    var appSettings by map<String, String>()
     var projectConfiguration by string()
     var projectPlatform by string()
     var publishableProjectPath by string()
     var openBrowser by property(false)
-    var isSettingRowExpanded by property(true)
 }

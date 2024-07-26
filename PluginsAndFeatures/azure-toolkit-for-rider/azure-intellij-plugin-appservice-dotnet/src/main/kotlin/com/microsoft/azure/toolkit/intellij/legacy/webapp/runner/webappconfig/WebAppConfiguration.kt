@@ -82,7 +82,6 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
             isDeployToSlot = false
             slotName = null
             slotConfigurationSource = null
-            appSettings = webApp.appSettings ?: mutableMapOf()
         }
     }
 }

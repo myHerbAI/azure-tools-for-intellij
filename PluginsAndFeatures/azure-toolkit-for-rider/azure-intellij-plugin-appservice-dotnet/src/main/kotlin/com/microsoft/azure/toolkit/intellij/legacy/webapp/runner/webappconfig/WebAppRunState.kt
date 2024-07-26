@@ -62,9 +62,6 @@ class WebAppRunState(
         if (deployTarget is AzResource.Draft<*, *>) {
             deployTarget.reset()
         }
-        webAppConfiguration.state?.apply {
-            appSettings = deployTarget.appSettings ?: mutableMapOf()
-        }
 
         checkCanceled()
 
@@ -114,7 +111,6 @@ class WebAppRunState(
         val os = OperatingSystem.fromString(options.operatingSystem)
         runtime = createRuntimeConfig(os)
         dotnetRuntime = createDotNetRuntimeConfig(publishableProject, os)
-        appSettings(options.appSettings)
     }
 
     private fun createRuntimeConfig(os: OperatingSystem) =
@@ -150,8 +146,6 @@ class WebAppRunState(
                 slotName = app.name
                 slotConfigurationSource = null
             }
-
-            appSettings = app.appSettings ?: mutableMapOf()
         }
     }
 }

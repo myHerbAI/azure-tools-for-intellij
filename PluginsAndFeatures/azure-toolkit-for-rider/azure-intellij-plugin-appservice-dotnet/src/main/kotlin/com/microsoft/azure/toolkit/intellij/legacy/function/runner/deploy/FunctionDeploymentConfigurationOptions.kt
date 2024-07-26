@@ -21,10 +21,8 @@ class FunctionDeploymentConfigurationOptions : LocatableRunConfigurationOptions(
     var slotConfigurationSource by string()
     var storageAccountName by string()
     var storageAccountResourceGroup by string()
-    var appSettings by map<String, String>()
     var projectConfiguration by string()
     var projectPlatform by string()
     var publishableProjectPath by string()
     var openBrowser by property(false)
-    var isSettingRowExpanded by property(true)
 }
