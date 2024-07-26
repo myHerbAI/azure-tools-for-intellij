@@ -9,6 +9,10 @@
 - Read run configurations from `launchSettings.json` file ([RIDER-92674](https://youtrack.jetbrains.com/issue/RIDER-92674))
 - Fixed Function nuget package suggestion on project opening
 
+### Removed
+
+- App Settings table from the deployment configurations
+
 ## [4.0.0-preview.7] - 2024-07-10
 
 ### Changed
