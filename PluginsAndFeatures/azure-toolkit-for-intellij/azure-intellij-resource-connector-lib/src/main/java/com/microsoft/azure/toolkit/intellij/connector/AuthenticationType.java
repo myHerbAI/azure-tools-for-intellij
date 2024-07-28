@@ -11,9 +11,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum AuthenticationType {
-    CONNECTION_STRING("Connection String"),
     SYSTEM_ASSIGNED_MANAGED_IDENTITY("Managed Identity (System Assigned)"),
-    USER_ASSIGNED_MANAGED_IDENTITY("Managed Identity (User Assigned)");
+    USER_ASSIGNED_MANAGED_IDENTITY("Managed Identity (User Assigned)"),
+    CONNECTION_STRING("Connection String");
 
     private String displayName;
 }
