@@ -14,6 +14,7 @@ import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager;
 import com.microsoft.azure.toolkit.lib.common.model.AbstractAzResource;
 import com.microsoft.azure.toolkit.lib.common.model.AzResource;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,12 +22,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Interfaced to indicate that the resource supports managed identity
  * <p>
  */
 public interface IManagedIdentitySupported<T extends AzResource> {
+    String FAILED_TO_ASSIGN_MESSAGE = "Failed to grant permission to identity <a href=\"%s\">%s</a>, %s, please try assign correct role to it in portal";
 
     // check whether identity is connected to resource with full permission
 
@@ -53,28 +56,42 @@ public interface IManagedIdentitySupported<T extends AzResource> {
         return AzureActionManager.getInstance().getAction(ResourceCommonActionsContributor.OPEN_URL).bind(url).withLabel("Open IAM Configuration");
     }
 
+    public static boolean grantPermission(@Nonnull AzureServiceResource<?> data, @Nonnull String identity) {
+        final AzureServiceResource.Definition<?> d = data.getDefinition();
+        final AzResource r = data.getData();
+        if (d instanceof IManagedIdentitySupported<?> definition && MapUtils.isNotEmpty(definition.getBuiltInRoles()) && r instanceof AbstractAzResource<?, ?, ?> resource) {
+            final Map<String, BuiltInRole> builtInRoles = definition.getBuiltInRoles();
+            final List<String> roles = resource.getRoleAssignments(identity).stream().map(RoleAssignment::roleDefinitionId).toList();
+            final String rolesStr = builtInRoles.values().stream().map(BuiltInRole::toString).collect(Collectors.joining(","));
+            final boolean assignRole = AzureMessager.getDefaultMessager().confirm(String.format("Do you want to assign roles (%s) to identity (%s)?", rolesStr, identity), "Assign Required Roles");
+            if (assignRole) {
+                try {
+                    Objects.requireNonNull(definition.getBuiltInRoles()).forEach((id, role) -> {
+                        if (roles.stream().noneMatch(ro -> ro.endsWith(id))) {
+                            AzureMessager.getMessager().info(String.format("Assigning role (%s) to identity (%s)...", role, identity));
+                            resource.grantPermissionToIdentity(identity, role);
+                        }
+                    });
+                    AzureMessager.getMessager().info(String.format("Roles (%s) have been assigned to identity (%s)?", rolesStr, identity));
+                    return true;
+                } catch (final RuntimeException e) {
+                    final String errorMessage = String.format(FAILED_TO_ASSIGN_MESSAGE, resource.getPortalUrl(), identity, e.getMessage());
+                    AzureMessager.getMessager().warning(errorMessage, getOpenIdentityConfigurationAction(data));
+                }
+            }
+        }
+        return false;
+    }
+
     @Nullable
     public static Action<?> getGrantPermissionAction(@Nonnull AzureServiceResource<?> data, @Nonnull String identity) {
         final AzureServiceResource.Definition<?> d = data.getDefinition();
         final AzResource r = data.getData();
-        if (d instanceof IManagedIdentitySupported<?> definition && r instanceof AbstractAzResource<?, ?, ?> resource) {
+        if (d instanceof IManagedIdentitySupported<?> definition && MapUtils.isNotEmpty(definition.getBuiltInRoles()) && r instanceof AbstractAzResource<?, ?, ?> resource) {
             return new Action<>(Action.Id.of("user/common.assign_role.identity"))
                     .withLabel("Assign Required Roles")
                     .withIdParam(identity)
-                    .withHandler(ignore -> {
-                        final Map<String, BuiltInRole> builtInRoles = definition.getBuiltInRoles();
-                        final List<String> roles = resource.getRoleAssignments(identity).stream().map(RoleAssignment::roleDefinitionId).toList();
-                        try {
-                            Objects.requireNonNull(definition.getBuiltInRoles()).forEach((id, role) -> {
-                                if (roles.stream().noneMatch(ro -> ro.endsWith(id))) {
-                                    AzureMessager.getMessager().info(String.format("Assign role %s to identity %s...", role, identity));
-                                    resource.grantPermissionToIdentity(identity, role);
-                                }
-                            });
-                        } catch (final RuntimeException e) {
-                            AzureMessager.getMessager().warning(String.format("Failed to grant permission to identity %s, please try assign correct role to it in portal", identity), e);
-                        }
-                    });
+                    .withHandler(ignore -> grantPermission(data, identity));
         }
         return null;
     }

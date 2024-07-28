@@ -5,9 +5,6 @@
 
 package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig;
 
-import com.azure.core.management.profile.AzureProfile;
-import com.azure.resourcemanager.authorization.models.BuiltInRole;
-import com.azure.resourcemanager.authorization.models.RoleAssignment;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.microsoft.azure.toolkit.ide.appservice.AppServiceActionsContributor;
@@ -67,6 +64,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.microsoft.azure.toolkit.intellij.common.AzureBundle.message;
+import static com.microsoft.azure.toolkit.intellij.connector.IManagedIdentitySupported.*;
 
 public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
     private static final String LIBS_ROOT = "/home/site/wwwroot/libs/";
@@ -132,16 +130,16 @@ public class WebAppRunState extends AzureRunProfileState<WebAppBase<?, ?, ?>> {
             final AbstractAzResource<?,?,?> data = (AbstractAzResource<?,?,?>) resource.getData();
             final String identity = con.getAuthenticationType() == AuthenticationType.SYSTEM_ASSIGNED_MANAGED_IDENTITY ?
                     configuration.getPrincipalId() : Objects.requireNonNull(con.getUserAssignedManagedIdentity()).getData().getPrincipalId();
-            final List<String> roles = data.getRoleAssignments(identity).stream().map(RoleAssignment::roleDefinitionId).toList();
-            try {
-                definition.getBuiltInRoles().forEach((id, role) -> {
-                    if (roles.stream().noneMatch(r -> r.endsWith(id))) {
-                        AzureMessager.getMessager().info(String.format("Assign role %s to identity %s...", role, identity));
-                        data.grantPermissionToIdentity(identity, role);
-                    }
-                });
-            } catch (final RuntimeException e) {
-                AzureMessager.getMessager().warning(String.format("Failed to grant permission to identity %s, please try assign correct role to it in portal", identity), e);
+            final String identityName = con.getAuthenticationType() == AuthenticationType.SYSTEM_ASSIGNED_MANAGED_IDENTITY ?
+                    target instanceof AzResource ? ((AzResource)target).getName() : target.toString() :
+                    Objects.requireNonNull(con.getUserAssignedManagedIdentity()).getData().getName();
+            if (resource instanceof AzureServiceResource<?> serviceResource && !checkPermission(serviceResource, identity)) {
+                if (!IManagedIdentitySupported.grantPermission(serviceResource, identity)) {
+                    final String message = String.format("The managed identity %s (%s) doesn't have enough permission to access resource %s.", identity, identityName, resource.getName());
+                    final Action<?> openIdentityConfigurationAction = getOpenIdentityConfigurationAction(serviceResource);
+                    final Action<?> grantPermissionAction = getGrantPermissionAction(serviceResource, identity);
+                    AzureMessager.getMessager().warning(message, openIdentityConfigurationAction, grantPermissionAction);
+                }
             }
         });
     }
