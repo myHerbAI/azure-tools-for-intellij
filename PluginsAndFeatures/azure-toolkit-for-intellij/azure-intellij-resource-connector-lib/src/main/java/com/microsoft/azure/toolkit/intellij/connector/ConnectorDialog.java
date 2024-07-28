@@ -128,11 +128,9 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
     }
 
     private void onSelectResource(Object o) {
-        final Resource<?> value = o instanceof  Resource ? (Resource<?>) this.resourcePanel.getValue() : null;
-        if (Objects.nonNull(value) && cbAuthenticationType.getValue() == AuthenticationType.USER_ASSIGNED_MANAGED_IDENTITY) {
-            if (value instanceof AzResource azResource) {
-                cbIdentity.setSubscription(azResource.getSubscription());
-            }
+        final AzureServiceResource<?> value = o instanceof AzureServiceResource ? (AzureServiceResource<?>) this.resourcePanel.getValue() : null;
+        if (Objects.nonNull(value)) {
+            cbIdentity.setResource(value);
         }
     }
 
@@ -283,13 +281,14 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
             this.envPrefixTextField.setText(definition.getDefaultEnvPrefix());
             this.resourceTypeSelector.setValue(new ItemReference<>(definition.getName(), ResourceDefinition::getName));
             this.resourcePanel = this.updatePanel(definition, this.resourcePanelContainer);
-            this.resourcePanel.addValueChangedListener(this::onSelectResource);
+            Optional.ofNullable(this.resourcePanel).ifPresent(panel -> panel.addValueChangedListener(this::onSelectResource));
 
             this.lblEnvPrefix.setVisible(resourceDefinition.isEnvPrefixSupported());
             this.envPrefixTextField.setVisible(resourceDefinition.isEnvPrefixSupported());
 
             final List<AuthenticationType> supportedAuthenticationTypes = definition.getSupportedAuthenticationTypes();
             this.pnlAuthentication.setVisible(supportedAuthenticationTypes.size() > 1);
+            this.cbAuthenticationType.clear();
             this.cbAuthenticationType.setItemsLoader(() -> supportedAuthenticationTypes);
             this.cbAuthenticationType.reloadItems();
         }
@@ -343,6 +342,12 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
         };
         this.cbIdentity = new UserAssignedManagedIdentityComboBox();
         this.cbAuthenticationType = new AzureComboBox<>() {
+            @Nullable
+            @Override
+            protected AuthenticationType doGetDefaultValue() {
+                return AuthenticationType.SYSTEM_ASSIGNED_MANAGED_IDENTITY;
+            }
+
             @Nonnull
             @Override
             protected List<ExtendableTextComponent.Extension> getExtensions() {

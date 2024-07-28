@@ -42,7 +42,7 @@ public class CosmosDatabaseResourcePanel<T extends ICosmosDatabase, E extends Co
         this.cbSubscription.addItemListener(this::onSubscriptionChanged);
         this.cbAccount.addItemListener(this::onAccountChanged);
 
-        this.cbDatabase.addItemListener(ignore -> Optional.ofNullable(getValue()).ifPresent(this::fireValueChangedEvent));
+        this.cbDatabase.addValueChangedListener(ignore -> Optional.ofNullable(getValue()).ifPresent(this::fireValueChangedEvent));
 
     }
 

@@ -79,7 +79,7 @@ public class StorageAccountResourcePanel implements AzureFormJPanel<Resource<ISt
         lblConnectionString.setLabelFor(txtConnectionString);
         txtConnectionString.setLabel("Connection string");
 
-        this.accountComboBox.addItemListener(ignore -> Optional.ofNullable(getValue()).ifPresent(this::fireValueChangedEvent));
+        this.accountComboBox.addValueChangedListener(ignore -> Optional.ofNullable(getValue()).ifPresent(this::fireValueChangedEvent));
     }
 
     private void onSelectEnvironment() {
@@ -135,7 +135,7 @@ public class StorageAccountResourcePanel implements AzureFormJPanel<Resource<ISt
     @Override
     public Resource<IStorageAccount> getValue() {
         final AzureValidationInfo info = this.getValidationInfo(true);
-        if (!info.isValid()) {
+        if (info.getType() == AzureValidationInfo.Type.ERROR) {
             return null;
         }
         final String connectionString = this.txtConnectionString.getValue();
