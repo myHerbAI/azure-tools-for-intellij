@@ -21,6 +21,7 @@ the [base repository](https://github.com/microsoft/azure-tools-for-java).
     $ git clone https://github.com/JetBrains/azure-tools-for-intellij.git
     $ cd azure-tools-for-intellij
     ```
+* To run the prepared run configurations, open the `PluginsAndFeatures/azure-toolkit-for-rider` folder in IntelliJ IDEA.
 * **Using JDK 17**, run `Build Utils` run configuration or manually execute the following command under the project base
   path (If you have problems, make sure `JAVA_HOME` environment variable points to `<JDK17>/bin`):
     ```
@@ -35,8 +36,9 @@ the [base repository](https://github.com/microsoft/azure-tools-for-java).
 
 ### Run/Debug
 
-* Open IntelliJ, open `PluginsAndFeatures/azure-toolkit-for-rider`.
+* Open IntelliJ IDEA, open `PluginsAndFeatures/azure-toolkit-for-rider` folder.
 * Run/Debug the plugin by using `Run Plugin` run configuration.
+* For the dotnet part, open the solution file from `PluginsAndFeatures/azure-toolkit-for-rider/ReSharper.Azure.sln`.
 
 ### Maven Plugins for Azure Services
 
