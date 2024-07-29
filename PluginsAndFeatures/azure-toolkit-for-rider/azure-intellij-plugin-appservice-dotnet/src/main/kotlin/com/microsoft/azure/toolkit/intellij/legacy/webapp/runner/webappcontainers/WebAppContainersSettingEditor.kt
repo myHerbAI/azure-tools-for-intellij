@@ -58,7 +58,6 @@ class WebAppContainersSettingEditor(private val project: Project) : SettingsEdit
 
         tagTextField.component.text = "latest"
         containerRegistryComboBox.component.addValueChangedListener(::onRegistryChanged)
-        webAppContainersComboBox.component.reloadItems()
     }
 
     private fun onRegistryChanged(value: ContainerRegistryModel) {
@@ -96,6 +95,8 @@ class WebAppContainersSettingEditor(private val project: Project) : SettingsEdit
         tagTextField.component.text = state.imageTag
 
         portSpinner.component.number = state.port
+
+        webAppContainersComboBox.component.reloadItems()
     }
 
     override fun applyEditorTo(configuration: WebAppContainersConfiguration) {

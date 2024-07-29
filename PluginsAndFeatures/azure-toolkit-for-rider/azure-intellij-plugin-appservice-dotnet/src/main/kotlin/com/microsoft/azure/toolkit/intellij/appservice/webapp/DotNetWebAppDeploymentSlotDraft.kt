@@ -14,7 +14,6 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DiagnosticConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils
-import com.microsoft.azure.toolkit.lib.appservice.utils.Utils
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlotModule
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString
@@ -62,9 +61,7 @@ class DotNetWebAppDeploymentSlotDraft : WebAppDeploymentSlot, AzResource.Draft<W
                 ((localConfig.runtime == null || localConfig.runtime == remote?.getDotNetRuntime()) &&
                         localConfig.dockerConfiguration == null &&
                         (localConfig.diagnosticConfig == null || localConfig.diagnosticConfig == super.getDiagnosticConfig()) &&
-                        localConfig.configurationSource.isNullOrEmpty() &&
-                        (localConfig.appSettings == null || localConfig.appSettings == super.getAppSettings()) &&
-                        localConfig.appSettingsToRemove.isNullOrEmpty())
+                        localConfig.configurationSource.isNullOrEmpty())
         return !notModified
     }
 
@@ -102,7 +99,6 @@ class DotNetWebAppDeploymentSlotDraft : WebAppDeploymentSlot, AzResource.Draft<W
         messager.info("Start creating Web App deployment slot ($name)...")
 
         var slot = withCreate.create()
-        ensureConfig().appSettings = null
         ensureConfig().diagnosticConfig = null
         slot = updateRuntime(slot)
 
@@ -125,25 +121,14 @@ class DotNetWebAppDeploymentSlotDraft : WebAppDeploymentSlot, AzResource.Draft<W
         val newRuntime = ensureConfig().runtime
         val newDockerConfig = ensureConfig().dockerConfiguration
         val newDiagnosticConfig = ensureConfig().diagnosticConfig
-        val settingsToAdd = ensureConfig().appSettings?.toMutableMap()
 
         val oldRuntime = remote.getDotNetRuntime()
         val oldDiagnosticConfig = super.getDiagnosticConfig()
-        val oldAppSettings = Utils.normalizeAppSettings(remote.appSettings)
-
-        if (oldAppSettings != null && settingsToAdd != null) {
-            settingsToAdd.entries.removeAll(oldAppSettings.entries)
-        }
-        val settingsToRemove = ensureConfig().appSettingsToRemove
-            ?.filter { oldAppSettings.containsKey(it) }
-            ?.toSet()
-            ?: emptySet()
 
         val runtimeModified = !oldRuntime.isDocker && newRuntime != null && newRuntime != oldRuntime
         val dockerModified = oldRuntime.isDocker && newDockerConfig != null
         val diagnosticModified = newDiagnosticConfig != null && newDiagnosticConfig != oldDiagnosticConfig
-        val appSettingsModified = !settingsToAdd.isNullOrEmpty() || settingsToRemove.isNotEmpty()
-        val isModified = runtimeModified || dockerModified || diagnosticModified || appSettingsModified
+        val isModified = runtimeModified || dockerModified || diagnosticModified
 
         var result = remote
         if (isModified) {
@@ -154,8 +139,6 @@ class DotNetWebAppDeploymentSlotDraft : WebAppDeploymentSlot, AzResource.Draft<W
             if (diagnosticModified) newDiagnosticConfig?.let {
                 AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, it)
             }
-            settingsToAdd?.let { update.withAppSettings(it) }
-            settingsToRemove.let { if (settingsToRemove.isNotEmpty()) it.forEach { key -> update.withoutAppSetting(key) } }
 
             val messager = AzureMessager.getMessager()
             messager.info(AzureString.format("Start updating Web App deployment slot (${remote.name()})...", remote.name()))
@@ -219,17 +202,6 @@ class DotNetWebAppDeploymentSlotDraft : WebAppDeploymentSlot, AzResource.Draft<W
             ensureConfig().dockerConfiguration = value
         }
 
-    var appSettingsToRemove: Set<String>?
-        get() = config?.appSettingsToRemove
-        set(value) {
-            ensureConfig().appSettingsToRemove = value
-        }
-
-    override fun getAppSettings() = config?.appSettings ?: super.getAppSettings()
-    fun setAppSettings(value: Map<String, String>?) {
-        ensureConfig().appSettings = value
-    }
-
     override fun getDiagnosticConfig() = config?.diagnosticConfig ?: super.getDiagnosticConfig()
     fun setDiagnosticConfig(value: DiagnosticConfig?) {
         ensureConfig().diagnosticConfig = value
@@ -239,8 +211,6 @@ class DotNetWebAppDeploymentSlotDraft : WebAppDeploymentSlot, AzResource.Draft<W
         var runtime: DotNetRuntime? = null,
         var dockerConfiguration: DockerConfiguration? = null,
         var diagnosticConfig: DiagnosticConfig? = null,
-        var configurationSource: String? = null,
-        var appSettings: Map<String, String>? = null,
-        var appSettingsToRemove: Set<String>? = null
+        var configurationSource: String? = null
     )
 }

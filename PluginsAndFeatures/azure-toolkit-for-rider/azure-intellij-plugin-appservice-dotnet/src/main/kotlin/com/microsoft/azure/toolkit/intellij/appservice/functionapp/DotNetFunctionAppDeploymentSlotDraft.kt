@@ -19,7 +19,6 @@ import com.microsoft.azure.toolkit.lib.appservice.model.DockerConfiguration
 import com.microsoft.azure.toolkit.lib.appservice.model.FlexConsumptionConfiguration
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.utils.AppServiceUtils
-import com.microsoft.azure.toolkit.lib.appservice.utils.Utils
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager
 import com.microsoft.azure.toolkit.lib.common.model.AzResource
@@ -66,9 +65,7 @@ class DotNetFunctionAppDeploymentSlotDraft : FunctionAppDeploymentSlot,
                 ((localConfig.runtime == null || localConfig.runtime == remote?.getDotNetRuntime()) &&
                         localConfig.dockerConfiguration == null &&
                         (localConfig.diagnosticConfig == null || localConfig.diagnosticConfig == super.getDiagnosticConfig()) &&
-                        localConfig.configurationSource.isNullOrEmpty() &&
-                        (localConfig.appSettings == null || localConfig.appSettings == super.getAppSettings()) &&
-                        localConfig.appSettingsToRemove.isNullOrEmpty())
+                        localConfig.configurationSource.isNullOrEmpty())
 
         return !notModified
     }
@@ -142,20 +139,10 @@ class DotNetFunctionAppDeploymentSlotDraft : FunctionAppDeploymentSlot,
         val newDockerConfig = ensureConfig().dockerConfiguration
         val newDiagnosticConfig = ensureConfig().diagnosticConfig
         val newFlexConsumptionConfiguration = ensureConfig().flexConsumptionConfiguration
-        val settingsToAdd = ensureConfig().appSettings?.toMutableMap()
 
         val oldRuntime = remote.getDotNetRuntime()
         val oldDiagnosticConfig = super.getDiagnosticConfig()
         val oldFlexConsumptionConfiguration = super.getFlexConsumptionConfiguration()
-        val oldAppSettings = Utils.normalizeAppSettings(remote.appSettings)
-
-        if (oldAppSettings != null && settingsToAdd != null) {
-            settingsToAdd.entries.removeAll(oldAppSettings.entries)
-        }
-        val settingsToRemove = ensureConfig().appSettingsToRemove
-            ?.filter { oldAppSettings.containsKey(it) }
-            ?.toSet()
-            ?: emptySet()
 
         val runtimeModified = !oldRuntime.isDocker && newRuntime != null && newRuntime != oldRuntime
         val dockerModified = oldRuntime.isDocker && newDockerConfig != null
@@ -163,9 +150,7 @@ class DotNetFunctionAppDeploymentSlotDraft : FunctionAppDeploymentSlot,
         val flexConsumptionModified = parent.appServicePlan?.pricingTier?.isFlexConsumption == true &&
                 newFlexConsumptionConfiguration != null &&
                 newFlexConsumptionConfiguration != oldFlexConsumptionConfiguration
-        val appSettingsModified = !settingsToAdd.isNullOrEmpty() || settingsToRemove.isNotEmpty()
-        val isModified =
-            runtimeModified || dockerModified || diagnosticModified || flexConsumptionModified || appSettingsModified
+        val isModified = runtimeModified || dockerModified || diagnosticModified || flexConsumptionModified
 
         var result = remote
         if (isModified) {
@@ -176,8 +161,6 @@ class DotNetFunctionAppDeploymentSlotDraft : FunctionAppDeploymentSlot,
             if (diagnosticModified) newDiagnosticConfig?.let {
                 AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, it)
             }
-            settingsToAdd?.let { update.withAppSettings(it) }
-            settingsToRemove.let { if (settingsToRemove.isNotEmpty()) it.forEach { key -> update.withoutAppSetting(key) } }
 
             val messager = AzureMessager.getMessager()
             messager.info("Start updating Function App deployment slot (${remote.name()})...")
@@ -264,11 +247,6 @@ class DotNetFunctionAppDeploymentSlotDraft : FunctionAppDeploymentSlot,
         set(value) {
             ensureConfig().configurationSource = value
         }
-    var appSettingsToRemove: Set<String>?
-        get() = config?.appSettingsToRemove
-        set(value) {
-            ensureConfig().appSettingsToRemove = value
-        }
 
     override fun getAppSettings() = config?.appSettings ?: super.getAppSettings()
     fun setAppSettings(value: Map<String, String>?) {
@@ -292,8 +270,7 @@ class DotNetFunctionAppDeploymentSlotDraft : FunctionAppDeploymentSlot,
         var dockerConfiguration: DockerConfiguration? = null,
         var diagnosticConfig: DiagnosticConfig? = null,
         var configurationSource: String? = null,
-        var appSettings: Map<String, String>? = null,
-        var appSettingsToRemove: Set<String>? = null,
-        var flexConsumptionConfiguration: FlexConsumptionConfiguration? = null
+        var flexConsumptionConfiguration: FlexConsumptionConfiguration? = null,
+        var appSettings: Map<String, String>? = null
     )
 }
