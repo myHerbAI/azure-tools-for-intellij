@@ -6,8 +6,8 @@ the [base repository](https://github.com/microsoft/azure-tools-for-java).
 
 ### Prerequisites
 
-- Install [Corretto JDK 8](https://docs.aws.amazon.com/corretto/latest/corretto-8-ug/downloads-list.html)
-- Install [Corretto JDK 17](https://docs.aws.amazon.com/corretto/latest/corretto-17-ug/downloads-list.html)
+- Install JDK 17 (e.g. [JetBrains Runtime](https://github.com/JetBrains/JetBrainsRuntime)
+  or [Amazon Corretto](https://docs.aws.amazon.com/corretto/latest/corretto-17-ug/downloads-list.html))
 
 #### Windows
 
@@ -16,22 +16,13 @@ the [base repository](https://github.com/microsoft/azure-tools-for-java).
 
 ### Building
 
-* **Using JDK 8**, Clone and
-  Build [azure-maven-plugins/azure-toolkit-libs](https://github.com/microsoft/azure-maven-plugins/tree/develop/azure-toolkit-libs)
-  first.
-  Azure Toolkit for Intellij doesn't depend on our maven plugins, but they share some code together.
-    ```
-    $ git clone https://github.com/microsoft/azure-maven-plugins.git
-    $ cd azure-maven-plugins
-    $ ./mvnw clean install -f azure-toolkit-libs/pom.xml
-    ```
 * Clone the repository with HTTPS or SSH:
     ```
     $ git clone https://github.com/JetBrains/azure-tools-for-intellij.git
     $ cd azure-tools-for-intellij
     ```
-* **Using JDK 17**, run the following command under the project base path (If you have problems, make sure `JAVA_HOME`
-  environment variable points to `<JDK17>/bin`):
+* **Using JDK 17**, run `Build Utils` run configuration or manually execute the following command under the project base
+  path (If you have problems, make sure `JAVA_HOME` environment variable points to `<JDK17>/bin`):
     ```
     $ ./mvnw clean install -DskipTests -f Utils/pom.xml
     ```
@@ -46,3 +37,21 @@ the [base repository](https://github.com/microsoft/azure-tools-for-java).
 
 * Open IntelliJ, open `PluginsAndFeatures/azure-toolkit-for-rider`.
 * Run/Debug the plugin by using `Run Plugin` run configuration.
+
+### Maven Plugins for Azure Services
+
+The plugin depends on the [`Maven Plugins for Azure Services`](https://github.com/microsoft/azure-maven-plugins).
+Most often we use the release version of the package
+(when it is based on the `endgame` branch from the `azure-tools-for-java` repository).
+But sometimes it is necessary to build a snapshot version of the package.
+To do that, follow these steps:
+
+* Install [Corretto JDK 8](https://docs.aws.amazon.com/corretto/latest/corretto-8-ug/downloads-list.html)
+* **Using JDK 8**, Clone and
+  Build [azure-maven-plugins/azure-toolkit-libs](https://github.com/microsoft/azure-maven-plugins/tree/develop/azure-toolkit-libs).
+    ```
+    $ git clone https://github.com/microsoft/azure-maven-plugins.git
+    $ cd azure-maven-plugins
+    $ ./mvnw clean install -f azure-toolkit-libs/pom.xml
+    ```
+
