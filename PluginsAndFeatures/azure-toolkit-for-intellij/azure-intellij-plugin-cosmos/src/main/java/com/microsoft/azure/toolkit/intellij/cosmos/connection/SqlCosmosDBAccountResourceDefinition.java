@@ -129,7 +129,7 @@ public class SqlCosmosDBAccountResourceDefinition extends AzureServiceResource.D
         final List<Pair<String, String>> properties = new ArrayList<>();
         properties.add(Pair.of("spring.cloud.azure.cosmos.endpoint", String.format("${%s_ENDPOINT}", Connection.ENV_PREFIX)));
         properties.add(Pair.of("spring.cloud.azure.cosmos.database", String.format("${%s_DATABASE}", Connection.ENV_PREFIX)));
-        properties.add(Pair.of("spring.cloud.azure.cosmos.credential.managed-identity-enabled", String.valueOf(true)));
+        // properties.add(Pair.of("spring.cloud.azure.cosmos.credential.managed-identity-enabled", String.valueOf(true)));
         if (connection.getAuthenticationType() == AuthenticationType.USER_ASSIGNED_MANAGED_IDENTITY) {
             properties.add(Pair.of("spring.cloud.azure.cosmos.credential.client-id", String.format("${%s_CLIENT_ID}", Connection.ENV_PREFIX)));
         }

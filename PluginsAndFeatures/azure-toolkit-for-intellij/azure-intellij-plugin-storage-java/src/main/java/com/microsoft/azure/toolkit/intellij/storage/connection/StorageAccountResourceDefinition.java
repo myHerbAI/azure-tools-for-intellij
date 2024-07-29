@@ -142,7 +142,7 @@ public class StorageAccountResourceDefinition extends BaseStorageAccountResource
             properties.add(Pair.of("spring.cloud.azure.storage.blob.account-name", String.format("${%s_ACCOUNT_NAME}", Connection.ENV_PREFIX)));
             properties.add(Pair.of("spring.cloud.azure.storage.blob.endpoint", String.format("https://${%s_ACCOUNT_NAME}.blob%s", Connection.ENV_PREFIX, suffix)));
         }
-        properties.add(Pair.of("spring.cloud.azure.storage.blob.credential.managed-identity-enabled", String.valueOf(Boolean.TRUE)));
+        // properties.add(Pair.of("spring.cloud.azure.storage.blob.credential.managed-identity-enabled", String.valueOf(Boolean.TRUE)));
         // for user assigned managed identity
         if (connection.getAuthenticationType() == AuthenticationType.USER_ASSIGNED_MANAGED_IDENTITY) {
             properties.add(Pair.of("spring.cloud.azure.storage.blob.credential.client-id", String.format("${%s_CLIENT_ID}", Connection.ENV_PREFIX)));
