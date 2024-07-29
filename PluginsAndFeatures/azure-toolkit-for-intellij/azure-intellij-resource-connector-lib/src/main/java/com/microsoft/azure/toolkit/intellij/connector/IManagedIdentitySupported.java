@@ -31,14 +31,25 @@ import java.util.stream.Collectors;
 public interface IManagedIdentitySupported<T extends AzResource> {
     String FAILED_TO_ASSIGN_MESSAGE = "Failed to grant permission to identity <a href=\"%s\">%s</a>, %s, please try assign correct role to it in portal";
 
-    // check whether identity is connected to resource with full permission
-
     Map<String, String> initIdentityEnv(Connection<T, ?> data, Project project);
 
+    /**
+     * Get required permissions to access the target resource
+     *
+     * @return List of required permissions
+     */
     List<String> getRequiredPermissions();
 
+    /**
+     * Get built-in roles that could be assigned to the identity to get access to target resource
+     *
+     * @return Map (role id, BuildInRole), refers https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles
+     */
     @Nullable Map<String, BuiltInRole> getBuiltInRoles();
 
+    /**
+     * Check whether identity has required permissions to access resource
+     */
     public static boolean checkPermission(@Nonnull AzureServiceResource<?> data, @Nonnull String identity) {
         final AzureServiceResource.Definition<?> d = data.getDefinition();
         final AzResource r = data.getData();
