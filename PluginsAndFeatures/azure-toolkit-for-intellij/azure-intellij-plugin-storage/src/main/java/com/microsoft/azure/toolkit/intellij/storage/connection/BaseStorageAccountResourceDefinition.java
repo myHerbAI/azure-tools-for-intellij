@@ -28,8 +28,7 @@ import java.util.*;
 import static com.microsoft.azure.toolkit.lib.common.model.AbstractConnectionStringAzResourceModule.CONNECTION_STRING_SUBSCRIPTION_ID;
 
 @Getter
-public abstract class BaseStorageAccountResourceDefinition extends AzureServiceResource.Definition<IStorageAccount>
-    implements FunctionSupported<IStorageAccount> {
+public abstract class BaseStorageAccountResourceDefinition extends AzureServiceResource.Definition<IStorageAccount> implements FunctionSupported<IStorageAccount> {
     public static final int METHOD_AZURE = 0;
     public static final int METHOD_AZURITE = 1;
     public static final int METHOD_STRING = 2;
@@ -94,4 +93,5 @@ public abstract class BaseStorageAccountResourceDefinition extends AzureServiceR
     public String getResourceConnectionString(@Nonnull IStorageAccount resource) {
         return resource instanceof AzuriteStorageAccount ? LOCAL_STORAGE_CONNECTION_STRING : resource.getConnectionString();
     }
+
 }

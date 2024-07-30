@@ -10,6 +10,7 @@ dependencies {
     implementation("com.microsoft.azure:azure-toolkit-keyvault-lib")
     implementation("com.microsoft.azure:azure-toolkit-ide-common-lib")
     implementation("com.microsoft.azure:azure-toolkit-ide-keyvault-lib")
+    implementation("com.microsoft.azure:azure-toolkit-identity-lib")
     intellijPlatform {
         // Plugin Dependencies. Uses `platformBundledPlugins` property from the gradle.properties file for bundled IntelliJ Platform plugins.
         bundledPlugin("com.intellij.java")
