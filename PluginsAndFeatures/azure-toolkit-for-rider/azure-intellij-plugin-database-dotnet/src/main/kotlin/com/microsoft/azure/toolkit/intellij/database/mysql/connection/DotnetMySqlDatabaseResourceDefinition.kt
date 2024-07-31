@@ -4,5 +4,4 @@
  */
 package com.microsoft.azure.toolkit.intellij.database.mysql.connection;
 
-public class DotnetMySqlDatabaseResourceDefinition extends MySqlDatabaseResourceDefinition {
-}
+class DotnetMySqlDatabaseResourceDefinition : MySqlDatabaseResourceDefinition()

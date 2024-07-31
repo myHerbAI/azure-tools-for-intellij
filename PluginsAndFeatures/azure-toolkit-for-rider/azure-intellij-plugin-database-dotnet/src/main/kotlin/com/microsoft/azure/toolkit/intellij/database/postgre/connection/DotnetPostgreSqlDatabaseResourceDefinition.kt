@@ -5,5 +5,4 @@
 
 package com.microsoft.azure.toolkit.intellij.database.postgre.connection;
 
-public class DotnetPostgreSqlDatabaseResourceDefinition extends PostgreSqlDatabaseResourceDefinition {
-}
+class DotnetPostgreSqlDatabaseResourceDefinition : PostgreSqlDatabaseResourceDefinition()
