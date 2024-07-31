@@ -1,4 +1,4 @@
-plugins {
+dependencies {
     id("java")
     id("org.jetbrains.intellij.platform.module")
     alias(libs.plugins.aspectj)
