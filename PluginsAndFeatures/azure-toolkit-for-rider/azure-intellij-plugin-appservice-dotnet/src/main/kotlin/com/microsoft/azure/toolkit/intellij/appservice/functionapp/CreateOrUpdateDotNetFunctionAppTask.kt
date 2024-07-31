@@ -105,9 +105,12 @@ class CreateOrUpdateDotNetFunctionAppTask(private val config: DotNetFunctionAppC
             val draft = Azure.az(AzureAppService::class.java)
                 .plans(planConfig.subscriptionId)
                 .updateOrCreate<AppServicePlanDraft>(planConfig.name, planConfig.resourceGroupName)
-            draft.operatingSystem = planConfig.os
-            draft.region = planConfig.region
-            draft.pricingTier = planConfig.pricingTier
+                .apply {
+                    operatingSystem = planConfig.os
+                    region = planConfig.region
+                    pricingTier = planConfig.pricingTier
+                }
+
             return@Callable draft.commit()
         })
     }
@@ -122,11 +125,12 @@ class CreateOrUpdateDotNetFunctionAppTask(private val config: DotNetFunctionAppC
                 return@Callable existingAccount
             }
 
-            val draft = accounts.create<StorageAccountDraft>(storageAccountName, storageResourceGroup)
-            draft.setRegion(getNonStageRegion(config.region()))
-            draft.setKind(Kind.STORAGE_V2)
-            draft.setRedundancy(Redundancy.STANDARD_LRS)
-            return@Callable draft.commit()
+            with(accounts.create<StorageAccountDraft>(storageAccountName, storageResourceGroup)) {
+                setRegion(getNonStageRegion(config.region()))
+                setKind(Kind.STORAGE_V2)
+                setRedundancy(Redundancy.STANDARD_LRS)
+                commit()
+            }
         })
 
     private fun getDefaultStorageAccountName(functionAppName: String): String {
@@ -149,34 +153,34 @@ class CreateOrUpdateDotNetFunctionAppTask(private val config: DotNetFunctionAppC
     }
 
     private fun getCreateFunctionAppTask(draft: DotNetFunctionAppDraft) =
-        AzureTask<FunctionApp>("Create new app(${config.appName()}) on subscription(${config.subscriptionId()})",
+        AzureTask("Create new app(${config.appName()}) on subscription(${config.subscriptionId()})",
             Callable {
-                draft.appServicePlan = appServicePlan
-                draft.dotNetRuntime = getRuntime(config.dotnetRuntime)
-                draft.dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
-                draft.appSettings = config.appSettings()
-                draft.diagnosticConfig = config.diagnosticConfig()
-                draft.flexConsumptionConfiguration = config.flexConsumptionConfiguration()
-                draft.storageAccount = storageAccount
+                with(draft) {
+                    appServicePlan = this@CreateOrUpdateDotNetFunctionAppTask.appServicePlan
+                    dotNetRuntime = getRuntime(config.dotnetRuntime)
+                    dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
+                    diagnosticConfig = config.diagnosticConfig()
+                    flexConsumptionConfiguration = config.flexConsumptionConfiguration()
+                    storageAccount = this@CreateOrUpdateDotNetFunctionAppTask.storageAccount
+                    appSettings = config.appSettings()
 
-                val result = draft.createIfNotExist()
-                result
+                    createIfNotExist()
+                }
             })
 
     private fun getUpdateFunctionAppTask(draft: DotNetFunctionAppDraft) =
         AzureTask<FunctionApp>("Update function app(${config.appName()})",
             Callable {
-                draft.appServicePlan = appServicePlan
-                draft.dotNetRuntime = getRuntime(config.dotnetRuntime)
-                draft.dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
-                val appSettingsToRemove = getAppSettingsToRemove(draft.appSettings ?: emptyMap(), config.appSettings())
-                draft.appSettings = config.appSettings()
-                draft.appSettingsToRemove = appSettingsToRemove
-                draft.diagnosticConfig = config.diagnosticConfig()
-                draft.flexConsumptionConfiguration = config.flexConsumptionConfiguration()
-                draft.storageAccount = storageAccount
+                with(draft) {
+                    appServicePlan = this@CreateOrUpdateDotNetFunctionAppTask.appServicePlan
+                    dotNetRuntime = getRuntime(config.dotnetRuntime)
+                    dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
+                    diagnosticConfig = config.diagnosticConfig()
+                    flexConsumptionConfiguration = config.flexConsumptionConfiguration()
+                    storageAccount = this@CreateOrUpdateDotNetFunctionAppTask.storageAccount
 
-                draft.updateIfExist()
+                    updateIfExist()
+                }
             })
 
     private fun getFunctionDeploymentSlot(functionApp: FunctionApp): DotNetFunctionAppDeploymentSlotDraft {
@@ -194,28 +198,29 @@ class CreateOrUpdateDotNetFunctionAppTask(private val config: DotNetFunctionAppC
     }
 
     private fun getCreateFunctionSlotTask(draft: DotNetFunctionAppDeploymentSlotDraft) =
-        AzureTask<FunctionAppDeploymentSlot>("Create new slot(${config.deploymentSlotName()}) on function app (${config.appName()})",
+        AzureTask("Create new slot(${config.deploymentSlotName()}) on function app (${config.appName()})",
             Callable {
-                draft.dotNetRuntime = getRuntime(config.dotnetRuntime)
-                draft.dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
-                draft.diagnosticConfig = config.diagnosticConfig()
-                draft.configurationSource = config.deploymentSlotConfigurationSource()
-                draft.appSettings = config.appSettings()
+                with(draft) {
+                    dotNetRuntime = getRuntime(config.dotnetRuntime)
+                    dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
+                    diagnosticConfig = config.diagnosticConfig()
+                    configurationSource = config.deploymentSlotConfigurationSource()
+                    appSettings = config.appSettings()
 
-                draft.commit()
+                    commit()
+                }
             })
 
     private fun getUpdateFunctionSlotTask(draft: DotNetFunctionAppDeploymentSlotDraft) =
-        AzureTask<FunctionAppDeploymentSlot>("Update function deployment slot(${config.deploymentSlotName()})",
+        AzureTask("Update function deployment slot(${config.deploymentSlotName()})",
             Callable {
-                draft.dotNetRuntime = getRuntime(config.dotnetRuntime)
-                draft.dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
-                draft.diagnosticConfig = config.diagnosticConfig()
-                val appSettingsToRemove = getAppSettingsToRemove(draft.appSettings ?: emptyMap(), config.appSettings())
-                draft.appSettings = config.appSettings()
-                draft.appSettingsToRemove = appSettingsToRemove
+                with(draft) {
+                    dotNetRuntime = getRuntime(config.dotnetRuntime)
+                    dockerConfiguration = getDockerConfiguration(config.dotnetRuntime)
+                    diagnosticConfig = config.diagnosticConfig()
 
-                draft.commit()
+                    commit()
+                }
             })
 
     private fun getRuntime(runtimeConfig: DotNetRuntimeConfig?): DotNetRuntime? {
@@ -242,9 +247,6 @@ class CreateOrUpdateDotNetFunctionAppTask(private val config: DotNetFunctionAppC
             .startUpCommand(runtimeConfig.startUpCommand())
             .build()
     }
-
-    private fun getAppSettingsToRemove(targetSettings: Map<String, String>, newSettings: Map<String, String>) =
-        targetSettings.keys.filter { !newSettings.containsKey(it) }.toSet()
 
     private fun <T> registerSubTask(task: AzureTask<T>?, consumer: (result: T) -> Unit) {
         if (task != null) {

@@ -11,17 +11,12 @@ import com.intellij.openapi.ui.LabeledComponent
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.dsl.builder.Align
-import com.intellij.ui.dsl.builder.Cell
-import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.dsl.builder.selected
+import com.intellij.ui.dsl.builder.*
 import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
 import com.microsoft.azure.toolkit.intellij.common.*
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceComboBox
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.ui.components.DeploymentSlotComboBox
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
@@ -30,8 +25,10 @@ import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
+import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase
 import com.microsoft.azure.toolkit.lib.common.model.Region
+import java.awt.event.ItemEvent
 import javax.swing.JPanel
 
 class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppConfiguration>() {
@@ -42,11 +39,20 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
     private lateinit var deploymentSlotComboBox: Cell<DeploymentSlotComboBox>
     private lateinit var dotnetProjectComboBox: Cell<AzureDotnetProjectComboBox>
     private lateinit var configurationAndPlatformComboBox: Cell<LabeledComponent<ComboBox<PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform?>>>
-    private lateinit var appSettingsTable: AppSettingsTable
     private lateinit var openBrowserCheckBox: Cell<JBCheckBox>
+
+    private var isLoading: Boolean = false
 
     init {
         panel = panel {
+            row("Project:") {
+                dotnetProjectComboBox = dotnetProjectComboBox(project) { it.isWeb && (it.isDotNetCore || SystemInfo.isWindows) }
+                    .align(Align.FILL)
+            }
+            row("Configuration:") {
+                configurationAndPlatformComboBox = configurationAndPlatformComboBox(project)
+                    .align(Align.FILL)
+            }
             row("Web App:") {
                 webAppComboBox = webAppComboBox(project)
                     .align(Align.FILL)
@@ -58,89 +64,70 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
                 deploymentSlotComboBox = cell(DeploymentSlotComboBox(project))
                     .enabledIf(deployToSlotCheckBox.selected)
                     .align(Align.FILL)
-            }
-            row("Project:") {
-                dotnetProjectComboBox = dotnetProjectComboBox(project) { it.isWeb && (it.isDotNetCore || SystemInfo.isWindows) }
-                    .align(Align.FILL)
-            }
-            row("Configuration:") {
-                configurationAndPlatformComboBox = configurationAndPlatformComboBox(project)
-                    .align(Align.FILL)
-            }
-            row("App Settings:") {
-                appSettingsTable = AppSettingsTable()
-                cell(AppSettingsTableUtils.createAppSettingPanel(appSettingsTable))
-                    .align(Align.FILL)
-            }
+            }.bottomGap(BottomGap.MEDIUM)
             row {
                 openBrowserCheckBox = checkBox("Open browser after deployment")
             }
         }
 
+        dotnetProjectComboBox.component.reloadItems()
+
         webAppComboBox.component.apply {
             addValueChangedListener(::onSelectWebApp)
-            reloadItems()
         }
-        deploymentSlotComboBox.component.apply {
-            addValueChangedListener(::onSelectWebSlot)
-            reloadItems()
+        deployToSlotCheckBox.component.apply {
+            addItemListener(::onSlotCheckBoxChanged)
         }
-        deployToSlotCheckBox.component.addItemListener { onSlotCheckBoxChanged() }
-        dotnetProjectComboBox.component.reloadItems()
     }
 
     private fun onSelectWebApp(value: AppServiceConfig?) {
-        if (value == null) return
+        if (isLoading) return
+
+        if (value == null)  {
+            deployToSlotCheckBox.enabled(false)
+            deployToSlotCheckBox.component.isSelected = false
+            return
+        }
 
         val resource = getResource(value, null)
         val isDraftResource = resource == null || !resource.exists()
 
         deployToSlotCheckBox.enabled(!isDraftResource)
+
         if (isDraftResource) {
             deployToSlotCheckBox.component.isSelected = false
+        } else if (resource is WebApp) {
+            val hasDeploymentSlots = resource.slots().list().isNotEmpty()
+            deployToSlotCheckBox.component.isSelected = hasDeploymentSlots
         }
 
         deploymentSlotComboBox.component.setAppService(resource?.id)
-
-        if (!deployToSlotCheckBox.component.isSelected) {
-            loadAppSettings(value, resource)
-        }
     }
 
-    private fun onSelectWebSlot(value: DeploymentSlotConfig?) {
-        if (value == null) return
+    private fun onSlotCheckBoxChanged(event: ItemEvent) {
+        if (isLoading) return
 
-        val webAppConfig = webAppComboBox.component.value
-        if (deployToSlotCheckBox.component.isSelected && webAppConfig != null) {
-            val resource = getResource(webAppConfig, value.name)
-            loadAppSettings(webAppConfig, resource)
-        }
-    }
-
-    private fun onSlotCheckBoxChanged() {
-        val webAppConfig = webAppComboBox.component.value
-        val slotConfig = deploymentSlotComboBox.component.value
-
-        if (deployToSlotCheckBox.component.isSelected && webAppConfig != null && slotConfig != null) {
-            val resource = getResource(webAppConfig, slotConfig.name)
-            loadAppSettings(webAppConfig, resource)
-        } else if (!deployToSlotCheckBox.component.isSelected && webAppConfig != null) {
+        if (deployToSlotCheckBox.component.isSelected) {
+            deploymentSlotComboBox.component.reloadItems()
+        } else if (!deployToSlotCheckBox.component.isSelected) {
             deploymentSlotComboBox.component.clear()
-            val resource = getResource(webAppConfig, null)
-            loadAppSettings(webAppConfig, resource)
-        }
-    }
-
-    private fun loadAppSettings(webAppConfig: AppServiceConfig, resource: WebAppBase<*, *, *>?) {
-        if (resource != null) {
-            appSettingsTable.loadAppSettings { resource.appSettings }
-        } else {
-            appSettingsTable.loadAppSettings { webAppConfig.appSettings }
         }
     }
 
     override fun resetEditorFrom(configuration: WebAppConfiguration) {
+        isLoading = true
+
         val state = configuration.state ?: return
+
+        val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
+            .firstOrNull { p -> p.projectFilePath == state.publishableProjectPath }
+        if (publishableProject != null) {
+            dotnetProjectComboBox.component.setProject(publishableProject)
+        }
+        configurationAndPlatformComboBox.component.component.setPublishConfiguration(
+            state.projectConfiguration ?: "",
+            state.projectPlatform ?: ""
+        )
 
         val region = if (state.region.isNullOrEmpty()) null else Region.fromName(requireNotNull(state.region))
         val pricingTier = PricingTier(state.pricingTier, state.pricingSize)
@@ -156,7 +143,6 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
             .servicePlanResourceGroup(state.appServicePlanResourceGroupName)
             .pricingTier(pricingTier)
             .runtime(RuntimeConfig().apply { os = operatingSystem })
-            .appSettings(state.appSettings)
             .build()
         webAppComboBox.component.setConfigModel(webAppConfig)
         webAppComboBox.component.setValue { AppServiceComboBox.isSameApp(it, webAppConfig) }
@@ -174,19 +160,11 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
             deploymentSlotComboBox.component.clear()
         }
 
-        appSettingsTable.setAppSettings(state.appSettings)
-
-        val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
-            .firstOrNull { p -> p.projectFilePath == state.publishableProjectPath }
-        if (publishableProject != null) {
-            dotnetProjectComboBox.component.setProject(publishableProject)
-        }
-        configurationAndPlatformComboBox.component.component.setPublishConfiguration(
-            state.projectConfiguration ?: "",
-            state.projectPlatform ?: ""
-        )
-
         openBrowserCheckBox.component.isSelected = state.openBrowser
+
+        isLoading = false
+
+        webAppComboBox.component.reloadItems()
     }
 
     override fun applyEditorTo(configuration: WebAppConfiguration) {
@@ -214,7 +192,6 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
                 slotName = slotConfig.name
                 slotConfigurationSource = slotConfig.configurationSource
             }
-            appSettings = appSettingsTable.appSettings
             publishableProjectPath = dotnetProjectComboBox.component.value?.projectFilePath
             val (config, platform) = configurationAndPlatformComboBox.component.component.getPublishConfiguration()
             projectConfiguration = config

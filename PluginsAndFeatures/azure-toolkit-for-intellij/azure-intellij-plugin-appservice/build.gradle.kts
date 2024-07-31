@@ -15,7 +15,6 @@ repositories {
 }
 
 val platformVersion: String by extra
-val azureToolkitVersion: String by extra
 
 dependencies {
     intellijPlatform {
@@ -25,17 +24,18 @@ dependencies {
         instrumentationTools()
     }
 
-    implementation("com.microsoft.azure:azure-toolkit-libs:$azureToolkitVersion")
-    implementation("com.microsoft.azure:azure-toolkit-ide-libs:$azureToolkitVersion")
-    implementation("com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-libs:0.1.1")
+    implementation(libs.azureToolkitLibs)
+    implementation(libs.azureToolkitIdeLibs)
+    implementation(libs.azureToolkitHdinsightLibs)
 
     implementation(project(path = ":azure-intellij-plugin-lib"))
     implementation(project(path = ":azure-intellij-plugin-guidance"))
     implementation(project(path = ":azure-intellij-resource-connector-lib"))
     implementation(project(path = ":azure-intellij-plugin-monitor"))
-    implementation("com.microsoft.azure:azure-toolkit-appservice-lib:$azureToolkitVersion")
-    implementation("com.microsoft.azure:azure-toolkit-ide-appservice-lib:$azureToolkitVersion")
-    implementation("com.microsoft.azure:azure-toolkit-ide-containerregistry-lib:$azureToolkitVersion")
+
+    implementation(libs.azureToolkitAppserviceLib)
+    implementation(libs.azureToolkitIdeAppserviceLib)
+    implementation(libs.azureToolkitIdeContainerregistryLib)
     implementation("com.jcraft:jsch:0.1.55")
     implementation("org.codehaus.plexus:plexus-archiver:4.2.7")
     implementation("org.codehaus.plexus:plexus-container-default:2.1.1")
@@ -44,8 +44,8 @@ dependencies {
     compileOnly("org.projectlombok:lombok:1.18.24")
     compileOnly("org.jetbrains:annotations:24.0.0")
     annotationProcessor("org.projectlombok:lombok:1.18.24")
-    implementation("com.microsoft.azure:azure-toolkit-common-lib:$azureToolkitVersion")
-    aspect("com.microsoft.azure:azure-toolkit-common-lib:$azureToolkitVersion")
+    implementation(libs.azureToolkitCommonLib)
+    aspect(libs.azureToolkitCommonLib)
 }
 
 configurations {

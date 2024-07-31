@@ -57,9 +57,7 @@ class DotNetFunctionAppDraft : FunctionApp,
                 ((localConfig.runtime == null || localConfig.runtime == remote?.getDotNetRuntime()) &&
                         (localConfig.plan == null || localConfig.plan == super.getAppServicePlan()) &&
                         localConfig.dockerConfiguration == null &&
-                        localConfig.diagnosticConfig == null &&
-                        (localConfig.appSettings == null || localConfig.appSettings == super.getAppSettings()) &&
-                        localConfig.appSettingsToRemove.isNullOrEmpty())
+                        localConfig.diagnosticConfig == null)
 
         return !notModified
     }
@@ -143,19 +141,11 @@ class DotNetFunctionAppDraft : FunctionApp,
         val newDiagnosticConfig = ensureConfig().diagnosticConfig
         val newFlexConsumptionConfiguration = ensureConfig().flexConsumptionConfiguration
         val storageAccount = storageAccount
-        val settingsToAdd = ensureConfig().appSettings?.toMutableMap()
 
         val oldPlan = origin.appServicePlan
         val oldRuntime = requireNotNull(origin.getDotNetRuntime())
         val oldDiagnosticConfig = super.getDiagnosticConfig()
         val oldFlexConsumptionConfiguration = origin.flexConsumptionConfiguration
-        val oldAppSettings = requireNotNull(origin.appSettings)
-
-        settingsToAdd?.entries?.removeAll(oldAppSettings.entries)
-        val settingsToRemove = ensureConfig().appSettingsToRemove
-            ?.filter { oldAppSettings.containsKey(it) }
-            ?.toSet()
-            ?: emptySet()
 
         val planModified = newPlan != null && newPlan != oldPlan
         val runtimeModified = !oldRuntime.isDocker && newRuntime != null && newRuntime != oldRuntime
@@ -165,9 +155,8 @@ class DotNetFunctionAppDraft : FunctionApp,
                 newFlexConsumptionConfiguration != null &&
                 !newFlexConsumptionConfiguration.isEmpty &&
                 newFlexConsumptionConfiguration != oldFlexConsumptionConfiguration
-        val isAppSettingsModified = !settingsToAdd.isNullOrEmpty() || settingsToRemove.isNotEmpty()
         val isModified =
-            planModified || runtimeModified || dockerModified || diagnosticModified || flexConsumptionModified || isAppSettingsModified
+            planModified || runtimeModified || dockerModified || diagnosticModified || flexConsumptionModified
 
         var result = remote
         if (isModified) {
@@ -181,8 +170,6 @@ class DotNetFunctionAppDraft : FunctionApp,
             }
             if (flexConsumptionModified) newFlexConsumptionConfiguration?.let { update.withContainerSize(it.instanceSize) }
             storageAccount?.let { update.withExistingStorageAccount(it.remote) }
-            settingsToAdd?.let { update.withAppSettings(it) }
-            settingsToRemove.let { if (settingsToRemove.isNotEmpty()) it.forEach { key -> update.withoutAppSetting(key) } }
 
             val messager = AzureMessager.getMessager()
             messager.info("Start updating Function App (${remote.name()})")
@@ -281,11 +268,6 @@ class DotNetFunctionAppDraft : FunctionApp,
         set(value) {
             ensureConfig().dockerConfiguration = value
         }
-    var appSettingsToRemove: Set<String>?
-        get() = config?.appSettingsToRemove
-        set(value) {
-            ensureConfig().appSettingsToRemove = value
-        }
 
     override fun getAppServicePlan() = config?.plan ?: super.getAppServicePlan()
     fun setAppServicePlan(value: AppServicePlan?) {
@@ -316,8 +298,7 @@ class DotNetFunctionAppDraft : FunctionApp,
         var enableDistributedTracing: Boolean? = null,
         var dockerConfiguration: DockerConfiguration? = null,
         var diagnosticConfig: DiagnosticConfig? = null,
-        var appSettings: Map<String, String>? = null,
-        var appSettingsToRemove: Set<String>? = null,
-        var flexConsumptionConfiguration: FlexConsumptionConfiguration? = null
+        var flexConsumptionConfiguration: FlexConsumptionConfiguration? = null,
+        var appSettings: Map<String, String>? = null
     )
 }

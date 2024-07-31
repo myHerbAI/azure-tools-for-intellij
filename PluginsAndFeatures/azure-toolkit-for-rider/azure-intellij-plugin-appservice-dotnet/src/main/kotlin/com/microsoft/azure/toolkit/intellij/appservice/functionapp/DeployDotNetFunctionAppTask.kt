@@ -28,10 +28,11 @@ class DeployDotNetFunctionAppTask(
 
     override fun getDescription() = AzureString.format("Deploy artifact to Function App %s", target.name)
 
-    override fun doExecute(): FunctionAppBase<*, *, *>? {
+    override fun doExecute(): FunctionAppBase<*, *, *> {
         messager.info("Starting deployment...")
 
         val file = packageStagingDirectory()
+        messager.info(AzureString.format("Deploying temporary file: %s", file))
         target.deploy(file, FunctionDeployType.ZIP)
 
         if (!target.status.equals(RUNNING, true)) {

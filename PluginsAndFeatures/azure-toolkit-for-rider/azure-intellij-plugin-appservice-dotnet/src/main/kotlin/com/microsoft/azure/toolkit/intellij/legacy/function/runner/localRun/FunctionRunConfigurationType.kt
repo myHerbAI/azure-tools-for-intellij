@@ -148,9 +148,8 @@ class FunctionRunConfigurationType : ConfigurationTypeBase(
                 envs = getEnvironmentVariables(launchProfile.content)
                 trackEnvs = true
                 useExternalConsole = false
-                val applicationUrl = getApplicationUrl(launchProfile.content, projectOutput, localFunctionSettings)
                 startBrowserParameters.apply {
-                    url = applicationUrl
+                    url = getApplicationUrl(launchProfile.content, projectOutput, localFunctionSettings)
                     startAfterLaunch = launchProfile.content.launchBrowser
                 }
                 trackUrl = true

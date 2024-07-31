@@ -58,9 +58,7 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
                 ((localConfig.runtime == null || localConfig.runtime == remote?.getDotNetRuntime()) &&
                         (localConfig.plan == null || localConfig.plan == super.getAppServicePlan()) &&
                         localConfig.dockerConfiguration == null &&
-                        localConfig.diagnosticConfig == null &&
-                        (localConfig.appSettings == null || localConfig.appSettings == super.getAppSettings()) &&
-                        localConfig.appSettingsToRemove.isNullOrEmpty())
+                        localConfig.diagnosticConfig == null)
 
         return !notModified
     }
@@ -167,25 +165,15 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
         val newRuntime = ensureConfig().runtime
         val newDockerConfig = ensureConfig().dockerConfiguration
         val newDiagnosticConfig = ensureConfig().diagnosticConfig
-        val settingsToAdd = ensureConfig().appSettings?.toMutableMap()
 
         val oldPlan = origin.appServicePlan
         val oldRuntime = requireNotNull(origin.getDotNetRuntime())
-        val oldAppSettings = requireNotNull(origin.appSettings)
-
-        settingsToAdd?.entries?.removeAll(oldAppSettings.entries)
-        val settingsToRemove = ensureConfig().appSettingsToRemove
-            ?.filter { oldAppSettings.containsKey(it) }
-            ?.toSet()
-            ?: emptySet()
 
         val planModified = newPlan != null && newPlan != oldPlan
         val runtimeModified = !oldRuntime.isDocker && newRuntime != null && newRuntime != oldRuntime
         val dockerModified = oldRuntime.isDocker && newDockerConfig != null
         val diagnosticModified = newDiagnosticConfig != null
-        val isAppSettingsModified = !settingsToAdd.isNullOrEmpty() || settingsToRemove.isNotEmpty()
-        val isModified =
-            planModified || runtimeModified || dockerModified || diagnosticModified || isAppSettingsModified
+        val isModified = planModified || runtimeModified || dockerModified || diagnosticModified
 
         var result = remote
         if (isModified) {
@@ -195,13 +183,8 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
             if (runtimeModified) newRuntime?.let { updateRuntime(update, it) }
             if (dockerModified) newDockerConfig?.let { updateDockerConfiguration(update, it) }
             if (diagnosticModified) newDiagnosticConfig?.let {
-                AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(
-                    update,
-                    it
-                )
+                AppServiceUtils.updateDiagnosticConfigurationForWebAppBase(update, it)
             }
-            settingsToAdd?.let { update.withAppSettings(it) }
-            settingsToRemove.let { if (settingsToRemove.isNotEmpty()) it.forEach { key -> update.withoutAppSetting(key) } }
 
             val messager = AzureMessager.getMessager()
             messager.info(AzureString.format("Start updating Web App ({0})...", remote.name()))
@@ -243,7 +226,8 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
             }
 
             OperatingSystem.WINDOWS -> {
-                val frameworkVersion = requireNotNull(newRuntime.frameworkVersion) { "Unable to configure web app runtime" }
+                val frameworkVersion =
+                    requireNotNull(newRuntime.frameworkVersion) { "Unable to configure web app runtime" }
                 update.withRuntimeStack(WebAppRuntimeStack.NET)
                     .withNetFrameworkVersion(frameworkVersion)
             }
@@ -281,12 +265,6 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
             ensureConfig().dockerConfiguration = value
         }
 
-    var appSettingsToRemove: Set<String>?
-        get() = config?.appSettingsToRemove
-        set(value) {
-            ensureConfig().appSettingsToRemove = value
-        }
-
     override fun getAppServicePlan() = config?.plan ?: super.getAppServicePlan()
     fun setAppServicePlan(value: AppServicePlan?) {
         ensureConfig().plan = value
@@ -307,7 +285,6 @@ class DotNetWebAppDraft : WebApp, AzResource.Draft<WebApp, com.azure.resourceman
         var plan: AppServicePlan? = null,
         var dockerConfiguration: DockerConfiguration? = null,
         var diagnosticConfig: DiagnosticConfig? = null,
-        var appSettings: Map<String, String>? = null,
-        var appSettingsToRemove: Set<String>? = null
+        var appSettings: Map<String, String>? = null
     )
 }

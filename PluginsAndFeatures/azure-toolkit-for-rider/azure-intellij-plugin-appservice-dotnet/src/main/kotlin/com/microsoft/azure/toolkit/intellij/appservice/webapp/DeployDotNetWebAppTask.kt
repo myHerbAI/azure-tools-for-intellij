@@ -20,13 +20,13 @@ class DeployDotNetWebAppTask(
 
     override fun getDescription() = AzureString.format("Deploy artifact to Web App %s", target.name)
 
-    override fun doExecute(): WebAppBase<*, *, *>? {
+    override fun doExecute(): WebAppBase<*, *, *> {
         messager.info("Trying to deploy artifact to ${target.name}...")
 
         val deployOptions = DeployOptions.builder().restartSite(true).build()
         target.deploy(artifact.deployType, artifact.file, deployOptions)
 
-        if (!target.getFormalStatus().isRunning()) {
+        if (!target.getFormalStatus().isRunning) {
             messager.info("Starting Web App after deploying artifacts...")
             target.start()
             messager.info("Successfully started Web App.")

@@ -10,27 +10,24 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.LabeledComponent
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.dsl.builder.Align
-import com.intellij.ui.dsl.builder.Cell
-import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.dsl.builder.selected
+import com.intellij.ui.dsl.builder.*
 import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
 import com.microsoft.azure.toolkit.intellij.common.*
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceComboBox
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTable
-import com.microsoft.azure.toolkit.intellij.legacy.appservice.table.AppSettingsTableUtils
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.ui.components.DeploymentSlotComboBox
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.config.DeploymentSlotConfig
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.AzureFunctions
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.common.model.Region
+import java.awt.event.ItemEvent
 import javax.swing.JPanel
 
 class FunctionDeploymentSettingsEditor(private val project: Project) :
@@ -42,10 +39,20 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
     private lateinit var deploymentSlotComboBox: Cell<DeploymentSlotComboBox>
     private lateinit var dotnetProjectComboBox: Cell<AzureDotnetProjectComboBox>
     private lateinit var configurationAndPlatformComboBox: Cell<LabeledComponent<ComboBox<PublishRuntimeSettingsCoreHelper.ConfigurationAndPlatform?>>>
-    private lateinit var appSettingsTable: AppSettingsTable
+    private lateinit var openBrowserCheckBox: Cell<JBCheckBox>
+
+    private var isLoading: Boolean = false
 
     init {
         panel = panel {
+            row("Project:") {
+                dotnetProjectComboBox = dotnetProjectComboBox(project) { it.isAzureFunction }
+                    .align(Align.FILL)
+            }
+            row("Configuration:") {
+                configurationAndPlatformComboBox = configurationAndPlatformComboBox(project)
+                    .align(Align.FILL)
+            }
             row("Function:") {
                 functionAppComboBox = functionAppComboBox(project)
                     .align(Align.FILL)
@@ -57,86 +64,71 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
                 deploymentSlotComboBox = cell(DeploymentSlotComboBox(project))
                     .enabledIf(deployToSlotCheckBox.selected)
                     .align(Align.FILL)
-            }
-            row("Project:") {
-                dotnetProjectComboBox = dotnetProjectComboBox(project) { it.isAzureFunction }
-                    .align(Align.FILL)
-            }
-            row("Configuration:") {
-                configurationAndPlatformComboBox = configurationAndPlatformComboBox(project)
-                    .align(Align.FILL)
-            }
-            row("App Settings:") {
-                appSettingsTable = AppSettingsTable()
-                cell(AppSettingsTableUtils.createAppSettingPanel(appSettingsTable))
-                    .align(Align.FILL)
+            }.bottomGap(BottomGap.MEDIUM)
+            row {
+                openBrowserCheckBox = checkBox("Open browser after deployment")
             }
         }
+
+        dotnetProjectComboBox.component.reloadItems()
 
         functionAppComboBox.component.apply {
             addValueChangedListener(::onSelectFunctionApp)
-            reloadItems()
         }
-        deploymentSlotComboBox.component.apply {
-            addValueChangedListener(::onSelectFunctionSlot)
-            reloadItems()
+        deployToSlotCheckBox.component.apply {
+            addItemListener(::onSlotCheckBoxChanged)
         }
-        deployToSlotCheckBox.component.addItemListener { onSlotCheckBoxChanged() }
-        dotnetProjectComboBox.component.reloadItems()
     }
 
     private fun onSelectFunctionApp(value: FunctionAppConfig?) {
-        if (value == null) return
+        if (isLoading) return
+
+        if (value == null) {
+            deployToSlotCheckBox.enabled(false)
+            deployToSlotCheckBox.component.isSelected = false
+            return
+        }
 
         val resource = getResource(value, null)
         val isDraftResource = resource == null || !resource.exists()
 
         deployToSlotCheckBox.enabled(!isDraftResource)
+
         if (isDraftResource) {
             deployToSlotCheckBox.component.isSelected = false
         }
+        else if (resource is FunctionApp) {
+            val hasDeploymentSlots = resource.slots().list().isNotEmpty()
+            deployToSlotCheckBox.component.isSelected = hasDeploymentSlots
+        }
 
         deploymentSlotComboBox.component.setAppService(resource?.id)
-
-        if (!deployToSlotCheckBox.component.isSelected) {
-            loadAppSettings(value, resource)
-        }
     }
 
-    private fun onSelectFunctionSlot(value: DeploymentSlotConfig?) {
-        if (value == null) return
+    private fun onSlotCheckBoxChanged(event: ItemEvent) {
+        if (isLoading) return
 
-        val functionAppConfig = functionAppComboBox.component.value
-        if (deployToSlotCheckBox.component.isSelected && functionAppConfig != null) {
-            val resource = getResource(functionAppConfig, value.name)
-            loadAppSettings(functionAppConfig, resource)
-        }
-    }
-
-    private fun onSlotCheckBoxChanged() {
-        val functionAppConfig = functionAppComboBox.component.value
-        val slotConfig = deploymentSlotComboBox.component.value
-
-        if (deployToSlotCheckBox.component.isSelected && functionAppConfig != null && slotConfig != null) {
-            val resource = getResource(functionAppConfig, slotConfig.name)
-            loadAppSettings(functionAppConfig, resource)
-        } else if (!deployToSlotCheckBox.component.isSelected && functionAppConfig != null) {
+        if (deployToSlotCheckBox.component.isSelected) {
+            deploymentSlotComboBox.component.reloadItems()
+        } else if (!deployToSlotCheckBox.component.isSelected) {
             deploymentSlotComboBox.component.clear()
-            val resource = getResource(functionAppConfig, null)
-            loadAppSettings(functionAppConfig, resource)
-        }
-    }
-
-    private fun loadAppSettings(functionAppConfig: FunctionAppConfig, resource: FunctionAppBase<*, *, *>?) {
-        if (resource != null) {
-            appSettingsTable.loadAppSettings { resource.appSettings }
-        } else {
-            appSettingsTable.loadAppSettings { functionAppConfig.appSettings }
         }
     }
 
     override fun resetEditorFrom(configuration: FunctionDeploymentConfiguration) {
+        isLoading = true
+
         val state = configuration.state ?: return
+
+        val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
+            .firstOrNull { p -> p.projectFilePath == state.publishableProjectPath }
+        if (publishableProject != null) {
+            dotnetProjectComboBox.component.setProject(publishableProject)
+        }
+        configurationAndPlatformComboBox.component.component.setPublishConfiguration(
+            state.projectConfiguration ?: "",
+            state.projectPlatform ?: ""
+        )
 
         val region = if (state.region.isNullOrEmpty()) null else Region.fromName(requireNotNull(state.region))
         val pricingTier = PricingTier(state.pricingTier, state.pricingSize)
@@ -152,7 +144,6 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             .servicePlanResourceGroup(state.appServicePlanResourceGroupName)
             .pricingTier(pricingTier)
             .runtime(RuntimeConfig().apply { os = operatingSystem })
-            .appSettings(state.appSettings)
             .storageAccountName(state.storageAccountName)
             .storageAccountResourceGroup(state.storageAccountResourceGroup)
             .build()
@@ -172,17 +163,11 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             deploymentSlotComboBox.component.clear()
         }
 
-        appSettingsTable.setAppSettings(state.appSettings)
+        openBrowserCheckBox.component.isSelected = state.openBrowser
 
-        val publishableProject = project.solution.publishableProjectsModel.publishableProjects.values
-            .firstOrNull { p -> p.projectFilePath == state.publishableProjectPath }
-        if (publishableProject != null) {
-            dotnetProjectComboBox.component.setProject(publishableProject)
-        }
-        configurationAndPlatformComboBox.component.component.setPublishConfiguration(
-            state.projectConfiguration ?: "",
-            state.projectPlatform ?: ""
-        )
+        isLoading = false
+
+        functionAppComboBox.component.reloadItems()
     }
 
     override fun applyEditorTo(configuration: FunctionDeploymentConfiguration) {
@@ -212,11 +197,11 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             }
             storageAccountName = functionConfig?.storageAccountName
             storageAccountResourceGroup = functionConfig?.storageAccountResourceGroup
-            appSettings = appSettingsTable.appSettings
             publishableProjectPath = dotnetProjectComboBox.component.value?.projectFilePath
             val (config, platform) = configurationAndPlatformComboBox.component.component.getPublishConfiguration()
             projectConfiguration = config
             projectPlatform = platform
+            openBrowser = openBrowserCheckBox.component.isSelected
         }
     }
 

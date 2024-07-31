@@ -15,7 +15,6 @@ repositories {
 }
 
 val platformVersion: String by extra
-val azureToolkitVersion: String by extra
 
 dependencies {
     intellijPlatform {
@@ -24,19 +23,19 @@ dependencies {
         instrumentationTools()
     }
 
-    implementation("com.microsoft.azure:azure-toolkit-libs:$azureToolkitVersion")
-    implementation("com.microsoft.azure:azure-toolkit-ide-libs:$azureToolkitVersion")
-    implementation("com.microsoft.hdinsight:azure-toolkit-ide-hdinsight-libs:0.1.1")
+    implementation(libs.azureToolkitLibs)
+    implementation(libs.azureToolkitIdeLibs)
+    implementation(libs.azureToolkitHdinsightLibs)
 
     implementation(project(path = ":azure-intellij-plugin-lib"))
-    implementation("com.microsoft.azure:azure-toolkit-ide-common-lib:$azureToolkitVersion")
-    implementation("com.microsoft.azure:azure-toolkit-ide-arm-lib:$azureToolkitVersion")
+    implementation(libs.azureToolkitIdeCommonLib)
+    implementation(libs.azureToolkitIdeArmLib)
 
     compileOnly("org.projectlombok:lombok:1.18.24")
     compileOnly("org.jetbrains:annotations:24.0.0")
     annotationProcessor("org.projectlombok:lombok:1.18.24")
-    implementation("com.microsoft.azure:azure-toolkit-common-lib:$azureToolkitVersion")
-    aspect("com.microsoft.azure:azure-toolkit-common-lib:$azureToolkitVersion")
+    implementation(libs.azureToolkitCommonLib)
+    aspect(libs.azureToolkitCommonLib)
 }
 
 configurations {

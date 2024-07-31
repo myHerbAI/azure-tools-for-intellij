@@ -9,10 +9,16 @@
 - Support for Azure Redis
 - Support for Azure KeyVault
 - Support for Azure Storage accounts
+- Edit and Continue for Function run configuration
 
 ### Fixed
 
 - Read run configurations from `launchSettings.json` file ([RIDER-92674](https://youtrack.jetbrains.com/issue/RIDER-92674))
+- Fixed Function nuget package suggestion on project opening
+
+### Removed
+
+- App Settings table from the deployment configurations
 
 ## [4.0.0-preview.7] - 2024-07-10
 

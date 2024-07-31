@@ -84,7 +84,6 @@ class FunctionDeploymentConfiguration(private val project: Project, factory: Con
             slotConfigurationSource = null
             storageAccountName = null
             storageAccountResourceGroup = null
-            appSettings = functionApp.appSettings ?: mutableMapOf()
         }
     }
 }

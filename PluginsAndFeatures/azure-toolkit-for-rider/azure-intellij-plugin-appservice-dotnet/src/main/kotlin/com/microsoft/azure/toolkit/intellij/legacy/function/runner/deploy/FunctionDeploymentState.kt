@@ -7,6 +7,7 @@
 package com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy
 
 import com.intellij.execution.ExecutionException
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.project.Project
 import com.jetbrains.rider.model.PublishableProjectModel
@@ -61,9 +62,6 @@ class FunctionDeploymentState(
         if (deployTarget is AzResource.Draft<*, *>) {
             deployTarget.reset()
         }
-        functionDeploymentConfiguration.state?.apply {
-            appSettings = deployTarget.appSettings ?: mutableMapOf()
-        }
 
         checkCanceled()
 
@@ -110,9 +108,8 @@ class FunctionDeploymentState(
         runtime = createRuntimeConfig(os)
         dotnetRuntime = createDotNetRuntimeConfig(publishableProject, os)
         if (pricingTier == PricingTier.CONSUMPTION && os == OperatingSystem.LINUX) {
-            options.appSettings[SCM_DO_BUILD_DURING_DEPLOYMENT] = "false"
+            appSettings(mapOf(SCM_DO_BUILD_DURING_DEPLOYMENT to "false"))
         }
-        appSettings(options.appSettings)
     }
 
     private fun createRuntimeConfig(os: OperatingSystem) =
@@ -128,7 +125,13 @@ class FunctionDeploymentState(
         }
 
     override fun onSuccess(result: FunctionAppBase<*, *, *>, processHandler: RunProcessHandler) {
+        val options = requireNotNull(functionDeploymentConfiguration.state)
+
         updateConfigurationDataModel(result)
+        val url = "https://${result.hostName}"
+        if (options.openBrowser) {
+            BrowserUtil.open(url)
+        }
         processHandler.notifyComplete()
     }
 
@@ -138,8 +141,6 @@ class FunctionDeploymentState(
                 slotName = app.name
                 slotConfigurationSource = null
             }
-
-            appSettings = app.appSettings ?: mutableMapOf()
         }
     }
 }
