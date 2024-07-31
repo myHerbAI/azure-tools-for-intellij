@@ -5,5 +5,4 @@
 
 package com.microsoft.azure.toolkit.intellij.database.sqlserver.connection;
 
-public class DotnetSqlServerDatabaseResourceDefinition extends SqlServerDatabaseResourceDefinition {
-}
+class DotnetSqlServerDatabaseResourceDefinition : SqlServerDatabaseResourceDefinition()
