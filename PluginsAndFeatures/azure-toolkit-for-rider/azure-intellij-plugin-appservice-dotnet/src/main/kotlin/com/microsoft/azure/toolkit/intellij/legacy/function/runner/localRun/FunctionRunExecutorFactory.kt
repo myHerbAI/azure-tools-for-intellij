@@ -16,6 +16,7 @@ import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.ide.browsers.BrowserStarter
 import com.intellij.ide.browsers.StartBrowserSettings
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.jetbrains.rd.util.lifetime.Lifetime
@@ -39,7 +40,6 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.Functi
 import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionWorkerRuntime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 
@@ -60,7 +60,7 @@ class FunctionRunExecutorFactory(
             .getInstance()
             .requestAzureFunctionsVersion(project, parameters.projectFilePath)
             ?: throw CantRunException("Can't run Azure Functions host. No Azure Functions Core Tools information could be determined")
-        LOG.debug("Azure Functions version: $azureFunctionsVersion")
+        LOG.debug { "Azure Functions version: $azureFunctionsVersion" }
 
         val coreToolsInfo = withContext(Dispatchers.Default) {
             FunctionCoreToolsInfoProvider
@@ -68,7 +68,7 @@ class FunctionRunExecutorFactory(
                 .retrieveForVersion(azureFunctionsVersion, true)
         }
             ?: throw CantRunException("Can't run Azure Functions host. No Azure Functions Core Tools information could be determined")
-        LOG.debug("Core tools executable: ${coreToolsInfo.coreToolsExecutable}")
+        LOG.debug { "Core tools executable: ${coreToolsInfo.coreToolsExecutable}" }
 
         val functionLocalSettings = withContext(Dispatchers.Default) {
             FunctionLocalSettingsService
@@ -85,15 +85,15 @@ class FunctionRunExecutorFactory(
             .tryPatchHostJsonFile(dotNetExecutable.workingDirectory, parameters.functionNames)
 
         val workerRuntime = functionLocalSettings?.values?.workerRuntime ?: FunctionWorkerRuntime.DOTNET_ISOLATED
-        LOG.debug("Worker runtime: $workerRuntime")
+        LOG.debug { "Worker runtime: $workerRuntime" }
 
         val runtimeToExecute = if (azureFunctionsVersion.equals("v1", ignoreCase = true)) {
             MsNetRuntime()
         } else {
-            FunctionNetCoreRuntime(coreToolsInfo, workerRuntime)
+            FunctionNetCoreRuntime(coreToolsInfo, workerRuntime, lifetime)
         }
 
-        LOG.debug("Configuration will be executed on ${runtimeToExecute.javaClass.name}")
+        LOG.debug { "Configuration will be executed on ${runtimeToExecute.javaClass.name}" }
         return when (executorId) {
             DefaultRunExecutor.EXECUTOR_ID -> runtimeToExecute.createRunState(dotNetExecutable, environment)
             DefaultDebugExecutor.EXECUTOR_ID -> runtimeToExecute.createDebugState(dotNetExecutable, environment)

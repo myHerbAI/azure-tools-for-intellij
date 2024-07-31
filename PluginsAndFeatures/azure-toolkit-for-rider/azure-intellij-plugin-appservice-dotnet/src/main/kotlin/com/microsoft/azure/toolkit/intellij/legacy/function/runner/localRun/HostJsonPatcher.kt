@@ -11,6 +11,10 @@ import com.intellij.openapi.diagnostic.logger
 import java.nio.file.Path
 import kotlin.io.path.*
 
+/**
+ * The HostJsonPatcher service is responsible for patching the host.json file
+ * of an Azure Functions project.
+ */
 @Service
 class HostJsonPatcher {
     companion object {
@@ -36,15 +40,22 @@ class HostJsonPatcher {
         private val LOG = logger<HostJsonPatcher>()
     }
 
+    /**
+     * Tries to patch the host.json file with the provided function names.
+     *
+     * @param workingDirectory The working directory of the project.
+     * @param functionNames A string containing the function names separated by ',', ';', '|', or ' '.
+     * @return True if the host.json file was successfully patched, false otherwise.
+     */
     fun tryPatchHostJsonFile(workingDirectory: String, functionNames: String) = tryPatchHostJsonFile(
         determineHostJsonFile(workingDirectory),
         functionNames.split(',', ';', '|', ' ')
     )
 
-    private fun tryPatchHostJsonFile(hostJsonFile: Path?, functionNames: List<String>) {
+    private fun tryPatchHostJsonFile(hostJsonFile: Path?, functionNames: List<String>): Boolean {
         if (hostJsonFile == null) {
             LOG.warn("Could not find host.json file to patch.")
-            return
+            return false
         }
 
         val functions = functionNames
@@ -52,7 +63,7 @@ class HostJsonPatcher {
             .filter { it.isNotBlank() }
             .sortedBy { it }
 
-        LOG.info("Patching " + hostJsonFile.absolutePathString() + " with function names: ${functions.joinToString(", ")}")
+        LOG.debug("Patching " + hostJsonFile.absolutePathString() + " with function names: ${functions.joinToString(", ")}")
         try {
             val gson = GsonBuilder().setPrettyPrinting().create()
             val hostJson = gson.fromJson(hostJsonFile.readText(), JsonElement::class.java).asJsonObject
@@ -60,14 +71,14 @@ class HostJsonPatcher {
             val existingFunctionsArray = hostJson.getAsJsonArray(FUNCTION_PROPERTY_NAME)
 
             if (existingFunctionsArray == null) {
-                if (functions.isEmpty()) return
+                if (functions.isEmpty()) return true
 
                 val functionArray = JsonArray()
                 functions.forEach { functionArray.add(JsonPrimitive(it)) }
                 hostJson.add(FUNCTION_PROPERTY_NAME, functionArray)
             } else {
                 val existingFunctions = existingFunctionsArray.map { it.asString }.sortedBy { it }.toList()
-                if (functions == existingFunctions) return
+                if (functions == existingFunctions) return true
 
                 if (functions.isNotEmpty()) {
                     val functionArray = JsonArray()
@@ -79,8 +90,11 @@ class HostJsonPatcher {
             }
 
             hostJsonFile.writeText(gson.toJson(hostJson))
+
+            return true
         } catch (e: JsonParseException) {
-            LOG.error(e)
+            LOG.warn(e)
+            return false
         }
     }
 }

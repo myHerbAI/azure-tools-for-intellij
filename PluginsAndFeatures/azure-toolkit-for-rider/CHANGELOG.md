@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Edit and Continue for Function run configuration
+
 ### Fixed
 
 - Read run configurations from `launchSettings.json` file ([RIDER-92674](https://youtrack.jetbrains.com/issue/RIDER-92674))
