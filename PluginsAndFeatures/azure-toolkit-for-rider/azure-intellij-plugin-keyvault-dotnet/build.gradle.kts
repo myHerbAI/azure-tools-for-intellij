@@ -14,7 +14,6 @@ repositories {
 }
 
 val platformVersion: String by extra
-val azureToolkitVersion: String by extra
 
 dependencies {
     intellijPlatform {
@@ -27,7 +26,7 @@ dependencies {
     implementation(project(path = ":azure-intellij-plugin-lib"))
     implementation(project(path = ":azure-intellij-plugin-keyvault"))
     implementation(project(path = ":azure-intellij-resource-connector-lib"))
-    implementation("com.microsoft.azure:azure-toolkit-keyvault-lib:$azureToolkitVersion")
-    implementation("com.microsoft.azure:azure-toolkit-ide-common-lib:$azureToolkitVersion")
-    implementation("com.microsoft.azure:azure-toolkit-ide-keyvault-lib:$azureToolkitVersion")
+    implementation(libs.azureToolkitKeyvaultLib)
+    implementation(libs.azureToolkitIdeCommonLib)
+    implementation(libs.azureToolkitIdeKeyvaultLib)
 }

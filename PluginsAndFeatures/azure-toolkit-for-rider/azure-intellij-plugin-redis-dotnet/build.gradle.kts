@@ -14,7 +14,6 @@ repositories {
 }
 
 val platformVersion: String by extra
-val azureToolkitVersion: String by extra
 
 dependencies {
     intellijPlatform {
@@ -26,7 +25,7 @@ dependencies {
     implementation(project(path = ":azure-intellij-plugin-lib"))
     implementation(project(path = ":azure-intellij-plugin-redis"))
     implementation(project(path = ":azure-intellij-resource-connector-lib"))
-    implementation("com.microsoft.azure:azure-toolkit-redis-lib:$azureToolkitVersion")
-    implementation("com.microsoft.azure:azure-toolkit-ide-common-lib:$azureToolkitVersion")
-    implementation("com.microsoft.azure:azure-toolkit-ide-redis-lib:$azureToolkitVersion")
+    implementation(libs.azureToolkitRedisLib)
+    implementation(libs.azureToolkitIdeCommonLib)
+    implementation(libs.azureToolkitIdeRedisLib)
 }
