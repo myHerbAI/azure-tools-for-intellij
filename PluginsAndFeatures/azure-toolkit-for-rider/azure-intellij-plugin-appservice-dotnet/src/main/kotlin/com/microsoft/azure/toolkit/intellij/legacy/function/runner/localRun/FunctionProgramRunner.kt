@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RunnerSettings
+import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.showRunContent
 import com.intellij.execution.ui.RunContentDescriptor
@@ -20,7 +21,8 @@ class FunctionProgramRunner : RiderAsyncProgramRunner<RunnerSettings>(), DotNetR
 
     override fun getRunnerId() = RUNNER_ID
 
-    override fun canRun(executorId: String, runConfiguration: RunProfile) = runConfiguration is FunctionRunConfiguration
+    override fun canRun(executorId: String, runConfiguration: RunProfile) =
+        executorId == DefaultRunExecutor.EXECUTOR_ID && runConfiguration is FunctionRunConfiguration
 
     override suspend fun executeAsync(
         environment: ExecutionEnvironment,

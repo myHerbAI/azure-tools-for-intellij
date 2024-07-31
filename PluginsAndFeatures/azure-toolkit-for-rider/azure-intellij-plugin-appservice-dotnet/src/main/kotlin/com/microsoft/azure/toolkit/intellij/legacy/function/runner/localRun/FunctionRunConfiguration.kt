@@ -6,7 +6,6 @@ package com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun
 
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.project.Project
-import com.jetbrains.rider.debugger.IRiderDebuggable
 import com.jetbrains.rider.run.configurations.IAutoSelectableRunConfiguration
 import com.jetbrains.rider.run.configurations.IProjectBasedRunConfiguration
 import com.jetbrains.rider.run.configurations.RiderAsyncRunConfiguration
@@ -23,7 +22,7 @@ class FunctionRunConfiguration(
     factory,
     { FunctionRunSettingsEditor(it) },
     FunctionRunExecutorFactory(project, parameters)
-), IProjectBasedRunConfiguration, IRiderDebuggable, IAutoSelectableRunConfiguration {
+), IProjectBasedRunConfiguration, IAutoSelectableRunConfiguration {
 
     override fun checkConfiguration() {
         super.checkConfiguration()

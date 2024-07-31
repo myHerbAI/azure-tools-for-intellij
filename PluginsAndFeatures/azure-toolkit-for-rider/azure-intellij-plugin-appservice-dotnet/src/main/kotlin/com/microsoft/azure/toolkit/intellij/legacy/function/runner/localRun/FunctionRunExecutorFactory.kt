@@ -90,7 +90,7 @@ class FunctionRunExecutorFactory(
         val runtimeToExecute = if (azureFunctionsVersion.equals("v1", ignoreCase = true)) {
             MsNetRuntime()
         } else {
-            FunctionNetCoreRuntime(coreToolsInfo, workerRuntime)
+            FunctionNetCoreRuntime(coreToolsInfo, workerRuntime, lifetime)
         }
 
         LOG.debug("Configuration will be executed on ${runtimeToExecute.javaClass.name}")
