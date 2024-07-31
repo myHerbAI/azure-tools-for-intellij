@@ -9,6 +9,7 @@ import com.intellij.execution.ExecutionResult
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
@@ -47,6 +48,9 @@ class FunctionHostDebugLauncher(private val project: Project) {
 
         //File path for the JSON output.
         private const val JSON_OUTPUT_FILE_ARGUMENT = "--json-output-file"
+
+        private const val COMPLUS_FORCEENC = "COMPLUS_FORCEENC"
+        private const val DOTNET_MODIFIABLE_ASSEMBLIES = "DOTNET_MODIFIABLE_ASSEMBLIES"
     }
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -68,14 +72,17 @@ class FunctionHostDebugLauncher(private val project: Project) {
     ): Pair<ExecutionResult, Int?> {
         val temporaryPidFile = withContext(Dispatchers.IO) { createTemporaryPidFile() }
         val programParameters = modifyProgramParameters(executable.programParameterString, temporaryPidFile)
-        LOG.debug("Program parameters: $programParameters")
+        LOG.debug { "Program parameters: $programParameters" }
+        val environmentVariables = modifyEnvironmentVariables(executable.environmentVariables)
+        LOG.debug { "Environment variables: ${environmentVariables.entries.joinToString()}" }
 
         val processExecutable = executable.copy(
-            programParameterString = ParametersListUtil.join(programParameters)
+            programParameterString = ParametersListUtil.join(programParameters),
+            environmentVariables = environmentVariables
         )
 
         val commandLine = processExecutable.createRunCommandLine(dotNetRuntime)
-        LOG.debug("Prepared commandLine: ${commandLine.commandLineString}")
+        LOG.debug { "Prepared commandLine: ${commandLine.commandLineString}" }
         val handler = TerminalProcessHandler(project, commandLine, commandLine.commandLineString)
         val console = createConsole(ConsoleKind.Normal, handler, project)
         val executionResult = DefaultExecutionResult(console, handler)
@@ -118,6 +125,13 @@ class FunctionHostDebugLauncher(private val project: Project) {
         return programParameters
     }
 
+    private fun modifyEnvironmentVariables(envs: Map<String, String>): Map<String, String> {
+        return envs + mapOf(
+            COMPLUS_FORCEENC to "1",
+            DOTNET_MODIFIABLE_ASSEMBLIES to "debug"
+        )
+    }
+
     private fun createTemporaryPidFile(): File {
         // We will need to read the worker process PID, so the debugger can later attach to it.
         // We are using this file to read the PID,
@@ -138,7 +152,7 @@ class FunctionHostDebugLauncher(private val project: Project) {
             val pidFromJsonOutput = readPidFromJsonOutput(temporaryPidFile)
             if (pidFromJsonOutput != null) {
                 LOG.debug("Got functions isolated worker process id from JSON output")
-                LOG.debug("Functions isolated worker process id: $pidFromJsonOutput")
+                LOG.debug { "Functions isolated worker process id: $pidFromJsonOutput" }
                 return pidFromJsonOutput
             }
 
