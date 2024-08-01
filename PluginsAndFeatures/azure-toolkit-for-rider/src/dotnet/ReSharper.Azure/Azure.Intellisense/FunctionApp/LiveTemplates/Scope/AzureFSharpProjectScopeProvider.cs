@@ -19,7 +19,7 @@ public class InAzureFunctionsFSharpProject : InAzureFunctionsProject
 }
 
 [ShellComponent(Instantiation.DemandAnyThreadSafe)]
-public class AzureFSharpScopeProvider : AzureCSharpProjectScopeProvider
+public class AzureFSharpScopeProvider : AzureProjectScopeProvider
 {
     public AzureFSharpScopeProvider()
     {
@@ -28,9 +28,6 @@ public class AzureFSharpScopeProvider : AzureCSharpProjectScopeProvider
 
     protected override IEnumerable<ITemplateScopePoint> GetLanguageSpecificScopePoints(IProject project)
     {
-        var baseItems = base.GetLanguageSpecificScopePoints(project);
-        foreach (var item in baseItems) yield return item;
-
         // TODO: reconsider after possibly adding a direct dependency on F# plugin in #392
         if (project.ProjectProperties.GetType().Name == "FSharpProjectProperties")
             yield return new InAzureFunctionsFSharpProject();
