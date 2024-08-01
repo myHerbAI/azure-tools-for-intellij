@@ -3,9 +3,11 @@ guid: 7ae1d45e-28cd-48d2-bbb6-bc92bbd64254
 type: File
 reformat: True
 shortenReferences: True
+categories: [Azure]
 image: AzureFunctionsTrigger
 customProperties: Extension=cs, FileName=BlobTrigger, ValidateFileName=True
 scopes: InAzureFunctionsCSharpProject;MustUseAzureFunctionsIsolatedWorker
+uitag: Azure Function Trigger
 parameterOrder: (HEADER), (NAMESPACE), (CLASS), PATHVALUE, (CONNECTIONVALUE)
 HEADER-expression: fileheader()
 NAMESPACE-expression: fileDefaultNamespace()

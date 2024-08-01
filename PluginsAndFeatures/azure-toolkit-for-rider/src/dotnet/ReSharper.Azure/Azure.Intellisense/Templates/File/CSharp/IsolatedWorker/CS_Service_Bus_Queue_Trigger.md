@@ -3,9 +3,11 @@ guid: 3c11cff7-99a9-47c5-90dd-eb39bf4adf27
 type: File
 reformat: True
 shortenReferences: True
+categories: [Azure]
 image: AzureFunctionsTrigger
 customProperties: Extension=cs, FileName=ServiceBusQueueTrigger, ValidateFileName=True
 scopes: InAzureFunctionsCSharpProject;MustUseAzureFunctionsIsolatedWorker
+uitag: Azure Function Trigger
 parameterOrder: (HEADER), (NAMESPACE), (CLASS), PATHVALUE, (CONNECTIONVALUE)
 HEADER-expression: fileheader()
 NAMESPACE-expression: fileDefaultNamespace()

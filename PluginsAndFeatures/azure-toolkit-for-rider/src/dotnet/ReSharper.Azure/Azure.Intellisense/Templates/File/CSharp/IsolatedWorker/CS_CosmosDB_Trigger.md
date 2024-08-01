@@ -3,9 +3,11 @@ guid: b04cdc48-da71-431e-9933-e56fdd8a3022
 type: File
 reformat: True
 shortenReferences: True
+categories: [Azure]
 image: AzureFunctionsTrigger
 customProperties: Extension=cs, FileName=CosmosDbTrigger, ValidateFileName=True
 scopes: InAzureFunctionsCSharpProject;MustUseAzureFunctionsIsolatedWorker
+uitag: Azure Function Trigger
 parameterOrder: (HEADER), (NAMESPACE), (CLASS), DATABASEVALUE, CONTAINERVALUE, (CONNECTIONVALUE)
 HEADER-expression: fileheader()
 NAMESPACE-expression: fileDefaultNamespace()

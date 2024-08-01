@@ -18,8 +18,6 @@ public class AzureFSharpProjectScopeCategoryUIProvider : ScopeCategoryUIProvider
     public override IEnumerable<ITemplateScopePoint> BuildAllPoints()
     {
         yield return new InAzureFunctionsFSharpProject();
-        yield return new MustUseAzureFunctionsDefaultWorker();
-        yield return new MustUseAzureFunctionsIsolatedWorker();
     }
 
     public override string CategoryCaption => "Azure (F#)";

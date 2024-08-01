@@ -4,8 +4,10 @@ type: File
 reformat: True
 shortenReferences: True
 image: AzureFunctionsTrigger
+categories: [Azure]
 customProperties: Extension=cs, FileName=HttpTrigger, ValidateFileName=True
 scopes: InAzureFunctionsCSharpProject;MustUseAzureFunctionsDefaultWorker
+uitag: Azure Function Trigger
 parameterOrder: (HEADER), (NAMESPACE), (CLASS), AUTHLEVELVALUE
 HEADER-expression: fileheader()
 NAMESPACE-expression: fileDefaultNamespace()

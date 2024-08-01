@@ -3,9 +3,11 @@ guid: ee9b1573-f483-4960-986e-a16242fb0607
 type: File
 reformat: True
 shortenReferences: True
+categories: [Azure]
 image: AzureFunctionsTrigger
 customProperties: Extension=cs, FileName=TimerTrigger, ValidateFileName=True
 scopes: InAzureFunctionsCSharpProject;MustUseAzureFunctionsIsolatedWorker
+uitag: Azure Function Trigger
 parameterOrder: (HEADER), (NAMESPACE), (CLASS), SCHEDULE
 HEADER-expression: fileheader()
 NAMESPACE-expression: fileDefaultNamespace()
