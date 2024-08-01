@@ -81,8 +81,12 @@ Categorised:
 |-----------------------------------------------------------------------------------------------------|
 | [Blob Trigger](File/CSharp/DefaultWorker/CS_Blob_Trigger.md)                                        |
 | [Blob Trigger](File/CSharp/IsolatedWorker/CS_Blob_Trigger.md)                                       |
+| [Blob Trigger](File/FSharp/DefaultWorker/FS_Blob_Trigger.md)                                        |
+| [Blob Trigger](File/FSharp/IsolatedWorker/FS_Blob_Trigger.md)                                       |
 | [CosmosDB Trigger](File/CSharp/DefaultWorker/CS_CosmosDB_Trigger.md)                                |
 | [CosmosDB Trigger](File/CSharp/IsolatedWorker/CS_CosmosDB_Trigger.md)                               |
+| [CosmosDB Trigger](File/FSharp/DefaultWorker/FS_CosmosDB_Trigger.md)                                |
+| [CosmosDB Trigger](File/FSharp/IsolatedWorker/FS_CosmosDB_Trigger.md)                               |
 | [Dapr Publish Output Binding](File/CSharp/DefaultWorker/CS_Dapr_Publish_Output_Binding.md)          |
 | [Dapr Publish Output Binding](File/CSharp/IsolatedWorker/CS_Dapr_Publish_Output_Binding.md)         |
 | [Dapr Service Invocation Trigger](File/CSharp/DefaultWorker/CS_Dapr_Service_Invocation_Trigger.md)  |
@@ -92,13 +96,21 @@ Categorised:
 | [Durable Functions Orchestration](File/CSharp/DefaultWorker/CS_Durable_Functions_Orchestration.md)  |
 | [Event Grid Trigger](File/CSharp/DefaultWorker/CS_Event_Grid_Trigger.md)                            |
 | [Event Grid Trigger](File/CSharp/IsolatedWorker/CS_Event_Grid_Trigger.md)                           |
+| [Event Grid Trigger](File/FSharp/DefaultWorker/FS_Event_Grid_Trigger.md)                            |
+| [Event Grid Trigger](File/FSharp/IsolatedWorker/FS_Event_Grid_Trigger.md)                           |
 | [Event Hub Trigger](File/CSharp/DefaultWorker/CS_Event_Hub_Trigger.md)                              |
 | [Event Hub Trigger](File/CSharp/IsolatedWorker/CS_Event_Hub_Trigger.md)                             |
+| [Event Hub Trigger](File/FSharp/DefaultWorker/FS_Event_Hub_Trigger.md)                              |
+| [Event Hub Trigger](File/FSharp/IsolatedWorker/FS_Event_Hub_Trigger.md)                             |
 | [HTTP Trigger](File/CSharp/DefaultWorker/CS_HTTP_Trigger.md)                                        |
 | [HTTP Trigger](File/CSharp/IsolatedWorker/CS_HTTP_Trigger.md)                                       |
+| [HTTP Trigger](File/FSharp/DefaultWorker/FS_HTTP_Trigger.md)                                        |
+| [HTTP Trigger](File/FSharp/IsolatedWorker/FS_HTTP_Trigger.md)                                       |
 | [IoT Hub Trigger](File/CSharp/DefaultWorker/CS_IoT_Hub_Trigger.md)                                  |
 | [Queue Trigger](File/CSharp/DefaultWorker/CS_Queue_Trigger.md)                                      |
 | [Queue Trigger](File/CSharp/IsolatedWorker/CS_Queue_Trigger.md)                                     |
+| [Queue Trigger](File/FSharp/DefaultWorker/FS_Queue_Trigger.md)                                      |
+| [Queue Trigger](File/FSharp/IsolatedWorker/FS_Queue_Trigger.md)                                     |
 | [SQL Trigger](File/CSharp/DefaultWorker/CS_SQL_Trigger.md)                                          |
 | [SQL Trigger](File/CSharp/IsolatedWorker/CS_SQL_Trigger.md)                                         |
 | [Service Bus Queue Trigger](File/CSharp/DefaultWorker/CS_Service_Bus_Queue_Trigger.md)              |
@@ -107,4 +119,6 @@ Categorised:
 | [Service Bus Topic Trigger](File/CSharp/IsolatedWorker/CS_Service_Bus_Topic_Trigger.md)             |
 | [Timer Trigger](File/CSharp/DefaultWorker/CS_Timer_Trigger.md)                                      |
 | [Timer Trigger](File/CSharp/IsolatedWorker/CS_Timer_Trigger.md)                                     |
+| [Timer Trigger](File/FSharp/DefaultWorker/FS_Timer_Trigger.md)                                      |
+| [Timer Trigger](File/FSharp/IsolatedWorker/FS_Timer_Trigger.md)                                     |
 
