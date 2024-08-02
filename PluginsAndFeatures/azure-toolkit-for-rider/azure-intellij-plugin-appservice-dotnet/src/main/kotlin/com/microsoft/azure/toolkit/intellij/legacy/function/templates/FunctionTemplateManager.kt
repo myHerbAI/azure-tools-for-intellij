@@ -33,13 +33,13 @@ class FunctionTemplateManager {
             .any { (isFunctionProjectTemplate(it.toPath(), coreToolFolder)) && it.exists() }
     }
 
-    suspend fun tryReload() {
+    suspend fun tryReload(allowDownload: Boolean) {
         ThreadingAssertions.assertBackgroundThread()
 
         // Determine core tools info for the latest supported Azure Functions version
         val toolsInfoProvider = FunctionCoreToolsInfoProvider.getInstance()
         val coreToolsInfo = toolsInfoProvider
-            .retrieveForVersion(FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION, false)
+            .retrieveForVersion(FUNCTIONS_CORE_TOOLS_LATEST_SUPPORTED_VERSION, allowDownload)
             ?: return
 
         removePreviousTemplates(coreToolsInfo.coreToolsPath)

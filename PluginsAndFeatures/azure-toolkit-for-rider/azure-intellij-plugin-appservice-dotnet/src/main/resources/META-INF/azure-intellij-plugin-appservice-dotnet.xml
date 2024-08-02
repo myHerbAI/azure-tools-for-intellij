@@ -13,6 +13,8 @@
         <postStartupActivity
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.MigrateBuildProjectTaskActivity"/>
         <backgroundPostStartupActivity
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.ReloadFunctionTemplateActivity"/>
+        <backgroundPostStartupActivity
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionWarmupStartupActivity"/>
 
         <configurationType
@@ -45,8 +47,6 @@
                 order="first"/>
         <projectTemplateCustomizer
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.FunctionTemplateCustomizer"/>
-        <postStartupActivity
-                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.ReloadFunctionTemplateActivity"/>
 
         <applicationConfigurable parentId="com.microsoft.intellij.AzureConfigurable"
                                  displayName="Functions"
