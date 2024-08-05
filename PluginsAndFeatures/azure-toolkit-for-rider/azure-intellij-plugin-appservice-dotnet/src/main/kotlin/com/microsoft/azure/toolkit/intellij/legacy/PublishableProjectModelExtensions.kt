@@ -33,8 +33,8 @@ fun PublishableProjectModel.getStackAndVersion(
         val dotnetVersion = getProjectDotNetVersion(project, this)
         if (operatingSystem == OperatingSystem.LINUX) {
             val stack =
-                if (dotnetVersion != null) RuntimeStack("DOTNETCORE", dotnetVersion)
-                else RuntimeStack("DOTNETCORE", "8.0")
+                if (dotnetVersion != null) RuntimeStack("DOTNET", dotnetVersion)
+                else RuntimeStack("DOTNET", "8.0")
 
             return stack to null
         } else {

@@ -22,6 +22,7 @@ import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
 import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileState
 import com.microsoft.azure.toolkit.intellij.legacy.getFunctionStack
+import com.microsoft.azure.toolkit.intellij.legacy.getStackAndVersion
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppDeploymentSlot
@@ -37,9 +38,6 @@ class FunctionDeploymentState(
     scope: CoroutineScope,
     private val functionDeploymentConfiguration: FunctionDeploymentConfiguration
 ) : RiderAzureRunProfileState<FunctionAppBase<*, *, *>>(project, scope) {
-    companion object {
-        private const val SCM_DO_BUILD_DURING_DEPLOYMENT = "SCM_DO_BUILD_DURING_DEPLOYMENT"
-    }
 
     override suspend fun executeSteps(processHandler: RunProcessHandler): FunctionAppBase<*, *, *> {
         OperationContext.current().setMessager(processHandlerMessenger)
@@ -107,9 +105,6 @@ class FunctionDeploymentState(
         val os = OperatingSystem.fromString(options.operatingSystem)
         runtime = createRuntimeConfig(os)
         dotnetRuntime = createDotNetRuntimeConfig(publishableProject, os)
-        if (pricingTier == PricingTier.CONSUMPTION && os == OperatingSystem.LINUX) {
-            appSettings(mapOf(SCM_DO_BUILD_DURING_DEPLOYMENT to "false"))
-        }
     }
 
     private fun createRuntimeConfig(os: OperatingSystem) =
@@ -121,6 +116,9 @@ class FunctionDeploymentState(
         DotNetRuntimeConfig().apply {
             os(os)
             isDocker = false
+            val stackAndVersion = publishableProject.getStackAndVersion(project, os)
+            stack = stackAndVersion?.first
+            frameworkVersion = stackAndVersion?.second
             functionStack = publishableProject.getFunctionStack(project, os)
         }
 
