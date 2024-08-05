@@ -5,7 +5,6 @@
 package com.microsoft.azure.toolkit.intellij.azurite.settings
 
 import com.intellij.execution.configurations.PathEnvironmentVariableUtil
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.*
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
@@ -22,8 +21,9 @@ import kotlin.io.path.Path
 @Service
 class AzuriteSettings : SimplePersistentStateComponent<AzuriteSettingsState>(AzuriteSettingsState()) {
     companion object {
-        private const val MANAGED_PATH_SUFFIX = "azurite"
-        private const val PROJECT_PATH_SUFFIX = ".idea/azurite"
+        private const val AZURE_TOOLS_FOLDER = ".AzureToolsForIntelliJ"
+        private const val AZURITE_FOLDER = "azurite"
+        private const val PROJECT_AZURITE_FOLDER = ".idea/azurite"
 
         fun getInstance() = service<AzuriteSettings>()
     }
@@ -139,23 +139,28 @@ class AzuriteSettings : SimplePersistentStateComponent<AzuriteSettingsState>(Azu
 
     fun getAzuriteWorkspacePath(project: Project): Path = when (locationMode) {
         AzuriteLocationMode.Managed -> {
-            val configPath = PathManager.getConfigPath()
-            val workspacePath = Path(configPath).resolve(MANAGED_PATH_SUFFIX)
+            val workspacePath = Path.of(System.getProperty("user.home"))
+                .resolve(AZURE_TOOLS_FOLDER)
+                .resolve(AZURITE_FOLDER)
             workspacePath.findOrCreateDirectory()
             workspacePath
         }
+
         AzuriteLocationMode.Project -> {
-            val workspacePath = Path(project.basePath ?: project.solutionPath).resolve(PROJECT_PATH_SUFFIX)
+            val workspacePath = Path(project.basePath ?: project.solutionPath)
+                .resolve(PROJECT_AZURITE_FOLDER)
             workspacePath.findOrCreateDirectory()
             workspacePath
         }
+
         AzuriteLocationMode.Custom -> {
             val customPath = workspacePath
             if (customPath.isNotEmpty()) {
                 Path(customPath)
             } else {
-                val configPath = PathManager.getConfigPath()
-                val workspacePath = Path(configPath).resolve(MANAGED_PATH_SUFFIX)
+                val workspacePath = Path.of(System.getProperty("user.home"))
+                    .resolve(AZURE_TOOLS_FOLDER)
+                    .resolve(AZURITE_FOLDER)
                 workspacePath.findOrCreateDirectory()
                 workspacePath
             }
