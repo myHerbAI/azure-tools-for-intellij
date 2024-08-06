@@ -13,8 +13,8 @@ import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 
 class WebAppContainersConfigurationType : SimpleConfigurationType(
     "AzureWebAppContainersDeploy",
-    "Azure - Web App for Containers",
-    "Azure Publish Web App for Containers configuration",
+    "Azure - Web App Container",
+    "Azure Publish Web App Container configuration",
     NotNullLazyValue.createValue { IntelliJAzureIcons.getIcon(AzureIcons.WebApp.DEPLOY) }
 ) {
     override fun createTemplateConfiguration(project: Project) =
