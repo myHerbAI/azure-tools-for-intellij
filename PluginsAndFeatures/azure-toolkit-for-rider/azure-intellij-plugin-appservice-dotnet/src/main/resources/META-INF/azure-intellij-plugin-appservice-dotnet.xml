@@ -20,7 +20,7 @@
         <configurationType
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppConfigurationType"/>
         <configurationType
-                implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers.WebAppContainersConfigurationType"/>
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webAppContainer.WebAppContainersConfigurationType"/>
         <configurationType
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.FunctionDeploymentConfigurationType"/>
         <configurationType

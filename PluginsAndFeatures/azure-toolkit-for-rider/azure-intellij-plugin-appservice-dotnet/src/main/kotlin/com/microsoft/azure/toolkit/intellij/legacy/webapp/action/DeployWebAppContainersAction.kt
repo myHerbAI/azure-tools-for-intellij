@@ -14,7 +14,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.common.auth.AzureLoginHelper
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers.WebAppContainersConfigurationType
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webAppContainer.WebAppContainersConfigurationType
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 
 class DeployWebAppContainersAction : AnAction() {

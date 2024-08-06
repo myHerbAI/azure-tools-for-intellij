@@ -4,7 +4,7 @@
 
 @file:Suppress("DialogTitleCapitalization", "UnstableApiUsage")
 
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers
+package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webAppContainer
 
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
