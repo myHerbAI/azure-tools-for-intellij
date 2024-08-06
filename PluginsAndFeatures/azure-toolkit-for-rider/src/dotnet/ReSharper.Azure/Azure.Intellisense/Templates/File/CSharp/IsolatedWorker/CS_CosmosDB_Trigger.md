@@ -29,11 +29,11 @@ namespace $NAMESPACE$
 {
     public class $CLASS$
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<$CLASS$> _logger;
 
-        public $CLASS$(ILoggerFactory loggerFactory)
+        public $CLASS$(ILogger<$CLASS$> logger)
         {
-            _logger = loggerFactory.CreateLogger<$CLASS$>();
+            _logger = logger;
         }
         
         [Function("$CLASS$")]
@@ -41,7 +41,8 @@ namespace $NAMESPACE$
             databaseName: "$DATABASEVALUE$",
             containerName: "$CONTAINERVALUE$",
             Connection = "$CONNECTIONVALUE$",
-            LeaseContainerName = "leases")] IReadOnlyList<MyDocument> input, FunctionContext context)
+            LeaseContainerName = "leases",
+            CreateLeaseContainerIfNotExists = true)] IReadOnlyList<MyDocument> input)
         {
             if (input != null && input.Count > 0)
             {

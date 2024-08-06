@@ -67,7 +67,7 @@ namespace $NAMESPACE$
             ILogger log)
         {
             log.LogInformation("C# Dapr Topic Trigger function processed a request from the Dapr Runtime.");
-            log.LogInformation($"Topic A received a message: {subEvent.Data}.");
+            log.LogInformation($"Topic $TOPICVALUE$ received a message: {subEvent.Data}.");
         }
     }
 }

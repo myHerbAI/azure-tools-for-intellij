@@ -70,7 +70,7 @@ namespace $NAMESPACE$
         public static async Task<InvokeMethodParameters> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "invoke/{appId}/{methodName}")] HttpRequestData req, FunctionContext functionContext)
         {
-            var log = functionContext.GetLogger("InvokeOutputBinding");
+            var log = functionContext.GetLogger("$CLASS$InvokeOutputBinding");
             log.LogInformation("C# HTTP trigger function processed a request.");
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();

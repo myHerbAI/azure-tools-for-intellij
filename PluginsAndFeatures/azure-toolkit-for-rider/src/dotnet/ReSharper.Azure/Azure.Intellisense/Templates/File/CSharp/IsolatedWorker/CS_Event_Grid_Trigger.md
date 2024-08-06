@@ -36,7 +36,7 @@ namespace $NAMESPACE$
         }
         
         [Function("$CLASS$")]
-        public void Run([EventGridTrigger] CloudEvent cloudEvent, FunctionContext context)
+        public void Run([EventGridTrigger] CloudEvent cloudEvent)
         {
             _logger.LogInformation("Event type: {type}, Event subject: {subject}", cloudEvent.Type, cloudEvent.Subject);$END$
         }
