@@ -16,8 +16,8 @@ import com.jetbrains.rider.projectView.workspace.ProjectModelEntity
 import com.jetbrains.rider.run.configurations.publishing.RiderContextPublishProvider
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfiguration
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfigurationType
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapp.WebAppConfiguration
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapp.WebAppConfigurationType
 import javax.swing.Icon
 
 class WebAppContextPublishProvider : RiderContextPublishProvider {

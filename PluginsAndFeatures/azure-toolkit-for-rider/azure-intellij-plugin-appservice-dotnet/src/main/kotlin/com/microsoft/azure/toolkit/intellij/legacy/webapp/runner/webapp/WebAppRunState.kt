@@ -4,7 +4,7 @@
 
 @file:Suppress("UnstableApiUsage")
 
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig
+package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapp
 
 import com.intellij.execution.ExecutionException
 import com.intellij.ide.BrowserUtil

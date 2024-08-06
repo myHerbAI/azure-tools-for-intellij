@@ -14,8 +14,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.common.auth.AzureLoginHelper
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfiguration
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfigurationType
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapp.WebAppConfiguration
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapp.WebAppConfigurationType
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebApp
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 

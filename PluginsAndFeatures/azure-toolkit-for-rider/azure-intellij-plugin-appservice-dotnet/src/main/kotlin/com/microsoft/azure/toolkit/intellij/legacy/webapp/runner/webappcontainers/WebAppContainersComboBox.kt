@@ -8,7 +8,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppComboBox
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapp.WebAppComboBox
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp

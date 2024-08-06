@@ -18,7 +18,7 @@
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionWarmupStartupActivity"/>
 
         <configurationType
-                implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfigurationType"/>
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapp.WebAppConfigurationType"/>
         <configurationType
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers.WebAppContainersConfigurationType"/>
         <configurationType
