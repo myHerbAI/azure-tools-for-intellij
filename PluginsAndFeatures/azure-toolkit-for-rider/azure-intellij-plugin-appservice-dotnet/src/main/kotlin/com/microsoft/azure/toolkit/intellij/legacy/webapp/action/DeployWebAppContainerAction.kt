@@ -14,13 +14,13 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.microsoft.azure.toolkit.intellij.common.auth.AzureLoginHelper
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers.WebAppContainersConfigurationType
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webAppContainer.WebAppContainerConfigurationType
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager
 
-class DeployWebAppContainersAction : AnAction() {
+class DeployWebAppContainerAction : AnAction() {
     companion object {
         private val configType =
-            ConfigurationTypeUtil.findConfigurationType(WebAppContainersConfigurationType::class.java)
+            ConfigurationTypeUtil.findConfigurationType(WebAppContainerConfigurationType::class.java)
 
         private fun deploy(project: Project) {
             val settings = getOrCreateRunConfigurationSettings(project)

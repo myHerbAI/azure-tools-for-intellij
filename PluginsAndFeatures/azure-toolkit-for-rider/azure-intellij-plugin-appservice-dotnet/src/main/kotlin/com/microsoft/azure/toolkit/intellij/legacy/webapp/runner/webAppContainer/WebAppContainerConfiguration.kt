@@ -4,7 +4,7 @@
 
 @file:Suppress("DialogTitleCapitalization", "UnstableApiUsage")
 
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers
+package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webAppContainer
 
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
@@ -20,8 +20,8 @@ import com.microsoft.azure.toolkit.intellij.legacy.utils.isAccountSignedIn
 import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidApplicationName
 import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidResourceGroupName
 
-class WebAppContainersConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
-    LocatableConfigurationBase<WebAppContainersConfigurationOptions>(project, factory, name) {
+class WebAppContainerConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
+    LocatableConfigurationBase<WebAppContainerConfigurationOptions>(project, factory, name) {
 
     companion object {
         private const val REPO_COMPONENT_REGEX_PATTERN = "[a-z0-9]+(?:[._-][a-z0-9]+)*"
@@ -31,18 +31,18 @@ class WebAppContainersConfiguration(private val project: Project, factory: Confi
     private val repoComponentRegex = Regex(REPO_COMPONENT_REGEX_PATTERN)
     private val tagRegex = Regex(TAG_REGEX_PATTERN)
 
-    override fun suggestedName() = "Publish Web App for Containers"
+    override fun suggestedName() = "Publish Web App Container"
 
-    override fun getState() = options as? WebAppContainersConfigurationOptions
+    override fun getState() = options as? WebAppContainerConfigurationOptions
 
     override fun getState(executor: Executor, environment: ExecutionEnvironment) =
-        WebAppContainersRunState(
+        WebAppContainerRunState(
             project,
             AppServiceProjectService.getInstance(project).scope.childScope("WebAppContainersRunState"),
             this
         )
 
-    override fun getConfigurationEditor() = WebAppContainersSettingEditor(project)
+    override fun getConfigurationEditor() = WebAppContainerSettingEditor(project)
 
     override fun checkConfiguration() {
         val options = getState() ?: return
