@@ -3,9 +3,11 @@ guid: 707c458f-6b00-4ae6-aba8-0a02606c76be
 type: File
 reformat: True
 shortenReferences: True
+categories: [Azure]
 image: AzureFunctionsTrigger
 customProperties: Extension=cs, FileName=SqlTrigger, ValidateFileName=True
 scopes: InAzureFunctionsCSharpProject;MustUseAzureFunctionsIsolatedWorker
+uitag: Azure Function Trigger
 parameterOrder: (HEADER), (NAMESPACE), (CLASS), TABLEVALUE, (CONNECTIONVALUE)
 HEADER-expression: fileheader()
 NAMESPACE-expression: fileDefaultNamespace()
@@ -28,18 +30,18 @@ namespace $NAMESPACE$
 {
     public class $CLASS$
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<$CLASS$> _logger;
 
-        public $CLASS$(ILoggerFactory loggerFactory)
+        public $CLASS$(ILogger<$CLASS$> logger)
         {
-            _logger = loggerFactory.CreateLogger<$CLASS$>();
+            _logger = logger;
         }
 
         // Visit https://aka.ms/sqltrigger to learn how to use this trigger binding
         [Function("$CLASS$")]
         public void Run(
             [SqlTrigger("$TABLEVALUE$", "$CONNECTIONVALUE$")] IReadOnlyList<SqlChange<ToDoItem>> changes,
-                FunctionContext context)
+            FunctionContext context)
         {
             _logger.LogInformation("SQL Changes: " + JsonConvert.SerializeObject(changes));$END$
         }

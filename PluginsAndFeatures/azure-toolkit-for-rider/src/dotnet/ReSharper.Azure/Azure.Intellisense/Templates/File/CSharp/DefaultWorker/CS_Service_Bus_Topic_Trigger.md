@@ -4,8 +4,10 @@ type: File
 reformat: True
 shortenReferences: True
 image: AzureFunctionsTrigger
+categories: [Azure]
 customProperties: Extension=cs, FileName=ServiceBusTopicTrigger, ValidateFileName=True
 scopes: InAzureFunctionsCSharpProject;MustUseAzureFunctionsDefaultWorker
+uitag: Azure Function Trigger
 parameterOrder: (HEADER), (NAMESPACE), (CLASS), TOPICNAME, SUBSCRIPTIONNAME, (CONNECTIONVALUE)
 HEADER-expression: fileheader()
 NAMESPACE-expression: fileDefaultNamespace()

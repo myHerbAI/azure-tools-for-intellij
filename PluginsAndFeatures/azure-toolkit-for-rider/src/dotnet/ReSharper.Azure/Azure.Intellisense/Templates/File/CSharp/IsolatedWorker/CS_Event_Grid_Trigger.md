@@ -3,9 +3,11 @@ guid: dc303ac8-dee2-427d-a696-f7a6ca318706
 type: File
 reformat: True
 shortenReferences: True
+categories: [Azure]
 image: AzureFunctionsTrigger
 customProperties: Extension=cs, FileName=EventGridTrigger, ValidateFileName=True
 scopes: InAzureFunctionsCSharpProject;MustUseAzureFunctionsIsolatedWorker
+uitag: Azure Function Trigger
 parameterOrder: (HEADER), (NAMESPACE), (CLASS)
 HEADER-expression: fileheader()
 NAMESPACE-expression: fileDefaultNamespace()
@@ -34,7 +36,7 @@ namespace $NAMESPACE$
         }
         
         [Function("$CLASS$")]
-        public void Run([EventGridTrigger] CloudEvent cloudEvent, FunctionContext context)
+        public void Run([EventGridTrigger] CloudEvent cloudEvent)
         {
             _logger.LogInformation("Event type: {type}, Event subject: {subject}", cloudEvent.Type, cloudEvent.Subject);$END$
         }

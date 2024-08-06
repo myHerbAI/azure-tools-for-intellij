@@ -3,9 +3,11 @@ guid: a50d2862-4c19-4ab2-90d8-4b61be652e5f
 type: File
 reformat: True
 shortenReferences: True
+categories: [Azure]
 image: AzureFunctionsTrigger
 customProperties: Extension=cs, FileName=DaprPublishOutputBinding, ValidateFileName=True
 scopes: InAzureFunctionsCSharpProject;MustUseAzureFunctionsDefaultWorker
+uitag: Azure Function Trigger
 parameterOrder: (HEADER), (NAMESPACE), (CLASS), PUBSUBNAME, TOPICVALUE, (SCHEDULE)
 HEADER-expression: fileheader()
 NAMESPACE-expression: fileDefaultNamespace()
@@ -65,7 +67,7 @@ namespace $NAMESPACE$
             ILogger log)
         {
             log.LogInformation("C# Dapr Topic Trigger function processed a request from the Dapr Runtime.");
-            log.LogInformation($"Topic A received a message: {subEvent.Data}.");
+            log.LogInformation($"Topic $TOPICVALUE$ received a message: {subEvent.Data}.");
         }
     }
 }

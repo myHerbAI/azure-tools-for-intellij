@@ -31,6 +31,7 @@ class FunctionMissingNugetPackageService(
         fun getInstance(project: Project) = project.service<FunctionMissingNugetPackageService>()
 
         private val packageNames = setOf(
+            "Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore",
             "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs",
             "Microsoft.Azure.WebJobs.Extensions.Storage.Queues",
             "Microsoft.Azure.WebJobs.Extensions.CosmosDB",
@@ -74,6 +75,9 @@ class FunctionMissingNugetPackageService(
 
             // Isolated worker
             "Microsoft.Azure.Functions.Worker" to mapOf(
+                //In Program.cs see: https://learn.microsoft.com/en-us/azure/azure-functions/dotnet-isolated-process-guide?tabs=windows#aspnet-core-integration
+                "ConfigureFunctionsWebApplication" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore", "1.2.0")),
+                //In triggers
                 "BlobTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.4.0")),
                 "QueueTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues", "5.4.0")),
                 "CosmosDBTrigger" to listOf(PackageDependency("Microsoft.Azure.Functions.Worker.Extensions.CosmosDB", "4.8.1")),
@@ -183,7 +187,8 @@ class FunctionMissingNugetPackageService(
             ?: return emptyList()
 
         // Determine project(s) to install into
-        val installableProjects = WorkspaceModel.getInstance(project)
+        val installableProjects = WorkspaceModel
+            .getInstance(project)
             .getProjectModelEntities(file, project)
             .mapNotNull { it.containingProjectEntity() }
 

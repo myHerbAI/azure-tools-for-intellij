@@ -6,6 +6,7 @@ package com.microsoft.azure.toolkit.intellij.legacy.function.coreTools
 
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
@@ -15,6 +16,8 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCo
 import com.microsoft.azure.toolkit.intellij.legacy.function.isFunctionCoreToolsExecutable
 import com.microsoft.azure.toolkit.intellij.legacy.function.settings.AzureFunctionSettings
 import com.microsoft.azure.toolkit.lib.appservice.utils.FunctionCliResolver
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 
 @Service
@@ -29,18 +32,29 @@ class FunctionCoreToolsInfoProvider {
         project: Project,
         projectFilePath: String,
         allowDownload: Boolean
-    ): FunctionCoreToolsInfo? {
-        val azureFunctionsVersion = FunctionCoreToolsMsBuildService.getInstance()
+    ): Pair<String, FunctionCoreToolsInfo>? {
+        val azureFunctionsVersion = FunctionCoreToolsMsBuildService
+            .getInstance()
             .requestAzureFunctionsVersion(project, projectFilePath)
 
         if (azureFunctionsVersion == null) {
-            LOG.error("Could not determine project MSBuild property '${PROPERTY_AZURE_FUNCTIONS_VERSION}'.")
+            LOG.warn("Could not determine project MSBuild property '${PROPERTY_AZURE_FUNCTIONS_VERSION}'")
             return null
         }
 
-        LOG.info("MSBuild property ${PROPERTY_AZURE_FUNCTIONS_VERSION}: $azureFunctionsVersion")
+        LOG.debug { "Azure Functions version: $azureFunctionsVersion" }
 
-        return retrieveForVersion(azureFunctionsVersion, allowDownload)
+        val coreToolsInfo = withContext(Dispatchers.Default) {
+            retrieveForVersion(azureFunctionsVersion, allowDownload)
+        }
+        if (coreToolsInfo == null) {
+            LOG.warn("Could not determine Azure Functions Core Tools information")
+            return null
+        }
+
+        LOG.debug { "Core tools executable: ${coreToolsInfo.coreToolsExecutable}" }
+
+        return azureFunctionsVersion to coreToolsInfo
     }
 
     suspend fun retrieveForVersion(

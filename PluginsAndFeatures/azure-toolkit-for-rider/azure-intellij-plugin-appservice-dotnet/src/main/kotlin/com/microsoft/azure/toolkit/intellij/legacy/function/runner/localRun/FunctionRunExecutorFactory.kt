@@ -28,13 +28,8 @@ import com.jetbrains.rider.runtime.DotNetExecutable
 import com.jetbrains.rider.runtime.msNet.MsNetRuntime
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsInfo
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsInfoProvider
-import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsMsBuildService
 import com.microsoft.azure.toolkit.intellij.legacy.function.daemon.AzureRunnableProjectKinds
 import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.*
-import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getApplicationUrl
-import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getArguments
-import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getEnvironmentVariables
-import com.microsoft.azure.toolkit.intellij.legacy.function.launchProfiles.getWorkingDirectory
 import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionLocalSettings
 import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionLocalSettingsService
 import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionWorkerRuntime
@@ -56,19 +51,11 @@ class FunctionRunExecutorFactory(
         environment: ExecutionEnvironment,
         lifetime: Lifetime
     ): RunProfileState {
-        val azureFunctionsVersion = FunctionCoreToolsMsBuildService
+        val coreToolsInfoResult = FunctionCoreToolsInfoProvider
             .getInstance()
-            .requestAzureFunctionsVersion(project, parameters.projectFilePath)
+            .retrieveForProject(project, parameters.projectFilePath, true)
             ?: throw CantRunException("Can't run Azure Functions host. No Azure Functions Core Tools information could be determined")
-        LOG.debug { "Azure Functions version: $azureFunctionsVersion" }
-
-        val coreToolsInfo = withContext(Dispatchers.Default) {
-            FunctionCoreToolsInfoProvider
-                .getInstance()
-                .retrieveForVersion(azureFunctionsVersion, true)
-        }
-            ?: throw CantRunException("Can't run Azure Functions host. No Azure Functions Core Tools information could be determined")
-        LOG.debug { "Core tools executable: ${coreToolsInfo.coreToolsExecutable}" }
+        val (azureFunctionsVersion, coreToolsInfo) = coreToolsInfoResult
 
         val functionLocalSettings = withContext(Dispatchers.Default) {
             FunctionLocalSettingsService

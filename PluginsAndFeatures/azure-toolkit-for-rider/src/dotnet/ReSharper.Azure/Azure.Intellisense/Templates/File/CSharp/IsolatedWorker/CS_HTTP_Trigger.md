@@ -3,9 +3,11 @@ guid: edd73b25-685b-4f39-83e2-3079ee75f17e
 type: File
 reformat: True
 shortenReferences: True
+categories: [Azure]
 image: AzureFunctionsTrigger
 customProperties: Extension=cs, FileName=HttpTrigger, ValidateFileName=True
 scopes: InAzureFunctionsCSharpProject;MustUseAzureFunctionsIsolatedWorker
+uitag: Azure Function Trigger
 parameterOrder: (HEADER), (NAMESPACE), (CLASS), AUTHLEVELVALUE
 HEADER-expression: fileheader()
 NAMESPACE-expression: fileDefaultNamespace()
@@ -16,36 +18,29 @@ AUTHLEVELVALUE-expression: list("Function,Anonymous,Admin")
 # HTTP Trigger
 
 ```
-$HEADER$using System.Collections.Generic;
-using System.Net;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
+$HEADER$using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace $NAMESPACE$
 {
     public class $CLASS$
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<$CLASS$> _logger;
 
-        public $CLASS$(ILoggerFactory loggerFactory)
+        public $CLASS$(ILogger<$CLASS$> logger)
         {
-            _logger = loggerFactory.CreateLogger<$CLASS$>();
+            _logger = logger;
         }
         
         [Function("$CLASS$")]
-        public HttpResponseData Run([HttpTrigger(AuthorizationLevel.$AUTHLEVELVALUE$, "get", "post")] HttpRequestData req,
-            FunctionContext executionContext)
+        public IActionResult Run([HttpTrigger(AuthorizationLevel.$AUTHLEVELVALUE$, "get", "post")] HttpRequest req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
-
-            var response = req.CreateResponse(HttpStatusCode.OK);
-            response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
-
-            response.WriteString("Welcome to Azure Functions!");
-
-            return response;$END$
+            return new OkObjectResult("Welcome to Azure Functions!");$END$
         }
+        
     }
 }
 

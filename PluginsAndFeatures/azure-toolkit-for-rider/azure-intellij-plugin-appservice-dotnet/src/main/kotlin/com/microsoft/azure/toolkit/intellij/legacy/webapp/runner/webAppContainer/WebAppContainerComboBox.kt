@@ -2,13 +2,13 @@
  * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
-package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers
+package com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webAppContainer
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppComboBox
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppComboBox
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
 import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
@@ -16,7 +16,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.common.action.Action
 import java.util.stream.Collectors
 
-class WebAppContainersComboBox(project: Project) : WebAppComboBox(project) {
+class WebAppContainerComboBox(project: Project) : WebAppComboBox(project) {
     init {
         setRenderer(AppComboBoxRender(true))
     }
@@ -37,7 +37,7 @@ class WebAppContainersComboBox(project: Project) : WebAppComboBox(project) {
     }
 
     override fun createResource() {
-        val dialog = WebAppContainersCreationDialog(project)
+        val dialog = WebAppContainerCreationDialog(project)
         Disposer.register(this, dialog)
         val actionId: Action.Id<AppServiceConfig> = Action.Id.of("user/webapp.create_app.app")
         dialog.setOkAction(Action(actionId)
@@ -51,7 +51,7 @@ class WebAppContainersComboBox(project: Project) : WebAppComboBox(project) {
     }
 }
 
-fun Row.dockerWebAppComboBox(project: Project): Cell<WebAppContainersComboBox> {
-    val component = WebAppContainersComboBox(project)
+fun Row.dockerWebAppComboBox(project: Project): Cell<WebAppContainerComboBox> {
+    val component = WebAppContainerComboBox(project)
     return cell(component)
 }

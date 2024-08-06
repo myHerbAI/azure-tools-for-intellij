@@ -3,9 +3,11 @@ guid: 5c9abf80-0f16-48dd-bc66-d6b3c9fcf7d4
 type: File
 reformat: True
 shortenReferences: True
+categories: [Azure]
 image: AzureFunctionsTrigger
 customProperties: Extension=cs, FileName=DaprServiceInvocationTrigger, ValidateFileName=True
 scopes: InAzureFunctionsCSharpProject;MustUseAzureFunctionsIsolatedWorker
+uitag: Azure Function Trigger
 parameterOrder: (HEADER), (NAMESPACE), (CLASS)
 HEADER-expression: fileheader()
 NAMESPACE-expression: fileDefaultNamespace()
@@ -68,7 +70,7 @@ namespace $NAMESPACE$
         public static async Task<InvokeMethodParameters> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "invoke/{appId}/{methodName}")] HttpRequestData req, FunctionContext functionContext)
         {
-            var log = functionContext.GetLogger("InvokeOutputBinding");
+            var log = functionContext.GetLogger("$CLASS$InvokeOutputBinding");
             log.LogInformation("C# HTTP trigger function processed a request.");
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();

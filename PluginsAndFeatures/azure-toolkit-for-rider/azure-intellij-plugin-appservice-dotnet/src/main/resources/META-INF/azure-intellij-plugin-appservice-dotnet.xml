@@ -13,12 +13,14 @@
         <postStartupActivity
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.localRun.MigrateBuildProjectTaskActivity"/>
         <backgroundPostStartupActivity
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.ReloadFunctionTemplateActivity"/>
+        <backgroundPostStartupActivity
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.FunctionWarmupStartupActivity"/>
 
         <configurationType
-                implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappconfig.WebAppConfigurationType"/>
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppConfigurationType"/>
         <configurationType
-                implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webappcontainers.WebAppContainersConfigurationType"/>
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webAppContainer.WebAppContainerConfigurationType"/>
         <configurationType
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.FunctionDeploymentConfigurationType"/>
         <configurationType
@@ -45,8 +47,6 @@
                 order="first"/>
         <projectTemplateCustomizer
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.FunctionTemplateCustomizer"/>
-        <postStartupActivity
-                implementation="com.microsoft.azure.toolkit.intellij.legacy.function.templates.ReloadFunctionTemplateActivity"/>
 
         <applicationConfigurable parentId="com.microsoft.intellij.AzureConfigurable"
                                  displayName="Functions"
@@ -109,7 +109,7 @@
                 icon="/icons/WebApp/Deploy.svg">
         </action>
         <action id="Actions.WebAppContainersDeployAction"
-                class="com.microsoft.azure.toolkit.intellij.legacy.webapp.action.DeployWebAppContainersAction"
+                class="com.microsoft.azure.toolkit.intellij.legacy.webapp.action.DeployWebAppContainerAction"
                 text="Deploy to Azure Web Apps for Containers..." description="Deploy image to Azure WebApp"
                 icon="/icons/WebApp/Deploy.svg">
         </action>

@@ -3,9 +3,11 @@ guid: 4a3273cb-d595-4bd6-9b69-8eaf71120b55
 type: File
 reformat: True
 shortenReferences: True
+categories: [Azure]
 image: AzureFunctionsTrigger
 customProperties: Extension=fs, FileName=EventHubTrigger, ValidateFileName=True
 scopes: InAzureFunctionsFSharpProject;MustUseAzureFunctionsDefaultWorker
+uitag: Azure Function Trigger
 parameterOrder: (HEADER), (NAMESPACE), (CLASS), PATHVALUE, (CONNECTIONVALUE)
 HEADER-expression: fileheader()
 NAMESPACE-expression: fileDefaultNamespace()

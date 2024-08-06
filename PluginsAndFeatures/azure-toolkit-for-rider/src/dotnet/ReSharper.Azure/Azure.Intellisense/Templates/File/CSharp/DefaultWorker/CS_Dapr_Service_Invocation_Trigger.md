@@ -3,9 +3,11 @@ guid: 6a12542b-e634-41c1-a11b-804f08792e6e
 type: File
 reformat: True
 shortenReferences: True
+categories: [Azure]
 image: AzureFunctionsTrigger
 customProperties: Extension=cs, FileName=DaprServiceInvocationTrigger, ValidateFileName=True
 scopes: InAzureFunctionsCSharpProject;MustUseAzureFunctionsDefaultWorker
+uitag: Azure Function Trigger
 parameterOrder: (HEADER), (NAMESPACE), (CLASS)
 HEADER-expression: fileheader()
 NAMESPACE-expression: fileDefaultNamespace()

@@ -3,9 +3,11 @@ guid: ee9b1573-f483-4960-986e-a16242fb0607
 type: File
 reformat: True
 shortenReferences: True
+categories: [Azure]
 image: AzureFunctionsTrigger
 customProperties: Extension=cs, FileName=TimerTrigger, ValidateFileName=True
 scopes: InAzureFunctionsCSharpProject;MustUseAzureFunctionsIsolatedWorker
+uitag: Azure Function Trigger
 parameterOrder: (HEADER), (NAMESPACE), (CLASS), SCHEDULE
 HEADER-expression: fileheader()
 NAMESPACE-expression: fileDefaultNamespace()
@@ -24,11 +26,11 @@ namespace $NAMESPACE$
 {    
     public class $CLASS$
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<$CLASS$> _logger;
 
-        public $CLASS$(ILoggerFactory loggerFactory)
+        public $CLASS$(ILogger<$CLASS$> logger)
         {
-            _logger = loggerFactory.CreateLogger<$CLASS$>();
+            _logger = logger;
         }
 
         [Function("$CLASS$")]

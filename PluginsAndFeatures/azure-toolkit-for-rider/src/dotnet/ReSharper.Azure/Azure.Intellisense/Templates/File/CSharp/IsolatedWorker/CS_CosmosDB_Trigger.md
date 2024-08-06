@@ -3,9 +3,11 @@ guid: b04cdc48-da71-431e-9933-e56fdd8a3022
 type: File
 reformat: True
 shortenReferences: True
+categories: [Azure]
 image: AzureFunctionsTrigger
 customProperties: Extension=cs, FileName=CosmosDbTrigger, ValidateFileName=True
 scopes: InAzureFunctionsCSharpProject;MustUseAzureFunctionsIsolatedWorker
+uitag: Azure Function Trigger
 parameterOrder: (HEADER), (NAMESPACE), (CLASS), DATABASEVALUE, CONTAINERVALUE, (CONNECTIONVALUE)
 HEADER-expression: fileheader()
 NAMESPACE-expression: fileDefaultNamespace()
@@ -27,11 +29,11 @@ namespace $NAMESPACE$
 {
     public class $CLASS$
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<$CLASS$> _logger;
 
-        public $CLASS$(ILoggerFactory loggerFactory)
+        public $CLASS$(ILogger<$CLASS$> logger)
         {
-            _logger = loggerFactory.CreateLogger<$CLASS$>();
+            _logger = logger;
         }
         
         [Function("$CLASS$")]
@@ -39,7 +41,8 @@ namespace $NAMESPACE$
             databaseName: "$DATABASEVALUE$",
             containerName: "$CONTAINERVALUE$",
             Connection = "$CONNECTIONVALUE$",
-            LeaseContainerName = "leases")] IReadOnlyList<MyDocument> input, FunctionContext context)
+            LeaseContainerName = "leases",
+            CreateLeaseContainerIfNotExists = true)] IReadOnlyList<MyDocument> input)
         {
             if (input != null && input.Count > 0)
             {
