@@ -9,6 +9,7 @@ package com.microsoft.azure.toolkit.intellij.icons
 import com.intellij.httpClient.RestClientIcons
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.IconPathPatcher
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.icons.CachedImageIcon
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 import javax.swing.Icon
@@ -41,7 +42,13 @@ class RiderIconPatcher : IconPathPatcher() {
 
     override fun patchPath(path: String, classLoader: ClassLoader?): String? {
         val iconAndClassLoader = myIconsOverrideMap[normalize(path)] ?: return null
-        return (iconAndClassLoader.icon as? CachedImageIcon)?.originalPath
+        return (iconAndClassLoader.icon as? CachedImageIcon)?.let {
+            if (ExperimentalUI.isNewUI() && it.expUIPath != null) {
+                it.expUIPath
+            } else {
+                it.originalPath
+            }
+        }
     }
 
     override fun getContextClassLoader(path: String, originalClassLoader: ClassLoader?): ClassLoader? {
