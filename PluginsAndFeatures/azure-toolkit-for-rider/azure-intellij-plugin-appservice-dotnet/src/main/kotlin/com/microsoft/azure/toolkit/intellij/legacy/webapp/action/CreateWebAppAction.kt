@@ -13,7 +13,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.rd.util.lifetime
 import com.intellij.openapi.rd.util.withUiContext
 import com.jetbrains.rd.util.threading.coroutines.launch
-import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webapp.WebAppConfigurationType
+import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppConfigurationType
 
 object CreateWebAppAction {
     fun openDialog(project: Project) {
