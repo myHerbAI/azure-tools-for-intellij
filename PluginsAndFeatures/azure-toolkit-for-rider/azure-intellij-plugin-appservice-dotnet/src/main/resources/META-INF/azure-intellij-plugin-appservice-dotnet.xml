@@ -20,7 +20,7 @@
         <configurationType
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppConfigurationType"/>
         <configurationType
-                implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webAppContainer.WebAppContainersConfigurationType"/>
+                implementation="com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webAppContainer.WebAppContainerConfigurationType"/>
         <configurationType
                 implementation="com.microsoft.azure.toolkit.intellij.legacy.function.runner.deploy.FunctionDeploymentConfigurationType"/>
         <configurationType
@@ -119,7 +119,7 @@
                 icon="/icons/WebApp/Deploy.svg">
         </action>
         <action id="Actions.WebAppContainersDeployAction"
-                class="com.microsoft.azure.toolkit.intellij.legacy.webapp.action.DeployWebAppContainersAction"
+                class="com.microsoft.azure.toolkit.intellij.legacy.webapp.action.DeployWebAppContainerAction"
                 text="Deploy to Azure Web Apps for Containers..." description="Deploy image to Azure WebApp"
                 icon="/icons/WebApp/Deploy.svg">
         </action>

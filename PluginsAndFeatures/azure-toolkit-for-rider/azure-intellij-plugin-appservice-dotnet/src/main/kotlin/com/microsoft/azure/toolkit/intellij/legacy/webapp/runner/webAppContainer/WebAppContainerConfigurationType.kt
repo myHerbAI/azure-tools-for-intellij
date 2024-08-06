@@ -11,17 +11,17 @@ import com.intellij.openapi.util.NotNullLazyValue
 import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 
-class WebAppContainersConfigurationType : SimpleConfigurationType(
+class WebAppContainerConfigurationType : SimpleConfigurationType(
     "AzureWebAppContainersDeploy",
     "Azure - Web App Container",
     "Azure Publish Web App Container configuration",
     NotNullLazyValue.createValue { IntelliJAzureIcons.getIcon(AzureIcons.WebApp.DEPLOY) }
 ) {
     override fun createTemplateConfiguration(project: Project) =
-        WebAppContainersConfiguration(project, this, project.name)
+        WebAppContainerConfiguration(project, this, project.name)
 
     override fun createConfiguration(name: String?, template: RunConfiguration) =
-        WebAppContainersConfiguration(template.project, this, name)
+        WebAppContainerConfiguration(template.project, this, name)
 
-    override fun getOptionsClass() = WebAppContainersConfigurationOptions::class.java
+    override fun getOptionsClass() = WebAppContainerConfigurationOptions::class.java
 }

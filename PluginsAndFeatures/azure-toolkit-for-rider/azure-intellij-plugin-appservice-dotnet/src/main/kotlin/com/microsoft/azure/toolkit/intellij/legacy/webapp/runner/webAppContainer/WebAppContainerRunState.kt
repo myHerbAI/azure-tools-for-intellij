@@ -18,10 +18,10 @@ import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
 import kotlinx.coroutines.CoroutineScope
 
-class WebAppContainersRunState(
+class WebAppContainerRunState(
     project: Project,
     scope: CoroutineScope,
-    private val webAppContainersConfiguration: WebAppContainersConfiguration
+    private val webAppContainerConfiguration: WebAppContainerConfiguration
 ) : RiderAzureRunProfileState<AppServiceAppBase<*, *, *>>(project, scope) {
     companion object {
         private const val WEBSITES_PORT = "WEBSITES_PORT"
@@ -30,9 +30,9 @@ class WebAppContainersRunState(
     override suspend fun executeSteps(processHandler: RunProcessHandler): AppServiceAppBase<*, *, *> {
         OperationContext.current().setMessager(processHandlerMessenger)
 
-        processHandler.setText("Start Web App for Containers deployment...")
+        processHandler.setText("Start Web App Container deployment...")
 
-        val options = requireNotNull(webAppContainersConfiguration.state)
+        val options = requireNotNull(webAppContainerConfiguration.state)
 
         //push image
 
@@ -44,7 +44,7 @@ class WebAppContainersRunState(
     }
 
     private fun createDotNetAppServiceConfig(
-        options: WebAppContainersConfigurationOptions
+        options: WebAppContainerConfigurationOptions
     ) = DotNetAppServiceConfig().apply {
         subscriptionId(options.subscriptionId)
         resourceGroup(options.resourceGroupName)
@@ -59,19 +59,19 @@ class WebAppContainersRunState(
         appSettings(mapOf(WEBSITES_PORT to options.port.toString()))
     }
 
-    private fun createRuntimeConfig(options: WebAppContainersConfigurationOptions) = RuntimeConfig().apply {
+    private fun createRuntimeConfig(options: WebAppContainerConfigurationOptions) = RuntimeConfig().apply {
         os(OperatingSystem.DOCKER)
         image("${options.imageRepository}:${options.imageTag}")
     }
 
-    private fun createDotNetRuntimeConfig(options: WebAppContainersConfigurationOptions) = DotNetRuntimeConfig().apply {
+    private fun createDotNetRuntimeConfig(options: WebAppContainerConfigurationOptions) = DotNetRuntimeConfig().apply {
         os(OperatingSystem.LINUX)
         image("${options.imageRepository}:${options.imageTag}")
         isDocker = true
     }
 
     override fun onSuccess(result: AppServiceAppBase<*, *, *>, processHandler: RunProcessHandler) {
-        val options = requireNotNull(webAppContainersConfiguration.state)
+        val options = requireNotNull(webAppContainerConfiguration.state)
         val imageRepository = options.imageRepository
         val imageTag = options.imageTag
 

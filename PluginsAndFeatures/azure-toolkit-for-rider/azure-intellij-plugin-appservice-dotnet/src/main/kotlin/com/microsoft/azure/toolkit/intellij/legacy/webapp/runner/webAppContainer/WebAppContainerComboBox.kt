@@ -16,7 +16,7 @@ import com.microsoft.azure.toolkit.lib.auth.AzureAccount
 import com.microsoft.azure.toolkit.lib.common.action.Action
 import java.util.stream.Collectors
 
-class WebAppContainersComboBox(project: Project) : WebAppComboBox(project) {
+class WebAppContainerComboBox(project: Project) : WebAppComboBox(project) {
     init {
         setRenderer(AppComboBoxRender(true))
     }
@@ -37,7 +37,7 @@ class WebAppContainersComboBox(project: Project) : WebAppComboBox(project) {
     }
 
     override fun createResource() {
-        val dialog = WebAppContainersCreationDialog(project)
+        val dialog = WebAppContainerCreationDialog(project)
         Disposer.register(this, dialog)
         val actionId: Action.Id<AppServiceConfig> = Action.Id.of("user/webapp.create_app.app")
         dialog.setOkAction(Action(actionId)
@@ -51,7 +51,7 @@ class WebAppContainersComboBox(project: Project) : WebAppComboBox(project) {
     }
 }
 
-fun Row.dockerWebAppComboBox(project: Project): Cell<WebAppContainersComboBox> {
-    val component = WebAppContainersComboBox(project)
+fun Row.dockerWebAppComboBox(project: Project): Cell<WebAppContainerComboBox> {
+    val component = WebAppContainerComboBox(project)
     return cell(component)
 }

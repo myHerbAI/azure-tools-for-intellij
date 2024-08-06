@@ -23,7 +23,7 @@ import com.microsoft.azure.toolkit.lib.auth.IAccountActions
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
 import javax.swing.JPanel
 
-class WebAppContainersCreationDialog(project: Project) : ConfigDialog<AppServiceConfig>(project), Disposable {
+class WebAppContainerCreationDialog(project: Project) : ConfigDialog<AppServiceConfig>(project), Disposable {
     private val basicPanel: AppServiceInfoBasicPanel<AppServiceConfig>
     private val advancedPanel: AppServiceInfoAdvancedPanel<AppServiceConfig>
     private val panel: JPanel
@@ -65,7 +65,7 @@ class WebAppContainersCreationDialog(project: Project) : ConfigDialog<AppService
 
     override fun createCenterPanel() = panel
 
-    override fun getDialogTitle() = "Create Web App for Containers"
+    override fun getDialogTitle() = "Create Web App Container"
 
     override fun getBasicFormPanel() = basicPanel
 
