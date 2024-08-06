@@ -20,7 +20,7 @@ import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctio
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctionAppDeploymentSlotDraft
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
-import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileState
+import com.microsoft.azure.toolkit.intellij.legacy.common.AzureDeployProfileState
 import com.microsoft.azure.toolkit.intellij.legacy.getFunctionStack
 import com.microsoft.azure.toolkit.intellij.legacy.getStackAndVersion
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
@@ -37,7 +37,7 @@ class FunctionDeploymentState(
     project: Project,
     scope: CoroutineScope,
     private val functionDeploymentConfiguration: FunctionDeploymentConfiguration
-) : RiderAzureRunProfileState<FunctionAppBase<*, *, *>>(project, scope) {
+) : AzureDeployProfileState<FunctionAppBase<*, *, *>>(project, scope) {
 
     override suspend fun executeSteps(processHandler: RunProcessHandler): FunctionAppBase<*, *, *> {
         OperationContext.current().setMessager(processHandlerMessenger)

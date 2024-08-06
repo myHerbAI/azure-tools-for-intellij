@@ -21,7 +21,7 @@ import com.microsoft.azure.toolkit.intellij.appservice.webapp.DeployDotNetWebApp
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetAppServiceConfig
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
-import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileState
+import com.microsoft.azure.toolkit.intellij.legacy.common.AzureDeployProfileState
 import com.microsoft.azure.toolkit.intellij.legacy.getStackAndVersion
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.DeployType
@@ -39,7 +39,7 @@ class WebAppRunState(
     project: Project,
     scope: CoroutineScope,
     private val webAppConfiguration: WebAppConfiguration
-) : RiderAzureRunProfileState<WebAppBase<*, *, *>>(project, scope) {
+) : AzureDeployProfileState<WebAppBase<*, *, *>>(project, scope) {
 
     override suspend fun executeSteps(processHandler: RunProcessHandler): WebAppBase<*, *, *> {
         OperationContext.current().setMessager(processHandlerMessenger)

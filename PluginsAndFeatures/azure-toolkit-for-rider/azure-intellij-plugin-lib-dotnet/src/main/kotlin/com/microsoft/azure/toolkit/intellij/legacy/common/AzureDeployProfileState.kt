@@ -2,6 +2,8 @@
  * Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
  */
 
+@file:Suppress("UnstableApiUsage")
+
 package com.microsoft.azure.toolkit.intellij.legacy.common
 
 import com.intellij.execution.DefaultExecutionResult
@@ -13,6 +15,7 @@ import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.openapi.project.Project
+import com.intellij.platform.util.coroutines.childScope
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandlerMessenger
 import com.microsoft.azure.toolkit.intellij.common.runconfig.RunConfigurationUtils
@@ -22,7 +25,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
-abstract class RiderAzureRunProfileState<T>(
+abstract class AzureDeployProfileState<T>(
     protected val project: Project,
     private val scope: CoroutineScope
 ) : RunProfileState {
@@ -36,7 +39,8 @@ abstract class RiderAzureRunProfileState<T>(
         processHandler.startNotify()
         consoleView.attachToProcess(processHandler)
 
-        scope.launch(Dispatchers.Default) {
+        val processScope = scope.childScope("")
+        processScope.launch(Dispatchers.Default) {
             try {
                 val result = executeSteps(processHandler)
                 processHandler.putUserData(RunConfigurationUtils.AZURE_RUN_STATE_RESULT, true)
@@ -56,7 +60,7 @@ abstract class RiderAzureRunProfileState<T>(
 
         processHandler.addProcessListener(object : ProcessAdapter() {
             override fun processTerminated(event: ProcessEvent) {
-                scope.cancel()
+                processScope.cancel()
             }
         })
 
