@@ -80,6 +80,7 @@ public class StorageAccountResourcePanel implements AzureFormJPanel<Resource<ISt
         txtConnectionString.setLabel("Connection string");
 
         this.accountComboBox.addValueChangedListener(ignore -> Optional.ofNullable(getValue()).ifPresent(this::fireValueChangedEvent));
+        this.txtConnectionString.addValueChangedListener(ignore -> Optional.ofNullable(getValue()).ifPresent(this::fireValueChangedEvent));
     }
 
     private void onSelectEnvironment() {

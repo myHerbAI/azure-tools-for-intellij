@@ -199,6 +199,7 @@ public class ContainerAppsEnvironmentCreationDialog extends AzureDialog<Containe
         this.lblWorkloadProfiles.setText(WORKLOAD_PROFILE_DESCRIPTION);
 
         this.cbWorkspace.setRequired(true);
+        this.lblWorkloadProfiles.setLabelFor(cbWorkspace);
     }
 
     private void toggleEnvironmentType() {
