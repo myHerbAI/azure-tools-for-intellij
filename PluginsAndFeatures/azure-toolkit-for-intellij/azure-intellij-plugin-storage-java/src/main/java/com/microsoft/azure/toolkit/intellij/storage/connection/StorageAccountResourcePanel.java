@@ -96,6 +96,7 @@ public class StorageAccountResourcePanel implements AzureFormJPanel<Resource<ISt
         if (Objects.nonNull(txtConnectionString.getValidationInfo())) {
             txtConnectionString.validateValueAsync();
         }
+        Optional.ofNullable(getValue()).ifPresent(this::fireValueChangedEvent);
     }
 
     @Override
@@ -146,7 +147,8 @@ public class StorageAccountResourcePanel implements AzureFormJPanel<Resource<ISt
         if (account instanceof ConnectionStringStorageAccount && StringUtils.isNoneBlank(predefinedId, connectionString)) {
             IntelliJSecureStore.getInstance().savePassword(StorageAccountResourceDefinition.class.getName(), predefinedId, null, connectionString);
         }
-        return StorageAccountResourceDefinition.INSTANCE.define(account, predefinedId);
+        return Optional.ofNullable(account)
+                .map(acc -> StorageAccountResourceDefinition.INSTANCE.define(acc, predefinedId)).orElse(null);
     }
 
     @Override
