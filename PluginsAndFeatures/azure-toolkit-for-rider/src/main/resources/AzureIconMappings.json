@@ -1,8 +1,16 @@
 {
   "icons": {
     "expui": {
+      "FunctionApp": {
+        "Deploy.svg": "icons/FunctionApp/Deploy.svg",
+        "Run.svg": "icons/FunctionApp/Run.svg",
+        "TemplateAzureFunc.svg": "icons/FunctionApp/TemplateAzureFunc.svg"
+      },
       "Rider": {
         "AzureToolWindow.svg": "icons/Rider/AzureToolWindow.svg"
+      },
+      "WebApp": {
+        "Deploy.svg": "icons/WebApp/Deploy.svg"
       }
     }
   }
