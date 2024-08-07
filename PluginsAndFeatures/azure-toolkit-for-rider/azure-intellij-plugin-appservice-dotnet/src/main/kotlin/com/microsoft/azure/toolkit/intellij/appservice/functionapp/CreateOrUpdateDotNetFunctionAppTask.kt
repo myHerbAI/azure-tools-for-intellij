@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.appservice.functionapp
 import com.azure.resourcemanager.resources.fluentcore.utils.ResourceManagerUtils
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntime
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
+import com.microsoft.azure.toolkit.intellij.common.RiderRunProcessHandlerMessager
 import com.microsoft.azure.toolkit.lib.Azure
 import com.microsoft.azure.toolkit.lib.appservice.AzureAppService
 import com.microsoft.azure.toolkit.lib.appservice.config.AppServiceConfig
@@ -16,9 +17,12 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanDraft
+import com.microsoft.azure.toolkit.lib.common.bundle.AzureString
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
 import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager
 import com.microsoft.azure.toolkit.lib.common.model.Region
+import com.microsoft.azure.toolkit.lib.common.operation.Operation
+import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask
 import com.microsoft.azure.toolkit.lib.resource.ResourceGroup
 import com.microsoft.azure.toolkit.lib.resource.task.CreateResourceGroupTask
@@ -30,8 +34,10 @@ import com.microsoft.azure.toolkit.lib.storage.model.Redundancy
 import org.apache.commons.lang3.StringUtils
 import java.util.concurrent.Callable
 
-class CreateOrUpdateDotNetFunctionAppTask(private val config: DotNetFunctionAppConfig) :
-    AzureTask<FunctionAppBase<*, *, *>>() {
+class CreateOrUpdateDotNetFunctionAppTask(
+    private val config: DotNetFunctionAppConfig,
+    private val processHandlerMessager: RiderRunProcessHandlerMessager?
+) : AzureTask<FunctionAppBase<*, *, *>>() {
     companion object {
         private const val FUNCTION_APP_NAME_PATTERN = "[^a-zA-Z0-9]"
 
@@ -49,10 +55,6 @@ class CreateOrUpdateDotNetFunctionAppTask(private val config: DotNetFunctionAppC
     private var functionApp: FunctionAppBase<*, *, *>? = null
 
     init {
-        initTasks()
-    }
-
-    private fun initTasks() {
         registerSubTask(getResourceGroupTask()) {}
         registerSubTask(getServicePlanTask()) { appServicePlan = it }
 
@@ -286,9 +288,13 @@ class CreateOrUpdateDotNetFunctionAppTask(private val config: DotNetFunctionAppC
     }
 
     override fun doExecute(): FunctionAppBase<*, *, *> {
-        for (task in subTasks) {
-            task.body.call()
-        }
+        Operation.execute(AzureString.fromString("Creating or updating Function App"), {
+            processHandlerMessager?.let { OperationContext.current().messager = it }
+
+            for (task in subTasks) {
+                task.body.call()
+            }
+        }, null)
 
         return requireNotNull(functionApp)
     }

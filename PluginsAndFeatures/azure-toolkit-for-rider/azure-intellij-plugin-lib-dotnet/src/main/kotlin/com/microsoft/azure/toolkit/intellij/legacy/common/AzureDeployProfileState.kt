@@ -16,8 +16,8 @@ import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.openapi.project.Project
 import com.intellij.platform.util.coroutines.childScope
+import com.microsoft.azure.toolkit.intellij.common.RiderRunProcessHandlerMessager
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
-import com.microsoft.azure.toolkit.intellij.common.RunProcessHandlerMessenger
 import com.microsoft.azure.toolkit.intellij.common.runconfig.RunConfigurationUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,12 +29,12 @@ abstract class AzureDeployProfileState<T>(
     protected val project: Project,
     private val scope: CoroutineScope
 ) : RunProfileState {
-    protected var processHandlerMessenger: RunProcessHandlerMessenger? = null
+    protected var processHandlerMessenger: RiderRunProcessHandlerMessager? = null
 
     override fun execute(executor: Executor?, runner: ProgramRunner<*>): ExecutionResult? {
         val processHandler = RunProcessHandler()
         processHandler.addDefaultListener()
-        processHandlerMessenger = RunProcessHandlerMessenger(processHandler)
+        processHandlerMessenger = RiderRunProcessHandlerMessager(processHandler)
         val consoleView = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
         processHandler.startNotify()
         consoleView.attachToProcess(processHandler)

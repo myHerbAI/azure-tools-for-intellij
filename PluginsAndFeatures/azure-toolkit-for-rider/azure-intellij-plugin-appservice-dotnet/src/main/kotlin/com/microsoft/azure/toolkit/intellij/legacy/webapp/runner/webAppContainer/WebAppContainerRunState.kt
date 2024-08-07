@@ -15,7 +15,6 @@ import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.common.model.Region
-import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
 import kotlinx.coroutines.CoroutineScope
 
 class WebAppContainerRunState(
@@ -28,9 +27,7 @@ class WebAppContainerRunState(
     }
 
     override suspend fun executeSteps(processHandler: RunProcessHandler): AppServiceAppBase<*, *, *> {
-        OperationContext.current().setMessager(processHandlerMessenger)
-
-        processHandler.setText("Start Web App Container deployment...")
+        processHandlerMessenger?.info("Start Web App Container deployment...")
 
         val options = requireNotNull(webAppContainerConfiguration.state)
 
@@ -39,7 +36,7 @@ class WebAppContainerRunState(
 
         //create web app
         val config = createDotNetAppServiceConfig(options)
-        val task = CreateOrUpdateDotNetWebAppTask(config)
+        val task = CreateOrUpdateDotNetWebAppTask(config, processHandlerMessenger)
         return task.execute()
     }
 
@@ -74,10 +71,11 @@ class WebAppContainerRunState(
         val options = requireNotNull(webAppContainerConfiguration.state)
         val imageRepository = options.imageRepository
         val imageTag = options.imageTag
+        processHandlerMessenger?.info("Image $imageRepository:$imageTag has been deployed to Web App ${result.name}")
 
-        processHandler.setText("Image $imageRepository:$imageTag has been deployed to Web App ${result.name}")
         val url = "https://${result.name}.azurewebsites.net/"
-        processHandler.setText("URL: $url")
+        processHandlerMessenger?.info("URL: $url")
+
         processHandler.notifyComplete()
     }
 }

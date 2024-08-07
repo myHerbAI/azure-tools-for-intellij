@@ -32,7 +32,6 @@ import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot
 import com.microsoft.azure.toolkit.lib.common.model.AzResource
 import com.microsoft.azure.toolkit.lib.common.model.Region
-import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
 import kotlinx.coroutines.CoroutineScope
 
 class WebAppRunState(
@@ -42,9 +41,7 @@ class WebAppRunState(
 ) : AzureDeployProfileState<WebAppBase<*, *, *>>(project, scope) {
 
     override suspend fun executeSteps(processHandler: RunProcessHandler): WebAppBase<*, *, *> {
-        OperationContext.current().setMessager(processHandlerMessenger)
-
-        processHandler.setText("Start Web App deployment...")
+        processHandlerMessenger?.info("Start Web App deployment...")
 
         val options = requireNotNull(webAppConfiguration.state)
         val publishableProjectPath = options.publishableProjectPath
@@ -56,7 +53,7 @@ class WebAppRunState(
         checkCanceled()
 
         val config = createDotNetAppServiceConfig(publishableProject, options)
-        val createTask = CreateOrUpdateDotNetWebAppTask(config)
+        val createTask = CreateOrUpdateDotNetWebAppTask(config, processHandlerMessenger)
         val deployTarget = createTask.execute()
 
         if (deployTarget is AzResource.Draft<*, *>) {
@@ -80,7 +77,7 @@ class WebAppRunState(
 
         checkCanceled()
 
-        val deployTask = DeployDotNetWebAppTask(deployTarget, artifact)
+        val deployTask = DeployDotNetWebAppTask(deployTarget, artifact, processHandlerMessenger)
         deployTask.execute()
 
         FileUtil.delete(zipFile)
@@ -131,12 +128,14 @@ class WebAppRunState(
         val options = requireNotNull(webAppConfiguration.state)
 
         updateConfigurationDataModel(result)
-        processHandler.setText("Deployment was successful, but the app may still be starting.")
+        processHandlerMessenger?.info("Deployment was successful, but the app may still be starting.")
+
         val url = "https://${result.hostName}"
-        processHandler.setText("URL: $url")
+        processHandlerMessenger?.info("URL: $url")
         if (options.openBrowser) {
             BrowserUtil.open(url)
         }
+
         processHandler.notifyComplete()
     }
 
