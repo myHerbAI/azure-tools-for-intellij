@@ -374,8 +374,13 @@ public class ConnectorDialog extends AzureDialog<Connection<?, ?>> implements Az
 
             @Override
             protected synchronized void setItems(List<? extends AuthenticationType> items) {
-                this.clear();
+                final ComboBoxModel<AuthenticationType> model = getModel();
+                final AuthenticationType value = (AuthenticationType) model.getSelectedItem();
+                this.removeAllItems();
                 items.forEach(this::addItem);
+                if (CollectionUtils.isNotEmpty(items)) {
+                    model.setSelectedItem(items.contains(value) ? value : items.get(0));
+                }
                 this.refreshValue();
             }
 
