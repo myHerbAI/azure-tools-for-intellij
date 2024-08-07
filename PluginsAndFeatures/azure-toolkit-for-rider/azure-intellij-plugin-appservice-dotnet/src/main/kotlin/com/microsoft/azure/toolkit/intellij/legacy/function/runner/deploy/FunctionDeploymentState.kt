@@ -127,6 +127,7 @@ class FunctionDeploymentState(
         if (options.openBrowser) {
             BrowserUtil.open(url)
         }
+
         processHandler.notifyComplete()
     }
 

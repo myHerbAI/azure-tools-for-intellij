@@ -12,7 +12,7 @@ class RiderRunProcessHandlerMessager(private val handler: RunProcessHandler) : I
     override fun show(raw: IAzureMessage): Boolean {
         when (raw.type) {
             IAzureMessage.Type.DEBUG -> handler.println(raw.message.toString(), ProcessOutputType.SYSTEM)
-            IAzureMessage.Type.ERROR -> handler.println(raw.content, ProcessOutputType.STDERR)
+            IAzureMessage.Type.ERROR -> handler.println(raw.message.toString(), ProcessOutputType.STDERR)
             else -> handler.println(raw.message.toString(), ProcessOutputType.STDOUT)
         }
 
