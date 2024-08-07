@@ -25,7 +25,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
-abstract class AzureDeployProfileState<T>(
+abstract class AzureDeploymentState<T>(
     protected val project: Project,
     private val scope: CoroutineScope
 ) : RunProfileState {

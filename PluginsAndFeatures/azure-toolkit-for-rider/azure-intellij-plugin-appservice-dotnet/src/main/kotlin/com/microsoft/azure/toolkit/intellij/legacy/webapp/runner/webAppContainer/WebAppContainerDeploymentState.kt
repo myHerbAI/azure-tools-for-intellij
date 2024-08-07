@@ -9,7 +9,7 @@ import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.CreateOrUpdateDotNetWebAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetAppServiceConfig
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
-import com.microsoft.azure.toolkit.intellij.legacy.common.AzureDeployProfileState
+import com.microsoft.azure.toolkit.intellij.legacy.common.AzureDeploymentState
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
@@ -17,11 +17,11 @@ import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import kotlinx.coroutines.CoroutineScope
 
-class WebAppContainerRunState(
+class WebAppContainerDeploymentState(
     project: Project,
     scope: CoroutineScope,
     private val webAppContainerConfiguration: WebAppContainerConfiguration
-) : AzureDeployProfileState<AppServiceAppBase<*, *, *>>(project, scope) {
+) : AzureDeploymentState<AppServiceAppBase<*, *, *>>(project, scope) {
     companion object {
         private const val WEBSITES_PORT = "WEBSITES_PORT"
     }
