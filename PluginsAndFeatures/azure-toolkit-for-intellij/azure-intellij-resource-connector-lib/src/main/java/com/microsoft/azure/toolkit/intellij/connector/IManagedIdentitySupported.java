@@ -85,7 +85,7 @@ public interface IManagedIdentitySupported<T extends AzResource> {
                             resource.grantPermissionToIdentity(identity, role);
                         }
                     });
-                    AzureMessager.getMessager().info(String.format("Roles (%s) have been assigned to identity (%s)?", rolesStr, identity));
+                    AzureMessager.getMessager().info(String.format("Roles (%s) have been assigned to identity (%s).", rolesStr, identity));
                     return true;
                 } catch (final RuntimeException e) {
                     final String errorMessage = String.format(FAILED_TO_ASSIGN_MESSAGE, resource.getPortalUrl(), identity, e.getMessage());
