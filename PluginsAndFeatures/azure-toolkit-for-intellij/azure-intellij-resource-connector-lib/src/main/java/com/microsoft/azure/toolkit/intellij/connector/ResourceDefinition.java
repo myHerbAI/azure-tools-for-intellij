@@ -82,11 +82,16 @@ public interface ResourceDefinition<T> {
 
     default List<AuthenticationType> getSupportedAuthenticationTypes() {
         final List<AuthenticationType> result = new ArrayList<>();
-        result.add(AuthenticationType.CONNECTION_STRING);
         if (this instanceof IManagedIdentitySupported) {
             result.add(AuthenticationType.SYSTEM_ASSIGNED_MANAGED_IDENTITY);
             result.add(AuthenticationType.USER_ASSIGNED_MANAGED_IDENTITY);
         }
+        result.add(AuthenticationType.CONNECTION_STRING);
         return result;
+    }
+
+    // as for some resource (storage account), supported authentication types may be different for different resource instance
+    default List<AuthenticationType> getSupportedAuthenticationTypes(@Nonnull Resource<?> resource) {
+        return getSupportedAuthenticationTypes();
     }
 }
