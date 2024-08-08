@@ -31,7 +31,7 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
     override fun getState() = options as? WebAppConfigurationOptions
 
     override fun getState(executor: Executor, executionEnvironment: ExecutionEnvironment) =
-        WebAppRunState(
+        WebAppDeploymentState(
             project,
             AppServiceProjectService.getInstance(project).scope.childScope("WebAppRunState"),
             this

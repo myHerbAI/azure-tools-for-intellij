@@ -64,7 +64,7 @@ object OpenAppServicePropertyViewAction {
             val name = "${slot.parent.name}-${slot.name}"
             val newItemVirtualFile = createVirtualFile(name, userData)
             newItemVirtualFile.fileType =
-                AzureFileType(type, IntelliJAzureIcons.getIcon(AzureIcons.DeploymentSlot.MODULE))
+                AzureFileType(type, IntelliJAzureIcons.getIcon(AzureIcons.WebApp.DEPLOYMENT_SLOT))
             openFile(fileEditorManager, newItemVirtualFile)
         }
     }
@@ -106,7 +106,7 @@ object OpenAppServicePropertyViewAction {
             val name = "${slot.parent.name}-${slot.name}"
             val newItemVirtualFile = createVirtualFile(name, userData)
             newItemVirtualFile.fileType =
-                AzureFileType(type, IntelliJAzureIcons.getIcon(AzureIcons.DeploymentSlot.MODULE))
+                AzureFileType(type, IntelliJAzureIcons.getIcon(AzureIcons.WebApp.DEPLOYMENT_SLOT))
             openFile(fileEditorManager, newItemVirtualFile)
         }
     }

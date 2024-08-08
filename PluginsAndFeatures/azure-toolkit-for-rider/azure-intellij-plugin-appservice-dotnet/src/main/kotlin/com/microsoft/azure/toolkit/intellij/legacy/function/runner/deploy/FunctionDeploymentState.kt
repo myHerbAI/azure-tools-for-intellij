@@ -20,7 +20,7 @@ import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctio
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctionAppDeploymentSlotDraft
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
-import com.microsoft.azure.toolkit.intellij.legacy.common.RiderAzureRunProfileState
+import com.microsoft.azure.toolkit.intellij.legacy.common.AzureDeploymentState
 import com.microsoft.azure.toolkit.intellij.legacy.getFunctionStack
 import com.microsoft.azure.toolkit.intellij.legacy.getStackAndVersion
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
@@ -30,19 +30,16 @@ import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
 import com.microsoft.azure.toolkit.lib.common.model.AzResource
 import com.microsoft.azure.toolkit.lib.common.model.Region
-import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
 import kotlinx.coroutines.CoroutineScope
 
 class FunctionDeploymentState(
     project: Project,
     scope: CoroutineScope,
     private val functionDeploymentConfiguration: FunctionDeploymentConfiguration
-) : RiderAzureRunProfileState<FunctionAppBase<*, *, *>>(project, scope) {
+) : AzureDeploymentState<FunctionAppBase<*, *, *>>(project, scope) {
 
     override suspend fun executeSteps(processHandler: RunProcessHandler): FunctionAppBase<*, *, *> {
-        OperationContext.current().setMessager(processHandlerMessenger)
-
-        processHandler.setText("Start Function App deployment...")
+        processHandlerMessenger?.info("Start Function App deployment...")
 
         val options = requireNotNull(functionDeploymentConfiguration.state)
         val publishableProjectPath = options.publishableProjectPath
@@ -54,7 +51,7 @@ class FunctionDeploymentState(
         checkCanceled()
 
         val config = creatDotNetFunctionAppConfig(publishableProject, options)
-        val createTask = CreateOrUpdateDotNetFunctionAppTask(config)
+        val createTask = CreateOrUpdateDotNetFunctionAppTask(config, processHandlerMessenger)
         val deployTarget = createTask.execute()
 
         if (deployTarget is AzResource.Draft<*, *>) {
@@ -74,7 +71,7 @@ class FunctionDeploymentState(
 
         checkCanceled()
 
-        val deployTask = DeployDotNetFunctionAppTask(deployTarget, artifactDirectory)
+        val deployTask = DeployDotNetFunctionAppTask(deployTarget, artifactDirectory, processHandlerMessenger)
         deployTask.execute()
 
         return deployTarget
@@ -130,6 +127,7 @@ class FunctionDeploymentState(
         if (options.openBrowser) {
             BrowserUtil.open(url)
         }
+
         processHandler.notifyComplete()
     }
 
