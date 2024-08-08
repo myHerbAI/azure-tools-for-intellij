@@ -11,6 +11,7 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.IconPathPatcher
 import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.icons.CachedImageIcon
+import com.microsoft.azure.toolkit.ide.common.icon.AzureIcons
 import com.microsoft.azure.toolkit.intellij.common.IntelliJAzureIcons
 import javax.swing.Icon
 
@@ -59,6 +60,6 @@ class RiderIconPatcher : IconPathPatcher() {
     private val myIconsOverrideMap = mapOf(
         "/resharper/FunctionAppRunMarkers/RunFunctionApp.svg" to azure(IntelliJAzureIcons.getIcon("/icons/FunctionApp/Run.svg")),
         "/resharper/FunctionAppRunMarkers/Trigger.svg" to restClient(RestClientIcons.Http_requests_filetype),
-        "/resharper/FunctionAppTemplates/AzureFunctionsTrigger.svg" to azure(IntelliJAzureIcons.getIcon("/icons/FunctionApp/FunctionApp.svg"))
+        "/resharper/FunctionAppTemplates/AzureFunctionsTrigger.svg" to azure(IntelliJAzureIcons.getIcon(AzureIcons.FunctionApp.MODULE))
     )
 }

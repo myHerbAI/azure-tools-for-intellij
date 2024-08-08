@@ -59,7 +59,12 @@
     </applicationListeners>
 
     <actions>
-        <group id="AzurePopupGroup" text="Azure" description="Azure" icon="/icons/Rider/Azure.svg" popup="true">
+        <group id="AzurePopupGroup"
+               text="Azure"
+               description="Azure"
+               icon="/icons/Common/Azure.svg"
+               popup="true"
+               searchable="false">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
             <reference ref="Actions.WebAppDeployAction"/>
             <reference ref="Actions.WebAppContainersDeployAction"/>
@@ -70,7 +75,8 @@
                class="com.intellij.openapi.actionSystem.DefaultActionGroup"
                text="Azure"
                description="Contains Azure tools plugin actions"
-               icon="/icons/Rider/Azure.svg"
+               icon="/icons/Common/Azure.svg"
+               searchable="false"
                popup="true">
             <add-to-group group-id="ToolsMenu" anchor="first"/>
             <reference ref="AzureToolkit.SelectSubscriptions"/>

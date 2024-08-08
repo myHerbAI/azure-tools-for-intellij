@@ -60,14 +60,13 @@ class AzuriteSessionDescriptor(project: Project) : SimpleServiceViewDescriptor(
         Disposer.register(this, consoleView)
     }
 
-    @Suppress("DialogTitleCapitalization")
     override fun getPresentation() = PresentationData().apply {
         if (processHandler != null) {
             setIcon(IntelliJAzureIcons.getIcon("/icons/Microsoft.Storage/azurite/running.svg"))
         } else {
             setIcon(IntelliJAzureIcons.getIcon("/icons/Microsoft.Storage/azurite/stopped.svg"))
         }
-        addText("Azurite Storage Emulator", SimpleTextAttributes.REGULAR_ATTRIBUTES)
+        addText("Azurite emulator", SimpleTextAttributes.REGULAR_ATTRIBUTES)
     }
 
     override fun getContentComponent() = BorderLayoutPanel().apply {
