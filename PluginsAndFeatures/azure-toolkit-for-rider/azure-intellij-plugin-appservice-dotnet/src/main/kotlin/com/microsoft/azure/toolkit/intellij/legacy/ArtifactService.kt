@@ -38,13 +38,13 @@ class ArtifactService(private val project: Project) {
 
     fun prepareArtifact(
         publishableProject: PublishableProjectModel,
-        configuration: String,
-        platform: String,
+        configuration: String?,
+        platform: String?,
         processHandler: RunProcessHandler,
         zipArtifact: Boolean
     ): File {
         processHandler.setText("Collecting ${publishableProject.projectName} project artifacts...")
-        if (configuration.isNotEmpty() && platform.isNotEmpty()) {
+        if (!configuration.isNullOrEmpty() && !platform.isNullOrEmpty()) {
             processHandler.setText("Using configuration: $configuration and platform: $platform")
         }
         val outDir = collectProjectArtifacts(publishableProject, configuration, platform)
@@ -74,13 +74,12 @@ class ArtifactService(private val project: Project) {
         val (tempDirMsBuildProperty, outPath) = publishService.getPublishToTempDirParameterAndPath()
 
         val extraProperties = mutableListOf<CustomTargetExtraProperty>()
-        if (!configuration.isNullOrEmpty()) extraProperties.add(
-            CustomTargetExtraProperty(
-                "Configuration",
-                configuration
-            )
-        )
-        if (!platform.isNullOrEmpty()) extraProperties.add(CustomTargetExtraProperty("Platform", platform))
+        if (!configuration.isNullOrEmpty()) {
+            extraProperties.add(CustomTargetExtraProperty("Configuration", configuration))
+        }
+        if (!platform.isNullOrEmpty()) {
+            extraProperties.add(CustomTargetExtraProperty("Platform", platform))
+        }
 
         val buildStatus =
             if (publishableProject.isDotNetCore) {

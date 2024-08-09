@@ -63,8 +63,8 @@ class FunctionDeploymentState(
         val artifactDirectory = ArtifactService.getInstance(project)
             .prepareArtifact(
                 publishableProject,
-                requireNotNull(options.projectConfiguration),
-                requireNotNull(options.projectPlatform),
+                options.projectConfiguration,
+                options.projectPlatform,
                 processHandler,
                 false
             )

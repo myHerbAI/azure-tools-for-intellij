@@ -63,8 +63,6 @@ class WebAppConfiguration(private val project: Project, factory: ConfigurationFa
 
             if (operatingSystem.isNullOrEmpty()) throw RuntimeConfigurationError("Operating system is not provided")
             if (publishableProjectPath.isNullOrEmpty()) throw RuntimeConfigurationError("Choose a project to deploy")
-            if (projectPlatform.isNullOrEmpty()) throw RuntimeConfigurationError("Choose a project platform")
-            if (projectConfiguration.isNullOrEmpty()) throw RuntimeConfigurationError("Choose a project configuration")
         }
     }
 
