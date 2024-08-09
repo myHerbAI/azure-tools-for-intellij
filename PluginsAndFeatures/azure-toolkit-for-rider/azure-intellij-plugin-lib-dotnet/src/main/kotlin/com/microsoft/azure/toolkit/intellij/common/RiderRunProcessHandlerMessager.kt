@@ -9,10 +9,11 @@ import com.microsoft.azure.toolkit.intellij.common.messager.IntellijAzureMessage
 import com.microsoft.azure.toolkit.lib.common.messager.IAzureMessage
 
 class RiderRunProcessHandlerMessager(private val handler: RunProcessHandler) : IntellijAzureMessager() {
-    override fun show(raw: IAzureMessage): Boolean {
+    override fun show(message: IAzureMessage): Boolean {
+        val raw = message.rawMessage
         when (raw.type) {
             IAzureMessage.Type.DEBUG -> handler.println(raw.message.toString(), ProcessOutputType.SYSTEM)
-            IAzureMessage.Type.ERROR -> handler.println(raw.message.toString(), ProcessOutputType.STDERR)
+            IAzureMessage.Type.ERROR -> handler.println(raw.content, ProcessOutputType.STDERR)
             else -> handler.println(raw.message.toString(), ProcessOutputType.STDOUT)
         }
 

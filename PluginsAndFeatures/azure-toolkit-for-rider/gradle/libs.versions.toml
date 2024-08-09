@@ -13,7 +13,7 @@ ktor = "2.3.12"
 kotlin = "2.0.0"
 serialization = "1.7.1"
 changelog = "2.2.1"
-intelliJPlatform = "2.0.0"
+intelliJPlatform = "2.0.1"
 qodana = "2024.1.5"
 aspectj = "8.6"
 

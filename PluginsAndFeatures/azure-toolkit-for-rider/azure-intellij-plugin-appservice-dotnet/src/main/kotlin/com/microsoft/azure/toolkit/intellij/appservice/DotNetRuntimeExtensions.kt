@@ -37,7 +37,7 @@ fun WebAppBase.getDotNetRuntime(): DotNetRuntime {
                     false
                 )
             } else {
-                val stack = linuxFxVersion.substringBefore('|', "DOTNET")
+                val stack = linuxFxVersion.substringBefore('|', "DOTNETCORE")
                 val version = linuxFxVersion.substringAfter('|', "8.0")
                 return DotNetRuntime(
                     com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem.LINUX,

@@ -113,7 +113,7 @@ class FunctionDeploymentState(
         DotNetRuntimeConfig().apply {
             os(os)
             isDocker = false
-            val stackAndVersion = publishableProject.getStackAndVersion(project, os)
+            val stackAndVersion = publishableProject.getStackAndVersion(project, os, true)
             stack = stackAndVersion?.first
             frameworkVersion = stackAndVersion?.second
             functionStack = publishableProject.getFunctionStack(project, os)
