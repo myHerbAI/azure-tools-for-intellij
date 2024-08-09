@@ -65,8 +65,8 @@ class WebAppDeploymentState(
         val zipFile = ArtifactService.getInstance(project)
             .prepareArtifact(
                 publishableProject,
-                requireNotNull(options.projectConfiguration),
-                requireNotNull(options.projectPlatform),
+                options.projectConfiguration,
+                options.projectPlatform,
                 processHandler,
                 true
             )
