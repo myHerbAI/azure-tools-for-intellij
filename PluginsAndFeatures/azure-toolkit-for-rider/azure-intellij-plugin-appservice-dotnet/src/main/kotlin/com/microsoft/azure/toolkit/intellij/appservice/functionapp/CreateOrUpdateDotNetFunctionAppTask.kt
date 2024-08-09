@@ -19,7 +19,6 @@ import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlan
 import com.microsoft.azure.toolkit.lib.appservice.plan.AppServicePlanDraft
 import com.microsoft.azure.toolkit.lib.common.bundle.AzureString
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
-import com.microsoft.azure.toolkit.lib.common.messager.AzureMessager
 import com.microsoft.azure.toolkit.lib.common.model.Region
 import com.microsoft.azure.toolkit.lib.common.operation.Operation
 import com.microsoft.azure.toolkit.lib.common.operation.OperationContext
@@ -104,7 +103,7 @@ class CreateOrUpdateDotNetFunctionAppTask(
 
     private fun getServicePlanTask(): AzureTask<AppServicePlan>? {
         if (!config.deploymentSlotName().isNullOrEmpty()) {
-            AzureMessager.getMessager().info("Skip updating app service plan for deployment slot")
+            processHandlerMessager?.info("Skip updating app service plan for deployment slot")
             return null
         }
 
