@@ -16,6 +16,7 @@
 - Read run configurations from `launchSettings.json` file ([RIDER-92674](https://youtrack.jetbrains.com/issue/RIDER-92674))
 - Fixed Function nuget package suggestion on project opening
 - Use AzureToolsForIntelliJ/Azurite folder for Azurite workspace
+- Unable to deploy function app from standalone project ([#862](https://github.com/JetBrains/azure-tools-for-intellij/issues/862))
 
 ### Removed
 
