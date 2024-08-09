@@ -31,6 +31,7 @@ dependencies {
     implementation(project(path = ":azure-intellij-plugin-lib"))
     implementation(project(path = ":azure-intellij-plugin-service-explorer"))
     implementation(libs.azureToolkitIdeCommonLib)
+    implementation(libs.azureToolkitIdentityLib)
     implementation("io.github.cdimascio:dotenv-java:3.0.0")
 
     compileOnly("org.projectlombok:lombok:1.18.24")

@@ -8,8 +8,8 @@ import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Panel
 import com.microsoft.azure.toolkit.intellij.legacy.appservice.AppServiceInfoAdvancedPanel
-import com.microsoft.azure.toolkit.intellij.legacy.storage.StorageAccountComboBox
-import com.microsoft.azure.toolkit.intellij.legacy.storage.StorageAccountConfig
+import com.microsoft.azure.toolkit.intellij.storage.storage.StorageAccountComboBox
+import com.microsoft.azure.toolkit.intellij.storage.storage.StorageAccountConfig
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig
 import com.microsoft.azure.toolkit.lib.common.model.Subscription
 import com.microsoft.azure.toolkit.lib.common.utils.Utils

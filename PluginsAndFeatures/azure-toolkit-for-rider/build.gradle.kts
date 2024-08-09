@@ -60,6 +60,12 @@ dependencies {
     implementation(project(path = ":azure-intellij-plugin-database"))
     implementation(project(path = ":azure-intellij-plugin-database-dotnet"))
     implementation(project(path = ":azure-intellij-plugin-cloud-shell"))
+    implementation(project(path = ":azure-intellij-plugin-redis"))
+    implementation(project(path = ":azure-intellij-plugin-redis-dotnet"))
+    implementation(project(path = ":azure-intellij-plugin-storage"))
+    implementation(project(path = ":azure-intellij-plugin-storage-dotnet"))
+    implementation(project(path = ":azure-intellij-plugin-keyvault"))
+    implementation(project(path = ":azure-intellij-plugin-keyvault-dotnet"))
 
     testImplementation(libs.opentest4j)
 

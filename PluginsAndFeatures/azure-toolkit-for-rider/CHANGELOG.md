@@ -6,6 +6,9 @@
 
 ### Added
 
+- Support for Azure Redis
+- Support for Azure KeyVault
+- Support for Azure Storage accounts
 - Edit and Continue for Function run configuration
 
 ### Fixed

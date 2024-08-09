@@ -95,7 +95,7 @@ class AzureConfigurable : BoundConfigurable("Azure") {
             cloudIsChanged = true
         }
 
-        if (IdeAzureAccount.getInstance().isLoggedIn() && cloudIsChanged) {
+        if (IdeAzureAccount.getInstance().isLoggedIn && cloudIsChanged) {
             Azure.az(AzureAccount::class.java).logout()
         }
 

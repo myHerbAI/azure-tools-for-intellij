@@ -12,11 +12,13 @@ import com.intellij.psi.PsiMethod;
 import com.microsoft.azure.toolkit.ide.appservice.AppServiceActionsContributor;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler;
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandlerMessenger;
+import com.microsoft.azure.toolkit.intellij.connector.Connection;
+import com.microsoft.azure.toolkit.intellij.connector.Resource;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.AzureModule;
 import com.microsoft.azure.toolkit.intellij.connector.dotazure.DotEnvBeforeRunTaskProvider;
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureRunProfileState;
 import com.microsoft.azure.toolkit.intellij.legacy.function.runner.core.FunctionUtils;
-import com.microsoft.azure.toolkit.intellij.storage.connection.StorageAccountResourceDefinition;
+import com.microsoft.azure.toolkit.intellij.storage.connection.BaseStorageAccountResourceDefinition;
 import com.microsoft.azure.toolkit.lib.appservice.config.FunctionAppConfig;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionApp;
 import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase;
@@ -36,6 +38,7 @@ import com.microsoft.azure.toolkit.lib.legacy.function.configurations.FunctionCo
 import com.microsoft.azuretools.telemetry.TelemetryConstants;
 import com.microsoft.azuretools.telemetrywrapper.Operation;
 import com.microsoft.azuretools.telemetrywrapper.TelemetryManager;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,6 +49,8 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBase<?, ?, ?>> {
 
@@ -95,11 +100,17 @@ public class FunctionDeploymentState extends AzureRunProfileState<FunctionAppBas
 
     private void applyResourceConnection() {
         if (functionDeployConfiguration.isConnectionEnabled()) {
+            final Set<Connection<?, ?>> identityConnection = functionDeployConfiguration.getConnections().stream().filter(Connection::isManagedIdentityConnection)
+                    .collect(Collectors.toSet());
+            if (CollectionUtils.isNotEmpty(identityConnection)) {
+                final String resources = identityConnection.stream().map(Connection::getResource).map(Resource::getName).collect(Collectors.joining(", "));
+                AzureMessager.getMessager().warning(String.format("Managed Identity connection is not supported for function app, your connections connected to %s may not work as expected.", resources));
+            }
             final DotEnvBeforeRunTaskProvider.LoadDotEnvBeforeRunTask loadDotEnvBeforeRunTask = functionDeployConfiguration.getLoadDotEnvBeforeRunTask();
             final Map<String, String> appSettings = functionDeployConfiguration.getConfig().appSettings();
             loadDotEnvBeforeRunTask.loadEnv().stream()
                                    .filter(pair -> !(StringUtils.equalsIgnoreCase(pair.getKey(), "AzureWebJobsStorage") &&
-                                       StringUtils.equalsIgnoreCase(pair.getValue(), StorageAccountResourceDefinition.LOCAL_STORAGE_CONNECTION_STRING))) // workaround to remove local connections
+                                       StringUtils.equalsIgnoreCase(pair.getValue(), BaseStorageAccountResourceDefinition.LOCAL_STORAGE_CONNECTION_STRING))) // workaround to remove local connections
                                    .forEach(env -> appSettings.put(env.getKey(), env.getValue()));
         }
     }

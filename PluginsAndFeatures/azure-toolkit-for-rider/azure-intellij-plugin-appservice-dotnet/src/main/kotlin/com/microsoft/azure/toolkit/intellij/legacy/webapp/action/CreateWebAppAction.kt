@@ -9,11 +9,13 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.ConfigurationTypeUtil
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.RunDialog
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.rd.util.lifetime
-import com.intellij.openapi.rd.util.withUiContext
 import com.jetbrains.rd.util.threading.coroutines.launch
 import com.microsoft.azure.toolkit.intellij.legacy.webapp.runner.webApp.WebAppConfigurationType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object CreateWebAppAction {
     fun openDialog(project: Project) {
@@ -23,7 +25,7 @@ object CreateWebAppAction {
             val configurationFactory = configurationType.configurationFactories.first()
             val uniqueName = runManager.suggestUniqueName(project.name, configurationType)
             val settings = runManager.createConfiguration(uniqueName, configurationFactory)
-            val result = withUiContext {
+            val result = withContext(Dispatchers.EDT) {
                 RunDialog.editConfiguration(project, settings, "Create a Web App")
             }
             if (!result) return@launch

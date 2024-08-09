@@ -11,11 +11,13 @@ import org.jdom.Element;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 public interface ResourceDefinition<T> {
     int RESOURCE = 1;
     int CONSUMER = 2;
+    int IDENTITY = 4;
     int BOTH = RESOURCE | CONSUMER;
 
     /**
@@ -76,5 +78,20 @@ public interface ResourceDefinition<T> {
 
     default String getDefaultEnvPrefix() {
         return this.getName().toUpperCase().replaceAll("[^a-zA-Z0-9]", "_");
+    }
+
+    default List<AuthenticationType> getSupportedAuthenticationTypes() {
+        final List<AuthenticationType> result = new ArrayList<>();
+        if (this instanceof IManagedIdentitySupported) {
+            result.add(AuthenticationType.SYSTEM_ASSIGNED_MANAGED_IDENTITY);
+            result.add(AuthenticationType.USER_ASSIGNED_MANAGED_IDENTITY);
+        }
+        result.add(AuthenticationType.CONNECTION_STRING);
+        return result;
+    }
+
+    // as for some resource (storage account), supported authentication types may be different for different resource instance
+    default List<AuthenticationType> getSupportedAuthenticationTypes(@Nonnull Resource<?> resource) {
+        return getSupportedAuthenticationTypes();
     }
 }

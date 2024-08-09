@@ -31,6 +31,7 @@ dependencies {
     implementation(project(path = ":azure-intellij-plugin-appservice"))
     implementation(project(path = ":azure-intellij-resource-connector-lib"))
     implementation(project(path = ":azure-intellij-plugin-resharper-host"))
+    implementation(project(path = ":azure-intellij-plugin-storage-dotnet"))
     implementation(libs.azureToolkitAppserviceLib)
     implementation(libs.azureToolkitIdeAppserviceLib)
     implementation(libs.azureToolkitIdeContainerregistryLib)
