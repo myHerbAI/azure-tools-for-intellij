@@ -119,7 +119,7 @@ class WebAppDeploymentState(
         DotNetRuntimeConfig().apply {
             os(os)
             isDocker = false
-            val stackAndVersion = publishableProject.getStackAndVersion(project, os)
+            val stackAndVersion = publishableProject.getStackAndVersion(project, os, false)
             stack = stackAndVersion?.first
             frameworkVersion = stackAndVersion?.second
         }

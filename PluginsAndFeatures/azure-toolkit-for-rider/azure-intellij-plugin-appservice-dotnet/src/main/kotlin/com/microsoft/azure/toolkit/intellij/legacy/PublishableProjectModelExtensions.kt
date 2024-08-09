@@ -25,16 +25,18 @@ private val netFxAppVersionRegex = Regex("\\.NETFramework,Version=v([0-9](?:\\.[
 
 fun PublishableProjectModel.getStackAndVersion(
     project: Project,
-    operatingSystem: OperatingSystem
+    operatingSystem: OperatingSystem,
+    isFunction: Boolean
 ): Pair<RuntimeStack?, NetFrameworkVersion?>? {
     if (operatingSystem == OperatingSystem.DOCKER) return null
 
     if (isDotNetCore) {
         val dotnetVersion = getProjectDotNetVersion(project, this)
         if (operatingSystem == OperatingSystem.LINUX) {
+            val stackName = if (isFunction) "DOTNET" else "DOTNETCORE"
             val stack =
-                if (dotnetVersion != null) RuntimeStack("DOTNET", dotnetVersion)
-                else RuntimeStack("DOTNET", "8.0")
+                if (dotnetVersion != null) RuntimeStack(stackName, dotnetVersion)
+                else RuntimeStack(stackName, "8.0")
 
             return stack to null
         } else {
