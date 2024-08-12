@@ -81,7 +81,7 @@ open class AppServiceInfoAdvancedPanel<T>(
     private lateinit var dockerRadioButton: Cell<JBRadioButton>
 
     init {
-        operatingSystem = OperatingSystem.LINUX
+        operatingSystem = OperatingSystem.WINDOWS
 
         Disposer.register(this, textName)
 
@@ -103,8 +103,8 @@ open class AppServiceInfoAdvancedPanel<T>(
                 }
                 operatingSystemGroup = buttonsGroup {
                     row("Operating System:") {
-                        linuxRadioButton = radioButton("Linux", OperatingSystem.LINUX)
                         windowsRadioButton = radioButton("Windows", OperatingSystem.WINDOWS)
+                        linuxRadioButton = radioButton("Linux", OperatingSystem.LINUX)
                         windowsRadioButton.component.addItemListener { onOperatingSystemChanged(it) }
                         dockerRadioButton = radioButton("Docker", OperatingSystem.DOCKER)
                             .visible(false)
