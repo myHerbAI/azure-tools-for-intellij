@@ -27,7 +27,7 @@ class FunctionAppConfigProducer {
         val rgName = group?.name ?: "rg-$appName"
         val result = FunctionAppConfig.buildDefaultFunctionConfig(rgName, appName)
         result.appSettings = mutableMapOf()
-        result.runtime = RuntimeConfig().apply { os = OperatingSystem.LINUX }
+        result.runtime = RuntimeConfig().apply { os = OperatingSystem.WINDOWS }
         subscription?.let { result.subscriptionId = it.id }
         group?.let { result.region = it.region }
 

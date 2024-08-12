@@ -29,7 +29,7 @@ class WebAppConfigProducer {
         val result = AppServiceConfig.buildDefaultWebAppConfig(rgName, appName, "zip")
         result.appSettings = mutableMapOf()
         result.pricingTier = PricingTier.FREE_F1
-        result.runtime = RuntimeConfig().apply { os = OperatingSystem.LINUX }
+        result.runtime = RuntimeConfig().apply { os = OperatingSystem.WINDOWS }
         subscription?.let { result.subscriptionId = it.id }
         group?.let { result.region = it.region }
 

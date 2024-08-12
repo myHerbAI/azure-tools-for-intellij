@@ -179,7 +179,9 @@ class CreateOrUpdateDotNetFunctionAppTask(
 
                         //Enables your function app to run from a package file, which can be locally mounted or deployed to an external URL.
                         //see: https://learn.microsoft.com/en-us/azure/azure-functions/run-functions-from-deployment-package
-                        if (config.runtime.os == OperatingSystem.WINDOWS) {
+                        if (config.runtime.os == OperatingSystem.WINDOWS ||
+                            (config.runtime.os == OperatingSystem.LINUX && config.pricingTier != PricingTier.CONSUMPTION)
+                        ) {
                             put(WEBSITE_RUN_FROM_PACKAGE, "1")
                         }
 

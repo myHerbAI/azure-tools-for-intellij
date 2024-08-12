@@ -37,6 +37,7 @@ import javax.swing.JPanel
 
 open class AppServiceInfoAdvancedPanel<T>(
     private val projectName: String,
+    targetProjectOnNetFramework: Boolean = false,
     private val defaultConfigSupplier: Supplier<T>
 ) : JPanel(), Disposable, AzureFormPanel<T> where T : AppServiceConfig {
     companion object {
@@ -81,7 +82,7 @@ open class AppServiceInfoAdvancedPanel<T>(
     private lateinit var dockerRadioButton: Cell<JBRadioButton>
 
     init {
-        operatingSystem = OperatingSystem.LINUX
+        operatingSystem = OperatingSystem.WINDOWS
 
         Disposer.register(this, textName)
 
@@ -103,9 +104,10 @@ open class AppServiceInfoAdvancedPanel<T>(
                 }
                 operatingSystemGroup = buttonsGroup {
                     row("Operating System:") {
-                        linuxRadioButton = radioButton("Linux", OperatingSystem.LINUX)
                         windowsRadioButton = radioButton("Windows", OperatingSystem.WINDOWS)
                         windowsRadioButton.component.addItemListener { onOperatingSystemChanged(it) }
+                        linuxRadioButton = radioButton("Linux", OperatingSystem.LINUX)
+                            .enabled(!targetProjectOnNetFramework)
                         dockerRadioButton = radioButton("Docker", OperatingSystem.DOCKER)
                             .visible(false)
                     }

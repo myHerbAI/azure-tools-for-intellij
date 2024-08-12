@@ -12,6 +12,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.*
+import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
@@ -70,14 +71,22 @@ class WebAppSettingEditor(private val project: Project) : SettingsEditor<WebAppC
             }
         }
 
-        dotnetProjectComboBox.component.reloadItems()
-
+        dotnetProjectComboBox.component.apply {
+            reloadItems()
+            addValueChangedListener(::onSelectProject)
+        }
         webAppComboBox.component.apply {
             addValueChangedListener(::onSelectWebApp)
         }
         deployToSlotCheckBox.component.apply {
             addItemListener(::onSlotCheckBoxChanged)
         }
+    }
+
+    private fun onSelectProject(value: PublishableProjectModel) {
+        if (isLoading) return
+
+        webAppComboBox.component.targetProjectOnNetFramework = !value.isDotNetCore
     }
 
     private fun onSelectWebApp(value: AppServiceConfig?) {

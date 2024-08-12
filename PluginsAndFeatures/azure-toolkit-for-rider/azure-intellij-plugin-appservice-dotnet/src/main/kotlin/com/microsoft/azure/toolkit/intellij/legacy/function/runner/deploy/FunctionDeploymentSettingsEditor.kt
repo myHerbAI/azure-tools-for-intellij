@@ -11,6 +11,7 @@ import com.intellij.openapi.ui.LabeledComponent
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.*
+import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.publishing.PublishRuntimeSettingsCoreHelper
@@ -70,14 +71,23 @@ class FunctionDeploymentSettingsEditor(private val project: Project) :
             }
         }
 
-        dotnetProjectComboBox.component.reloadItems()
-
+        dotnetProjectComboBox.component.apply {
+            reloadItems()
+            addValueChangedListener(::onSelectProject)
+        }
         functionAppComboBox.component.apply {
             addValueChangedListener(::onSelectFunctionApp)
         }
         deployToSlotCheckBox.component.apply {
             addItemListener(::onSlotCheckBoxChanged)
         }
+    }
+
+    private fun onSelectProject(value: PublishableProjectModel) {
+        if (isLoading) return
+
+        val onNetFramework = !value.isDotNetCore || value.projectOutputs.all { it.tfmInMsbuildFormat == "net48" }
+        functionAppComboBox.component.targetProjectOnNetFramework = onNetFramework
     }
 
     private fun onSelectFunctionApp(value: FunctionAppConfig?) {
