@@ -23,6 +23,7 @@ import java.util.function.Supplier
 import javax.swing.JPanel
 
 class AppServiceInfoBasicPanel<T>(
+    targetProjectOnNetFramework: Boolean = false,
     private val defaultConfigSupplier: Supplier<T>
 ) : JPanel(), Disposable, AzureFormPanel<T> where T : AppServiceConfig {
 
@@ -54,6 +55,7 @@ class AppServiceInfoBasicPanel<T>(
                     row("Operating System:") {
                         windowsRadioButton = radioButton("Windows", OperatingSystem.WINDOWS)
                         linuxRadioButton = radioButton("Linux", OperatingSystem.LINUX)
+                            .enabled(!targetProjectOnNetFramework)
                         dockerRadioButton = radioButton("Docker", OperatingSystem.DOCKER)
                             .visible(false)
                     }

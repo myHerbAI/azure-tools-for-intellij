@@ -21,6 +21,8 @@ import java.util.function.Supplier
 import java.util.stream.Collectors
 
 open class WebAppComboBox(project: Project) : AppServiceComboBox<AppServiceConfig>(project) {
+    var targetProjectOnNetFramework: Boolean = false
+
     override fun refreshItems() {
         Azure.az(AzureWebApp::class.java).refresh()
         super.refreshItems()
@@ -68,7 +70,7 @@ open class WebAppComboBox(project: Project) : AppServiceComboBox<AppServiceConfi
     }
 
     override fun createResource() {
-        val dialog = WebAppCreationDialog(project)
+        val dialog = WebAppCreationDialog(project, targetProjectOnNetFramework)
         Disposer.register(this, dialog)
         val actionId: Action.Id<AppServiceConfig> = Action.Id.of("user/webapp.create_app.app")
         dialog.setOkAction(

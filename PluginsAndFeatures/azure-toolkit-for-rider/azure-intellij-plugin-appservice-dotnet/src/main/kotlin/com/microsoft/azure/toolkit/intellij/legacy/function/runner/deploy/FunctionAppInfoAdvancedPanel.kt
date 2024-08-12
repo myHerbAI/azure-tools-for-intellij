@@ -19,8 +19,9 @@ import java.util.function.Supplier
 
 class FunctionAppInfoAdvancedPanel(
     projectName: String,
+    targetProjectOnNetFramework: Boolean,
     defaultConfigSupplier: Supplier<FunctionAppConfig>
-) : AppServiceInfoAdvancedPanel<FunctionAppConfig>(projectName, defaultConfigSupplier) {
+) : AppServiceInfoAdvancedPanel<FunctionAppConfig>(projectName, targetProjectOnNetFramework, defaultConfigSupplier) {
 
     private lateinit var storageAccountComboBox: Cell<StorageAccountComboBox>
 

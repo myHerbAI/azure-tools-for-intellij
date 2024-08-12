@@ -22,6 +22,8 @@ import java.util.function.Supplier
 import java.util.stream.Collectors
 
 class FunctionAppComboBox(project: Project) : AppServiceComboBox<FunctionAppConfig>(project) {
+    var targetProjectOnNetFramework: Boolean = false
+
     override fun refreshItems() {
         Azure.az(AzureFunctions::class.java).refresh()
         super.refreshItems()
@@ -69,7 +71,7 @@ class FunctionAppComboBox(project: Project) : AppServiceComboBox<FunctionAppConf
     }
 
     override fun createResource() {
-        val dialog = FunctionAppCreationDialog(project)
+        val dialog = FunctionAppCreationDialog(project, targetProjectOnNetFramework)
         Disposer.register(this, dialog)
         dialog.data = FunctionAppConfigProducer.getInstance().generateDefaultConfig()
         val actionId: Action.Id<FunctionAppConfig> = Action.Id.of("user/function.create_app.app")

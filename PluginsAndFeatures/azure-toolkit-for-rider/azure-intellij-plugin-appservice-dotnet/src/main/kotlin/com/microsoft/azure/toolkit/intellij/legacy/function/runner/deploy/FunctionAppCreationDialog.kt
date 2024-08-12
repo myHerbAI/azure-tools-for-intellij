@@ -20,7 +20,10 @@ import com.microsoft.azure.toolkit.lib.auth.IAccountActions
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException
 import javax.swing.JPanel
 
-class FunctionAppCreationDialog(project: Project) : ConfigDialog<FunctionAppConfig>(project), Disposable {
+class FunctionAppCreationDialog(
+    project: Project,
+    targetProjectOnNetFramework: Boolean
+) : ConfigDialog<FunctionAppConfig>(project), Disposable {
     private val basicPanel: AppServiceInfoBasicPanel<FunctionAppConfig>
     private val advancedPanel: FunctionAppInfoAdvancedPanel
     private val panel: JPanel
@@ -36,12 +39,12 @@ class FunctionAppCreationDialog(project: Project) : ConfigDialog<FunctionAppConf
         }
 
         val projectName = removeInvalidCharacters(project.name)
-        basicPanel = AppServiceInfoBasicPanel {
+        basicPanel = AppServiceInfoBasicPanel(targetProjectOnNetFramework) {
             FunctionAppConfigProducer.getInstance().generateDefaultConfig()
         }
         Disposer.register(this, basicPanel)
 
-        advancedPanel = FunctionAppInfoAdvancedPanel(projectName) {
+        advancedPanel = FunctionAppInfoAdvancedPanel(projectName, targetProjectOnNetFramework) {
             FunctionAppConfig()
         }
         Disposer.register(this, advancedPanel)
