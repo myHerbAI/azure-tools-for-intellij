@@ -85,7 +85,7 @@ class FunctionRunConfigurationProducer : LazyRunConfigurationProducer<FunctionRu
             trackUrl = true
             startBrowserParameters.apply {
                 url = getApplicationUrl(launchProfile?.content, projectOutput, null)
-                startAfterLaunch = launchProfile?.content?.launchBrowser ?: false
+                startAfterLaunch = launchProfile?.content?.launchBrowser == true
             }
         }
 
