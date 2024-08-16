@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Option to disable authentication cache
+
 ## [4.0.1] - 2024-08-16
 
 ### Changed
