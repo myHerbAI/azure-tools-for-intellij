@@ -106,40 +106,32 @@ class FunctionRunExecutorFactory(
         val projectOutput = runnableProject
             .projectOutputs
             .singleOrNull { it.tfm?.presentableName == parameters.projectTfm }
-        if (projectOutput == null) {
-            LOG.warn("Unable to get the project output for ${parameters.projectTfm}")
-            return null
-        }
 
         val launchProfile = FunctionLaunchProfilesService
             .getInstance(project)
             .getLaunchProfileByName(runnableProject, parameters.profileName)
-        if (launchProfile == null) {
-            LOG.warn("Unable to get the launch profile with name ${parameters.profileName}")
-            return null
-        }
 
         val effectiveArguments =
-            if (parameters.trackArguments) getArguments(launchProfile.content, projectOutput)
+            if (parameters.trackArguments) getArguments(launchProfile?.content, projectOutput)
             else parameters.arguments
 
         val effectiveWorkingDirectory =
-            if (parameters.trackWorkingDirectory) getWorkingDirectory(launchProfile.content, projectOutput)
+            if (parameters.trackWorkingDirectory) getWorkingDirectory(launchProfile?.content, projectOutput)
             else parameters.workingDirectory
 
         val effectiveEnvs =
-            if (parameters.trackEnvs) getEnvironmentVariables(launchProfile.content)
+            if (parameters.trackEnvs) getEnvironmentVariables(launchProfile?.content)
             else parameters.envs
 
         val effectiveUrl =
-            if (parameters.trackUrl) getApplicationUrl(launchProfile.content, projectOutput, functionLocalSettings)
+            if (parameters.trackUrl) getApplicationUrl(launchProfile?.content, projectOutput, functionLocalSettings)
             else parameters.startBrowserParameters.url
 
         val coreToolsExecutablePath = coreToolsInfo.coreToolsExecutable.absolutePathString()
 
         return DotNetExecutable(
             coreToolsExecutablePath,
-            projectOutput.tfm,
+            projectOutput?.tfm,
             effectiveWorkingDirectory,
             effectiveArguments,
             false,
