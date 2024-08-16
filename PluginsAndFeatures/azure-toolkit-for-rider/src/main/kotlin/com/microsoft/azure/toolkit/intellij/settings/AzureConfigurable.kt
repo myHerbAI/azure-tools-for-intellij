@@ -14,6 +14,7 @@ import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.bindItem
+import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
 import com.microsoft.azure.toolkit.ide.common.auth.IdeAzureAccount
@@ -32,45 +33,57 @@ class AzureConfigurable : BoundConfigurable("Azure") {
     private lateinit var environmentComboBox: Cell<ComboBox<AzureEnvironment>>
 
     override fun createPanel() = panel {
-        row("Azure Environment:") {
-            val environments = Azure.az(AzureCloud::class.java).list() ?: emptyList()
-            environmentComboBox = comboBox(environments, object : SimpleListCellRenderer<AzureEnvironment>() {
-                override fun customize(
-                    list: JList<out AzureEnvironment?>,
-                    value: AzureEnvironment?,
-                    index: Int,
-                    selected: Boolean,
-                    hasFocus: Boolean
-                ) {
-                    if (value != null) {
-                        val name = AzureEnvironmentUtils.getCloudName(value).removeSuffix("Cloud")
-                        val adEndpoint = value.activeDirectoryEndpoint
-                        text = "$name - $adEndpoint"
-                    } else {
-                        text = "None"
+        group("General") {
+            row("Azure Environment:") {
+                val environments = Azure.az(AzureCloud::class.java).list() ?: emptyList()
+                environmentComboBox = comboBox(environments, object : SimpleListCellRenderer<AzureEnvironment>() {
+                    override fun customize(
+                        list: JList<out AzureEnvironment?>,
+                        value: AzureEnvironment?,
+                        index: Int,
+                        selected: Boolean,
+                        hasFocus: Boolean
+                    ) {
+                        if (value != null) {
+                            val name = AzureEnvironmentUtils.getCloudName(value).removeSuffix("Cloud")
+                            val adEndpoint = value.activeDirectoryEndpoint
+                            text = "$name - $adEndpoint"
+                        } else {
+                            text = "None"
+                        }
                     }
-                }
-            })
-                .align(Align.FILL)
-                .bindItem({
-                    AzureEnvironmentUtils.stringToAzureEnvironment(config.cloud) ?: AzureEnvironment.AZURE
-                }, {
-                    config.cloud = AzureEnvironmentUtils.azureEnvironmentToString(it ?: AzureEnvironment.AZURE)
                 })
+                    .align(Align.FILL)
+                    .bindItem({
+                        AzureEnvironmentUtils.stringToAzureEnvironment(config.cloud) ?: AzureEnvironment.AZURE
+                    }, {
+                        config.cloud = AzureEnvironmentUtils.azureEnvironmentToString(it ?: AzureEnvironment.AZURE)
+                    })
+            }
+            row("Azure CLI path:") {
+                textFieldWithBrowseButton(
+                    "Browse For Azure CLI",
+                    null,
+                    FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
+                )
+                    .align(Align.FILL)
+                    .validationOnInput { validateAzureCliPath(it) }
+                    .bindText({
+                        config.azureCliPath ?: ""
+                    }, {
+                        config.azureCliPath = it
+                    })
+            }
         }
-        row("Azure CLI path:") {
-            textFieldWithBrowseButton(
-                "Browse For Azure CLI",
-                null,
-                FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
-            )
-                .align(Align.FILL)
-                .validationOnInput { validateAzureCliPath(it) }
-                .bindText({
-                    config.azureCliPath ?: ""
-                }, {
-                    config.azureCliPath = it
-                })
+        group("Other") {
+            row {
+                checkBox("Enable authentication cache")
+                    .bindSelected({
+                        config.isAuthPersistenceEnabled
+                    }, {
+                        config.isAuthPersistenceEnabled = it
+                    })
+            }
         }
     }
 
