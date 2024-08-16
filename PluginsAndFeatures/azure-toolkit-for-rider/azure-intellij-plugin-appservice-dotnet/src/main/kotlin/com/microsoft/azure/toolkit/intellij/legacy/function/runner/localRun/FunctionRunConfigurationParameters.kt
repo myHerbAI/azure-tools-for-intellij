@@ -73,9 +73,6 @@ class FunctionRunConfigurationParameters(
         val project = runnableProjects.singleOrNull {
             it.projectFilePath == projectFilePath && it.kind == AzureRunnableProjectKinds.AzureFunctions
         } ?: throw RuntimeConfigurationError(DotNetProjectConfigurationParameters.PROJECT_NOT_SPECIFIED)
-        if (profileName.isEmpty()) {
-            throw RuntimeConfigurationError(RiderRunBundle.message("launch.profile.is.not.specified"))
-        }
         if (!trackWorkingDirectory) {
             val workingDirectoryFile = File(workingDirectory)
             if (!workingDirectoryFile.exists() || !workingDirectoryFile.isDirectory)
