@@ -95,10 +95,10 @@ class FunctionRunConfigurationViewModel(
         reloadLaunchProfileSelector(runnableProject)
         readLocalSettingsForProject(runnableProject)
 
-        val projectOutput = getSelectedProjectOutput() ?: return
-        val launchProfile = launchProfileSelector.profile.valueOrNull ?: return
+        val projectOutput = getSelectedProjectOutput()
+        val launchProfile = launchProfileSelector.profile.valueOrNull
 
-        recalculateFields(projectOutput, launchProfile.content)
+        recalculateFields(projectOutput, launchProfile?.content)
     }
 
     private fun reloadTfmSelector(runnableProject: RunnableProject) {
@@ -132,22 +132,22 @@ class FunctionRunConfigurationViewModel(
     private fun handleChangeTfmSelection() {
         if (!isLoaded) return
 
-        val projectOutput = getSelectedProjectOutput() ?: return
-        val launchProfile = launchProfileSelector.profile.valueOrNull ?: return
+        val projectOutput = getSelectedProjectOutput()
+        val launchProfile = launchProfileSelector.profile.valueOrNull
 
-        recalculateFields(projectOutput, launchProfile.content)
+        recalculateFields(projectOutput, launchProfile?.content)
     }
 
     private fun handleProfileSelection() {
         if (!isLoaded) return
 
-        val projectOutput = getSelectedProjectOutput() ?: return
-        val launchProfile = launchProfileSelector.profile.valueOrNull ?: return
+        val projectOutput = getSelectedProjectOutput()
+        val launchProfile = launchProfileSelector.profile.valueOrNull
 
-        recalculateFields(projectOutput, launchProfile.content)
+        recalculateFields(projectOutput, launchProfile?.content)
     }
 
-    private fun recalculateFields(projectOutput: ProjectOutput, profile: LaunchSettingsJson.Profile) {
+    private fun recalculateFields(projectOutput: ProjectOutput?, profile: LaunchSettingsJson.Profile?) {
         if (trackWorkingDirectory) {
             val workingDirectory = getWorkingDirectory(profile, projectOutput)
             workingDirectorySelector.path.set(workingDirectory)
@@ -166,7 +166,7 @@ class FunctionRunConfigurationViewModel(
             val applicationUrl = getApplicationUrl(profile, projectOutput, functionLocalSettings)
             urlEditor.text.value = applicationUrl
             urlEditor.defaultValue.value = applicationUrl
-            dotNetBrowserSettingsEditor.settings.value = BrowserSettings(profile.launchBrowser, false, null)
+            dotNetBrowserSettingsEditor.settings.value = BrowserSettings(profile?.launchBrowser == true, false, null)
         }
     }
 
@@ -175,12 +175,8 @@ class FunctionRunConfigurationViewModel(
 
         val projectOutput = getSelectedProjectOutput()
         val launchProfile = launchProfileSelector.profile.valueOrNull
-        if (projectOutput == null || launchProfile == null) {
-            trackArguments = false
-            return
-        }
 
-        val arguments = getArguments(launchProfile.content, projectOutput)
+        val arguments = getArguments(launchProfile?.content, projectOutput)
         trackArguments = arguments == programParametersEditor.parametersString.value
     }
 
@@ -189,12 +185,8 @@ class FunctionRunConfigurationViewModel(
 
         val projectOutput = getSelectedProjectOutput()
         val launchProfile = launchProfileSelector.profile.valueOrNull
-        if (projectOutput == null || launchProfile == null) {
-            trackWorkingDirectory = false
-            return
-        }
 
-        val workingDirectory = getWorkingDirectory(launchProfile.content, projectOutput)
+        val workingDirectory = getWorkingDirectory(launchProfile?.content, projectOutput)
         trackWorkingDirectory = workingDirectory == workingDirectorySelector.path.value
     }
 
@@ -202,12 +194,8 @@ class FunctionRunConfigurationViewModel(
         if (!isLoaded) return
 
         val launchProfile = launchProfileSelector.profile.valueOrNull
-        if (launchProfile == null) {
-            trackEnvs = false
-            return
-        }
 
-        val envs = getEnvironmentVariables(launchProfile.content).toSortedMap()
+        val envs = getEnvironmentVariables(launchProfile?.content).toSortedMap()
         val editorEnvs = environmentVariablesEditor.envs.value.toSortedMap()
         trackEnvs = envs == editorEnvs
     }
@@ -217,12 +205,8 @@ class FunctionRunConfigurationViewModel(
 
         val projectOutput = getSelectedProjectOutput()
         val launchProfile = launchProfileSelector.profile.valueOrNull
-        if (projectOutput == null || launchProfile == null) {
-            trackUrl = false
-            return
-        }
 
-        val applicationUrl = getApplicationUrl(launchProfile.content, projectOutput, functionLocalSettings)
+        val applicationUrl = getApplicationUrl(launchProfile?.content, projectOutput, functionLocalSettings)
         trackUrl = urlEditor.text.value == applicationUrl
     }
 
@@ -367,32 +351,30 @@ class FunctionRunConfigurationViewModel(
             launchProfileSelector.profile.set(fakeLaunchProfile)
         }
 
-        if (selectedTfm != null && selectedProfile != null) {
-            val selectedOutput = getSelectedProjectOutput() ?: return
+        val selectedOutput = getSelectedProjectOutput() ?: return
 
-            val effectiveArguments =
-                if (trackArguments) getArguments(selectedProfile.content, selectedOutput)
-                else arguments
-            programParametersEditor.defaultValue.set(effectiveArguments)
-            programParametersEditor.parametersString.set(effectiveArguments)
+        val effectiveArguments =
+            if (trackArguments) getArguments(selectedProfile?.content, selectedOutput)
+            else arguments
+        programParametersEditor.defaultValue.set(effectiveArguments)
+        programParametersEditor.parametersString.set(effectiveArguments)
 
-            val effectiveWorkingDirectory =
-                if (trackWorkingDirectory) getWorkingDirectory(selectedProfile.content, selectedOutput)
-                else workingDirectory
-            workingDirectorySelector.defaultValue.set(effectiveWorkingDirectory)
-            workingDirectorySelector.path.set(effectiveWorkingDirectory)
+        val effectiveWorkingDirectory =
+            if (trackWorkingDirectory) getWorkingDirectory(selectedProfile?.content, selectedOutput)
+            else workingDirectory
+        workingDirectorySelector.defaultValue.set(effectiveWorkingDirectory)
+        workingDirectorySelector.path.set(effectiveWorkingDirectory)
 
-            val effectiveEnvs =
-                if (trackEnvs) getEnvironmentVariables(selectedProfile.content)
-                else envs
-            environmentVariablesEditor.envs.set(effectiveEnvs)
+        val effectiveEnvs =
+            if (trackEnvs) getEnvironmentVariables(selectedProfile?.content)
+            else envs
+        environmentVariablesEditor.envs.set(effectiveEnvs)
 
-            val effectiveUrl =
-                if (trackUrl) getApplicationUrl(selectedProfile.content, selectedOutput, functionLocalSettings)
-                else dotNetStartBrowserParameters.url
-            urlEditor.defaultValue.value = effectiveUrl
-            urlEditor.text.value = effectiveUrl
-        }
+        val effectiveUrl =
+            if (trackUrl) getApplicationUrl(selectedProfile?.content, selectedOutput, functionLocalSettings)
+            else dotNetStartBrowserParameters.url
+        urlEditor.defaultValue.value = effectiveUrl
+        urlEditor.text.value = effectiveUrl
     }
 
     private fun getSelectedProjectOutput(): ProjectOutput? {
