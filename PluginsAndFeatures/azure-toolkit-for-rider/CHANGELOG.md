@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Do not require `launchSettings.json` to run a Function project ([#881](https://github.com/JetBrains/azure-tools-for-intellij/issues/881))
+
 ## [4.0.0] - 2024-08-13
 
 ### Added
