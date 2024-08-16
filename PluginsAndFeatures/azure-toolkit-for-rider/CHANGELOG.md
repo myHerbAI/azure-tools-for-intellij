@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.0.1] - 2024-08-16
+
 ### Changed
 
 - Do not require `launchSettings.json` to run a Function project ([#881](https://github.com/JetBrains/azure-tools-for-intellij/issues/881))
@@ -97,20 +99,13 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0...HEAD
-
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.1...HEAD
+[4.0.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.7...v4.0.0
-
 [4.0.0-preview.7]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.6...v4.0.0-preview.7
-
 [4.0.0-preview.6]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.5...v4.0.0-preview.6
-
 [4.0.0-preview.5]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.4...v4.0.0-preview.5
-
 [4.0.0-preview.4]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.3...v4.0.0-preview.4
-
 [4.0.0-preview.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.2...v4.0.0-preview.3
-
 [4.0.0-preview.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.1...v4.0.0-preview.2
-
 [4.0.0-preview.1]: https://github.com/JetBrains/azure-tools-for-intellij/commits/v4.0.0-preview.1
