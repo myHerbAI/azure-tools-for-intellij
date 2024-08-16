@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.0.2] - 2024-08-16
+
 ### Added
 
 - Option to disable authentication cache
@@ -107,7 +109,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.1...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.2...HEAD
+[4.0.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.1...v4.0.2
 [4.0.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.7...v4.0.0
 [4.0.0-preview.7]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0-preview.6...v4.0.0-preview.7
