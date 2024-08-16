@@ -68,7 +68,7 @@ suspend fun PublishableProjectModel.getFunctionStack(
         .getInstance(project)
         .getFunctionLocalSettings(this)
     val workerRuntime = functionLocalSettings?.values?.workerRuntime ?: FunctionWorkerRuntime.DOTNET_ISOLATED
-    val coreToolsVersion = withContext(Dispatchers.EDT) {
+    val azureFunctionVersion = withContext(Dispatchers.EDT) {
         FunctionCoreToolsMsBuildService
             .getInstance()
             .requestAzureFunctionsVersion(project, this@getFunctionStack.projectFilePath)
@@ -78,9 +78,17 @@ suspend fun PublishableProjectModel.getFunctionStack(
     val dotnetVersion = getProjectDotNetVersion(project, this)
     return FunctionRuntimeStack(
         workerRuntime.value(),
-        "~$coreToolsVersion",
+        functionRuntimeVersionFromProjectProperty(azureFunctionVersion),
         if (operatingSystem == OperatingSystem.LINUX) "${workerRuntime.value()}|$dotnetVersion" else ""
     )
+}
+
+private fun functionRuntimeVersionFromProjectProperty(azureFunctionVersion: String) = when (azureFunctionVersion) {
+    "4" -> "~4"
+    "3" -> "~3"
+    "2" -> "~2"
+    "1" -> "~1"
+    else -> "~4"
 }
 
 private fun getProjectDotNetVersion(project: Project, publishableProject: PublishableProjectModel): String? {

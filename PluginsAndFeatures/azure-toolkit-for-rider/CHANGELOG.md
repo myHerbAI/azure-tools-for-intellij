@@ -8,6 +8,10 @@
 
 - Option to disable authentication cache
 
+### Fixed
+
+- Plugin uses `v4` func cli even if the value of the MSBuild property is `v0`
+
 ## [4.0.1] - 2024-08-16
 
 ### Changed

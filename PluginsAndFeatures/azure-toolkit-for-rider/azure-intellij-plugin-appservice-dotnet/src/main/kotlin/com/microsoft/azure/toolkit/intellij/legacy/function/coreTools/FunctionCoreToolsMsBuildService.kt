@@ -18,15 +18,9 @@ class FunctionCoreToolsMsBuildService {
         const val PROPERTY_AZURE_FUNCTIONS_VERSION = "AzureFunctionsVersion"
     }
 
-    suspend fun requestAzureFunctionsVersion(project: Project, projectFilePath: String): String? {
-        val functionVersion = project.solution.functionAppDaemonModel.getAzureFunctionsVersion
+    suspend fun requestAzureFunctionsVersion(project: Project, projectFilePath: String) =
+        project.solution
+            .functionAppDaemonModel
+            .getAzureFunctionsVersion
             .startSuspending(AzureFunctionsVersionRequest(projectFilePath))
-
-        //hack: sometimes we receive v0 even for v4 project
-        if (functionVersion == "v0") {
-            return "v4"
-        }
-
-        return functionVersion
-    }
 }
