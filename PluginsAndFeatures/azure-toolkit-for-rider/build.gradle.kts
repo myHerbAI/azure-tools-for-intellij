@@ -68,6 +68,7 @@ dependencies {
     implementation(project(path = ":azure-intellij-plugin-keyvault-dotnet"))
     implementation(project(path = ":azure-intellij-plugin-servicebus"))
     implementation(project(path = ":azure-intellij-plugin-eventhubs"))
+    implementation(project(path = ":azure-intellij-plugin-vm"))
 
     testImplementation(libs.opentest4j)
 

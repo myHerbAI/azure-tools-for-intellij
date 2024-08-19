@@ -7,6 +7,7 @@
 
 - Support for Azure Service Bus
 - Support for Azure Event Hub
+- Support for Azure VMs
 
 ## [4.0.2] - 2024-08-16
 
