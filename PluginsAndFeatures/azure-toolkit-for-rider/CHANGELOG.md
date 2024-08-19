@@ -3,6 +3,10 @@
 # Azure Toolkit for Rider Changelog
 
 ## [Unreleased]
+### Added
+
+- Support for Azure Service Bus
+- Support for Azure Event Hub
 
 ## [4.0.2] - 2024-08-16
 
