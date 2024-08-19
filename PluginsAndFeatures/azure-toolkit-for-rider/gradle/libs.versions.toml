@@ -53,6 +53,8 @@ azureToolkitIdeRedisLib = { group = "com.microsoft.azure", name = "azure-toolkit
 azureToolkitStorageLib = { group = "com.microsoft.azure", name = "azure-toolkit-storage-lib", version.ref = "azureToolkitLibs" }
 azureToolkitIdeStorageLib = { group = "com.microsoft.azure", name = "azure-toolkit-ide-storage-lib", version.ref = "azureToolkitLibs" }
 azureToolkitIdentityLib = { group = "com.microsoft.azure", name = "azure-toolkit-identity-lib", version.ref = "azureToolkitLibs" }
+azureToolkitIdeServiceBusLib = { group = "com.microsoft.azure", name = "azure-toolkit-ide-servicebus-lib", version.ref = "azureToolkitLibs" }
+azureToolkitIdeEventHubsLib = { group = "com.microsoft.azure", name = "azure-toolkit-ide-eventhubs-lib", version.ref = "azureToolkitLibs" }
 
 [plugins]
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
