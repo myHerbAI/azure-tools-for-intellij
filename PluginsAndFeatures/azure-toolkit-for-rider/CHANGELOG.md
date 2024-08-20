@@ -7,6 +7,7 @@
 
 - Support for Azure Service Bus
 - Support for Azure Event Hub
+- Support for Azure VMs
 
 ### Fixed
 
