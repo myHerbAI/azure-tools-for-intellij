@@ -8,6 +8,10 @@
 - Support for Azure Service Bus
 - Support for Azure Event Hub
 
+### Fixed
+
+- Resolve MSBuild properties in the Function run configuration
+
 ## [4.0.2] - 2024-08-16
 
 ### Added

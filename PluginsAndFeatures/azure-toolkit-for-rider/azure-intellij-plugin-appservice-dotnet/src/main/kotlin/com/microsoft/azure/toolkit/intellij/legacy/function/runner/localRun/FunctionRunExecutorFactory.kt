@@ -24,6 +24,9 @@ import com.jetbrains.rider.model.runnableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.AsyncExecutorFactory
 import com.jetbrains.rider.run.configurations.project.DotNetStartBrowserParameters
+import com.jetbrains.rider.run.environment.ExecutableParameterProcessor
+import com.jetbrains.rider.run.environment.ExecutableRunParameters
+import com.jetbrains.rider.run.environment.ProjectProcessOptions
 import com.jetbrains.rider.runtime.DotNetExecutable
 import com.jetbrains.rider.runtime.msNet.MsNetRuntime
 import com.microsoft.azure.toolkit.intellij.legacy.function.coreTools.FunctionCoreToolsInfo
@@ -35,6 +38,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.Functi
 import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.FunctionWorkerRuntime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 
@@ -88,7 +92,7 @@ class FunctionRunExecutorFactory(
         }
     }
 
-    private fun getDotNetExecutable(
+    private suspend fun getDotNetExecutable(
         coreToolsInfo: FunctionCoreToolsInfo,
         functionLocalSettings: FunctionLocalSettings?
     ): DotNetExecutable? {
@@ -102,6 +106,8 @@ class FunctionRunExecutorFactory(
             LOG.warn("Unable to get the runnable project with path ${parameters.projectFilePath}")
             return null
         }
+
+        val coreToolsExecutablePath = coreToolsInfo.coreToolsExecutable.absolutePathString()
 
         val projectOutput = runnableProject
             .projectOutputs
@@ -127,16 +133,32 @@ class FunctionRunExecutorFactory(
             if (parameters.trackUrl) getApplicationUrl(launchProfile?.content, projectOutput, functionLocalSettings)
             else parameters.startBrowserParameters.url
 
-        val coreToolsExecutablePath = coreToolsInfo.coreToolsExecutable.absolutePathString()
+        val projectProcessOptions = ProjectProcessOptions(
+            File(runnableProject.projectFilePath),
+            File(effectiveWorkingDirectory)
+        )
 
-        return DotNetExecutable(
+        val runParameters = ExecutableRunParameters(
             coreToolsExecutablePath,
-            projectOutput?.tfm,
             effectiveWorkingDirectory,
             effectiveArguments,
+            effectiveEnvs,
+            true,
+            projectOutput?.tfm
+        )
+
+        val executableParameters = ExecutableParameterProcessor
+            .getInstance(project)
+            .processEnvironment(runParameters, projectProcessOptions)
+
+        return DotNetExecutable(
+            executableParameters.executablePath ?: coreToolsExecutablePath,
+            executableParameters.tfm ?: projectOutput?.tfm,
+            executableParameters.workingDirectoryPath ?: effectiveWorkingDirectory,
+            executableParameters.commandLineArgumentString ?: effectiveArguments,
             false,
             parameters.useExternalConsole,
-            effectiveEnvs,
+            executableParameters.environmentVariables,
             true,
             getStartBrowserAction(effectiveUrl, parameters.startBrowserParameters),
             coreToolsExecutablePath,
