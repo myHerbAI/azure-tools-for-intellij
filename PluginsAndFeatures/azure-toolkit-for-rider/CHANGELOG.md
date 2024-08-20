@@ -11,6 +11,7 @@
 ### Fixed
 
 - Resolve MSBuild properties in the Function run configuration
+- Function classes are shown as never instantiated ([#891](https://github.com/JetBrains/azure-tools-for-intellij/issues/891))
 
 ## [4.0.2] - 2024-08-16
 
