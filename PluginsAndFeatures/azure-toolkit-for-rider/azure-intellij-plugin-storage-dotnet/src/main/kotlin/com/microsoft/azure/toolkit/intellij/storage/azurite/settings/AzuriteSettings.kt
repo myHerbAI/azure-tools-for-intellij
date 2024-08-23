@@ -15,17 +15,16 @@ import java.nio.file.Path
 import kotlin.io.path.Path
 
 @State(
-    name = "com.microsoft.azure.toolkit.intellij.storage.azurite.settings.AzuriteSettings",
-    storages = [(Storage("AzureSettings.xml"))]
+    name = "com.microsoft.azure.toolkit.intellij.storage.azurite.settings.AzuriteSettings"
 )
-@Service
-class AzuriteSettings : SimplePersistentStateComponent<AzuriteSettingsState>(AzuriteSettingsState()) {
+@Service(Service.Level.PROJECT)
+class AzuriteSettings(private val project: Project) : SimplePersistentStateComponent<AzuriteSettingsState>(AzuriteSettingsState()) {
     companion object {
         private const val AZURE_TOOLS_FOLDER = ".AzureToolsForIntelliJ"
         private const val AZURITE_FOLDER = "azurite"
         private const val PROJECT_AZURITE_FOLDER = ".idea/azurite"
 
-        fun getInstance() = service<AzuriteSettings>()
+        fun getInstance(project: Project) = project.service<AzuriteSettings>()
     }
 
     var executablePath
@@ -143,7 +142,7 @@ class AzuriteSettings : SimplePersistentStateComponent<AzuriteSettingsState>(Azu
         return Path(path)
     }
 
-    fun getAzuriteWorkspacePath(project: Project): Path = when (locationMode) {
+    fun getAzuriteWorkspacePath(): Path = when (locationMode) {
         AzuriteLocationMode.Managed -> {
             val workspacePath = Path.of(System.getProperty("user.home"))
                 .resolve(AZURE_TOOLS_FOLDER)

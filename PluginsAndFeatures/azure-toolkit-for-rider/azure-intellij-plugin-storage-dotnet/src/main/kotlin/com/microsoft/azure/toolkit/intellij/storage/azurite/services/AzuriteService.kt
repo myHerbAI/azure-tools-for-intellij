@@ -72,7 +72,7 @@ class AzuriteService(private val scope: CoroutineScope) : LifetimedService() {
 
         LOG.info("Starting Azurite executable...")
 
-        val settings = AzuriteSettings.getInstance()
+        val settings = AzuriteSettings.getInstance(project)
         val azuritePath = settings.getAzuriteExecutablePath()
         if (azuritePath == null || !azuritePath.exists()) {
             Notification(
@@ -86,7 +86,7 @@ class AzuriteService(private val scope: CoroutineScope) : LifetimedService() {
             return
         }
 
-        val workspacePath = settings.getAzuriteWorkspacePath(project)
+        val workspacePath = settings.getAzuriteWorkspacePath()
         if (!workspacePath.exists()) {
             Notification(
                 "Azure AppServices",
@@ -120,7 +120,7 @@ class AzuriteService(private val scope: CoroutineScope) : LifetimedService() {
 
                 ensureActive()
 
-                val commandLine = createCommandLine(azuritePath, workspacePath, includeTableStorageParameters)
+                val commandLine = createCommandLine(azuritePath, workspacePath, includeTableStorageParameters, project)
 
                 ensureActive()
 
@@ -155,9 +155,10 @@ class AzuriteService(private val scope: CoroutineScope) : LifetimedService() {
     private fun createCommandLine(
         azuritePath: Path,
         workspacePath: Path,
-        includeTableStorageParameters: Boolean
+        includeTableStorageParameters: Boolean,
+        project: Project
     ): GeneralCommandLine {
-        val settings = AzuriteSettings.getInstance()
+        val settings = AzuriteSettings.getInstance(project)
 
         val commandLine = GeneralCommandLine(
             azuritePath.absolutePathString(),
@@ -268,8 +269,8 @@ class AzuriteService(private val scope: CoroutineScope) : LifetimedService() {
     fun clean(project: Project) {
         if (isRunning) stop()
 
-        val settings = AzuriteSettings.getInstance()
-        val workspacePath = settings.getAzuriteWorkspacePath(project)
+        val settings = AzuriteSettings.getInstance(project)
+        val workspacePath = settings.getAzuriteWorkspacePath()
         if (!workspacePath.exists()) {
             Notification(
                 "Azure AppServices",

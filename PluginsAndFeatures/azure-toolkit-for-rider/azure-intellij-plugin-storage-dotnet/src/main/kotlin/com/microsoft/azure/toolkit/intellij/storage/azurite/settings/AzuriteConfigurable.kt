@@ -30,7 +30,7 @@ class AzuriteConfigurable(private val project: Project) : BoundConfigurable("Azu
 
     private val ipAddressRegex = Regex(IP_ADDRESS_PATTERN)
 
-    private val settings get() = AzuriteSettings.getInstance()
+    private val settings get() = AzuriteSettings.getInstance(project)
 
     private lateinit var workspaceComboBox: Cell<ComboBox<AzuriteLocationMode>>
     private lateinit var basicOAuthCheckBox: Cell<JBCheckBox>
@@ -182,7 +182,7 @@ class AzuriteConfigurable(private val project: Project) : BoundConfigurable("Azu
             config.azuritePath = settingsAzuriteExecutable
         }
 
-        val settingsAzuriteWorkspace = settings.getAzuriteWorkspacePath(project).absolutePathString()
+        val settingsAzuriteWorkspace = settings.getAzuriteWorkspacePath().absolutePathString()
         if (settingsAzuriteWorkspace != config.azuriteWorkspace) {
             config.azuriteWorkspace = settingsAzuriteWorkspace
         }
