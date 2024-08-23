@@ -38,13 +38,13 @@ class AzuriteBeforeRunTaskProvider : BeforeRunTaskProvider<AzuriteBeforeRunTask>
         val task = AzuriteBeforeRunTask()
 
         val project = runConfiguration.project
-        val settings = AzuriteSettings.getInstance()
+        val settings = AzuriteSettings.getInstance(project)
         val azuritePath = settings.getAzuriteExecutablePath()
         if (azuritePath == null || !azuritePath.exists()) {
             task.isEnabled = false
             return task
         }
-        val workspacePath = settings.getAzuriteWorkspacePath(project)
+        val workspacePath = settings.getAzuriteWorkspacePath()
         if (!workspacePath.exists()) {
             task.isEnabled = false
             return task

@@ -13,7 +13,7 @@ import com.microsoft.azure.toolkit.intellij.storage.azurite.settings.AzuriteSett
 
 class AzuriteServiceViewContributor : ServiceViewContributor<AzuriteSession> {
     override fun getServices(project: Project): MutableList<AzuriteSession> {
-        val settings = AzuriteSettings.getInstance()
+        val settings = AzuriteSettings.getInstance(project)
         if (!settings.showAzuriteService) return mutableListOf()
 
         return mutableListOf(AzuriteService.getInstance().session)
