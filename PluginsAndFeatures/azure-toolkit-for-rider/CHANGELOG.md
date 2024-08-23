@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Azurite configuration is reset with each plugin major update ([#895](https://github.com/JetBrains/azure-tools-for-intellij/issues/895))
+
 ## [4.1.0] - 2024-08-21
 
 ### Added
