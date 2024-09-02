@@ -40,6 +40,7 @@ class DeployDotNetWebAppTask(
 
                 val deployOptions = DeployOptions
                     .builder()
+                    .cleanDeployment(false)
                     .restartSite(true)
                     .build()
                 target.deploy(artifact.deployType, artifact.file, deployOptions)

@@ -14,6 +14,7 @@
     <file type="web" url="file://$PROJECT_DIR$/../azure-toolkit-for-intellij/azure-intellij-plugin-service-explorer" />
     <file type="web" url="file://$PROJECT_DIR$/../azure-toolkit-for-intellij/azure-intellij-plugin-servicebus" />
     <file type="web" url="file://$PROJECT_DIR$/../azure-toolkit-for-intellij/azure-intellij-plugin-storage" />
+    <file type="web" url="file://$PROJECT_DIR$/../azure-toolkit-for-intellij/azure-intellij-plugin-vm" />
     <file type="web" url="file://$PROJECT_DIR$/../azure-toolkit-for-intellij/azure-intellij-resource-connector-lib" />
     <file type="web" url="file://$PROJECT_DIR$" />
   </component>
