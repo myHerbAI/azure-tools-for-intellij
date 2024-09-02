@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.1.1] - 2024-09-02
+
 ### Fixed
 
 - Azurite configuration is reset with each plugin major update ([#895](https://github.com/JetBrains/azure-tools-for-intellij/issues/895))
@@ -127,7 +129,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.0...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.1...HEAD
+[4.1.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.0...v4.1.1
 [4.1.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.2...v4.1.0
 [4.0.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.1...v4.0.2
 [4.0.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.0...v4.0.1
