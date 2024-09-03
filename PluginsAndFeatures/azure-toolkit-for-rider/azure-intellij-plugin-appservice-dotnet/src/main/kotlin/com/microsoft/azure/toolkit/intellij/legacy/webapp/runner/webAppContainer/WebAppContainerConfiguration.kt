@@ -19,6 +19,8 @@ import com.microsoft.azure.toolkit.intellij.legacy.utils.RESOURCE_GROUP_VALIDATI
 import com.microsoft.azure.toolkit.intellij.legacy.utils.isAccountSignedIn
 import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidApplicationName
 import com.microsoft.azure.toolkit.intellij.legacy.utils.isValidResourceGroupName
+import com.microsoft.azure.toolkit.lib.Azure
+import com.microsoft.azure.toolkit.lib.appservice.webapp.AzureWebApp
 
 class WebAppContainerConfiguration(private val project: Project, factory: ConfigurationFactory, name: String?) :
     LocatableConfigurationBase<WebAppContainerConfigurationOptions>(project, factory, name) {
@@ -48,18 +50,16 @@ class WebAppContainerConfiguration(private val project: Project, factory: Config
         val options = getState() ?: return
         with(options) {
             isAccountSignedIn()
+
             if (webAppName.isNullOrEmpty()) throw RuntimeConfigurationError("Web App name is not provided")
-            if (!isValidApplicationName(webAppName)) throw RuntimeConfigurationError(APPLICATION_VALIDATION_MESSAGE)
             if (subscriptionId.isNullOrEmpty()) throw RuntimeConfigurationError("Subscription is not provided")
             if (resourceGroupName.isNullOrEmpty()) throw RuntimeConfigurationError("Resource group is not provided")
-            if (!isValidResourceGroupName(resourceGroupName)) throw RuntimeConfigurationError(RESOURCE_GROUP_VALIDATION_MESSAGE)
             if (region.isNullOrEmpty()) throw RuntimeConfigurationError("Region is not provided")
             if (appServicePlanName.isNullOrEmpty()) throw RuntimeConfigurationError("App Service plan name is not provided")
-            if (!isValidApplicationName(appServicePlanName)) throw RuntimeConfigurationError("App Service plan names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
             if (appServicePlanResourceGroupName.isNullOrEmpty()) throw RuntimeConfigurationError("App Service plan resource group is not provided")
-            if (!isValidResourceGroupName(appServicePlanResourceGroupName)) throw RuntimeConfigurationError(RESOURCE_GROUP_VALIDATION_MESSAGE)
             if (pricingTier.isNullOrEmpty()) throw RuntimeConfigurationError("Pricing tier is not provided")
             if (pricingSize.isNullOrEmpty()) throw RuntimeConfigurationError("Pricing size is not provided")
+
             val repository = imageRepository
             if (repository.isNullOrEmpty()) throw RuntimeConfigurationError("Image repository is not provided")
             if (repository.length > 255) throw RuntimeConfigurationError("The length of image repository must be less than 256 characters")
@@ -72,6 +72,17 @@ class WebAppContainerConfiguration(private val project: Project, factory: Config
             if (repositoryParts.last().isEmpty()) throw RuntimeConfigurationError("Image name is not provided")
             repositoryParts.forEach {
                 if (!repoComponentRegex.matches(it)) throw RuntimeConfigurationError("Invalid repository component: $it, should follow: $REPO_COMPONENT_REGEX_PATTERN")
+            }
+
+            val webApp = Azure.az(AzureWebApp::class.java)
+                .webApps(requireNotNull(subscriptionId))
+                .get(requireNotNull(webAppName), requireNotNull(resourceGroupName))
+            if (webApp == null) {
+                //Validate names only for the new Web Apps
+                if (!isValidApplicationName(webAppName)) throw RuntimeConfigurationError(APPLICATION_VALIDATION_MESSAGE)
+                if (!isValidResourceGroupName(resourceGroupName)) throw RuntimeConfigurationError(RESOURCE_GROUP_VALIDATION_MESSAGE)
+                if (!isValidApplicationName(appServicePlanName)) throw RuntimeConfigurationError("App Service plan names only allow alphanumeric characters and hyphens, cannot start or end in a hyphen, and must be less than 60 chars")
+                if (!isValidResourceGroupName(appServicePlanResourceGroupName)) throw RuntimeConfigurationError(RESOURCE_GROUP_VALIDATION_MESSAGE)
             }
         }
     }
