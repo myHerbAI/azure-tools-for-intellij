@@ -91,6 +91,18 @@ dependencies {
     }
 }
 
+configurations {
+    implementation { exclude(module = "slf4j-api") }
+    implementation { exclude(module = "log4j") }
+    implementation { exclude(module = "stax-api") }
+    implementation { exclude(module = "groovy-xml") }
+    implementation { exclude(module = "groovy-templates") }
+    implementation { exclude(module = "jna") }
+    implementation { exclude(module = "xpp3") }
+    implementation { exclude(module = "pull-parser") }
+    implementation { exclude(module = "xsdlib") }
+}
+
 // Configure IntelliJ Platform Gradle Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html
 intellijPlatform {
     pluginConfiguration {
