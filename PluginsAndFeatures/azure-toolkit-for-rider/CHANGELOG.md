@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Unable to sign in to Azure using OAuth 2.0: Unable to locate JNA native support library ([RIDER-116013](https://youtrack.jetbrains.com/issue/RIDER-116013), [#884](https://github.com/JetBrains/azure-tools-for-intellij/issues/884))
+
 ## [4.1.1] - 2024-09-02
 
 ### Fixed
