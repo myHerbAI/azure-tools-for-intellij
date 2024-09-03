@@ -75,20 +75,25 @@ dependencies {
     // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
         rider(platformVersion, false)
-
         jetbrainsRuntime()
-
-        // Plugin Dependencies. Uses `platformBundledPlugins` property from the gradle.properties file for bundled IntelliJ Platform plugins.
-        bundledPlugins(providers.gradleProperty("platformBundledPlugins").map { it.split(',') })
-
-        // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file for plugin from JetBrains Marketplace.
-        plugins(providers.gradleProperty("platformPlugins").map { it.split(',') })
-
+        bundledPlugins(listOf("com.jetbrains.restClient"))
         instrumentationTools()
         pluginVerifier()
         zipSigner()
         testFramework(TestFrameworkType.Bundled)
     }
+}
+
+configurations {
+    implementation { exclude(module = "slf4j-api") }
+    implementation { exclude(module = "log4j") }
+    implementation { exclude(module = "stax-api") }
+    implementation { exclude(module = "groovy-xml") }
+    implementation { exclude(module = "groovy-templates") }
+    implementation { exclude(module = "jna") }
+    implementation { exclude(module = "xpp3") }
+    implementation { exclude(module = "pull-parser") }
+    implementation { exclude(module = "xsdlib") }
 }
 
 // Configure IntelliJ Platform Gradle Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html

@@ -144,10 +144,7 @@ jobs:
 
       # Setup Gradle
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          build-root-directory: ${{ github.workspace }}/PluginsAndFeatures/azure-toolkit-for-rider
-          gradle-home-cache-cleanup: true
+        uses: gradle/actions/setup-gradle@v4
 
       # Setup .NET 8 environment
       - name: Setup .NET
@@ -237,10 +234,7 @@ jobs:
 #
 #      # Setup Gradle
 #      - name: Setup Gradle
-#        uses: gradle/actions/setup-gradle@v3
-#        with:
-#          build-root-directory: ${{ github.workspace }}/PluginsAndFeatures/azure-toolkit-for-rider
-#          gradle-home-cache-cleanup: true
+#        uses: gradle/actions/setup-gradle@v4
 #
 #      # Setup .NET 8 environment
 #      - name: Setup .NET
