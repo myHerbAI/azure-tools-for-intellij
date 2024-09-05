@@ -24,6 +24,9 @@ import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.jetbrains.rd.util.lifetime.Lifetime
+import com.jetbrains.rider.azure.model.AzureFunctionWorkerModel
+import com.jetbrains.rider.azure.model.AzureFunctionWorkerModelRequest
+import com.jetbrains.rider.azure.model.functionAppDaemonModel
 import com.jetbrains.rider.model.runnableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.AsyncExecutorFactory
@@ -82,8 +85,7 @@ class FunctionRunExecutorFactory(
             .tryPatchHostJsonFile(dotNetExecutable.workingDirectory, parameters.functionNames)
 
         val workerRuntime = if (functionLocalSettings?.values?.workerRuntime == null) {
-            showNotificationAboutDefaultRuntime(projectFilePath)
-            FunctionWorkerRuntime.DOTNET_ISOLATED
+            getFunctionWorkerRuntimeFromBackendOrDefault(projectFilePath)
         } else {
             functionLocalSettings.values.workerRuntime
         }
@@ -176,6 +178,22 @@ class FunctionRunExecutorFactory(
             "",
             true
         )
+    }
+
+    private suspend fun getFunctionWorkerRuntimeFromBackendOrDefault(projectFilePath: Path): FunctionWorkerRuntime {
+        val functionWorkerModel = project.solution
+            .functionAppDaemonModel
+            .getAzureFunctionWorkerModel
+            .startSuspending(AzureFunctionWorkerModelRequest(projectFilePath.absolutePathString()))
+
+        return when(functionWorkerModel) {
+            AzureFunctionWorkerModel.Default -> FunctionWorkerRuntime.DOTNET
+            AzureFunctionWorkerModel.Isolated -> FunctionWorkerRuntime.DOTNET_ISOLATED
+            AzureFunctionWorkerModel.Unknown -> {
+                showNotificationAboutDefaultRuntime(projectFilePath)
+                FunctionWorkerRuntime.DOTNET_ISOLATED
+            }
+        }
     }
 
     private fun showNotificationAboutDefaultRuntime(projectPath: Path) {

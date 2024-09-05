@@ -63,34 +63,44 @@ namespace JetBrains.Rider.Azure.Model
     /// </summary>
     [NotNull] public IRdEndpoint<AzureFunctionsVersionRequest, string> GetAzureFunctionsVersion => _GetAzureFunctionsVersion;
     
+    /// <summary>
+    /// Request from fronted to guess the function worker model by installed packages.
+    /// </summary>
+    [NotNull] public IRdEndpoint<AzureFunctionWorkerModelRequest, AzureFunctionWorkerModel> GetAzureFunctionWorkerModel => _GetAzureFunctionWorkerModel;
+    
     //private fields
     [NotNull] private readonly RdSignal<FunctionAppRequest> _RunFunctionApp;
     [NotNull] private readonly RdSignal<FunctionAppRequest> _DebugFunctionApp;
     [NotNull] private readonly RdSignal<FunctionAppTriggerRequest> _TriggerFunctionApp;
     [NotNull] private readonly RdCall<AzureFunctionsVersionRequest, string> _GetAzureFunctionsVersion;
+    [NotNull] private readonly RdCall<AzureFunctionWorkerModelRequest, AzureFunctionWorkerModel> _GetAzureFunctionWorkerModel;
     
     //primary constructor
     private FunctionAppDaemonModel(
       [NotNull] RdSignal<FunctionAppRequest> runFunctionApp,
       [NotNull] RdSignal<FunctionAppRequest> debugFunctionApp,
       [NotNull] RdSignal<FunctionAppTriggerRequest> triggerFunctionApp,
-      [NotNull] RdCall<AzureFunctionsVersionRequest, string> getAzureFunctionsVersion
+      [NotNull] RdCall<AzureFunctionsVersionRequest, string> getAzureFunctionsVersion,
+      [NotNull] RdCall<AzureFunctionWorkerModelRequest, AzureFunctionWorkerModel> getAzureFunctionWorkerModel
     )
     {
       if (runFunctionApp == null) throw new ArgumentNullException("runFunctionApp");
       if (debugFunctionApp == null) throw new ArgumentNullException("debugFunctionApp");
       if (triggerFunctionApp == null) throw new ArgumentNullException("triggerFunctionApp");
       if (getAzureFunctionsVersion == null) throw new ArgumentNullException("getAzureFunctionsVersion");
+      if (getAzureFunctionWorkerModel == null) throw new ArgumentNullException("getAzureFunctionWorkerModel");
       
       _RunFunctionApp = runFunctionApp;
       _DebugFunctionApp = debugFunctionApp;
       _TriggerFunctionApp = triggerFunctionApp;
       _GetAzureFunctionsVersion = getAzureFunctionsVersion;
+      _GetAzureFunctionWorkerModel = getAzureFunctionWorkerModel;
       _GetAzureFunctionsVersion.ValueCanBeNull = true;
       BindableChildren.Add(new KeyValuePair<string, object>("runFunctionApp", _RunFunctionApp));
       BindableChildren.Add(new KeyValuePair<string, object>("debugFunctionApp", _DebugFunctionApp));
       BindableChildren.Add(new KeyValuePair<string, object>("triggerFunctionApp", _TriggerFunctionApp));
       BindableChildren.Add(new KeyValuePair<string, object>("getAzureFunctionsVersion", _GetAzureFunctionsVersion));
+      BindableChildren.Add(new KeyValuePair<string, object>("getAzureFunctionWorkerModel", _GetAzureFunctionWorkerModel));
     }
     //secondary constructor
     internal FunctionAppDaemonModel (
@@ -98,16 +108,19 @@ namespace JetBrains.Rider.Azure.Model
       new RdSignal<FunctionAppRequest>(FunctionAppRequest.Read, FunctionAppRequest.Write),
       new RdSignal<FunctionAppRequest>(FunctionAppRequest.Read, FunctionAppRequest.Write),
       new RdSignal<FunctionAppTriggerRequest>(FunctionAppTriggerRequest.Read, FunctionAppTriggerRequest.Write),
-      new RdCall<AzureFunctionsVersionRequest, string>(AzureFunctionsVersionRequest.Read, AzureFunctionsVersionRequest.Write, ReadStringNullable, WriteStringNullable)
+      new RdCall<AzureFunctionsVersionRequest, string>(AzureFunctionsVersionRequest.Read, AzureFunctionsVersionRequest.Write, ReadStringNullable, WriteStringNullable),
+      new RdCall<AzureFunctionWorkerModelRequest, AzureFunctionWorkerModel>(AzureFunctionWorkerModelRequest.Read, AzureFunctionWorkerModelRequest.Write, ReadAzureFunctionWorkerModel, WriteAzureFunctionWorkerModel)
     ) {}
     //deconstruct trait
     //statics
     
     public static CtxReadDelegate<string> ReadStringNullable = JetBrains.Rd.Impl.Serializers.ReadString.NullableClass();
+    public static CtxReadDelegate<AzureFunctionWorkerModel> ReadAzureFunctionWorkerModel = new CtxReadDelegate<AzureFunctionWorkerModel>(JetBrains.Rd.Impl.Serializers.ReadEnum<AzureFunctionWorkerModel>);
     
     public static  CtxWriteDelegate<string> WriteStringNullable = JetBrains.Rd.Impl.Serializers.WriteString.NullableClass();
+    public static  CtxWriteDelegate<AzureFunctionWorkerModel> WriteAzureFunctionWorkerModel = new CtxWriteDelegate<AzureFunctionWorkerModel>(JetBrains.Rd.Impl.Serializers.WriteEnum<AzureFunctionWorkerModel>);
     
-    protected override long SerializationHash => 8461808307497795513L;
+    protected override long SerializationHash => -6648751372103047614L;
     
     protected override Action<ISerializers> Register => RegisterDeclaredTypesSerializers;
     public static void RegisterDeclaredTypesSerializers(ISerializers serializers)
@@ -132,6 +145,7 @@ namespace JetBrains.Rider.Azure.Model
         printer.Print("debugFunctionApp = "); _DebugFunctionApp.PrintEx(printer); printer.Println();
         printer.Print("triggerFunctionApp = "); _TriggerFunctionApp.PrintEx(printer); printer.Println();
         printer.Print("getAzureFunctionsVersion = "); _GetAzureFunctionsVersion.PrintEx(printer); printer.Println();
+        printer.Print("getAzureFunctionWorkerModel = "); _GetAzureFunctionWorkerModel.PrintEx(printer); printer.Println();
       }
       printer.Print(")");
     }
@@ -148,6 +162,101 @@ namespace JetBrains.Rider.Azure.Model
     public static FunctionAppDaemonModel GetFunctionAppDaemonModel(this JetBrains.Rider.Model.Solution solution)
     {
       return solution.GetOrCreateExtension("functionAppDaemonModel", () => new FunctionAppDaemonModel());
+    }
+  }
+  
+  
+  /// <summary>
+  /// <p>Generated from: FunctionAppDaemonModel.kt:49</p>
+  /// </summary>
+  public enum AzureFunctionWorkerModel {
+    Default,
+    Isolated,
+    Unknown
+  }
+  
+  
+  /// <summary>
+  /// <p>Generated from: FunctionAppDaemonModel.kt:45</p>
+  /// </summary>
+  public sealed class AzureFunctionWorkerModelRequest : IPrintable, IEquatable<AzureFunctionWorkerModelRequest>
+  {
+    //fields
+    //public fields
+    [NotNull] public string ProjectFilePath {get; private set;}
+    
+    //private fields
+    //primary constructor
+    public AzureFunctionWorkerModelRequest(
+      [NotNull] string projectFilePath
+    )
+    {
+      if (projectFilePath == null) throw new ArgumentNullException("projectFilePath");
+      
+      ProjectFilePath = projectFilePath;
+    }
+    //secondary constructor
+    //deconstruct trait
+    public void Deconstruct([NotNull] out string projectFilePath)
+    {
+      projectFilePath = ProjectFilePath;
+    }
+    //statics
+    
+    public static CtxReadDelegate<AzureFunctionWorkerModelRequest> Read = (ctx, reader) => 
+    {
+      var projectFilePath = reader.ReadString();
+      var _result = new AzureFunctionWorkerModelRequest(projectFilePath);
+      return _result;
+    };
+    
+    public static CtxWriteDelegate<AzureFunctionWorkerModelRequest> Write = (ctx, writer, value) => 
+    {
+      writer.Write(value.ProjectFilePath);
+    };
+    
+    //constants
+    
+    //custom body
+    //methods
+    //equals trait
+    public override bool Equals(object obj)
+    {
+      if (ReferenceEquals(null, obj)) return false;
+      if (ReferenceEquals(this, obj)) return true;
+      if (obj.GetType() != GetType()) return false;
+      return Equals((AzureFunctionWorkerModelRequest) obj);
+    }
+    public bool Equals(AzureFunctionWorkerModelRequest other)
+    {
+      if (ReferenceEquals(null, other)) return false;
+      if (ReferenceEquals(this, other)) return true;
+      return ProjectFilePath == other.ProjectFilePath;
+    }
+    //hash code trait
+    public override int GetHashCode()
+    {
+      unchecked {
+        var hash = 0;
+        hash = hash * 31 + ProjectFilePath.GetHashCode();
+        return hash;
+      }
+    }
+    //pretty print
+    public void Print(PrettyPrinter printer)
+    {
+      printer.Println("AzureFunctionWorkerModelRequest (");
+      using (printer.IndentCookie()) {
+        printer.Print("projectFilePath = "); ProjectFilePath.PrintEx(printer); printer.Println();
+      }
+      printer.Print(")");
+    }
+    //toString
+    public override string ToString()
+    {
+      var printer = new SingleLinePrettyPrinter();
+      Print(printer);
+      return printer.ToString();
     }
   }
   

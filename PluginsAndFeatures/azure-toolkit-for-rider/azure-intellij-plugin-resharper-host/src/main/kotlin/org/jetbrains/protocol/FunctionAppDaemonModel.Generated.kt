@@ -22,7 +22,8 @@ class FunctionAppDaemonModel private constructor(
     private val _runFunctionApp: RdSignal<FunctionAppRequest>,
     private val _debugFunctionApp: RdSignal<FunctionAppRequest>,
     private val _triggerFunctionApp: RdSignal<FunctionAppTriggerRequest>,
-    private val _getAzureFunctionsVersion: RdCall<AzureFunctionsVersionRequest, String?>
+    private val _getAzureFunctionsVersion: RdCall<AzureFunctionsVersionRequest, String?>,
+    private val _getAzureFunctionWorkerModel: RdCall<AzureFunctionWorkerModelRequest, AzureFunctionWorkerModel>
 ) : RdExtBase() {
     //companion
     
@@ -35,6 +36,8 @@ class FunctionAppDaemonModel private constructor(
             serializers.register(LazyCompanionMarshaller(RdId(-6716933343451164563), classLoader, "com.jetbrains.rider.azure.model.FunctionAppTriggerRequest"))
             serializers.register(LazyCompanionMarshaller(RdId(4671209338920827033), classLoader, "com.jetbrains.rider.azure.model.FunctionAppRequest"))
             serializers.register(LazyCompanionMarshaller(RdId(2602283917799194934), classLoader, "com.jetbrains.rider.azure.model.AzureFunctionsVersionRequest"))
+            serializers.register(LazyCompanionMarshaller(RdId(4069196274151977752), classLoader, "com.jetbrains.rider.azure.model.AzureFunctionWorkerModelRequest"))
+            serializers.register(LazyCompanionMarshaller(RdId(7072279419286197111), classLoader, "com.jetbrains.rider.azure.model.AzureFunctionWorkerModel"))
         }
         
         
@@ -42,7 +45,7 @@ class FunctionAppDaemonModel private constructor(
         
         private val __StringNullableSerializer = FrameworkMarshallers.String.nullable()
         
-        const val serializationHash = 8461808307497795513L
+        const val serializationHash = -6648751372103047614L
         
     }
     override val serializersOwner: ISerializersOwner get() = FunctionAppDaemonModel
@@ -69,6 +72,11 @@ class FunctionAppDaemonModel private constructor(
      * Request from frontend to read the AzureFunctionsVersion MSBuild property.
      */
     val getAzureFunctionsVersion: IRdCall<AzureFunctionsVersionRequest, String?> get() = _getAzureFunctionsVersion
+    
+    /**
+     * Request from fronted to guess the function worker model by installed packages.
+     */
+    val getAzureFunctionWorkerModel: IRdCall<AzureFunctionWorkerModelRequest, AzureFunctionWorkerModel> get() = _getAzureFunctionWorkerModel
     //methods
     //initializer
     init {
@@ -76,6 +84,7 @@ class FunctionAppDaemonModel private constructor(
         bindableChildren.add("debugFunctionApp" to _debugFunctionApp)
         bindableChildren.add("triggerFunctionApp" to _triggerFunctionApp)
         bindableChildren.add("getAzureFunctionsVersion" to _getAzureFunctionsVersion)
+        bindableChildren.add("getAzureFunctionWorkerModel" to _getAzureFunctionWorkerModel)
     }
     
     //secondary constructor
@@ -84,7 +93,8 @@ class FunctionAppDaemonModel private constructor(
         RdSignal<FunctionAppRequest>(FunctionAppRequest),
         RdSignal<FunctionAppRequest>(FunctionAppRequest),
         RdSignal<FunctionAppTriggerRequest>(FunctionAppTriggerRequest),
-        RdCall<AzureFunctionsVersionRequest, String?>(AzureFunctionsVersionRequest, __StringNullableSerializer)
+        RdCall<AzureFunctionsVersionRequest, String?>(AzureFunctionsVersionRequest, __StringNullableSerializer),
+        RdCall<AzureFunctionWorkerModelRequest, AzureFunctionWorkerModel>(AzureFunctionWorkerModelRequest, AzureFunctionWorkerModel.marshaller)
     )
     
     //equals trait
@@ -97,6 +107,7 @@ class FunctionAppDaemonModel private constructor(
             print("debugFunctionApp = "); _debugFunctionApp.print(printer); println()
             print("triggerFunctionApp = "); _triggerFunctionApp.print(printer); println()
             print("getAzureFunctionsVersion = "); _getAzureFunctionsVersion.print(printer); println()
+            print("getAzureFunctionWorkerModel = "); _getAzureFunctionWorkerModel.print(printer); println()
         }
         printer.print(")")
     }
@@ -106,7 +117,8 @@ class FunctionAppDaemonModel private constructor(
             _runFunctionApp.deepClonePolymorphic(),
             _debugFunctionApp.deepClonePolymorphic(),
             _triggerFunctionApp.deepClonePolymorphic(),
-            _getAzureFunctionsVersion.deepClonePolymorphic()
+            _getAzureFunctionsVersion.deepClonePolymorphic(),
+            _getAzureFunctionWorkerModel.deepClonePolymorphic()
         )
     }
     //contexts
@@ -115,6 +127,91 @@ class FunctionAppDaemonModel private constructor(
 }
 val com.jetbrains.rd.ide.model.Solution.functionAppDaemonModel get() = getOrCreateExtension("functionAppDaemonModel", ::FunctionAppDaemonModel)
 
+
+
+/**
+ * #### Generated from [FunctionAppDaemonModel.kt:49]
+ */
+enum class AzureFunctionWorkerModel {
+    Default, 
+    Isolated, 
+    Unknown;
+    
+    companion object : IMarshaller<AzureFunctionWorkerModel> {
+        val marshaller = FrameworkMarshallers.enum<AzureFunctionWorkerModel>()
+        
+        
+        override val _type: KClass<AzureFunctionWorkerModel> = AzureFunctionWorkerModel::class
+        override val id: RdId get() = RdId(7072279419286197111)
+        
+        override fun read(ctx: SerializationCtx, buffer: AbstractBuffer): AzureFunctionWorkerModel {
+            return marshaller.read(ctx, buffer)
+        }
+        
+        override fun write(ctx: SerializationCtx, buffer: AbstractBuffer, value: AzureFunctionWorkerModel)  {
+            marshaller.write(ctx, buffer, value)
+        }
+    }
+}
+
+
+/**
+ * #### Generated from [FunctionAppDaemonModel.kt:45]
+ */
+data class AzureFunctionWorkerModelRequest (
+    val projectFilePath: String
+) : IPrintable {
+    //companion
+    
+    companion object : IMarshaller<AzureFunctionWorkerModelRequest> {
+        override val _type: KClass<AzureFunctionWorkerModelRequest> = AzureFunctionWorkerModelRequest::class
+        override val id: RdId get() = RdId(4069196274151977752)
+        
+        @Suppress("UNCHECKED_CAST")
+        override fun read(ctx: SerializationCtx, buffer: AbstractBuffer): AzureFunctionWorkerModelRequest  {
+            val projectFilePath = buffer.readString()
+            return AzureFunctionWorkerModelRequest(projectFilePath)
+        }
+        
+        override fun write(ctx: SerializationCtx, buffer: AbstractBuffer, value: AzureFunctionWorkerModelRequest)  {
+            buffer.writeString(value.projectFilePath)
+        }
+        
+        
+    }
+    //fields
+    //methods
+    //initializer
+    //secondary constructor
+    //equals trait
+    override fun equals(other: Any?): Boolean  {
+        if (this === other) return true
+        if (other == null || other::class != this::class) return false
+        
+        other as AzureFunctionWorkerModelRequest
+        
+        if (projectFilePath != other.projectFilePath) return false
+        
+        return true
+    }
+    //hash code trait
+    override fun hashCode(): Int  {
+        var __r = 0
+        __r = __r*31 + projectFilePath.hashCode()
+        return __r
+    }
+    //pretty print
+    override fun print(printer: PrettyPrinter)  {
+        printer.println("AzureFunctionWorkerModelRequest (")
+        printer.indent {
+            print("projectFilePath = "); projectFilePath.print(printer); println()
+        }
+        printer.print(")")
+    }
+    //deepClone
+    //contexts
+    //threading
+}
 
 
 /**
