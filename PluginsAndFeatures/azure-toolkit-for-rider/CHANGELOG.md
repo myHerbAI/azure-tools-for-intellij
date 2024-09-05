@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.1.2] - 2024-09-04
+
 ### Fixed
 
 - Unable to sign in to Azure using OAuth 2.0: Unable to locate JNA native support library ([RIDER-116013](https://youtrack.jetbrains.com/issue/RIDER-116013), [#884](https://github.com/JetBrains/azure-tools-for-intellij/issues/884))
@@ -133,7 +135,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.1...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.2...HEAD
+[4.1.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.1...v4.1.2
 [4.1.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.0...v4.1.1
 [4.1.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.2...v4.1.0
 [4.0.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.1...v4.0.2
