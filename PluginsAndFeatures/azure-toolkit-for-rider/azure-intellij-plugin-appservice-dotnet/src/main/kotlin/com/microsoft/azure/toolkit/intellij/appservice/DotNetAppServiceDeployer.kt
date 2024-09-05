@@ -13,6 +13,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.jetbrains.rider.model.PublishableProjectModel
 import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceAppBase
+import com.microsoft.azure.toolkit.lib.appservice.function.FunctionAppBase
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase
 import com.microsoft.azure.toolkit.lib.common.model.AzResource
 import kotlinx.coroutines.reactor.awaitSingleOrNull
@@ -51,7 +52,7 @@ class DotNetAppServiceDeployer(private val project: Project) {
 
         val artifactFolder = publishProjectResult.getOrThrow()
         updateStatusText("Creating ${publishableProject.projectName} project ZIP...")
-        val zipFile = packageArtifactDirectory(artifactFolder)
+        val zipFile = packageWebAppArtifactDirectory(artifactFolder)
             ?: return Result.failure(ExecutionException("Unable to create zip archive with project artifacts"))
         updateStatusText("Project ZIP is created: ${zipFile.absolutePath}")
 
@@ -62,10 +63,56 @@ class DotNetAppServiceDeployer(private val project: Project) {
         )
     }
 
-    private fun packageArtifactDirectory(artifactFolder: File): File? {
+    suspend fun deploy(
+        target: FunctionAppBase<*, *, *>,
+        publishableProject: PublishableProjectModel,
+        configuration: String?,
+        platform: String?,
+        updateStatusText: (String) -> Unit
+    ): Result<Unit> {
+        target.status = AzResource.Status.DEPLOYING
+
+        val publishProjectResult = ArtifactService
+            .getInstance(project)
+            .publishProjectToFolder(
+                publishableProject,
+                configuration,
+                platform,
+                updateStatusText
+            )
+            .onFailure {
+                return Result.failure(it)
+            }
+
+        val artifactFolder = publishProjectResult.getOrThrow()
+        updateStatusText("Creating ${publishableProject.projectName} project ZIP...")
+        val zipFile = packageFunctionAppArtifactDirectory(artifactFolder)
+            ?: return Result.failure(ExecutionException("Unable to create zip archive with project artifacts"))
+        updateStatusText("Project ZIP is created: ${zipFile.absolutePath}")
+
+        return deploy(
+            target,
+            zipFile,
+            updateStatusText
+        )
+    }
+
+    private fun packageWebAppArtifactDirectory(artifactFolder: File): File? {
         try {
             val zipFile = Files.createTempFile(artifactFolder.nameWithoutExtension, ".zip").toFile()
             ZipUtil.pack(artifactFolder, zipFile)
+            return zipFile
+        } catch (e: IOException) {
+            LOG.error("Unable to package the artifact directory", e)
+            return null
+        }
+    }
+
+    private fun packageFunctionAppArtifactDirectory(artifactFolder: File): File? {
+        try {
+            val zipFile = Files.createTempFile(artifactFolder.nameWithoutExtension, ".zip").toFile()
+            ZipUtil.pack(artifactFolder, zipFile)
+            ZipUtil.removeEntry(zipFile, "local.settings.json")
             return zipFile
         } catch (e: IOException) {
             LOG.error("Unable to package the artifact directory", e)

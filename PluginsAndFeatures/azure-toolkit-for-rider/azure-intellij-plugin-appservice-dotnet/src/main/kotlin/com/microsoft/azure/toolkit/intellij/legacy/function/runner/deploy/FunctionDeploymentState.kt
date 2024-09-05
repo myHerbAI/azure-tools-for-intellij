@@ -13,13 +13,12 @@ import com.intellij.openapi.project.Project
 import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
+import com.microsoft.azure.toolkit.intellij.appservice.DotNetAppServiceDeployer
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.CreateOrUpdateDotNetFunctionAppTask
-import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DeployDotNetFunctionAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctionAppConfig
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctionAppDeploymentSlotDraft
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
-import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureDeploymentState
 import com.microsoft.azure.toolkit.intellij.legacy.getFunctionStack
 import com.microsoft.azure.toolkit.intellij.legacy.getStackAndVersion
@@ -60,18 +59,15 @@ class FunctionDeploymentState(
 
         checkCanceled()
 
-        val artifactDirectory = ArtifactService.getInstance(project)
-            .publishProjectToFolder(
+        DotNetAppServiceDeployer
+            .getInstance(project)
+            .deploy(
+                deployTarget,
                 publishableProject,
                 options.projectConfiguration,
-                options.projectPlatform
+                options.projectPlatform,
             ) { processHandlerMessenger?.info(it) }
             .getOrThrow()
-
-        checkCanceled()
-
-        val deployTask = DeployDotNetFunctionAppTask(deployTarget, artifactDirectory, processHandlerMessenger)
-        deployTask.execute()
 
         return deployTarget
     }
@@ -122,7 +118,10 @@ class FunctionDeploymentState(
         val options = requireNotNull(functionDeploymentConfiguration.state)
 
         updateConfigurationDataModel(result)
+        processHandlerMessenger?.info("Deployment was successful, but the app may still be starting.")
+
         val url = "https://${result.hostName}"
+        processHandlerMessenger?.info("URL: $url")
         if (options.openBrowser) {
             BrowserUtil.open(url)
         }
