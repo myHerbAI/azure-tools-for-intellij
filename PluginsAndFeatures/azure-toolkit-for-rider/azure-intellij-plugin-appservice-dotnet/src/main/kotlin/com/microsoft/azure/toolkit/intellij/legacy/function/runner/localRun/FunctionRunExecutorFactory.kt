@@ -191,7 +191,7 @@ class FunctionRunExecutorFactory(
             AzureFunctionWorkerModel.Isolated -> FunctionWorkerRuntime.DOTNET_ISOLATED
             AzureFunctionWorkerModel.Unknown -> {
                 showNotificationAboutDefaultRuntime(projectFilePath)
-                FunctionWorkerRuntime.DOTNET_ISOLATED
+                FunctionWorkerRuntime.DOTNET
             }
         }
     }
@@ -202,7 +202,7 @@ class FunctionRunExecutorFactory(
         Notification(
             "Azure AppServices",
             "Unable to find the Function worker runtime",
-            "Unable to find the `FUNCTIONS_WORKER_RUNTIME` variable in the `local.settings.json` file. The Isolated worker model will be applied",
+            "Unable to find the `FUNCTIONS_WORKER_RUNTIME` variable in the `local.settings.json` file. The Default worker model will be applied",
             NotificationType.WARNING
         )
             .addAction(NotificationAction.createSimple("Open local.settings.json") {
