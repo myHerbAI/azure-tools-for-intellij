@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Detect the Function worker runtime from the installed packages and show notifications otherwise ([RIDER-116722](https://youtrack.jetbrains.com/issue/RIDER-116722))
+
 ## [4.1.2] - 2024-09-04
 
 ### Fixed
