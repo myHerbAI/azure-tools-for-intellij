@@ -1,10 +1,12 @@
 ﻿// Copyright 2018-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the MIT license.
 
+using System;
 using JetBrains.Lifetimes;
 using JetBrains.ProjectModel;
 using JetBrains.ProjectModel.MSBuild;
 using JetBrains.ProjectModel.Properties;
 using JetBrains.Rd.Tasks;
+using JetBrains.ReSharper.Azure.Project.FunctionApp;
 using JetBrains.ReSharper.Feature.Services.Protocol;
 using JetBrains.ReSharper.Resources.Shell;
 using JetBrains.Rider.Azure.Model;
@@ -24,6 +26,7 @@ public class FunctionAppDaemonHost
 
         _model = solution.GetProtocolSolution().GetFunctionAppDaemonModel();
         _model.GetAzureFunctionsVersion.SetSync(GetAzureFunctionsVersionHandler);
+        _model.GetAzureFunctionWorkerModel.SetSync(GetAzureFunctionWorkerModel);
     }
 
     public void RunFunctionApp(string projectFilePath) => _model.RunFunctionApp(
@@ -70,17 +73,41 @@ public class FunctionAppDaemonHost
 
     private string? GetAzureFunctionsVersionHandler(Lifetime lifetime, AzureFunctionsVersionRequest request)
     {
-        var projectFilePath = VirtualFileSystemPath.Parse(request.ProjectFilePath, InteractionContext.SolutionContext);
-        IProject? project;
-        using (ReadLockCookie.Create())
-        {
-            project = _solution.FindProjectByProjectFilePath(projectFilePath);
-        }
-
+        var project = FindProjectByPath(request.ProjectFilePath);
         if (project is null) return null;
 
         var version = project.GetUniqueRequestedProjectProperty(MSBuildProjectUtil.AzureFunctionsVersionProperty);
 
         return version;
+    }
+
+    private AzureFunctionWorkerModel GetAzureFunctionWorkerModel(
+        Lifetime lifetime,
+        AzureFunctionWorkerModelRequest request)
+    {
+        var project = FindProjectByPath(request.ProjectFilePath);
+        if (project is null) return AzureFunctionWorkerModel.Unknown;
+
+        var model = FunctionAppProjectDetector.GetFunctionProjectWorkerModel(project);
+
+        return model switch
+        {
+            FunctionProjectWorkerModel.Default => AzureFunctionWorkerModel.Default,
+            FunctionProjectWorkerModel.Isolated => AzureFunctionWorkerModel.Isolated,
+            FunctionProjectWorkerModel.Unknown => AzureFunctionWorkerModel.Unknown,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
+    private IProject? FindProjectByPath(string projectFilePath)
+    {
+        var path = VirtualFileSystemPath.Parse(projectFilePath, InteractionContext.SolutionContext);
+        IProject? project;
+        using (ReadLockCookie.Create())
+        {
+            project = _solution.FindProjectByProjectFilePath(path);
+        }
+
+        return project;
     }
 }

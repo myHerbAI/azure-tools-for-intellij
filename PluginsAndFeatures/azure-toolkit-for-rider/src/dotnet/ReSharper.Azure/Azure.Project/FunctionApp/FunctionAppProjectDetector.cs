@@ -86,9 +86,7 @@ public static class FunctionAppProjectDetector
                 return false;
 
             if (IsAzureFunctionsProject(project, tfm, out _, null))
-            {
                 return true;
-            }
         }
 
         return false;
@@ -142,5 +140,18 @@ public static class FunctionAppProjectDetector
             : null;
 
         return hasMsBuildProperty || hasExpectedPackageReference || hasHostJsonFile;
+    }
+
+    public static FunctionProjectWorkerModel GetFunctionProjectWorkerModel(IProject project)
+    {
+        foreach (var tfm in project.TargetFrameworkIds)
+        {
+            if (DefaultWorker.HasFunctionsPackageReference(project, tfm))
+                return FunctionProjectWorkerModel.Default;
+            if (IsolatedWorker.HasFunctionsPackageReference(project, tfm))
+                return FunctionProjectWorkerModel.Isolated;
+        }
+
+        return FunctionProjectWorkerModel.Unknown;
     }
 }

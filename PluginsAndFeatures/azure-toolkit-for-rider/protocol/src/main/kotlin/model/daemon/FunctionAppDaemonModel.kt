@@ -42,20 +42,33 @@ object FunctionAppDaemonModel : Ext(SolutionModel.Solution) {
         field("projectFilePath", string)
     }
 
+    private val AzureFunctionWorkerModelRequest = structdef {
+        field("projectFilePath", string)
+    }
+
+    private val AzureFunctionWorkerModel = enum {
+        +"Default"
+        +"Isolated"
+        +"Unknown"
+    }
+
     init {
         setting(Kotlin11Generator.Namespace, "com.jetbrains.rider.azure.model")
         setting(CSharp50Generator.Namespace, "JetBrains.Rider.Azure.Model")
 
         sink("runFunctionApp", FunctionAppRequest)
-                .doc("Signal from backend to run a Function App locally.")
+            .doc("Signal from backend to run a Function App locally.")
 
         sink("debugFunctionApp", FunctionAppRequest)
-                .doc("Signal from backend to debug a Function App locally.")
+            .doc("Signal from backend to debug a Function App locally.")
 
         sink("triggerFunctionApp", FunctionAppTriggerRequest)
-                .doc("Signal from backend to trigger a Function App.")
+            .doc("Signal from backend to trigger a Function App.")
 
         call("getAzureFunctionsVersion", AzureFunctionsVersionRequest, string.nullable)
-                .doc("Request from frontend to read the AzureFunctionsVersion MSBuild property.")
+            .doc("Request from frontend to read the AzureFunctionsVersion MSBuild property.")
+
+        call("getAzureFunctionWorkerModel", AzureFunctionWorkerModelRequest, AzureFunctionWorkerModel)
+            .doc("Request from fronted to guess the function worker model by installed packages.")
     }
 }

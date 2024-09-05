@@ -14,12 +14,19 @@ import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.ide.actions.OpenFileAction
 import com.intellij.ide.browsers.BrowserStarter
 import com.intellij.ide.browsers.StartBrowserSettings
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationAction
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.jetbrains.rd.util.lifetime.Lifetime
+import com.jetbrains.rider.azure.model.AzureFunctionWorkerModel
+import com.jetbrains.rider.azure.model.AzureFunctionWorkerModelRequest
+import com.jetbrains.rider.azure.model.functionAppDaemonModel
 import com.jetbrains.rider.model.runnableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.jetbrains.rider.run.configurations.AsyncExecutorFactory
@@ -39,6 +46,7 @@ import com.microsoft.azure.toolkit.intellij.legacy.function.localsettings.Functi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 
@@ -61,10 +69,11 @@ class FunctionRunExecutorFactory(
             ?: throw CantRunException("Can't run Azure Functions host. No Azure Functions Core Tools information could be determined")
         val (azureFunctionsVersion, coreToolsInfo) = coreToolsInfoResult
 
+        val projectFilePath = Path(parameters.projectFilePath)
         val functionLocalSettings = withContext(Dispatchers.Default) {
             FunctionLocalSettingsService
                 .getInstance(project)
-                .getFunctionLocalSettings(Path(parameters.projectFilePath).parent)
+                .getFunctionLocalSettings(projectFilePath)
         }
 
         val dotNetExecutable = getDotNetExecutable(coreToolsInfo, functionLocalSettings)
@@ -75,7 +84,11 @@ class FunctionRunExecutorFactory(
             .getInstance()
             .tryPatchHostJsonFile(dotNetExecutable.workingDirectory, parameters.functionNames)
 
-        val workerRuntime = functionLocalSettings?.values?.workerRuntime ?: FunctionWorkerRuntime.DOTNET_ISOLATED
+        val workerRuntime = if (functionLocalSettings?.values?.workerRuntime == null) {
+            getFunctionWorkerRuntimeFromBackendOrDefault(projectFilePath)
+        } else {
+            functionLocalSettings.values.workerRuntime
+        }
         LOG.debug { "Worker runtime: $workerRuntime" }
 
         val runtimeToExecute = if (azureFunctionsVersion.equals("v1", ignoreCase = true)) {
@@ -165,6 +178,37 @@ class FunctionRunExecutorFactory(
             "",
             true
         )
+    }
+
+    private suspend fun getFunctionWorkerRuntimeFromBackendOrDefault(projectFilePath: Path): FunctionWorkerRuntime {
+        val functionWorkerModel = project.solution
+            .functionAppDaemonModel
+            .getAzureFunctionWorkerModel
+            .startSuspending(AzureFunctionWorkerModelRequest(projectFilePath.absolutePathString()))
+
+        return when(functionWorkerModel) {
+            AzureFunctionWorkerModel.Default -> FunctionWorkerRuntime.DOTNET
+            AzureFunctionWorkerModel.Isolated -> FunctionWorkerRuntime.DOTNET_ISOLATED
+            AzureFunctionWorkerModel.Unknown -> {
+                showNotificationAboutDefaultRuntime(projectFilePath)
+                FunctionWorkerRuntime.DOTNET
+            }
+        }
+    }
+
+    private fun showNotificationAboutDefaultRuntime(projectPath: Path) {
+        val settingsFilePath = FunctionLocalSettingsService.getInstance(project).getLocalSettingFilePath(projectPath)
+
+        Notification(
+            "Azure AppServices",
+            "Unable to find the Function worker runtime",
+            "Unable to find the `FUNCTIONS_WORKER_RUNTIME` variable in the `local.settings.json` file. The Default worker model will be applied",
+            NotificationType.WARNING
+        )
+            .addAction(NotificationAction.createSimple("Open local.settings.json") {
+                OpenFileAction.openFile(settingsFilePath.absolutePathString(), project)
+            })
+            .notify(project)
     }
 
     private fun getStartBrowserAction(
