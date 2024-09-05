@@ -7,6 +7,7 @@
 ### Fixed
 
 - Detect the Function worker runtime from the installed packages and show notifications otherwise ([RIDER-116722](https://youtrack.jetbrains.com/issue/RIDER-116722))
+- Use zipdeploy for the App Service deployments ([#898](https://github.com/JetBrains/azure-tools-for-intellij/issues/898))
 
 ## [4.1.2] - 2024-09-04
 
