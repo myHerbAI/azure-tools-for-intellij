@@ -37,7 +37,7 @@ class FunctionLocalSettingsService {
 
     fun initialize(runnableProjects: List<RunnableProject>) {
         runnableProjects.forEach {
-            val localSettingsFile = getLocalSettingFile(Path(it.projectFilePath).parent)
+            val localSettingsFile = getLocalSettingFilePathInternal(Path(it.projectFilePath).parent)
             if (!localSettingsFile.exists()) return@forEach
             val virtualFile = VfsUtil.findFile(localSettingsFile, true) ?: return@forEach
             val localSettingsFileStamp = localSettingsFile.toFile().lastModified()
@@ -47,13 +47,16 @@ class FunctionLocalSettingsService {
     }
 
     fun getFunctionLocalSettings(publishableProject: PublishableProjectModel) =
-        getFunctionLocalSettings(Path(publishableProject.projectFilePath).parent)
+        getFunctionLocalSettingsInternal(Path(publishableProject.projectFilePath).parent)
 
     fun getFunctionLocalSettings(runnableProject: RunnableProject) =
-        getFunctionLocalSettings(Path(runnableProject.projectFilePath).parent)
+        getFunctionLocalSettingsInternal(Path(runnableProject.projectFilePath).parent)
 
-    fun getFunctionLocalSettings(basePath: Path): FunctionLocalSettings? {
-        val localSettingsFile = getLocalSettingFile(basePath)
+    fun getFunctionLocalSettings(projectPath: Path) =
+        getFunctionLocalSettingsInternal(projectPath.parent)
+
+    private fun getFunctionLocalSettingsInternal(basePath: Path): FunctionLocalSettings? {
+        val localSettingsFile = getLocalSettingFilePathInternal(basePath)
         if (!localSettingsFile.exists()) return null
 
         val localSettingsFileStamp = localSettingsFile.toFile().lastModified()
@@ -68,7 +71,10 @@ class FunctionLocalSettingsService {
         return existingLocalSettings.second
     }
 
-    private fun getLocalSettingFile(basePath: Path): Path = basePath.resolve("local.settings.json")
+    fun getLocalSettingFilePath(projectPath: Path) =
+        getLocalSettingFilePathInternal(projectPath.parent)
+
+    private fun getLocalSettingFilePathInternal(basePath: Path): Path = basePath.resolve("local.settings.json")
 
     private fun getFunctionLocalSettings(localSettingsFile: VirtualFile): FunctionLocalSettings {
         val content = localSettingsFile.readText()
