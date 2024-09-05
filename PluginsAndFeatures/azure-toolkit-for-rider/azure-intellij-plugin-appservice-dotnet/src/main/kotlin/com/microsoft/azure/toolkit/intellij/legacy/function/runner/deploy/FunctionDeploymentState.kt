@@ -61,13 +61,12 @@ class FunctionDeploymentState(
         checkCanceled()
 
         val artifactDirectory = ArtifactService.getInstance(project)
-            .prepareArtifact(
+            .publishProjectToFolder(
                 publishableProject,
                 options.projectConfiguration,
-                options.projectPlatform,
-                processHandler,
-                false
-            )
+                options.projectPlatform
+            ) { processHandlerMessenger?.info(it) }
+            .getOrThrow()
 
         checkCanceled()
 

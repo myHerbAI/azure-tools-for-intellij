@@ -10,24 +10,20 @@ import com.intellij.execution.ExecutionException
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil
 import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.model.publishableProjectsModel
 import com.jetbrains.rider.projectView.solution
 import com.microsoft.azure.toolkit.intellij.appservice.DotNetRuntimeConfig
 import com.microsoft.azure.toolkit.intellij.appservice.functionapp.DotNetFunctionAppDeploymentSlotDraft
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.CreateOrUpdateDotNetWebAppTask
-import com.microsoft.azure.toolkit.intellij.appservice.webapp.DeployDotNetWebAppTask
 import com.microsoft.azure.toolkit.intellij.appservice.webapp.DotNetAppServiceConfig
+import com.microsoft.azure.toolkit.intellij.appservice.DotNetAppServiceDeployer
 import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
-import com.microsoft.azure.toolkit.intellij.legacy.ArtifactService
 import com.microsoft.azure.toolkit.intellij.legacy.common.AzureDeploymentState
 import com.microsoft.azure.toolkit.intellij.legacy.getStackAndVersion
 import com.microsoft.azure.toolkit.lib.appservice.config.RuntimeConfig
-import com.microsoft.azure.toolkit.lib.appservice.model.DeployType
 import com.microsoft.azure.toolkit.lib.appservice.model.OperatingSystem
 import com.microsoft.azure.toolkit.lib.appservice.model.PricingTier
-import com.microsoft.azure.toolkit.lib.appservice.model.WebAppArtifact
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppBase
 import com.microsoft.azure.toolkit.lib.appservice.webapp.WebAppDeploymentSlot
 import com.microsoft.azure.toolkit.lib.common.model.AzResource
@@ -62,25 +58,15 @@ class WebAppDeploymentState(
 
         checkCanceled()
 
-        val zipFile = ArtifactService.getInstance(project)
-            .prepareArtifact(
+        DotNetAppServiceDeployer
+            .getInstance(project)
+            .deploy(
+                deployTarget,
                 publishableProject,
                 options.projectConfiguration,
                 options.projectPlatform,
-                processHandler,
-                true
-            )
-        val artifact = WebAppArtifact.builder()
-            .file(zipFile)
-            .deployType(DeployType.ZIP)
-            .build()
-
-        checkCanceled()
-
-        val deployTask = DeployDotNetWebAppTask(deployTarget, artifact, processHandlerMessenger)
-        deployTask.execute()
-
-        FileUtil.delete(zipFile)
+            ) { processHandlerMessenger?.info(it) }
+            .getOrThrow()
 
         return deployTarget
     }
