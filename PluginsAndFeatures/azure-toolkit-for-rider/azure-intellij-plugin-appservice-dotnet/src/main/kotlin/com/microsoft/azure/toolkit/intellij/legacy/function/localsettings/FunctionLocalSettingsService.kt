@@ -31,6 +31,7 @@ class FunctionLocalSettingsService {
         decodeEnumsCaseInsensitive = true
         explicitNulls = false
         ignoreUnknownKeys = true
+        allowTrailingComma = true
     }
 
     private val cache = ConcurrentHashMap<String, Pair<Long, FunctionLocalSettings>>()
