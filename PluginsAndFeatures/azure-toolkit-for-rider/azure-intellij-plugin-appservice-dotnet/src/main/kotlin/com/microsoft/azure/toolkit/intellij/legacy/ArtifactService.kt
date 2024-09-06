@@ -8,11 +8,10 @@ import com.intellij.execution.ExecutionException
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.diagnostic.trace
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.wm.ToolWindowId
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.util.io.ZipUtil
 import com.jetbrains.rider.build.BuildParameters
 import com.jetbrains.rider.build.tasks.BuildStatus
 import com.jetbrains.rider.build.tasks.BuildTaskThrottler
@@ -21,13 +20,9 @@ import com.jetbrains.rider.model.CustomTargetExtraProperty
 import com.jetbrains.rider.model.CustomTargetWithExtraProperties
 import com.jetbrains.rider.model.PublishableProjectModel
 import com.jetbrains.rider.run.configurations.publishing.base.MsBuildPublishingService
-import com.microsoft.azure.toolkit.intellij.common.RunProcessHandler
 import java.io.File
-import java.io.FileFilter
-import java.io.FileNotFoundException
-import java.io.FileOutputStream
 import java.nio.file.Path
-import java.util.zip.ZipOutputStream
+import kotlin.io.path.pathString
 
 @Service(Service.Level.PROJECT)
 class ArtifactService(private val project: Project) {
@@ -36,42 +31,42 @@ class ArtifactService(private val project: Project) {
         private val LOG = logger<ArtifactService>()
     }
 
-    fun prepareArtifact(
+    suspend fun publishProjectToFolder(
         publishableProject: PublishableProjectModel,
         configuration: String?,
         platform: String?,
-        processHandler: RunProcessHandler,
-        zipArtifact: Boolean
-    ): File {
-        processHandler.setText("Collecting ${publishableProject.projectName} project artifacts...")
-        if (!configuration.isNullOrEmpty() && !platform.isNullOrEmpty()) {
-            processHandler.setText("Using configuration: $configuration and platform: $platform")
-        }
-        val outDir = collectProjectArtifacts(publishableProject, configuration, platform)
-        if (!zipArtifact) return outDir
+        updateStatusText: (String) -> Unit
+    ): Result<File> {
+        updateStatusText("Publishing project ${publishableProject.projectName} to a folder...")
 
-        processHandler.setText("Creating ${publishableProject.projectName} project ZIP...")
-        return zipProjectArtifacts(outDir, processHandler)
+        if (!configuration.isNullOrEmpty() && !platform.isNullOrEmpty()) {
+            updateStatusText("Using configuration: $configuration and platform: $platform")
+        }
+        val artifactDirectoryResult = publishProjectToFolder(publishableProject, configuration, platform)
+
+        return artifactDirectoryResult
     }
 
     /**
-     * Collect a selected project artifacts and get a [File] with out folder
-     * Note: For a DotNET Framework projects publish a copy of project folder as is
-     *       For a DotNet Core projects generate an publishable output by [MsBuildPublishingService]
+     * Publish project to a folder [File]
+     * Note: For .NET Framework projects publish a copy of project folder as is
+     *       For .NET projects generate a publishable output by [MsBuildPublishingService]
      *
-     * @param publishableProject contains information about project to be published (isDotNetCore, path to project file)
+     * @param publishableProject [PublishableProjectModel] contains information about the project to be published
      * @param configuration optional configuration to pass to MSBuild
      * @param platform optional platform to pass to MSBuild
      *
      * @return [File] to project content to be published
      */
-    private fun collectProjectArtifacts(
+    private suspend fun publishProjectToFolder(
         publishableProject: PublishableProjectModel,
         configuration: String?,
         platform: String?
-    ): File {
+    ): Result<File> {
         val publishService = MsBuildPublishingService.getInstance(project)
         val (tempDirMsBuildProperty, outPath) = publishService.getPublishToTempDirParameterAndPath()
+
+        LOG.trace { "Publishing project ${publishableProject.projectName} to ${outPath.pathString}" }
 
         val extraProperties = mutableListOf<CustomTargetExtraProperty>()
         if (!configuration.isNullOrEmpty()) {
@@ -90,17 +85,16 @@ class ArtifactService(private val project: Project) {
 
         val buildResult = buildStatus.buildResultKind
         if (buildResult != BuildResultKind.Successful && buildResult != BuildResultKind.HasWarnings) {
-            val errorMessage = "Failed collecting project artifacts. Please see Build output"
-            LOG.error(errorMessage)
-            throw ExecutionException(errorMessage)
+            LOG.error("Unable to publish project")
+            return Result.failure(ExecutionException("Failed collecting project artifacts. Please see Build output."))
         } else {
             requestRunWindowFocus()
         }
 
-        return outPath.toFile().canonicalFile
+        return Result.success(outPath.toFile().canonicalFile)
     }
 
-    private fun invokeMsBuild(
+    private suspend fun invokeMsBuild(
         projectModel: PublishableProjectModel,
         extraProperties: List<CustomTargetExtraProperty>,
         diagnosticsMode: Boolean,
@@ -114,10 +108,10 @@ class ArtifactService(private val project: Project) {
             ), listOf(projectModel.projectFilePath), diagnosticsMode, silentMode, noRestore = noRestore
         )
 
-        return BuildTaskThrottler.getInstance(project).buildSequentiallySync(buildParameters)
+        return BuildTaskThrottler.getInstance(project).buildSequentially(buildParameters)
     }
 
-    private fun webPublishToFileSystem(
+    private suspend fun webPublishToFileSystem(
         pathToProject: String,
         outPath: Path,
         extraProperties: List<CustomTargetExtraProperty>,
@@ -134,7 +128,7 @@ class ArtifactService(private val project: Project) {
             ), listOf(pathToProject), diagnosticsMode, silentMode
         )
 
-        return BuildTaskThrottler.getInstance(project).buildSequentiallySync(buildParameters)
+        return BuildTaskThrottler.getInstance(project).buildSequentially(buildParameters)
     }
 
     /**
@@ -148,48 +142,7 @@ class ArtifactService(private val project: Project) {
                     window.show(null)
             }
         } catch (e: Throwable) {
-            LOG.error(e)
-        }
-    }
-
-    private fun zipProjectArtifacts(
-        fromFile: File,
-        processHandler: RunProcessHandler,
-        deleteOriginal: Boolean = true
-    ): File {
-        if (!fromFile.exists())
-            throw FileNotFoundException("Original file '${fromFile.path}' not found")
-
-        try {
-            val toZip = FileUtil.createTempFile(fromFile.nameWithoutExtension, ".zip", true)
-            packToZip(fromFile, toZip)
-            processHandler.setText("Project ZIP is created: ${toZip.path}")
-
-            if (deleteOriginal)
-                FileUtil.delete(fromFile)
-
-            return toZip
-        } catch (t: Throwable) {
-            val errorMessage = "Unable to create a ZIP file: $t"
-            LOG.error(errorMessage)
-            processHandler.setText(errorMessage)
-            throw ExecutionException("Unable to create a ZIP file", t)
-        }
-    }
-
-    private fun packToZip(
-        fileToZip: File,
-        zipFileToCreate: File,
-        filter: FileFilter? = null
-    ) {
-        if (!fileToZip.exists()) {
-            val message = "Source file or directory '${fileToZip.path}' does not exist"
-            LOG.error(message)
-            throw FileNotFoundException(message)
-        }
-
-        ZipOutputStream(FileOutputStream(zipFileToCreate)).use { zipOutput ->
-            ZipUtil.addDirToZipRecursively(zipOutput, null, fileToZip, "", filter, null)
+            LOG.warn(e)
         }
     }
 }

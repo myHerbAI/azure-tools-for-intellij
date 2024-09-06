@@ -39,7 +39,7 @@ abstract class AzureDeploymentState<T>(
         processHandler.startNotify()
         consoleView.attachToProcess(processHandler)
 
-        val processScope = scope.childScope("")
+        val processScope = scope.childScope("Azure Deployment scope")
         processScope.launch(Dispatchers.Default) {
             try {
                 val result = executeSteps(processHandler)
