@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [4.1.3] - 2024-09-06
+
 ### Fixed
 
 - Detect the Function worker runtime from the installed packages and show notifications otherwise ([RIDER-116722](https://youtrack.jetbrains.com/issue/RIDER-116722))
@@ -140,7 +142,8 @@
 - Reimplement Azure Functions Core Tools integration
 - Reimplement Azure Functions templates
 
-[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.2...HEAD
+[Unreleased]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.3...HEAD
+[4.1.3]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.2...v4.1.3
 [4.1.2]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.1...v4.1.2
 [4.1.1]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.1.0...v4.1.1
 [4.1.0]: https://github.com/JetBrains/azure-tools-for-intellij/compare/v4.0.2...v4.1.0
